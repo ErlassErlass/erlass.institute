@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory; // ADD THIS
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable {
+       use HasFactory; // ADD THIS LINE
     use Notifiable;
 
     protected $fillable = [

@@ -11,11 +11,11 @@
             <a href="{{ route('dashboard') }}" class="navbar-brand text-white">Dashboard</a>
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a href="{{ route('sekolah.index') }}" class="nav-link text-white">Schools</a>
+                    <a href="{{ route('sekolah.index') }}" class="nav-link text-white">List Sekolah</a>
                 </li>
                 @if(Auth::user()->role === 'admin')
                     <li class="nav-item">
-                        <a href="{{ route('users.index') }}" class="nav-link text-white">Users</a>
+                        <a href="{{ route('users.index') }}" class="nav-link text-white">List Users</a>
                     </li>
                 @endif
             </ul>

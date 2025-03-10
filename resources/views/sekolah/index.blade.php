@@ -27,6 +27,8 @@
                 <tr>
                     <th>Kode Sekolah</th>
                     <th>Nama Sekolah</th>
+                    <th>Provinsi</th>
+                    <th>Kecamatan</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -35,6 +37,8 @@
                     <tr>
                         <td>{{ $item->kodlan }}</td>
                         <td>{{ $item->namasekolah }}</td>
+                        <td>{{ $item->provinsi }}</td>
+                        <td>{{ $item->kec }}</td>
                         <td>
                             <a href="{{ route('sekolah.edit', $item) }}" class="btn btn-sm btn-primary">Edit</a>
                             <form action="{{ route('sekolah.destroy', $item) }}" method="POST" class="d-inline">
