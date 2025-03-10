@@ -21,4 +21,6 @@ class AppServiceProvider extends ServiceProvider
     {
         //
     }
+
+    public const HOME = '/dashboard'; // Default redirect after login
 }
