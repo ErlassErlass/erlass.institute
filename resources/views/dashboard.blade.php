@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
-@section('content')<!DOCTYPE html>
+@section('content')
+<!DOCTYPE html>
 <html>
 <head>
     <title>Dashboard</title>
@@ -21,7 +22,6 @@
 </style>
 </head>
 <body>
-    <h1>Dashboard</h1>
     
     <div class="card">
         <h2>Hello, {{ Auth::user()->nama_lengkap }}</h2>
@@ -31,9 +31,9 @@
     <div class="card">
         <h3>Navigation</h3>
         <ul>
-            <li><a href="{{ route('sekolah.index') }}">Manage Schools</a></li>
-            <li><a href="{{ route('laporan-mengajar.index') }}">Teaching Reports</a></li>
-            <li><a href="{{ route('absensi.index') }}">Attendance</a></li>
+            <li><a href="{{ route('sekolah.index') }}">List Sekolah</a></li>
+            <li><a href="{{ route('laporan-mengajar.index') }}">Laporan Mengajar</a></li>
+            <li><a href="{{ route('absensi.index') }}">Absensi</a></li>
             @if(Auth::user()->role === 'admin')
                 <li><a href="{{ route('users.index') }}">User Management</a></li>
             @endif

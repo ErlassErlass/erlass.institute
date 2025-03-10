@@ -7,11 +7,15 @@ use Illuminate\Http\Request;
 
 class SekolahController extends Controller {
     // Index: List all schools
-    public function index() {
-        $sekolah = Sekolah::all();
-        return view('sekolah.index', compact('sekolah'));
-    }
+public function index(Request $request) {
+    $search = $request->input('search');
 
+    $sekolah = Sekolah::when($search, function ($query) use ($search) {
+        return $query->where('namasekolah', 'like', "%$search%");
+    })->paginate(25); // Show 25 records per page
+
+    return view('sekolah.index', compact('sekolah'));
+}
     // Create: Show form to add a school
     public function create() {
         return view('sekolah.create');
