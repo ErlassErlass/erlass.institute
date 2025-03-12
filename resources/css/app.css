@@ -21,10 +21,9 @@
 .dataTables_wrapper {
     @apply w-full;
 }
-<!-- Add this in your layout or a CSS file -->
-<style>
+
+
     .pagination {
         justify-content: center;
         margin-top: 20px;
     }
-</style>

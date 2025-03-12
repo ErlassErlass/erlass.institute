@@ -46,24 +46,21 @@ public function index(Request $request) {
         return view('sekolah.edit', compact('sekolah'));
     }
 
-    // Update: Save edited school
-    public function update(Request $request, Sekolah $sekolah) {
-        $validated = $request->validate([
-            'namasekolah' => 'required|string',
-            'rank' => 'nullable|string',
-            'jenjang' => 'required|in:SD,SMP',
-            'sub_jenjang' => 'nullable|string',
-            'status' => 'required|in:Swasta,Negeri',
-            'pd' => 'nullable|string',
-            'kec' => 'required|string',
-            'kotkab' => 'required|string',
-            'kota' => 'required|string',
-            'provinsi' => 'required|string',
-        ]);
+public function update(Request $request, Sekolah $sekolah) {
+    $validated = $request->validate([
+        'namasekolah' => 'required|string',
+        'jenjang' => 'required|in:SD,SMP',
+        'kec' => 'required|string',
+        'kotkab' => 'required|string',
+        'kota' => 'required|string',
+        'provinsi' => 'required|string',
+    ]);
 
-        $sekolah->update($validated);
-        return redirect()->route('sekolah.index')->with('success', 'Sekolah berhasil diperbarui!');
-    }
+    $sekolah->update($validated);
+    
+    return redirect()->route('sekolah.index')
+        ->with('success', 'School updated successfully!');
+}
 
     // Delete: Remove a school
     public function destroy(Sekolah $sekolah) {

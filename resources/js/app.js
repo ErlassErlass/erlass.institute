@@ -1,4 +1,6 @@
 import './bootstrap';
+import '../css/app.css';
+
 
 import Alpine from 'alpinejs';
 
@@ -7,9 +9,7 @@ window.Alpine = Alpine;
 Alpine.start();
 
 // resources/js/app.js
-import '../css/app.css';
-import "datatables.net-dt/dataTables.dataTables.css";
-import "datatables.net";
+
 
 // Initialize DataTables
 document.addEventListener('DOMContentLoaded', function () {

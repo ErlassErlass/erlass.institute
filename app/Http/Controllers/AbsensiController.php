@@ -25,32 +25,34 @@ class AbsensiController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-   public function store(Request $request) {
-    $validated = $request->validate([
-        'laporan_mengajar_id' => 'required|exists:laporan_mengajar,id',
-        'siswa_id' => 'required|exists:siswa,id',
-        'hadir' => 'required|boolean',
-        'e_signature_instruktur' => 'nullable|image|mimes:png,jpeg,jpg',
-    ]);
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'laporan_mengajar_id' => 'required|exists:laporan_mengajar,id',
+            'siswa_id' => 'required|exists:siswa,id',
+            'hadir' => 'required|boolean',
+            'e_signature_instruktur' => 'nullable|image|mimes:png,jpeg,jpg',
+        ]);
 
-    // Handle e-signature upload
-    if ($request->hasFile('e_signature_instruktur')) {
-        $validated['e_signature_instruktur'] = $request->file('e_signature_instruktur')->store('signatures', 'public');
+        // Handle e-signature upload
+        if ($request->hasFile('e_signature_instruktur')) {
+            $validated['e_signature_instruktur'] = $request->file('e_signature_instruktur')->store('signatures', 'public');
+        }
+
+        Absensi::create($validated);
+
+        return redirect()->route('absensi.index')->with('success', 'Attendance recorded!');
     }
-
-    Absensi::create($validated);
-
-    return redirect()->route('absensi.index')->with('success', 'Attendance recorded!');
-}
 
     /**
      * Display the specified resource.
      */
-   // In LaporanMengajarController@show
-public function show(LaporanMengajar $laporanMengajar) {
-    $school = Sekolah::where('kodlan', $laporanMengajar->sekolah_kodlan)->first();
-    return view('laporan-mengajar.show', compact('laporanMengajar', 'school'));
-}
+    // In LaporanMengajarController@show
+    public function show(LaporanMengajar $laporanMengajar)
+    {
+        $school = Sekolah::where('kodlan', $laporanMengajar->sekolah_kodlan)->first();
+        return view('laporan-mengajar.show', compact('laporanMengajar', 'school'));
+    }
 
     /**
      * Show the form for editing the specified resource.

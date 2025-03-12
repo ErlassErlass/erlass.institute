@@ -12,6 +12,7 @@ class RouteServiceProvider extends ServiceProvider {
     public const HOME = '/dashboard'; // Default redirect after login
 
     public function boot(): void {
+        parent::boot();
         $this->configureRateLimiting();
         $this->routes(function () {
             Route::middleware('api')
