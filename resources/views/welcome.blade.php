@@ -6,7 +6,7 @@
     <h1 class="display-4">Selamat Datang di Erlass Ekskul</h1>
     <p class="lead">Its Coding Time, Be Smart , Be Creative~.</p>
     <h1 class="display-6">
-        <strong><em>Inspire with knowledge, serve with excellence—transform lives together."</h1>
+        <strong><em>"Inspire with knowledge, serve with excellence—transform lives together."</strong></em></h1>
     @if (Auth::guest())
     <div class="mt-4">
         <a href="{{ route('login') }}" class="btn btn-primary btn-lg">Log In</a>
