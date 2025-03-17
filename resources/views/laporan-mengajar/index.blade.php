@@ -1,0 +1,40 @@
+@extends('layouts.app')
+
+@section('content')
+    <div class="container mt-4">
+        <h1>Laporan Mengajar</h1>
+        
+        <a href="{{ route('laporan-mengajar.create') }}" class="btn btn-primary mb-3">Buat Laporan</a>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Instruktur</th>
+                    <th>Sekolah</th>
+                    <th>Pertemuan Ke-</th>
+                    <th>Rombel</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($laporan as $item)
+                    <tr>
+                        <td>{{ $item->instruktur->nama_lengkap }}</td>
+                        <td>{{ $item->sekolah->namasekolah }}</td>
+                        <td>{{ $item->pertemuan_ke }}</td>
+                        <td>{{ $item->rombel }}</td>
+                        <td>
+                            <a href="{{ route('laporan-mengajar.edit', $item) }}" class="btn btn-sm btn-primary">Edit</a>
+                            <form action="{{ route('laporan-mengajar.destroy', $item) }}" method="POST" class="d-inline">
+                                @csrf @method('DELETE')
+                                <button type="button" class="btn btn-sm btn-danger" onclick="confirm('Are you sure?') ? this.parentElement.submit() : null">Hapus</button>
+                            </form>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+        {{ $laporan->links() }}
+    </div>
+@endsection
