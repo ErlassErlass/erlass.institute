@@ -1,126 +1,198 @@
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Tambah Sekolah</h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white p-6 shadow-md rounded">
-                <form method="POST" action="{{ route('sekolah.store') }}">
-                    @csrf
+@section('content')
+    <div class="container mt-4">
+        <h1>Tambah Sekolah</h1>
 
-                    <!-- Kode Sekolah -->
-                    <div class="mt-4">
-                        <x-input-label for="kodlan" value="Kode Sekolah" />
-                        <x-text-input id="kodlan" class="block mt-1 w-full" type="text" name="kodlan" :value="old('kodlan')" required autofocus />
-                        @error('kodlan')
-                            <span class="text-red-500">{{ $message }}</span>
-                        @enderror
-                    </div>
+        <!-- Success/Error Messages -->
+        @if (session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
 
-                    <!-- Nama Sekolah -->
-                    <div class="mt-4">
-                        <x-input-label for="namasekolah" value="Nama Sekolah" />
-                        <x-text-input id="namasekolah" class="block mt-1 w-full" type="text" name="namasekolah" :value="old('namasekolah')" required />
-                        @error('namasekolah')
-                            <span class="text-red-500">{{ $message }}</span>
-                        @enderror
-                    </div>
+        <!-- Form -->
+        <form method="POST" action="{{ route('sekolah.store') }}">
+            @csrf
 
-                    <!-- Rank -->
-                    <div class="mt-4">
-                        <x-input-label for="rank" value="Rank" />
-                        <x-text-input id="rank" class="block mt-1 w-full" type="text" name="rank" :value="old('rank')" />
-                        @error('rank')
-                            <span class="text-red-500">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <!-- Jenjang -->
-                    <div class="mt-4">
-    <x-input-label for="jenjang" value="Jenjang" />
-    <select name="jenjang" id="jenjang" class="block mt-1 w-full border-gray-300 rounded-md">
-        <option value="SD" {{ old('jenjang') == 'SD' ? 'selected' : '' }}>SD</option> <!-- Fixed missing quotes -->
-        <option value="SMP" {{ old('jenjang') == 'SMP' ? 'selected' : '' }}>SMP</option>
-    </select>
-    @error('jenjang')
-        <span class="text-red-500">{{ $message }}</span>
-    @enderror
-</div>
-
-                    <!-- Sub Jenjang -->
-                    <div class="mt-4">
-                        <x-input-label for="sub_jenjang" value="Sub Jenjang" />
-                        <x-text-input id="sub_jenjang" class="block mt-1 w-full" type="text" name="sub_jenjang" :value="old('sub_jenjang')" />
-                        @error('sub_jenjang')
-                            <span class="text-red-500">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <div class="mt-4">
-    <x-input-label for="status" value="Status" />
-    <select name="status" id="status" class="block mt-1 w-full border-gray-300 rounded-md">
-        <option value="Swasta" {{ old('status') == 'Swasta' ? 'selected' : '' }}>Swasta</option>
-        <option value="Negeri" {{ old('status') == 'Negeri' ? 'selected' : '' }}>Negeri</option>
-    </select>
-    @error('status')
-        <span class="text-red-500">{{ $message }}</span>
-    @enderror
-</div>
-
-                    <!-- PD -->
-                    <div class="mt-4">
-                        <x-input-label for="pd" value="PD" />
-                        <x-text-input id="pd" class="block mt-1 w-full" type="text" name="pd" :value="old('pd')" />
-                        @error('pd')
-                            <span class="text-red-500">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <!-- Kecamatan -->
-                    <div class="mt-4">
-                        <x-input-label for="kec" value="Kecamatan" />
-                        <x-text-input id="kec" class="block mt-1 w-full" type="text" name="kec" :value="old('kec')" required />
-                        @error('kec')
-                            <span class="text-red-500">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <!-- Kota/Kabupaten -->
-                    <div class="mt-4">
-                        <x-input-label for="kotkab" value="Kota/Kabupaten" />
-                        <x-text-input id="kotkab" class="block mt-1 w-full" type="text" name="kotkab" :value="old('kotkab')" required />
-                        @error('kotkab')
-                            <span class="text-red-500">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <!-- Kota -->
-                    <div class="mt-4">
-                        <x-input-label for="kota" value="Kota" />
-                        <x-text-input id="kota" class="block mt-1 w-full" type="text" name="kota" :value="old('kota')" required />
-                        @error('kota')
-                            <span class="text-red-500">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <!-- Provinsi -->
-                    <div class="mt-4">
-                        <x-input-label for="provinsi" value="Provinsi" />
-                        <x-text-input id="provinsi" class="block mt-1 w-full" type="text" name="provinsi" :value="old('provinsi')" required />
-                        @error('provinsi')
-                            <span class="text-red-500">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <div class="flex items-center justify-end mt-4">
-                        <x-primary-button class="ml-4">
-                            Simpan Sekolah
-                        </x-primary-button>
-                    </div>
-                </form>
+            <!-- Kode Sekolah -->
+            <div class="mb-3">
+                <label for="kodlan" class="form-label">Kode Sekolah</label>
+                <input 
+                    type="text" 
+                    class="form-control @error('kodlan') is-invalid @enderror" 
+                    id="kodlan" 
+                    name="kodlan" 
+                    value="{{ old('kodlan') }}" 
+                    required
+                >
+                @error('kodlan')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
-        </div>
+
+            <!-- Nama Sekolah -->
+            <div class="mb-3">
+                <label for="namasekolah" class="form-label">Nama Sekolah</label>
+                <input 
+                    type="text" 
+                    class="form-control @error('namasekolah') is-invalid @enderror" 
+                    id="namasekolah" 
+                    name="namasekolah" 
+                    value="{{ old('namasekolah') }}" 
+                    required
+                >
+                @error('namasekolah')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <!-- Rank -->
+            <div class="mb-3">
+                <label for="rank" class="form-label">Rank</label>
+                <input 
+                    type="text" 
+                    class="form-control @error('rank') is-invalid @enderror" 
+                    id="rank" 
+                    name="rank" 
+                    value="{{ old('rank') }}"
+                >
+                @error('rank')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <!-- Jenjang -->
+            <div class="mb-3">
+                <label for="jenjang" class="form-label">Jenjang</label>
+                <select 
+                    class="form-select @error('jenjang') is-invalid @enderror" 
+                    id="jenjang" 
+                    name="jenjang" 
+                    required
+                >
+                    <option value="">Pilih Jenjang</option>
+                    <option value="SD" {{ old('jenjang') == 'SD' ? 'selected' : '' }}>SD</option>
+                    <option value="SMP" {{ old('jenjang') == 'SMP' ? 'selected' : '' }}>SMP</option>
+                </select>
+                @error('jenjang')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <!-- Sub Jenjang -->
+            <div class="mb-3">
+                <label for="sub_jenjang" class="form-label">Sub Jenjang</label>
+                <input 
+                    type="text" 
+                    class="form-control @error('sub_jenjang') is-invalid @enderror" 
+                    id="sub_jenjang" 
+                    name="sub_jenjang" 
+                    value="{{ old('sub_jenjang') }}"
+                >
+                @error('sub_jenjang')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <!-- Status -->
+            <div class="mb-3">
+                <label for="status" class="form-label">Status</label>
+                <select 
+                    class="form-select @error('status') is-invalid @enderror" 
+                    id="status" 
+                    name="status" 
+                    required
+                >
+                    <option value="">Pilih Status</option>
+                    <option value="Swasta" {{ old('status') == 'Swasta' ? 'selected' : '' }}>Swasta</option>
+                    <option value="Negeri" {{ old('status') == 'Negeri' ? 'selected' : '' }}>Negeri</option>
+                </select>
+                @error('status')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <!-- PD -->
+            <div class="mb-3">
+                <label for="pd" class="form-label">PD</label>
+                <input 
+                    type="text" 
+                    class="form-control @error('pd') is-invalid @enderror" 
+                    id="pd" 
+                    name="pd" 
+                    value="{{ old('pd') }}"
+                >
+                @error('pd')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <!-- Kecamatan -->
+            <div class="mb-3">
+                <label for="kec" class="form-label">Kecamatan</label>
+                <input 
+                    type="text" 
+                    class="form-control @error('kec') is-invalid @enderror" 
+                    id="kec" 
+                    name="kec" 
+                    value="{{ old('kec') }}" 
+                    required
+                >
+                @error('kec')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <!-- Kota/Kabupaten -->
+            <div class="mb-3">
+                <label for="kotkab" class="form-label">Kota/Kabupaten</label>
+                <input 
+                    type="text" 
+                    class="form-control @error('kotkab') is-invalid @enderror" 
+                    id="kotkab" 
+                    name="kotkab" 
+                    value="{{ old('kotkab') }}" 
+                    required
+                >
+                @error('kotkab')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <!-- Kota -->
+            <div class="mb-3">
+                <label for="kota" class="form-label">Kota</label>
+                <input 
+                    type="text" 
+                    class="form-control @error('kota') is-invalid @enderror" 
+                    id="kota" 
+                    name="kota" 
+                    value="{{ old('kota') }}" 
+                    required
+                >
+                @error('kota')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <!-- Provinsi -->
+            <div class="mb-3">
+                <label for="provinsi" class="form-label">Provinsi</label>
+                <input 
+                    type="text" 
+                    class="form-control @error('provinsi') is-invalid @enderror" 
+                    id="provinsi" 
+                    name="provinsi" 
+                    value="{{ old('provinsi') }}" 
+                    required
+                >
+                @error('provinsi')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary">Simpan Sekolah</button>
+            <a href="{{ route('sekolah.index') }}" class="btn btn-secondary">Batal</a>
+        </form>
     </div>
-<html><body><h1>Test</h1></body></html>
-
-
+@endsection

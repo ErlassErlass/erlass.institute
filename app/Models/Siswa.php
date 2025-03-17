@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Siswa extends Model {
+class Siswa extends Model
+{
+    protected $table = 'siswa';
     protected $fillable = [
         'nama_lengkap',
         'nisn',
@@ -12,12 +14,9 @@ class Siswa extends Model {
         'rombel',
     ];
 
-    // Relationships
-    public function sekolah() {
-        return $this->belongsTo(Sekolah::class, 'sekolah_kodlan');
-    }
-
-    public function absensi() {
-        return $this->hasMany(Absensi::class);
+    // app/Models/Siswa.php
+    public function sekolah()
+    {
+        return $this->belongsTo(Sekolah::class, 'sekolah_kodlan', 'kodlan');
     }
 }

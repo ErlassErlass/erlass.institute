@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -11,8 +12,12 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
+        $users = User::paginate(10); // Paginate 10 users per page
+        return view('users.index', compact('users'));
     }
+
+    // Other methods (create, store, edit, update, destroy)
+
 
     /**
      * Show the form for creating a new resource.

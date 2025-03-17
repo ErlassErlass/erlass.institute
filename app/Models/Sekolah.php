@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Sekolah extends Model {
-        protected $table = 'sekolah'; // Add this line
+class Sekolah extends Model
+{
+    protected $table = 'sekolah'; // Specify the table name explicitly
 
-    protected $primaryKey = 'kodlan';
-    public $incrementing = false;
-    protected $keyType = 'string';
+    protected $primaryKey = 'kodlan'; // Define primary key (string)
+    public $incrementing = false; // Disable auto-increment
+    protected $keyType = 'string'; // Primary key type is string
 
     protected $fillable = [
         'kodlan',
@@ -25,12 +26,15 @@ class Sekolah extends Model {
         'provinsi',
     ];
 
-    // Relationships
-    public function siswa() {
-        return $this->hasMany(Siswa::class, 'sekolah_kodlan');
-    }
+   // app/Models/Sekolah.php
+public function siswa()
+{
+    return $this->hasMany(Siswa::class, 'sekolah_kodlan', 'kodlan');
+}
 
-    public function laporanMengajar() {
+    // Relationship: Schools have many teaching reports (via kotkab)
+    public function laporanMengajar()
+    {
         return $this->hasMany(LaporanMengajar::class, 'sekolah_kota', 'kotkab');
     }
 }

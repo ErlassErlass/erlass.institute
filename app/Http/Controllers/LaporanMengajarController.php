@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\LaporanMengajar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\User;
+use App\Models\Sekolah;
 
 class LaporanMengajarController extends Controller
 {
@@ -18,18 +20,18 @@ class LaporanMengajarController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $laporan = LaporanMengajar::with('instruktur', 'assisten')->get();
+    public function index() {
+        $laporan = LaporanMengajar::with('instruktur', 'sekolah')->paginate(10);
         return view('laporan-mengajar.index', compact('laporan'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-        return view('laporan-mengajar.create');
+    public function create() {
+        $instruktur = User::where('role', 'instruktur')->pluck('nama_lengkap', 'id');
+        $sekolah = Sekolah::pluck('namasekolah', 'kodlan');
+        return view('laporan-mengajar.create', compact('instruktur', 'sekolah'));
     }
 
     /**
@@ -37,7 +39,7 @@ class LaporanMengajarController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
+        $validated = $request->validate([
             'user_id_instruktur' => 'required|exists:users,id',
             'user_id_assisten' => 'nullable|exists:users,id',
             'pertemuan_ke' => 'required|integer',
@@ -65,10 +67,8 @@ class LaporanMengajarController extends Controller
             $validatedData['foto_kegiatan'] = $fotoPath;
         }
 
-        LaporanMengajar::create($validatedData);
-
-        return redirect()->route('laporan-mengajar.index')
-            ->with('success', 'Laporan mengajar berhasil disimpan.');
+        LaporanMengajar::create($validated);
+        return redirect()->route('laporan-mengajar.index')->with('success', 'Laporan tersimpan!');
     }
 
     /**
@@ -82,17 +82,18 @@ class LaporanMengajarController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(LaporanMengajar $laporanMengajar)
-    {
-        return view('laporan-mengajar.edit', compact('laporanMengajar'));
+    public function edit(LaporanMengajar $laporan) {
+        $instruktur = User::where('role', 'instruktur')->pluck('nama_lengkap', 'id');
+        $sekolah = Sekolah::pluck('namasekolah', 'kodlan');
+        return view('laporan-mengajar.edit', compact('laporan', 'instruktur', 'sekolah'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, LaporanMengajar $laporanMengajar)
+    public function update(Request $request, LaporanMengajar $laporan)
     {
-        $validatedData = $request->validate([
+        $validated = $request->validate([
             'user_id_instruktur' => 'required|exists:users,id',
             'user_id_assisten' => 'nullable|exists:users,id',
             'pertemuan_ke' => 'required|integer',
@@ -125,7 +126,7 @@ class LaporanMengajarController extends Controller
             $validatedData['foto_kegiatan'] = $fotoPath;
         }
 
-        $laporanMengajar->update($validatedData);
+        $laporanMengajar->update($validated);
 
         return redirect()->route('laporan-mengajar.index')
             ->with('success', 'Laporan mengajar berhasil diperbarui.');
