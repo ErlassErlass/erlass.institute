@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+
+
 class LaporanMengajar extends Model {
     protected $fillable = [
         'user_id_instruktur',
@@ -27,9 +29,24 @@ class LaporanMengajar extends Model {
         'pemahaman_materi',
     ];
 
+    // In LaporanMengajar model
+protected static function boot() {
+    parent::boot();
+
+    static::deleting(function ($laporan) {
+        if ($laporan->foto_kegiatan) {
+            Storage::disk('public')->delete($laporan->foto_kegiatan);
+        }
+    });
+}
+
     // Relationships
     public function instruktur() {
         return $this->belongsTo(User::class, 'user_id_instruktur');
+    }
+
+    public function sekolah() {
+        return $this->belongsTo(Sekolah::class, 'sekolah_kodlan', 'kodlan'); // Assuming sekolah_kodlan is the foreign key
     }
 
     public function assisten() {

@@ -104,7 +104,6 @@ return [
             explode(',', env('APP_PREVIOUS_KEYS', ''))
         ),
     ],
-
     /*
     |--------------------------------------------------------------------------
     | Maintenance Mode Driver
