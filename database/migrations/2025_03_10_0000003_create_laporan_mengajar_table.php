@@ -5,11 +5,12 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    public function up(): void {
+    public function up(): void
+    {
         Schema::create('laporan_mengajar', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('user_id_instruktur')->constrained('users');
-    $table->foreignId('user_id_assisten')->nullable()->constrained('users');
+            $table->id();
+            $table->foreignId('user_id_instruktur')->constrained('users');
+            $table->foreignId('user_id_assisten')->nullable()->constrained('users');
             $table->integer('pertemuan_ke');
             $table->string('rombel');
             $table->date('jadwal_mengajar');
@@ -31,7 +32,8 @@ return new class extends Migration {
         });
     }
 
-    public function down(): void {
+    public function down(): void
+    {
         Schema::dropIfExists('laporan_mengajar');
     }
 };

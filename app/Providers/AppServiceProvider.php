@@ -3,24 +3,25 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Routing\Router;
+use App\Http\Middleware\RoleMiddleware;
 
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * Register any application services.
+     * Bootstrap any application services.
      */
-    public function register(): void
+    public function boot(Router $router)
     {
-        //
+        // Register the 'role' middleware alias so routes using 'role' can be resolved.
+        $router->aliasMiddleware('role', RoleMiddleware::class);
     }
 
     /**
-     * Bootstrap any application services.
+     * Register any application services.
      */
-    public function boot(): void
+    public function register()
     {
         //
     }
-
-    public const HOME = '/dashboard'; // Default redirect after login
 }

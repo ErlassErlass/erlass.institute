@@ -39,4 +39,14 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('laporan-mengajar', LaporanMengajarController::class);
         Route::resource('absensi', AbsensiController::class);
     });
+
+    // routes/web.php
+    Route::resource('laporan-mengajar', LaporanMengajarController::class)
+        ->middleware('auth')
+        ->middleware(['role:instruktur'], ['only' => ['create', 'store']])
+        ->middleware(['role:admin,admin_erlass'], ['only' => ['edit', 'update', 'destroy']]);
+
+    // API Routes for dependent dropdowns
+    Route::get('api/sekolah/kecamatan/{kotkab}', [LaporanMengajarController::class, 'getKecamatansByKota']);
+    Route::get('api/sekolah/schools/{kotkab}/{kecamatan}', [LaporanMengajarController::class, 'getSchoolsByKecKota']);
 });

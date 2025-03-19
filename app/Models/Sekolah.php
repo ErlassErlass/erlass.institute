@@ -26,11 +26,11 @@ class Sekolah extends Model
         'provinsi',
     ];
 
-   // app/Models/Sekolah.php
-public function siswa()
-{
-    return $this->hasMany(Siswa::class, 'sekolah_kodlan', 'kodlan');
-}
+    // app/Models/Sekolah.php
+    public function siswa()
+    {
+        return $this->hasMany(Siswa::class, 'sekolah_kodlan', 'kodlan');
+    }
 
     // Relationship: Schools have many teaching reports (via kotkab)
     public function laporanMengajar()

@@ -19,7 +19,6 @@
                 </select>
             </div>
 
-            <!-- Other fields... -->
             <div class="mb-3">
                 <label for="foto_kegiatan" class="form-label">Foto Kegiatan</label>
                 <input type="file" class="form-control" name="foto_kegiatan" accept="image/*">

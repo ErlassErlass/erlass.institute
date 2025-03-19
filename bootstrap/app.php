@@ -2,17 +2,18 @@
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
-use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
-        health: '/up',
+        health: '/up'
     )
-    ->withMiddleware(function (Middleware $middleware) {
-        //
+    ->withMiddleware(function ($middleware) {
+        // Remove the call to global() because the middleware manager in Laravel 11 does not support it.
+        // Instead, register any global middleware in your service provider or (if available) in your HTTP Kernel.
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
-    })->create();
+        // Exception handling configuration here.
+    })
+    ->create();

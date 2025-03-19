@@ -6,7 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 
 
-class LaporanMengajar extends Model {
+class LaporanMengajar extends Model
+
+{
+    protected $table = 'laporan_mengajar';
     protected $fillable = [
         'user_id_instruktur',
         'user_id_assisten',
@@ -30,30 +33,39 @@ class LaporanMengajar extends Model {
     ];
 
     // In LaporanMengajar model
-protected static function boot() {
-    parent::boot();
+    protected static function boot()
+    {
+        parent::boot();
 
-    static::deleting(function ($laporan) {
-        if ($laporan->foto_kegiatan) {
-            Storage::disk('public')->delete($laporan->foto_kegiatan);
-        }
-    });
-}
-
-    // Relationships
-    public function instruktur() {
-        return $this->belongsTo(User::class, 'user_id_instruktur');
+        static::deleting(function ($laporan) {
+            if ($laporan->foto_kegiatan) {
+                Storage::disk('public')->delete($laporan->foto_kegiatan);
+            }
+        });
     }
 
-    public function sekolah() {
-        return $this->belongsTo(Sekolah::class, 'sekolah_kodlan', 'kodlan'); // Assuming sekolah_kodlan is the foreign key
-    }
-
-    public function assisten() {
+    public function assisten()
+    {
         return $this->belongsTo(User::class, 'user_id_assisten');
     }
 
-    public function absensi() {
+    public function absensi()
+    {
         return $this->hasMany(Absensi::class);
     }
+
+    // In App\Models\LaporanMengajar.php
+    public function instruktur()
+    {
+        // Assuming the foreign key is user_id_instruktur:
+        return $this->belongsTo(User::class, 'user_id_instruktur');
+    }
+
+    public function sekolah()
+    {
+            return $this->belongsTo(Sekolah::class, 'sekolah_kota', 'kotkab');
+
+
+    }
+
 }
