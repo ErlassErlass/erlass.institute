@@ -15,6 +15,15 @@ require __DIR__ . '/auth.php';
 // Guest Routes (public access)
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
 
+// API Routes for dependent dropdowns:
+// API Routes for dependent dropdowns:
+Route::prefix('api/sekolah')->name('api.sekolah.')->group(function () {
+    Route::get('provinsi', [LaporanMengajarController::class, 'getProvinsi'])->name('provinsi');
+    Route::get('kota/{provinsi}', [LaporanMengajarController::class, 'getCitiesByProvinsi'])->name('kota');
+    Route::get('kecamatan/{kota}', [LaporanMengajarController::class, 'getKecamatansByCity'])->name('kecamatan');
+    Route::get('schools/{kota}/{kecamatan}', [LaporanMengajarController::class, 'getSchoolsByCityAndKecamatan'])->name('schools');
+});
+
 // Protected Routes (all require authentication)
 Route::middleware(['auth'])->group(function () {
     // Dashboard
@@ -36,17 +45,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Instruktur/Admin routes
     Route::middleware(['role:instruktur,admin'])->group(function () {
-        Route::resource('laporan-mengajar', LaporanMengajarController::class);
+        // Absensi resource
         Route::resource('absensi', AbsensiController::class);
     });
 
-    // routes/web.php
-    Route::resource('laporan-mengajar', LaporanMengajarController::class)
-        ->middleware('auth')
-        ->middleware(['role:instruktur'], ['only' => ['create', 'store']])
-        ->middleware(['role:admin,admin_erlass'], ['only' => ['edit', 'update', 'destroy']]);
-
-    // API Routes for dependent dropdowns
-    Route::get('api/sekolah/kecamatan/{kotkab}', [LaporanMengajarController::class, 'getKecamatansByKota']);
-    Route::get('api/sekolah/schools/{kotkab}/{kecamatan}', [LaporanMengajarController::class, 'getSchoolsByKecKota']);
+    // Laporan Mengajar resource (role restrictions are handled in its controller)
+    Route::resource('laporan-mengajar', LaporanMengajarController::class);
 });

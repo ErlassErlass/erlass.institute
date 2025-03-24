@@ -4,28 +4,38 @@
     <div class="container">
         <h1>Edit Laporan Mengajar</h1>
 
-        <form action="{{ route('laporan-mengajar.update', $laporan->id) }}" method="POST" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('laporan-mengajar.update', $laporan) }}">
             @csrf @method('PUT')
 
-            <!-- Existing fields with old/input values -->
+            <!-- Kota -->
             <div class="mb-3">
-                <label for="user_id_instruktur" class="form-label">Instruktur</label>
-                <select name="user_id_instruktur" class="form-select" required>
-                    @foreach ($instruktur as $id => $name)
-                        <option value="{{ $id }}" {{ old('user_id_instruktur', $laporan->user_id_instruktur) == $id ? 'selected' : '' }}>
-                            {{ $name }}
-                        </option>
-                    @endforeach
+                <label for="sekolah_kota" class="form-label">Kota/Kabupaten</label>
+                <select name="sekolah_kota" id="sekolah_kota" class="form-select" required>
+                    <option value="{{ $laporan->sekolah_kota }}" selected>{{ $laporan->sekolah_kota }}</option>
                 </select>
             </div>
 
+            <!-- Kecamatan -->
             <div class="mb-3">
-                <label for="foto_kegiatan" class="form-label">Foto Kegiatan</label>
-                <input type="file" class="form-control" name="foto_kegiatan" accept="image/*">
-                @if ($laporan->foto_kegiatan)
-                    <img src="{{ asset('storage/' . $laporan->foto_kegiatan) }}" alt="Foto" width="100">
-                @endif
+                <label for="sekolah_kecamatan" class="form-label">Kecamatan</label>
+                <select name="sekolah_kecamatan" class="form-select" required>
+                    <option value="{{ $laporan->sekolah_kecamatan }}" selected>{{ $laporan->sekolah_kecamatan }}</option>
+                </select>
             </div>
+
+            <!-- Sekolah -->
+            <div class="mb-3">
+                <label for="sekolah_nama" class="form-label">Nama Sekolah</label>
+                <input type="text" name="sekolah_nama" class="form-control" value="{{ $laporan->sekolah_nama }}" required>
+            </div>
+
+            <!-- Other fields (pre-filled) -->
+            <div class="mb-3">
+                <label for="pertemuan_ke" class="form-label">Pertemuan Ke-</label>
+                <input type="number" name="pertemuan_ke" class="form-control" value="{{ $laporan->pertemuan_ke }}" required>
+            </div>
+
+            <!-- ... (Other fields like jam_mulai, jam_selesai, etc.) ... -->
 
             <button type="submit" class="btn btn-primary">Perbarui</button>
         </form>
