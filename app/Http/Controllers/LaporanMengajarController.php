@@ -7,6 +7,9 @@ use App\Models\User;
 use App\Models\Sekolah;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller; // Add this import
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+
 
 
 class LaporanMengajarController extends Controller
@@ -27,49 +30,100 @@ class LaporanMengajarController extends Controller
         return view('laporan-mengajar.index', compact('laporan'));
     }
 
-    public function create() {
+    public function create()
+    {
+        // Fetch provinces for the dropdown
         $provinsi = Sekolah::distinct()->pluck('provinsi', 'provinsi');
-        return view('laporan-mengajar.create', compact('provinsi'));
+
+        // Fetch other instructors (excluding current user)
+        $instructors = User::where('role', 'instruktur')
+            ->where('id', '!=', Auth::id()) // Exclude the current user
+            ->pluck('nama_lengkap', 'id');
+
+        return view('laporan-mengajar.create', compact('provinsi', 'instructors'));
     }
     // Store: Save the new report
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id_instruktur' => 'required|exists:users,id',
+            'user_id_assisten' => 'nullable|exists:users,id',
+            'pertemuan_ke' => 'required|integer',
+            'rombel' => 'required|string',
+            'jadwal_mengajar' => 'required|date|date_format:Y-m-d', // Matches HTML5 date input format
+            'jam_mulai' => 'required|date_format:H:i',
+            'jam_selesai' => 'required|date_format:H:i',
+            'kategori_pengajaran' => 'required|string',
+            'materi_pengajaran' => 'required|string',
             'sekolah_kota' => 'required|string',
             'sekolah_kecamatan' => 'required|string',
             'sekolah_nama' => 'required|string',
-            'pertemuan_ke' => 'required|integer',
-            'rombel' => 'required|string',
-            'jadwal_mengajar' => 'required|date',
-            'jam_mulai' => 'required|time',
-            'jam_selesai' => 'required|time',
-            'kategori_pengajaran' => 'required|string',
-            'materi_pengajaran' => 'required|string',
             'jumlah_siswa_hadir' => 'required|integer',
             'jumlah_siswa_keluar' => 'required|integer',
+            'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'refleksi_siswa' => 'required|string',
+            'refleksi_capaian' => 'required|string',
             'keaktifan' => 'required|in:sangat_pasif,pasif,aktif,sangat_aktif',
             'pemahaman_materi' => 'required|in:belum_paham,sedikit_paham,paham,sangat_paham',
         ]);
+
+        if ($request->hasFile('foto_kegiatan')) {
+            $validated['foto_kegiatan'] = $request->file('foto_kegiatan')->store('laporan_mengajar', 'public');
+        }
+
+        // Auto-set the logged-in user as Instruktur
+        $validated['user_id_instruktur'] = Auth::id();
 
         LaporanMengajar::create($validated);
         return redirect()->route('laporan-mengajar.index')->with('success', 'Laporan tersimpan!');
     }
 
     // Edit: Only admins/admin_erlass can access
-    public function edit(LaporanMengajar $laporan)
-    {
-        // Fetch cities and districts for the form
-        $kotas = Sekolah::distinct()->pluck('kotkab')->toArray();
-        return view('laporan-mengajar.edit', compact('laporan', 'kotas'));
+    public function edit(LaporanMengajar $laporan) {
+        // Ensure current user is the original instructor
+        if ($laporan->user_id_instruktur != Auth::id()) {
+            abort(403, 'Hanya instruktur yang bersangkutan dapat mengedit laporan.');
+        }
+    
+        // Fetch other instructors for the assistant dropdown
+        $instructors = User::where('role', 'instruktur')
+            ->where('id', '!=', Auth::id()) // Exclude current user
+            ->pluck('nama_lengkap', 'id');
+    
+        return view('laporan-mengajar.edit', compact('laporan', 'instructors'));
     }
 
     // Update: Only admins/admin_erlass can access
     public function update(Request $request, LaporanMengajar $laporan)
     {
         $validated = $request->validate([
-            // Same validation rules as store()
+            'user_id_assisten' => 'nullable|exists:users,id',
+            'pertemuan_ke' => 'required|integer',
+            'rombel' => 'required|string',
+            'jadwal_mengajar' => 'required|date_format:d/m/Y',
+            'jam_mulai' => 'required|date_format:H:i', // Corrected rule
+            'jam_selesai' => 'required|date_format:H:i', // Corrected rule
+            'kategori_pengajaran' => 'required|string',
+            'materi_pengajaran' => 'required|string',
+            'sekolah_kota' => 'required|string',
+            'sekolah_kecamatan' => 'required|string',
+            'sekolah_nama' => 'required|string',
+            'jumlah_siswa_hadir' => 'required|integer',
+            'jumlah_siswa_keluar' => 'required|integer',
+            'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'refleksi_siswa' => 'required|string',
+            'refleksi_capaian' => 'required|string',
+            'keaktifan' => 'required|in:sangat_pasif,pasif,aktif,sangat_aktif',
+            'pemahaman_materi' => 'required|in:belum_paham,sedikit_paham,paham,sangat_paham',
         ]);
+
+        if ($request->hasFile('foto_kegiatan')) {
+            // Delete old file if exists
+            if ($laporan->foto_kegiatan) {
+                Storage::disk('public')->delete($laporan->foto_kegiatan);
+            }
+
+            $validated['foto_kegiatan'] = $request->file('foto_kegiatan')->store('laporan_mengajar', 'public');
+        }
 
         $laporan->update($validated);
         return redirect()->route('laporan-mengajar.index')->with('success', 'Laporan diperbarui!');
@@ -82,7 +136,8 @@ class LaporanMengajarController extends Controller
         return redirect()->back()->with('success', 'Laporan dihapus!');
     }
 
-    public function getCitiesByProvinsi($provinsi) {
+    public function getCitiesByProvinsi($provinsi)
+    {
         $cities = Sekolah::where('provinsi', $provinsi)
             ->distinct('kota') // Fetch distinct cities
             ->pluck('kota') // Returns array of city names (e.g., ["Bandung", "Surabaya"])
@@ -90,21 +145,23 @@ class LaporanMengajarController extends Controller
         return response()->json($cities); // Returns raw array
     }
 
-// Get districts by city
-public function getKecamatansByCity($kota) {
-    $kecamatans = Sekolah::where('kota', $kota)
-        ->distinct('kec') // Fetch distinct districts
-        ->pluck('kec') // Returns array of district names
-        ->toArray();
-    return response()->json($kecamatans);
-}
+    // Get districts by city
+    public function getKecamatansByCity($kota)
+    {
+        $kecamatans = Sekolah::where('kota', $kota)
+            ->distinct('kec') // Fetch distinct districts
+            ->pluck('kec') // Returns array of district names
+            ->toArray();
+        return response()->json($kecamatans);
+    }
 
-// Get schools by city and district
-public function getSchoolsByCityAndKecamatan($kota, $kecamatan) {
-    $schools = Sekolah::where('kota', $kota)
-        ->where('kec', $kecamatan)
-        ->pluck('namasekolah') // Returns array of school names
-        ->toArray();
-    return response()->json($schools);
-}
+    // Get schools by city and district
+    public function getSchoolsByCityAndKecamatan($kota, $kecamatan)
+    {
+        $schools = Sekolah::where('kota', $kota)
+            ->where('kec', $kecamatan)
+            ->pluck('namasekolah') // Returns array of school names
+            ->toArray();
+        return response()->json($schools);
+    }
 }

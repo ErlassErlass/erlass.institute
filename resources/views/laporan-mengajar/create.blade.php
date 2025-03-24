@@ -2,20 +2,34 @@
 
 @section('content')
 <div class="container">
+    @if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     <h1>Buat Laporan Mengajar</h1>
 
-    <form method="POST" action="{{ route('laporan-mengajar.store') }}">
+    <form method="POST" action="{{ route('laporan-mengajar.store') }}" enctype="multipart/form-data">
         @csrf
 
-        <!-- Instruktur -->
+        <!-- Instruktur (Auto-filled, hidden) -->
+        <input type="hidden" name="user_id_instruktur" value="{{ Auth::id() }}">
+
+        <!-- Assisten Instruktur -->
         <div class="mb-3">
-            <label for="user_id_instruktur" class="form-label">Instruktur</label>
-            <select name="user_id_instruktur" class="form-select" required>
-                <option value="">Pilih Instruktur</option>
-                @foreach (\App\Models\User::where('role', 'instruktur')->get() as $instruktur)
-                <option value="{{ $instruktur->id }}">{{ $instruktur->nama_lengkap }}</option>
+            <label for="user_id_assisten" class="form-label">Assisten Instruktur</label>
+            <select name="user_id_assisten" class="form-select">
+                <option value="">Pilih Assisten</option>
+                @foreach ($instructors as $id => $name)
+                <option value="{{ $id }}">{{ $name }}</option>
                 @endforeach
             </select>
+            @error('user_id_assisten') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <!-- Provinsi -->
@@ -27,6 +41,7 @@
                 <option value="{{ $prov }}">{{ $prov }}</option>
                 @endforeach
             </select>
+            @error('sekolah_provinsi') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <!-- Kota (City/Municipality) -->
@@ -35,6 +50,7 @@
             <select name="sekolah_kota" id="sekolah_kota" class="form-select" required>
                 <option value="">Pilih Kota/Kabupaten</option>
             </select>
+            @error('sekolah_kota') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <!-- Kecamatan (District) -->
@@ -43,6 +59,7 @@
             <select name="sekolah_kecamatan" id="sekolah_kecamatan" class="form-select" disabled required>
                 <option value="">Pilih Kecamatan</option>
             </select>
+            @error('sekolah_kecamatan') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <!-- Sekolah (School) -->
@@ -51,70 +68,92 @@
             <select name="sekolah_nama" id="sekolah_nama" class="form-select" disabled required>
                 <option value="">Pilih Sekolah</option>
             </select>
+            @error('sekolah_nama') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
-        <!-- Other Fields -->
+        <!-- Pertemuan Ke- -->
         <div class="mb-3">
             <label for="pertemuan_ke" class="form-label">Pertemuan Ke-</label>
             <input type="number" name="pertemuan_ke" class="form-control" required>
+            @error('pertemuan_ke') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <!-- Rombel -->
         <div class="mb-3">
             <label for="rombel" class="form-label">Rombel</label>
             <input type="text" name="rombel" class="form-control" required>
+            @error('rombel') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <!-- Jadwal Mengajar -->
         <div class="mb-3">
             <label for="jadwal_mengajar" class="form-label">Jadwal Mengajar</label>
             <input type="date" name="jadwal_mengajar" class="form-control" required>
+            @error('jadwal_mengajar') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <!-- Jam Mulai -->
         <div class="mb-3">
             <label for="jam_mulai" class="form-label">Jam Mulai</label>
             <input type="time" name="jam_mulai" class="form-control" required>
+            @error('jam_mulai') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <!-- Jam Selesai -->
         <div class="mb-3">
             <label for="jam_selesai" class="form-label">Jam Selesai</label>
             <input type="time" name="jam_selesai" class="form-control" required>
+            @error('jam_selesai') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <!-- Kategori Pengajaran -->
         <div class="mb-3">
             <label for="kategori_pengajaran" class="form-label">Kategori Pengajaran</label>
             <input type="text" name="kategori_pengajaran" class="form-control" required>
+            @error('kategori_pengajaran') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <!-- Materi Pengajaran -->
         <div class="mb-3">
             <label for="materi_pengajaran" class="form-label">Materi Pengajaran</label>
             <textarea name="materi_pengajaran" class="form-control" required></textarea>
+            @error('materi_pengajaran') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <!-- Jumlah Siswa -->
         <div class="mb-3">
             <label for="jumlah_siswa_hadir" class="form-label">Jumlah Siswa Hadir</label>
             <input type="number" name="jumlah_siswa_hadir" class="form-control" required>
+            @error('jumlah_siswa_hadir') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <div class="mb-3">
             <label for="jumlah_siswa_keluar" class="form-label">Jumlah Siswa Keluar</label>
             <input type="number" name="jumlah_siswa_keluar" class="form-control" required>
+            @error('jumlah_siswa_keluar') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
+
+        <!-- Foto Kegiatan -->
+        <div class="mb-3">
+            <label for="foto_kegiatan" class="form-label">Foto Kegiatan</label>
+            <input type="file" name="foto_kegiatan" class="form-control" accept="image/*">
+            @error('foto_kegiatan')
+            <div class="text-danger">{{ $message }}</div>
+            @enderror
+        </div>
+
 
         <!-- Refleksi -->
         <div class="mb-3">
             <label for="refleksi_siswa" class="form-label">Refleksi Siswa</label>
             <textarea name="refleksi_siswa" class="form-control" required></textarea>
+            @error('refleksi_siswa') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <div class="mb-3">
             <label for="refleksi_capaian" class="form-label">Refleksi Capaian</label>
             <textarea name="refleksi_capaian" class="form-control" required></textarea>
+            @error('refleksi_capaian') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <!-- Keaktifan -->
@@ -126,6 +165,7 @@
                 <option value="aktif">Aktif</option>
                 <option value="sangat_aktif">Sangat Aktif</option>
             </select>
+            @error('keaktifan') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <!-- Pemahaman -->
@@ -137,6 +177,7 @@
                 <option value="paham">Paham</option>
                 <option value="sangat_paham">Sangat Paham</option>
             </select>
+            @error('pemahaman_materi') <div class="text-danger">{{ $message }}</div> @enderror
         </div>
 
         <button type="submit" class="btn btn-primary">Simpan</button>
