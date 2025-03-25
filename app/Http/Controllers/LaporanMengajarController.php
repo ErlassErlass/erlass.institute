@@ -23,6 +23,10 @@ class LaporanMengajarController extends Controller
         $this->middleware('role:admin,admin_erlass')->only(['edit', 'update', 'destroy']);
     }
 
+    // LaporanMengajarController.php
+public function show(LaporanMengajar $laporan) {
+    return view('laporan-mengajar.show', compact('laporan'));
+}
     // Index: Show all reports
     public function index()
     {
@@ -53,7 +57,7 @@ class LaporanMengajarController extends Controller
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i',
             'kategori_pengajaran' => 'required|string',
-            'materi_pengajaran' => 'required|string',
+            'materi_pengajaran' => 'required|string',   
             'sekolah_kota' => 'required|string',
             'sekolah_kecamatan' => 'required|string',
             'sekolah_nama' => 'required|string',

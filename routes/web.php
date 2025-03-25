@@ -51,4 +51,5 @@ Route::middleware(['auth'])->group(function () {
 
     // Laporan Mengajar resource (role restrictions are handled in its controller)
     Route::resource('laporan-mengajar', LaporanMengajarController::class);
+    
 });
