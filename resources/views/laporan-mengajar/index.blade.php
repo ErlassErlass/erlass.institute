@@ -11,6 +11,7 @@
         <thead>
             <tr>
                 <th>Instruktur</th>
+                <th>Assisten Instruktur</th>
                 <th>Sekolah</th>
                 <th>Rombel</th>
                 <th>Jadwal</th>
@@ -23,6 +24,7 @@
             @foreach ($laporan as $item)
                 <tr>
                     <td>{{ $item->instruktur->nama_lengkap }}</td>
+                    <td>{{ $item->assisten->nama_lengkap ?? 'Tidak ada' }}</td>
                     <td>{{ $item->sekolah_nama }}</td>
                     <td>{{ $item->rombel }}</td>
                     <td>{{ $item->jadwal_mengajar }}</td>
