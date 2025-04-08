@@ -20,7 +20,20 @@
         @endif
 
         <!-- Instruktur (Auto-filled, hidden) -->
-        <input type="hidden" name="user_id_instruktur" value="{{ $laporan->user_id_instruktur }}">
+        <!-- Instruktur (Read-only) -->
+        <div class="mb-3">
+            <label for="instruktur_nama" class="form-label">Instruktur</label>
+            <input type="text"
+                name="instruktur_nama"
+                class="form-control"
+                value="{{ $laporan->instruktur->nama_lengkap }}"
+                readonly>
+        </div>
+
+        <!-- Hidden Input for user_id_instruktur -->
+        <input type="hidden"
+            name="user_id_instruktur"
+            value="{{ $laporan->user_id_instruktur }}">
 
         <!-- Assisten Instruktur -->
         <div class="mb-3">

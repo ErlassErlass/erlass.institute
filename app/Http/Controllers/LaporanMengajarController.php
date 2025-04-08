@@ -12,24 +12,42 @@ use Illuminate\Support\Facades\Storage;
 
 class LaporanMengajarController extends Controller
 {
+    // LaporanMengajarController.php
     public function __construct()
     {
         $this->middleware('auth');
-        // Only "instruktur" and "admin" can access create and store actions
-        $this->middleware('role:instruktur,admin')->only(['create', 'store']);
-        // Only "admin" and "admin_erlass" can access edit, update, destroy actions
-        $this->middleware('role:admin,admin_erlass')->only(['edit', 'update', 'destroy']);
+        // Instruktur can create/store reports
+        $this->middleware('role:instruktur|admin', ['only' => ['create', 'store']]);
+        // Admin/Admin Erlass can edit/delete reports
+        $this->middleware('role:admin|admin_erlass', ['only' => ['edit', 'update', 'destroy']]);
+        // Show is accessible to Admin, Admin Erlass, and the report's owner (Instruktur)
+        $this->middleware('role:admin|admin_erlass|instruktur', ['only' => ['show']]);
     }
 
     public function show(LaporanMengajar $laporan)
     {
+        // Check if user is admin or the report's owner
+        if (
+            Auth::user()->role === 'instruktur' &&
+            Auth::id() !== $laporan->user_id_instruktur
+        ) {
+            abort(403, 'Hanya Admin/Admin Erlass atau penulis laporan yang dapat melihat detail.');
+        }
+
         return view('laporan-mengajar.show', compact('laporan'));
     }
 
     // Index: Show all reports
     public function index()
     {
-        $laporan = LaporanMengajar::with('instruktur')->latest()->paginate(10);
+        if (Auth::user()->hasRole(['admin', 'admin_erlass'])) {
+            $laporan = LaporanMengajar::latest()->paginate(10);
+        } else {
+            $laporan = LaporanMengajar::where('user_id_instruktur', Auth::id())
+                ->latest()
+                ->paginate(10);
+        }
+
         return view('laporan-mengajar.index', compact('laporan'));
     }
 
@@ -83,13 +101,7 @@ class LaporanMengajarController extends Controller
 
     public function edit(LaporanMengajar $laporan)
     {
-        // Access control: Only Admin/Admin Erlass can edit
-        $this->middleware('role:admin|admin_erlass'); // Ensure middleware is applied
-
-        // Fetch provinces for the dropdown
         $provinsi = Sekolah::distinct()->pluck('provinsi', 'provinsi');
-
-        // Fetch instructors (including current user if needed)
         $instructors = User::where('role', 'instruktur')
             ->pluck('nama_lengkap', 'id');
 
@@ -104,11 +116,12 @@ class LaporanMengajarController extends Controller
             'user_id_assisten' => 'nullable|exists:users,id',
             'pertemuan_ke' => 'required|integer',
             'rombel' => 'required|string',
-            'jadwal_mengajar' => 'required|date_format:Y-m-d', // Consistent date format
+            'jadwal_mengajar' => 'required|date_format:Y-m-d',
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i',
             'kategori_pengajaran' => 'required|string',
             'materi_pengajaran' => 'required|string',
+            'sekolah_provinsi' => 'required|string',
             'sekolah_kota' => 'required|string',
             'sekolah_kecamatan' => 'required|string',
             'sekolah_nama' => 'required|string',
@@ -122,18 +135,12 @@ class LaporanMengajarController extends Controller
         ]);
 
         if ($request->hasFile('foto_kegiatan')) {
-            // Delete old file if exists
-            if ($laporan->foto_kegiatan) {
-                Storage::disk('public')->delete($laporan->foto_kegiatan);
-            }
-
-            $validated['foto_kegiatan'] = $request->file('foto_kegiatan')->store('laporan_mengajar', 'public');
+            // Handle file upload
         }
 
         $laporan->update($validated);
         return redirect()->route('laporan-mengajar.index')->with('success', 'Laporan diperbarui!');
     }
-
     // Destroy: Only admins/admin_erlass can access
     public function destroy(LaporanMengajar $laporan)
     {

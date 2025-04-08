@@ -22,54 +22,58 @@
         </thead>
         <tbody>
             @foreach ($laporan as $item)
-                <tr>
-                    <td>{{ $item->instruktur->nama_lengkap }}</td>
-                    <td>{{ $item->assisten->nama_lengkap ?? 'Tidak ada' }}</td>
-                    <td>{{ $item->sekolah_nama }}</td>
-                    <td>{{ $item->rombel }}</td>
-                    <td>{{ $item->jadwal_mengajar }}</td>
-                    <td>{{ $item->created_at }}</td>
+            <tr>
+                <td>{{ $item->instruktur->nama_lengkap }}</td>
+                <td>{{ $item->assisten->nama_lengkap ?? 'Tidak ada' }}</td>
+                <td>{{ $item->sekolah_nama }}</td>
+                <td>{{ $item->rombel }}</td>
+                <td>{{ $item->jadwal_mengajar }}</td>
+                <td>{{ $item->created_at }}</td>
 
-                    <!-- Foto Kegiatan with Thumbnail -->
-                    <td>
-                        @if ($item->foto_kegiatan)
-                            <a href="{{ asset('storage/' . $item->foto_kegiatan) }}" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#imageModal{{ $item->id }}">
-                                <img src="{{ asset('storage/' . $item->foto_kegiatan) }}" 
-                                    alt="Thumbnail" 
-                                    style="max-width: 100px; max-height: 100px;">
-                            </a>
-                            
-                            <!-- Modal for Full Image -->
-                            <div class="modal fade" id="imageModal{{ $item->id }}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-lg">
-                                    <div class="modal-content">
-                                        <div class="modal-body">
-                                            <img src="{{ asset('storage/' . $item->foto_kegiatan) }}" 
-                                                class="img-fluid" 
-                                                alt="Foto Kegiatan">
-                                        </div>
-                                    </div>
+                <!-- Foto Kegiatan with Thumbnail -->
+                <td>
+                    @if ($item->foto_kegiatan)
+                    <a href="{{ asset('storage/' . $item->foto_kegiatan) }}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#imageModal{{ $item->id }}">
+                        <img src="{{ asset('storage/' . $item->foto_kegiatan) }}"
+                            alt="Thumbnail"
+                            style="max-width: 100px; max-height: 100px;">
+                    </a>
+
+                    <!-- Modal for Full Image -->
+                    <div class="modal fade" id="imageModal{{ $item->id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-body">
+                                    <img src="{{ asset('storage/' . $item->foto_kegiatan) }}"
+                                        class="img-fluid"
+                                        alt="Foto Kegiatan">
                                 </div>
                             </div>
-                        @else
-                            Tidak ada foto
-                        @endif
-                    </td>
+                        </div>
+                    </div>
+                    @else
+                    Tidak ada foto
+                    @endif
+                </td>
 
-                    <td>
-                        <a href="{{ route('laporan-mengajar.show', $item) }}" class="btn btn-sm btn-info">Lihat</a>
-                        <a href="{{ route('laporan-mengajar.edit', $item) }}" class="btn btn-sm btn-primary">Edit</a>
-                        <form action="{{ route('laporan-mengajar.destroy', $item) }}" method="POST" class="d-inline">
-                            @csrf @method('DELETE')
-                            <button type="button" class="btn btn-sm btn-danger" 
-                                onclick="confirm('Anda yakin ingin menghapus?') ? this.parentElement.submit() : null">
-                                Hapus
-                            </button>
-                        </form>
-                    </td>
-                </tr>
+                <!-- resources/views/laporan-mengajar/index.blade.php -->
+                <td>
+                    <a href="{{ route('laporan-mengajar.show', $item) }}" class="btn btn-sm btn-info">Lihat</a>
+                    <!-- Only admins see "Edit" and "Hapus" buttons -->
+                    @if (Auth::user()->hasRole(['admin', 'admin_erlass']))
+                    <a href="{{ route('laporan-mengajar.edit', $item) }}" class="btn btn-sm btn-primary">Edit</a>
+                    <form action="{{ route('laporan-mengajar.destroy', $item) }}" method="POST" class="d-inline">
+                        @csrf @method('DELETE')
+                        <button type="button" class="btn btn-sm btn-danger"
+                            onclick="confirm('Anda yakin ingin menghapus?') ? this.parentElement.submit() : null">
+                            Hapus
+                        </button>
+                    </form>
+                    @endif
+                </td>
+            </tr>
             @endforeach
         </tbody>
     </table>

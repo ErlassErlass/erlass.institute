@@ -82,5 +82,17 @@
             <p class="card-text">{{ ucwords(str_replace('_', ' ', $laporan->pemahaman_materi)) }}</p>
         </div>
     </div>
+    @if (Auth::user()->hasRole(['admin', 'admin_erlass']))
+        <div class="mt-3">
+            <a href="{{ route('laporan-mengajar.edit', $laporan) }}" class="btn btn-primary">Edit</a>
+            <form action="{{ route('laporan-mengajar.destroy', $laporan) }}" method="POST" class="d-inline">
+                @csrf @method('DELETE')
+                <button type="button" class="btn btn-danger" 
+                    onclick="confirm('Anda yakin ingin menghapus?') ? this.parentElement.submit() : null">
+                    Hapus
+                </button>
+            </form>
+        </div>
+    @endif
 </div>
 @endsection
