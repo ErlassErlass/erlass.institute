@@ -83,24 +83,19 @@ class LaporanMengajarController extends Controller
 
     public function edit(LaporanMengajar $laporan)
     {
-        // Fetch provinces for dropdown
+        // Access control: Only Admin/Admin Erlass can edit
+        $this->middleware('role:admin|admin_erlass'); // Ensure middleware is applied
+
+        // Fetch provinces for the dropdown
         $provinsi = Sekolah::distinct()->pluck('provinsi', 'provinsi');
-    
-        // If you want to pre-load cities, districts, and schools based on the laporan:
-        $kota = Sekolah::where('provinsi', $laporan->sekolah_kota)->distinct()->pluck('kota')->toArray();
-        $kecamatan = Sekolah::where('kota', $laporan->sekolah_kota)
-            ->distinct()->pluck('kec')->toArray();
-        $schools = Sekolah::where('kota', $laporan->sekolah_kota)
-            ->where('kec', $laporan->sekolah_kecamatan)
-            ->pluck('namasekolah')->toArray();
-    
+
+        // Fetch instructors (including current user if needed)
         $instructors = User::where('role', 'instruktur')
-            ->where('id', '!=', Auth::id())
             ->pluck('nama_lengkap', 'id');
-    
-        return view('laporan-mengajar.edit', compact('laporan', 'provinsi', 'kota', 'kecamatan', 'schools', 'instructors'));
+
+        return view('laporan-mengajar.edit', compact('laporan', 'provinsi', 'instructors'));
     }
-    
+
 
     // Update: Only admins/admin_erlass can access
     public function update(Request $request, LaporanMengajar $laporan)

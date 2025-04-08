@@ -39,13 +39,16 @@
             @enderror
         </div>
 
-        <!-- Provinsi -->
+        <!-- Provinsi (Province) -->
         <div class="mb-3">
             <label for="sekolah_provinsi" class="form-label">Provinsi</label>
             <select name="sekolah_provinsi" id="sekolah_provinsi" class="form-select" required>
                 <option value="">Pilih Provinsi</option>
                 @foreach ($provinsi as $prov)
-                <option value="{{ $prov }}" {{ $laporan->sekolah_kota == $prov ? 'selected' : '' }}>{{ $prov }}</option>
+                <option value="{{ $prov }}"
+                    {{ $laporan->sekolah_provinsi == $prov ? 'selected' : '' }}>
+                    {{ $prov }}
+                </option>
                 @endforeach
             </select>
             @error('sekolah_provinsi')
