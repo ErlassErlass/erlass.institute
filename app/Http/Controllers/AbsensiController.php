@@ -8,11 +8,24 @@ use App\Models\Siswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
 
 
 class AbsensiController extends Controller
 {
-    public function __construct() {}
+public function __construct()
+{
+    $this->middleware('auth');
+
+    // Hanya admin dan admin_erlass yang bisa index dan destroy
+    $this->middleware('role:instruktur,admin,admin_erlass', ['only' => ['index', 'destroy']]);
+
+    // Hanya pemilik laporan atau admin yang bisa create/store absensi
+    $this->middleware('role:instruktur,admin,admin_erlass', ['only' => ['create', 'store']]);
+
+    // Semua role bisa melihat form edit/update absensi mereka (jika diperlukan)
+    $this->middleware('role:admin,admin_erlass', ['only' => ['edit', 'update']]);
+}
 
     // GET /absensi
     public function index()
