@@ -53,6 +53,7 @@
         </div>
 
         <!-- Provinsi (Province) -->
+        <!-- Provinsi (Province) -->
         <div class="mb-3">
             <label for="sekolah_provinsi" class="form-label">Provinsi</label>
             <select name="sekolah_provinsi" id="sekolah_provinsi" class="form-select" required>

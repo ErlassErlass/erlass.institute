@@ -16,31 +16,57 @@ class LaporanMengajarController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        // Instruktur can create/store reports
-        $this->middleware('role:instruktur|admin', ['only' => ['create', 'store']]);
-        // Admin/Admin Erlass can edit/delete reports
-        $this->middleware('role:admin|admin_erlass', ['only' => ['edit', 'update', 'destroy']]);
-        // Show is accessible to Admin, Admin Erlass, and the report's owner (Instruktur)
-        $this->middleware('role:admin|admin_erlass|instruktur', ['only' => ['show']]);
+        // Create/store: Instruktur or Admin
+        $this->middleware(function ($request, $next) {
+            if ($request->user()->role === 'instruktur' || $request->user()->role === 'admin') {
+                return $next($request);
+            }
+            abort(403, 'Unauthorized');
+        }, ['only' => ['create', 'store']]);
+
+        // Edit/update/destroy: Admin/Admin Erlass
+        $this->middleware(function ($request, $next) {
+            if ($request->user()->role === 'admin' || $request->user()->role === 'admin_erlass') {
+                return $next($request);
+            }
+            abort(403, 'Unauthorized');
+        }, ['only' => ['edit', 'update', 'destroy']]);
+
+        // Show: Admin, Admin Erlass, or owner
+        $this->middleware(function ($request, $next) {
+            $laporan = $this->getLaporan($request);
+            if (
+                $request->user()->role === 'admin' ||
+                $request->user()->role === 'admin_erlass' ||
+                $request->user()->id === $laporan->user_id_instruktur
+            ) {
+                return $next($request);
+            }
+            abort(403, 'Unauthorized');
+        }, ['only' => ['show']]);
     }
 
+    protected function getLaporan($request)
+{
+    return LaporanMengajar::findOrFail($request->route('laporan')); 
+}
+
+    // In LaporanMengajarController.php
     public function show(LaporanMengajar $laporan)
     {
-        // Check if user is admin or the report's owner
-        if (
-            Auth::user()->role === 'instruktur' &&
-            Auth::id() !== $laporan->user_id_instruktur
-        ) {
-            abort(403, 'Hanya Admin/Admin Erlass atau penulis laporan yang dapat melihat detail.');
+        // Instruktur can view their own reports, admins can view all
+        if (Auth::user()->role === 'instruktur' && 
+            Auth::id() !== $laporan->user_id_instruktur) {
+            abort(403, 'Anda tidak memiliki akses.');
         }
-
+    
+        $laporan->load('absensi'); // Load attendance records
         return view('laporan-mengajar.show', compact('laporan'));
     }
-
     // Index: Show all reports
     public function index()
     {
-        if (Auth::user()->hasRole(['admin', 'admin_erlass'])) {
+        if (Auth::user()->role === 'admin' || Auth::user()->role === 'admin_erlass') {
             $laporan = LaporanMengajar::latest()->paginate(10);
         } else {
             $laporan = LaporanMengajar::where('user_id_instruktur', Auth::id())
@@ -135,12 +161,19 @@ class LaporanMengajarController extends Controller
         ]);
 
         if ($request->hasFile('foto_kegiatan')) {
-            // Handle file upload
+            // Delete old file
+            if ($laporan->foto_kegiatan) {
+                Storage::disk('public')->delete($laporan->foto_kegiatan);
+            }
+            // Store new file
+            $validated['foto_kegiatan'] = $request->file('foto_kegiatan')->store('laporan_mengajar', 'public');
         }
 
         $laporan->update($validated);
         return redirect()->route('laporan-mengajar.index')->with('success', 'Laporan diperbarui!');
     }
+
+
     // Destroy: Only admins/admin_erlass can access
     public function destroy(LaporanMengajar $laporan)
     {

@@ -9,13 +9,10 @@ use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
-// Auth Routes
 require __DIR__ . '/auth.php';
 
-// Guest Routes (public access)
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
 
-// API Routes for dependent dropdowns:
 // API Routes for dependent dropdowns:
 Route::prefix('api/sekolah')->name('api.sekolah.')->group(function () {
     Route::get('provinsi', [LaporanMengajarController::class, 'getProvinsi'])->name('provinsi');
@@ -26,6 +23,7 @@ Route::prefix('api/sekolah')->name('api.sekolah.')->group(function () {
 
 // Protected Routes (all require authentication)
 Route::middleware(['auth'])->group(function () {
+
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -36,21 +34,27 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('siswa', SiswaController::class);
 
     // Admin-only routes
-    Route::middleware(['role:admin'])->group(function () {
+    Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::resource('users', UserController::class);
         Route::get('/test-role', function () {
             return 'You have access!';
         })->name('test-role');
     });
 
-    // Instruktur/Admin routes
-    Route::middleware(['role:instruktur,admin'])->group(function () {
-        // Absensi resource
+    // Instruktur or Admin
+    Route::middleware(['role:instruktur|admin'])->group(function () {
         Route::resource('absensi', AbsensiController::class);
     });
 
-    // Laporan Mengajar resource (role restrictions are handled in its controller)
+    // Laporan Mengajar (role restrictions handled in controller)
     Route::resource('laporan-mengajar', LaporanMengajarController::class)
-    ->parameters(['laporan-mengajar' => 'laporan']);
-    
+        ->parameters(['laporan-mengajar' => 'laporan']);
+
+    // Nested routes for attendance
+    Route::prefix('laporan-mengajar/{laporan}')->group(function () {
+        Route::get('/absensi/create', [AbsensiController::class, 'create'])->name('absensi.create');
+        Route::post('/absensi/store', [AbsensiController::class, 'store'])->name('absensi.store');
+        Route::get('/absensi/show', [AbsensiController::class, 'show'])->name('absensi.show');
+    });
+
 });

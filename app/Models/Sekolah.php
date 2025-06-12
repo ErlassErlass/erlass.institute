@@ -37,4 +37,9 @@ class Sekolah extends Model
     {
         return $this->hasMany(LaporanMengajar::class, 'sekolah_kota', 'kotkab');
     }
+
+    public function sekolah()
+{
+    return $this->belongsTo(Sekolah::class, 'sekolah_nama', 'namasekolah');
+}
 }

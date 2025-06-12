@@ -12,11 +12,12 @@ class RoleMiddleware {
         if (!Auth::check()) {
             return redirect('/login');
         }
-
-        if (!in_array(Auth::user()->role, $roles)) {
+    
+        // Use the User model's hasRole method
+        if (!Auth::user()->hasRole($roles)) {
             abort(403, 'Unauthorized');
         }
-
+    
         return $next($request);
     }
 }

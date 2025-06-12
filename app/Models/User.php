@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory; // ADD THIS
 use Illuminate\Notifications\Notifiable;
+use App\Models\LaporanMengajar; // ADD THIS LINE
 
 class User extends Authenticatable {
        use HasFactory; // ADD THIS LINE
@@ -31,5 +32,12 @@ class User extends Authenticatable {
     // Define relationships
     public function laporanMengajar() {
         return $this->hasMany(LaporanMengajar::class, 'user_id_instruktur');
+    }
+
+    public function hasRole($roles) {
+        if (is_array($roles)) {
+            return in_array($this->role, $roles);
+        }
+        return $this->role === $roles;
     }
 }

@@ -1,24 +1,22 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Absensi extends Model {
+class Absensi extends Model
+{
     protected $fillable = [
-        'laporan_mengajar_id',
-        'siswa_id',
-        'hadir',
-        'e_signature_instruktur',
-        'e_signature_pic',
+        'laporan_mengajar_id','siswa_id','hadir',
+        'e_signature_instruktur','e_signature_pic',
     ];
 
-    // Relationships
-    public function laporanMengajar() {
+    public function laporanMengajar()
+    {
         return $this->belongsTo(LaporanMengajar::class);
     }
 
-    public function siswa() {
+    public function siswa()
+    {
         return $this->belongsTo(Siswa::class);
     }
 }

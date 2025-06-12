@@ -3,13 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
-
+use Illuminate\Support\Facades\Storage;
+use App\Models\User; // Instruktur & Assisten relationships
+use App\Models\Sekolah; // Sekolah relationship
+use App\Models\Absensi; // Absensi relationship
 
 class LaporanMengajar extends Model
-
 {
     protected $table = 'laporan_mengajar';
+
     protected $fillable = [
         'user_id_instruktur',
         'user_id_assisten',
@@ -32,7 +34,7 @@ class LaporanMengajar extends Model
         'pemahaman_materi',
     ];
 
-    // In LaporanMengajar model
+    // Automatically delete foto_kegiatan on deletion
     protected static function boot()
     {
         parent::boot();
@@ -44,28 +46,28 @@ class LaporanMengajar extends Model
         });
     }
 
+    // Instruktur Relationship
+    public function instruktur()
+    {
+        return $this->belongsTo(User::class, 'user_id_instruktur');
+    }
+
+    // Assisten Relationship
     public function assisten()
     {
         return $this->belongsTo(User::class, 'user_id_assisten');
     }
 
+    // Sekolah Relationship
+    public function sekolah()
+    {
+        return $this->belongsTo(Sekolah::class, 'sekolah_nama', 'namasekolah');
+    }
+
+    // Absensi Relationship
     public function absensi()
     {
         return $this->hasMany(Absensi::class);
-    }
-
-    // In App\Models\LaporanMengajar.php
-    public function instruktur()
-    {
-        // Assuming the foreign key is user_id_instruktur:
-        return $this->belongsTo(User::class, 'user_id_instruktur');
-    }
-
-    public function sekolah()
-    {
-            return $this->belongsTo(Sekolah::class, 'sekolah_kota', 'kotkab');
-
-
     }
 
 }
