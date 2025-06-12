@@ -13,38 +13,26 @@ use Illuminate\Support\Facades\Storage;
 class LaporanMengajarController extends Controller
 {
     // LaporanMengajarController.php
-    public function __construct()
-    {
-        $this->middleware('auth');
-        // Create/store: Instruktur or Admin
-        $this->middleware(function ($request, $next) {
-            if ($request->user()->role === 'instruktur' || $request->user()->role === 'admin') {
-                return $next($request);
-            }
-            abort(403, 'Unauthorized');
-        }, ['only' => ['create', 'store']]);
+public function __construct()
+{
+    $this->middleware('auth');
 
-        // Edit/update/destroy: Admin/Admin Erlass
-        $this->middleware(function ($request, $next) {
-            if ($request->user()->role === 'admin' || $request->user()->role === 'admin_erlass') {
-                return $next($request);
-            }
-            abort(403, 'Unauthorized');
-        }, ['only' => ['edit', 'update', 'destroy']]);
+    $this->middleware(function ($request, $next) {
+        if (in_array($request->user()->role, ['instruktur', 'admin'])) {
+            return $next($request);
+        }
+        abort(403);
+    }, ['only' => ['create', 'store']]);
 
-        // Show: Admin, Admin Erlass, or owner
-        $this->middleware(function ($request, $next) {
-            $laporan = $this->getLaporan($request);
-            if (
-                $request->user()->role === 'admin' ||
-                $request->user()->role === 'admin_erlass' ||
-                $request->user()->id === $laporan->user_id_instruktur
-            ) {
-                return $next($request);
-            }
-            abort(403, 'Unauthorized');
-        }, ['only' => ['show']]);
-    }
+    $this->middleware(function ($request, $next) {
+        if (in_array($request->user()->role, ['admin', 'admin_erlass'])) {
+            return $next($request);
+        }
+        abort(403);
+    }, ['only' => ['edit', 'update', 'destroy']]);
+
+}
+
 
     protected function getLaporan($request)
 {
