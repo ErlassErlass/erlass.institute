@@ -42,7 +42,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Instruktur or Admin
-    Route::middleware(['role:instruktur|admin'])->group(function () {
+    Route::middleware(['role:instruktur,admin'])->group(function () {
         Route::resource('absensi', AbsensiController::class);
     });
 
