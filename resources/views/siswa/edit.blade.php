@@ -1,38 +1,69 @@
 @extends('layouts.app')
 
+@section('title', 'Edit Siswa')
+
 @section('content')
-    <div class="container">
-        <h1>Edit Siswa</h1>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h1 class="h4 mb-0">Edit Data Siswa</h1>
+                </div>
+                <div class="card-body">
+                    <form action="{{ route('siswa.update', $siswa) }}" method="POST">
+                        @csrf
+                        @method('PUT')
 
-        <form action="{{ route('siswa.update', $siswa) }}" method="POST">
-            @csrf @method('PUT')
+                        <div class="mb-3">
+                            <label for="nama_lengkap" class="form-label">Nama Lengkap</label>
+                            <input type="text" class="form-control @error('nama_lengkap') is-invalid @enderror" id="nama_lengkap" name="nama_lengkap" value="{{ old('nama_lengkap', $siswa->nama_lengkap) }}" required>
+                            @error('nama_lengkap')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
 
-            <div class="mb-3">
-                <label for="nama_lengkap" class="form-label">Nama Lengkap</label>
-                <input type="text" class="form-control" name="nama_lengkap" value="{{ old('nama_lengkap', $siswa->nama_lengkap) }}" required>
+                        <div class="mb-3">
+                            <label for="nisn" class="form-label">NISN</label>
+                            <input type="text" class="form-control @error('nisn') is-invalid @enderror" id="nisn" name="nisn" value="{{ old('nisn', $siswa->nisn) }}" required>
+                            @error('nisn')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="sekolah_id" class="form-label">Sekolah</label>
+                            <select name="sekolah_id" id="sekolah_id" class="form-select @error('sekolah_id') is-invalid @enderror" required>
+                                <option value="">Pilih Sekolah</option>
+                                @foreach ($sekolahs as $sekolah)
+                                    {{-- Menggunakan $siswa->sekolah_id untuk perbandingan --}}
+                                    <option value="{{ $sekolah->id }}" {{ old('sekolah_id', $siswa->sekolah_id) == $sekolah->id ? 'selected' : '' }}>
+                                        {{ $sekolah->namasekolah }} ({{ $sekolah->kodlan }})
+                                    </option>
+                                @endforeach
+                            </select>
+                             @error('sekolah_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="rombel" class="form-label">Rombongan Belajar (Rombel)</label>
+                            <input type="text" class="form-control @error('rombel') is-invalid @enderror" id="rombel" name="rombel" value="{{ old('rombel', $siswa->rombel) }}" required>
+                             @error('rombel')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{{ route('siswa.index') }}" class="btn btn-secondary">Batal</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i> Simpan Perubahan
+                    </button>
+                </div>
+            </form> {{-- Form tag closed after card-footer --}}
             </div>
-
-            <div class="mb-3">
-                <label for="nisn" class="form-label">NISN</label>
-                <input type="text" class="form-control" name="nisn" value="{{ old('nisn', $siswa->nisn) }}" required>
-            </div>
-
-            <div class="mb-3">
-                <label for="sekolah_kodlan" class="form-label">Sekolah</label>
-                <select name="sekolah_kodlan" class="form-select" required>
-                    <option value="">Pilih Sekolah</option>
-                    @foreach ($sekolah as $kode => $nama)
-                        <option value="{{ $kode }}" {{ $kode == $siswa->sekolah_kodlan ? 'selected' : '' }}>{{ $nama }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label for="rombel" class="form-label">Rombel</label>
-                <input type="text" class="form-control" name="rombel" value="{{ old('rombel', $siswa->rombel) }}" required>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Simpan</button>
-        </form>
+        </div>
     </div>
+</div>
 @endsection

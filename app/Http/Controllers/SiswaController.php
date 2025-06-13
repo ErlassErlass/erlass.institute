@@ -7,9 +7,32 @@ use App\Models\Sekolah;
 use Illuminate\Http\Request;
 
 class SiswaController extends Controller {
-    public function index() {
-        $siswa = Siswa::with('sekolah')->paginate(10);
-        return view('siswa.index', compact('siswa'));
+    public function index(Request $request)
+    {
+        // Mulai query dengan eager loading relasi 'sekolah'
+        $query = Siswa::query()->with('sekolah');
+
+        // Filter berdasarkan nama siswa
+        if ($request->filled('search')) {
+            $query->where('nama_lengkap', 'like', '%' . $request->search . '%');
+        }
+
+        // INI BAGIAN YANG DIPERBAIKI: Menggunakan whereHas
+        if ($request->filled('sekolah_id')) {
+            // Dapatkan 'kodlan' dari request
+            $sekolahKodlan = $request->sekolah_id;
+
+            // Terapkan filter whereHas
+            $query->whereHas('sekolah', function ($q) use ($sekolahKodlan) {
+                // Filter di dalam tabel 'sekolahs' yang berelasi
+                $q->where('kodlan', $sekolahKodlan);
+            });
+        }
+
+        $siswa = $query->latest()->paginate(10);
+        $sekolahs = Sekolah::orderBy('namasekolah')->get();
+
+        return view('siswa.index', compact('siswa', 'sekolahs'));
     }
 
    // app/Http/Controllers/SiswaController.php
@@ -31,9 +54,13 @@ public function create() {
         return redirect()->route('siswa.index')->with('success', 'Siswa added!');
     }
 
-    public function edit(Siswa $siswa) {
-        $sekolah = Sekolah::pluck('namasekolah', 'kodlan');
-        return view('siswa.edit', compact('siswa', 'sekolah'));
+    public function edit(Siswa $siswa)
+    {
+        // Ambil semua data sekolah untuk dropdown
+        $sekolahs = Sekolah::orderBy('namasekolah')->get();
+
+        // Kirim data siswa yang akan diedit dan daftar sekolah ke view
+        return view('siswa.edit', compact('siswa', 'sekolahs'));
     }
 
     public function update(Request $request, Siswa $siswa) {

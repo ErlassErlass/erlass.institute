@@ -80,11 +80,12 @@
             </a>
         </div>
         <div class="col-md-6 col-lg-4">
-            <a href="{{ route('absensi.index') }}" class="card text-decoration-none shadow-sm h-100 card-hover">
+            {{-- BENAR: Link ini membawa ke daftar laporan, di mana user bisa memilih laporan --}}
+            <a href="{{ route('laporan-mengajar.index') }}" class="card text-decoration-none shadow-sm h-100 card-hover">
                 <div class="card-body text-center">
                     <i class="bi bi-calendar-check fs-1 mb-3 text-primary"></i>
                     <h5 class="card-title">Absensi</h5>
-                    <p class="card-text text-muted">Catat dan monitor kehadiran siswa.</p>
+                    <p class="card-text text-muted">Catat dan monitor kehadiran via Laporan Mengajar.</p>
                 </div>
             </a>
         </div>
@@ -99,15 +100,15 @@
         </div>
 
         @if(Auth::user()->role === 'admin')
-            <div class="col-md-6 col-lg-4">
-                <a href="{{ route('users.index') }}" class="card text-decoration-none shadow-sm h-100 card-hover border-danger">
-                    <div class="card-body text-center">
-                        <i class="bi bi-people-fill fs-1 mb-3 text-danger"></i>
-                        <h5 class="card-title">Manajemen Pengguna</h5>
-                        <p class="card-text text-muted">Kelola akun dan role pengguna.</p>
-                    </div>
-                </a>
-            </div>
+        <div class="col-md-6 col-lg-4">
+            <a href="{{ route('users.index') }}" class="card text-decoration-none shadow-sm h-100 card-hover border-danger">
+                <div class="card-body text-center">
+                    <i class="bi bi-people-fill fs-1 mb-3 text-danger"></i>
+                    <h5 class="card-title">Manajemen Pengguna</h5>
+                    <p class="card-text text-muted">Kelola akun dan role pengguna.</p>
+                </div>
+            </a>
+        </div>
         @endif
     </div>
 </div>
@@ -119,6 +120,7 @@
     .card-hover {
         transition: transform .2s ease-in-out, box-shadow .2s ease-in-out;
     }
+
     .card-hover:hover {
         transform: translateY(-5px);
         box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;

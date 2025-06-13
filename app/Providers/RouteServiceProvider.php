@@ -5,40 +5,31 @@ namespace App\Providers;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
-use App\Http\Middleware\RoleMiddleware;
 
 class RouteServiceProvider extends ServiceProvider
 {
     /**
-     * The path to the "home" route for your application.
+     * The path to your application's "home" route.
+     *
+     * Typically, users are redirected here after authentication.
+     *
+     * @var string
      */
     public const HOME = '/dashboard';
 
     /**
-     * Configure rate limiting for the application.
+     * Define your route model bindings, pattern filters, and other route configuration.
      */
-    protected function configureRateLimiting(): void
+    public function boot(): void
     {
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
-    }
-
-    /**
-     * Bootstrap any application services.
-     */
-    public function boot(): void
-    {
-        $this->app->booted(function () {
-            /** @var \Illuminate\Routing\Router $router */
-            $router = $this->app->make(\Illuminate\Routing\Router::class);
-            $router->aliasMiddleware('role', \App\Http\Middleware\RoleMiddleware::class);
-        });
 
         $this->routes(function () {
+            // ✅ PASTIKAN BLOK INI ADA UNTUK MEMUAT API ROUTES
             Route::middleware('api')
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
