@@ -15,10 +15,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-// RUTE UNTUK DEPENDENT DROPDOWN
+// ✅ HANYA PERLU BLOK INI UNTUK FITUR SEKOLAH
 Route::prefix('sekolah')->name('api.sekolah.')->group(function () {
-    Route::get('/kotkab-tipe', [SekolahApiController::class, 'getKotkabTipe'])->name('kotkab-tipe');
-    Route::get('/kota', [SekolahApiController::class, 'getKota'])->name('kota');
-    Route::get('/kecamatan', [SekolahApiController::class, 'getKecamatan'])->name('kecamatan');
-    Route::get('/schools', [SekolahApiController::class, 'getSekolah'])->name('schools');
+    
+    // Route ini satu-satunya yang dibutuhkan untuk dropdown pencarian Select2
+    Route::get('/search', [SekolahApiController::class, 'search'])->name('search');
+
 });

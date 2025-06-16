@@ -2,16 +2,36 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Sekolah extends Model
 {
-    protected $table = 'sekolah'; // Specify the table name explicitly
+    use HasFactory;
 
-    protected $primaryKey = 'kodlan'; // Define primary key (string)
-    public $incrementing = false; // Disable auto-increment
-    protected $keyType = 'string'; // Primary key type is string
+    /**
+     * Nama tabel yang terhubung dengan model.
+     */
+    protected $table = 'sekolah';
 
+    /**
+     * Mendefinisikan 'kodlan' sebagai Primary Key.
+     */
+    protected $primaryKey = 'kodlan';
+
+    /**
+     * Memberitahu Laravel bahwa Primary Key ini bukan angka auto-increment.
+     */
+    public $incrementing = false;
+
+    /**
+     * Memberitahu Laravel bahwa tipe data Primary Key adalah string.
+     */
+    protected $keyType = 'string';
+
+    /**
+     * Atribut yang dapat diisi secara massal, cocok dengan daftar kolom Anda.
+     */
     protected $fillable = [
         'kodlan',
         'namasekolah',
@@ -26,20 +46,14 @@ class Sekolah extends Model
         'provinsi',
     ];
 
-    // app/Models/Sekolah.php
+    /**
+     * Relasi ke model Siswa.
+     * Satu Sekolah memiliki banyak Siswa.
+     */
     public function siswa()
     {
+        // Foreign key di tabel 'siswa' adalah 'sekolah_kodlan'
+        // Local key (primary key) di tabel 'sekolah' ini adalah 'kodlan'
         return $this->hasMany(Siswa::class, 'sekolah_kodlan', 'kodlan');
     }
-
-    // Relationship: Schools have many teaching reports (via kotkab)
-    public function laporanMengajar()
-    {
-        return $this->hasMany(LaporanMengajar::class, 'sekolah_kota', 'kotkab');
-    }
-
-    public function sekolah()
-{
-    return $this->belongsTo(Sekolah::class, 'sekolah_nama', 'namasekolah');
-}
 }

@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use App\Models\LaporanMengajar;
 use App\Policies\LaporanMengajarPolicy;
@@ -15,7 +14,6 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        // ✅ DAFTARKAN POLICY ANDA DI SINI
         LaporanMengajar::class => LaporanMengajarPolicy::class,
     ];
 

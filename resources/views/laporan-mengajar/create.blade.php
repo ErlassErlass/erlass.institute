@@ -43,52 +43,19 @@
                                 @error('user_id_assisten') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                         </div>
-
                         <h5 class="mt-4 border-bottom pb-2 mb-3">Lokasi Mengajar</h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="sekolah_provinsi" class="form-label">1. Provinsi</label>
-                                <select name="sekolah_provinsi" id="sekolah_provinsi" class="form-select @error('sekolah_provinsi') is-invalid @enderror" required>
-                                    <option value="">Pilih Provinsi</option>
-                                    @foreach ($provinsi as $prov)
-                                    <option value="{{ $prov }}" {{ old('sekolah_provinsi') == $prov ? 'selected' : '' }}>{{ $prov }}</option>
-                                    @endforeach
-                                </select>
-                                @error('sekolah_provinsi') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            </div>
-
-                            {{-- ✅ DROPDOWN BARU DITAMBAHKAN --}}
-                            <div class="col-md-6 mb-3">
-                                <label for="sekolah_kotkab_tipe" class="form-label">2. Tipe Kota/Kabupaten</label>
-                                <select name="sekolah_kotkab_tipe" id="sekolah_kotkab_tipe" class="form-select @error('sekolah_kotkab_tipe') is-invalid @enderror" required>
-                                    <option value="">Pilih Provinsi Dulu</option>
-                                </select>
-                                @error('sekolah_kotkab_tipe') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="sekolah_kota" class="form-label">3. Nama Kota</label>
-                                <select name="sekolah_kota" id="sekolah_kota" class="form-select @error('sekolah_kota') is-invalid @enderror" required>
-                                    <option value="">Pilih Tipe Dulu</option>
-                                </select>
-                                @error('sekolah_kota') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="sekolah_kecamatan" class="form-label">4. Kecamatan</label>
-                                <select name="sekolah_kecamatan" id="sekolah_kecamatan" class="form-select @error('sekolah_kecamatan') is-invalid @enderror" required>
-                                    <option value="">Pilih Nama Kota Dulu</option>
-                                </select>
-                                @error('sekolah_kecamatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            </div>
-
-                            <div class="col-12 mb-3">
-                                <label for="sekolah_id" class="form-label">5. Nama Sekolah</label>
-                                <select name="sekolah_id" id="sekolah_id" class="form-select @error('sekolah_id') is-invalid @enderror" required>
-                                    <option value="">Pilih Kecamatan Dulu</option>
-                                </select>
-                                @error('sekolah_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            </div>
+                        <div class="mb-3">
+                            <label for="sekolah_kodlan" class="form-label">Cari & Pilih Sekolah</label>
+                            {{-- ✅ DIBUAT KOSONG, akan diisi oleh AJAX --}}
+                            <select name="sekolah_kodlan" id="sekolah-search" class="form-select @error('sekolah_kodlan') is-invalid @enderror" required>
+                                {{-- Jika ada data lama (karena validation error), kita tampilkan di sini --}}
+                                @if(old('sekolah_kodlan'))
+                                <option value="{{ old('sekolah_kodlan') }}" selected="selected">{{ old('sekolah_nama_display') }}</option>
+                                @endif
+                            </select>
+                            @error('sekolah_kodlan') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            {{-- Kita butuh input hidden untuk menyimpan nama sekolah agar bisa ditampilkan lagi jika ada error validasi --}}
+                            <input type="hidden" name="sekolah_nama_display" id="sekolah_nama_display" value="{{ old('sekolah_nama_display') }}">
                         </div>
 
                         <h5 class="mt-4 border-bottom pb-2 mb-3">Detail Pengajaran</h5>
@@ -188,96 +155,50 @@
 @endsection
 
 @push('scripts')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$(document).ready(function() {
-    function resetDropdown(selector, message) {
-        $(selector).empty().append(`<option value="">${message}</option>`).prop('disabled', true);
-    }
+    $(document).ready(function() {
+        const sekolahSearch = $('#sekolah-search');
 
-    // 1. Event Provinsi -> isi Tipe Kota/Kab
-    $('#sekolah_provinsi').change(function() {
-        const provinsi = $(this).val();
-        resetDropdown('#sekolah_kotkab_tipe', 'Loading...');
-        resetDropdown('#sekolah_kota', 'Pilih Tipe Dulu');
-        resetDropdown('#sekolah_kecamatan', 'Pilih Nama Kota Dulu');
-        resetDropdown('#sekolah_id', 'Pilih Kecamatan Dulu');
-        
-        if (!provinsi) { resetDropdown('#sekolah_kotkab_tipe', 'Pilih Provinsi Dulu'); return; }
+        sekolahSearch.select2({
+            theme: "bootstrap-5",
+            placeholder: 'Ketik nama atau kode sekolah...',
+            // Konfigurasi AJAX
+            ajax: {
+                url: "{{ url('api/sekolah/search') }}",
+                dataType: 'json',
+                delay: 250, // Tunggu 250ms setelah user berhenti mengetik
+                data: function(params) {
+                    return {
+                        q: params.term // Kirim teks pencarian sebagai parameter 'q'
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data.results // Data harus dalam format { results: [ {id: '', text: ''} ] }
+                    };
+                },
+                cache: true
+            }
+        });
 
-        // ✅ Diubah menggunakan url()
-        const url = "{{ url('api/sekolah/kotkab-tipe') }}";
-        $.get(url, { provinsi: provinsi }, function(data) {
-            const tipeSelect = $('#sekolah_kotkab_tipe');
-            tipeSelect.empty().append('<option value="">Pilih Tipe</option>');
-            data.forEach(tipe => tipeSelect.append(`<option value="${tipe}">${tipe}</option>`));
-            tipeSelect.prop('disabled', false);
-        }).fail(() => resetDropdown('#sekolah_kotkab_tipe', 'Gagal memuat'));
+        // Simpan teks dari sekolah yang dipilih ke input hidden
+        sekolahSearch.on('select2:select', function(e) {
+            var data = e.params.data;
+            $('#sekolah_nama_display').val(data.text);
+        });
+
+        // Inisialisasi Flatpickr (tetap sama)
+        flatpickr("#jadwal_mengajar", {
+            dateFormat: "d/m/Y",
+            allowInput: true
+        });
+        flatpickr(".time-picker", {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            time_24hr: true,
+            allowInput: true
+        });
     });
-
-    // 2. Event Tipe Kota/Kab -> isi Nama Kota
-    $('#sekolah_kotkab_tipe').change(function() {
-        const provinsi = $('#sekolah_provinsi').val();
-        const tipe = $(this).val();
-        resetDropdown('#sekolah_kota', 'Loading...');
-        resetDropdown('#sekolah_kecamatan', 'Pilih Nama Kota Dulu');
-        resetDropdown('#sekolah_id', 'Pilih Kecamatan Dulu');
-
-        if (!tipe) { resetDropdown('#sekolah_kota', 'Pilih Tipe Dulu'); return; }
-
-        // ✅ Diubah menggunakan url()
-        const url = "{{ url('api/sekolah/kota') }}";
-        $.get(url, { provinsi: provinsi, kotkab_tipe: tipe }, function(data) {
-            const kotaSelect = $('#sekolah_kota');
-            kotaSelect.empty().append('<option value="">Pilih Nama Kota</option>');
-            data.forEach(kota => kotaSelect.append(`<option value="${kota}">${kota}</option>`));
-            kotaSelect.prop('disabled', false);
-        }).fail(() => resetDropdown('#sekolah_kota', 'Gagal memuat'));
-    });
-
-    // 3. Event Nama Kota -> isi Kecamatan
-    $('#sekolah_kota').change(function() {
-        const provinsi = $('#sekolah_provinsi').val();
-        const tipe = $('#sekolah_kotkab_tipe').val();
-        const kota = $(this).val();
-        resetDropdown('#sekolah_kecamatan', 'Loading...');
-        resetDropdown('#sekolah_id', 'Pilih Kecamatan Dulu');
-
-        if (!kota) { resetDropdown('#sekolah_kecamatan', 'Pilih Nama Kota Dulu'); return; }
-
-        // ✅ Diubah menggunakan url()
-        const url = "{{ url('api/sekolah/kecamatan') }}";
-        $.get(url, { provinsi: provinsi, kotkab_tipe: tipe, kota: kota }, function(data) {
-            const kecamatanSelect = $('#sekolah_kecamatan');
-            kecamatanSelect.empty().append('<option value="">Pilih Kecamatan</option>');
-            data.forEach(kec => kecamatanSelect.append(`<option value="${kec}">${kec}</option>`));
-            kecamatanSelect.prop('disabled', false);
-        }).fail(() => resetDropdown('#sekolah_kecamatan', 'Gagal memuat'));
-    });
-
-    // 4. Event Kecamatan -> isi Nama Sekolah
-    $('#sekolah_kecamatan').change(function() {
-        const provinsi = $('#sekolah_provinsi').val();
-        const tipe = $('#sekolah_kotkab_tipe').val();
-        const kota = $('#sekolah_kota').val();
-        const kecamatan = $(this).val();
-        resetDropdown('#sekolah_id', 'Loading...');
-
-        if (!kecamatan) { resetDropdown('#sekolah_id', 'Pilih Kecamatan Dulu'); return; }
-
-        // ✅ Diubah menggunakan url()
-        const url = "{{ url('api/sekolah/schools') }}";
-        $.get(url, { provinsi: provinsi, kotkab_tipe: tipe, kota: kota, kecamatan: kecamatan }, function(data) {
-            const sekolahSelect = $('#sekolah_id');
-            sekolahSelect.empty().append('<option value="">Pilih Sekolah</option>');
-            data.forEach(sekolah => sekolahSelect.append(`<option value="${sekolah.id}">${sekolah.namasekolah} (${sekolah.kodlan})</option>`));
-            sekolahSelect.prop('disabled', false);
-        }).fail(() => resetDropdown('#sekolah_id', 'Gagal memuat'));
-    });
-
-    // Inisialisasi Flatpickr
-    flatpickr("#jadwal_mengajar", { dateFormat: "d/m/Y", allowInput: true });
-    flatpickr(".time-picker", { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, allowInput: true });
-});
 </script>
 @endpush

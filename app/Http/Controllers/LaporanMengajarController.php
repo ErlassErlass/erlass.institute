@@ -43,15 +43,36 @@ class LaporanMengajarController extends Controller
         return view('laporan-mengajar.index', compact('laporan', 'instructors'));
     }
 
+    public function search(Request $request)
+    {
+        // Ambil istilah pencarian dari parameter ?q=
+        $searchTerm = $request->query('q', '');
+
+        $sekolahs = Sekolah::where('namasekolah', 'LIKE', '%' . $searchTerm . '%')
+                            ->orWhere('kodlan', 'LIKE', '%' . $searchTerm . '%')
+                            ->orderBy('namasekolah', 'asc')
+                            ->select('kodlan', 'namasekolah')
+                            ->limit(20) // Batasi hasil agar tidak membebani server
+                            ->get();
+
+        // Ubah format data agar sesuai dengan yang dibutuhkan oleh Select2
+        $results = $sekolahs->map(function ($sekolah) {
+            return [
+                'id' => $sekolah->kodlan, // Select2 butuh 'id'
+                'text' => $sekolah->namasekolah . ' (' . $sekolah->kodlan . ')' // Select2 butuh 'text'
+            ];
+        });
+
+        // Kembalikan dalam format JSON yang dimengerti Select2
+        return response()->json(['results' => $results]);
+    }
+
     public function create()
     {
-        // Variabel ini dibutuhkan untuk dropdown "Asisten Instruktur"
         $instructors = User::where('id', '!=', auth()->id())->get();
 
-        // Variabel ini dibutuhkan untuk dropdown "Provinsi"
-        $provinsi = Sekolah::select('provinsi')->distinct()->orderBy('provinsi')->pluck('provinsi');
-
-        return view('laporan-mengajar.create', compact('instructors', 'provinsi'));
+        // ✅ Ambil SEMUA data sekolah, diurutkan berdasarkan nama
+        return view('laporan-mengajar.create', compact('instructors'));
     }
     public function store(Request $request)
     {
@@ -143,7 +164,6 @@ class LaporanMengajarController extends Controller
             'refleksi_capaian' => 'required|string',
             'keaktifan' => 'required|in:sangat_pasif,pasif,aktif,sangat_aktif',
             'pemahaman_materi' => 'required|in:belum_paham,sedikit_paham,paham,sangat_paham',
-            // Tambahkan validasi lain yang mungkin terlewat di sini
         ];
     }
 }

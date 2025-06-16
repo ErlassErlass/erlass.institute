@@ -13,8 +13,6 @@ class RouteServiceProvider extends ServiceProvider
     /**
      * The path to your application's "home" route.
      *
-     * Typically, users are redirected here after authentication.
-     *
      * @var string
      */
     public const HOME = '/dashboard';
@@ -29,7 +27,6 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         $this->routes(function () {
-            // ✅ PASTIKAN BLOK INI ADA UNTUK MEMUAT API ROUTES
             Route::middleware('api')
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));

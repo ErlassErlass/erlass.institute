@@ -1,10 +1,12 @@
+/* resources/css/app.css */
+
+/* ✅ BENAR: Cukup gunakan tiga arahan @tailwind ini di paling atas */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* resources/css/app.css */
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+
+
+/* Semua style custom Anda diletakkan di bawah arahan @tailwind */
 
 /* DataTables overrides */
 .dataTables_length,
@@ -15,6 +17,7 @@
 }
 
 .dataTables_filter input {
+    /* Menggunakan @apply untuk styling komponen eksternal adalah cara yang bagus! */
     @apply border border-gray-300 rounded-md px-2 py-1;
 }
 
@@ -22,8 +25,7 @@
     @apply w-full;
 }
 
-
-    .pagination {
-        justify-content: center;
-        margin-top: 20px;
-    }
+.pagination {
+    justify-content: center;
+    margin-top: 20px;
+}
