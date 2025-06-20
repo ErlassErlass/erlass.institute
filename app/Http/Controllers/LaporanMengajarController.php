@@ -43,53 +43,68 @@ class LaporanMengajarController extends Controller
         return view('laporan-mengajar.index', compact('laporan', 'instructors'));
     }
 
-    public function search(Request $request)
-    {
-        // Ambil istilah pencarian dari parameter ?q=
-        $searchTerm = $request->query('q', '');
 
-        $sekolahs = Sekolah::where('namasekolah', 'LIKE', '%' . $searchTerm . '%')
-                            ->orWhere('kodlan', 'LIKE', '%' . $searchTerm . '%')
-                            ->orderBy('namasekolah', 'asc')
-                            ->select('kodlan', 'namasekolah')
-                            ->limit(20) // Batasi hasil agar tidak membebani server
-                            ->get();
+public function search(Request $request)
+{
+    $searchTerm = $request->query('q', '');
 
-        // Ubah format data agar sesuai dengan yang dibutuhkan oleh Select2
-        $results = $sekolahs->map(function ($sekolah) {
+    $sekolahs = Sekolah::where('namasekolah', 'LIKE', '%'.$searchTerm.'%')
+                      ->orWhere('kodlan', 'LIKE', '%'.$searchTerm.'%')
+                      ->orderBy('namasekolah', 'asc')
+                      ->limit(20)
+                      ->get();
+
+    return response()->json([
+        'results' => $sekolahs->map(function ($sekolah) {
             return [
-                'id' => $sekolah->kodlan, // Select2 butuh 'id'
-                'text' => $sekolah->namasekolah . ' (' . $sekolah->kodlan . ')' // Select2 butuh 'text'
+                'id' => $sekolah->kodlan, // Gunakan kodlan sebagai ID
+                'text' => $sekolah->namasekolah.' ('.$sekolah->kodlan.') - '.$sekolah->kec.', '.$sekolah->kotkab
             ];
-        });
+        }),
+        'pagination' => ['more' => false]
+    ]);
+}
 
-        // Kembalikan dalam format JSON yang dimengerti Select2
-        return response()->json(['results' => $results]);
+public function create()
+{
+    $instructors = User::where('id', '!=', auth()->id())->get();
+    
+    // Jika ada data sekolah dari old input (setelah validasi gagal)
+    $selectedSekolah = null;
+    if (old('kodlan')) {
+        $selectedSekolah = Sekolah::find(old('kodlan'));
+    }
+    
+    return view('laporan-mengajar.create', compact('instructors', 'selectedSekolah'));
+}
+
+public function store(Request $request)
+{
+    $validated = $request->validate($this->validationRules());
+
+    $validated['jadwal_mengajar'] = \Carbon\Carbon::createFromFormat('d/m/Y', $validated['jadwal_mengajar'])->format('Y-m-d');
+
+    
+    // Ambil data sekolah lengkap
+    $sekolah = Sekolah::findOrFail($validated['kodlan']);
+    
+    // Tambahkan data sekolah ke validated data
+    $validated['sekolah_nama'] = $sekolah->namasekolah;
+    $validated['sekolah_kota'] = $sekolah->kotkab;
+    $validated['sekolah_kecamatan'] = $sekolah->kec;
+    
+    if ($request->hasFile('foto_kegiatan')) {
+        $validated['foto_kegiatan'] = $request->file('foto_kegiatan')->store('laporan_mengajar', 'public');
+    }
+    if ($request->hasFile('foto_absensi_siswa')) {
+        $validated['foto_absensi_siswa'] = $request->file('foto_absensi_siswa')->store('laporan_mengajar_absensi', 'public');
     }
 
-    public function create()
-    {
-        $instructors = User::where('id', '!=', auth()->id())->get();
+    $validated['user_id_instruktur'] = Auth::id();
 
-        // ✅ Ambil SEMUA data sekolah, diurutkan berdasarkan nama
-        return view('laporan-mengajar.create', compact('instructors'));
-    }
-    public function store(Request $request)
-    {
-        $validated = $request->validate($this->validationRules());
-
-        if ($request->hasFile('foto_kegiatan')) {
-            $validated['foto_kegiatan'] = $request->file('foto_kegiatan')->store('laporan_mengajar', 'public');
-        }
-        if ($request->hasFile('foto_absensi_siswa')) {
-            $validated['foto_absensi_siswa'] = $request->file('foto_absensi_siswa')->store('laporan_mengajar_absensi', 'public');
-        }
-
-        $validated['user_id_instruktur'] = Auth::id();
-
-        LaporanMengajar::create($validated);
-        return redirect()->route('laporan-mengajar.index')->with('success', 'Laporan berhasil disimpan!');
-    }
+    LaporanMengajar::create($validated);
+    return redirect()->route('laporan-mengajar.index')->with('success', 'Laporan berhasil disimpan!');
+}
 
     public function show(LaporanMengajar $laporanMengajar)
     {
@@ -147,23 +162,26 @@ class LaporanMengajarController extends Controller
     /**
      * Aturan validasi yang dapat digunakan kembali untuk store dan update.
      */
-    protected function validationRules(): array
-    {
-        return [
-            'user_id_assisten' => 'nullable|exists:users,id',
-            'sekolah_id' => 'required|exists:sekolahs,id',
-            'pertemuan_ke' => 'required|integer|min:1',
-            'rombel' => 'required|string|max:255',
-            'jadwal_mengajar' => 'required|date_format:d/m/Y',
-            'jam_mulai' => 'required|date_format:H:i',
-            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
-            'materi_pengajaran' => 'required|string',
-            'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'foto_absensi_siswa' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'refleksi_siswa' => 'required|string',
-            'refleksi_capaian' => 'required|string',
-            'keaktifan' => 'required|in:sangat_pasif,pasif,aktif,sangat_aktif',
-            'pemahaman_materi' => 'required|in:belum_paham,sedikit_paham,paham,sangat_paham',
-        ];
-    }
+protected function validationRules(): array
+{
+    return [
+        'user_id_assisten' => 'nullable|exists:users,id',
+        'kodlan' => 'required|exists:sekolah,kodlan',
+        'pertemuan_ke' => 'required|integer|min:1',
+        'rombel' => 'required|string|max:255',
+        'kategori_pengajaran' => 'required|in:Reguler,Remedial,Pengayaan',
+        'jadwal_mengajar' => 'required|date_format:d/m/Y',
+        'jam_mulai' => 'required|date_format:H:i',
+        'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
+        'materi_pengajaran' => 'required|string',
+        'jumlah_siswa_hadir' => 'nullable|integer|min:0',
+        'jumlah_siswa_keluar' => 'nullable|integer|min:0',
+        'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        'foto_absensi_siswa' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        'refleksi_siswa' => 'required|string',
+        'refleksi_capaian' => 'required|string',
+        'keaktifan' => 'required|in:sangat_pasif,pasif,aktif,sangat_aktif',
+        'pemahaman_materi' => 'required|in:belum_paham,sedikit_paham,paham,sangat_paham',
+    ];
+}
 }

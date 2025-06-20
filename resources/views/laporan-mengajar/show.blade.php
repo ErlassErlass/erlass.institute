@@ -8,14 +8,14 @@
 
     <!-- Instruktur -->
     <div class="mb-3">
-        <strong>Instruktur:</strong> {{ $laporan->instruktur->nama_lengkap ?? 'Tidak ada' }}
+        <strong>Instruktur:</strong> {{ $laporanMengajar->instruktur->nama_lengkap ?? 'Tidak ada' }}
     </div>
 
     <!-- Assisten Instruktur -->
     <div class="mb-3">
         <strong>Assisten Instruktur:</strong> 
-        @if ($laporan->user_id_assisten)
-            {{ $laporan->assisten->nama_lengkap ?? 'Tidak ada' }}
+        @if ($laporanMengajar->user_id_assisten)
+            {{ $laporanMengajar->assisten->nama_lengkap ?? 'Tidak ada' }}
         @else
             Tidak ada
         @endif
@@ -23,54 +23,54 @@
 
     <!-- Sekolah Details -->
     <div class="mb-3">
-        <strong>Sekolah:</strong> {{ $laporan->sekolah_nama }}<br>
-        <strong>Kota/Kabupaten:</strong> {{ $laporan->sekolah_kota }}<br>
-        <strong>Kecamatan:</strong> {{ $laporan->sekolah_kecamatan }}<br>
-        <strong>Provinsi:</strong> {{ $laporan->sekolah_provinsi }}
+        <strong>Sekolah:</strong> {{ $laporanMengajar->sekolah_nama }}<br>
+        <strong>Kota/Kabupaten:</strong> {{ $laporanMengajar->sekolah_kota }}<br>
+        <strong>Kecamatan:</strong> {{ $laporanMengajar->sekolah_kecamatan }}<br>
+        <strong>Provinsi:</strong> {{ $laporanMengajar->sekolah_provinsi }}
     </div>
 
     <!-- Pertemuan Ke- -->
     <div class="mb-3">
-        <strong>Pertemuan Ke-</strong>: {{ $laporan->pertemuan_ke }}
+        <strong>Pertemuan Ke-</strong>: {{ $laporanMengajar->pertemuan_ke }}
     </div>
 
     <!-- Rombel -->
     <div class="mb-3">
-        <strong>Rombel:</strong> {{ $laporan->rombel }}
+        <strong>Rombel:</strong> {{ $laporanMengajar->rombel }}
     </div>
 
     <!-- Jadwal Mengajar -->
     <div class="mb-3">
-        <strong>Jadwal Mengajar:</strong> {{ $laporan->jadwal_mengajar }}
+        <strong>Jadwal Mengajar:</strong> {{ $laporanMengajar->jadwal_mengajar }}
     </div>
 
     <!-- Jam Mulai & Selesai -->
     <div class="mb-3">
-        <strong>Jam Mulai:</strong> {{ $laporan->jam_mulai }}<br>
-        <strong>Jam Selesai:</strong> {{ $laporan->jam_selesai }}
+        <strong>Jam Mulai:</strong> {{ $laporanMengajar->jam_mulai }}<br>
+        <strong>Jam Selesai:</strong> {{ $laporanMengajar->jam_selesai }}
     </div>
 
     <!-- Kategori Pengajaran -->
     <div class="mb-3">
-        <strong>Kategori Pengajaran:</strong> {{ $laporan->kategori_pengajaran }}
+        <strong>Kategori Pengajaran:</strong> {{ $laporanMengajar->kategori_pengajaran }}
     </div>
 
     <!-- Materi Pengajaran -->
     <div class="mb-3">
         <strong>Materi Pengajaran:</strong><br>
-        {!! nl2br(e($laporan->materi_pengajaran)) !!}
+        {!! nl2br(e($laporanMengajar->materi_pengajaran)) !!}
     </div>
 
     <!-- Jumlah Siswa -->
     <div class="mb-3">
-        <strong>Jumlah Siswa Hadir:</strong> {{ $laporan->jumlah_siswa_hadir }}<br>
-        <strong>Jumlah Siswa Keluar:</strong> {{ $laporan->jumlah_siswa_keluar }}
+        <strong>Jumlah Siswa Hadir:</strong> {{ $laporanMengajar->jumlah_siswa_hadir }}<br>
+        <strong>Jumlah Siswa Keluar:</strong> {{ $laporanMengajar->jumlah_siswa_keluar }}
     </div>
 
     <!-- Foto Kegiatan -->
     <div class="mb-3">
-        @if ($laporan->foto_kegiatan)
-            <img src="{{ asset('storage/' . $laporan->foto_kegiatan) }}" 
+        @if ($laporanMengajar->foto_kegiatan)
+            <img src="{{ asset('storage/' . $laporanMengajar->foto_kegiatan) }}" 
                 alt="Foto Kegiatan" 
                 class="img-fluid" 
                 style="max-width: 500px;">
@@ -82,27 +82,27 @@
     <!-- Refleksi -->
     <div class="mb-3">
         <strong>Refleksi Siswa:</strong><br>
-        {!! nl2br(e($laporan->refleksi_siswa)) !!}
+        {!! nl2br(e($laporanMengajar->refleksi_siswa)) !!}
     </div>
 
     <div class="mb-3">
         <strong>Refleksi Capaian:</strong><br>
-        {!! nl2br(e($laporan->refleksi_capaian)) !!}
+        {!! nl2br(e($laporanMengajar->refleksi_capaian)) !!}
     </div>
 
     <!-- Keaktifan & Pemahaman -->
     <div class="mb-3">
-        <strong>Keaktifan:</strong> {{ ucwords(str_replace('_', ' ', $laporan->keaktifan)) }}
+        <strong>Keaktifan:</strong> {{ ucwords(str_replace('_', ' ', $laporanMengajar->keaktifan)) }}
     </div>
 
     <div class="mb-3">
-        <strong>Pemahaman Materi:</strong> {{ ucwords(str_replace('_', ' ', $laporan->pemahaman_materi)) }}
+        <strong>Pemahaman Materi:</strong> {{ ucwords(str_replace('_', ' ', $laporanMengajar->pemahaman_materi)) }}
     </div>
 
     <div class="mt-3">
         @if (Auth::user()->hasRole(['admin', 'admin_erlass']) || 
-            (Auth::user()->role === 'instruktur' && Auth::id() === $laporan->user_id_instruktur))
-            <a href="{{ route('absensi.create', $laporan->id) }}" 
+            (Auth::user()->role === 'instruktur' && Auth::id() === $laporanMengajar->user_id_instruktur))
+            <a href="{{ route('absensi.create', $laporanMengajar->id) }}" 
                 class="btn btn-success">Rekam Absensi</a>
         @endif
     </div>

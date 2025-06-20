@@ -18,9 +18,9 @@ class SiswaController extends Controller {
         }
 
         // INI BAGIAN YANG DIPERBAIKI: Menggunakan whereHas
-        if ($request->filled('sekolah_id')) {
+        if ($request->filled('kodlan')) {
             // Dapatkan 'kodlan' dari request
-            $sekolahKodlan = $request->sekolah_id;
+            $sekolahKodlan = $request->kodlan;
 
             // Terapkan filter whereHas
             $query->whereHas('sekolah', function ($q) use ($sekolahKodlan) {

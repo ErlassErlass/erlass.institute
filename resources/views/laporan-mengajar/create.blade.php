@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 @section('title', 'Buat Laporan Mengajar')
 
 @section('content')
@@ -45,30 +45,38 @@
                         </div>
                         <h5 class="mt-4 border-bottom pb-2 mb-3">Lokasi Mengajar</h5>
                         <div class="mb-3">
-                            <label for="sekolah_kodlan" class="form-label">Cari & Pilih Sekolah</label>
-                            {{-- ✅ DIBUAT KOSONG, akan diisi oleh AJAX --}}
-                            <select name="sekolah_kodlan" id="sekolah-search" class="form-select @error('sekolah_kodlan') is-invalid @enderror" required>
-                                {{-- Jika ada data lama (karena validation error), kita tampilkan di sini --}}
-                                @if(old('sekolah_kodlan'))
-                                <option value="{{ old('sekolah_kodlan') }}" selected="selected">{{ old('sekolah_nama_display') }}</option>
+                            <label for="kodlan" class="form-label">Cari & Pilih Sekolah</label>
+                            <select name="kodlan" id="sekolah-search" class="form-select @error('kodlan') is-invalid @enderror" required>
+                                @if(old('kodlan') && $selectedSekolah)
+                                    <option value="{{ $selectedSekolah->kodlan }}" selected>
+                                        {{ $selectedSekolah->namasekolah }} ({{ $selectedSekolah->kodlan }})
+                                    </option>
                                 @endif
                             </select>
-                            @error('sekolah_kodlan') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            {{-- Kita butuh input hidden untuk menyimpan nama sekolah agar bisa ditampilkan lagi jika ada error validasi --}}
-                            <input type="hidden" name="sekolah_nama_display" id="sekolah_nama_display" value="{{ old('sekolah_nama_display') }}">
+                            @error('kodlan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                         <h5 class="mt-4 border-bottom pb-2 mb-3">Detail Pengajaran</h5>
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label for="pertemuan_ke" class="form-label">Pertemuan Ke-</label>
-                                <input type="number" name="pertemuan_ke" id="pertemuan_ke" class="form-control @error('pertemuan_ke') is-invalid @enderror" value="{{ old('pertemuan_ke') }}" required>
+                                <input type="number" name="pertemuan_ke" id="pertemuan_ke" class="form-control @error('pertemuan_ke') is-invalid @enderror" value="{{ old('pertemuan_ke') }}" required min="1">
                                 @error('pertemuan_ke') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label for="rombel" class="form-label">Rombongan Belajar (Rombel)</label>
                                 <input type="text" name="rombel" id="rombel" class="form-control @error('rombel') is-invalid @enderror" value="{{ old('rombel') }}" required>
                                 @error('rombel') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="kategori_pengajaran" class="form-label">Kategori Pengajaran</label>
+                                <select name="kategori_pengajaran" id="kategori_pengajaran" class="form-select @error('kategori_pengajaran') is-invalid @enderror" required>
+                                    <option value="">Pilih Kategori</option>
+                                    <option value="Reguler" {{ old('kategori_pengajaran') == 'Reguler' ? 'selected' : '' }}>Reguler</option>
+                                    <option value="Remedial" {{ old('kategori_pengajaran') == 'Remedial' ? 'selected' : '' }}>Remedial</option>
+                                    <option value="Pengayaan" {{ old('kategori_pengajaran') == 'Pengayaan' ? 'selected' : '' }}>Pengayaan</option>
+                                </select>
+                                @error('kategori_pengajaran') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label for="jadwal_mengajar" class="form-label">Jadwal Mengajar</label>
@@ -87,8 +95,22 @@
                             </div>
                             <div class="col-12 mb-3">
                                 <label for="materi_pengajaran" class="form-label">Materi Pengajaran</label>
-                                <textarea name="materi_pengajaran" id="materi_pengajaran" class="form-control @error('materi_pengajaran') is-invalid @enderror" required>{{ old('materi_pengajaran') }}</textarea>
+                                <textarea name="materi_pengajaran" id="materi_pengajaran" class="form-control @error('materi_pengajaran') is-invalid @enderror" required rows="3">{{ old('materi_pengajaran') }}</textarea>
                                 @error('materi_pengajaran') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+                        </div>
+
+                        <h5 class="mt-4 border-bottom pb-2 mb-3">Kehadiran Siswa</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="jumlah_siswa_hadir" class="form-label">Jumlah Siswa Hadir</label>
+                                <input type="number" name="jumlah_siswa_hadir" id="jumlah_siswa_hadir" class="form-control @error('jumlah_siswa_hadir') is-invalid @enderror" value="{{ old('jumlah_siswa_hadir', 0) }}" min="0">
+                                @error('jumlah_siswa_hadir') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="jumlah_siswa_keluar" class="form-label">Jumlah Siswa Keluar</label>
+                                <input type="number" name="jumlah_siswa_keluar" id="jumlah_siswa_keluar" class="form-control @error('jumlah_siswa_keluar') is-invalid @enderror" value="{{ old('jumlah_siswa_keluar', 0) }}" min="0">
+                                @error('jumlah_siswa_keluar') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                         </div>
 
@@ -116,12 +138,12 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="refleksi_siswa" class="form-label">Refleksi Siswa</label>
-                                <textarea name="refleksi_siswa" id="refleksi_siswa" class="form-control @error('refleksi_siswa') is-invalid @enderror" required>{{ old('refleksi_siswa') }}</textarea>
+                                <textarea name="refleksi_siswa" id="refleksi_siswa" class="form-control @error('refleksi_siswa') is-invalid @enderror" required rows="3">{{ old('refleksi_siswa') }}</textarea>
                                 @error('refleksi_siswa') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="refleksi_capaian" class="form-label">Refleksi Capaian</label>
-                                <textarea name="refleksi_capaian" id="refleksi_capaian" class="form-control @error('refleksi_capaian') is-invalid @enderror" required>{{ old('refleksi_capaian') }}</textarea>
+                                <textarea name="refleksi_capaian" id="refleksi_capaian" class="form-control @error('refleksi_capaian') is-invalid @enderror" required rows="3">{{ old('refleksi_capaian') }}</textarea>
                                 @error('refleksi_capaian') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                         </div>
@@ -131,13 +153,13 @@
                             <div class="col-md-6 mb-3">
                                 <label for="foto_kegiatan" class="form-label">Foto Kegiatan</label>
                                 <input type="file" name="foto_kegiatan" id="foto_kegiatan" class="form-control @error('foto_kegiatan') is-invalid @enderror" accept="image/*">
+                                <small class="text-muted">Format: JPEG/PNG, Maksimal 2MB</small>
                                 @error('foto_kegiatan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
-
-                            {{-- ✅ FIELD BARU DITAMBAHKAN DI SINI --}}
                             <div class="col-md-6 mb-3">
                                 <label for="foto_absensi_siswa" class="form-label">Foto Absensi Siswa</label>
                                 <input type="file" name="foto_absensi_siswa" id="foto_absensi_siswa" class="form-control @error('foto_absensi_siswa') is-invalid @enderror" accept="image/*">
+                                <small class="text-muted">Format: JPEG/PNG, Maksimal 2MB</small>
                                 @error('foto_absensi_siswa') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                         </div>
@@ -157,47 +179,57 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        const sekolahSearch = $('#sekolah-search');
-
-        sekolahSearch.select2({
+        $('#sekolah-search').select2({
             theme: "bootstrap-5",
-            placeholder: 'Ketik nama atau kode sekolah...',
-            // Konfigurasi AJAX
+            placeholder: 'Ketik nama sekolah atau kode...',
             ajax: {
-                url: "{{ url('api/sekolah/search') }}",
+                url: "{{ url('/laporan-mengajar/search') }}",
                 dataType: 'json',
-                delay: 250, // Tunggu 250ms setelah user berhenti mengetik
+                delay: 300,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 data: function(params) {
                     return {
-                        q: params.term // Kirim teks pencarian sebagai parameter 'q'
+                        q: params.term.trim()
                     };
                 },
                 processResults: function(data) {
                     return {
-                        results: data.results // Data harus dalam format { results: [ {id: '', text: ''} ] }
+                        results: data.results
                     };
                 },
-                cache: true
+                error: function(xhr) {
+                    console.error('Search error:', xhr);
+                }
+            },
+            minimumInputLength: 1,
+            language: {
+                errorLoading: function() {
+                    return "Gagal memuat hasil. Coba lagi.";
+                },
+                noResults: function() {
+                    return "Tidak ditemukan sekolah dengan kata kunci tersebut";
+                }
             }
         });
 
-        // Simpan teks dari sekolah yang dipilih ke input hidden
-        sekolahSearch.on('select2:select', function(e) {
-            var data = e.params.data;
-            $('#sekolah_nama_display').val(data.text);
+        // Date picker for jadwal_mengajar
+        $('#jadwal_mengajar').datepicker({
+            format: 'dd/mm/yyyy',
+            autoclose: true,
+            todayHighlight: true
         });
 
-        // Inisialisasi Flatpickr (tetap sama)
-        flatpickr("#jadwal_mengajar", {
-            dateFormat: "d/m/Y",
-            allowInput: true
-        });
-        flatpickr(".time-picker", {
-            enableTime: true,
-            noCalendar: true,
-            dateFormat: "H:i",
-            time_24hr: true,
-            allowInput: true
+        // Time picker for jam_mulai and jam_selesai
+        $('.time-picker').timepicker({
+            timeFormat: 'HH:mm',
+            interval: 15,
+            minTime: '06:00',
+            maxTime: '21:00',
+            dynamic: false,
+            dropdown: true,
+            scrollbar: true
         });
     });
 </script>

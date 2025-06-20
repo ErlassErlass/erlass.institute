@@ -80,7 +80,11 @@ class LaporanMengajar extends Model
     {
         return $this->belongsTo(User::class, 'user_id_assisten');
     }
-
+public function sekolah()
+{
+    return $this->belongsTo(Sekolah::class, 'kodlan');
+    // Parameter ketiga adalah primary key di tabel sekolah
+}
     /**
      * Relasi ke Absensi.
      */

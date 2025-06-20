@@ -45,10 +45,14 @@ Route::get('/debug-login', function () {
 require __DIR__ . '/auth.php';
 
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
+// Pindahkan route search ke luar grup middleware auth
+Route::get('/laporan-mengajar/search', [LaporanMengajarController::class, 'search'])
+    ->name('laporan-mengajar.search');
 
 // Protected Routes (all require authentication)
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/absensi/create', [AbsensiController::class, 'create'])->name('absensi.create');
     Route::resource('sekolah', SekolahController::class);
     Route::resource('siswa', SiswaController::class);
     Route::resource('users', UserController::class); // Otorisasi via Policy lebih disarankan

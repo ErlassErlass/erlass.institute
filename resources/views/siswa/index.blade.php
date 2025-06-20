@@ -16,11 +16,11 @@
                             <i class="bi bi-person-plus-fill me-1"></i> Tambah Siswa
                         </a>
                         <form method="GET" action="{{ route('siswa.index') }}" class="d-flex gap-2">
-                            <select name="sekolah_id" class="form-select" onchange="this.form.submit()">
+                            <select name="kodlan" class="form-select" onchange="this.form.submit()">
                                 <option value="">Semua Sekolah</option>
                                 @foreach($sekolahs as $sekolah)
                                 {{-- Menggunakan 'kodlan' sebagai value dan untuk perbandingan --}}
-                                <option value="{{ $sekolah->kodlan }}" {{ request('sekolah_id') == $sekolah->kodlan ? 'selected' : '' }}>
+                                <option value="{{ $sekolah->kodlan }}" {{ request('kodlan') == $sekolah->kodlan ? 'selected' : '' }}>
                                     {{ $sekolah->namasekolah }}
                                 </option>
                                 @endforeach
