@@ -10,7 +10,7 @@ use App\Models\Sekolah;
 
 class MainSeeder extends Seeder
 {
-    /**
+    /** 
      * Run the database seeds.
      */
     public function run(): void
