@@ -20,6 +20,19 @@ public function index(Request $request) {
     public function create() {
         return view('sekolah.create');
     }
+public function distribusi()
+{
+    $sekolah_list = Sekolah::withCount('siswa')
+        ->orderByDesc('siswa_count')
+        ->get();
+
+    return view('sekolah.distribusi', compact('sekolah_list'));
+}
+public function siswaBySekolah($kodlan)
+{
+    $sekolah = \App\Models\Sekolah::with('siswa')->where('kodlan', $kodlan)->firstOrFail();
+    return view('sekolah.siswa-by-sekolah', compact('sekolah'));
+}
 
     // Store: Save new school
     public function store(Request $request) {

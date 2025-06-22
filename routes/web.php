@@ -65,6 +65,9 @@ Route::get('/rekap-absensi', [AbsensiController::class, 'rekap'])->name('rekap-a
 Route::get('/absensi/rekap/{tanggal}', [AbsensiController::class, 'rekapByDate'])->name('absensi.rekap-by-date');
 Route::get('/rekap-absensi/tanggal/{tanggal}', [AbsensiController::class, 'rekapByDate'])
     ->name('absensi.rekap.tanggal');
+    Route::get('/distribusi-sekolah', [SekolahController::class, 'distribusi'])->name('sekolah.distribusi');
+Route::get('/sekolah/{kodlan}/siswa', [SekolahController::class, 'siswaBySekolah'])->name('sekolah.siswa');
+
 Route::resource('laporan-mengajar.absensi', AbsensiController::class)->shallow();
 Route::get('laporan-mengajar/{laporan_mengajar}/absensi/tanggal/{tanggal}', [AbsensiController::class, 'showByDate'])->name('laporan-mengajar.absensi.tanggal');
 });

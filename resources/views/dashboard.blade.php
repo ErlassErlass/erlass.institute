@@ -239,7 +239,7 @@
                             @foreach($sekolah_distribution as $sekolah)
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between mb-1">
-                                    <span>{{ Str::limit($sekolah->nama, 20) }}</span>
+                                    <span>{{ Str::limit($sekolah->namasekolah, 20) }}</span>
                                     <span>{{ $sekolah->siswa_count }} siswa</span>
                                 </div>
                                 <div class="progress" style="height: 8px;">
@@ -262,7 +262,7 @@
                             @endforeach
                         </div>
                         <div class="text-center">
-                            <a href="{{ route('sekolah.index') }}" class="btn btn-sm btn-outline-primary">
+                            <a href="{{ route('sekolah.distribusi') }}" class="btn btn-sm btn-outline-primary">
                                 Lihat Semua Sekolah
                             </a>
                         </div>
