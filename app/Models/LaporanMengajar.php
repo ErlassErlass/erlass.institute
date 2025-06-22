@@ -27,6 +27,7 @@ class LaporanMengajar extends Model
         'user_id_assisten',
         'pertemuan_ke',
         'rombel',
+        'kodlan',
         'jadwal_mengajar',
         'jam_mulai',
         'jam_selesai',
@@ -37,6 +38,7 @@ class LaporanMengajar extends Model
         'sekolah_kecamatan',
         'jumlah_siswa_hadir',
         'jumlah_siswa_keluar',
+        'jumlah_siswa_tidak_hadir',
         'foto_kegiatan',
         'foto_absensi_siswa', // Field baru untuk foto absensi
         'refleksi_siswa',
@@ -44,7 +46,11 @@ class LaporanMengajar extends Model
         'keaktifan',
         'pemahaman_materi',
     ];
-
+protected $attributes = [
+    'jumlah_siswa_hadir' => 0,
+    'jumlah_siswa_tidak_hadir' => 0,
+    'jumlah_siswa_keluar' => 0
+];
     /**
      * Model event untuk menghapus file terkait secara otomatis saat record dihapus.
      */
@@ -80,16 +86,27 @@ class LaporanMengajar extends Model
     {
         return $this->belongsTo(User::class, 'user_id_assisten');
     }
+// app/Models/LaporanMengajar.php
 public function sekolah()
 {
-    return $this->belongsTo(Sekolah::class, 'kodlan');
-    // Parameter ketiga adalah primary key di tabel sekolah
+    return $this->belongsTo(Sekolah::class, 'kodlan', 'kodlan');
 }
+
     /**
      * Relasi ke Absensi.
      */
-    public function absensi()
+    public function absensis()
     {
         return $this->hasMany(Absensi::class);
     }
+    public function getJumlahHadirAttribute()
+{
+    return $this->absensi()->where('hadir', true)->count();
+}
+
+// Untuk menghitung jumlah siswa tidak hadir
+public function getJumlahTidakHadirAttribute()
+{
+    return $this->absensi()->where('hadir', false)->count();
+}
 }

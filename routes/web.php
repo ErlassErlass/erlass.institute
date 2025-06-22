@@ -49,14 +49,22 @@ Route::get('/', [WelcomeController::class, 'index'])->name('home');
 Route::get('/laporan-mengajar/search', [LaporanMengajarController::class, 'search'])
     ->name('laporan-mengajar.search');
 
+Route::get('/laporan-mengajar/export/{format}', [LaporanMengajarController::class, 'export'])
+    ->name('laporan-mengajar.export');
+
 // Protected Routes (all require authentication)
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::post('/absensi/create', [AbsensiController::class, 'create'])->name('absensi.create');
     Route::resource('sekolah', SekolahController::class);
+    Route::resource('absensi', AbsensiController::class);
     Route::resource('siswa', SiswaController::class);
     Route::resource('users', UserController::class); // Otorisasi via Policy lebih disarankan
-    Route::resource('laporan-mengajar', LaporanMengajarController::class)
-        ->parameters(['laporan-mengajar' => 'laporan_mengajar']);
-    Route::resource('laporan-mengajar.absensi', AbsensiController::class)->shallow();
+Route::resource('laporan-mengajar', LaporanMengajarController::class);
+Route::get('/rekap-absensi', [AbsensiController::class, 'rekap'])->name('rekap-absensi');
+
+Route::get('/absensi/rekap/{tanggal}', [AbsensiController::class, 'rekapByDate'])->name('absensi.rekap-by-date');
+Route::get('/rekap-absensi/tanggal/{tanggal}', [AbsensiController::class, 'rekapByDate'])
+    ->name('absensi.rekap.tanggal');
+Route::resource('laporan-mengajar.absensi', AbsensiController::class)->shallow();
+Route::get('laporan-mengajar/{laporan_mengajar}/absensi/tanggal/{tanggal}', [AbsensiController::class, 'showByDate'])->name('laporan-mengajar.absensi.tanggal');
 });

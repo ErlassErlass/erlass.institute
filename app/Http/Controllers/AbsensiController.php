@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
-
+use Carbon\Carbon;
 
 class AbsensiController extends Controller
 {
@@ -28,56 +28,130 @@ public function __construct()
 }
 
     // GET /absensi
-    public function index()
-    {
-        $absensi = Absensi::with(['laporanMengajar.sekolah', 'siswa'])
-            ->latest()
-            ->paginate(10);
-        return view('absensi.index', compact('absensi'));
-    }
+public function index(LaporanMengajar $laporan_mengajar)
+{
+    // Group absensi by tanggal
+    $absensi_per_tanggal = Absensi::where('laporan_mengajar_id', $laporan_mengajar->id)
+        ->selectRaw('DATE(created_at) as tanggal')
+        ->groupByRaw('DATE(created_at)')
+        ->orderByDesc('tanggal')
+        ->get();
 
+    return view('absensi.index', compact('absensi_per_tanggal', 'laporan_mengajar'));
+}
+public function showByDate(LaporanMengajar $laporan_mengajar, $tanggal)
+{
+    $tanggal_format = Carbon::parse($tanggal)->format('Y-m-d');
+
+    $absensis = Absensi::where('laporan_mengajar_id', $laporan_mengajar->id)
+        ->whereDate('created_at', $tanggal_format)
+        ->with('siswa')
+        ->get();
+
+    return view('absensi.show-by-date', compact('absensis', 'tanggal', 'laporan_mengajar'));
+}
     // GET /absensi/create
-    public function create(LaporanMengajar $laporan)
-    {
-        // Access control: Only Instruktur (owner) or Admin/Admin Erlass can access
-        if (
-            Auth::user()->role === 'instruktur' &&
-            Auth::id() !== $laporan->user_id_instruktur
-        ) {
-            abort(403, 'Anda tidak memiliki akses.');
-        }
-
-        return view('absensi.create', compact('laporan'));
+public function create(LaporanMengajar $laporan_mengajar)
+{
+    $laporan = $laporan_mengajar; // alias biar tetap pakai nama $laporan
+    if (
+        Auth::user()->role === 'instruktur' &&
+        Auth::id() !== $laporan->user_id_instruktur
+    ) {
+        abort(403, 'Anda tidak memiliki akses.');
     }
+
+    // ambil ulang data lengkap
+$laporan = LaporanMengajar::findOrFail($laporan->id);
+
+    // Ambil siswa berdasarkan sekolah dan rombel
+    $siswas = Siswa::where('sekolah_kodlan', $laporan->kodlan)
+                   ->where('rombel', $laporan->rombel)
+                   ->orderBy('nama_lengkap')
+                   ->get();
+
+    return view('absensi.create', compact('laporan', 'siswas'));
+}
+
     // POST /absensi
-    public function store(Request $request, LaporanMengajar $laporan)
-    {
-        $request->validate([
-            'students' => 'required|array',
-            'students.*.nis' => 'required|string',
-            'students.*.nama_siswa' => 'required|string',
-            'students.*.status' => 'required|in:hadir,tidakhadir',
+public function store(Request $request, LaporanMengajar $laporan_mengajar)
+{
+    $request->validate([
+        'students' => 'required|array',
+        'students.*.siswa_id' => 'required|integer|exists:siswa,id',
+        'students.*.hadir' => 'required|in:1,0,"1","0"', // FIXED
+        'students.*.catatan' => 'nullable|string|max:1000',
+    ]);
+
+    foreach ($request->students as $student) {
+        Absensi::create([
+            'laporan_mengajar_id' => $laporan_mengajar->id,
+            'siswa_id' => $student['siswa_id'],
+            'hadir' => (int)$student['hadir'], // konversi eksplisit
+            'catatan' => $student['catatan'] ?? null,
         ]);
-
-        foreach ($request->students as $student) {
-            Absensi::create([
-                'laporan_mengajar_id' => $laporan->id,
-                'nis' => $student['nis'],
-                'nama_siswa' => $student['nama_siswa'],
-                'status' => $student['status'],
-                'catatan' => $student['catatan'] ?? null,
-            ]);
-        }
-
-        return redirect()->route('laporan-mengajar.show', $laporan)
-            ->with('success', 'Absensi berhasil disimpan.');
     }
 
-    // GET /absensi/{absensi}
-    public function show(LaporanMengajar $laporan)
-    {
-        return view('absensi.show', compact('laporan'));
+return redirect()->route('laporan-mengajar.absensi.index', $laporan_mengajar->id)
+    ->with('success', 'Absensi berhasil disimpan.');
+
+}
+
+public function rekap()
+{
+    if (Auth::user()->role === 'admin' || Auth::user()->role === 'admin_erlass') {
+        $query = Absensi::query();
+    } else {
+        $laporan_ids = LaporanMengajar::where('user_id_instruktur', Auth::id())->pluck('id');
+        $query = Absensi::whereIn('laporan_mengajar_id', $laporan_ids);
     }
+
+    $absensi_per_tanggal = $query->selectRaw('DATE(created_at) as tanggal')
+        ->groupByRaw('DATE(created_at)')
+        ->orderByDesc('tanggal')
+        ->get();
+
+    return view('absensi.rekap', compact('absensi_per_tanggal'));
+}
+
+public function rekapByDate($tanggal)
+{
+    $tanggal_format = Carbon::parse($tanggal)->format('Y-m-d');
+
+    $query = Absensi::whereDate('created_at', $tanggal_format)
+        ->with(['siswa', 'laporanMengajar']);
+
+    // Filter by user role
+    if (!(Auth::user()->role === 'admin' || Auth::user()->role === 'admin_erlass')) {
+        $laporan_ids = LaporanMengajar::where('user_id_instruktur', Auth::id())->pluck('id');
+        $query->whereIn('laporan_mengajar_id', $laporan_ids);
+    }
+
+    // Apply status filter
+    if (request('status') == 'hadir') {
+        $query->where('hadir', 1);
+    } elseif (request('status') == 'tidak-hadir') {
+        $query->where('hadir', 0);
+    }
+
+    // Apply search filter
+    if (request('search')) {
+        $search = request('search');
+        $query->whereHas('siswa', function($q) use ($search) {
+            $q->where('nama_lengkap', 'like', "%{$search}%");
+        });
+    }
+
+    $absensis = $query->paginate(15);
+
+    // Check if all absensi belong to the same laporan_mengajar
+    $laporan_ids = $absensis->pluck('laporan_mengajar_id')->unique();
+    $laporan_mengajar = $laporan_ids->count() === 1 
+        ? LaporanMengajar::find($laporan_ids->first()) 
+        : null;
+
+    return view('absensi.rekap-by-date', compact('absensis', 'tanggal', 'laporan_mengajar'));
+}
 
     // GET /absensi/{absensi}/edit
     public function edit(Absensi $absensi)

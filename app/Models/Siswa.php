@@ -19,4 +19,9 @@ class Siswa extends Model
     {
         return $this->belongsTo(Sekolah::class, 'sekolah_kodlan', 'kodlan');
     }
+
+    public function absensis()
+{
+    return $this->hasMany(Absensi::class);
+}
 }

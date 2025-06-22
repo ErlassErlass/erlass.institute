@@ -1,341 +1,457 @@
 @extends('layouts.app')
 
+@section('title', 'Edit Laporan Mengajar')
+
+@push('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
+<style>
+    .card-header {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        color: white;
+        border-bottom: none;
+    }
+    .section-header {
+        color: #4e73df;
+        font-weight: 600;
+        border-left: 4px solid #4e73df;
+        padding-left: 10px;
+        margin-bottom: 1rem;
+    }
+    .form-section {
+        background-color: #f8f9fc;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border-left: 3px solid #4e73df;
+    }
+    .img-thumbnail {
+        max-width: 200px;
+        height: auto;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px;
+        background-color: white;
+    }
+    .input-group-text {
+        background-color: #e9ecef;
+    }
+    .btn-primary {
+        background-color: #4e73df;
+        border-color: #4e73df;
+    }
+    .btn-primary:hover {
+        background-color: #2e59d9;
+        border-color: #2653d4;
+    }
+    .time-picker {
+        cursor: pointer;
+    }
+    .character-counter {
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-align: right;
+    }
+    .character-counter.warning {
+        color: #ffc107;
+    }
+    .character-counter.danger {
+        color: #dc3545;
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="container">
-    <h1>Edit Laporan Mengajar</h1>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header">
+                    <h1 class="h4 mb-0"><i class="fas fa-edit me-2"></i>Edit Laporan Mengajar</h1>
+                </div>
 
-    <form method="POST" action="{{ route('laporan-mengajar.update', $laporan) }}" enctype="multipart/form-data">
-        @csrf
-        @method('PUT')
+                <form method="POST" action="{{ route('laporan-mengajar.update', $laporanMengajar) }}" enctype="multipart/form-data" id="laporanForm">
+                    @csrf
+                    @method('PUT')
+                    <div class="card-body">
+                        @if ($errors->any())
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Terdapat Kesalahan!</h5>
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        @endif
 
-        <!-- Validation Errors -->
-        @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+                        <!-- Section 1: Instructor Information -->
+                        <div class="form-section">
+                            <h5 class="section-header"><i class="fas fa-user-tie me-2"></i>Informasi Instruktur</h5>
+                            <input type="hidden" name="user_id_instruktur" value="{{ $laporanMengajar->user_id_instruktur }}">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="nama_instruktur" class="form-label">Nama Instruktur</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" id="nama_instruktur" class="form-control" value="{{ $laporanMengajar->instruktur->nama_lengkap }}" disabled readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="user_id_assisten" class="form-label">Asisten Instruktur (Opsional)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user-friends"></i></span>
+                                        <select name="user_id_assisten" id="user_id_assisten" class="form-select @error('user_id_assisten') is-invalid @enderror">
+                                            <option value="">Pilih Asisten</option>
+                                            @foreach ($instructors as $instructor)
+                                            <option value="{{ $instructor->id }}" {{ old('user_id_assisten', $laporanMengajar->user_id_assisten) == $instructor->id ? 'selected' : '' }}>{{ $instructor->nama_lengkap }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    @error('user_id_assisten') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
+
+                            <h5 class="section-header mt-4"><i class="fas fa-school me-2"></i>Lokasi Mengajar</h5>
+                            <div class="mb-3">
+                                <label for="kodlan" class="form-label">Cari & Pilih Sekolah</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <select name="kodlan" id="sekolah-search" class="form-select @error('kodlan') is-invalid @enderror" required>
+                                        <option value="{{ $laporanMengajar->kodlan }}" selected>
+                                            {{ $laporanMengajar->sekolah_nama }} ({{ $laporanMengajar->kodlan }})
+                                        </option>
+                                    </select>
+                                </div>
+                                @error('kodlan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Teaching Details -->
+                        <div class="form-section">
+                            <h5 class="section-header"><i class="fas fa-chalkboard-teacher me-2"></i>Detail Pengajaran</h5>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="pertemuan_ke" class="form-label">Pertemuan Ke-</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-list-ol"></i></span>
+                                        <input type="number" name="pertemuan_ke" id="pertemuan_ke" class="form-control @error('pertemuan_ke') is-invalid @enderror" value="{{ old('pertemuan_ke', $laporanMengajar->pertemuan_ke) }}" required min="1">
+                                    </div>
+                                    @error('pertemuan_ke') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="rombel" class="form-label">Rombongan Belajar</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-users"></i></span>
+                                        <input type="text" name="rombel" id="rombel" class="form-control @error('rombel') is-invalid @enderror" value="{{ old('rombel', $laporanMengajar->rombel) }}" required>
+                                    </div>
+                                    @error('rombel') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="kategori_pengajaran" class="form-label">Kategori Pengajaran</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                        <select name="kategori_pengajaran" id="kategori_pengajaran" class="form-select @error('kategori_pengajaran') is-invalid @enderror" required>
+                                            <option value="">Pilih Kategori</option>
+                                            <option value="Reguler" {{ old('kategori_pengajaran', $laporanMengajar->kategori_pengajaran) == 'Reguler' ? 'selected' : '' }}>Reguler</option>
+                                            <option value="Remedial" {{ old('kategori_pengajaran', $laporanMengajar->kategori_pengajaran) == 'Remedial' ? 'selected' : '' }}>Remedial</option>
+                                            <option value="Pengayaan" {{ old('kategori_pengajaran', $laporanMengajar->kategori_pengajaran) == 'Pengayaan' ? 'selected' : '' }}>Pengayaan</option>
+                                        </select>
+                                    </div>
+                                    @error('kategori_pengajaran') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="jadwal_mengajar" class="form-label">Jadwal Mengajar</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-calendar-day"></i></span>
+@php
+    try {
+        $tanggalParsed = \Carbon\Carbon::createFromFormat('Y-m-d', $laporanMengajar->jadwal_mengajar)->format('d/m/Y');
+    } catch (\Exception $e) {
+        try {
+            $tanggalParsed = \Carbon\Carbon::createFromFormat('d/m/Y', $laporanMengajar->jadwal_mengajar)->format('d/m/Y');
+        } catch (\Exception $e2) {
+            $tanggalParsed = '';
+        }
+    }
+@endphp
+
+<input type="text" name="jadwal_mengajar" id="jadwal_mengajar"
+    class="form-control @error('jadwal_mengajar') is-invalid @enderror"
+    value="{{ old('jadwal_mengajar', $tanggalParsed) }}"
+    required placeholder="dd/mm/yyyy" autocomplete="off">
+                                    </div>
+                                    @error('jadwal_mengajar') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="jam_mulai" class="form-label">Jam Mulai</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                                        <input type="text" name="jam_mulai" id="jam_mulai"
+                                            value="{{ old('jam_mulai', \Carbon\Carbon::createFromFormat('H:i:s', $laporanMengajar->jam_mulai)->format('H:i')) }}"
+                                            class="form-control @error('jam_mulai') is-invalid @enderror"
+                                            required placeholder="HH:mm" autocomplete="off">
+                                    </div>
+                                    @error('jam_mulai') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="jam_selesai" class="form-label">Jam Selesai</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                                        <input type="text" name="jam_selesai" id="jam_selesai"
+                                            value="{{ old('jam_selesai', \Carbon\Carbon::createFromFormat('H:i:s', $laporanMengajar->jam_selesai)->format('H:i')) }}"
+                                            class="form-control @error('jam_selesai') is-invalid @enderror"
+                                            required placeholder="HH:mm" autocomplete="off">
+                                    </div>
+                                    @error('jam_selesai') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="materi_pengajaran" class="form-label">Materi Pengajaran</label>
+                                <textarea name="materi_pengajaran" id="materi_pengajaran" class="form-control @error('materi_pengajaran') is-invalid @enderror" required rows="3">{{ old('materi_pengajaran', $laporanMengajar->materi_pengajaran) }}</textarea>
+                                <div class="character-counter" id="materi-counter">0/500 karakter</div>
+                                @error('materi_pengajaran') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                            </div>
+                        </div>
+
+                            <h5 class="section-header mt-4"><i class="fas fa-chart-line me-2"></i>Evaluasi Pembelajaran</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="keaktifan" class="form-label">Keaktifan Siswa</label>
+                                    <select name="keaktifan" id="keaktifan" class="form-select @error('keaktifan') is-invalid @enderror" required>
+                                        <option value="sangat_pasif" {{ old('keaktifan', $laporanMengajar->keaktifan) == 'sangat_pasif' ? 'selected' : '' }}>Sangat Pasif</option>
+                                        <option value="pasif" {{ old('keaktifan', $laporanMengajar->keaktifan) == 'pasif' ? 'selected' : '' }}>Pasif</option>
+                                        <option value="aktif" {{ old('keaktifan', $laporanMengajar->keaktifan) == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                                        <option value="sangat_aktif" {{ old('keaktifan', $laporanMengajar->keaktifan) == 'sangat_aktif' ? 'selected' : '' }}>Sangat Aktif</option>
+                                    </select>
+                                    @error('keaktifan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="pemahaman_materi" class="form-label">Pemahaman Materi Siswa</label>
+                                    <select name="pemahaman_materi" id="pemahaman_materi" class="form-select @error('pemahaman_materi') is-invalid @enderror" required>
+                                        <option value="belum_paham" {{ old('pemahaman_materi', $laporanMengajar->pemahaman_materi) == 'belum_paham' ? 'selected' : '' }}>Belum Paham</option>
+                                        <option value="sedikit_paham" {{ old('pemahaman_materi', $laporanMengajar->pemahaman_materi) == 'sedikit_paham' ? 'selected' : '' }}>Sedikit Paham</option>
+                                        <option value="paham" {{ old('pemahaman_materi', $laporanMengajar->pemahaman_materi) == 'paham' ? 'selected' : '' }}>Paham</option>
+                                        <option value="sangat_paham" {{ old('pemahaman_materi', $laporanMengajar->pemahaman_materi) == 'sangat_paham' ? 'selected' : '' }}>Sangat Paham</option>
+                                    </select>
+                                    @error('pemahaman_materi') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="refleksi_siswa" class="form-label">Refleksi Siswa</label>
+                                    <textarea name="refleksi_siswa" id="refleksi_siswa" class="form-control @error('refleksi_siswa') is-invalid @enderror" required rows="3">{{ old('refleksi_siswa', $laporanMengajar->refleksi_siswa) }}</textarea>
+                                    <div class="character-counter" id="refleksi-counter">0/300 karakter</div>
+                                    @error('refleksi_siswa') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="refleksi_capaian" class="form-label">Refleksi Capaian</label>
+                                    <textarea name="refleksi_capaian" id="refleksi_capaian" class="form-control @error('refleksi_capaian') is-invalid @enderror" required rows="3">{{ old('refleksi_capaian', $laporanMengajar->refleksi_capaian) }}</textarea>
+                                    <div class="character-counter" id="capaian-counter">0/300 karakter</div>
+                                    @error('refleksi_capaian') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 4: Documentation -->
+                        <div class="form-section">
+                            <h5 class="section-header"><i class="fas fa-images me-2"></i>Dokumentasi Kegiatan</h5>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>Upload foto kegiatan dan absensi dengan format JPEG/PNG (maksimal 2MB)
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Foto Kegiatan</label>
+                                    @if($laporanMengajar->foto_kegiatan)
+                                        <div class="mb-2">
+                                            <img src="{{ asset('storage/' . $laporanMengajar->foto_kegiatan) }}" alt="Foto Kegiatan" class="img-thumbnail">
+                                            <div class="form-check mt-2">
+                                                <input class="form-check-input" type="checkbox" name="hapus_foto_kegiatan" id="hapus_foto_kegiatan" value="1">
+                                                <label class="form-check-label" for="hapus_foto_kegiatan">
+                                                    Hapus foto saat ini
+                                                </label>
+                                            </div>
+                                        </div>
+                                    @endif
+                                    <input type="file" name="foto_kegiatan" id="foto_kegiatan" class="form-control @error('foto_kegiatan') is-invalid @enderror" accept="image/*">
+                                    @error('foto_kegiatan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Foto Absensi Siswa</label>
+                                    @if($laporanMengajar->foto_absensi_siswa)
+                                        <div class="mb-2">
+                                            <img src="{{ asset('storage/' . $laporanMengajar->foto_absensi_siswa) }}" alt="Foto Absensi" class="img-thumbnail">
+                                            <div class="form-check mt-2">
+                                                <input class="form-check-input" type="checkbox" name="hapus_foto_absensi" id="hapus_foto_absensi" value="1">
+                                                <label class="form-check-label" for="hapus_foto_absensi">
+                                                    Hapus foto saat ini
+                                                </label>
+                                            </div>
+                                        </div>
+                                    @endif
+                                    <input type="file" name="foto_absensi_siswa" id="foto_absensi_siswa" class="form-control @error('foto_absensi_siswa') is-invalid @enderror" accept="image/*">
+                                    @error('foto_absensi_siswa') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-light d-flex justify-content-between">
+                        <a href="{{ route('laporan-mengajar.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Kembali
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-        @endif
-
-        <!-- Instruktur (Auto-filled, hidden) -->
-        <!-- Instruktur (Read-only) -->
-        <div class="mb-3">
-            <label for="instruktur_nama" class="form-label">Instruktur</label>
-            <input type="text"
-                name="instruktur_nama"
-                class="form-control"
-                value="{{ $laporan->instruktur->nama_lengkap }}"
-                readonly>
-        </div>
-
-        <!-- Hidden Input for user_id_instruktur -->
-        <input type="hidden"
-            name="user_id_instruktur"
-            value="{{ $laporan->user_id_instruktur }}">
-
-        <!-- Assisten Instruktur -->
-        <div class="mb-3">
-            <label for="user_id_assisten" class="form-label">Assisten Instruktur</label>
-            <select name="user_id_assisten" class="form-select">
-                <option value="">Pilih Assisten</option>
-                @foreach ($instructors as $id => $name)
-                <option value="{{ $id }}"
-                    {{ $laporan->user_id_assisten == $id ? 'selected' : '' }}>
-                    {{ $name }}
-                </option>
-                @endforeach
-            </select>
-            @error('user_id_assisten')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Provinsi (Province) -->
-        <!-- Provinsi (Province) -->
-        <div class="mb-3">
-            <label for="sekolah_provinsi" class="form-label">Provinsi</label>
-            <select name="sekolah_provinsi" id="sekolah_provinsi" class="form-select" required>
-                <option value="">Pilih Provinsi</option>
-                @foreach ($provinsi as $prov)
-                <option value="{{ $prov }}"
-                    {{ $laporan->sekolah_provinsi == $prov ? 'selected' : '' }}>
-                    {{ $prov }}
-                </option>
-                @endforeach
-            </select>
-            @error('sekolah_provinsi')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Kota (City/Municipality) -->
-        <div class="mb-3">
-            <label for="sekolah_kota" class="form-label">Kota/Kabupaten</label>
-            <select name="sekolah_kota" id="sekolah_kota" class="form-select" required>
-                <option value="{{ $laporan->sekolah_kota }}" selected>{{ $laporan->sekolah_kota }}</option>
-            </select>
-            @error('sekolah_kota')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Kecamatan (District) -->
-        <div class="mb-3">
-            <label for="sekolah_kecamatan" class="form-label">Kecamatan</label>
-            <select name="sekolah_kecamatan" id="sekolah_kecamatan" class="form-select" required>
-                <option value="{{ $laporan->sekolah_kecamatan }}" selected>{{ $laporan->sekolah_kecamatan }}</option>
-            </select>
-            @error('sekolah_kecamatan')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Sekolah (School) -->
-        <div class="mb-3">
-            <label for="sekolah_nama" class="form-label">Nama Sekolah</label>
-            <select name="sekolah_nama" id="sekolah_nama" class="form-select" required>
-                <option value="{{ $laporan->sekolah_nama }}" selected>{{ $laporan->sekolah_nama }}</option>
-            </select>
-            @error('sekolah_nama')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Pertemuan Ke- -->
-        <div class="mb-3">
-            <label for="pertemuan_ke" class="form-label">Pertemuan Ke-</label>
-            <input type="number" name="pertemuan_ke" class="form-control"
-                value="{{ $laporan->pertemuan_ke }}" required>
-            @error('pertemuan_ke')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Rombel -->
-        <div class="mb-3">
-            <label for="rombel" class="form-label">Rombel</label>
-            <input type="text" name="rombel" class="form-control"
-                value="{{ $laporan->rombel }}" required>
-            @error('rombel')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Jadwal Mengajar -->
-        <div class="mb-3">
-            <label for="jadwal_mengajar" class="form-label">Jadwal Mengajar</label>
-            <input type="date" name="jadwal_mengajar" class="form-control"
-                value="{{ $laporan->jadwal_mengajar }}" required>
-            @error('jadwal_mengajar')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Jam Mulai -->
-        <div class="mb-3">
-            <label for="jam_mulai" class="form-label">Jam Mulai</label>
-            <input type="time" name="jam_mulai" class="form-control"
-                value="{{ $laporan->jam_mulai }}" required>
-            @error('jam_mulai')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Jam Selesai -->
-        <div class="mb-3">
-            <label for="jam_selesai" class="form-label">Jam Selesai</label>
-            <input type="time" name="jam_selesai" class="form-control"
-                value="{{ $laporan->jam_selesai }}" required>
-            @error('jam_selesai')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Kategori Pengajaran -->
-        <div class="mb-3">
-            <label for="kategori_pengajaran" class="form-label">Kategori Pengajaran</label>
-            <input type="text" name="kategori_pengajaran" class="form-control"
-                value="{{ $laporan->kategori_pengajaran }}" required>
-            @error('kategori_pengajaran')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Materi Pengajaran -->
-        <div class="mb-3">
-            <label for="materi_pengajaran" class="form-label">Materi Pengajaran</label>
-            <textarea name="materi_pengajaran" class="form-control" required>{{ $laporan->materi_pengajaran }}</textarea>
-            @error('materi_pengajaran')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Jumlah Siswa -->
-        <div class="mb-3">
-            <label for="jumlah_siswa_hadir" class="form-label">Jumlah Siswa Hadir</label>
-            <input type="number" name="jumlah_siswa_hadir" class="form-control"
-                value="{{ $laporan->jumlah_siswa_hadir }}" required>
-            @error('jumlah_siswa_hadir')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <div class="mb-3">
-            <label for="jumlah_siswa_keluar" class="form-label">Jumlah Siswa Keluar</label>
-            <input type="number" name="jumlah_siswa_keluar" class="form-control"
-                value="{{ $laporan->jumlah_siswa_keluar }}" required>
-            @error('jumlah_siswa_keluar')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Foto Kegiatan -->
-        <div class="mb-3">
-            <label for="foto_kegiatan" class="form-label">Foto Kegiatan</label>
-            @if ($laporan->foto_kegiatan)
-            <img src="{{ asset('storage/' . $laporan->foto_kegiatan) }}"
-                alt="Foto"
-                class="img-fluid mb-2"
-                style="max-width: 200px;">
-            @endif
-            <input type="file" name="foto_kegiatan" class="form-control" accept="image/*">
-            @error('foto_kegiatan')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Refleksi -->
-        <div class="mb-3">
-            <label for="refleksi_siswa" class="form-label">Refleksi Siswa</label>
-            <textarea name="refleksi_siswa" class="form-control" required>{{ $laporan->refleksi_siswa }}</textarea>
-            @error('refleksi_siswa')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <div class="mb-3">
-            <label for="refleksi_capaian" class="form-label">Refleksi Capaian</label>
-            <textarea name="refleksi_capaian" class="form-control" required>{{ $laporan->refleksi_capaian }}</textarea>
-            @error('refleksi_capaian')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Keaktifan -->
-        <div class="mb-3">
-            <label for="keaktifan" class="form-label">Keaktifan</label>
-            <select name="keaktifan" class="form-select" required>
-                <option value="{{ $laporan->keaktifan }}" selected>{{ ucwords(str_replace('_', ' ', $laporan->keaktifan)) }}</option>
-                <option value="sangat_pasif">Sangat Pasif</option>
-                <option value="pasif">Pasif</option>
-                <option value="aktif">Aktif</option>
-                <option value="sangat_aktif">Sangat Aktif</option>
-            </select>
-            @error('keaktifan')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Pemahaman -->
-        <div class="mb-3">
-            <label for="pemahaman_materi" class="form-label">Pemahaman Materi</label>
-            <select name="pemahaman_materi" class="form-select" required>
-                <option value="{{ $laporan->pemahaman_materi }}" selected>{{ ucwords(str_replace('_', ' ', $laporan->pemahaman_materi)) }}</option>
-                <option value="belum_paham">Belum Paham</option>
-                <option value="sedikit_paham">Sedikit Paham</option>
-                <option value="paham">Paham</option>
-                <option value="sangat_paham">Sangat Paham</option>
-            </select>
-            @error('pemahaman_materi')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <button type="submit" class="btn btn-primary">Perbarui Laporan</button>
-    </form>
+    </div>
 </div>
-<!-- JavaScript for Dependent Dropdowns -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(document).ready(function() {
-        // Pre-select existing Provinsi and trigger Kota loading
-        const initialProvinsi = $('#sekolah_provinsi').val();
-        $('#sekolah_provinsi').val(initialProvinsi).trigger('change');
-
-        // Pre-select existing Kota
-        const initialKota = '{{ $laporan->sekolah_kota }}';
-        const initialKecamatan = '{{ $laporan->sekolah_kecamatan }}';
-        const initialSekolah = '{{ $laporan->sekolah_nama }}';
-
-        // Populate Kota
-        $('#sekolah_kota').val(initialKota);
-        // Populate Kecamatan
-        $('#sekolah_kecamatan').val(initialKecamatan).prop('disabled', false);
-        // Populate Sekolah
-        $('#sekolah_nama').val(initialSekolah).prop('disabled', false);
-
-        // Provinsi -> Kota
-        $('#sekolah_provinsi').change(function() {
-            const provinsi = $(this).val();
-            $('#sekolah_kota').empty().append('<option value="">Loading...</option>');
-            $('#sekolah_kecamatan').empty().prop('disabled', true);
-            $('#sekolah_nama').empty().prop('disabled', true);
-
-            const citiesUrl = "{{ route('api.sekolah.kota', ['provinsi' => ':provinsi']) }}".replace(':provinsi', provinsi);
-            $.get(citiesUrl, function(data) {
-                const kotaSelect = $('#sekolah_kota');
-                kotaSelect.empty();
-                kotaSelect.append('<option value="">Pilih Kota/Kabupaten</option>');
-                data.forEach(kota => {
-                    kotaSelect.append(`<option value="${kota}">${kota}</option>`);
-                });
-                kotaSelect.val(initialKota).prop('disabled', false);
-            });
+        // Initialize Select2 for school search
+        $('#sekolah-search').select2({
+            theme: "bootstrap-5",
+            placeholder: 'Ketik nama sekolah atau kode...',
+            ajax: {
+                url: "{{ url('/laporan-mengajar/search') }}",
+                dataType: 'json',
+                delay: 300,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                data: function(params) {
+                    return {
+                        q: params.term.trim()
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                error: function(xhr) {
+                    console.error('Search error:', xhr);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal memuat data sekolah. Silakan coba lagi.'
+                    });
+                }
+            },
+            minimumInputLength: 3,
+            language: {
+                inputTooShort: function() {
+                    return 'Ketik minimal 3 karakter';
+                },
+                errorLoading: function() {
+                    return "Gagal memuat hasil. Coba lagi.";
+                },
+                noResults: function() {
+                    return "Tidak ditemukan sekolah dengan kata kunci tersebut";
+                },
+                searching: function() {
+                    return "Mencari...";
+                }
+            }
         });
 
-        // Kota -> Kecamatan
-        $('#sekolah_kota').change(function() {
-            const kota = $(this).val();
-            $('#sekolah_kecamatan').empty().append('<option value="">Loading...</option>');
-            $('#sekolah_nama').empty().prop('disabled', true);
-
-            const kecamatanUrl = "{{ route('api.sekolah.kecamatan', ['kota' => ':kota']) }}".replace(':kota', kota);
-            $.get(kecamatanUrl, function(data) {
-                const kecamatanSelect = $('#sekolah_kecamatan');
-                kecamatanSelect.empty();
-                kecamatanSelect.append('<option value="">Pilih Kecamatan</option>');
-                data.forEach(kecamatan => {
-                    kecamatanSelect.append(`<option value="${kecamatan}">${kecamatan}</option>`);
-                });
-                kecamatanSelect.val(initialKecamatan).prop('disabled', false);
-            });
+        // Date picker with proper format handling
+        $('#jadwal_mengajar').datepicker({
+            format: 'dd/mm/yyyy',
+            autoclose: true,
+            todayHighlight: true,
+            language: 'id',
+            weekStart: 1
         });
 
-        // Kecamatan -> Sekolah
-        $('#sekolah_kecamatan').change(function() {
-            const kota = $('#sekolah_kota').val();
-            const kecamatan = $(this).val();
-            const sekolahUrl = "{{ route('api.sekolah.schools', ['kota' => ':kota', 'kecamatan' => ':kecamatan']) }}"
-                .replace(':kota', kota)
-                .replace(':kecamatan', kecamatan);
-            $.get(sekolahUrl, function(data) {
-                const sekolahSelect = $('#sekolah_nama');
-                sekolahSelect.empty();
-                sekolahSelect.append('<option value="">Pilih Sekolah</option>');
-                data.forEach(namasekolah => {
-                    sekolahSelect.append(`<option value="${namasekolah}">${namasekolah}</option>`);
-                });
-                sekolahSelect.val(initialSekolah).prop('disabled', false);
-            });
+        // Time picker
+        $('.time-picker').timepicker({
+            timeFormat: 'HH:mm',
+            interval: 15,
+            minTime: '06:00',
+            maxTime: '21:00',
+            dynamic: false,
+            dropdown: true,
+            scrollbar: true
         });
 
-        // Initialize existing selections
-        $('#sekolah_provinsi').val(initialProvinsi).trigger('change');
-        $('#sekolah_kota').val(initialKota);
-        $('#sekolah_kecamatan').val(initialKecamatan);
-        $('#sekolah_nama').val(initialSekolah);
+        // Character counters for textareas
+        function setupCharacterCounter(textareaId, counterId, maxLength) {
+            $(textareaId).on('input', function() {
+                var length = $(this).val().length;
+                var remaining = maxLength - length;
+                $(counterId).text(length + '/' + maxLength + ' karakter');
+                
+                if (remaining < 50) {
+                    $(counterId).removeClass('warning danger').addClass('warning');
+                }
+                if (remaining < 20) {
+                    $(counterId).removeClass('warning').addClass('danger');
+                }
+                if (remaining >= 50) {
+                    $(counterId).removeClass('warning danger');
+                }
+            }).trigger('input');
+        }
+
+        setupCharacterCounter('#materi_pengajaran', '#materi-counter', 500);
+        setupCharacterCounter('#refleksi_siswa', '#refleksi-counter', 300);
+        setupCharacterCounter('#refleksi_capaian', '#capaian-counter', 300);
+
+        // Form validation before submit
+        $('#laporanForm').submit(function(e) {
+            // Validate time
+            var startTime = $('#jam_mulai').val();
+            var endTime = $('#jam_selesai').val();
+            
+            if (startTime && endTime) {
+                var start = new Date('1970-01-01T' + startTime + ':00');
+                var end = new Date('1970-01-01T' + endTime + ':00');
+                
+                if (start >= end) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Jam Tidak Valid',
+                        text: 'Jam selesai harus setelah jam mulai'
+                    });
+                    return false;
+                }
+            }
+            
+            // Validate date format
+            var dateInput = $('#jadwal_mengajar').val();
+            if (dateInput) {
+                var dateParts = dateInput.split('/');
+                if (dateParts.length !== 3 || dateParts[0].length !== 2 || dateParts[1].length !== 2 || dateParts[2].length !== 4) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Format Tanggal Salah',
+                        text: 'Format tanggal harus dd/mm/yyyy'
+                    });
+                    return false;
+                }
+            }
+            
+            return true;
+        });
     });
 </script>
-@endsection
+@endpush
