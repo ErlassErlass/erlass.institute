@@ -1,29 +1,30 @@
 <?php
 
-// database/factories/SekolahFactory.php
 namespace Database\Factories;
 
-use App\Models\Sekolah;
-use Faker\Generator as Faker;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 class SekolahFactory extends Factory
 {
-    protected $model = Sekolah::class;
-
-    public function definition()
+    public function definition(): array
     {
+        $provinsi = fake()->randomElement(['DKI Jakarta', 'Jawa Barat', 'Jawa Tengah']);
+        $kotkab = fake()->randomElement(['Kota', 'Kabupaten']);
+        $kota = ($provinsi == 'DKI Jakarta') ? fake()->randomElement(['Jakarta Selatan', 'Jakarta Timur', 'Jakarta Pusat']) : fake()->city();
+        $kec = fake()->streetName();
+        $jenjang = fake()->randomElement(['SD', 'SMP']);
+        $namaSekolah = $jenjang . ' Negeri ' . fake()->numberBetween(1, 20) . ' ' . $kec;
+
         return [
-            'kodlan' => $this->faker->unique()->numerify('SCH-####'), // e.g., SCH-1234
-            'namasekolah' => $this->faker->company() . ' ' . $this->faker->randomElement(['SD', 'SMP']),
-            'rank' => $this->faker->optional($weight = 0.5)->randomDigit,
-            'jenjang' => $this->faker->randomElement(['SD', 'SMP']),
-            'sub_jenjang' => $this->faker->optional()->word,
-            'status' => $this->faker->randomElement(['Swasta', 'Negeri']),
-            'pd' => $this->faker->optional()->word,
-            'kec' => $this->faker->citySuffix, // e.g., "Kecamatan"
-            'kotkab' => $this->faker->city, // e.g., "Jakarta Selatan"
-            'kota' => $this->faker->city, // e.g., "Jakarta"
-            'provinsi' => $this->faker->randomElement(['Jawa Barat', 'Jawa Tengah', 'DKI Jakarta', 'Banten']),
+            'kodlan' => strtoupper(substr($provinsi, 0, 3)) . '-' . strtoupper(substr($kota, 0, 3)) . '-' . fake()->unique()->numerify('###'),
+            'namasekolah' => $namaSekolah,
+            'jenjang' => $jenjang,
+            'status' => fake()->randomElement(['Negeri', 'Swasta']),
+            'pd' => fake()->numberBetween(150, 500),
+            'kec' => $kec,
+            'kotkab' => $kotkab,
+            'kota' => $kota,
+            'provinsi' => $provinsi,
         ];
     }
 }

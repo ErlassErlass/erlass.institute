@@ -2,36 +2,40 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\User;
+use App\Models\Sekolah;
+use App\Models\Siswa;
+use App\Models\LaporanMengajar;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-    $this->call([
-        MainSeeder::class,
-    ]);
-
-        User::create([
-            'nama_lengkap' => 'Admin Sistem',
-            'email' => 'admin@example.com',
-            'password' => bcrypt('admin123'),
-            'tanggal_lahir' => '1990-01-01',
-            'no_telephone' => '08123456789',
-            'status' => 'active',
-            'agama' => 'Islam',
-            'pend_terakhir' => 'S1',
-            'kompetensi_1' => 'Manajemen Sistem',
-            'kompetensi_2' => 'Keamanan Jaringan',
-            'role' => 'admin',
-            'created_at' => now(),
-            'updated_at' => now(),
+        // 1. Buat User
+        // Buat 1 Admin Utama
+        User::factory()->create([
+            'nama_lengkap' => 'Admin Erlass Utama',
+            'email' => 'admin@erlass.com',
+            'role' => 'admin_erlass'
         ]);
+        // Buat 1 Admin biasa
+        User::factory()->create([
+            'nama_lengkap' => 'Admin Biasa',
+            'email' => 'admin.biasa@erlass.com',
+            'role' => 'admin'
+        ]);
+        // Buat 48 Instruktur (total user 50)
+        User::factory(48)->create(['role' => 'instruktur']);
 
+        // 2. Buat 80 Sekolah
+        Sekolah::factory(80)->create();
+        
+        // 3. Buat 500 Siswa (secara acak akan masuk ke 80 sekolah di atas)
+        Siswa::factory(500)->create();
+
+        // 4. Buat 100 Laporan Mengajar
+        // Ini akan secara otomatis membuat data absensi juga berkat configure() di factory-nya.
+        LaporanMengajar::factory(100)->create();
     }
 }

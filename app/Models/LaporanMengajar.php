@@ -12,45 +12,35 @@ class LaporanMengajar extends Model
 
     /**
      * Nama tabel yang terhubung dengan model.
-     *
-     * @var string
      */
     protected $table = 'laporan_mengajar';
 
     /**
      * Atribut yang dapat diisi secara massal.
-     *
-     * @var array<int, string>
+     * Disesuaikan dengan struktur tabel final Anda.
      */
     protected $fillable = [
         'user_id_instruktur',
         'user_id_assisten',
+        'sekolah_kodlan', // ✅ HANYA INI yang kita butuhkan untuk relasi sekolah
+        'status', // Untuk fitur draft
         'pertemuan_ke',
         'rombel',
-        'kodlan',
         'jadwal_mengajar',
         'jam_mulai',
         'jam_selesai',
-        'kategori_pengajaran', // Anda mungkin lupa menambahkan ini sebelumnya
+        'kategori_pengajaran',
         'materi_pengajaran',
-        'sekolah_nama',
-        'sekolah_kota',
-        'sekolah_kecamatan',
         'jumlah_siswa_hadir',
         'jumlah_siswa_keluar',
-        'jumlah_siswa_tidak_hadir',
         'foto_kegiatan',
-        'foto_absensi_siswa', // Field baru untuk foto absensi
+        'foto_absensi_siswa',
         'refleksi_siswa',
         'refleksi_capaian',
         'keaktifan',
         'pemahaman_materi',
     ];
-protected $attributes = [
-    'jumlah_siswa_hadir' => 0,
-    'jumlah_siswa_tidak_hadir' => 0,
-    'jumlah_siswa_keluar' => 0
-];
+
     /**
      * Model event untuk menghapus file terkait secara otomatis saat record dihapus.
      */
@@ -59,12 +49,9 @@ protected $attributes = [
         parent::boot();
 
         static::deleting(function ($laporan) {
-            // Hapus foto kegiatan jika ada
             if ($laporan->foto_kegiatan) {
                 Storage::disk('public')->delete($laporan->foto_kegiatan);
             }
-            
-            // ✅ DIPERBAIKI: Hapus foto absensi siswa jika ada, mencegah file sampah.
             if ($laporan->foto_absensi_siswa) {
                 Storage::disk('public')->delete($laporan->foto_absensi_siswa);
             }
@@ -86,27 +73,20 @@ protected $attributes = [
     {
         return $this->belongsTo(User::class, 'user_id_assisten');
     }
-// app/Models/LaporanMengajar.php
-public function sekolah()
-{
-    return $this->belongsTo(Sekolah::class, 'kodlan', 'kodlan');
-}
 
     /**
-     * Relasi ke Absensi.
+     * ✅ SATU-SATUNYA relasi ke Sekolah yang BENAR.
      */
-    public function absensis()
+    public function sekolah()
     {
-        return $this->hasMany(Absensi::class);
+        return $this->belongsTo(Sekolah::class, 'sekolah_kodlan', 'kodlan');
     }
-    public function getJumlahHadirAttribute()
-{
-    return $this->absensi()->where('hadir', true)->count();
-}
 
-// Untuk menghitung jumlah siswa tidak hadir
-public function getJumlahTidakHadirAttribute()
-{
-    return $this->absensi()->where('hadir', false)->count();
-}
+    /**
+     * Relasi ke Absensi. (Gunakan nama plural 'absensis' agar lebih jelas)
+     */
+    public function absensis() // Gunakan nama plural untuk relasi hasMany
+    {
+        return $this->hasMany(Absensi::class, 'laporan_mengajar_id');
+    }
 }

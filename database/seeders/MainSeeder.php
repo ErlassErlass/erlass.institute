@@ -4,13 +4,14 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Sekolah;
+use App\Models\Siswa;
+use App\Models\LaporanMengajar;
 
 class MainSeeder extends Seeder
 {
-    /** 
+    /**
      * Run the database seeds.
      */
     public function run(): void
@@ -19,39 +20,38 @@ class MainSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         User::truncate();
         Sekolah::truncate();
-        // Anda bisa tambahkan truncate untuk tabel lain jika perlu (siswa, laporan, dll)
+        Siswa::truncate();
+        LaporanMengajar::truncate();
+        // Anda bisa tambahkan truncate untuk tabel lain jika perlu (absensi, dll)
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        // Membuat Users
-        User::create([
-            'id' => 1,
-            'nama_lengkap' => 'Admin Erlass',
-            'email' => 'admin@erlass.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-            'tanggal_lahir' => '1990-01-01', 'no_telephone' => '081234567890', 'status' => 'Aktif', 'agama' => 'Islam', 'pend_terakhir' => 'S1', 'kompetensi_1' => 'Manajemen'
+        // 1. Buat User
+        // Buat 2 Admin Erlass
+        User::factory()->create([
+            'nama_lengkap' => 'Admin Erlass 1',
+            'email' => 'adminerlass1@erlass.com',
+            'role' => 'admin_erlass'
         ]);
-        User::create([
-            'id' => 2,
-            'nama_lengkap' => 'Budi Instruktur',
-            'email' => 'budi.instruktur@erlass.com',
-            'password' => Hash::make('password'),
-            'role' => 'instruktur',
-            'tanggal_lahir' => '1995-05-15', 'no_telephone' => '081209876543', 'status' => 'Aktif', 'agama' => 'Kristen', 'pend_terakhir' => 'S1', 'kompetensi_1' => 'Coding'
-        ]);
-        User::create([
-            'id' => 3,
-            'nama_lengkap' => 'Siti Instruktur',
-            'email' => 'siti.instruktur@erlass.com',
-            'password' => Hash::make('password'),
-            'role' => 'instruktur',
-            'tanggal_lahir' => '1998-11-20', 'no_telephone' => '081112223334', 'status' => 'Aktif', 'agama' => 'Islam', 'pend_terakhir' => 'S1', 'kompetensi_1' => 'Robotik'
+        User::factory()->create([
+            'nama_lengkap' => 'Admin Erlass 2',
+            'email' => 'adminerlass2@erlass.com',
+            'role' => 'admin_erlass'
         ]);
 
-        // Membuat Sekolah
-        Sekolah::create(['kodlan' => 'JKT-SEL-PSM-001', 'namasekolah' => 'SDN 1 Pasar Minggu', 'jenjang' => 'SD', 'status' => 'Negeri', 'kec' => 'Pasar Minggu', 'kotkab' => 'Kota', 'kota' => 'Jakarta Selatan', 'provinsi' => 'DKI Jakarta']);
-        Sekolah::create(['kodlan' => 'JKT-SEL-PSM-002', 'namasekolah' => 'SMP Harapan Bangsa', 'jenjang' => 'SMP', 'status' => 'Swasta', 'kec' => 'Pasar Minggu', 'kotkab' => 'Kota', 'kota' => 'Jakarta Selatan', 'provinsi' => 'DKI Jakarta']);
-        Sekolah::create(['kodlan' => 'JKT-TIM-CKG-001', 'namasekolah' => 'SDN Cilangkap 02 Pagi', 'jenjang' => 'SD', 'status' => 'Negeri', 'kec' => 'Cipayung', 'kotkab' => 'Kota', 'kota' => 'Jakarta Timur', 'provinsi' => 'DKI Jakarta']);
-        Sekolah::create(['kodlan' => 'BDG-KAB-SRN-001', 'namasekolah' => 'SMP Negeri 1 Soreang', 'jenjang' => 'SMP', 'status' => 'Negeri', 'kec' => 'Soreang', 'kotkab' => 'Kabupaten', 'kota' => 'Bandung', 'provinsi' => 'Jawa Barat']);
+        // Buat 8 Admin biasa
+        User::factory(8)->create(['role' => 'admin']);
+
+        // Buat 40 Instruktur
+        User::factory(40)->create(['role' => 'instruktur']);
+
+        // 2. Buat 80 Sekolah
+        Sekolah::factory(80)->create();
+        
+        // 3. Buat 500 Siswa (secara acak akan masuk ke 80 sekolah di atas)
+        Siswa::factory(500)->create();
+
+        // 4. Buat 100 Laporan Mengajar
+        // Ini akan secara otomatis membuat data absensi juga berkat configure() di factory-nya.
+        LaporanMengajar::factory(100)->create();
     }
 }

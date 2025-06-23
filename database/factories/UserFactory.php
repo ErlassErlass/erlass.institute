@@ -2,25 +2,25 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
-class UserFactory extends Factory {
-    protected $model = User::class;
-
-    public function definition(): array {
+class UserFactory extends Factory
+{
+    public function definition(): array
+    {
         return [
-            'nama_lengkap' => $this->faker->name,
-            'email' => $this->faker->unique()->safeEmail,
-            'password' => bcrypt('password'), // Default password
-            'tanggal_lahir' => $this->faker->date,
-            'no_telephone' => $this->faker->phoneNumber,
-            'status' => 'active',
-            'agama' => 'Islam',
+            'nama_lengkap' => fake()->name(),
+            'email' => fake()->unique()->safeEmail(),
+            'password' => Hash::make('password'), // Default password
+            'tanggal_lahir' => fake()->date(),
+            'no_telephone' => fake()->phoneNumber(),
+            'status' => 'Aktif',
+            'agama' => fake()->randomElement(['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha']),
             'pend_terakhir' => 'S1',
-            'kompetensi_1' => 'Coding Scratch',
-            'kompetensi_2' => 'Arduino Learning Kit',
-            'role' => 'instruktur',
+            'kompetensi_1' => fake()->randomElement(['Coding', 'Robotik', 'Desain', 'IoT']),
+            'role' => 'instruktur', // Default role
         ];
     }
 }
