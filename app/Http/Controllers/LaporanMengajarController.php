@@ -19,23 +19,44 @@ class LaporanMengajarController extends Controller
         $this->authorizeResource(LaporanMengajar::class, 'laporan_mengajar');
     }
 
-    public function index(Request $request)
-    {
-        $laporanQuery = LaporanMengajar::with('instruktur', 'sekolah', 'asisten');
-        $this->applyFilters($laporanQuery, $request);
+  // File: app/Http/Controllers/LaporanMengajarController.php
 
-        // ✅ PERBAIKAN: Hitung statistik dengan query yang sudah difilter
-        $stats = $this->getStats(clone $laporanQuery, Auth::user());
+public function index(Request $request)
+{
+    // 1. Mulai query dasar dengan relasi yang dibutuhkan
+    $laporanQuery = LaporanMengajar::with('instruktur', 'sekolah', 'asisten');
 
-        $laporan = $laporanQuery->latest('jadwal_mengajar')->paginate(10);
-        
-        $instructors = User::whereIn('role', ['instruktur', 'admin', 'admin_erlass'])->orderBy('nama_lengkap')->get();
-        $kategori = ['Coding Scratch', 'Coding Pictoblox', 'English Course', 'Microbit:Learning Kit', 'Robotic Explorer', 'Robotik Jimu'];
+    // 2. Terapkan semua filter yang mungkin ada dari request
+    // (Method applyFilters() ini harus ada di controller Anda juga)
+    $this->applyFilters($laporanQuery, $request);
 
-        // ✅ PERBAIKAN: Kirim 'stats' sebagai satu array
-        return view('laporan-mengajar.index', compact('laporan', 'instructors', 'kategori', 'stats'));
-    }
-    
+    // 3. Clone query untuk menghitung statistik SEBELUM paginasi
+    $statsQuery = clone $laporanQuery;
+
+    // 4. ✅ HITUNG SEMUA STATISTIK YANG DIBUTUHKAN
+    $totalLaporan = (clone $statsQuery)->count();
+    $laporanMingguIni = (clone $statsQuery)->whereBetween('jadwal_mengajar', [now()->startOfWeek(), now()->endOfWeek()])->count();
+    $laporanBulanIni = (clone $statsQuery)->whereBetween('jadwal_mengajar', [now()->startOfMonth(), now()->endOfMonth()])->count();
+    $totalInstruktur = User::whereIn('role', ['instruktur', 'admin'])->count(); // Disederhanakan untuk contoh
+
+    // 5. Lanjutkan query utama untuk mendapatkan hasil dengan paginasi
+    $laporan = $laporanQuery->latest('jadwal_mengajar')->paginate(10);
+
+    // 6. Ambil data tambahan untuk dropdown filter
+    $instructors = User::whereIn('role', ['instruktur', 'admin', 'admin_erlass'])->orderBy('nama_lengkap')->get();
+    $kategori = ['Coding Scratch', 'Coding Pictoblox', 'English Course', 'Microbit:Learning Kit', 'Robotic Explorer', 'Robotik Jimu'];
+
+    // 7. ✅ KIRIM SEMUA VARIABEL STATISTIK KE VIEW
+    return view('laporan-mengajar.index', compact(
+        'laporan',
+        'instructors',
+        'kategori',
+        'totalLaporan',
+        'laporanMingguIni',
+        'laporanBulanIni',
+        'totalInstruktur'
+    ));
+}
     // ... (method create, store, show, edit, update, destroy Anda sudah sangat baik) ...
     public function create()
     {
