@@ -153,12 +153,15 @@
                                     <label for="kategori_pengajaran" class="form-label">Kategori Pengajaran</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="fas fa-tag"></i></span>
-                                        <select name="kategori_pengajaran" id="kategori_pengajaran" class="form-select @error('kategori_pengajaran') is-invalid @enderror" required>
-                                            <option value="">Pilih Kategori</option>
-                                            <option value="Reguler" {{ old('kategori_pengajaran', $laporanMengajar->kategori_pengajaran) == 'Reguler' ? 'selected' : '' }}>Reguler</option>
-                                            <option value="Remedial" {{ old('kategori_pengajaran', $laporanMengajar->kategori_pengajaran) == 'Remedial' ? 'selected' : '' }}>Remedial</option>
-                                            <option value="Pengayaan" {{ old('kategori_pengajaran', $laporanMengajar->kategori_pengajaran) == 'Pengayaan' ? 'selected' : '' }}>Pengayaan</option>
-                                        </select>
+<select name="kategori_pengajaran" id="kategori_pengajaran" class="form-select @error('kategori_pengajaran') is-invalid @enderror" required>
+    <option value="">Pilih Kategori</option>
+    <option value="Coding Scratch" {{ old('kategori_pengajaran') == 'Coding Scratch' ? 'selected' : '' }}>Coding Scratch</option>
+    <option value="Coding Pictoblox" {{ old('kategori_pengajaran') == 'Coding Pictoblox' ? 'selected' : '' }}>Coding Pictoblox</option>
+    <option value="English Course" {{ old('kategori_pengajaran') == 'English Course' ? 'selected' : '' }}>English Course</option>
+    <option value="Microbit:Learning Kit" {{ old('kategori_pengajaran') == 'Microbit:Learning Kit' ? 'selected' : '' }}>Microbit:Learning Kit</option>
+    <option value="Robotic Explorer" {{ old('kategori_pengajaran') == 'Robotic Explorer' ? 'selected' : '' }}>Robotic Explorer</option>
+    <option value="Robotik Jimu" {{ old('kategori_pengajaran') == 'Robotik Jimu' ? 'selected' : '' }}>Robotik Jimu</option>
+</select>
                                     </div>
                                     @error('kategori_pengajaran') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>

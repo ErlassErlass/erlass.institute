@@ -11,14 +11,12 @@
         background-color: #4e73df;
         color: white;
     }
-
     .section-header {
         color: #4e73df;
         font-weight: 600;
         border-left: 4px solid #4e73df;
         padding-left: 10px;
     }
-
     .form-section {
         background-color: #f8f9fc;
         border-radius: 8px;
@@ -26,7 +24,6 @@
         margin-bottom: 25px;
         border-left: 3px solid #4e73df;
     }
-
     .file-upload-preview {
         width: 100px;
         height: 100px;
@@ -35,24 +32,20 @@
         display: none;
         margin-top: 10px;
     }
-
     .select2-container--bootstrap-5 .select2-selection {
         height: auto;
         min-height: 38px;
     }
-
     .progress-indicator {
         display: flex;
         justify-content: space-between;
         margin-bottom: 20px;
     }
-
     .progress-step {
         text-align: center;
         position: relative;
         flex: 1;
     }
-
     .progress-step:not(:last-child):after {
         content: '';
         position: absolute;
@@ -63,7 +56,6 @@
         background: #e3e6f0;
         z-index: 1;
     }
-
     .step-number {
         width: 30px;
         height: 30px;
@@ -78,32 +70,26 @@
         color: #858796;
         font-weight: bold;
     }
-
     .step-label {
         font-size: 12px;
         color: #858796;
     }
-
     .active-step .step-number {
         background: #4e73df;
         color: white;
     }
-
     .active-step .step-label {
         color: #4e73df;
         font-weight: bold;
     }
-
     .character-counter {
         font-size: 12px;
         color: #6c757d;
         text-align: right;
     }
-
     .character-counter.warning {
         color: #ffc107;
     }
-
     .character-counter.danger {
         color: #dc3545;
     }
@@ -181,18 +167,21 @@
                                 </div>
                             </div>
 
-                            {{-- File: resources/views/laporan-mengajar/create.blade.php --}}
-
-                            <h5 class="section-header mt-4 mb-3"><i class="fas fa-school me-2"></i>Lokasi Mengajar</h5>
+                            <h5 class="section-header mt-4"><i class="fas fa-school me-2"></i>Lokasi Mengajar</h5>
                             <div class="mb-3">
-                                <label for="sekolah_kodlan" class="form-label">Cari & Pilih Sekolah</label>
-                                <select name="sekolah_kodlan" id="sekolah-search" class="form-select @error('sekolah_kodlan') is-invalid @enderror" required>
-                                    @if($selectedSekolah)
-                                    <option value="{{ $selectedSekolah->kodlan }}" selected>{{ $selectedSekolah->namasekolah }} ({{ $selectedSekolah->kodlan }})</option>
-                                    @endif
-                                </select>
+                                <label for="kodlan" class="form-label">Cari & Pilih Sekolah</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <select name="kodlan" id="sekolah-search" class="form-select @error('kodlan') is-invalid @enderror" required>
+                                        @if(old('kodlan') && $selectedSekolah)
+                                            <option value="{{ $selectedSekolah->kodlan }}" selected>
+                                                {{ $selectedSekolah->namasekolah }} ({{ $selectedSekolah->kodlan }})
+                                            </option>
+                                        @endif
+                                    </select>
+                                </div>
                                 <small class="text-muted">Ketik minimal 3 karakter untuk mencari sekolah</small>
-                                @error('sekolah_kodlan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                @error('kodlan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
                         </div>
 
@@ -220,17 +209,15 @@
                                     <label for="kategori_pengajaran" class="form-label">Kategori Pengajaran</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="fas fa-tag"></i></span>
-                                        <select name="kategori_pengajaran" id="kategori_pengajaran" class="form-select @error('kategori_pengajaran') is-invalid @enderror" required>
-                                            <option value="">Pilih Kategori</option>
-                                            {{-- Daftar Opsi yang Sudah Diperbarui --}}
-                                            <option value="Coding Scratch" {{ old('kategori_pengajaran') == 'Coding Scratch' ? 'selected' : '' }}>Coding Scratch</option>
-                                            <option value="Coding Pictoblox" {{ old('kategori_pengajaran') == 'Coding Pictoblox' ? 'selected' : '' }}>Coding Pictoblox</option>
-                                            <option value="English Course" {{ old('kategori_pengajaran') == 'English Course' ? 'selected' : '' }}>English Course</option>
-                                            <option value="Microbit:Learning Kit" {{ old('kategori_pengajaran') == 'Microbit:Learning Kit' ? 'selected' : '' }}>Microbit:Learning Kit</option>
-                                            <option value="Robotic Explorer" {{ old('kategori_pengajaran') == 'Robotic Explorer' ? 'selected' : '' }}>Robotic Explorer</option>
-                                            <option value="Robotik Jimu" {{ old('kategori_pengajaran') == 'Robotik Jimu' ? 'selected' : '' }}>Robotik Jimu</option>
-
-                                        </select>
+<select name="kategori_pengajaran" id="kategori_pengajaran" class="form-select @error('kategori_pengajaran') is-invalid @enderror" required>
+    <option value="">Pilih Kategori</option>
+    <option value="Coding Scratch" {{ old('kategori_pengajaran') == 'Coding Scratch' ? 'selected' : '' }}>Coding Scratch</option>
+    <option value="Coding Pictoblox" {{ old('kategori_pengajaran') == 'Coding Pictoblox' ? 'selected' : '' }}>Coding Pictoblox</option>
+    <option value="English Course" {{ old('kategori_pengajaran') == 'English Course' ? 'selected' : '' }}>English Course</option>
+    <option value="Microbit:Learning Kit" {{ old('kategori_pengajaran') == 'Microbit:Learning Kit' ? 'selected' : '' }}>Microbit:Learning Kit</option>
+    <option value="Robotic Explorer" {{ old('kategori_pengajaran') == 'Robotic Explorer' ? 'selected' : '' }}>Robotic Explorer</option>
+    <option value="Robotik Jimu" {{ old('kategori_pengajaran') == 'Robotik Jimu' ? 'selected' : '' }}>Robotik Jimu</option>
+</select>
                                     </div>
                                     @error('kategori_pengajaran') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
@@ -271,51 +258,44 @@
                             </div>
                         </div>
 
-                        <h5 class="mt-4 border-bottom pb-2 mb-3">Refleksi & Evaluasi</h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="jumlah_siswa_hadir" class="form-label">Jumlah Siswa Hadir</label>
-                                <input type="number" name="jumlah_siswa_hadir" id="jumlah_siswa_hadir" class="form-control @error('jumlah_siswa_hadir') is-invalid @enderror" value="{{ old('jumlah_siswa_hadir') }}" required min="0">
-                                @error('jumlah_siswa_hadir') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                                    <h5 class="section-header mt-4"><i class="fas fa-chart-line me-2"></i>Evaluasi Pembelajaran</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="keaktifan" class="form-label">Keaktifan Siswa</label>
+                                    <select name="keaktifan" id="keaktifan" class="form-select @error('keaktifan') is-invalid @enderror" required>
+                                        <option value="sangat_pasif">Sangat Pasif</option>
+                                        <option value="pasif">Pasif</option>
+                                        <option value="aktif">Aktif</option>
+                                        <option value="sangat_aktif">Sangat Aktif</option>
+                                    </select>
+                                    @error('keaktifan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="pemahaman_materi" class="form-label">Pemahaman Materi Siswa</label>
+                                    <select name="pemahaman_materi" id="pemahaman_materi" class="form-select @error('pemahaman_materi') is-invalid @enderror" required>
+                                        <option value="belum_paham">Belum Paham</option>
+                                        <option value="sedikit_paham">Sedikit Paham</option>
+                                        <option value="paham">Paham</option>
+                                        <option value="sangat_paham">Sangat Paham</option>
+                                    </select>
+                                    @error('pemahaman_materi') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="jumlah_siswa_keluar" class="form-label">Jumlah Siswa Keluar</label>
-                                <input type="number" name="jumlah_siswa_keluar" id="jumlah_siswa_keluar" class="form-control @error('jumlah_siswa_keluar') is-invalid @enderror" value="{{ old('jumlah_siswa_keluar') }}" required min="0">
-                                @error('jumlah_siswa_keluar') <div class="invalid-feedback">{{ $message }}</div> @enderror
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="refleksi_siswa" class="form-label">Refleksi Siswa</label>
+                                    <textarea name="refleksi_siswa" id="refleksi_siswa" class="form-control @error('refleksi_siswa') is-invalid @enderror" required rows="3"></textarea>
+                                    <div class="character-counter" id="refleksi-counter">0/300 karakter</div>
+                                    @error('refleksi_siswa') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="refleksi_capaian" class="form-label">Refleksi Capaian</label>
+                                    <textarea name="refleksi_capaian" id="refleksi_capaian" class="form-control @error('refleksi_capaian') is-invalid @enderror" required rows="3"></textarea>
+                                    <div class="character-counter" id="capaian-counter">0/300 karakter</div>
+                                    @error('refleksi_capaian') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="keaktifan" class="form-label">Keaktifan Siswa</label>
-                                <select name="keaktifan" id="keaktifan" class="form-select @error('keaktifan') is-invalid @enderror" required>
-                                    <option value="">Pilih Level</option>
-                                    <option value="sangat_pasif" {{ old('keaktifan') == 'sangat_pasif' ? 'selected' : '' }}>Sangat Pasif</option>
-                                    <option value="pasif" {{ old('keaktifan') == 'pasif' ? 'selected' : '' }}>Pasif</option>
-                                    <option value="aktif" {{ old('keaktifan') == 'aktif' ? 'selected' : '' }}>Aktif</option>
-                                    <option value="sangat_aktif" {{ old('keaktifan') == 'sangat_aktif' ? 'selected' : '' }}>Sangat Aktif</option>
-                                </select>
-                                @error('keaktifan') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="pemahaman_materi" class="form-label">Pemahaman Materi Siswa</label>
-                                <select name="pemahaman_materi" id="pemahaman_materi" class="form-select @error('pemahaman_materi') is-invalid @enderror" required>
-                                    <option value="">Pilih Level</option>
-                                    <option value="belum_paham" {{ old('pemahaman_materi') == 'belum_paham' ? 'selected' : '' }}>Belum Paham</option>
-                                    <option value="sedikit_paham" {{ old('pemahaman_materi') == 'sedikit_paham' ? 'selected' : '' }}>Sedikit Paham</option>
-                                    <option value="paham" {{ old('pemahaman_materi') == 'paham' ? 'selected' : '' }}>Paham</option>
-                                    <option value="sangat_paham" {{ old('pemahaman_materi') == 'sangat_paham' ? 'selected' : '' }}>Sangat Paham</option>
-                                </select>
-                                @error('pemahaman_materi') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="refleksi_siswa" class="form-label">Refleksi Siswa</label>
-                                <textarea name="refleksi_siswa" id="refleksi_siswa" class="form-control @error('refleksi_siswa') is-invalid @enderror" required rows="3">{{ old('refleksi_siswa') }}</textarea>
-                                @error('refleksi_siswa') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="refleksi_capaian" class="form-label">Refleksi Capaian</label>
-                                <textarea name="refleksi_capaian" id="refleksi_capaian" class="form-control @error('refleksi_capaian') is-invalid @enderror" required rows="3">{{ old('refleksi_capaian') }}</textarea>
-                                @error('refleksi_capaian') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            </div>
-                        </div>
 
                         <!-- Section 4: Documentation -->
                         <div class="form-section">
@@ -323,7 +303,7 @@
                             <div class="alert alert-info">
                                 <i class="fas fa-info-circle me-2"></i>Upload foto kegiatan dan absensi dengan format JPEG/PNG (maksimal 2MB)
                             </div>
-
+                            
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="foto_kegiatan" class="form-label">Foto Kegiatan</label>
@@ -439,11 +419,11 @@
         function readURL(input, previewId) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
-
+                
                 reader.onload = function(e) {
                     $(previewId).attr('src', e.target.result).show();
                 }
-
+                
                 reader.readAsDataURL(input.files[0]);
             }
         }
@@ -462,7 +442,7 @@
                 var length = $(this).val().length;
                 var remaining = maxLength - length;
                 $(counterId).text(length + '/' + maxLength + ' karakter');
-
+                
                 if (remaining < 50) {
                     $(counterId).removeClass('warning danger').addClass('warning');
                 }
@@ -498,7 +478,7 @@
                         name: 'draft',
                         value: '1'
                     }).appendTo('#laporanForm');
-
+                    
                     // Submit form
                     $('#laporanForm').submit();
                 }
@@ -510,11 +490,11 @@
             // Validate time
             var startTime = $('#jam_mulai').val();
             var endTime = $('#jam_selesai').val();
-
+            
             if (startTime && endTime) {
                 var start = new Date('1970-01-01T' + startTime + ':00');
                 var end = new Date('1970-01-01T' + endTime + ':00');
-
+                
                 if (start >= end) {
                     Swal.fire({
                         icon: 'error',
@@ -524,7 +504,7 @@
                     return false;
                 }
             }
-
+            
             return true;
         });
 
@@ -532,20 +512,20 @@
         $('.time-picker').on('change', function() {
             var startTime = $('#jam_mulai').val();
             var endTime = $('#jam_selesai').val();
-
+            
             if (startTime && endTime) {
                 var start = new Date('1970-01-01T' + startTime + ':00');
                 var end = new Date('1970-01-01T' + endTime + ':00');
                 var diff = (end - start) / 60000; // difference in minutes
-
+                
                 if (diff > 0) {
                     var hours = Math.floor(diff / 60);
                     var minutes = diff % 60;
                     var durationText = '';
-
+                    
                     if (hours > 0) durationText += hours + ' jam ';
                     if (minutes > 0) durationText += minutes + ' menit';
-
+                    
                     // You can display this somewhere if you add a duration display element
                     console.log('Durasi: ' + durationText.trim());
                 }

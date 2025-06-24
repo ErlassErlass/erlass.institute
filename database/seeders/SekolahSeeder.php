@@ -8,9 +8,9 @@ use Database\Factories\SekolahFactory;
 
 class SekolahSeeder extends Seeder
 {
-    public function run()
-    {
-        // Generate 10 sekolah records
-        Sekolah::factory()->count(10)->create();
-    }
+public function run(): void
+{
+    \App\Models\Sekolah::factory()->count(30)->create();
+}
+
 }
