@@ -69,7 +69,7 @@
         </div>
         
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
+            <table class="min-w-full divide-y divide-gray-200 datatable" id="absensi-detail-table">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
@@ -121,12 +121,7 @@
         @if($absensis->hasPages())
         <div class="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
             <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                    <p class="text-sm text-gray-700">
-                        Menampilkan <span class="font-medium">{{ $absensis->firstItem() }}</span> sampai <span class="font-medium">{{ $absensis->lastItem() }}</span> dari <span class="font-medium">{{ $absensis->total() }}</span> hasil
-                    </p>
-                </div>
-                <div>
+                <div class="w-100">
                     {{ $absensis->appends(request()->query())->links() }}
                 </div>
             </div>
@@ -135,3 +130,22 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize DataTable for Attendance Detail table
+        if (typeof window.DataTableManager !== 'undefined') {
+            const dataTableManager = new window.DataTableManager();
+            dataTableManager.init('#absensi-detail-table', {
+                order: [[1, 'asc']], // Sort by Student Name column
+                columnDefs: [
+                    { orderable: false, targets: [0, 6] }, // Disable sorting for # and Actions columns
+                    { type: 'string', targets: [1, 2, 3, 4, 5] } // String sorting for other columns
+                ],
+                pageLength: 25
+            });
+        }
+    });
+</script>
+@endpush

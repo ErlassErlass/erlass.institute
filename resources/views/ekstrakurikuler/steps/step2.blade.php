@@ -14,21 +14,43 @@
                     name="sekolah_kodlan" 
                     required>
                 <option value="">Pilih Sekolah</option>
-                @foreach($sekolahs as $sekolah)
-                    <option value="{{ $sekolah->kodlan }}" 
-                            {{ old('sekolah_kodlan', $formData['sekolah_kodlan'] ?? '') == $sekolah->kodlan ? 'selected' : '' }}
-                            data-kotkab="{{ $sekolah->kotkab }}"
-                            data-kec="{{ $sekolah->kec }}">
-                        {{ $sekolah->namasekolah }} - {{ $sekolah->kotkab }}
-                    </option>
-                @endforeach
+                @if(isset($formData['city']) && $formData['city'])
+                    @foreach($sekolahs->where('kotkab', $formData['city']) as $sekolah)
+                        <option value="{{ $sekolah->kodlan }}" 
+                                {{ old('sekolah_kodlan', $formData['sekolah_kodlan'] ?? '') == $sekolah->kodlan ? 'selected' : '' }}
+                                data-kotkab="{{ $sekolah->kotkab }}"
+                                data-kec="{{ $sekolah->kec }}">
+                            {{ $sekolah->namasekolah }} - {{ $sekolah->kec }}
+                        </option>
+                    @endforeach
+                @else
+                    @foreach($sekolahs as $sekolah)
+                        <option value="{{ $sekolah->kodlan }}" 
+                                {{ old('sekolah_kodlan', $formData['sekolah_kodlan'] ?? '') == $sekolah->kodlan ? 'selected' : '' }}
+                                data-kotkab="{{ $sekolah->kotkab }}"
+                                data-kec="{{ $sekolah->kec }}">
+                            {{ $sekolah->namasekolah }} - {{ $sekolah->kotkab }}
+                        </option>
+                    @endforeach
+                @endif
             </select>
             @error('sekolah_kodlan')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
             <small class="form-text text-muted">
-                Pilih sekolah yang akan menjadi tempat pelaksanaan program
+                @if(isset($formData['city']) && $formData['city'])
+                    Sekolah di kota <strong>{{ $formData['city'] }}</strong>
+                @else
+                    Pilih kota di Step 1 untuk memfilter sekolah berdasarkan wilayah
+                @endif
             </small>
+            
+            @if(!isset($formData['city']) || !$formData['city'])
+                <div class="alert alert-warning mt-2">
+                    <i class="fas fa-info-circle"></i> 
+                    Untuk memudahkan pencarian, silakan pilih kota di Step 1 terlebih dahulu.
+                </div>
+            @endif
         </div>
     </div>
 

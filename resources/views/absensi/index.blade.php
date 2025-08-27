@@ -1,71 +1,92 @@
 @extends('layouts.app')
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+@section('title', 'Rekap Absensi Harian')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto">
-        <!-- Page Header -->
-        <div class="mb-10 text-center">
-            <h1 class="text-3xl font-bold text-gray-900 sm:text-4xl">📋 Rekap Absensi</h1>
-            <p class="mt-2 text-lg text-gray-600">
-                Data per tanggal untuk {{ $laporan_mengajar->sekolah_nama }} - Rombel {{ $laporan_mengajar->rombel }}
-            </p>
-        </div>
-
-        <!-- Success Message -->
-        @if(session('success'))
-        <div class="mb-6 rounded-md bg-green-50 p-4 transition-all duration-300 animate-fade-in">
-            <div class="flex items-center">
-                <svg class="h-5 w-5 text-green-400 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2l4-4" />
-                </svg>
-                <p class="text-sm font-medium text-green-800">{{ session('success') }}</p>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">Rekap Absensi per Tanggal</h1>
+                    <p class="mb-0 text-muted">
+                        Untuk: {{ $laporan_mengajar->sekolah->namasekolah ?? 'N/A' }} - Rombel {{ $laporan_mengajar->rombel }}
+                    </p>
+                </div>
+                <a href="{{ route('laporan-mengajar.show', $laporan_mengajar) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Kembali ke Detail Laporan
+                </a>
             </div>
-        </div>
-        @endif
 
-        <!-- Table -->
-        <div class="bg-white shadow-md rounded-lg overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-indigo-600">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Tanggal</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse ($absensi_per_tanggal as $data)
-                    <tr class="hover:bg-gray-50 transition-all duration-150">
-                        <td class="px-6 py-4 text-sm text-gray-800 font-medium">
-                            {{ \Carbon\Carbon::parse($data->tanggal)->translatedFormat('l, d F Y') }}
-                        </td>
-                        <td class="px-6 py-4">
-                            <a href="{{ route('laporan-mengajar.absensi.tanggal', [$laporan_mengajar->id, $data->tanggal]) }}"
-                               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
-                                <i class="fas fa-eye mr-2"></i> Lihat Detail
-                            </a>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="2" class="px-6 py-6 text-center text-sm text-gray-500">
-                            Belum ada data absensi untuk rombel ini.
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+            @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
+
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Pilih Tanggal untuk Melihat Detail</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 datatable" id="absensi-dates-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Tanggal Absensi</th>
+                                    <th class="text-end pe-4">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($absensi_per_tanggal as $data)
+                                <tr class="align-middle">
+                                    <td class="ps-4">
+                                        <i class="bi bi-calendar-check text-primary me-2"></i>
+                                        <strong>{{ \Carbon\Carbon::parse($data->tanggal)->isoFormat('dddd, D MMMM Y') }}</strong>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        {{-- ✅ ROUTE DIPERBAIKI: Menggunakan nama dan parameter yang benar --}}
+                                        <a href="{{ route('laporan-mengajar.absensi.showByDate', ['laporan_mengajar' => $laporan_mengajar->id, 'tanggal' => $data->tanggal]) }}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            Lihat Detail Absensi
+                                        </a>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted py-5">
+                                        <i class="bi bi-calendar-x fs-3"></i>
+                                        <p class="mt-2 mb-0">Belum ada catatan absensi untuk laporan ini.</p>
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 @endsection
 
-<style>
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-.animate-fade-in {
-    animation: fadeIn 0.5s ease-out;
-}
-</style>
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize DataTable for Attendance Dates table
+        if (typeof window.DataTableManager !== 'undefined') {
+            const dataTableManager = new window.DataTableManager();
+            dataTableManager.init('#absensi-dates-table', {
+                order: [[0, 'desc']], // Sort by Date column (newest first)
+                columnDefs: [
+                    { orderable: false, targets: [1] }, // Disable sorting for Actions column
+                    { type: 'date', targets: [0] } // Date sorting for date column
+                ],
+                pageLength: 15
+            });
+        }
+    });
+</script>
+@endpush

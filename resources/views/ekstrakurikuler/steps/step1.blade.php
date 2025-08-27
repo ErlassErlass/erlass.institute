@@ -6,21 +6,38 @@
 <div class="row">
     <div class="col-md-6">
         <div class="form-group mb-3">
-            <label for="nama_program" class="form-label">
-                Nama Program Ekstrakurikuler <span class="required-indicator">*</span>
+            <label for="kategori_program" class="form-label">
+                Kategori Program <span class="required-indicator">*</span>
             </label>
-            <input type="text" 
-                   class="form-control @error('nama_program') is-invalid @enderror" 
-                   id="nama_program" 
-                   name="nama_program" 
-                   value="{{ old('nama_program', $formData['nama_program'] ?? '') }}" 
-                   placeholder="Contoh: Robotika Dasar SD"
-                   required>
-            @error('nama_program')
+            <select class="form-control @error('kategori_program') is-invalid @enderror" 
+                    id="kategori_program" 
+                    name="kategori_program" 
+                    required>
+                <option value="">Pilih Kategori Program</option>
+                <option value="Coding Scratch" {{ old('kategori_program', $formData['kategori_program'] ?? '') == 'Coding Scratch' ? 'selected' : '' }}>
+                    Coding Scratch
+                </option>
+                <option value="English Course" {{ old('kategori_program', $formData['kategori_program'] ?? '') == 'English Course' ? 'selected' : '' }}>
+                    English Course
+                </option>
+                <option value="Micro:bit Learning Kit" {{ old('kategori_program', $formData['kategori_program'] ?? '') == 'Micro:bit Learning Kit' ? 'selected' : '' }}>
+                    Micro:bit Learning Kit
+                </option>
+                <option value="Pictoblox AI" {{ old('kategori_program', $formData['kategori_program'] ?? '') == 'Pictoblox AI' ? 'selected' : '' }}>
+                    Pictoblox AI
+                </option>
+                <option value="Robotik Explorer" {{ old('kategori_program', $formData['kategori_program'] ?? '') == 'Robotik Explorer' ? 'selected' : '' }}>
+                    Robotik Explorer
+                </option>
+                <option value="Robotik Jimu" {{ old('kategori_program', $formData['kategori_program'] ?? '') == 'Robotik Jimu' ? 'selected' : '' }}>
+                    Robotik Jimu
+                </option>
+            </select>
+            @error('kategori_program')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
             <small class="form-text text-muted">
-                Berikan nama yang jelas dan deskriptif untuk program ekstrakurikuler
+                Pilih kategori program ekstrakurikuler yang akan dijalankan
             </small>
         </div>
     </div>
@@ -38,7 +55,7 @@
                 @foreach($salesUsers as $user)
                     <option value="{{ $user->id }}" 
                             {{ old('user_id_sales', $formData['user_id_sales'] ?? '') == $user->id ? 'selected' : '' }}>
-                        {{ $user->name }} ({{ $user->role }})
+                        {{ $user->nama_lengkap }} ({{ $user->role }})
                     </option>
                 @endforeach
             </select>
@@ -55,28 +72,31 @@
 <div class="row">
     <div class="col-md-6">
         <div class="form-group mb-3">
-            <label for="region" class="form-label">
-                Region <span class="required-indicator">*</span>
+            <label for="city" class="form-label">
+                Kota <span class="required-indicator">*</span>
             </label>
-            <select class="form-control @error('region') is-invalid @enderror" 
-                    id="region" 
-                    name="region" 
+            <select class="form-control @error('city') is-invalid @enderror" 
+                    id="city" 
+                    name="city" 
                     required>
-                <option value="">Pilih Region</option>
-                @foreach($regions as $region)
-                    <option value="{{ $region }}" 
-                            {{ old('region', $formData['region'] ?? '') == $region ? 'selected' : '' }}>
-                        {{ $region }}
+                <option value="">Pilih Kota</option>
+                @foreach($kotaOptions as $city)
+                    <option value="{{ $city }}" 
+                            {{ old('city', $formData['city'] ?? '') == $city ? 'selected' : '' }}>
+                        {{ $city }}
                     </option>
                 @endforeach
             </select>
-            @error('region')
+            @error('city')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
             <small class="form-text text-muted">
-                Tentukan wilayah/region untuk program ini
+                Pilih kota untuk program ini (akan memfilter daftar sekolah)
             </small>
         </div>
+        
+        <!-- Hidden region field untuk backward compatibility -->
+        <input type="hidden" id="region" name="region" value="{{ old('region', $formData['region'] ?? '') }}">
     </div>
 
     <div class="col-md-6">
@@ -130,6 +150,11 @@
     <ul class="mb-0">
         <li>Gunakan nama program yang mudah diingat dan menggambarkan isi program</li>
         <li>Pastikan sales/koordinator yang dipilih memiliki kompetensi di bidang tersebut</li>
-        <li>Region akan mempengaruhi penugasan instruktur dan logistik program</li>
+        <li>Kota akan mempengaruhi daftar sekolah yang tersedia di Step 2</li>
+        <li>Pilih kota yang sesuai dengan lokasi sekolah target</li>
     </ul>
 </div>
+
+@push('scripts')
+<script src="{{ asset('js/modules/ekstrakurikuler-city-filter.js') }}"></script>
+@endpush

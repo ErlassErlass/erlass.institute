@@ -9,27 +9,33 @@
         border-radius: 8px;
         transition: transform 0.3s ease;
     }
+
     .stat-card:hover {
         transform: translateY(-5px);
     }
+
     .stat-icon {
         font-size: 2rem;
         opacity: 0.7;
     }
+
     .quick-filter-btn {
         border-radius: 20px;
         padding: 5px 15px;
         font-size: 0.85rem;
     }
+
     .table-responsive {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
+
     .badge-custom {
         padding: 5px 10px;
         font-weight: normal;
         font-size: 0.8rem;
     }
+
     .clear-date {
         position: absolute;
         right: 5px;
@@ -39,9 +45,11 @@
         display: none;
         padding: 0 8px;
     }
+
     .input-group {
         position: relative;
     }
+
     .progress-bar-container {
         width: 100px;
         height: 6px;
@@ -49,11 +57,13 @@
         border-radius: 3px;
         overflow: hidden;
     }
+
     .progress-bar {
         height: 100%;
         border-radius: 3px;
         transition: width 0.3s ease;
     }
+
     .filter-section {
         background: #f8f9fa;
         border-radius: 8px;
@@ -169,9 +179,9 @@
                             <!-- Search -->
                             <div class="col-md-3 mb-3">
                                 <label for="search" class="form-label">Pencarian</label>
-                                <input type="text" class="form-control" id="search" name="search" 
-                                       value="{{ request('search') }}" 
-                                       placeholder="Nama program atau sekolah...">
+                                <input type="text" class="form-control" id="search" name="search"
+                                    value="{{ request('search') }}"
+                                    placeholder="Nama program atau sekolah...">
                             </div>
 
                             <!-- Status Filter -->
@@ -180,9 +190,9 @@
                                 <select class="form-control" id="status" name="status">
                                     <option value="">Semua Status</option>
                                     @foreach($statuses as $value => $label)
-                                        <option value="{{ $value }}" {{ request('status') == $value ? 'selected' : '' }}>
-                                            {{ $label }}
-                                        </option>
+                                    <option value="{{ $value }}" {{ request('status') == $value ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -193,22 +203,35 @@
                                 <select class="form-control" id="region" name="region">
                                     <option value="">Semua Region</option>
                                     @foreach($regions as $region)
-                                        <option value="{{ $region }}" {{ request('region') == $region ? 'selected' : '' }}>
-                                            {{ $region }}
-                                        </option>
+                                    <option value="{{ $region }}" {{ request('region') == $region ? 'selected' : '' }}>
+                                        {{ $region }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            
+                            <!-- City Filter -->
+                            <div class="col-md-2 mb-3">
+                                <label for="kota" class="form-label">Kota</label>
+                                <select class="form-control" id="kota" name="kota">
+                                    <option value="">Semua Kota</option>
+                                    @foreach($kotaOptions as $kota)
+                                    <option value="{{ $kota }}" {{ request('kota') == $kota ? 'selected' : '' }}>
+                                        {{ $kota }}
+                                    </option>
                                     @endforeach
                                 </select>
                             </div>
 
                             <!-- School Filter -->
-                            <div class="col-md-3 mb-3">
+                            <div class="col-md-2 mb-3">
                                 <label for="sekolah_kodlan" class="form-label">Sekolah</label>
                                 <select class="form-control" id="sekolah_kodlan" name="sekolah_kodlan">
                                     <option value="">Semua Sekolah</option>
                                     @foreach($sekolahs as $sekolah)
-                                        <option value="{{ $sekolah->kodlan }}" {{ request('sekolah_kodlan') == $sekolah->kodlan ? 'selected' : '' }}>
-                                            {{ $sekolah->namasekolah }}
-                                        </option>
+                                    <option value="{{ $sekolah->kodlan }}" {{ request('sekolah_kodlan') == $sekolah->kodlan ? 'selected' : '' }}>
+                                        {{ $sekolah->namasekolah }}
+                                    </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -217,11 +240,11 @@
                             <div class="col-md-2 mb-3">
                                 <label for="date_range" class="form-label">Rentang Tanggal</label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" id="date_range" name="date_range" 
-                                           value="{{ request('date_range') }}" 
-                                           placeholder="Pilih tanggal...">
-                                    <button type="button" class="btn btn-outline-secondary clear-date" 
-                                            onclick="clearDateRange()" style="display: none;">
+                                    <input type="text" class="form-control" id="date_range" name="date_range"
+                                        value="{{ request('date_range') }}"
+                                        placeholder="Pilih tanggal...">
+                                    <button type="button" class="btn btn-outline-secondary clear-date"
+                                        onclick="clearDateRange()" style="display: none;">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
@@ -249,62 +272,51 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
                                     <th width="5%">No</th>
-                                    <th width="20%">Program</th>
-                                    <th width="15%">Sekolah</th>
-                                    <th width="10%">Region</th>
-                                    <th width="10%">Sales</th>
+                                    <th width="15%">Program</th>
+                                    <th width="20%">Sekolah</th>
+                                    <th width="12%">Kota</th>
+                                    <th width="12%">Kecamatan</th>
                                     <th width="8%">Total Siswa</th>
-                                    <th width="8%">Rombel</th>
-                                    <th width="10%">Jadwal</th>
+                                    <th width="6%">Rombel</th>
                                     <th width="8%">Status</th>
                                     <th width="6%">Progress</th>
-                                    <th width="10%">Aksi</th>
+                                    <th width="8%">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($ekstrakurikulers as $ekstrakurikuler)
                                 <tr>
-                                    <td>{{ ($ekstrakurikulers->currentPage() - 1) * $ekstrakurikulers->perPage() + $loop->iteration }}</td>
+                                    <td>{{ $ekstrakurikulers->firstItem() + $loop->index }}</td>
                                     <td>
-                                        <div class="font-weight-bold">{{ $ekstrakurikuler->nama_program }}</div>
+                                        <div class="font-weight-bold">{{ $ekstrakurikuler->kategori_program }}</div>
                                         @if($ekstrakurikuler->deskripsi)
-                                            <small class="text-muted">{{ Str::limit($ekstrakurikuler->deskripsi, 50) }}</small>
+                                        <small class="text-muted">{{ Str::limit($ekstrakurikuler->deskripsi, 30) }}</small>
                                         @endif
                                     </td>
                                     <td>
                                         <div class="font-weight-bold">{{ $ekstrakurikuler->sekolah?->namasekolah ?? '-' }}</div>
-                                        <small class="text-muted">{{ $ekstrakurikuler->sekolah?->kotkab }}, {{ $ekstrakurikuler->sekolah?->kec }}</small>
+                                        <small class="text-muted">{{ $ekstrakurikuler->sekolah_kodlan }}</small>
                                     </td>
-                                    <td>
-                                        <span class="badge badge-secondary">{{ $ekstrakurikuler->region }}</span>
-                                    </td>
-                                    <td>{{ $ekstrakurikuler->sales?->name ?? '-' }}</td>
-                                    <td class="text-center">{{ $ekstrakurikuler->total_siswa }}</td>
-                                    <td class="text-center">{{ $ekstrakurikuler->total_rombel }}</td>
-                                    <td>
-                                        <div>
-                                            <small>{{ $ekstrakurikuler->tanggal_mulai ? $ekstrakurikuler->tanggal_mulai->format('d/m/Y') : '-' }}</small>
-                                        </div>
-                                        <div>
-                                            <small>{{ $ekstrakurikuler->tanggal_selesai ? $ekstrakurikuler->tanggal_selesai->format('d/m/Y') : '-' }}</small>
-                                        </div>
-                                    </td>
+                                    <td>{{ $ekstrakurikuler->sekolah?->kota ?? '-' }}</td>
+                                    <td>{{ $ekstrakurikuler->sekolah?->kec ?? '-' }}</td>
+                                    <td class="text-center">{{ $ekstrakurikuler->total_siswa ?? 0 }}</td>
+                                    <td class="text-center">{{ $ekstrakurikuler->total_rombel ?? 0 }}</td>
                                     <td>
                                         @php
-                                            $statusClass = match($ekstrakurikuler->status) {
-                                                'draft' => 'badge-secondary',
-                                                'diajukan' => 'badge-warning',
-                                                'disetujui' => 'badge-info',
-                                                'ditolak' => 'badge-danger',
-                                                'aktif' => 'badge-success',
-                                                'selesai' => 'badge-primary',
-                                                'dibatalkan' => 'badge-dark',
-                                                default => 'badge-secondary'
-                                            };
+                                        $statusClass = match($ekstrakurikuler->status) {
+                                        'draft' => 'badge-secondary',
+                                        'diajukan' => 'badge-warning',
+                                        'disetujui' => 'badge-info',
+                                        'ditolak' => 'badge-danger',
+                                        'aktif' => 'badge-success',
+                                        'selesai' => 'badge-primary',
+                                        'dibatalkan' => 'badge-dark',
+                                        default => 'badge-secondary'
+                                        };
                                         @endphp
                                         <span class="badge {{ $statusClass }} badge-custom">
                                             {{ $ekstrakurikuler->status_label }}
@@ -312,8 +324,8 @@
                                     </td>
                                     <td>
                                         @php
-                                            $progress = $ekstrakurikuler->getProgressPertemuan();
-                                            $percentage = $progress['persentase'];
+                                        $progress = $ekstrakurikuler->getProgressPertemuan();
+                                        $percentage = $progress['persentase'];
                                         @endphp
                                         <div class="progress-bar-container">
                                             <div class="progress-bar bg-success" style="width: {{ $percentage }}%"></div>
@@ -323,62 +335,62 @@
                                     <td>
                                         <div class="btn-group" role="group">
                                             @can('view', $ekstrakurikuler)
-                                            <a href="{{ route('ekstrakurikuler.show', $ekstrakurikuler) }}" 
-                                               class="btn btn-sm btn-info" title="Lihat Detail">
+                                            <a href="{{ route('ekstrakurikuler.show', $ekstrakurikuler) }}"
+                                                class="btn btn-sm btn-info" title="Lihat Detail">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             @endcan
 
                                             @can('update', $ekstrakurikuler)
-                                            <a href="{{ route('ekstrakurikuler.edit', $ekstrakurikuler) }}" 
-                                               class="btn btn-sm btn-warning" title="Edit">
+                                            <a href="{{ route('ekstrakurikuler.edit', $ekstrakurikuler) }}"
+                                                class="btn btn-sm btn-warning" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             @endcan
 
                                             @can('approve', $ekstrakurikuler)
-                                                @if($ekstrakurikuler->canBeApproved())
-                                                <form action="{{ route('ekstrakurikuler.approve', $ekstrakurikuler) }}" 
-                                                      method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit" class="btn btn-sm btn-success" 
-                                                            title="Setujui" 
-                                                            onclick="return confirm('Apakah Anda yakin ingin menyetujui program ini?')">
-                                                        <i class="fas fa-check"></i>
-                                                    </button>
-                                                </form>
-                                                @endif
+                                            @if($ekstrakurikuler->canBeApproved())
+                                            <form action="{{ route('ekstrakurikuler.approve', $ekstrakurikuler) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="btn btn-sm btn-success"
+                                                    title="Setujui"
+                                                    onclick="return confirm('Apakah Anda yakin ingin menyetujui program ini?')">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            @endif
                                             @endcan
 
                                             @can('activate', $ekstrakurikuler)
-                                                @if($ekstrakurikuler->canBeActivated())
-                                                <form action="{{ route('ekstrakurikuler.activate', $ekstrakurikuler) }}" 
-                                                      method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit" class="btn btn-sm btn-primary" 
-                                                            title="Aktifkan" 
-                                                            onclick="return confirm('Apakah Anda yakin ingin mengaktifkan program ini?')">
-                                                        <i class="fas fa-play"></i>
-                                                    </button>
-                                                </form>
-                                                @endif
+                                            @if($ekstrakurikuler->canBeActivated())
+                                            <form action="{{ route('ekstrakurikuler.activate', $ekstrakurikuler) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="btn btn-sm btn-primary"
+                                                    title="Aktifkan"
+                                                    onclick="return confirm('Apakah Anda yakin ingin mengaktifkan program ini?')">
+                                                    <i class="fas fa-play"></i>
+                                                </button>
+                                            </form>
+                                            @endif
                                             @endcan
 
                                             @can('delete', $ekstrakurikuler)
-                                                @if(!$ekstrakurikuler->isActive())
-                                                <form action="{{ route('ekstrakurikuler.destroy', $ekstrakurikuler) }}" 
-                                                      method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-danger" 
-                                                            title="Hapus" 
-                                                            onclick="return confirm('Apakah Anda yakin ingin menghapus program ini?')">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
-                                                @endif
+                                            @if(!$ekstrakurikuler->isActive())
+                                            <form action="{{ route('ekstrakurikuler.destroy', $ekstrakurikuler) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger"
+                                                    title="Hapus"
+                                                    onclick="return confirm('Apakah Anda yakin ingin menghapus program ini?')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                            @endif
                                             @endcan
                                         </div>
                                     </td>
@@ -405,7 +417,7 @@
                     <!-- Pagination -->
                     <div class="d-flex justify-content-between align-items-center mt-3">
                         <div class="text-muted">
-                            Menampilkan {{ $ekstrakurikulers->firstItem() ?? 0 }} hingga {{ $ekstrakurikulers->lastItem() ?? 0 }} 
+                            Menampilkan {{ $ekstrakurikulers->firstItem() ?? 0 }} hingga {{ $ekstrakurikulers->lastItem() ?? 0 }}
                             dari {{ $ekstrakurikulers->total() }} data
                         </div>
                         {{ $ekstrakurikulers->appends(request()->query())->links() }}
@@ -419,75 +431,88 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="{{ asset('js/modules/ekstrakurikuler-city-filter.js') }}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Flatpickr for date range
-    const dateRangeInput = document.getElementById('date_range');
-    const clearButton = document.querySelector('.clear-date');
-    
-    if (dateRangeInput) {
-        flatpickr(dateRangeInput, {
-            mode: 'range',
-            dateFormat: 'd/m/Y',
-            locale: 'id',
-            onChange: function(selectedDates, dateStr, instance) {
-                if (dateStr) {
-                    clearButton.style.display = 'block';
-                } else {
-                    clearButton.style.display = 'none';
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Flatpickr for date range
+        const dateRangeInput = document.getElementById('date_range');
+        const clearButton = document.querySelector('.clear-date');
+
+        if (dateRangeInput) {
+            flatpickr(dateRangeInput, {
+                mode: 'range',
+                dateFormat: 'd/m/Y',
+                locale: 'id',
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (dateStr) {
+                        clearButton.style.display = 'block';
+                    } else {
+                        clearButton.style.display = 'none';
+                    }
                 }
+            });
+
+            // Show clear button if there's already a value
+            if (dateRangeInput.value) {
+                clearButton.style.display = 'block';
             }
-        });
-        
-        // Show clear button if there's already a value
-        if (dateRangeInput.value) {
-            clearButton.style.display = 'block';
         }
-    }
-    
-    // Auto-submit form on select change
-    const selects = document.querySelectorAll('#status, #region, #sekolah_kodlan');
-    selects.forEach(select => {
-        select.addEventListener('change', function() {
-            document.getElementById('filterForm').submit();
+
+        // Auto-submit form on select change
+        const selects = document.querySelectorAll('#status, #region, #sekolah_kodlan');
+        selects.forEach(select => {
+            select.addEventListener('change', function() {
+                document.getElementById('filterForm').submit();
+            });
         });
+
+        // Search input with debounce
+        const searchInput = document.getElementById('search');
+        if (searchInput) {
+            let searchTimeout;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    if (this.value.length >= 3 || this.value.length === 0) {
+                        document.getElementById('filterForm').submit();
+                    }
+                }, 500);
+            });
+        }
     });
-    
-    // Search input with debounce
-    const searchInput = document.getElementById('search');
-    if (searchInput) {
-        let searchTimeout;
-        searchInput.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                if (this.value.length >= 3 || this.value.length === 0) {
-                    document.getElementById('filterForm').submit();
-                }
-            }, 500);
-        });
+
+    function clearDateRange() {
+        const dateRangeInput = document.getElementById('date_range');
+        const clearButton = document.querySelector('.clear-date');
+
+        dateRangeInput.value = '';
+        clearButton.style.display = 'none';
+        document.getElementById('filterForm').submit();
     }
-});
 
-function clearDateRange() {
-    const dateRangeInput = document.getElementById('date_range');
-    const clearButton = document.querySelector('.clear-date');
-    
-    dateRangeInput.value = '';
-    clearButton.style.display = 'none';
-    document.getElementById('filterForm').submit();
-}
+    // Quick status filters
+    function filterByStatus(status) {
+        const form = document.getElementById('filterForm');
+        const statusSelect = document.getElementById('status');
+        statusSelect.value = status;
+        form.submit();
+    }
 
-// Quick status filters
-function filterByStatus(status) {
-    const form = document.getElementById('filterForm');
-    const statusSelect = document.getElementById('status');
-    statusSelect.value = status;
-    form.submit();
-}
+    // Confirmation for actions
+    function confirmAction(message) {
+        return confirm(message);
+    }
 
-// Confirmation for actions
-function confirmAction(message) {
-    return confirm(message);
-}
+    // Prevent DataTables auto-initialization on this page
+    // since we're using manual pagination
+    $(document).ready(function() {
+        // Disable DataTables auto-initialization for this specific table
+        $.fn.dataTable.ext.errMode = 'none'; // Silent error mode
+        
+        // Initialize city filter for dynamic school loading
+        if (typeof EkstrakurikulerCityFilter !== 'undefined') {
+            new EkstrakurikulerCityFilter();
+        }
+    });
 </script>
 @endpush

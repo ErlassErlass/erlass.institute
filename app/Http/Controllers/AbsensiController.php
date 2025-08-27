@@ -5,194 +5,189 @@ namespace App\Http\Controllers;
 use App\Models\Absensi;
 use App\Models\LaporanMengajar;
 use App\Models\Siswa;
+use App\Models\EkstrakurikulerSession;
+use App\Services\AttendanceService;
+use App\Http\Requests\StoreAbsensiRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Carbon\Carbon;
 
 class AbsensiController extends Controller
 {
-public function __construct()
-{
-    $this->middleware('auth');
-
-    // Hanya admin dan admin_erlass yang bisa index dan destroy
-    $this->middleware('role:instruktur,admin,admin_erlass', ['only' => ['index', 'destroy']]);
-
-    // Hanya pemilik laporan atau admin yang bisa create/store absensi
-    $this->middleware('role:instruktur,admin,admin_erlass', ['only' => ['create', 'store']]);
-
-    // Semua role bisa melihat form edit/update absensi mereka (jika diperlukan)
-    $this->middleware('role:admin,admin_erlass', ['only' => ['edit', 'update']]);
-}
-
-    // GET /absensi
-public function index(LaporanMengajar $laporan_mengajar)
-{
-    // Group absensi by tanggal
-    $absensi_per_tanggal = Absensi::where('laporan_mengajar_id', $laporan_mengajar->id)
-        ->selectRaw('DATE(created_at) as tanggal')
-        ->groupByRaw('DATE(created_at)')
-        ->orderByDesc('tanggal')
-        ->get();
-
-    return view('absensi.index', compact('absensi_per_tanggal', 'laporan_mengajar'));
-}
-public function showByDate(LaporanMengajar $laporan_mengajar, $tanggal)
-{
-    $tanggal_format = Carbon::parse($tanggal)->format('Y-m-d');
-
-    $absensis = Absensi::where('laporan_mengajar_id', $laporan_mengajar->id)
-        ->whereDate('created_at', $tanggal_format)
-        ->with('siswa')
-        ->get();
-
-    return view('absensi.show-by-date', compact('absensis', 'tanggal', 'laporan_mengajar'));
-}
-    // GET /absensi/create
-public function create(LaporanMengajar $laporan_mengajar)
-{
-    $laporan = $laporan_mengajar; // alias biar tetap pakai nama $laporan
-    if (
-        Auth::user()->role === 'instruktur' &&
-        Auth::id() !== $laporan->user_id_instruktur
-    ) {
-        abort(403, 'Anda tidak memiliki akses.');
-    }
-
-    // ambil ulang data lengkap
-$laporan = LaporanMengajar::findOrFail($laporan->id);
-
-    // Ambil siswa berdasarkan sekolah dan rombel
-    $siswas = Siswa::where('sekolah_kodlan', $laporan->kodlan)
-                   ->where('rombel', $laporan->rombel)
-                   ->orderBy('nama_lengkap')
-                   ->get();
-
-    return view('absensi.create', compact('laporan', 'siswas'));
-}
-
-    // POST /absensi
-public function store(Request $request, LaporanMengajar $laporan_mengajar)
-{
-    $request->validate([
-        'students' => 'required|array',
-        'students.*.siswa_id' => 'required|integer|exists:siswa,id',
-        'students.*.hadir' => 'required|in:1,0,"1","0"', // FIXED
-        'students.*.catatan' => 'nullable|string|max:1000',
-    ]);
-
-    foreach ($request->students as $student) {
-        Absensi::create([
-            'laporan_mengajar_id' => $laporan_mengajar->id,
-            'siswa_id' => $student['siswa_id'],
-            'hadir' => (int)$student['hadir'], // konversi eksplisit
-            'catatan' => $student['catatan'] ?? null,
-        ]);
-    }
-
-return redirect()->route('laporan-mengajar.absensi.index', $laporan_mengajar->id)
-    ->with('success', 'Absensi berhasil disimpan.');
-
-}
-
-public function rekap()
-{
-    if (Auth::user()->role === 'admin' || Auth::user()->role === 'admin_erlass') {
-        $query = Absensi::query();
-    } else {
-        $laporan_ids = LaporanMengajar::where('user_id_instruktur', Auth::id())->pluck('id');
-        $query = Absensi::whereIn('laporan_mengajar_id', $laporan_ids);
-    }
-
-    $absensi_per_tanggal = $query->selectRaw('DATE(created_at) as tanggal')
-        ->groupByRaw('DATE(created_at)')
-        ->orderByDesc('tanggal')
-        ->get();
-
-    return view('absensi.rekap', compact('absensi_per_tanggal'));
-}
-
-public function rekapByDate($tanggal)
-{
-    $tanggal_format = Carbon::parse($tanggal)->format('Y-m-d');
-
-    $query = Absensi::whereDate('created_at', $tanggal_format)
-        ->with(['siswa', 'laporanMengajar']);
-
-    // Filter by user role
-    if (!(Auth::user()->role === 'admin' || Auth::user()->role === 'admin_erlass')) {
-        $laporan_ids = LaporanMengajar::where('user_id_instruktur', Auth::id())->pluck('id');
-        $query->whereIn('laporan_mengajar_id', $laporan_ids);
-    }
-
-    // Apply status filter
-    if (request('status') == 'hadir') {
-        $query->where('hadir', 1);
-    } elseif (request('status') == 'tidak-hadir') {
-        $query->where('hadir', 0);
-    }
-
-    // Apply search filter
-    if (request('search')) {
-        $search = request('search');
-        $query->whereHas('siswa', function($q) use ($search) {
-            $q->where('nama_lengkap', 'like', "%{$search}%");
-        });
-    }
-
-    $absensis = $query->paginate(15);
-
-    // Check if all absensi belong to the same laporan_mengajar
-    $laporan_ids = $absensis->pluck('laporan_mengajar_id')->unique();
-    $laporan_mengajar = $laporan_ids->count() === 1 
-        ? LaporanMengajar::find($laporan_ids->first()) 
-        : null;
-
-    return view('absensi.rekap-by-date', compact('absensis', 'tanggal', 'laporan_mengajar'));
-}
-
-    // GET /absensi/{absensi}/edit
-    public function edit(Absensi $absensi)
+    /**
+     * Menampilkan form untuk mengisi/mengedit absensi.
+     */
+    public function create(LaporanMengajar $laporanMengajar, Request $request)
     {
-        $laporans = LaporanMengajar::with('sekolah')->get();
-        $siswas   = Siswa::all();
-        return view('absensi.edit', compact('absensi', 'laporans', 'siswas'));
-    }
+        // Otorisasi menggunakan Policy: Apakah user ini boleh membuat absensi untuk laporan ini?
+        $this->authorize('create', [Absensi::class, $laporanMengajar]);
 
-    // PUT/PATCH /absensi/{absensi}
-    public function update(Request $request, Absensi $absensi)
-    {
-        $validated = $request->validate([
-            'hadir'                   => 'required|boolean',
-            'e_signature_instruktur'  => 'nullable|image|mimes:png,jpeg,jpg|max:2048',
-        ]);
+        // Tentukan konteks: regular atau ekstrakurikuler
+        $isEkstrakurikuler = $laporanMengajar->isFromEkstrakurikuler();
+        $ekstrakurikulerSession = null;
+        $siswas = collect();
 
-        if ($request->hasFile('e_signature_instruktur')) {
-            // hapus file lama
-            if ($absensi->e_signature_instruktur) {
-                Storage::disk('public')->delete($absensi->e_signature_instruktur);
+        if ($isEkstrakurikuler) {
+            // Ambil data ekstrakurikuler session
+            $ekstrakurikulerSession = $laporanMengajar->ekstrakurikulerSession;
+            
+            if ($ekstrakurikulerSession) {
+                // Ambil siswa dari rombel ekstrakurikuler yang aktif
+                $siswas = $ekstrakurikulerSession->rombel->siswaAktif()
+                    ->orderBy('nama_lengkap', 'asc')
+                    ->get();
             }
-            $validated['e_signature_instruktur'] =
-                $request->file('e_signature_instruktur')->store('signatures', 'public');
+        } else {
+            // ✅ DIPERBAIKI: Query regular untuk siswa berdasarkan sekolah DAN rombel
+            $siswas = Siswa::where('sekolah_kodlan', $laporanMengajar->sekolah_kodlan)
+                ->where('rombel', $laporanMengajar->rombel)
+                ->orderBy('nama_lengkap', 'asc')
+                ->get();
         }
 
-        $absensi->update($validated);
+        // Ambil data absensi yang sudah ada untuk laporan ini (untuk edit)
+        $existingAbsensi = Absensi::where('laporan_mengajar_id', $laporanMengajar->id)
+            ->pluck('hadir', 'siswa_id');
 
-        return redirect()->route('absensi.index')
-            ->with('success', 'Absensi siswa berhasil diperbarui.');
+        return view('absensi.create', compact(
+            'laporanMengajar', 
+            'siswas', 
+            'existingAbsensi', 
+            'isEkstrakurikuler', 
+            'ekstrakurikulerSession'
+        ));
     }
 
-    // DELETE /absensi/{absensi}
-    public function destroy(Absensi $absensi)
+    /**
+     * Menampilkan form absensi khusus untuk ekstrakurikuler session.
+     */
+    public function createForEkstrakurikuler(EkstrakurikulerSession $session)
     {
-        if ($absensi->e_signature_instruktur) {
-            Storage::disk('public')->delete($absensi->e_signature_instruktur);
+        // Cek apakah session sudah memiliki laporan mengajar
+        if (!$session->laporan_mengajar_id) {
+            // Auto-create laporan mengajar jika belum ada
+            $laporan = $session->autoCreateLaporanMengajar();
+            if (!$laporan) {
+                return redirect()->back()->with('error', 'Tidak dapat membuat laporan mengajar untuk session ini.');
+            }
         }
-        $absensi->delete();
 
-        return redirect()->route('absensi.index')
-            ->with('success', 'Data absensi berhasil dihapus.');
+        $laporanMengajar = $session->laporanMengajar;
+        
+        // Redirect ke form absensi regular dengan context ekstrakurikuler
+        return redirect()->route('laporan-mengajar.absensi.create', $laporanMengajar);
+    }
+
+    /**
+     * Menyimpan data absensi ke database.
+     */
+    public function store(StoreAbsensiRequest $request, LaporanMengajar $laporanMengajar)
+    {
+        // Otorisasi menggunakan Policy
+        $this->authorize('store', [Absensi::class, $laporanMengajar]);
+
+        try {
+            DB::beginTransaction();
+
+            // Cek apakah ini ekstrakurikuler session
+            $isEkstrakurikuler = $laporanMengajar->isFromEkstrakurikuler();
+            $ekstrakurikulerSession = null;
+            
+            if ($isEkstrakurikuler) {
+                $ekstrakurikulerSession = $laporanMengajar->ekstrakurikulerSession;
+            }
+
+            foreach ($request->absensi as $siswaId => $statusHadir) {
+                // Validasi tambahan untuk ekstrakurikuler: pastikan siswa terdaftar
+                if ($isEkstrakurikuler && $ekstrakurikulerSession) {
+                    $siswa = Siswa::find($siswaId);
+                    if (!$siswa || !$siswa->isEnrolledInRombel($ekstrakurikulerSession->ekstrakurikuler_rombel_id)) {
+                        continue; // Skip siswa yang tidak terdaftar
+                    }
+                }
+
+                // ✅ GUNAKAN updateOrCreate: Mencegah data duplikat.
+                Absensi::updateOrCreate(
+                    [
+                        'laporan_mengajar_id' => $laporanMengajar->id,
+                        'siswa_id' => $siswaId,
+                    ],
+                    [
+                        'hadir' => $statusHadir,
+                    ]
+                );
+            }
+
+            // ✅ HITUNG ULANG: Update jumlah siswa di laporan utama
+            $laporanMengajar->jumlah_siswa_hadir = $laporanMengajar->absensis()->where('hadir', true)->count();
+            $laporanMengajar->jumlah_siswa_tidak_hadir = $laporanMengajar->absensis()->where('hadir', false)->count();
+
+            // Panggil service untuk menghitung siswa yang keluar (hanya untuk regular)
+            if (!$isEkstrakurikuler) {
+                $attendanceService = new AttendanceService();
+                $laporanMengajar->jumlah_siswa_keluar = $attendanceService->calculateDropouts($laporanMengajar);
+            } else {
+                // Untuk ekstrakurikuler, siswa keluar = 0 (diasumsikan tidak ada dropout dalam satu session)
+                $laporanMengajar->jumlah_siswa_keluar = 0;
+            }
+
+            $laporanMengajar->save();
+
+            // Update status ekstrakurikuler session jika diperlukan
+            if ($isEkstrakurikuler && $ekstrakurikulerSession && $ekstrakurikulerSession->status === 'berlangsung') {
+                $ekstrakurikulerSession->complete([
+                    'auto_create_laporan' => false, // Laporan sudah ada
+                    'catatan' => $request->input('catatan_session')
+                ]);
+            }
+
+            DB::commit();
+
+            $successMessage = $isEkstrakurikuler 
+                ? 'Data absensi ekstrakurikuler berhasil disimpan dan session telah diperbarui!'
+                : 'Data absensi berhasil disimpan dan laporan telah diperbarui!';
+
+            return redirect()->route('laporan-mengajar.show', $laporanMengajar)
+                ->with('success', $successMessage);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error saat menyimpan absensi: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat menyimpan absensi.');
+        }
+    }
+
+    /**
+     * Menampilkan halaman index absensi dengan filter ekstrakurikuler.
+     */
+    public function index(Request $request)
+    {
+        $query = LaporanMengajar::with(['instruktur', 'asisten', 'sekolah']);
+
+        // Filter berdasarkan kategori
+        if ($request->filled('kategori')) {
+            if ($request->kategori === 'ekstrakurikuler') {
+                $query->ekstrakurikuler();
+            } elseif ($request->kategori === 'regular') {
+                $query->regular();
+            }
+        }
+
+        // Filter berdasarkan sekolah
+        if ($request->filled('sekolah_kodlan')) {
+            $query->where('sekolah_kodlan', $request->sekolah_kodlan);
+        }
+
+        // Filter berdasarkan tanggal
+        if ($request->filled('tanggal_mulai')) {
+            $query->whereDate('jadwal_mengajar', '>=', $request->tanggal_mulai);
+        }
+
+        if ($request->filled('tanggal_selesai')) {
+            $query->whereDate('jadwal_mengajar', '<=', $request->tanggal_selesai);
+        }
+
+        $laporanMengajars = $query->orderBy('jadwal_mengajar', 'desc')->paginate(20);
+
+        return view('absensi.index', compact('laporanMengajars'));
     }
 }

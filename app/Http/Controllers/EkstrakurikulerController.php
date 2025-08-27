@@ -8,6 +8,7 @@ use App\Models\Sekolah;
 use App\Models\User;
 use App\Http\Requests\StoreEkstrakurikulerRequest;
 use App\Http\Requests\UpdateEkstrakurikulerRequest;
+use App\Services\SchedulingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -17,8 +18,11 @@ use Carbon\Carbon;
 
 class EkstrakurikulerController extends Controller
 {
-    public function __construct()
+    protected SchedulingService $schedulingService;
+
+    public function __construct(SchedulingService $schedulingService)
     {
+        $this->schedulingService = $schedulingService;
         $this->authorizeResource(Ekstrakurikuler::class, 'ekstrakurikuler');
     }
 
@@ -28,7 +32,7 @@ class EkstrakurikulerController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $ekstrakurikulerQuery = Ekstrakurikuler::with(['sekolah', 'sales', 'admin', 'rombels']);
+        $ekstrakurikulerQuery = Ekstrakurikuler::with(['sekolah', 'sales', 'rombels']);
 
         // Filter by user role
         if (!in_array($user->role, ['admin', 'webmaster'])) {
@@ -45,6 +49,13 @@ class EkstrakurikulerController extends Controller
             $ekstrakurikulerQuery->where('region', $request->region);
         }
 
+        // Filter by kota through sekolah relationship
+        if ($request->filled('kota')) {
+            $ekstrakurikulerQuery->whereHas('sekolah', function($q) use ($request) {
+                $q->where('kota', $request->kota);
+            });
+        }
+
         // Filter by school
         if ($request->filled('sekolah_kodlan')) {
             $ekstrakurikulerQuery->where('sekolah_kodlan', $request->sekolah_kodlan);
@@ -54,7 +65,7 @@ class EkstrakurikulerController extends Controller
         if ($request->filled('search')) {
             $searchTerm = $request->search;
             $ekstrakurikulerQuery->where(function($query) use ($searchTerm) {
-                $query->where('nama_program', 'like', "%{$searchTerm}%")
+                $query->where('kategori_program', 'like', "%{$searchTerm}%")
                       ->orWhereHas('sekolah', function($q) use ($searchTerm) {
                           $q->where('namasekolah', 'like', "%{$searchTerm}%");
                       });
@@ -80,8 +91,16 @@ class EkstrakurikulerController extends Controller
         $ekstrakurikulers = $ekstrakurikulerQuery->latest()->paginate(25);
 
         // Get filter options
-        $sekolahs = Sekolah::select('kodlan', 'namasekolah')->orderBy('namasekolah')->get();
-        $regions = ['JAKARTA', 'DEPOK', 'BOGOR', 'TANGERANG', 'BEKASI'];
+        $sekolahs = Sekolah::select('kodlan', 'namasekolah', 'kotkab')->orderBy('namasekolah')->get();
+        // Get regions from actual city data - map common cities to regions
+        $cityToRegionMap = $this->getCityToRegionMapping();
+        
+        $allKota = Sekolah::select('kota')->distinct()->whereNotNull('kota')->orderBy('kota')->pluck('kota');
+        $regions = collect($allKota)->map(function($kota) use ($cityToRegionMap) {
+            return $cityToRegionMap[$kota] ?? strtoupper(explode(' ', $kota)[1] ?? $kota);
+        })->unique()->sort()->values()->toArray();
+        
+        $kotaOptions = $allKota->toArray();
         $statuses = [
             Ekstrakurikuler::STATUS_DRAFT => 'Draft',
             Ekstrakurikuler::STATUS_DIAJUKAN => 'Diajukan',
@@ -104,6 +123,7 @@ class EkstrakurikulerController extends Controller
             'ekstrakurikulers', 
             'sekolahs', 
             'regions', 
+            'kotaOptions',
             'statuses', 
             'stats'
         ));
@@ -130,8 +150,12 @@ class EkstrakurikulerController extends Controller
             $step = 1;
         }
 
-        // Get form data from session
-        $formData = Session::get('ekstrakurikuler_form_data', []);
+        // Get form data from session with default values
+        $formData = Session::get('ekstrakurikuler_form_data', [
+            'total_rombel' => 2,
+            'total_siswa' => 0,
+            'total_ruangan' => 1
+        ]);
         
         // Get necessary data for dropdowns
         $sekolahs = Sekolah::select('kodlan', 'namasekolah', 'kotkab', 'kec')
@@ -140,10 +164,18 @@ class EkstrakurikulerController extends Controller
         
         $salesUsers = User::where('role', 'instruktur')
                          ->orWhere('role', 'asisten')
-                         ->orderBy('name')
+                         ->orderBy('nama_lengkap')
                          ->get();
 
-        $regions = ['JAKARTA', 'DEPOK', 'BOGOR', 'TANGERANG', 'BEKASI'];
+        // Get regions from city data for consistency  
+        $cityToRegionMap = $this->getCityToRegionMapping();
+        
+        $allKota = Sekolah::select('kota')->distinct()->whereNotNull('kota')->orderBy('kota')->pluck('kota');
+        $regions = collect($allKota)->map(function($kota) use ($cityToRegionMap) {
+            return $cityToRegionMap[$kota] ?? strtoupper(explode(' ', $kota)[1] ?? $kota);
+        })->unique()->sort()->values()->toArray();
+        
+        $kotaOptions = $allKota->toArray();
         
         $statuses = [
             Ekstrakurikuler::STATUS_DRAFT => 'Draft',
@@ -156,6 +188,7 @@ class EkstrakurikulerController extends Controller
             'sekolahs', 
             'salesUsers', 
             'regions', 
+            'kotaOptions',
             'statuses'
         ));
     }
@@ -205,9 +238,10 @@ class EkstrakurikulerController extends Controller
         switch ($step) {
             case 1: // Basic Program Info
                 $rules = [
-                    'nama_program' => 'required|string|max:255',
+                    'kategori_program' => 'required|string|in:Coding Scratch,English Course,Micro:bit Learning Kit,Pictoblox AI,Robotik Explorer,Robotik Jimu',
                     'user_id_sales' => 'required|exists:users,id',
-                    'region' => 'required|string|in:JAKARTA,DEPOK,BOGOR,TANGERANG,BEKASI',
+                    'region' => 'nullable|string',
+                    'city' => 'nullable|string',
                     'status' => 'required|string|in:draft,diajukan',
                 ];
                 break;
@@ -227,7 +261,6 @@ class EkstrakurikulerController extends Controller
             case 3: // Technical Requirements
                 $rules = [
                     'koneksi_internet' => 'required|in:ada,tidak_ada,tidak_diketahui',
-                    'keterangan_internet' => 'nullable|string',
                     'proyektor' => 'required|in:ada,tidak_ada,tidak_diketahui',
                     'keterangan_proyektor' => 'nullable|string',
                     'kabel_hdmi' => 'required|in:ada,tidak_ada,tidak_diketahui',
@@ -274,20 +307,25 @@ class EkstrakurikulerController extends Controller
         switch ($step) {
             case 1:
                 $data = $request->only([
-                    'nama_program', 'user_id_sales', 'region', 'status', 'deskripsi'
+                    'kategori_program', 'user_id_sales', 'region', 'city', 'status', 'deskripsi'
                 ]);
+                
+                // Set nama_program based on kategori_program for compatibility
+                if ($request->has('kategori_program')) {
+                    $data['nama_program'] = $request->kategori_program;
+                }
                 break;
                 
             case 2:
                 $data = $request->only([
                     'sekolah_kodlan', 'alamat_lengkap', 'google_maps_link', 
-                    'jarak_km', 'kepala_sekolah', 'penanggung_jawab', 'no_telepon', 'email'
+                    'jarak_km', 'kepala_sekolah', 'penanggung_jawab', 'no_telepon'
                 ]);
                 break;
                 
             case 3:
                 $data = $request->only([
-                    'koneksi_internet', 'keterangan_internet', 'proyektor', 
+                    'koneksi_internet', 'proyektor', 
                     'keterangan_proyektor', 'kabel_hdmi', 'kabel_vga', 'keterangan_kabel'
                 ]);
                 break;
@@ -361,11 +399,11 @@ class EkstrakurikulerController extends Controller
             
             // Create main Ekstrakurikuler record
             $ekstrakurikuler = Ekstrakurikuler::create([
-                'nama_program' => $formData['nama_program'],
+                'kategori_program' => $formData['kategori_program'],
                 'deskripsi' => $formData['deskripsi'] ?? null,
                 'user_id_sales' => $formData['user_id_sales'],
-                'user_id_admin' => auth()->id(),
                 'region' => $formData['region'],
+                'city' => $formData['city'] ?? $this->getCityFromSekolah($formData['sekolah_kodlan']),
                 'sekolah_kodlan' => $formData['sekolah_kodlan'],
                 'alamat_lengkap' => $formData['alamat_lengkap'],
                 'google_maps_link' => $formData['google_maps_link'] ?? null,
@@ -373,9 +411,7 @@ class EkstrakurikulerController extends Controller
                 'kepala_sekolah' => $formData['kepala_sekolah'],
                 'penanggung_jawab' => $formData['penanggung_jawab'],
                 'no_telepon' => $formData['no_telepon'],
-                'email' => $formData['email'] ?? null,
                 'koneksi_internet' => $formData['koneksi_internet'],
-                'keterangan_internet' => $formData['keterangan_internet'] ?? null,
                 'proyektor' => $formData['proyektor'],
                 'keterangan_proyektor' => $formData['keterangan_proyektor'] ?? null,
                 'kabel_hdmi' => $formData['kabel_hdmi'],
@@ -400,7 +436,7 @@ class EkstrakurikulerController extends Controller
                     $jamMulai = Carbon::createFromFormat('H:i', $rombelData['jam_mulai']);
                     $jamSelesai = $jamMulai->copy()->addHours(2);
                     
-                    EkstrakurikulerRombel::create([
+                    $rombel = EkstrakurikulerRombel::create([
                         'ekstrakurikuler_id' => $ekstrakurikuler->id,
                         'nama_rombel' => "Rombel {$index}",
                         'nomor_rombel' => $index,
@@ -419,6 +455,17 @@ class EkstrakurikulerController extends Controller
                         'created_by' => auth()->id(),
                         'updated_by' => auth()->id(),
                     ]);
+
+                    // Auto-generate sessions untuk rombel ini
+                    try {
+                        $this->schedulingService->generateSessionsForRombel($rombel, [
+                            'skip_holidays' => true
+                        ]);
+                        Log::info("Auto-generated sessions for rombel {$rombel->id}");
+                    } catch (\Exception $e) {
+                        Log::error("Failed to generate sessions for rombel {$rombel->id}: " . $e->getMessage());
+                        // Don't fail the entire process, just log the error
+                    }
                 }
             }
             
@@ -447,7 +494,7 @@ class EkstrakurikulerController extends Controller
      */
     private function validateFinalForm(array $formData)
     {
-        if (empty($formData['nama_program'])) {
+        if (empty($formData['kategori_program'])) {
             throw new \Exception('Nama program harus diisi');
         }
         
@@ -468,7 +515,6 @@ class EkstrakurikulerController extends Controller
         $ekstrakurikuler->load([
             'sekolah', 
             'sales', 
-            'admin', 
             'rombels.sessions', 
             'sessions.instruktur', 
             'sessions.asisten'
@@ -490,10 +536,18 @@ class EkstrakurikulerController extends Controller
         
         $salesUsers = User::where('role', 'instruktur')
                          ->orWhere('role', 'asisten')
-                         ->orderBy('name')
+                         ->orderBy('nama_lengkap')
                          ->get();
 
-        $regions = ['JAKARTA', 'DEPOK', 'BOGOR', 'TANGERANG', 'BEKASI'];
+        // Get regions from city data for consistency
+        $cityToRegionMap = $this->getCityToRegionMapping();
+        
+        $allKota = Sekolah::select('kota')->distinct()->whereNotNull('kota')->orderBy('kota')->pluck('kota');
+        $regions = collect($allKota)->map(function($kota) use ($cityToRegionMap) {
+            return $cityToRegionMap[$kota] ?? strtoupper(explode(' ', $kota)[1] ?? $kota);
+        })->unique()->sort()->values()->toArray();
+        
+        $kotaOptions = $allKota->toArray();
         
         $statuses = [
             Ekstrakurikuler::STATUS_DRAFT => 'Draft',
@@ -510,6 +564,7 @@ class EkstrakurikulerController extends Controller
             'sekolahs', 
             'salesUsers', 
             'regions', 
+            'kotaOptions',
             'statuses'
         ));
     }
@@ -626,5 +681,189 @@ class EkstrakurikulerController extends Controller
     {
         Session::forget('ekstrakurikuler_form_data');
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Preview sessions yang akan di-generate berdasarkan data rombel.
+     */
+    public function previewSessions(Request $request)
+    {
+        $formData = Session::get('ekstrakurikuler_form_data', []);
+        
+        if (empty($formData['rombels'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data rombel belum tersedia'
+            ]);
+        }
+
+        $previews = [];
+        
+        try {
+            foreach ($formData['rombels'] as $index => $rombelData) {
+                // Create temporary rombel object untuk preview
+                $tempRombel = new EkstrakurikulerRombel([
+                    'nama_rombel' => "Rombel {$index}",
+                    'nomor_rombel' => $index,
+                    'tanggal_mulai' => $rombelData['tanggal_mulai'],
+                    'tanggal_selesai' => $rombelData['tanggal_selesai'],
+                    'hari' => $rombelData['hari'],
+                    'jam_mulai' => $rombelData['jam_mulai'],
+                    'jam_selesai' => Carbon::createFromFormat('H:i', $rombelData['jam_mulai'])->addHours(2)->format('H:i'),
+                    'total_pertemuan' => $rombelData['total_pertemuan'],
+                    'frekuensi' => EkstrakurikulerRombel::FREKUENSI_MINGGUAN,
+                ]);
+
+                // Calculate session dates
+                $sessionDates = $this->schedulingService->calculateSessionDates($tempRombel, [
+                    'skip_holidays' => true
+                ]);
+
+                $previews[] = [
+                    'rombel_info' => [
+                        'nama' => $tempRombel->nama_rombel,
+                        'nomor' => $tempRombel->nomor_rombel,
+                        'hari' => ucfirst($rombelData['hari']),
+                        'waktu' => $rombelData['jam_mulai'] . ' - ' . $tempRombel->jam_selesai,
+                        'periode' => Carbon::parse($rombelData['tanggal_mulai'])->format('d/m/Y') . ' - ' . 
+                                   Carbon::parse($rombelData['tanggal_selesai'])->format('d/m/Y'),
+                        'total_pertemuan_target' => $rombelData['total_pertemuan'],
+                        'jumlah_siswa' => $rombelData['jumlah_siswa'],
+                        'ruangan' => $rombelData['ruangan'] ?? "Ruang {$index}",
+                    ],
+                    'sessions_preview' => $sessionDates->take(5)->map(function($date, $sessionIndex) {
+                        return [
+                            'nomor_pertemuan' => $sessionIndex + 1,
+                            'tanggal' => $date->format('d/m/Y'),
+                            'hari' => $date->locale('id')->translatedFormat('l'),
+                            'bulan_tahun' => $date->format('M Y'),
+                        ];
+                    })->values(),
+                    'total_sessions_generated' => $sessionDates->count(),
+                    'sessions_summary' => [
+                        'first_session' => $sessionDates->first()?->format('d/m/Y'),
+                        'last_session' => $sessionDates->last()?->format('d/m/Y'),
+                        'total_weeks' => $sessionDates->count(),
+                    ]
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'previews' => $previews,
+                'summary' => [
+                    'total_rombels' => count($previews),
+                    'total_sessions' => array_sum(array_column($previews, 'total_sessions_generated')),
+                    'earliest_start' => collect($previews)->min('sessions_summary.first_session'),
+                    'latest_end' => collect($previews)->max('sessions_summary.last_session'),
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error previewing sessions: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal generate preview: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Regenerate sessions untuk ekstrakurikuler yang sudah ada.
+     */
+    public function regenerateSessions(Ekstrakurikuler $ekstrakurikuler)
+    {
+        $this->authorize('update', $ekstrakurikuler);
+
+        try {
+            DB::beginTransaction();
+
+            $totalSessions = 0;
+            $rombels = $ekstrakurikuler->rombels;
+
+            foreach ($rombels as $rombel) {
+                $sessions = $this->schedulingService->generateSessionsForRombel($rombel, [
+                    'replace_existing' => true,
+                    'skip_holidays' => true
+                ]);
+                
+                $totalSessions += $sessions->count();
+            }
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 
+                "Berhasil regenerate {$totalSessions} sessions untuk {$rombels->count()} rombel"
+            );
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Failed to regenerate sessions for ekstrakurikuler {$ekstrakurikuler->id}: " . $e->getMessage());
+            
+            return redirect()->back()->withErrors([
+                'error' => 'Gagal regenerate sessions: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * API endpoint untuk mendapatkan sekolah berdasarkan kota
+     */
+    public function getSekolahByCity(Request $request)
+    {
+        $kota = $request->get('kota');
+        
+        if (!$kota) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Parameter kota diperlukan',
+                'data' => []
+            ]);
+        }
+
+        $sekolahList = Sekolah::where('kota', $kota)
+                            ->select('kodlan', 'namasekolah', 'kotkab', 'kec')
+                            ->orderBy('namasekolah')
+                            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data sekolah berhasil diambil',
+            'data' => $sekolahList
+        ]);
+    }
+
+    /**
+     * Helper method untuk mendapatkan kota dari sekolah_kodlan
+     */
+    private function getKotaFromSekolah($kodlan)
+    {
+        if (!$kodlan) return null;
+        
+        $sekolah = Sekolah::find($kodlan);
+        return $sekolah ? $sekolah->kota : null;
+    }
+
+    /**
+     * Helper method untuk mapping city ke region
+     */
+    private function getCityToRegionMapping()
+    {
+        return [
+            'JAKARTA PUSAT' => 'JAKARTA',
+            'JAKARTA UTARA' => 'JAKARTA', 
+            'JAKARTA SELATAN' => 'JAKARTA',
+            'JAKARTA TIMUR' => 'JAKARTA',
+            'JAKARTA BARAT' => 'JAKARTA',
+            'KOTA DEPOK' => 'DEPOK',
+            'KABUPATEN BOGOR' => 'BOGOR',
+            'KOTA BOGOR' => 'BOGOR',
+            'KOTA TANGERANG' => 'TANGERANG',
+            'KABUPATEN TANGERANG' => 'TANGERANG',
+            'KOTA TANGERANG SELATAN' => 'TANGERANG',
+            'KOTA BEKASI' => 'BEKASI',
+            'KABUPATEN BEKASI' => 'BEKASI'
+        ];
     }
 }

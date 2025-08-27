@@ -1,0 +1,47 @@
+# Docker ignore file
+.git
+.gitignore
+README.md
+CLAUDE.md
+.env*
+.docker
+Dockerfile*
+docker-compose*
+
+# Dependencies
+node_modules
+vendor
+
+# Development files
+.phpunit.result.cache
+coverage
+.nyc_output
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+storage/logs/*
+
+# Cache
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*
+
+# Testing
+tests/_output/*
+.phpunit.result.cache
+
+# Backup files
+*.sql
+*.backup
+backups/

@@ -1,64 +1,106 @@
 <section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-            {{ __('Profile Information') }}
-        </h2>
+    @if (session('status'))
+        <x-alert type="success" :message="session('status')" />
+    @endif
 
-        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            {{ __("Update your account's profile information and email address.") }}
-        </p>
-    </header>
-
-    <form id="send-verification" method="post" action="{{ route('verification.send') }}">
-        @csrf
-    </form>
-
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
+    <form method="post" action="{{ route('profile.update') }}">
         @csrf
         @method('patch')
 
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <x-input-label for="nama_lengkap" :value="__('Full Name')" />
+                <x-text-input id="nama_lengkap" name="nama_lengkap" type="text" class="form-control" :value="old('nama_lengkap', $user->nama_lengkap)" required autofocus />
+                <x-input-error class="text-danger mt-1" :messages="$errors->get('nama_lengkap')" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <x-input-label for="email" :value="__('Email')" />
+                <x-text-input id="email" name="email" type="email" class="form-control" :value="old('email', $user->email)" required />
+                <x-input-error class="text-danger mt-1" :messages="$errors->get('email')" />
+            </div>
         </div>
 
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <x-input-label for="tanggal_lahir" :value="__('Birth Date')" />
+                <x-text-input id="tanggal_lahir" name="tanggal_lahir" type="date" class="form-control" :value="old('tanggal_lahir', $user->tanggal_lahir)" />
+                <x-input-error class="text-danger mt-1" :messages="$errors->get('tanggal_lahir')" />
+            </div>
 
-            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-gray-800 dark:text-gray-200">
-                        {{ __('Your email address is unverified.') }}
-
-                        <button form="send-verification" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
-                    </p>
-
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600 dark:text-green-400">
-                            {{ __('A new verification link has been sent to your email address.') }}
-                        </p>
-                    @endif
-                </div>
-            @endif
+            <div class="col-md-6 mb-3">
+                <x-input-label for="no_telephone" :value="__('Phone Number')" />
+                <x-text-input id="no_telephone" name="no_telephone" type="text" class="form-control" :value="old('no_telephone', $user->no_telephone)" />
+                <x-input-error class="text-danger mt-1" :messages="$errors->get('no_telephone')" />
+            </div>
         </div>
 
-        <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <x-input-label for="agama" :value="__('Religion')" />
+                <select id="agama" name="agama" class="form-select">
+                    <option value="">{{ __('Select Religion') }}</option>
+                    <option value="Islam" {{ old('agama', $user->agama) == 'Islam' ? 'selected' : '' }}>Islam</option>
+                    <option value="Kristen" {{ old('agama', $user->agama) == 'Kristen' ? 'selected' : '' }}>Kristen</option>
+                    <option value="Katolik" {{ old('agama', $user->agama) == 'Katolik' ? 'selected' : '' }}>Katolik</option>
+                    <option value="Hindu" {{ old('agama', $user->agama) == 'Hindu' ? 'selected' : '' }}>Hindu</option>
+                    <option value="Buddha" {{ old('agama', $user->agama) == 'Buddha' ? 'selected' : '' }}>Buddha</option>
+                    <option value="Lainnya" {{ old('agama', $user->agama) == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
+                </select>
+                <x-input-error class="text-danger mt-1" :messages="$errors->get('agama')" />
+            </div>
 
-            @if (session('status') === 'profile-updated')
-                <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-gray-600 dark:text-gray-400"
-                >{{ __('Saved.') }}</p>
-            @endif
+            <div class="col-md-6 mb-3">
+                <x-input-label for="pend_terakhir" :value="__('Last Education')" />
+                <select id="pend_terakhir" name="pend_terakhir" class="form-select">
+                    <option value="">{{ __('Select Education Level') }}</option>
+                    <option value="SMA" {{ old('pend_terakhir', $user->pend_terakhir) == 'SMA' ? 'selected' : '' }}>SMA</option>
+                    <option value="D3" {{ old('pend_terakhir', $user->pend_terakhir) == 'D3' ? 'selected' : '' }}>D3</option>
+                    <option value="S1" {{ old('pend_terakhir', $user->pend_terakhir) == 'S1' ? 'selected' : '' }}>S1</option>
+                    <option value="S2" {{ old('pend_terakhir', $user->pend_terakhir) == 'S2' ? 'selected' : '' }}>S2</option>
+                    <option value="S3" {{ old('pend_terakhir', $user->pend_terakhir) == 'S3' ? 'selected' : '' }}>S3</option>
+                </select>
+                <x-input-error class="text-danger mt-1" :messages="$errors->get('pend_terakhir')" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <x-input-label for="kompetensi_1" :value="__('Primary Competency')" />
+                <select id="kompetensi_1" name="kompetensi_1" class="form-select">
+                    <option value="">{{ __('Select Competency') }}</option>
+                    <option value="Coding" {{ old('kompetensi_1', $user->kompetensi_1) == 'Coding' ? 'selected' : '' }}>Coding</option>
+                    <option value="Robotik" {{ old('kompetensi_1', $user->kompetensi_1) == 'Robotik' ? 'selected' : '' }}>Robotik</option>
+                    <option value="Desain" {{ old('kompetensi_1', $user->kompetensi_1) == 'Desain' ? 'selected' : '' }}>Desain</option>
+                    <option value="IoT" {{ old('kompetensi_1', $user->kompetensi_1) == 'IoT' ? 'selected' : '' }}>IoT</option>
+                    <option value="Data Science" {{ old('kompetensi_1', $user->kompetensi_1) == 'Data Science' ? 'selected' : '' }}>Data Science</option>
+                </select>
+                <x-input-error class="text-danger mt-1" :messages="$errors->get('kompetensi_1')" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <x-input-label for="kompetensi_2" :value="__('Secondary Competency')" />
+                <select id="kompetensi_2" name="kompetensi_2" class="form-select">
+                    <option value="">{{ __('Select Competency (Optional)') }}</option>
+                    <option value="Coding" {{ old('kompetensi_2', $user->kompetensi_2) == 'Coding' ? 'selected' : '' }}>Coding</option>
+                    <option value="Robotik" {{ old('kompetensi_2', $user->kompetensi_2) == 'Robotik' ? 'selected' : '' }}>Robotik</option>
+                    <option value="Desain" {{ old('kompetensi_2', $user->kompetensi_2) == 'Desain' ? 'selected' : '' }}>Desain</option>
+                    <option value="IoT" {{ old('kompetensi_2', $user->kompetensi_2) == 'IoT' ? 'selected' : '' }}>IoT</option>
+                    <option value="Data Science" {{ old('kompetensi_2', $user->kompetensi_2) == 'Data Science' ? 'selected' : '' }}>Data Science</option>
+                </select>
+                <x-input-error class="text-danger mt-1" :messages="$errors->get('kompetensi_2')" />
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <x-primary-button>
+                <i class="bi bi-check-circle me-2"></i>{{ __('Update Profile') }}
+            </x-primary-button>
+
+            <div class="text-muted small">
+                <i class="bi bi-info-circle me-1"></i>
+                Role: <strong>{{ ucfirst(str_replace('_', ' ', $user->role)) }}</strong>
+            </div>
         </div>
     </form>
 </section>

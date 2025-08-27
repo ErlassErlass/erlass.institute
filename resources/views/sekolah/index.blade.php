@@ -32,7 +32,7 @@
                     @endif
 
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-striped table-hover datatable" id="sekolah-table">
                             <thead class="table-dark">
                                 <tr>
                                     <th>Kode Sekolah</th>
@@ -90,8 +90,21 @@
 
 @push('scripts')
 <script>
-    // Menambahkan konfirmasi sebelum submit form hapus
     document.addEventListener('DOMContentLoaded', function () {
+        // Initialize DataTable for Sekolah table
+        if (typeof window.DataTableManager !== 'undefined') {
+            const dataTableManager = new window.DataTableManager();
+            dataTableManager.init('#sekolah-table', {
+                order: [[1, 'asc']], // Sort by School Name column
+                columnDefs: [
+                    { orderable: false, targets: [4] }, // Disable sorting for Actions column
+                    { type: 'string', targets: [0, 1, 2, 3] } // String sorting for all text columns
+                ],
+                pageLength: 25
+            });
+        }
+        
+        // Menambahkan konfirmasi sebelum submit form hapus
         const deleteForms = document.querySelectorAll('.delete-form');
         deleteForms.forEach(form => {
             form.addEventListener('submit', function (event) {

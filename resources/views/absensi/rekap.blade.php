@@ -2,9 +2,9 @@
 
 @section('content')
 <div class="container py-4">
-    <h2 class="mb-4">📄 Rekap Absensi @if(Auth::user()->role !== 'admin') Anda @endif</h2>
+    <h2 class="mb-4">📄 Rekap Absensi @if(!Auth::user()->hasAdminAccess()) Anda @endif</h2>
 
-<table class="table table-bordered table-hover">
+<table class="table table-bordered table-hover datatable" id="rekap-absensi-table">
     <thead class="table-light">
         <tr>
             <th>#</th>
@@ -34,3 +34,22 @@
 
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize DataTable for Attendance Recap table
+        if (typeof window.DataTableManager !== 'undefined') {
+            const dataTableManager = new window.DataTableManager();
+            dataTableManager.init('#rekap-absensi-table', {
+                order: [[1, 'desc']], // Sort by Date column (newest first)
+                columnDefs: [
+                    { orderable: false, targets: [0, 2] }, // Disable sorting for # and Actions columns
+                    { type: 'date', targets: [1] } // Date sorting for date column
+                ],
+                pageLength: 15
+            });
+        }
+    });
+</script>
+@endpush

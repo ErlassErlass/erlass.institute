@@ -121,7 +121,7 @@
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('ekstrakurikuler.index') }}">Ekstrakurikuler</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('ekstrakurikuler.show', $ekstrakurikuler) }}">{{ Str::limit($ekstrakurikuler->nama_program, 20) }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('ekstrakurikuler.show', $ekstrakurikuler) }}">{{ Str::limit($ekstrakurikuler->kategori_program, 20) }}</a></li>
                         <li class="breadcrumb-item active">Edit</li>
                     </ol>
                 </nav>
@@ -130,7 +130,7 @@
             <!-- Form Container -->
             <div class="edit-card">
                 <div class="section-header">
-                    <h4 class="mb-0">Edit: {{ $ekstrakurikuler->nama_program }}</h4>
+                    <h4 class="mb-0">Edit: {{ $ekstrakurikuler->kategori_program }}</h4>
                     <p class="mb-0 opacity-75">Status: {{ $ekstrakurikuler->status_label }}</p>
                 </div>
 
@@ -147,16 +147,34 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label for="nama_program" class="form-label">
-                                        Nama Program <span class="required-indicator">*</span>
+                                    <label for="kategori_program" class="form-label">
+                                        Kategori Program <span class="required-indicator">*</span>
                                     </label>
-                                    <input type="text" 
-                                           class="form-control @error('nama_program') is-invalid @enderror" 
-                                           id="nama_program" 
-                                           name="nama_program" 
-                                           value="{{ old('nama_program', $ekstrakurikuler->nama_program) }}" 
-                                           required>
-                                    @error('nama_program')
+                                    <select class="form-control @error('kategori_program') is-invalid @enderror" 
+                                            id="kategori_program" 
+                                            name="kategori_program" 
+                                            required>
+                                        <option value="">Pilih Kategori Program</option>
+                                        <option value="Coding Scratch" {{ old('kategori_program', $ekstrakurikuler->kategori_program) == 'Coding Scratch' ? 'selected' : '' }}>
+                                            Coding Scratch
+                                        </option>
+                                        <option value="English Course" {{ old('kategori_program', $ekstrakurikuler->kategori_program) == 'English Course' ? 'selected' : '' }}>
+                                            English Course
+                                        </option>
+                                        <option value="Micro:bit Learning Kit" {{ old('kategori_program', $ekstrakurikuler->kategori_program) == 'Micro:bit Learning Kit' ? 'selected' : '' }}>
+                                            Micro:bit Learning Kit
+                                        </option>
+                                        <option value="Pictoblox AI" {{ old('kategori_program', $ekstrakurikuler->kategori_program) == 'Pictoblox AI' ? 'selected' : '' }}>
+                                            Pictoblox AI
+                                        </option>
+                                        <option value="Robotik Explorer" {{ old('kategori_program', $ekstrakurikuler->kategori_program) == 'Robotik Explorer' ? 'selected' : '' }}>
+                                            Robotik Explorer
+                                        </option>
+                                        <option value="Robotik Jimu" {{ old('kategori_program', $ekstrakurikuler->kategori_program) == 'Robotik Jimu' ? 'selected' : '' }}>
+                                            Robotik Jimu
+                                        </option>
+                                    </select>
+                                    @error('kategori_program')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -175,7 +193,7 @@
                                         @foreach($salesUsers as $user)
                                             <option value="{{ $user->id }}" 
                                                     {{ old('user_id_sales', $ekstrakurikuler->user_id_sales) == $user->id ? 'selected' : '' }}>
-                                                {{ $user->name }} ({{ $user->role }})
+                                                {{ $user->nama_lengkap }} ({{ $user->role }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -189,24 +207,30 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label for="region" class="form-label">
-                                        Region <span class="required-indicator">*</span>
+                                    <label for="city" class="form-label">
+                                        Kota/Kabupaten <span class="required-indicator">*</span>
                                     </label>
-                                    <select class="form-control @error('region') is-invalid @enderror" 
-                                            id="region" 
-                                            name="region" 
+                                    <select class="form-control @error('city') is-invalid @enderror" 
+                                            id="city" 
+                                            name="city" 
                                             required>
-                                        <option value="">Pilih Region</option>
-                                        @foreach($regions as $region)
-                                            <option value="{{ $region }}" 
-                                                    {{ old('region', $ekstrakurikuler->region) == $region ? 'selected' : '' }}>
-                                                {{ $region }}
+                                        <option value="">Pilih Kota/Kabupaten</option>
+                                        @foreach($kotaOptions as $city)
+                                            <option value="{{ $city }}" 
+                                                    {{ old('city', $ekstrakurikuler->city ?: $ekstrakurikuler->sekolah?->kota) == $city ? 'selected' : '' }}>
+                                                {{ $city }}
                                             </option>
                                         @endforeach
                                     </select>
-                                    @error('region')
+                                    @error('city')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
+                                    <small class="form-text text-muted">
+                                        Kota/kabupaten lokasi sekolah (saat ini: {{ $ekstrakurikuler->sekolah?->kotkab ?? 'N/A' }})
+                                    </small>
+                                    
+                                    <!-- Hidden region field untuk backward compatibility -->
+                                    <input type="hidden" id="region" name="region" value="{{ old('region', $ekstrakurikuler->region) }}">
                                 </div>
                             </div>
 
@@ -742,7 +766,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function validateForm() {
     let isValid = true;
     const requiredFields = [
-        'nama_program', 'user_id_sales', 'region', 'status',
+        'kategori_program', 'user_id_sales', 'city', 'region', 'status',
         'sekolah_kodlan', 'alamat_lengkap', 'jarak_km',
         'kepala_sekolah', 'penanggung_jawab', 'no_telepon'
     ];

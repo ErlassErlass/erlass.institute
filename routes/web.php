@@ -13,6 +13,8 @@ use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EkstrakurikulerController;
+use App\Http\Controllers\EkstrakurikulerSessionController;
+use App\Http\Controllers\SiswaEkstrakurikulerController;
 
 // Debug routes only available in local environment
 if (app()->environment('local')) {
@@ -91,6 +93,85 @@ Route::middleware(['auth'])->group(function () {
         ->name('ekstrakurikuler.form.data');
     Route::delete('ekstrakurikuler/form/clear', [EkstrakurikulerController::class, 'clearFormData'])
         ->name('ekstrakurikuler.form.clear');
+    Route::get('api/sekolah/by-city', [EkstrakurikulerController::class, 'getSekolahByCity'])
+        ->name('api.sekolah.by-city');
+    
+    // Session preview and regeneration
+    Route::get('ekstrakurikuler/preview-sessions', [EkstrakurikulerController::class, 'previewSessions'])
+        ->name('ekstrakurikuler.preview-sessions');
+    Route::post('ekstrakurikuler/{ekstrakurikuler}/regenerate-sessions', [EkstrakurikulerController::class, 'regenerateSessions'])
+        ->name('ekstrakurikuler.regenerate-sessions');
+    
+    // Ekstrakurikuler enrollment management routes
+    Route::prefix('ekstrakurikuler/{ekstrakurikuler}')->name('ekstrakurikuler.')->group(function () {
+        Route::get('enrollment', [SiswaEkstrakurikulerController::class, 'index'])
+            ->name('enrollment.index');
+        Route::get('enrollment/create', [SiswaEkstrakurikulerController::class, 'create'])
+            ->name('enrollment.create');
+        Route::post('enrollment', [SiswaEkstrakurikulerController::class, 'store'])
+            ->name('enrollment.store');
+        Route::get('enrollment/{enrollment}', [SiswaEkstrakurikulerController::class, 'show'])
+            ->name('enrollment.show');
+        Route::get('enrollment/{enrollment}/edit', [SiswaEkstrakurikulerController::class, 'edit'])
+            ->name('enrollment.edit');
+        Route::put('enrollment/{enrollment}', [SiswaEkstrakurikulerController::class, 'update'])
+            ->name('enrollment.update');
+        
+        // Enrollment actions
+        Route::post('enrollment/{enrollment}/withdraw', [SiswaEkstrakurikulerController::class, 'withdraw'])
+            ->name('enrollment.withdraw');
+        Route::post('enrollment/{enrollment}/transfer', [SiswaEkstrakurikulerController::class, 'transfer'])
+            ->name('enrollment.transfer');
+        Route::post('enrollment/{enrollment}/activate', [SiswaEkstrakurikulerController::class, 'activate'])
+            ->name('enrollment.activate');
+        Route::post('enrollment/{enrollment}/graduate', [SiswaEkstrakurikulerController::class, 'graduate'])
+            ->name('enrollment.graduate');
+        
+        // Bulk actions
+        Route::post('enrollment/bulk-action', [SiswaEkstrakurikulerController::class, 'bulkAction'])
+            ->name('enrollment.bulk-action');
+    });
+    
+    // Ekstrakurikuler Session Management Routes
+    Route::prefix('ekstrakurikuler')->name('ekstrakurikuler.')->group(function () {
+        // Session CRUD
+        Route::get('sessions', [EkstrakurikulerSessionController::class, 'index'])
+            ->name('sessions.index');
+        Route::get('sessions/calendar', [EkstrakurikulerSessionController::class, 'calendar'])
+            ->name('sessions.calendar');
+        Route::get('sessions/{session}', [EkstrakurikulerSessionController::class, 'show'])
+            ->name('sessions.show');
+        Route::get('sessions/{session}/edit', [EkstrakurikulerSessionController::class, 'edit'])
+            ->name('sessions.edit');
+        Route::put('sessions/{session}', [EkstrakurikulerSessionController::class, 'update'])
+            ->name('sessions.update');
+        
+        // Session Actions
+        Route::post('sessions/{session}/start', [EkstrakurikulerSessionController::class, 'start'])
+            ->name('sessions.start');
+        Route::post('sessions/{session}/complete', [EkstrakurikulerSessionController::class, 'complete'])
+            ->name('sessions.complete');
+        Route::post('sessions/{session}/cancel', [EkstrakurikulerSessionController::class, 'cancel'])
+            ->name('sessions.cancel');
+        Route::post('sessions/{session}/reschedule', [EkstrakurikulerSessionController::class, 'reschedule'])
+            ->name('sessions.reschedule');
+        
+        // Bulk Operations
+        Route::post('sessions/bulk', [EkstrakurikulerSessionController::class, 'bulk'])
+            ->name('sessions.bulk');
+        
+        // Rombel Session Management
+        Route::post('rombel/{rombel}/regenerate-sessions', [EkstrakurikulerSessionController::class, 'regenerateRombelSessions'])
+            ->name('rombel.regenerate-sessions');
+        
+        // Instructor Management
+        Route::get('instructors/{instructor}/available-slots', [EkstrakurikulerSessionController::class, 'availableSlots'])
+            ->name('instructors.available-slots');
+        
+        // Reports
+        Route::get('rombel/{rombel}/scheduling-report', [EkstrakurikulerSessionController::class, 'schedulingReport'])
+            ->name('rombel.scheduling-report');
+    });
     
     // User Management Routes (Khusus Webmaster)
     Route::prefix('admin')->name('admin.')->group(function () {
@@ -116,6 +197,21 @@ Route::middleware(['auth'])->group(function () {
     
     // Nested resource for laporan-mengajar absensi
     Route::resource('laporan-mengajar.absensi', AbsensiController::class)->only(['create', 'store']);
+    
+    // Ekstrakurikuler integration routes
+    Route::prefix('ekstrakurikuler-session')->name('ekstrakurikuler-session.')->group(function () {
+        Route::get('{session}/absensi', [AbsensiController::class, 'createForEkstrakurikuler'])
+            ->name('absensi.create');
+    });
+    
+    // Laporan mengajar ekstrakurikuler routes
+    Route::get('laporan-mengajar/ekstrakurikuler/dashboard', [LaporanMengajarController::class, 'ekstrakurikulerDashboard'])
+        ->name('laporan-mengajar.ekstrakurikuler.dashboard');
+    Route::post('laporan-mengajar/from-ekstrakurikuler/{session}', [LaporanMengajarController::class, 'createFromEkstrakurikuler'])
+        ->name('laporan-mengajar.from-ekstrakurikuler');
+    
+    // Absensi index with filter support
+    Route::get('absensi', [AbsensiController::class, 'index'])->name('absensi.index');
     Route::get('laporan-mengajar/{laporan_mengajar}/absensi/tanggal/{tanggal}', [AbsensiController::class, 'showByDate'])
         ->name('laporan-mengajar.absensi.tanggal');
 });

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,7 +12,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register the InstructorVerificationService
+        $this->app->singleton(\App\Services\InstructorVerificationService::class, function ($app) {
+            return new \App\Services\InstructorVerificationService();
+        });
     }
 
     /**
@@ -19,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Set custom pagination views
+        Paginator::defaultView('custom.pagination');
+        Paginator::defaultSimpleView('custom.simple-pagination');
     }
 }

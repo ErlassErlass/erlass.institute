@@ -44,7 +44,7 @@ class EkstrakurikulerPolicy
         // Sales hanya boleh melihat program yang dia tangani
         if ($user->role === 'instruktur' || $user->role === 'asisten') {
             return $user->id === $ekstrakurikuler->user_id_sales || 
-                   $user->id === $ekstrakurikuler->user_id_admin;
+                   $user->id === $ekstrakurikuler->user_id_sales;
         }
         
         // Admin dan webmaster sudah di-handle di before()
@@ -70,7 +70,7 @@ class EkstrakurikulerPolicy
         // Sales hanya boleh edit program yang dia tangani dan masih dalam status draft atau diajukan
         if ($user->role === 'instruktur' || $user->role === 'asisten') {
             return ($user->id === $ekstrakurikuler->user_id_sales || 
-                    $user->id === $ekstrakurikuler->user_id_admin) &&
+                    $user->id === $ekstrakurikuler->user_id_sales) &&
                    in_array($ekstrakurikuler->status, [
                        Ekstrakurikuler::STATUS_DRAFT,
                        Ekstrakurikuler::STATUS_DIAJUKAN,
@@ -91,7 +91,7 @@ class EkstrakurikulerPolicy
         // Sales hanya boleh hapus program yang belum aktif dan dia yang tangani
         if ($user->role === 'instruktur' || $user->role === 'asisten') {
             return ($user->id === $ekstrakurikuler->user_id_sales || 
-                    $user->id === $ekstrakurikuler->user_id_admin) &&
+                    $user->id === $ekstrakurikuler->user_id_sales) &&
                    !$ekstrakurikuler->isActive() &&
                    in_array($ekstrakurikuler->status, [
                        Ekstrakurikuler::STATUS_DRAFT,
@@ -155,7 +155,7 @@ class EkstrakurikulerPolicy
         // Sales bisa membatalkan program mereka sendiri jika belum selesai
         if ($user->role === 'instruktur' || $user->role === 'asisten') {
             return ($user->id === $ekstrakurikuler->user_id_sales || 
-                    $user->id === $ekstrakurikuler->user_id_admin) &&
+                    $user->id === $ekstrakurikuler->user_id_sales) &&
                    !in_array($ekstrakurikuler->status, [
                        Ekstrakurikuler::STATUS_SELESAI,
                        Ekstrakurikuler::STATUS_DIBATALKAN
@@ -175,7 +175,7 @@ class EkstrakurikulerPolicy
         // Sales bisa manage rombel untuk program mereka sendiri
         if ($user->role === 'instruktur' || $user->role === 'asisten') {
             return $user->id === $ekstrakurikuler->user_id_sales || 
-                   $user->id === $ekstrakurikuler->user_id_admin;
+                   $user->id === $ekstrakurikuler->user_id_sales;
         }
         
         return false;
@@ -200,7 +200,7 @@ class EkstrakurikulerPolicy
             
             return $isAssigned || 
                    $user->id === $ekstrakurikuler->user_id_sales || 
-                   $user->id === $ekstrakurikuler->user_id_admin;
+                   $user->id === $ekstrakurikuler->user_id_sales;
         }
         
         return false;
@@ -225,7 +225,7 @@ class EkstrakurikulerPolicy
             
             return $isInvolved || 
                    $user->id === $ekstrakurikuler->user_id_sales || 
-                   $user->id === $ekstrakurikuler->user_id_admin;
+                   $user->id === $ekstrakurikuler->user_id_sales;
         }
         
         return false;

@@ -15,7 +15,7 @@
 
         <!-- Table -->
         <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
+            <table class="min-w-full divide-y divide-gray-200 datatable" id="absensi-show-table">
                 <thead class="bg-indigo-600">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">No</th>
@@ -68,3 +68,22 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize DataTable for Attendance Show table
+        if (typeof window.DataTableManager !== 'undefined') {
+            const dataTableManager = new window.DataTableManager();
+            dataTableManager.init('#absensi-show-table', {
+                order: [[1, 'asc']], // Sort by Student Name column
+                columnDefs: [
+                    { orderable: false, targets: [0] }, // Disable sorting for No. column
+                    { type: 'string', targets: [1, 2, 3] } // String sorting for other columns
+                ],
+                pageLength: 25
+            });
+        }
+    });
+</script>
+@endpush

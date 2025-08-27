@@ -12,6 +12,7 @@
         color: white;
         border-bottom: none;
     }
+
     .section-header {
         color: #4e73df;
         font-weight: 600;
@@ -19,6 +20,7 @@
         padding-left: 10px;
         margin-bottom: 1rem;
     }
+
     .form-section {
         background-color: #f8f9fc;
         border-radius: 8px;
@@ -26,6 +28,7 @@
         margin-bottom: 25px;
         border-left: 3px solid #4e73df;
     }
+
     .img-thumbnail {
         max-width: 200px;
         height: auto;
@@ -34,28 +37,35 @@
         padding: 5px;
         background-color: white;
     }
+
     .input-group-text {
         background-color: #e9ecef;
     }
+
     .btn-primary {
         background-color: #4e73df;
         border-color: #4e73df;
     }
+
     .btn-primary:hover {
         background-color: #2e59d9;
         border-color: #2653d4;
     }
+
     .time-picker {
         cursor: pointer;
     }
+
     .character-counter {
         font-size: 0.8rem;
         color: #6c757d;
         text-align: right;
     }
+
     .character-counter.warning {
         color: #ffc107;
     }
+
     .character-counter.danger {
         color: #dc3545;
     }
@@ -114,18 +124,21 @@
                                 </div>
                             </div>
 
-                            <h5 class="section-header mt-4"><i class="fas fa-school me-2"></i>Lokasi Mengajar</h5>
-                            <div class="mb-3">
-                                <label for="kodlan" class="form-label">Cari & Pilih Sekolah</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                    <select name="kodlan" id="sekolah-search" class="form-select @error('kodlan') is-invalid @enderror" required>
-                                        <option value="{{ $laporanMengajar->kodlan }}" selected>
-                                            {{ $laporanMengajar->sekolah_nama }} ({{ $laporanMengajar->kodlan }})
-                                        </option>
-                                    </select>
+                            <h5 class="section-header mt-4"><i class="fas fa-school me-2"></i>Lokasi Mengajar (Tidak dapat diubah)</h5>
+                            <div class="row">
+                                {{-- Kita tetap mengirim kodlan sebagai hidden input agar validasi di controller tetap berjalan --}}
+                                <input type="hidden" name="sekolah_kodlan" value="{{ $laporanMengajar->sekolah_kodlan }}">
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nama Sekolah</label>
+                                    {{-- Mengambil nama sekolah dari relasi Eloquent --}}
+                                    <input type="text" class="form-control" value="{{ $laporanMengajar->sekolah->namasekolah ?? 'Data Sekolah Tidak Ditemukan' }}" readonly disabled>
                                 </div>
-                                @error('kodlan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Kode Sekolah</label>
+                                    {{-- Mengambil kodlan langsung dari laporan mengajar --}}
+                                    <input type="text" class="form-control" value="{{ $laporanMengajar->sekolah_kodlan }}" readonly disabled>
+                                </div>
                             </div>
                         </div>
 
@@ -153,41 +166,40 @@
                                     <label for="kategori_pengajaran" class="form-label">Kategori Pengajaran</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="fas fa-tag"></i></span>
-<select name="kategori_pengajaran" id="kategori_pengajaran" class="form-select @error('kategori_pengajaran') is-invalid @enderror" required>
-    <option value="">Pilih Kategori</option>
-    <option value="Coding Scratch" {{ old('kategori_pengajaran') == 'Coding Scratch' ? 'selected' : '' }}>Coding Scratch</option>
-    <option value="Coding Pictoblox" {{ old('kategori_pengajaran') == 'Coding Pictoblox' ? 'selected' : '' }}>Coding Pictoblox</option>
-    <option value="English Course" {{ old('kategori_pengajaran') == 'English Course' ? 'selected' : '' }}>English Course</option>
-    <option value="Microbit:Learning Kit" {{ old('kategori_pengajaran') == 'Microbit:Learning Kit' ? 'selected' : '' }}>Microbit:Learning Kit</option>
-    <option value="Robotic Explorer" {{ old('kategori_pengajaran') == 'Robotic Explorer' ? 'selected' : '' }}>Robotic Explorer</option>
-    <option value="Robotik Jimu" {{ old('kategori_pengajaran') == 'Robotik Jimu' ? 'selected' : '' }}>Robotik Jimu</option>
-</select>
+                                        <select name="kategori_pengajaran" id="kategori_pengajaran" class="form-select @error('kategori_pengajaran') is-invalid @enderror" required>
+                                            <option value="">Pilih Kategori</option>
+
+                                            {{-- ✅ LOOP MELALUI VARIABEL $kategori DARI CONTROLLER --}}
+                                            @foreach ($kategori as $kat)
+                                            <option value="{{ $kat }}" {{ old('kategori_pengajaran', $laporanMengajar->kategori_pengajaran ?? '') == $kat ? 'selected' : '' }}>
+                                                {{ $kat }}
+                                            </option>
+                                            @endforeach
+
+                                        </select>
                                     </div>
                                     @error('kategori_pengajaran') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                             </div>
 
                             <div class="row">
+                                {{-- Ganti blok kode jadwal mengajar Anda dengan ini --}}
                                 <div class="col-md-4 mb-3">
                                     <label for="jadwal_mengajar" class="form-label">Jadwal Mengajar</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="fas fa-calendar-day"></i></span>
-@php
-    try {
-        $tanggalParsed = \Carbon\Carbon::createFromFormat('Y-m-d', $laporanMengajar->jadwal_mengajar)->format('d/m/Y');
-    } catch (\Exception $e) {
-        try {
-            $tanggalParsed = \Carbon\Carbon::createFromFormat('d/m/Y', $laporanMengajar->jadwal_mengajar)->format('d/m/Y');
-        } catch (\Exception $e2) {
-            $tanggalParsed = '';
-        }
-    }
-@endphp
 
-<input type="text" name="jadwal_mengajar" id="jadwal_mengajar"
-    class="form-control @error('jadwal_mengajar') is-invalid @enderror"
-    value="{{ old('jadwal_mengajar', $tanggalParsed) }}"
-    required placeholder="dd/mm/yyyy" autocomplete="off">
+                                        {{-- ✅ KODE JAUH LEBIH BERSIH DAN SEDERHANA --}}
+                                        <input
+                                            type="text"
+                                            name="jadwal_mengajar"
+                                            id="jadwal_mengajar"
+                                            class="form-control @error('jadwal_mengajar') is-invalid @enderror"
+                                            value="{{ old('jadwal_mengajar', $laporanMengajar->jadwal_mengajar_formatted) }}"
+                                            required
+                                            placeholder="dd/mm/yyyy"
+                                            autocomplete="off"
+                                            readonly>
                                     </div>
                                     @error('jadwal_mengajar') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
@@ -223,102 +235,102 @@
                             </div>
                         </div>
 
-                            <h5 class="section-header mt-4"><i class="fas fa-chart-line me-2"></i>Evaluasi Pembelajaran</h5>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="keaktifan" class="form-label">Keaktifan Siswa</label>
-                                    <select name="keaktifan" id="keaktifan" class="form-select @error('keaktifan') is-invalid @enderror" required>
-                                        <option value="sangat_pasif" {{ old('keaktifan', $laporanMengajar->keaktifan) == 'sangat_pasif' ? 'selected' : '' }}>Sangat Pasif</option>
-                                        <option value="pasif" {{ old('keaktifan', $laporanMengajar->keaktifan) == 'pasif' ? 'selected' : '' }}>Pasif</option>
-                                        <option value="aktif" {{ old('keaktifan', $laporanMengajar->keaktifan) == 'aktif' ? 'selected' : '' }}>Aktif</option>
-                                        <option value="sangat_aktif" {{ old('keaktifan', $laporanMengajar->keaktifan) == 'sangat_aktif' ? 'selected' : '' }}>Sangat Aktif</option>
-                                    </select>
-                                    @error('keaktifan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="pemahaman_materi" class="form-label">Pemahaman Materi Siswa</label>
-                                    <select name="pemahaman_materi" id="pemahaman_materi" class="form-select @error('pemahaman_materi') is-invalid @enderror" required>
-                                        <option value="belum_paham" {{ old('pemahaman_materi', $laporanMengajar->pemahaman_materi) == 'belum_paham' ? 'selected' : '' }}>Belum Paham</option>
-                                        <option value="sedikit_paham" {{ old('pemahaman_materi', $laporanMengajar->pemahaman_materi) == 'sedikit_paham' ? 'selected' : '' }}>Sedikit Paham</option>
-                                        <option value="paham" {{ old('pemahaman_materi', $laporanMengajar->pemahaman_materi) == 'paham' ? 'selected' : '' }}>Paham</option>
-                                        <option value="sangat_paham" {{ old('pemahaman_materi', $laporanMengajar->pemahaman_materi) == 'sangat_paham' ? 'selected' : '' }}>Sangat Paham</option>
-                                    </select>
-                                    @error('pemahaman_materi') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                                </div>
+                        <h5 class="section-header mt-4"><i class="fas fa-chart-line me-2"></i>Evaluasi Pembelajaran</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="keaktifan" class="form-label">Keaktifan Siswa</label>
+                                <select name="keaktifan" id="keaktifan" class="form-select @error('keaktifan') is-invalid @enderror" required>
+                                    <option value="sangat_pasif" {{ old('keaktifan', $laporanMengajar->keaktifan) == 'sangat_pasif' ? 'selected' : '' }}>Sangat Pasif</option>
+                                    <option value="pasif" {{ old('keaktifan', $laporanMengajar->keaktifan) == 'pasif' ? 'selected' : '' }}>Pasif</option>
+                                    <option value="aktif" {{ old('keaktifan', $laporanMengajar->keaktifan) == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                                    <option value="sangat_aktif" {{ old('keaktifan', $laporanMengajar->keaktifan) == 'sangat_aktif' ? 'selected' : '' }}>Sangat Aktif</option>
+                                </select>
+                                @error('keaktifan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="refleksi_siswa" class="form-label">Refleksi Siswa</label>
-                                    <textarea name="refleksi_siswa" id="refleksi_siswa" class="form-control @error('refleksi_siswa') is-invalid @enderror" required rows="3">{{ old('refleksi_siswa', $laporanMengajar->refleksi_siswa) }}</textarea>
-                                    <div class="character-counter" id="refleksi-counter">0/300 karakter</div>
-                                    @error('refleksi_siswa') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="refleksi_capaian" class="form-label">Refleksi Capaian</label>
-                                    <textarea name="refleksi_capaian" id="refleksi_capaian" class="form-control @error('refleksi_capaian') is-invalid @enderror" required rows="3">{{ old('refleksi_capaian', $laporanMengajar->refleksi_capaian) }}</textarea>
-                                    <div class="character-counter" id="capaian-counter">0/300 karakter</div>
-                                    @error('refleksi_capaian') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pemahaman_materi" class="form-label">Pemahaman Materi Siswa</label>
+                                <select name="pemahaman_materi" id="pemahaman_materi" class="form-select @error('pemahaman_materi') is-invalid @enderror" required>
+                                    <option value="belum_paham" {{ old('pemahaman_materi', $laporanMengajar->pemahaman_materi) == 'belum_paham' ? 'selected' : '' }}>Belum Paham</option>
+                                    <option value="sedikit_paham" {{ old('pemahaman_materi', $laporanMengajar->pemahaman_materi) == 'sedikit_paham' ? 'selected' : '' }}>Sedikit Paham</option>
+                                    <option value="paham" {{ old('pemahaman_materi', $laporanMengajar->pemahaman_materi) == 'paham' ? 'selected' : '' }}>Paham</option>
+                                    <option value="sangat_paham" {{ old('pemahaman_materi', $laporanMengajar->pemahaman_materi) == 'sangat_paham' ? 'selected' : '' }}>Sangat Paham</option>
+                                </select>
+                                @error('pemahaman_materi') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
                         </div>
 
-                        <!-- Section 4: Documentation -->
-                        <div class="form-section">
-                            <h5 class="section-header"><i class="fas fa-images me-2"></i>Dokumentasi Kegiatan</h5>
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i>Upload foto kegiatan dan absensi dengan format JPEG/PNG (maksimal 2MB)
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="refleksi_siswa" class="form-label">Refleksi Siswa</label>
+                                <textarea name="refleksi_siswa" id="refleksi_siswa" class="form-control @error('refleksi_siswa') is-invalid @enderror" required rows="3">{{ old('refleksi_siswa', $laporanMengajar->refleksi_siswa) }}</textarea>
+                                <div class="character-counter" id="refleksi-counter">0/300 karakter</div>
+                                @error('refleksi_siswa') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Foto Kegiatan</label>
-                                    @if($laporanMengajar->foto_kegiatan)
-                                        <div class="mb-2">
-                                            <img src="{{ asset('storage/' . $laporanMengajar->foto_kegiatan) }}" alt="Foto Kegiatan" class="img-thumbnail">
-                                            <div class="form-check mt-2">
-                                                <input class="form-check-input" type="checkbox" name="hapus_foto_kegiatan" id="hapus_foto_kegiatan" value="1">
-                                                <label class="form-check-label" for="hapus_foto_kegiatan">
-                                                    Hapus foto saat ini
-                                                </label>
-                                            </div>
-                                        </div>
-                                    @endif
-                                    <input type="file" name="foto_kegiatan" id="foto_kegiatan" class="form-control @error('foto_kegiatan') is-invalid @enderror" accept="image/*">
-                                    @error('foto_kegiatan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Foto Absensi Siswa</label>
-                                    @if($laporanMengajar->foto_absensi_siswa)
-                                        <div class="mb-2">
-                                            <img src="{{ asset('storage/' . $laporanMengajar->foto_absensi_siswa) }}" alt="Foto Absensi" class="img-thumbnail">
-                                            <div class="form-check mt-2">
-                                                <input class="form-check-input" type="checkbox" name="hapus_foto_absensi" id="hapus_foto_absensi" value="1">
-                                                <label class="form-check-label" for="hapus_foto_absensi">
-                                                    Hapus foto saat ini
-                                                </label>
-                                            </div>
-                                        </div>
-                                    @endif
-                                    <input type="file" name="foto_absensi_siswa" id="foto_absensi_siswa" class="form-control @error('foto_absensi_siswa') is-invalid @enderror" accept="image/*">
-                                    @error('foto_absensi_siswa') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="refleksi_capaian" class="form-label">Refleksi Capaian</label>
+                                <textarea name="refleksi_capaian" id="refleksi_capaian" class="form-control @error('refleksi_capaian') is-invalid @enderror" required rows="3">{{ old('refleksi_capaian', $laporanMengajar->refleksi_capaian) }}</textarea>
+                                <div class="character-counter" id="capaian-counter">0/300 karakter</div>
+                                @error('refleksi_capaian') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
                         </div>
                     </div>
 
-                    <div class="card-footer bg-light d-flex justify-content-between">
-                        <a href="{{ route('laporan-mengajar.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left me-1"></i> Kembali
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-1"></i> Simpan Perubahan
-                        </button>
+                    <!-- Section 4: Documentation -->
+                    <div class="form-section">
+                        <h5 class="section-header"><i class="fas fa-images me-2"></i>Dokumentasi Kegiatan</h5>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>Upload foto kegiatan dan absensi dengan format JPEG/PNG (maksimal 2MB)
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Foto Kegiatan</label>
+                                @if($laporanMengajar->foto_kegiatan)
+                                <div class="mb-2">
+                                    <img src="{{ asset('storage/' . $laporanMengajar->foto_kegiatan) }}" alt="Foto Kegiatan" class="img-thumbnail">
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="hapus_foto_kegiatan" id="hapus_foto_kegiatan" value="1">
+                                        <label class="form-check-label" for="hapus_foto_kegiatan">
+                                            Hapus foto saat ini
+                                        </label>
+                                    </div>
+                                </div>
+                                @endif
+                                <input type="file" name="foto_kegiatan" id="foto_kegiatan" class="form-control @error('foto_kegiatan') is-invalid @enderror" accept="image/*">
+                                @error('foto_kegiatan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Foto Absensi Siswa</label>
+                                @if($laporanMengajar->foto_absensi_siswa)
+                                <div class="mb-2">
+                                    <img src="{{ asset('storage/' . $laporanMengajar->foto_absensi_siswa) }}" alt="Foto Absensi" class="img-thumbnail">
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="hapus_foto_absensi" id="hapus_foto_absensi" value="1">
+                                        <label class="form-check-label" for="hapus_foto_absensi">
+                                            Hapus foto saat ini
+                                        </label>
+                                    </div>
+                                </div>
+                                @endif
+                                <input type="file" name="foto_absensi_siswa" id="foto_absensi_siswa" class="form-control @error('foto_absensi_siswa') is-invalid @enderror" accept="image/*">
+                                @error('foto_absensi_siswa') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                            </div>
+                        </div>
                     </div>
-                </form>
             </div>
+
+            <div class="card-footer bg-light d-flex justify-content-between">
+                <a href="{{ route('laporan-mengajar.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Kembali
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Simpan Perubahan
+                </button>
+            </div>
+            </form>
         </div>
     </div>
+</div>
 </div>
 @endsection
 
@@ -402,7 +414,7 @@
                 var length = $(this).val().length;
                 var remaining = maxLength - length;
                 $(counterId).text(length + '/' + maxLength + ' karakter');
-                
+
                 if (remaining < 50) {
                     $(counterId).removeClass('warning danger').addClass('warning');
                 }
@@ -424,11 +436,11 @@
             // Validate time
             var startTime = $('#jam_mulai').val();
             var endTime = $('#jam_selesai').val();
-            
+
             if (startTime && endTime) {
                 var start = new Date('1970-01-01T' + startTime + ':00');
                 var end = new Date('1970-01-01T' + endTime + ':00');
-                
+
                 if (start >= end) {
                     Swal.fire({
                         icon: 'error',
@@ -438,7 +450,7 @@
                     return false;
                 }
             }
-            
+
             // Validate date format
             var dateInput = $('#jadwal_mengajar').val();
             if (dateInput) {
@@ -452,7 +464,7 @@
                     return false;
                 }
             }
-            
+
             return true;
         });
     });

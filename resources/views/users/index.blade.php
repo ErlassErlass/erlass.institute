@@ -15,14 +15,14 @@
                         <a href="{{ route('users.create') }}" class="btn btn-success">
                             <i class="bi bi-person-plus-fill me-1"></i> Tambah Pengguna
                         </a>
-                        <form method="GET" action="{{ route('users.index') }}" class="w-50">
+                        <div class="w-50">
                             <div class="input-group">
-                                <input type="text" name="search" class="form-control" placeholder="Cari nama atau email..." value="{{ request('search') }}">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-search"></i> Cari
-                                </button>
+                                <input type="text" id="search-input" class="form-control" placeholder="Cari nama atau email..." value="{{ request('search') }}">
+                                <span class="input-group-text">
+                                    <i class="bi bi-search"></i>
+                                </span>
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
 
@@ -35,7 +35,7 @@
                     @endif
 
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-striped table-hover datatable" id="users-table">
                             <thead class="table-dark">
                                 <tr>
                                     <th>ID</th>
@@ -55,16 +55,29 @@
                                             <span class="badge bg-secondary">{{ Str::ucfirst($user->role) }}</span>
                                         </td>
                                         <td class="text-center">
-                                            <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-warning">
-                                                <i class="bi bi-pencil-square"></i> Edit
-                                            </a>
-                                            <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline delete-form">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger">
-                                                    <i class="bi bi-trash"></i> Hapus
-                                                </button>
-                                            </form>
+                                            <div class="btn-group" role="group">
+                                                @can('view', $user)
+                                                    <a href="{{ route('users.show', $user) }}" class="btn btn-sm btn-info" title="Lihat Detail">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                @endcan
+                                                
+                                                @can('update', $user)
+                                                    <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-warning" title="Edit">
+                                                        <i class="bi bi-pencil-square"></i>
+                                                    </a>
+                                                @endcan
+                                                
+                                                @can('delete', $user)
+                                                    <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline delete-form">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                @endcan
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty
@@ -77,11 +90,6 @@
                     </div>
                 </div>
                 
-                @if ($users->hasPages())
-                    <div class="card-footer">
-                        {{ $users->links() }}
-                    </div>
-                @endif
             </div>
         </div>
     </div>
@@ -90,8 +98,47 @@
 
 @push('scripts')
 <script>
-    // Menambahkan konfirmasi sebelum submit form hapus
     document.addEventListener('DOMContentLoaded', function () {
+        // Initialize DataTable for Users table
+        let usersTable = null;
+        if (typeof window.DataTableManager !== 'undefined') {
+            const dataTableManager = new window.DataTableManager();
+            usersTable = dataTableManager.init('#users-table', {
+                order: [[1, 'asc']], // Sort by Name column
+                columnDefs: [
+                    { orderable: false, targets: [4] }, // Disable sorting for Actions column
+                    { type: 'string', targets: [1, 2, 3] }, // String sorting for name, email, role
+                    { type: 'num', targets: [0] } // Numeric sorting for ID
+                ],
+                pageLength: 25,
+                lengthMenu: [10, 25, 50, 100],
+                responsive: true,
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json'
+                },
+                searching: true, // Enable built-in search
+                search: {
+                    search: '{{ request('search') }}' // Apply initial search if exists
+                }
+            });
+        }
+        
+        // Connect custom search input to DataTables search
+        const searchInput = document.getElementById('search-input');
+        if (searchInput && usersTable) {
+            searchInput.addEventListener('keyup', function() {
+                usersTable.search(this.value).draw();
+            });
+            
+            // Clear search when input is cleared
+            searchInput.addEventListener('input', function() {
+                if (this.value === '') {
+                    usersTable.search('').draw();
+                }
+            });
+        }
+        
+        // Menambahkan konfirmasi sebelum submit form hapus
         const deleteForms = document.querySelectorAll('.delete-form');
         deleteForms.forEach(form => {
             form.addEventListener('submit', function (event) {

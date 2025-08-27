@@ -149,12 +149,12 @@
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="h3 text-gray-800">{{ $ekstrakurikuler->nama_program }}</h1>
+                    <h1 class="h3 text-gray-800">{{ $ekstrakurikuler->kategori_program }}</h1>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
                             <li class="breadcrumb-item"><a href="{{ route('ekstrakurikuler.index') }}">Ekstrakurikuler</a></li>
-                            <li class="breadcrumb-item active">{{ Str::limit($ekstrakurikuler->nama_program, 30) }}</li>
+                            <li class="breadcrumb-item active">{{ Str::limit($ekstrakurikuler->kategori_program, 30) }}</li>
                         </ol>
                     </nav>
                 </div>
@@ -224,7 +224,7 @@
                                         <small class="text-muted">
                                             Disetujui pada: {{ $ekstrakurikuler->tanggal_disetujui->format('d/m/Y H:i') }}
                                             @if($ekstrakurikuler->disetujuiOleh)
-                                                oleh {{ $ekstrakurikuler->disetujuiOleh->name }}
+                                                oleh {{ $ekstrakurikuler->disetujuiOleh->nama_lengkap }}
                                             @endif
                                         </small>
                                     </div>
@@ -312,7 +312,7 @@
                                     <h6><i class="fas fa-info-circle text-primary"></i> Informasi Program</h6>
                                     
                                     <div class="info-label">Nama Program</div>
-                                    <div class="info-value">{{ $ekstrakurikuler->nama_program }}</div>
+                                    <div class="info-value">{{ $ekstrakurikuler->kategori_program }}</div>
                                     
                                     @if($ekstrakurikuler->deskripsi)
                                     <div class="info-label">Deskripsi</div>
@@ -325,10 +325,8 @@
                                     </div>
                                     
                                     <div class="info-label">Sales/Koordinator</div>
-                                    <div class="info-value">{{ $ekstrakurikuler->sales?->name ?? '-' }}</div>
+                                    <div class="info-value">{{ $ekstrakurikuler->sales?->nama_lengkap ?? '-' }}</div>
                                     
-                                    <div class="info-label">Admin</div>
-                                    <div class="info-value">{{ $ekstrakurikuler->admin?->name ?? '-' }}</div>
                                 </div>
                                 
                                 <div class="col-md-6">
@@ -470,10 +468,10 @@
                                                 <div class="info-label">Tim Pengajar</div>
                                                 <div class="info-value">
                                                     @if($rombel->instruktur)
-                                                        <span class="badge badge-primary">{{ $rombel->instruktur->name }}</span>
+                                                        <span class="badge badge-primary">{{ $rombel->instruktur->nama_lengkap }}</span>
                                                     @endif
                                                     @if($rombel->asisten)
-                                                        <span class="badge badge-secondary">{{ $rombel->asisten->name }}</span>
+                                                        <span class="badge badge-secondary">{{ $rombel->asisten->nama_lengkap }}</span>
                                                     @endif
                                                 </div>
                                             </div>
@@ -542,9 +540,9 @@
                                                                 @if($session->instruktur)
                                                                 <div class="mb-2">
                                                                     <small class="text-muted">
-                                                                        <i class="fas fa-user"></i> {{ $session->instruktur->name }}
+                                                                        <i class="fas fa-user"></i> {{ $session->instruktur->nama_lengkap }}
                                                                         @if($session->asisten)
-                                                                            & {{ $session->asisten->name }}
+                                                                            & {{ $session->asisten->nama_lengkap }}
                                                                         @endif
                                                                     </small>
                                                                 </div>

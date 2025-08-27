@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Ekstrakurikuler extends Model
 {
@@ -22,9 +23,9 @@ class Ekstrakurikuler extends Model
      */
     protected $fillable = [
         'nama_program',
+        'kategori_program',
         'deskripsi',
         'user_id_sales',
-        'user_id_admin',
         'region',
         'sekolah_kodlan',
         'alamat_lengkap',
@@ -33,9 +34,7 @@ class Ekstrakurikuler extends Model
         'kepala_sekolah',
         'penanggung_jawab',
         'no_telepon',
-        'email',
         'koneksi_internet',
-        'keterangan_internet',
         'proyektor',
         'keterangan_proyektor',
         'kabel_hdmi',
@@ -49,7 +48,6 @@ class Ekstrakurikuler extends Model
         'total_pertemuan',
         'frekuensi',
         'status',
-        'catatan_status',
         'tanggal_disetujui',
         'disetujui_oleh',
         'created_by',
@@ -69,6 +67,16 @@ class Ekstrakurikuler extends Model
         'total_rombel' => 'integer',
         'total_pertemuan' => 'integer',
     ];
+
+    /**
+     * Konstanta untuk kategori program
+     */
+    const KATEGORI_CODING_SCRATCH = 'Coding Scratch';
+    const KATEGORI_ENGLISH_COURSE = 'English Course';
+    const KATEGORI_MICROBIT_LEARNING = 'Micro:bit Learning Kit';
+    const KATEGORI_PICTOBLOX_AI = 'Pictoblox AI';
+    const KATEGORI_ROBOTIK_EXPLORER = 'Robotik Explorer';
+    const KATEGORI_ROBOTIK_JIMU = 'Robotik Jimu';
 
     /**
      * Konstanta untuk status program
@@ -112,13 +120,6 @@ class Ekstrakurikuler extends Model
         return $this->belongsTo(User::class, 'user_id_sales');
     }
 
-    /**
-     * Relasi ke User untuk admin.
-     */
-    public function admin(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'user_id_admin');
-    }
 
     /**
      * Relasi ke User yang menyetujui.
@@ -162,6 +163,47 @@ class Ekstrakurikuler extends Model
     }
 
     /**
+     * Relasi many-to-many ke Siswa melalui pivot table siswa_ekstrakurikuler.
+     */
+    public function siswa(): BelongsToMany
+    {
+        return $this->belongsToMany(Siswa::class, 'siswa_ekstrakurikuler')
+                    ->withPivot([
+                        'ekstrakurikuler_rombel_id',
+                        'status',
+                        'tanggal_daftar',
+                        'tanggal_keluar',
+                        'alasan_keluar',
+                        'catatan'
+                    ])
+                    ->withTimestamps();
+    }
+
+    /**
+     * Relasi ke siswa yang aktif saja.
+     */
+    public function siswaAktif(): BelongsToMany
+    {
+        return $this->siswa()->wherePivot('status', 'aktif');
+    }
+
+    /**
+     * Relasi ke SiswaEkstrakurikuler (pivot model) untuk akses lebih detail.
+     */
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(SiswaEkstrakurikuler::class);
+    }
+
+    /**
+     * Relasi ke enrollment yang aktif.
+     */
+    public function activeEnrollments(): HasMany
+    {
+        return $this->enrollments()->where('status', 'aktif');
+    }
+
+    /**
      * Scope untuk filter berdasarkan status.
      */
     public function scopeByStatus($query, $status)
@@ -191,6 +233,16 @@ class Ekstrakurikuler extends Model
     public function scopeByRegion($query, $region)
     {
         return $query->where('region', $region);
+    }
+
+    /**
+     * Scope untuk filter berdasarkan kota melalui relasi sekolah.
+     */
+    public function scopeByKota($query, $kota)
+    {
+        return $query->whereHas('sekolah', function($q) use ($kota) {
+            $q->where('kota', $kota);
+        });
     }
 
     /**
@@ -256,6 +308,22 @@ class Ekstrakurikuler extends Model
     public function getTotalSiswaFromRombels(): int
     {
         return $this->rombels()->sum('jumlah_siswa');
+    }
+
+    /**
+     * Method untuk menghitung total siswa yang terdaftar aktif.
+     */
+    public function getTotalSiswaAktif(): int
+    {
+        return $this->activeEnrollments()->count();
+    }
+
+    /**
+     * Method untuk mendapatkan siswa berdasarkan rombel tertentu.
+     */
+    public function getSiswaByRombel(int $rombelId)
+    {
+        return $this->siswaAktif()->wherePivot('ekstrakurikuler_rombel_id', $rombelId);
     }
 
     /**

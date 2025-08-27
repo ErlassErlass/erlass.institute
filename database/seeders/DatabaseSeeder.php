@@ -12,21 +12,54 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Buat User
-        // Buat 1 Admin Utama
+        // 1. Buat User dengan sistem role baru
+        
+        // Buat 1 Webmaster (akses tertinggi)
         User::factory()->create([
-            'nama_lengkap' => 'Admin Erlass Utama',
+            'nama_lengkap' => 'Webmaster Utama',
+            'email' => 'webmaster@erlass.com',
+            'role' => 'webmaster'
+        ]);
+        
+        // Buat 1 Admin Erlass (akses terbatas)
+        User::factory()->create([
+            'nama_lengkap' => 'Admin Erlass',
             'email' => 'admin@erlass.com',
             'role' => 'admin_erlass'
         ]);
-        // Buat 1 Admin biasa
+        
+        // Buat 1 Debug User untuk development
         User::factory()->create([
-            'nama_lengkap' => 'Admin Biasa',
-            'email' => 'admin.biasa@erlass.com',
-            'role' => 'admin'
+            'nama_lengkap' => 'Debug User',
+            'email' => 'debug@erlass.com',
+            'role' => 'debug_user'
         ]);
-        // Buat 48 Instruktur (total user 50)
-        User::factory(48)->create(['role' => 'instruktur']);
+        
+        // Buat 47 Instruktur (total user 50)
+        // 40 instruktur terverifikasi
+        User::factory(40)->create([
+            'role' => 'instruktur',
+            'is_verified' => true,
+            'verified_at' => now(),
+            'verification_status' => 'approved'
+        ]);
+        
+        // 5 instruktur pending verifikasi  
+        User::factory(5)->create([
+            'role' => 'instruktur',
+            'is_verified' => false,
+            'verified_at' => null,
+            'verification_status' => 'pending'
+        ]);
+        
+        // 2 instruktur ditolak verifikasinya
+        User::factory(2)->create([
+            'role' => 'instruktur',
+            'is_verified' => false,
+            'verified_at' => null,
+            'verification_status' => 'rejected',
+            'rejection_reason' => 'Dokumen tidak lengkap'
+        ]);
 
         // 2. Buat 80 Sekolah
         Sekolah::factory(80)->create();

@@ -14,7 +14,7 @@
     
     <div class="summary-row">
         <span class="summary-label">Nama Program:</span>
-        <span class="summary-value">{{ $formData['nama_program'] ?? '-' }}</span>
+        <span class="summary-value">{{ $formData['kategori_program'] ?? '-' }}</span>
     </div>
     
     <div class="summary-row">
@@ -24,7 +24,7 @@
                 @php
                     $sales = \App\Models\User::find($formData['user_id_sales']);
                 @endphp
-                {{ $sales ? $sales->name : '-' }}
+                {{ $sales ? $sales->nama_lengkap : '-' }}
             @else
                 -
             @endif
@@ -265,6 +265,23 @@
 </div>
 @endif
 
+<!-- Session Preview -->
+<div class="summary-section">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="summary-title mb-0"><i class="fas fa-calendar-alt"></i> Preview Jadwal Sessions</h6>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="loadSessionPreview()">
+            <i class="fas fa-sync-alt" id="previewLoadIcon"></i> Generate Preview
+        </button>
+    </div>
+    
+    <div id="sessionPreviewContent">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> 
+            Klik tombol "Generate Preview" untuk melihat jadwal sessions yang akan dibuat otomatis berdasarkan data rombel Anda.
+        </div>
+    </div>
+</div>
+
 <!-- Final Calculations -->
 <div class="summary-section">
     <h6 class="summary-title"><i class="fas fa-calculator"></i> Ringkasan Perhitungan</h6>
@@ -372,10 +389,10 @@ function runValidationChecks() {
     const checks = [];
     
     // Basic info validation
-    if (!formData.nama_program) {
+    if (!formData.kategori_program) {
         checks.push({ status: 'error', message: 'Nama program belum diisi' });
     } else {
-        checks.push({ status: 'success', message: 'Nama program: ' + formData.nama_program });
+        checks.push({ status: 'success', message: 'Nama program: ' + formData.kategori_program });
     }
     
     if (!formData.user_id_sales) {
@@ -489,5 +506,198 @@ function findScheduleConflicts(schedules) {
     }
     
     return conflicts;
+}
+
+function loadSessionPreview() {
+    const icon = document.getElementById('previewLoadIcon');
+    const content = document.getElementById('sessionPreviewContent');
+    
+    // Show loading state
+    icon.classList.add('fa-spin');
+    content.innerHTML = `
+        <div class="alert alert-info">
+            <i class="fas fa-spinner fa-spin"></i> Sedang menggenerate preview sessions...
+        </div>
+    `;
+    
+    // Make AJAX request to get session preview
+    fetch('{{ route("ekstrakurikuler.preview-sessions") }}', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        icon.classList.remove('fa-spin');
+        
+        if (data.success) {
+            renderSessionPreview(data.previews, data.summary);
+        } else {
+            content.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    Error: ${data.message || 'Gagal menggenerate preview sessions'}
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        icon.classList.remove('fa-spin');
+        content.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle"></i> 
+                Terjadi kesalahan saat menggenerate preview: ${error.message}
+            </div>
+        `;
+    });
+}
+
+function renderSessionPreview(previews, summary) {
+    const content = document.getElementById('sessionPreviewContent');
+    let html = '';
+    
+    // Summary info
+    html += `
+        <div class="alert alert-success mb-4">
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <div class="h4 mb-1">${summary.total_rombels}</div>
+                    <small>Rombel</small>
+                </div>
+                <div class="col-md-3">
+                    <div class="h4 mb-1">${summary.total_sessions}</div>
+                    <small>Total Sessions</small>
+                </div>
+                <div class="col-md-3">
+                    <div class="h4 mb-1">${summary.earliest_start || '-'}</div>
+                    <small>Mulai</small>
+                </div>
+                <div class="col-md-3">
+                    <div class="h4 mb-1">${summary.latest_end || '-'}</div>
+                    <small>Selesai</small>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Rombel previews
+    previews.forEach((preview, index) => {
+        html += `
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-users text-primary"></i> 
+                        ${preview.rombel_info.nama} 
+                        <span class="badge badge-info ml-2">${preview.total_sessions_generated} sessions</span>
+                    </h6>
+                    <small class="text-muted">
+                        ${preview.rombel_info.hari} ${preview.rombel_info.waktu} | 
+                        ${preview.rombel_info.periode} | 
+                        ${preview.rombel_info.jumlah_siswa} siswa
+                    </small>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">
+                                <i class="fas fa-calendar-check"></i> Preview Sessions (5 pertama):
+                            </h6>
+                            <div class="list-group list-group-flush">
+        `;
+        
+        preview.sessions_preview.forEach(session => {
+            html += `
+                <div class="list-group-item px-0 py-2 border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Pertemuan ${session.nomor_pertemuan}</strong>
+                            <br>
+                            <small class="text-muted">${session.tanggal} (${session.hari})</small>
+                        </div>
+                        <span class="badge badge-outline-primary">${session.bulan_tahun}</span>
+                    </div>
+                </div>
+            `;
+        });
+        
+        if (preview.total_sessions_generated > 5) {
+            html += `
+                <div class="list-group-item px-0 py-2 border-0 text-center">
+                    <small class="text-muted">
+                        ... dan ${preview.total_sessions_generated - 5} session lainnya
+                    </small>
+                </div>
+            `;
+        }
+        
+        html += `
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">
+                                <i class="fas fa-info-circle"></i> Ringkasan:
+                            </h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td class="border-0 px-0"><small>Target Pertemuan:</small></td>
+                                    <td class="border-0 text-right"><strong>${preview.rombel_info.total_pertemuan_target}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="border-0 px-0"><small>Sessions Generated:</small></td>
+                                    <td class="border-0 text-right">
+                                        <strong class="${preview.total_sessions_generated >= preview.rombel_info.total_pertemuan_target ? 'text-success' : 'text-warning'}">
+                                            ${preview.total_sessions_generated}
+                                        </strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="border-0 px-0"><small>Session Pertama:</small></td>
+                                    <td class="border-0 text-right"><strong>${preview.sessions_summary.first_session}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="border-0 px-0"><small>Session Terakhir:</small></td>
+                                    <td class="border-0 text-right"><strong>${preview.sessions_summary.last_session}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="border-0 px-0"><small>Ruangan:</small></td>
+                                    <td class="border-0 text-right"><strong>${preview.rombel_info.ruangan}</strong></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    ${preview.total_sessions_generated < preview.rombel_info.total_pertemuan_target ? `
+                        <div class="alert alert-warning py-2">
+                            <small>
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Perhatian:</strong> Sessions yang digenerate (${preview.total_sessions_generated}) 
+                                kurang dari target pertemuan (${preview.rombel_info.total_pertemuan_target}). 
+                                Periksa kembali periode tanggal atau frekuensi pertemuan.
+                            </small>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    });
+    
+    // Additional info
+    html += `
+        <div class="alert alert-light">
+            <h6 class="mb-2"><i class="fas fa-lightbulb text-warning"></i> Informasi Penting:</h6>
+            <ul class="mb-0 small">
+                <li>Sessions akan dibuat otomatis setelah program ekstrakurikuler disimpan</li>
+                <li>Jadwal dapat diubah nanti melalui menu Session Management</li>
+                <li>Sistem otomatis melewati hari libur nasional</li>
+                <li>Setiap session berdurasi 2 jam (dapat disesuaikan per session)</li>
+                <li>Instruktur dapat ditugaskan per session atau secara bulk</li>
+            </ul>
+        </div>
+    `;
+    
+    content.innerHTML = html;
 }
 </script>

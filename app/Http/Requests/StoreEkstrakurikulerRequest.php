@@ -27,7 +27,8 @@ class StoreEkstrakurikulerRequest extends FormRequest
             'nama_program' => 'required|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',
             'user_id_sales' => 'required|exists:users,id',
-            'region' => 'required|string|in:JAKARTA,DEPOK,BOGOR,TANGERANG,BEKASI',
+            'region' => 'nullable|string|in:JAKARTA,DEPOK,BOGOR,TANGERANG,BEKASI',
+            'city' => 'nullable|string|max:255',
             'status' => 'required|string|in:' . implode(',', [
                 Ekstrakurikuler::STATUS_DRAFT,
                 Ekstrakurikuler::STATUS_DIAJUKAN
@@ -105,8 +106,8 @@ class StoreEkstrakurikulerRequest extends FormRequest
             'user_id_sales.required' => 'Sales/koordinator wajib dipilih.',
             'user_id_sales.exists' => 'Sales/koordinator yang dipilih tidak valid.',
             
-            'region.required' => 'Region wajib dipilih.',
             'region.in' => 'Region harus salah satu dari: Jakarta, Depok, Bogor, Tangerang, atau Bekasi.',
+            'city.max' => 'Nama kota tidak boleh lebih dari 255 karakter.',
             
             'status.required' => 'Status program wajib dipilih.',
             'status.in' => 'Status harus Draft atau Diajukan.',

@@ -317,15 +317,24 @@ class EkstrakurikulerSession extends Model
             $this->catatan = $data['catatan'];
         }
         
+        if (!empty($data['deskripsi_kegiatan'])) {
+            $this->deskripsi_kegiatan = $data['deskripsi_kegiatan'];
+        }
+        
         if (!empty($data['laporan_mengajar_id'])) {
             $this->laporan_mengajar_id = $data['laporan_mengajar_id'];
         }
 
         $saved = $this->save();
         
-        // Update progress rombel
+        // Update progress rombel dan auto-create laporan mengajar
         if ($saved) {
             $this->rombel->incrementPertemuanSelesai();
+            
+            // Auto-create laporan mengajar jika belum ada
+            if (!$this->laporan_mengajar_id && isset($data['auto_create_laporan']) && $data['auto_create_laporan']) {
+                $this->autoCreateLaporanMengajar();
+            }
         }
 
         return $saved;
@@ -381,7 +390,7 @@ class EkstrakurikulerSession extends Model
     /**
      * Method untuk membuat laporan mengajar dari session ini.
      */
-    public function createLaporanMengajar(array $data): ?LaporanMengajar
+    public function createLaporanMengajar(array $data = []): ?LaporanMengajar
     {
         if ($this->status !== self::STATUS_SELESAI || $this->laporan_mengajar_id) {
             return null;
@@ -400,12 +409,20 @@ class EkstrakurikulerSession extends Model
             'jam_mulai' => $this->jam_mulai_aktual,
             'jam_selesai' => $this->jam_selesai_aktual,
             'kategori_pengajaran' => 'ekstrakurikuler',
-            'materi_pengajaran' => $this->topik_materi ?? 'Materi ekstrakurikuler',
-            'sekolah_kota' => $sekolah->kotkab,
-            'sekolah_kecamatan' => $sekolah->kec,
-            'sekolah_nama' => $sekolah->namasekolah,
-            'jumlah_siswa_hadir' => $rombel->jumlah_siswa,
+            'materi_pengajaran' => $this->topik_materi ?? $ekstrakurikuler->nama_program,
+            'sekolah_kota' => $sekolah->kotkab ?? '',
+            'sekolah_kecamatan' => $sekolah->kec ?? '',
+            'sekolah_nama' => $sekolah->namasekolah ?? '',
+            'sekolah_kodlan' => $ekstrakurikuler->sekolah_kodlan,
+            'jumlah_siswa_hadir' => $rombel->getJumlahSiswaAktual(),
             'jumlah_siswa_keluar' => 0,
+            'metadata_json' => json_encode([
+                'ekstrakurikuler_session_id' => $this->id,
+                'ekstrakurikuler_id' => $this->ekstrakurikuler_id,
+                'ekstrakurikuler_rombel_id' => $this->ekstrakurikuler_rombel_id,
+                'nama_program' => $ekstrakurikuler->nama_program,
+                'source' => 'ekstrakurikuler'
+            ])
         ], $data);
 
         $laporan = LaporanMengajar::create($laporanData);
@@ -416,6 +433,29 @@ class EkstrakurikulerSession extends Model
         }
 
         return $laporan;
+    }
+
+    /**
+     * Method untuk auto-generate laporan mengajar ketika session selesai.
+     */
+    public function autoCreateLaporanMengajar(): ?LaporanMengajar
+    {
+        if ($this->status === self::STATUS_SELESAI && !$this->laporan_mengajar_id) {
+            return $this->createLaporanMengajar([
+                'deskripsi_kegiatan' => $this->deskripsi_kegiatan,
+                'catatan' => $this->catatan
+            ]);
+        }
+
+        return $this->laporanMengajar;
+    }
+
+    /**
+     * Cek apakah session ini berasal dari ekstrakurikuler.
+     */
+    public function isEkstrakurikulerSession(): bool
+    {
+        return true; // Semua instance dari model ini adalah ekstrakurikuler session
     }
 
     /**

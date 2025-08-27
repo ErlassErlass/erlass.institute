@@ -6,7 +6,7 @@
 
     @if($sekolah->siswa->count() > 0)
         <div class="table-responsive">
-            <table class="table table-bordered table-hover">
+            <table class="table table-bordered table-hover datatable" id="siswa-sekolah-table">
                 <thead class="table-light">
                     <tr>
                         <th>No</th>
@@ -36,3 +36,22 @@
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize DataTable for Students by School table
+        if (typeof window.DataTableManager !== 'undefined') {
+            const dataTableManager = new window.DataTableManager();
+            dataTableManager.init('#siswa-sekolah-table', {
+                order: [[1, 'asc']], // Sort by Student Name column
+                columnDefs: [
+                    { orderable: false, targets: [0] }, // Disable sorting for No. column
+                    { type: 'string', targets: [1, 2, 3, 4] } // String sorting for all other columns
+                ],
+                pageLength: 25
+            });
+        }
+    });
+</script>
+@endpush

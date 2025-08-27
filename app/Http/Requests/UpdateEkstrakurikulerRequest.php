@@ -30,7 +30,8 @@ class UpdateEkstrakurikulerRequest extends FormRequest
             'nama_program' => 'required|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',
             'user_id_sales' => 'required|exists:users,id',
-            'region' => 'required|string|in:JAKARTA,DEPOK,BOGOR,TANGERANG,BEKASI',
+            'region' => 'nullable|string|in:JAKARTA,DEPOK,BOGOR,TANGERANG,BEKASI',
+            'city' => 'nullable|string|max:255',
             'status' => [
                 'required',
                 'string',

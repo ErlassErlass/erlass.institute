@@ -5,65 +5,89 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\User;
 use App\Models\Sekolah;
-use App\Models\Siswa;
-use App\Models\Absensi;
-use App\Models\LaporanMengajar;
+use Carbon\Carbon;
 
 class LaporanMengajarFactory extends Factory
 {
     public function definition(): array
     {
-        dd('FILE FACTORY INI BERHASIL DIBACA');
-
-        $instruktur = User::where('role', 'instruktur')->inRandomOrder()->first();
-        $sekolah = Sekolah::inRandomOrder()->first();
-
         return [
-            'user_id_instruktur' => $instruktur->id,
-            'user_id_assisten' => User::where('role', 'instruktur')->where('id', '!=', $instruktur->id)->inRandomOrder()->first()->id,
-            'sekolah_kodlan' => $sekolah->kodlan,
-            'pertemuan_ke' => fake()->numberBetween(1, 16),
-            'rombel' => fake()->numberBetween(1, 5),
-            'jadwal_mengajar' => fake()->dateTimeThisYear(),
-            'jam_mulai' => '09:00:00',
-            'jam_selesai' => '10:30:00',
-            'materi_pengajaran' => fake()->paragraph(2),
-            'refleksi_siswa' => fake()->paragraph(1),
-            'refleksi_capaian' => fake()->paragraph(1),
-            'keaktifan' => fake()->randomElement(['sangat_pasif', 'pasif', 'aktif', 'sangat_aktif']),
-            'pemahaman_materi' => fake()->randomElement(['belum_paham', 'sedikit_paham', 'paham', 'sangat_paham']),
-
-            // ✅ MENGGUNAKAN NAMA KOLOM YANG BENAR
+            'user_id_instruktur' => User::factory(),
+            'user_id_assisten' => null,
+            'pertemuan_ke' => $this->faker->numberBetween(1, 16),
+            'rombel' => $this->faker->randomElement(['A1', 'A2', 'B1', 'B2', 'C1']),
+            'sekolah_kodlan' => Sekolah::factory(),
+            'jadwal_mengajar' => Carbon::today()->subDays($this->faker->numberBetween(0, 7)),
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'kategori_pengajaran' => $this->faker->randomElement(['Regular', 'Remedial', 'Pengayaan']),
+            'materi_pengajaran' => $this->faker->sentence(8),
+            'sekolah_nama' => $this->faker->company . ' School',
+            'sekolah_kota' => $this->faker->city,
+            'sekolah_kecamatan' => $this->faker->streetName,
             'jumlah_siswa_hadir' => 0,
             'jumlah_siswa_keluar' => 0,
+            'jumlah_siswa_tidak_hadir' => 0,
+            'foto_kegiatan' => null,
+            'foto_absensi_siswa' => null,
+            'refleksi_siswa' => $this->faker->paragraph(2),
+            'refleksi_capaian' => $this->faker->paragraph(2),
+            'keaktifan' => $this->faker->numberBetween(1, 10),
+            'pemahaman_materi' => $this->faker->numberBetween(1, 10),
         ];
     }
 
-    public function configure(): static
+    /**
+     * Configure the factory to create related models
+     */
+    public function withInstructor(User $instructor): static
     {
-        return $this->afterCreating(function (LaporanMengajar $laporan) {
-            $students = Siswa::where('sekolah_kodlan', $laporan->sekolah_kodlan)
-                ->inRandomOrder()
-                ->limit(fake()->numberBetween(10, 25))
-                ->get();
+        return $this->state(fn () => [
+            'user_id_instruktur' => $instructor->id,
+        ]);
+    }
 
-            if ($students->isEmpty()) {
-                return;
-            }
+    /**
+     * Configure the factory with a specific school
+     */
+    public function withSekolah(Sekolah $sekolah): static
+    {
+        return $this->state(fn () => [
+            'sekolah_kodlan' => $sekolah->kodlan,
+            'sekolah_nama' => $sekolah->namasekolah,
+            'sekolah_kota' => $sekolah->kota,
+            'sekolah_kecamatan' => $sekolah->kec,
+        ]);
+    }
 
-            foreach ($students as $student) {
-                Absensi::factory()->create([
-                    'laporan_mengajar_id' => $laporan->id,
-                    'siswa_id' => $student->id,
-                ]);
-            }
+    /**
+     * Configure the factory with assistant
+     */
+    public function withAssistant(User $assistant): static
+    {
+        return $this->state(fn () => [
+            'user_id_assisten' => $assistant->id,
+        ]);
+    }
 
-            $laporan->jumlah_siswa_hadir = $laporan->absensi()->where('hadir', true)->count();
+    /**
+     * Configure the factory for a specific date
+     */
+    public function onDate(Carbon $date): static
+    {
+        return $this->state(fn () => [
+            'jadwal_mengajar' => $date->format('Y-m-d'),
+        ]);
+    }
 
-            // ✅ MENGGUNAKAN NAMA KOLOM YANG BENAR
-            $laporan->jumlah_siswa_keluar = $laporan->absensi()->where('hadir', false)->count();
-
-            $laporan->save();
-        });
+    /**
+     * Configure the factory with file uploads
+     */
+    public function withFiles(): static
+    {
+        return $this->state(fn () => [
+            'foto_kegiatan' => 'laporan_mengajar/sample_kegiatan.jpg',
+            'foto_absensi_siswa' => 'laporan_mengajar_absensi/sample_absensi.jpg',
+        ]);
     }
 }

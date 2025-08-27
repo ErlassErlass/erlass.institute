@@ -274,7 +274,7 @@
                             @case(10) Ringkasan & Validasi @break
                         @endswitch
                     </h4>
-                    <p class="mb-0 opacity-75">Langkah {{ $step }} dari {{ $formData['total_rombel'] ?? 5 > 4 ? $formData['total_rombel'] + 5 : 9 }}</p>
+                    <p class="mb-0 opacity-75">Langkah {{ $step }} dari {{ ($formData['total_rombel'] ?? 2) > 4 ? ($formData['total_rombel'] ?? 2) + 5 : 9 }}</p>
                     
                     <div class="progress-container">
                         @php
@@ -335,7 +335,7 @@
                     
                     <div class="form-section">
                         @if($step == 1)
-                            @include('ekstrakurikuler.steps.step1', ['formData' => $formData, 'salesUsers' => $salesUsers, 'regions' => $regions, 'statuses' => $statuses])
+                            @include('ekstrakurikuler.steps.step1', ['formData' => $formData, 'salesUsers' => $salesUsers, 'regions' => $regions, 'kotaOptions' => $kotaOptions, 'statuses' => $statuses])
                         @elseif($step == 2)
                             @include('ekstrakurikuler.steps.step2', ['formData' => $formData, 'sekolahs' => $sekolahs])
                         @elseif($step == 3)
@@ -547,7 +547,7 @@ function validateCurrentStep() {
 
 function validateStep1() {
     let isValid = true;
-    const requiredFields = ['nama_program', 'user_id_sales', 'region', 'status'];
+    const requiredFields = ['kategori_program', 'user_id_sales', 'city', 'status'];
     
     requiredFields.forEach(fieldName => {
         const field = document.querySelector(`[name="${fieldName}"]`);
@@ -666,7 +666,7 @@ function goToPreviousStep() {
     let previousStep = currentStep - 1;
     
     // Skip steps based on total_rombel
-    const totalRombel = {{ $formData['total_rombel'] ?? 5 }};
+    const totalRombel = {{ $formData['total_rombel'] ?? 2 }};
     if (currentStep == 10 && totalRombel < 5) {
         previousStep = 4 + totalRombel;
     }
@@ -738,6 +738,54 @@ document.addEventListener('DOMContentLoaded', function() {
     if (totalRombelField) {
         totalRombelField.addEventListener('change', updateTotalRombel);
     }
+    
+    // Add city selection handler for dynamic school loading
+    const citySelect = document.querySelector('#city');
+    if (citySelect) {
+        citySelect.addEventListener('change', handleCityChange);
+    }
 });
+
+// Handle city selection change - store in session for next step
+function handleCityChange(event) {
+    const selectedCity = event.target.value;
+    const regionField = document.querySelector('#region');
+    
+    // Map city to region for backward compatibility
+    const cityToRegionMap = {
+        'Jakarta Barat': 'JAKARTA',
+        'Jakarta Pusat': 'JAKARTA',
+        'Jakarta Selatan': 'JAKARTA',
+        'Jakarta Timur': 'JAKARTA',
+        'Jakarta Utara': 'JAKARTA',
+        'Kota Jakarta Barat': 'JAKARTA',
+        'Kota Jakarta Pusat': 'JAKARTA',
+        'Kota Jakarta Selatan': 'JAKARTA',
+        'Kota Jakarta Timur': 'JAKARTA',
+        'Kota Jakarta Utara': 'JAKARTA',
+        'Kota Depok': 'DEPOK',
+        'Depok': 'DEPOK',
+        'Kota Bogor': 'BOGOR',
+        'Kab. Bogor': 'BOGOR',
+        'Bogor': 'BOGOR',
+        'Kota Tangerang': 'TANGERANG',
+        'Kota Tangerang Selatan': 'TANGERANG',
+        'Kab. Tangerang': 'TANGERANG',
+        'Tangerang': 'TANGERANG',
+        'Kota Bekasi': 'BEKASI',
+        'Kab. Bekasi': 'BEKASI',
+        'Bekasi': 'BEKASI'
+    };
+    
+    // Set region field based on city selection
+    if (regionField && selectedCity && cityToRegionMap[selectedCity]) {
+        regionField.value = cityToRegionMap[selectedCity];
+    }
+    
+    // Store city selection for session
+    if (selectedCity) {
+        console.log('City selected:', selectedCity);
+    }
+}
 </script>
 @endpush

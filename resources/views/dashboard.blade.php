@@ -6,100 +6,77 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
         <div>
             <h1 class="fw-bold mb-2">Dashboard</h1>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item active" aria-current="page">Beranda</li>
-                </ol>
-            </nav>
+            <x-breadcrumb :items="[
+                ['title' => 'Beranda', 'icon' => 'bi-house-door']
+            ]" />
         </div>
         <div class="text-md-end">
-            <p class="h5 mb-1">Selamat Datang, <strong>{{ Auth::user()->nama_lengkap }}</strong>!</p>
-            <span class="badge bg-{{ [
-                'admin' => 'danger',
-                'admin_erlass' => 'warning',
-                'instruktur' => 'primary'
-            ][Auth::user()->role] ?? 'secondary' }} text-capitalize">
-                {{ Auth::user()->role }}
-            </span>
+            <div class="card border-0 bg-light">
+                <div class="card-body p-3">
+                    <p class="h5 mb-1">Selamat Datang, <strong>{{ Auth::user()->nama_lengkap }}</strong>!</p>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-{{ [
+                            'admin' => 'danger',
+                            'admin_erlass' => 'warning', 
+                            'instruktur' => 'primary'
+                        ][Auth::user()->role] ?? 'secondary' }}">
+                            <i class="bi bi-person-badge me-1"></i>
+                            {{ ucfirst(Auth::user()->role) }}
+                        </span>
+                        <small class="text-muted">
+                            <i class="bi bi-clock me-1"></i>
+                            {{ now()->translatedFormat('l, d F Y H:i') }}
+                        </small>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Stats Cards -->
     <div class="row g-3 mb-4">
         <div class="col-md-6 col-lg-3">
-            <div class="card shadow-sm border-start border-primary border-4">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-subtitle text-muted mb-1">Total Sekolah</h6>
-                        <h2 class="fw-bold mb-0">{{ number_format($total_sekolah) }}</h2>
-                        <small class="text-muted">SD & SMP</small>
-                    </div>
-                    <i class="bi bi-building fs-1 text-primary opacity-25"></i>
-                </div>
-                <div class="card-footer bg-transparent py-2">
-                    <small class="text-success">
-                        <i class="bi bi-arrow-up"></i> 5.2% dari bulan lalu
-                    </small>
-                </div>
-            </div>
+            <x-stats-card
+                title="Total Sekolah"
+                :value="number_format($total_sekolah)"
+                subtitle="SD & SMP"
+                icon="bi-building"
+                color="primary"
+                trend="up"
+                trend-text="5.2% dari bulan lalu" />
         </div>
-        
+
         <div class="col-md-6 col-lg-3">
-            <div class="card shadow-sm border-start border-success border-4">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-subtitle text-muted mb-1">Total Siswa</h6>
-                        <h2 class="fw-bold mb-0">{{ number_format($total_siswa) }}</h2>
-                        <small class="text-muted">Aktif</small>
-                    </div>
-                    <i class="bi bi-people-fill fs-1 text-success opacity-25"></i>
-                </div>
-                <div class="card-footer bg-transparent py-2">
-                    <small class="text-success">
-                        <i class="bi bi-arrow-up"></i> 12.8% dari tahun lalu
-                    </small>
-                </div>
-            </div>
+            <x-stats-card
+                title="Total Siswa"
+                :value="number_format($total_siswa)"
+                subtitle="Aktif"
+                icon="bi-people-fill"
+                color="success"
+                trend="up"
+                trend-text="12.8% dari tahun lalu" />
         </div>
-        
+
         <div class="col-md-6 col-lg-3">
-            <div class="card shadow-sm border-start border-warning border-4">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-subtitle text-muted mb-1">Laporan Hari Ini</h6>
-                        <h2 class="fw-bold mb-0">{{ $laporan_hari_ini }}</h2>
-                        <small class="text-muted">{{ now()->translatedFormat('l, d F Y') }}</small>
-                    </div>
-                    <i class="bi bi-file-earmark-text fs-1 text-warning opacity-25"></i>
-                </div>
-                <div class="card-footer bg-transparent py-2">
-                    <small class="{{ $laporan_hari_ini > 0 ? 'text-success' : 'text-danger' }}">
-                        @if($laporan_hari_ini > 0)
-                            <i class="bi bi-check-circle"></i> Ada aktivitas
-                        @else
-                            <i class="bi bi-exclamation-circle"></i> Belum ada laporan
-                        @endif
-                    </small>
-                </div>
-            </div>
+            <x-stats-card
+                title="Laporan Hari Ini"
+                :value="$laporan_hari_ini"
+                :subtitle="now()->translatedFormat('l, d F Y')"
+                icon="bi-file-earmark-text"
+                color="warning"
+                :trend="$laporan_hari_ini > 0 ? 'up' : 'neutral'"
+                :trend-text="$laporan_hari_ini > 0 ? 'Ada aktivitas' : 'Belum ada laporan'" />
         </div>
-        
+
         <div class="col-md-6 col-lg-3">
-            <div class="card shadow-sm border-start border-info border-4">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-subtitle text-muted mb-1">Total Pengguna</h6>
-                        <h2 class="fw-bold mb-0">{{ number_format($total_pengguna) }}</h2>
-                        <small class="text-muted">Aktif</small>
-                    </div>
-                    <i class="bi bi-person-check-fill fs-1 text-info opacity-25"></i>
-                </div>
-                <div class="card-footer bg-transparent py-2">
-                    <small class="text-success">
-                        <i class="bi bi-arrow-up"></i> {{ round(($total_pengguna / max(1, ($total_pengguna - 5))) * 100 - 100, 1) }}% dari bulan lalu
-                    </small>
-                </div>
-            </div>
+            <x-stats-card
+                title="Total Pengguna"
+                :value="number_format($total_pengguna)"
+                subtitle="Aktif"
+                icon="bi-person-check-fill"
+                color="info"
+                trend="up"
+                :trend-text="round(($total_pengguna / max(1, ($total_pengguna - 5))) * 100 - 100, 1) . '% dari bulan lalu'" />
         </div>
     </div>
 
@@ -193,34 +170,34 @@
                 </div>
                 <div class="card-body">
                     @if($recent_laporan->count() > 0)
-                        <div class="list-group list-group-flush">
-                            @foreach($recent_laporan as $laporan)
-                            <div class="list-group-item border-0 px-0 py-3">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1">{{ $laporan->sekolah->nama ?? $laporan->sekolah_nama ?? '-' }}</h6>
-                                        <small class="text-muted">
-                                            {{ $laporan->instruktur->nama_lengkap ?? 'Instruktur Tidak Ditemukan' }} • 
-                                            {{ $laporan->created_at->diffForHumans() }}
-                                        </small>
-                                    </div>
-                                    <div class="text-end">
-                                        <small class="text-muted">{{ $laporan->created_at->format('H:i') }}</small>
-                                        <div class="mt-2">
-                                            <a href="{{ route('laporan-mengajar.show', $laporan->id) }}" class="btn btn-sm btn-outline-secondary">
-                                                Detail
-                                            </a>
-                                        </div>
+                    <div class="list-group list-group-flush">
+                        @foreach($recent_laporan as $laporan)
+                        <div class="list-group-item border-0 px-0 py-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ $laporan->sekolah->nama ?? $laporan->sekolah_nama ?? '-' }}</h6>
+                                    <small class="text-muted">
+                                        {{ $laporan->instruktur->nama_lengkap ?? 'Instruktur Tidak Ditemukan' }} •
+                                        {{ $laporan->created_at->diffForHumans() }}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">{{ $laporan->created_at->format('H:i') }}</small>
+                                    <div class="mt-2">
+                                        <a href="{{ route('laporan-mengajar.show', $laporan->id) }}" class="btn btn-sm btn-outline-secondary">
+                                            Detail
+                                        </a>
                                     </div>
                                 </div>
                             </div>
-                            @endforeach
                         </div>
+                        @endforeach
+                    </div>
                     @else
-                        <div class="text-center py-4">
-                            <i class="bi bi-info-circle fs-1 text-muted"></i>
-                            <p class="text-muted mt-2">Belum ada aktivitas terbaru</p>
-                        </div>
+                    <div class="text-center py-4">
+                        <i class="bi bi-info-circle fs-1 text-muted"></i>
+                        <p class="text-muted mt-2">Belum ada aktivitas terbaru</p>
+                    </div>
                     @endif
                 </div>
             </div>
@@ -235,42 +212,42 @@
                 </div>
                 <div class="card-body">
                     @if($sekolah_distribution->count() > 0)
-                        <div class="mb-4">
-                            @foreach($sekolah_distribution as $sekolah)
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span>{{ Str::limit($sekolah->namasekolah, 20) }}</span>
-                                    <span>{{ $sekolah->siswa_count }} siswa</span>
-                                </div>
-                                <div class="progress" style="height: 8px;">
-                                    <div class="progress-bar" 
-                                         role="progressbar" 
-                                         style="width: {{ ($sekolah->siswa_count / max(1, $total_siswa)) * 100 }}%; 
+                    <div class="mb-4">
+                        @foreach($sekolah_distribution as $sekolah)
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>{{ Str::limit($sekolah->namasekolah, 20) }}</span>
+                                <span>{{ $sekolah->siswa_count }} siswa</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar"
+                                    role="progressbar"
+                                    style="width: {{ ($sekolah->siswa_count / max(1, $total_siswa)) * 100 }}%; 
                                                 background-color: {{ [
                                                     '#4e73df',
                                                     '#1cc88a',
                                                     '#36b9cc',
                                                     '#f6c23e',
                                                     '#e74a3b'
-                                                ][$loop->index % 5] }}" 
-                                         aria-valuenow="{{ ($sekolah->siswa_count / max(1, $total_siswa)) * 100 }}" 
-                                         aria-valuemin="0" 
-                                         aria-valuemax="100">
-                                    </div>
+                                                ][$loop->index % 5] }}"
+                                    aria-valuenow="{{ ($sekolah->siswa_count / max(1, $total_siswa)) * 100 }}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100">
                                 </div>
                             </div>
-                            @endforeach
                         </div>
-                        <div class="text-center">
-                            <a href="{{ route('sekolah.distribusi') }}" class="btn btn-sm btn-outline-primary">
-                                Lihat Semua Sekolah
-                            </a>
-                        </div>
+                        @endforeach
+                    </div>
+                    <div class="text-center">
+                        <a href="{{ route('sekolah.distribusi') }}" class="btn btn-sm btn-outline-primary">
+                            Lihat Semua Sekolah
+                        </a>
+                    </div>
                     @else
-                        <div class="text-center py-4">
-                            <i class="bi bi-info-circle fs-1 text-muted"></i>
-                            <p class="text-muted mt-2">Data sekolah tidak tersedia</p>
-                        </div>
+                    <div class="text-center py-4">
+                        <i class="bi bi-info-circle fs-1 text-muted"></i>
+                        <p class="text-muted mt-2">Data sekolah tidak tersedia</p>
+                    </div>
                     @endif
                 </div>
             </div>
@@ -287,10 +264,10 @@
                             <small class="text-muted">Semua waktu</small>
                         </div>
                         <span class="badge bg-primary rounded-pill">
-
+                            {{ $total_laporan ?? 0 }}
                         </span>
                     </div>
-                    
+
                     @if(Auth::user()->role === 'instruktur')
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
@@ -302,7 +279,7 @@
                         </span>
                     </div>
                     @endif
-                    
+
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
                             <h6 class="mb-0">Rata-rata Siswa</h6>
@@ -312,7 +289,7 @@
                             {{ $total_sekolah > 0 ? round($total_siswa / $total_sekolah) : 0 }}
                         </span>
                     </div>
-                    
+
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="mb-0">Hari Ini</h6>
@@ -333,24 +310,24 @@
 <style>
     .card-hover {
         transition: all 0.2s ease;
-        border: 1px solid rgba(0,0,0,0.05);
+        border: 1px solid rgba(0, 0, 0, 0.05);
     }
-    
+
     .card-hover:hover {
         transform: translateY(-3px);
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
-        border-color: rgba(0,0,0,0.1);
+        border-color: rgba(0, 0, 0, 0.1);
     }
-    
+
     .border-start {
         border-left-width: 4px !important;
     }
-    
+
     .progress {
         border-radius: 10rem;
         background-color: #f0f3f7;
     }
-    
+
     .progress-bar {
         border-radius: 10rem;
     }

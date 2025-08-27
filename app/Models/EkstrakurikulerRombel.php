@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class EkstrakurikulerRombel extends Model
 {
@@ -131,6 +132,47 @@ class EkstrakurikulerRombel extends Model
     public function sessions(): HasMany
     {
         return $this->hasMany(EkstrakurikulerSession::class);
+    }
+
+    /**
+     * Relasi ke siswa yang terdaftar di rombel ini.
+     */
+    public function siswa(): BelongsToMany
+    {
+        return $this->belongsToMany(Siswa::class, 'siswa_ekstrakurikuler', 'ekstrakurikuler_rombel_id', 'siswa_id')
+                    ->withPivot([
+                        'ekstrakurikuler_id',
+                        'status',
+                        'tanggal_daftar',
+                        'tanggal_keluar',
+                        'alasan_keluar',
+                        'catatan'
+                    ])
+                    ->withTimestamps();
+    }
+
+    /**
+     * Relasi ke siswa yang aktif di rombel ini.
+     */
+    public function siswaAktif(): BelongsToMany
+    {
+        return $this->siswa()->wherePivot('status', 'aktif');
+    }
+
+    /**
+     * Relasi ke enrollments rombel ini.
+     */
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(SiswaEkstrakurikuler::class, 'ekstrakurikuler_rombel_id');
+    }
+
+    /**
+     * Relasi ke enrollments aktif di rombel ini.
+     */
+    public function activeEnrollments(): HasMany
+    {
+        return $this->enrollments()->where('status', 'aktif');
     }
 
     /**
@@ -292,6 +334,45 @@ class EkstrakurikulerRombel extends Model
         }
         
         return false;
+    }
+
+    /**
+     * Method untuk increment jumlah siswa.
+     */
+    public function incrementJumlahSiswa(): bool
+    {
+        $this->jumlah_siswa++;
+        return $this->save();
+    }
+
+    /**
+     * Method untuk decrement jumlah siswa.
+     */
+    public function decrementJumlahSiswa(): bool
+    {
+        if ($this->jumlah_siswa > 0) {
+            $this->jumlah_siswa--;
+            return $this->save();
+        }
+        
+        return false;
+    }
+
+    /**
+     * Method untuk sync jumlah siswa dengan enrollment aktif.
+     */
+    public function syncJumlahSiswa(): bool
+    {
+        $this->jumlah_siswa = $this->activeEnrollments()->count();
+        return $this->save();
+    }
+
+    /**
+     * Method untuk mendapatkan jumlah siswa aktual.
+     */
+    public function getJumlahSiswaAktual(): int
+    {
+        return $this->activeEnrollments()->count();
     }
 
     /**
