@@ -17,6 +17,11 @@ return new class extends Migration
             DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('instruktur', 'admin', 'admin_erlass', 'webmaster', 'debug_user')");
         } else {
             // For SQLite and other databases, recreate the column
+            // Must drop index referencing 'role' BEFORE dropping the column
+            Schema::table('users', function (Blueprint $table) {
+                $table->dropIndex(['role', 'is_verified']);
+            });
+
             Schema::table('users', function (Blueprint $table) {
                 $table->string('role_new')->default('instruktur');
             });
@@ -36,6 +41,11 @@ return new class extends Migration
             // Drop temporary column
             Schema::table('users', function (Blueprint $table) {
                 $table->dropColumn('role_new');
+            });
+
+            // Re-add the composite index
+            Schema::table('users', function (Blueprint $table) {
+                $table->index(['role', 'is_verified']);
             });
         }
     }

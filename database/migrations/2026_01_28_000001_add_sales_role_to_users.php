@@ -12,8 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Add 'sales' to the ENUM
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('webmaster', 'admin_sistem', 'admin', 'instruktur', 'sales') NOT NULL");
+        // MODIFY COLUMN is MySQL-only; SQLite uses string columns so ENUM changes are n/a
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('webmaster', 'admin_sistem', 'admin', 'instruktur', 'sales') NOT NULL");
+        }
     }
 
     /**
@@ -21,7 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revert to previous ENUM (Warning: 'sales' users might face issues or need data migration before this)
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('webmaster', 'admin_sistem', 'admin', 'instruktur') NOT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('webmaster', 'admin_sistem', 'admin', 'instruktur') NOT NULL");
+        }
     }
 };

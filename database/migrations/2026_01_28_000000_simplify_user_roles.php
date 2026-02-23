@@ -12,28 +12,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // 1. Expand ENUM to include ALL old and new roles temporarily
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('instruktur', 'admin', 'admin_erlass', 'webmaster', 'user', 'asisten', 'debug_user', 'admin_sistem') NOT NULL");
+        // MODIFY COLUMN is MySQL-only; SQLite uses string columns so ENUM changes are n/a
+        if (DB::getDriverName() === 'mysql') {
+            // 1. Expand ENUM to include ALL old and new roles temporarily
+            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('instruktur', 'admin', 'admin_erlass', 'webmaster', 'user', 'asisten', 'debug_user', 'admin_sistem') NOT NULL");
+        }
 
-        // 2. Migrate data
-        
-        // admin -> admin_sistem (Existing 'admin' promoted to System Admin)
+        // 2. Migrate data (works on all drivers)
         DB::table('users')->where('role', 'admin')->update(['role' => 'admin_sistem']);
-
-        // admin_erlass -> admin_sistem (Consolidated to System Admin)
         DB::table('users')->where('role', 'admin_erlass')->update(['role' => 'admin_sistem']);
-        
-        // asisten -> instruktur
         DB::table('users')->where('role', 'asisten')->update(['role' => 'instruktur']);
-        
-        // user -> instuktur
         DB::table('users')->where('role', 'user')->update(['role' => 'instruktur']);
-        
-        // debug_user -> admin_sistem
         DB::table('users')->where('role', 'debug_user')->update(['role' => 'admin_sistem']);
 
-        // 3. Restrict ENUM to final roles
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('webmaster', 'admin_sistem', 'instruktur') NOT NULL");
+        // 3. Restrict ENUM to final roles (MySQL only)
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('webmaster', 'admin_sistem', 'instruktur') NOT NULL");
+        }
     }
 
     /**
@@ -41,7 +36,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // It's hard to reverse perfectly as we lost the distinction, creates a loose enum
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('instruktur', 'admin', 'admin_erlass', 'webmaster', 'user', 'asisten', 'debug_user') NOT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('instruktur', 'admin', 'admin_erlass', 'webmaster', 'user', 'asisten', 'debug_user') NOT NULL");
+        }
     }
 };
