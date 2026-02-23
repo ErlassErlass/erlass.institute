@@ -32,7 +32,7 @@ Panduan lengkap untuk instalasi, konfigurasi server, dan deployment aplikasi Erl
 | **RAM** | 8 GB | Mendukung Redis caching + queue workers |
 | **Storage** | 100 GB NVMe SSD | Monitor berkala, ~3GB foto/bulan |
 | **Bandwidth** | 8 TB | Cukup untuk operasional harian |
-| **OS** | Ubuntu 22.04/24.04 LTS | Stabil, komunitas luas |
+| **OS** | Ubuntu 22.04/24.04 LTS | Stabil, komunitas luas. Ubuntu 25.04 bisa dipakai tapi non-LTS (9 bulan support) |
 
 ### Analisis Kebutuhan Storage
 Aplikasi menyimpan banyak foto (Laporan Kegiatan, Absensi):
