@@ -320,7 +320,7 @@ tar -xzf storage_backup_20260223.tar.gz -C /var/www/erlass/
 ### Verifikasi Instalasi
 Login menggunakan akun default:
 *   **URL**: `https://erlass.com/login`
-*   **Email**: `webmaster@erlass.com`
+*   **Email**: `webmaster@erlass.institute`
 *   **Password**: `password`
 
 > **⚠️** Segera ganti password default setelah login pertama kali!

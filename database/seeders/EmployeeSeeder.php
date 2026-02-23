@@ -40,7 +40,7 @@ class EmployeeSeeder extends Seeder
             $role = trim($data[3]);
 
             // Generate Email
-            // Format: firstname.lastname@erlass.com (or similar)
+            // Format: firstname.lastname@erlass.institute (or similar)
             $nameParts = explode(' ', strtolower($nama));
             $emailName = $nameParts[0];
             if (count($nameParts) > 1) {
@@ -48,12 +48,12 @@ class EmployeeSeeder extends Seeder
             }
             // Remove non-alphanumeric chars from email
             $emailName = preg_replace('/[^a-z0-9.]/', '', $emailName);
-            $email = $emailName . '@erlass.com';
+            $email = $emailName . '@erlass.institute';
             
             // Check for duplicate email locally
             $counter = 1;
             while (User::where('email', $email)->exists()) {
-                $email = $emailName . $counter . '@erlass.com';
+                $email = $emailName . $counter . '@erlass.institute';
                 $counter++;
             }
 

@@ -100,7 +100,7 @@ class InstrukturSeeder extends Seeder
             // Generate unique email from name
             $emailBase = strtolower(str_replace([' ', "'", '.', ','], ['_', '', '', ''], $nama));
             $emailBase = preg_replace('/[^a-z0-9_]/', '', $emailBase);
-            $email = $emailBase . '@erlass.com';
+            $email = $emailBase . '@erlass.institute';
 
             // Skip if email already exists (avoid duplicates with UserSeeder accounts)
             if (User::where('email', $email)->exists()) {

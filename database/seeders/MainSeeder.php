@@ -29,12 +29,12 @@ class MainSeeder extends Seeder
         // Buat 2 Admin Erlass
         User::factory()->create([
             'nama_lengkap' => 'Admin Erlass 1',
-            'email' => 'adminerlass1@erlass.com',
+            'email' => 'adminerlass1@erlass.institute',
             'role' => 'admin_erlass',
         ]);
         User::factory()->create([
             'nama_lengkap' => 'Admin Erlass 2',
-            'email' => 'adminerlass2@erlass.com',
+            'email' => 'adminerlass2@erlass.institute',
             'role' => 'admin_erlass',
         ]);
 

@@ -13,7 +13,7 @@ class UserSeeder extends Seeder
         // IMPORTANT: Change these passwords in production deployment
         User::create([
             'nama_lengkap' => 'Webmaster Erlass',
-            'email' => 'webmaster@erlass.com',
+            'email' => 'webmaster@erlass.institute',
             'password' => bcrypt(env('WEBMASTER_PASSWORD', 'password')),
             'tanggal_lahir' => '1985-01-01',
             'no_telephone' => '08111111111',
@@ -32,7 +32,7 @@ class UserSeeder extends Seeder
         // Create Admin Erlass user
         User::create([
             'nama_lengkap' => 'Admin Erlass',
-            'email' => 'admin@erlass.com',
+            'email' => 'admin@erlass.institute',
             'password' => bcrypt(env('ADMIN_PASSWORD', 'password')),
             'tanggal_lahir' => '1988-05-15',
             'no_telephone' => '08222222222',
@@ -52,7 +52,7 @@ class UserSeeder extends Seeder
         // Create Instruktur Erlass user (verified)
         User::create([
             'nama_lengkap' => 'Instruktur Erlass',
-            'email' => 'instruktur@erlass.com',
+            'email' => 'instruktur@erlass.institute',
             'password' => bcrypt(env('INSTRUCTOR_PASSWORD', 'password')),
             'tanggal_lahir' => '1992-03-20',
             'no_telephone' => '08333333333',
@@ -72,7 +72,7 @@ class UserSeeder extends Seeder
         // Create additional sample instruktur (pending verification)
         User::create([
             'nama_lengkap' => 'Instruktur Pending',
-            'email' => 'pending@erlass.com',
+            'email' => 'pending@erlass.institute',
             'password' => bcrypt(env('PENDING_PASSWORD', 'password')),
             'tanggal_lahir' => '1990-07-10',
             'no_telephone' => '08444444444',

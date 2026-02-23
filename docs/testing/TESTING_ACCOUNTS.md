@@ -9,10 +9,10 @@ Akun-akun ini dibuat oleh `UserSeeder.php` dan selalu tersedia setelah `php arti
 
 | Role | Nama | Email | Password Default | Akses |
 |---|---|---|---|---|
-| **Webmaster** | Webmaster Erlass | `webmaster@erlass.com` | `password` | Full Access (Super Admin) |
-| **Admin Sistem** | Admin Erlass | `admin@erlass.com` | `password` | Manajemen User & Sistem |
-| **Instruktur** | Instruktur Erlass | `instruktur@erlass.com` | `password` | Absensi & Laporan (Verified) |
-| **Instruktur** | Instruktur Pending | `pending@erlass.com` | `password` | Terbatas (Unverified) |
+| **Webmaster** | Webmaster Erlass | `webmaster@erlass.institute` | `password` | Full Access (Super Admin) |
+| **Admin Sistem** | Admin Erlass | `admin@erlass.institute` | `password` | Manajemen User & Sistem |
+| **Instruktur** | Instruktur Erlass | `instruktur@erlass.institute` | `password` | Absensi & Laporan (Verified) |
+| **Instruktur** | Instruktur Pending | `pending@erlass.institute` | `password` | Terbatas (Unverified) |
 
 > **Catatan**: Jika di `.env` anda mengubah `WEBMASTER_PASSWORD` dsb, gunakan password tersebut. Jika tidak, defaultnya adalah `password`.
 
@@ -25,62 +25,62 @@ Akun ini diimport dari `employees_import.csv` oleh `EmployeeSeeder.php`.
 ### A. Webmaster / IT
 | Nama Lengkap | Email (Estimasi) | Jabatan |
 |---|---|---|
-| Isa Herdyanto | `isa.herdyanto@erlass.com` | STAFF IT WEB PROGRAMER |
+| Isa Herdyanto | `isa.herdyanto@erlass.institute` | STAFF IT WEB PROGRAMER |
 
 ### B. Admin Sistem (Operasional & Back Office)
 | Nama Lengkap | Email (Estimasi) | Jabatan |
 |---|---|---|
-| Adinda Wardania | `adinda.wardania@erlass.com` | STAFF ADMINISTRASI PRODUKSI |
-| Ahmad Yusril Firdaus | `ahmad.firdaus@erlass.com` | KA. PRODUKSI |
-| Alya Charenina Setyanda | `alya.setyanda@erlass.com` | STAFF CONTENT CREATOR |
-| Alya Siti Sarah | `alya.sarah@erlass.com` | STAFF AKUNTING ERLASS |
-| Bagus Mustarianto | `bagus.mustarianto@erlass.com` | STAFF AKUNTING ERLASS |
-| Cahyani Dwi Agustia | `cahyani.agustia@erlass.com` | STAFF AKUNTING ERLASS |
-| Cornelis Banu | `cornelis.banu@erlass.com` | STAFF ADMINISTRASI |
-| Diah Dewayani | `diah.dewayani@erlass.com` | ASMEN SUPPORTING |
-| Galuh Gilang Satria | `galuh.satria@erlass.com` | STAFF AKUNTING ERLASS |
-| Krisdiana Anik Hayatri | `krisdiana.hayatri@erlass.com` | STAFF KEUANGAN ERLASS |
-| Maria Nurwidi | `maria.nurwidi@erlass.com` | GL PROG.&PRODUK DEV. |
-| Nourma Widya Sari | `nourma.sari@erlass.com` | STAFF ADMINISTRASI & UMUM |
-| Putro Bagus Anton | `putro.anton@erlass.com` | STAFF PRODUKSI |
-| Valentina Puspita | `valentina.puspita@erlass.com` | STAFF PROMOSI & MEDSOS |
+| Adinda Wardania | `adinda.wardania@erlass.institute` | STAFF ADMINISTRASI PRODUKSI |
+| Ahmad Yusril Firdaus | `ahmad.firdaus@erlass.institute` | KA. PRODUKSI |
+| Alya Charenina Setyanda | `alya.setyanda@erlass.institute` | STAFF CONTENT CREATOR |
+| Alya Siti Sarah | `alya.sarah@erlass.institute` | STAFF AKUNTING ERLASS |
+| Bagus Mustarianto | `bagus.mustarianto@erlass.institute` | STAFF AKUNTING ERLASS |
+| Cahyani Dwi Agustia | `cahyani.agustia@erlass.institute` | STAFF AKUNTING ERLASS |
+| Cornelis Banu | `cornelis.banu@erlass.institute` | STAFF ADMINISTRASI |
+| Diah Dewayani | `diah.dewayani@erlass.institute` | ASMEN SUPPORTING |
+| Galuh Gilang Satria | `galuh.satria@erlass.institute` | STAFF AKUNTING ERLASS |
+| Krisdiana Anik Hayatri | `krisdiana.hayatri@erlass.institute` | STAFF KEUANGAN ERLASS |
+| Maria Nurwidi | `maria.nurwidi@erlass.institute` | GL PROG.&PRODUK DEV. |
+| Nourma Widya Sari | `nourma.sari@erlass.institute` | STAFF ADMINISTRASI & UMUM |
+| Putro Bagus Anton | `putro.anton@erlass.institute` | STAFF PRODUKSI |
+| Valentina Puspita | `valentina.puspita@erlass.institute` | STAFF PROMOSI & MEDSOS |
 
 ### C. Sales & Marketing
 | Nama Lengkap | Email (Estimasi) | Jabatan |
 |---|---|---|
-| Andi Kristian | `andi.kristian@erlass.com` | MARKETING |
-| Budi Sales | `budi.sales@erlass.com` | MARKETING (Contoh) |
-| Fadlika Sulaiman | `fadlika.sulaiman@erlass.com` | MARKETING |
-| Gerrad Kevin S | `gerrad.suryakusuma@erlass.com` | MARKETING |
-| Hendrikus Mario | `hendrikus.mario@erlass.com` | MARKETING |
-| Kaukaban Alakwan | `kaukaban.alakwan@erlass.com` | MARKETING |
-| Muhamad Irfan | `muhamad.irfan@erlass.com` | MARKETING |
-| Muhammad Iqbal | `muhammad.iqbal@erlass.com` | MARKETING |
-| Muhammad Abdul Ghani | `muhammad.ghani@erlass.com` | MARKETING |
-| Noviarki Arnandito | `noviarki.syahputra@erlass.com` | MARKETING |
-| Perwira Jaya S | `perwira.simatupang@erlass.com` | MARKETING |
-| Rival Tri Septian | `rival.septian@erlass.com` | MARKETING |
-| Rizki Wibowo | `rizki.wibowo@erlass.com` | MARKETING |
-| Rizqullah Ardaffa | `rizqullah.ardaffa@erlass.com` | MARKETING |
-| Samuel A. P. Sinaga | `samuel.sinaga@erlass.com` | MARKETING |
-| Son Haji | `son.haji@erlass.com` | MARKETING |
-| Tommy Yudha P | `tommy.prasetya@erlass.com` | STAFF MARKETING |
-| Veda Rizky P | `veda.pambudi@erlass.com` | STAFF MARKETING |
-| Yuniarto Budiman | `yuniarto.budiman@erlass.com` | KA PROMOSI |
-| Yusup Aldo Wisman | `yusup.wisman@erlass.com` | MARKETING |
+| Andi Kristian | `andi.kristian@erlass.institute` | MARKETING |
+| Budi Sales | `budi.sales@erlass.institute` | MARKETING (Contoh) |
+| Fadlika Sulaiman | `fadlika.sulaiman@erlass.institute` | MARKETING |
+| Gerrad Kevin S | `gerrad.suryakusuma@erlass.institute` | MARKETING |
+| Hendrikus Mario | `hendrikus.mario@erlass.institute` | MARKETING |
+| Kaukaban Alakwan | `kaukaban.alakwan@erlass.institute` | MARKETING |
+| Muhamad Irfan | `muhamad.irfan@erlass.institute` | MARKETING |
+| Muhammad Iqbal | `muhammad.iqbal@erlass.institute` | MARKETING |
+| Muhammad Abdul Ghani | `muhammad.ghani@erlass.institute` | MARKETING |
+| Noviarki Arnandito | `noviarki.syahputra@erlass.institute` | MARKETING |
+| Perwira Jaya S | `perwira.simatupang@erlass.institute` | MARKETING |
+| Rival Tri Septian | `rival.septian@erlass.institute` | MARKETING |
+| Rizki Wibowo | `rizki.wibowo@erlass.institute` | MARKETING |
+| Rizqullah Ardaffa | `rizqullah.ardaffa@erlass.institute` | MARKETING |
+| Samuel A. P. Sinaga | `samuel.sinaga@erlass.institute` | MARKETING |
+| Son Haji | `son.haji@erlass.institute` | MARKETING |
+| Tommy Yudha P | `tommy.prasetya@erlass.institute` | STAFF MARKETING |
+| Veda Rizky P | `veda.pambudi@erlass.institute` | STAFF MARKETING |
+| Yuniarto Budiman | `yuniarto.budiman@erlass.institute` | KA PROMOSI |
+| Yusup Aldo Wisman | `yusup.wisman@erlass.institute` | MARKETING |
 
 ---
 
 ## 3. Instruktur (70 Orang dari Excel)
 Akun instruktur di-seed dari `Data Instruktur Erlass 2025.xlsx` oleh `InstrukturSeeder.php`.
-Email digenerate dengan pola: `nama_lengkap@erlass.com` (lowercase, spasi → underscore).
+Email digenerate dengan pola: `nama_lengkap@erlass.institute` (lowercase, spasi → underscore).
 **Password Default**: `password`
 
 **Contoh Akun:**
-*   `luky@erlass.com` (Instruktur pertama)
-*   `siti_amelia@erlass.com`
-*   `naufal_ghifari@erlass.com`
-*   `muhammad_rafi_hafizh@erlass.com`
+*   `luky@erlass.institute` (Instruktur pertama)
+*   `siti_amelia@erlass.institute`
+*   `naufal_ghifari@erlass.institute`
+*   `muhammad_rafi_hafizh@erlass.institute`
 
 > **Note**: Total 70 instruktur. Daftar lengkap bisa dilihat di menu **Admin > User Management** (filter role: Instruktur).
 
