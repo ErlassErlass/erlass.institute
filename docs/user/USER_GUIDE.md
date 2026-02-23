@@ -86,6 +86,10 @@ Instruktur bertugas melaksanakan kegiatan pengajaran dan pelaporan.
 ### 2. Dashboard & Jadwal
 *   **Personal Stats**: Melihat total jam mengajar dan laporan bulan ini.
 *   **Agenda Mendatang**: Melihat jadwal mengajar untuk **3 hari ke depan**.
+*   **Quick Actions (Tombol Cepat)**: Baris tombol ikon di bagian atas dashboard untuk akses langsung ke:
+    *   **Jadwal**: Melihat kalender/daftar sesi.
+    *   **Laporan**: Memulai pembuatan laporan baru.
+    *   **Absen**: Akses cepat ke rekap absensi.
 *   **Quick Links**: Akses cepat ke "Buat Laporan Baru" dan "Lihat Jadwal Lengkap".
 
 ### 3. Jadwal Mengajar
@@ -103,8 +107,8 @@ Terdapat **dua cara** membuat laporan:
 2.  Cari sesi di tabel "Agenda Mendatang" atau "Jadwal Hari Ini".
 3.  Klik tombol **"Detail"** lalu **"Buat Laporan & Absensi"**.
 4.  Data sekolah, rombel, dan daftar siswa akan **terisi otomatis**.
-5.  Isi topik materi, foto kegiatan, evaluasi keaktifan dan pemahaman siswa.
-6.  Centang "Hadir" atau "Absen" untuk setiap siswa.
+5.  **Fitur Efisiensi (Mark All)**: Gunakan tombol **"HADIR SEMUA"** atau **"TIDAK HADIR"** di bagian atas tabel untuk menandai seluruh siswa secara cepat.
+6.  Isi topik materi, foto kegiatan, evaluasi keaktifan dan pemahaman siswa.
 7.  Klik **"Simpan Laporan & Selesaikan Sesi"**. Status sesi akan otomatis berubah menjadi **"Selesai"**.
 
 #### B. Laporan Ad-Hoc (Luar Jadwal)

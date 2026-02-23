@@ -43,7 +43,7 @@ class AttendanceService
     /**
      * Get students absent in current report
      */
-    protected function getAbsentStudents(LaporanMengajar $report)
+    public function getAbsentStudents(LaporanMengajar $report)
     {
         return Siswa::whereHas('absensis', function ($query) use ($report) {
             $query->where('laporan_mengajar_id', $report->id)
@@ -54,7 +54,7 @@ class AttendanceService
     /**
      * Get previous reports for same class group
      */
-    protected function getPreviousReports(LaporanMengajar $currentReport)
+    public function getPreviousReports(LaporanMengajar $currentReport)
     {
         return LaporanMengajar::where('sekolah_kodlan', $currentReport->sekolah_kodlan)
             ->where('rombel', $currentReport->rombel)
@@ -67,7 +67,7 @@ class AttendanceService
     /**
      * Count students with consecutive absences
      */
-    protected function countConsecutiveAbsences($students, $reports): int
+    public function countConsecutiveAbsences($students, $reports): int
     {
         $dropoutCount = 0;
 
@@ -88,5 +88,33 @@ class AttendanceService
         }
 
         return $dropoutCount;
+    }
+
+    /**
+     * Get students present in current report
+     */
+    public function getPresentStudents(LaporanMengajar $report)
+    {
+        return Siswa::whereHas('absensis', function ($query) use ($report) {
+            $query->where('laporan_mengajar_id', $report->id)
+                ->where('hadir', true);
+        })->get();
+    }
+
+    /**
+     * Calculate attendance statistics for a report
+     */
+    public function calculateAttendanceStats(LaporanMengajar $report): array
+    {
+        $presentCount = $report->absensis()->where('hadir', true)->count();
+        $absentCount = $report->absensis()->where('hadir', false)->count();
+        $total = $presentCount + $absentCount;
+
+        return [
+            'present_count' => $presentCount,
+            'absent_count' => $absentCount,
+            'total_students' => $total,
+            'attendance_percentage' => $total > 0 ? round(($presentCount / $total) * 100, 2) : 0,
+        ];
     }
 }

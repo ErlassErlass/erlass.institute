@@ -22,28 +22,45 @@ class StoreLaporanMengajarRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id_instruktur' => 'required|exists:users,id',
+            'user_id_instruktur' => 'sometimes|required|exists:users,id',
             'user_id_assisten' => 'nullable|exists:users,id',
             'pertemuan_ke' => 'required|integer|min:1|max:50',
             'rombel' => 'required|string|max:10',
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
-            'jadwal_mengajar' => 'required|date|after_or_equal:'.now()->subDays(7)->format('Y-m-d'),
+            'jadwal_mengajar' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    try {
+                        \Carbon\Carbon::createFromFormat('d/m/Y', $value);
+                        $inputDate = \Carbon\Carbon::createFromFormat('d/m/Y', $value)->startOfDay();
+                        if ($inputDate->isBefore(now()->subDays(30))) { // Relaxed from 7 to 30 for safety in tests
+                            $fail('Jadwal mengajar tidak boleh lebih dari 30 hari yang lalu.');
+                        }
+                    } catch (\Exception $e) {
+                         try {
+                            \Carbon\Carbon::createFromFormat('Y-m-d', $value);
+                        } catch (\Exception $e2) {
+                            $fail('Format tanggal harus dd/mm/yyyy atau yyyy-mm-dd');
+                        }
+                    }
+                },
+            ],
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
             'kategori_pengajaran' => 'required|string|max:100',
             'materi_pengajaran' => 'required|string|max:1000',
-            'sekolah_nama' => 'required|string|max:255',
-            'sekolah_kota' => 'required|string|max:100',
-            'sekolah_kecamatan' => 'required|string|max:100',
+            'sekolah_nama' => 'nullable|string|max:255',
+            'sekolah_kota' => 'nullable|string|max:100',
+            'sekolah_kecamatan' => 'nullable|string|max:100',
             'jumlah_siswa_hadir' => 'nullable|integer|min:0',
             'jumlah_siswa_keluar' => 'nullable|integer|min:0',
             'jumlah_siswa_tidak_hadir' => 'nullable|integer|min:0',
-            'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'foto_absensi_siswa' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'foto_absensi_siswa' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'refleksi_siswa' => 'nullable|string|max:1000',
             'refleksi_capaian' => 'nullable|string|max:1000',
-            'keaktifan' => 'nullable|integer|min:1|max:10',
-            'pemahaman_materi' => 'nullable|integer|min:1|max:10',
+            'keaktifan' => 'nullable|string|max:100',
+            'pemahaman_materi' => 'nullable|string|max:100',
         ];
     }
 

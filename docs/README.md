@@ -51,3 +51,8 @@ docs/
 |------|-----------|
 | [TESTING_ACCOUNTS.md](testing/TESTING_ACCOUNTS.md) | Akun test & credentials |
 | [USER_TESTING_GUIDE.md](testing/USER_TESTING_GUIDE.md) | Panduan UAT |
+
+### 🗺️ Future Planning
+| File | Deskripsi |
+|------|-----------|
+| [FUTURE_ROADMAP.md](FUTURE_ROADMAP.md) | Ide fitur & rencana pengembangan selanjutnya |

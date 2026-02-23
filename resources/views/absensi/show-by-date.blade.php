@@ -48,7 +48,7 @@
                             <td class="px-4 py-3 text-muted">{{ $absen->catatan ?? '-' }}</td>
                         </tr>
                         @empty
-                        <tr>
+                        <tr class="empty-state">
                             <td colspan="4" class="text-center py-4 text-muted">
                                 Tidak ada data absensi untuk tanggal ini.
                             </td>
@@ -75,26 +75,31 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize DataTable for Attendance Show table
         if (typeof window.DataTableManager !== 'undefined') {
-            const dataTableManager = new window.DataTableManager();
-            dataTableManager.init('#absensi-show-table', {
-                order: [[1, 'asc']], // Sort by Student Name column
-                columnDefs: [
-                    { orderable: false, targets: [0] }, // Disable sorting for No. column
-                    { type: 'string', targets: [1, 2, 3] } // String sorting for other columns
-                ],
-                pageLength: 25,
-                language: {
-                    search: "Cari Siswa:",
-                    lengthMenu: "Tampilkan _MENU_ siswa",
-                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ siswa",
-                    paginate: {
-                        first: "Pertama",
-                        last: "Terakhir",
-                        next: "Selanjutnya",
-                        previous: "Sebelumnya"
+            const table = document.getElementById('absensi-show-table');
+            const isEmpty = table ? table.querySelector('.empty-state') : null;
+
+            if (table && !isEmpty) {
+                const dataTableManager = new window.DataTableManager();
+                dataTableManager.init('#absensi-show-table', {
+                    order: [[1, 'asc']], // Sort by Student Name column
+                    columnDefs: [
+                        { orderable: false, targets: [0] }, // Disable sorting for No. column
+                        { type: 'string', targets: [1, 2, 3] } // String sorting for other columns
+                    ],
+                    pageLength: 25,
+                    language: {
+                        search: "Cari Siswa:",
+                        lengthMenu: "Tampilkan _MENU_ siswa",
+                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ siswa",
+                        paginate: {
+                            first: "Pertama",
+                            last: "Terakhir",
+                            next: "Selanjutnya",
+                            previous: "Sebelumnya"
+                        }
                     }
-                }
-            });
+                });
+            }
         }
     });
 </script>

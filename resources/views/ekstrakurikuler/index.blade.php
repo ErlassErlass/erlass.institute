@@ -418,8 +418,8 @@
                                     </td>
                                 </tr>
                                 @empty
-                                <tr>
-                                    <td colspan="11" class="text-center py-4">
+                                <tr class="empty-state">
+                                    <td colspan="10" class="text-center py-4">
                                         <div class="text-muted">
                                             <i class="fas fa-inbox fa-3x mb-3"></i>
                                             <p>Belum ada data program ekstrakurikuler.</p>
@@ -429,8 +429,6 @@
                                             </a>
                                             @endcan
                                         </div>
-                                    </td>
-                                </tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -651,6 +649,19 @@
     $(document).ready(function() {
         // Disable DataTables auto-initialization for this specific table
         $.fn.dataTable.ext.errMode = 'none'; // Silent error mode
+        
+        const table = document.querySelector('.table-bordered');
+        const isEmpty = table ? table.querySelector('.empty-state') : null;
+
+        // Manual initialization if needed, ensuring no pagination
+        if (table && !isEmpty) {
+            $(table).DataTable({
+                paging: false,
+                info: false,
+                searching: false,
+                ordering: false
+            });
+        }
         
         // Initialize city filter for dynamic school loading
         if (typeof EkstrakurikulerCityFilter !== 'undefined') {

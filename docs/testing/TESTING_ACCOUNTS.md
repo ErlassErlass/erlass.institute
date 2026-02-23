@@ -71,16 +71,18 @@ Akun ini diimport dari `employees_import.csv` oleh `EmployeeSeeder.php`.
 
 ---
 
-## 3. Instruktur (Imported)
-Akun instruktur digenerate dengan pola: `depan.belakang@instructor.erlass.com`.
+## 3. Instruktur (70 Orang dari Excel)
+Akun instruktur di-seed dari `Data Instruktur Erlass 2025.xlsx` oleh `InstrukturSeeder.php`.
+Email digenerate dengan pola: `nama_lengkap@erlass.com` (lowercase, spasi → underscore).
 **Password Default**: `password`
 
 **Contoh Akun:**
-*   `dinda.putri@instructor.erlass.com`
-*   `muhammad.rafi@instructor.erlass.com`
-*   `fajar.nugraha@instructor.erlass.com`
+*   `luky@erlass.com` (Instruktur pertama)
+*   `siti_amelia@erlass.com`
+*   `naufal_ghifari@erlass.com`
+*   `muhammad_rafi_hafizh@erlass.com`
 
-> **Note**: Untuk daftar lengkap instruktur, silakan cek menu **Admin > User Management** setelah login, karena datanya sangat banyak dan dinamis sesuai Excel import.
+> **Note**: Total 70 instruktur. Daftar lengkap bisa dilihat di menu **Admin > User Management** (filter role: Instruktur).
 
 ---
 
@@ -95,23 +97,22 @@ Akun instruktur digenerate dengan pola: `depan.belakang@instructor.erlass.com`.
 ## 5. Fungsi Role & Matriks Sederhana
 Berikut adalah panduan cepat untuk memahami apa yang bisa dilakukan oleh setiap role.
 
-### Definisi Role
-1.  **Webmaster**: Super Admin. Pemilik sistem dengan akses mutlak (Root).
-2.  **Admin Sistem**: Tim IT/Teknis. Mengelola user dan konfigurasi, tapi fokus operasional.
-3.  **Admin (Operasional)**: Admin Harian. Fokus pada jadwal, absensi, dan data sekolah.
-4.  **Sales**: Tim Marketing. Fokus pada input sekolah baru dan program penawaran.
-5.  **Instruktur**: Pengajar. Fokus pada kelas, laporan mengajar, dan gaji sendiri.
+### Definisi Role (4 Role Aktif)
+1.  **Webmaster**: Super Admin. Akses mutlak ke seluruh fitur sistem.
+2.  **Admin Sistem**: Tim operasional. Mengelola user, data master, jadwal, dan laporan.
+3.  **Instruktur**: Pengajar. Fokus pada kelas, laporan mengajar, dan absensi sendiri.
+4.  **Sales**: Tim Marketing. Fokus pada tracking leads dan program penawaran.
 
-### Matriks Akses (Simplified)
+### Matriks Akses
 
-| Fitur Utama | Webmaster | Admin Sistem | Admin Ops | Sales | Instruktur |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Kelola User (Reset Pass)** | ✅ | ✅ | ❌ | ❌ | ❌ |
-| **Hapus Data Master** | ✅ | ✅ | ❌ | ❌ | ❌ |
-| **Verifikasi Instruktur** | ✅ | ✅ | ❌ | ❌ | ❌ |
-| **Buat Program Ekskul** | ✅ | ✅ | ✅ | ✅ | ❌ |
-| **Kelola Jadwal / Rombel** | ✅ | ✅ | ✅ | ❌ | ❌ |
-| **Lihat Semua Laporan** | ✅ | ✅ | ✅ | ❌ | ❌ |
-| **Input Laporan Mengajar** | ✅ | ✅ | ✅ | ❌ | ✅ (Milik Sendiri) |
-| **Lihat Gaji / Honor** | ✅ | ✅ | ✅ | ❌ | ✅ (Milik Sendiri) |
+| Fitur Utama | Webmaster | Admin Sistem | Instruktur | Sales |
+| :--- | :---: | :---: | :---: | :---: |
+| **Kelola User** | ✅ | ✅ | ❌ | ❌ |
+| **Hapus Data Master** | ✅ | ✅ | ❌ | ❌ |
+| **Verifikasi Instruktur** | ✅ | ✅ | ❌ | ❌ |
+| **Buat Program Ekskul** | ✅ | ✅ | ❌ | ❌ |
+| **Kelola Jadwal / Rombel** | ✅ | ✅ | ❌ | ❌ |
+| **Lihat Semua Laporan** | ✅ | ✅ | ❌ | ❌ |
+| **Input Laporan Mengajar** | ✅ | ✅ | ✅ (Milik Sendiri) | ❌ |
+| **Dashboard Distribusi** | ✅ | ✅ | ❌ | ❌ |
 

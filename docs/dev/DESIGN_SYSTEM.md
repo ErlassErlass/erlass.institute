@@ -49,6 +49,7 @@ The fundamental container for content.
 - **Navbar**: Floating glass bar, detached from top, containing brand and user navigation.
 - **Responsiveness**: 
     - Tables must be wrapped in `.table-responsive`.
+    - **Mobile Card View**: Khusus untuk data list utama, gunakan pola kartu (`.card`) pada resolusi mobile (`d-md-none`) untuk menggantikan tabel agar tidak ada horizontal scroll.
     - Cards adjust padding from `p-5` (Desktop) to `p-3` (Mobile).
     - Grids collapse to single column on mobile.
 

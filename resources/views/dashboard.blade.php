@@ -15,6 +15,36 @@
             </div>
         </div>
     </div>
+    
+    <!-- Quick Actions (Mobile Oriented) -->
+    @if(Auth::user()->role === 'instruktur')
+    <div class="row g-2 mb-4">
+        <div class="col-4 col-md-3">
+            <a href="{{ route('ekstrakurikuler.sessions.index') }}" class="btn btn-light border w-100 py-3 shadow-sm card-hover text-decoration-none">
+                <i class="bi bi-calendar-event fs-3 text-primary d-block mb-1"></i>
+                <span class="small fw-bold text-dark">Jadwal</span>
+            </a>
+        </div>
+        <div class="col-4 col-md-3">
+            <a href="{{ route('laporan-mengajar.create') }}" class="btn btn-light border w-100 py-3 shadow-sm card-hover text-decoration-none">
+                <i class="bi bi-plus-circle fs-3 text-success d-block mb-1"></i>
+                <span class="small fw-bold text-dark">Laporan</span>
+            </a>
+        </div>
+        <div class="col-4 col-md-3">
+            <a href="{{ route('rekap-absensi') }}" class="btn btn-light border w-100 py-3 shadow-sm card-hover text-decoration-none">
+                <i class="bi bi-file-earmark-check fs-3 text-info d-block mb-1"></i>
+                <span class="small fw-bold text-dark">Absen</span>
+            </a>
+        </div>
+        <div class="col-12 col-md-3 d-none d-md-block">
+            <a href="{{ route('laporan-mengajar.index') }}" class="btn btn-light border w-100 py-3 shadow-sm card-hover text-decoration-none h-100 d-flex align-items-center justify-content-center">
+                <i class="bi bi-clock-history me-2 text-warning"></i>
+                <span class="small fw-bold text-dark">Riwayat</span>
+            </a>
+        </div>
+    </div>
+    @endif
 
     <!-- Profile Completion Alert -->
     @if(isset($incomplete_profile) && $incomplete_profile)
@@ -622,13 +652,14 @@
 
 
 
-            <!-- School Distribution -->
+            {{-- School Distribution (Admin/Webmaster only) --}}
+            @if(auth()->user()->hasAdminAccess())
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white border-bottom px-4 py-3">
                     <h5 class="mb-0 fw-bold text-dark">Distribusi Siswa</h5>
                 </div>
                 <div class="card-body p-4">
-                    @if($sekolah_distribution->count() > 0)
+                    @if(isset($sekolah_distribution) && $sekolah_distribution->count() > 0)
                     <div class="mb-4 d-flex flex-column gap-3">
                         @foreach($sekolah_distribution as $sekolah)
                         <div>
@@ -662,6 +693,7 @@
                     @endif
                 </div>
             </div>
+            @endif
 
             <!-- Quick Stats -->
             <div class="card shadow-sm border-0">

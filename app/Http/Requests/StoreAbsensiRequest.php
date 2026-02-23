@@ -53,14 +53,17 @@ class StoreAbsensiRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             // Validate that all student IDs exist
-            $siswaIds = array_keys($this->input('absensi', []));
+            $absensi = $this->input('absensi');
+            if (is_array($absensi)) {
+                $siswaIds = array_keys($absensi);
 
-            if (! empty($siswaIds)) {
-                $existingSiswaIds = \App\Models\Siswa::whereIn('id', $siswaIds)->pluck('id')->toArray();
-                $invalidIds = array_diff($siswaIds, $existingSiswaIds);
+                if (! empty($siswaIds)) {
+                    $existingSiswaIds = \App\Models\Siswa::whereIn('id', $siswaIds)->pluck('id')->toArray();
+                    $invalidIds = array_diff($siswaIds, $existingSiswaIds);
 
-                if (! empty($invalidIds)) {
-                    $validator->errors()->add('absensi', 'Beberapa ID siswa tidak valid: '.implode(', ', $invalidIds));
+                    if (! empty($invalidIds)) {
+                        $validator->errors()->add('absensi', 'Beberapa ID siswa tidak valid: '.implode(', ', $invalidIds));
+                    }
                 }
             }
         });

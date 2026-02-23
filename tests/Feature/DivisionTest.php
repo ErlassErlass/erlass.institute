@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 class DivisionTest extends TestCase
 {
-    // use RefreshDatabase; // Don't use this on existing dev DB if not configured for testing
+    use RefreshDatabase;
 
     public function test_can_create_division_and_assign_user()
     {
@@ -30,10 +30,6 @@ class DivisionTest extends TestCase
         $this->assertEquals($division->id, $user->division_id);
         $this->assertTrue($user->division->is($division));
         $this->assertTrue($division->users->contains($user));
-        
-        // Cleanup
-        $user->delete();
-        $division->delete();
     }
 
     public function test_employee_page_is_accessible()
@@ -44,7 +40,5 @@ class DivisionTest extends TestCase
         
         $response->assertStatus(200);
         $response->assertViewIs('admin.employees.index');
-        
-        $admin->delete();
     }
 }

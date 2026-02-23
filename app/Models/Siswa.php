@@ -20,6 +20,7 @@ class Siswa extends Model
         'nama_lengkap',
         'nisn',
         'sekolah_kodlan',
+        'rombel',
         'kelas',
         'no_hp_orangtua', // Added
     ];

@@ -21,10 +21,10 @@ Dokumen ini merangkum seluruh spesifikasi fitur utama dalam aplikasi, mulai dari
     *   **Tombol**: Ukuran minimal 44px untuk area sentuh jari.
 
 ### Status Implementasi:
-*   [x] **Dashboard**: Grid system resizable (1 kolom di mobile, 4 kolom di desktop).
+*   [x] **Dashboard**: Grid system resizable & baris **Quick Actions** instruktur.
 *   [x] **Menu Navigasi**: Responsif penuh.
-*   [x] **Halaman Laporan**: Form input laporan dioptimalkan untuk pengisian cepat via HP.
-*   [x] **Tabel User**: Mode Card View aktif di layar < 768px.
+*   [x] **Halaman Laporan**: Form input dioptimalkan dengan tombol **"Mark All"** (Hadir Semua/TIDAK HADIR).
+*   [x] **Tabel Data Utama**: Mode **Card View** aktif di layar < 768px untuk Siswa, Sekolah, Ekstrakurikuler, dan Laporan.
 
 ---
 

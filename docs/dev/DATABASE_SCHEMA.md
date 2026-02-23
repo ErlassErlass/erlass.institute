@@ -36,7 +36,8 @@ erDiagram
         string nisn
         string nama_lengkap
         string sekolah_kodlan FK
-        string kelas "Kelas Akademik"
+        string rombel "Grup/Kelompok (Presensi)"
+        string kelas "Kelas Akademik (Master Data)"
         string no_hp_orangtua
     }
 
@@ -133,7 +134,7 @@ erDiagram
 
 2.  **SISWA (`siswa`)**:
     *   Data induk siswa yang terdaftar di sekolah.
-    *   Siswa terikat pada sekolah (`sekolah_kodlan`) dan kelas akademik asal (`kelas`).
+    *   Siswa terikat pada sekolah (`sekolah_kodlan`), grup/kelompok belajar (`rombel`), dan kelas akademik asal (`kelas`).
 
 3.  **EKSTRAKURIKULER (`ekstrakurikuler`)**:
     *   Program level atas. Contoh: "Robotika SMAN 1 Jakarta".

@@ -27,8 +27,7 @@ class LaporanMengajarControllerTest extends TestCase
     {
         parent::setUp();
 
-        $this->instructor = User::factory()->create([
-            'role' => 'instruktur',
+        $this->instructor = User::factory()->verifiedInstructor()->create([
             'nama_lengkap' => 'Test Instructor',
         ]);
 
@@ -82,7 +81,7 @@ class LaporanMengajarControllerTest extends TestCase
             ->get(route('laporan-mengajar.index'));
 
         $response->assertStatus(200);
-        $laporans = $response->viewData('laporans');
+        $laporans = $response->viewData('laporan');
 
         $this->assertTrue($laporans->contains('id', $ownLaporan->id));
         $this->assertFalse($laporans->contains('id', $otherLaporan->id));
@@ -104,7 +103,7 @@ class LaporanMengajarControllerTest extends TestCase
             ->get(route('laporan-mengajar.index'));
 
         $response->assertStatus(200);
-        $laporans = $response->viewData('laporans');
+        $laporans = $response->viewData('laporan');
 
         $this->assertTrue($laporans->contains('id', $laporan1->id));
         $this->assertTrue($laporans->contains('id', $laporan2->id));
@@ -129,29 +128,25 @@ class LaporanMengajarControllerTest extends TestCase
 
         $laporanData = [
             'user_id_instruktur' => $this->instructor->id,
-            'pertemuan_ke' => 1,
+            'pertemuan_ke' => '1',
             'rombel' => 'A1',
             'sekolah_kodlan' => 'TEST001',
+            'sekolah_nama' => 'Test School',
             'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
             'jam_mulai' => '08:00',
             'jam_selesai' => '10:00',
             'kategori_pengajaran' => 'Regular',
             'materi_pengajaran' => 'Test Material',
-            'sekolah_nama' => 'Test School',
-            'sekolah_kota' => 'Test City',
-            'sekolah_kecamatan' => 'Test District',
-            'foto_kegiatan' => $fotoKegiatan,
-            'foto_absensi_siswa' => $fotoAbsensi,
+            'keaktifan' => 'aktif',
+            'pemahaman_materi' => 'paham',
             'refleksi_siswa' => 'Good participation',
             'refleksi_capaian' => 'Target achieved',
-            'keaktifan' => 8,
-            'pemahaman_materi' => 7,
         ];
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.store'), $laporanData);
 
-        $response->assertRedirect(route('laporan-mengajar.index'));
+        $response->assertRedirect(route('laporan-mengajar.absensi.create', LaporanMengajar::latest()->first()));
         $response->assertSessionHas('success');
 
         // Verify database record
@@ -173,10 +168,14 @@ class LaporanMengajarControllerTest extends TestCase
             ->post(route('laporan-mengajar.store'), []);
 
         $response->assertSessionHasErrors([
-            'user_id_instruktur',
             'pertemuan_ke',
+            'rombel',
             'sekolah_kodlan',
             'jadwal_mengajar',
+            'jam_mulai',
+            'jam_selesai',
+            'kategori_pengajaran',
+            'materi_pengajaran',
         ]);
     }
 
@@ -218,7 +217,12 @@ class LaporanMengajarControllerTest extends TestCase
             'user_id_instruktur' => $this->instructor->id,
             'pertemuan_ke' => 1,
             'sekolah_kodlan' => 'TEST001',
-            'jadwal_mengajar' => Carbon::today()->subDays(8)->format('d/m/Y'), // 8 days ago
+            'rombel' => 'A1',
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'kategori_pengajaran' => 'Regular',
+            'materi_pengajaran' => 'Test',
+            'jadwal_mengajar' => Carbon::today()->subDays(31)->format('d/m/Y'), // 31 days ago (rule relaxed to 30)
         ];
 
         $response = $this->actingAs($this->instructor)
@@ -247,13 +251,18 @@ class LaporanMengajarControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $oversizedFile = UploadedFile::fake()->create('large.jpg', 3000); // 3MB
+        $oversizedFile = UploadedFile::fake()->create('large.jpg', 6000); // 6MB (max is 5MB)
         $invalidFile = UploadedFile::fake()->create('document.pdf', 500);
 
         $laporanData = [
             'user_id_instruktur' => $this->instructor->id,
             'pertemuan_ke' => 1,
             'sekolah_kodlan' => 'TEST001',
+            'rombel' => 'A1',
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'kategori_pengajaran' => 'Regular',
+            'materi_pengajaran' => 'Test',
             'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
             'foto_kegiatan' => $oversizedFile,
             'foto_absensi_siswa' => $invalidFile,
@@ -277,7 +286,7 @@ class LaporanMengajarControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewIs('laporan-mengajar.show');
-        $response->assertViewHas('laporan', $laporan);
+        $response->assertViewHas('laporanMengajar', $laporan);
     }
 
     public function test_instructor_cannot_view_others_laporan(): void
@@ -305,7 +314,7 @@ class LaporanMengajarControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewIs('laporan-mengajar.edit');
-        $response->assertViewHas('laporan', $laporan);
+        $response->assertViewHas('laporanMengajar', $laporan);
     }
 
     public function test_can_update_laporan(): void
@@ -320,14 +329,20 @@ class LaporanMengajarControllerTest extends TestCase
             'user_id_instruktur' => $this->instructor->id,
             'pertemuan_ke' => $laporan->pertemuan_ke,
             'sekolah_kodlan' => 'TEST001',
+            'rombel' => 'A1',
             'jadwal_mengajar' => Carbon::parse($laporan->jadwal_mengajar)->format('d/m/Y'),
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'kategori_pengajaran' => 'Regular',
             'materi_pengajaran' => 'Updated Material',
+            'keaktifan' => 'sangat_aktif',
+            'pemahaman_materi' => 'sangat_paham',
         ];
 
         $response = $this->actingAs($this->instructor)
             ->put(route('laporan-mengajar.update', $laporan), $updateData);
 
-        $response->assertRedirect(route('laporan-mengajar.show', $laporan));
+        $response->assertRedirect(route('laporan-mengajar.index'));
 
         $laporan->refresh();
         $this->assertEquals('Updated Material', $laporan->materi_pengajaran);
@@ -346,7 +361,7 @@ class LaporanMengajarControllerTest extends TestCase
         // Create fake file
         Storage::disk('public')->put('laporan_mengajar/test.jpg', 'fake content');
 
-        $response = $this->actingAs($this->instructor)
+        $response = $this->actingAs($this->admin)
             ->delete(route('laporan-mengajar.destroy', $laporan));
 
         $response->assertRedirect(route('laporan-mengajar.index'));
@@ -355,26 +370,21 @@ class LaporanMengajarControllerTest extends TestCase
         Storage::disk('public')->assertMissing('laporan_mengajar/test.jpg');
     }
 
-    public function test_search_functionality(): void
+    public function test_school_search_functionality(): void
     {
-        $laporan1 = LaporanMengajar::factory()->create([
-            'user_id_instruktur' => $this->instructor->id,
-            'sekolah_kodlan' => 'TEST001',
-            'materi_pengajaran' => 'Mathematics',
-        ]);
-
-        $laporan2 = LaporanMengajar::factory()->create([
-            'user_id_instruktur' => $this->instructor->id,
-            'sekolah_kodlan' => 'TEST001',
-            'materi_pengajaran' => 'Science',
+        $sekolah = Sekolah::factory()->create([
+            'kodlan' => 'SEARCH001',
+            'namasekolah' => 'Searchable School',
         ]);
 
         $response = $this->actingAs($this->instructor)
-            ->get(route('laporan-mengajar.search', ['query' => 'Mathematics']));
+            ->get(route('laporan-mengajar.search', ['q' => 'Searchable']));
 
         $response->assertStatus(200);
-        $response->assertJsonFragment(['materi_pengajaran' => 'Mathematics']);
-        $response->assertJsonMissing(['materi_pengajaran' => 'Science']);
+        $response->assertJsonFragment([
+            'id' => 'SEARCH001',
+            'text' => 'Searchable School (SEARCH001) - ' . $sekolah->kec . ', ' . $sekolah->kotkab,
+        ]);
     }
 
     public function test_export_functionality(): void

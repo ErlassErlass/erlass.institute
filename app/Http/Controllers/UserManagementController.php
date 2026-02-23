@@ -43,17 +43,14 @@ class UserManagementController extends Controller
             });
         }
 
-        $users = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+        $users = $query->orderBy('nama_lengkap', 'asc')->paginate(20)->withQueryString();
         $statistics = $this->verificationService->getVerificationStatistics();
         
         $roles = [
             'webmaster' => 'Webmaster',
-            'admin' => 'Administrator',
             'admin_sistem' => 'Admin Sistem',
-            'admin_erlass' => 'Admin Erlass',
             'instruktur' => 'Instruktur',
             'sales' => 'Sales',
-            'debug_user' => 'Debug User',
         ];
 
         return view('admin.users.index', compact('users', 'statistics', 'roles'));

@@ -122,22 +122,20 @@ class LaporanMengajarTest extends TestCase
             'kategori_pengajaran' => 'Regular',
             'materi_pengajaran' => 'Test Material',
             'sekolah_nama' => 'Test School',
-            'sekolah_kota' => 'Test City',
-            'sekolah_kecamatan' => 'Test District',
             'jumlah_siswa_hadir' => 10,
             'jumlah_siswa_keluar' => 0,
             'jumlah_siswa_tidak_hadir' => 2,
             'refleksi_siswa' => 'Good participation',
             'refleksi_capaian' => 'Target achieved',
-            'keaktifan' => 8,
-            'pemahaman_materi' => 7,
+            'keaktifan' => 'aktif',
+            'pemahaman_materi' => 'paham',
         ];
 
         $laporan = LaporanMengajar::create($attributes);
 
         foreach ($attributes as $key => $value) {
             if ($key === 'jadwal_mengajar') {
-                $this->assertEquals($value->format('Y-m-d'), $laporan->{$key});
+                $this->assertEquals($value->toDateString(), $laporan->{$key}->toDateString());
             } else {
                 $this->assertEquals($value, $laporan->{$key});
             }

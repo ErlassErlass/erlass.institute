@@ -47,8 +47,22 @@
                                 <thead class="table-dark">
                                     <tr>
                                         <th>Nama Siswa</th>
-                                        <th class="text-center" style="width: 100px;">Hadir</th>
-                                        <th class="text-center" style="width: 120px;">Tidak Hadir</th>
+                                        <th class="text-center" style="width: 150px;">
+                                            <div class="d-grid">
+                                                <button type="button" class="btn btn-xs btn-success py-0 mb-1" id="mark-all-present" style="font-size: 0.65rem;">
+                                                    HADIR SEMUA
+                                                </button>
+                                                <span class="small">Hadir</span>
+                                            </div>
+                                        </th>
+                                        <th class="text-center" style="width: 150px;">
+                                            <div class="d-grid">
+                                                <button type="button" class="btn btn-xs btn-danger py-0 mb-1" id="mark-all-absent" style="font-size: 0.65rem;">
+                                                    TIDAK HADIR
+                                                </button>
+                                                <span class="small">Tidak Hadir</span>
+                                            </div>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -61,12 +75,12 @@
                                             @endphp
                                             <td class="text-center">
                                                 <div class="form-check form-check-inline">
-                                                    <input class="form-check-input" type="radio" name="absensi[{{ $siswa->id }}]" id="hadir_{{ $siswa->id }}" value="1" {{ $statusHadir == 1 ? 'checked' : '' }}>
+                                                    <input class="form-check-input student-attendance-radio present" type="radio" name="absensi[{{ $siswa->id }}]" id="hadir_{{ $siswa->id }}" value="1" {{ $statusHadir == 1 ? 'checked' : '' }}>
                                                 </div>
                                             </td>
                                             <td class="text-center">
                                                 <div class="form-check form-check-inline">
-                                                    <input class="form-check-input" type="radio" name="absensi[{{ $siswa->id }}]" id="tidak_hadir_{{ $siswa->id }}" value="0" {{ $statusHadir == 0 ? 'checked' : '' }}>
+                                                    <input class="form-check-input student-attendance-radio absent" type="radio" name="absensi[{{ $siswa->id }}]" id="tidak_hadir_{{ $siswa->id }}" value="0" {{ $statusHadir == 0 ? 'checked' : '' }}>
                                                 </div>
                                             </td>
                                         </tr>
@@ -326,20 +340,22 @@
             if(document.getElementById(`hadir_${id}`)) return;
 
             const tr = document.createElement('tr');
-            tr.className = 'table-warning'; // Highlight added row
+            tr.className = 'table-warning'; 
             tr.innerHTML = `
                 <td>
                     ${name} <span class="badge bg-info text-dark ms-2">Tambahan</span>
                 </td>
                 <td class="text-center">
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="absensi[${id}]" id="hadir_${id}" value="1" checked>
+                        <input class="form-check-input student-attendance-radio present" type="radio" name="absensi[${id}]" id="hadir_${id}" value="1" checked>
                     </div>
                 </td>
                 <td class="text-center">
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="absensi[${id}]" id="tidak_hadir_${id}" value="0">
+                        <input class="form-check-input student-attendance-radio absent" type="radio" name="absensi[${id}]" id="tidak_hadir_${id}" value="0">
                     </div>
+                </td>
+            `;
                 </td>
             `;
 
@@ -360,7 +376,27 @@
             
             // Enable submit button if it was disabled
             document.querySelector('button[type="submit"]').disabled = false;
-        };
+        }
+
+        // --- NEW: Mark All Logic ---
+        const btnAllPresent = document.getElementById('mark-all-present');
+        const btnAllAbsent = document.getElementById('mark-all-absent');
+
+        if (btnAllPresent) {
+            btnAllPresent.addEventListener('click', function() {
+                document.querySelectorAll('input.present').forEach(radio => {
+                    radio.checked = true;
+                });
+            });
+        }
+
+        if (btnAllAbsent) {
+            btnAllAbsent.addEventListener('click', function() {
+                document.querySelectorAll('input.absent').forEach(radio => {
+                    radio.checked = true;
+                });
+            });
+        }
     });
 </script>
 @endpush

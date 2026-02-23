@@ -228,7 +228,7 @@
                             </td>
                         </tr>
                         @empty
-                        <tr>
+                        <tr class="empty-state">
                             <td colspan="7" class="text-center py-4">
                                 <div class="text-muted">
                                     <i class="bi bi-people fs-2 d-block mb-2"></i>
@@ -342,19 +342,24 @@
     document.addEventListener('DOMContentLoaded', function () {
         // Initialize DataTable for Admin Users table
         if (typeof window.DataTableManager !== 'undefined') {
-            const dataTableManager = new window.DataTableManager();
-            dataTableManager.init('#admin-users-table', {
-                order: [[1, 'asc']], // Sort by Name column
-                paging: false,       // Disable DataTables pagination (using Laravel's instead)
-                info: false,         // Disable DataTables info display
-                searching: false,    // Disable DataTables search (using custom server-side search)
-                lengthChange: false, // Disable page length dropdown
-                columnDefs: [
-                    { orderable: false, targets: [0, 6] }, // Disable sorting for # and Actions columns
-                    { type: 'string', targets: [1, 2, 3, 4] }, // String sorting for name, email, role, status
-                    { type: 'date', targets: [5] } // Date sorting for registration date
-                ]
-            });
+            const table = document.getElementById('admin-users-table');
+            const isEmpty = table ? table.querySelector('.empty-state') : null;
+
+            if (table && !isEmpty) {
+                const dataTableManager = new window.DataTableManager();
+                dataTableManager.init('#admin-users-table', {
+                    order: [[1, 'asc']], // Sort by Name column
+                    paging: false,       // Disable DataTables pagination (using Laravel's instead)
+                    info: false,         // Disable DataTables info display
+                    searching: false,    // Disable DataTables search (using custom server-side search)
+                    lengthChange: false, // Disable page length dropdown
+                    columnDefs: [
+                        { orderable: false, targets: [0, 6] }, // Disable sorting for # and Actions columns
+                        { type: 'string', targets: [1, 2, 3, 4] }, // String sorting for name, email, role, status
+                        { type: 'date', targets: [5] } // Date sorting for registration date
+                    ]
+                });
+            }
         }
     });
 </script>

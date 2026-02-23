@@ -2,7 +2,23 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
-## [Unreleased] - 2026-02-18
+## [1.2.0] - 2026-02-23
+
+### Ditambahkan (Added)
+- **Mobile PX Optimization**:
+    - Implementasi **Mobile Card View** pada halaman Siswa, Sekolah, Ekstrakurikuler, dan Laporan Mengajar. Tabel otomatis berubah menjadi kartu yang mudah dibaca di layar HP.
+    - Baris **Quick Actions** di dashboard instruktur untuk akses satu-tap ke fitur inti.
+- **Attendance Efficiency**:
+    - Tombol **"HADIR SEMUA"** dan **"TIDAK HADIR"** di form absensi untuk mempercepat input data lapangan.
+
+### Diperbaiki (Fixed)
+- **Siswa Schema Stability**:
+    - Penyelarasan skema database `siswa` (mendukung `kelas` akademik dan `rombel` absensi secara bersamaan).
+    - Memperbaiki bug "Double Pagination" di modul Siswa, Sekolah, dan Ekstrakurikuler.
+- **Stability**:
+    - Mencapai **100% Pass Rate** pada 62 unit & feature tests untuk modul Absensi dan Laporan Mengajar.
+
+## [1.1.0] - 2026-02-18
 
 ### Ditambahkan (Added)
 - **Schedule Distribution Analytics**:

@@ -23,6 +23,7 @@ class LaporanMengajar extends Model
         'pertemuan_ke',
         'rombel',
         'sekolah_kodlan',
+        'sekolah_nama', // Added for consistency
         'jadwal_mengajar',
         'jam_mulai',
         'jam_selesai',
@@ -210,5 +211,25 @@ class LaporanMengajar extends Model
     {
         return $query->where('kategori_pengajaran', '!=', 'ekstrakurikuler')
             ->orWhereNull('kategori_pengajaran');
+    }
+
+    /**
+     * Accessor for formatted date (dd/mm/yyyy).
+     */
+    public function getJadwalMengajarFormattedAttribute()
+    {
+        return $this->jadwal_mengajar ? $this->jadwal_mengajar->format('d/m/Y') : '';
+    }
+
+    /**
+     * Mutator to handle dd/mm/yyyy input.
+     */
+    public function setJadwalMengajarAttribute($value)
+    {
+        if (is_string($value) && preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $value)) {
+            $this->attributes['jadwal_mengajar'] = \Carbon\Carbon::createFromFormat('d/m/Y', $value)->format('Y-m-d');
+        } else {
+            $this->attributes['jadwal_mengajar'] = $value;
+        }
     }
 }

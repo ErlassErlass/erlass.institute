@@ -109,7 +109,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr>
+                    <tr class="empty-state">
                         <td colspan="7" class="text-center py-5 text-muted">
                             <i class="bi bi-inbox fs-1 d-block mb-3"></i>
                             <p class="mb-0">Tidak ada data absensi yang ditemukan.</p>
@@ -134,26 +134,31 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize DataTable for Attendance Detail table
         if (typeof window.DataTableManager !== 'undefined') {
-            const dataTableManager = new window.DataTableManager();
-            dataTableManager.init('#absensi-detail-table', {
-                order: [[1, 'asc']], // Sort by Student Name column
-                columnDefs: [
-                    { orderable: false, targets: [0, 6] }, // Disable sorting for # and Actions columns
-                    { type: 'string', targets: [1, 2, 3, 4, 5] } // String sorting for other columns
-                ],
-                pageLength: 25,
-                language: {
-                    search: "Cari:",
-                    lengthMenu: "_MENU_ item per halaman",
-                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ item",
-                    paginate: {
-                        first: "First",
-                        last: "Last",
-                        next: "Next",
-                        previous: "Prev"
+            const table = document.getElementById('absensi-detail-table');
+            const isEmpty = table ? table.querySelector('.empty-state') : null;
+
+            if (table && !isEmpty) {
+                const dataTableManager = new window.DataTableManager();
+                dataTableManager.init('#absensi-detail-table', {
+                    order: [[1, 'asc']], // Sort by Student Name column
+                    columnDefs: [
+                        { orderable: false, targets: [0, 6] }, // Disable sorting for # and Actions columns
+                        { type: 'string', targets: [1, 2, 3, 4, 5] } // String sorting for other columns
+                    ],
+                    pageLength: 25,
+                    language: {
+                        search: "Cari:",
+                        lengthMenu: "_MENU_ item per halaman",
+                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ item",
+                        paginate: {
+                            first: "First",
+                            last: "Last",
+                            next: "Next",
+                            previous: "Prev"
+                        }
                     }
-                }
-            });
+                });
+            }
         }
     });
 </script>

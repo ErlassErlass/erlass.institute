@@ -6,7 +6,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
 @endpush
-@endpush
 
 @section('content')
 <div class="container py-4">
@@ -144,7 +143,7 @@
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="fas fa-clock"></i></span>
                                         <input type="text" name="jam_mulai" id="jam_mulai"
-                                            value="{{ old('jam_mulai', \Carbon\Carbon::createFromFormat('H:i:s', $laporanMengajar->jam_mulai)->format('H:i')) }}"
+                                            value="{{ old('jam_mulai', $laporanMengajar->jam_mulai ? \Carbon\Carbon::parse($laporanMengajar->jam_mulai)->format('H:i') : '') }}"
                                             class="form-control @error('jam_mulai') is-invalid @enderror"
                                             required placeholder="HH:mm" autocomplete="off"
                                             {{ $laporanMengajar->ekstrakurikulerSession ? 'readonly' : '' }}>
@@ -156,7 +155,7 @@
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="fas fa-clock"></i></span>
                                         <input type="text" name="jam_selesai" id="jam_selesai"
-                                            value="{{ old('jam_selesai', \Carbon\Carbon::createFromFormat('H:i:s', $laporanMengajar->jam_selesai)->format('H:i')) }}"
+                                            value="{{ old('jam_selesai', $laporanMengajar->jam_selesai ? \Carbon\Carbon::parse($laporanMengajar->jam_selesai)->format('H:i') : '') }}"
                                             class="form-control @error('jam_selesai') is-invalid @enderror"
                                             required placeholder="HH:mm" autocomplete="off"
                                             {{ $laporanMengajar->ekstrakurikulerSession ? 'readonly' : '' }}>

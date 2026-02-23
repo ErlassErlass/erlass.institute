@@ -99,8 +99,11 @@ class AbsensiTest extends TestCase
             'hadir' => 1,
         ]);
 
-        $this->assertIsBool($absensi1->hadir);
-        $this->assertTrue($absensi1->hadir);
+        $this->assertTrue((bool)$absensi1->hadir);
+        $this->assertTrue($absensi1->hadir === true);
+
+        // Delete before next test to avoid unique constraint violation
+        $absensi1->delete();
 
         // Test with integer 0
         $absensi2 = Absensi::create([
@@ -109,8 +112,10 @@ class AbsensiTest extends TestCase
             'hadir' => 0,
         ]);
 
-        $this->assertIsBool($absensi2->hadir);
-        $this->assertFalse($absensi2->hadir);
+        $this->assertFalse((bool)$absensi2->hadir);
+        $this->assertTrue($absensi2->hadir === false);
+
+        $absensi2->delete();
 
         // Test with string 'true'
         $absensi3 = Absensi::create([
@@ -119,8 +124,8 @@ class AbsensiTest extends TestCase
             'hadir' => 'true',
         ]);
 
-        $this->assertIsBool($absensi3->hadir);
-        $this->assertTrue($absensi3->hadir);
+        $this->assertTrue((bool)$absensi3->hadir);
+        $this->assertTrue($absensi3->hadir === true);
     }
 
     public function test_guarded_attributes(): void

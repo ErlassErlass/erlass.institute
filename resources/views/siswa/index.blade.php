@@ -137,7 +137,7 @@
                             </td>
                         </tr>
                         @empty
-                        <tr>
+                        <tr class="empty-state">
                             <td colspan="6" class="text-center py-5">
                                 <div class="mb-3">
                                     <i class="bi bi-people text-muted fs-1 opacity-25"></i>
@@ -220,25 +220,24 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize DataTable for Siswa table
         if (typeof window.DataTableManager !== 'undefined') {
-            const dataTableManager = new window.DataTableManager();
-            dataTableManager.init('#siswa-table', {
-                order: [[1, 'asc']], // Sort by Student Name column
-                columnDefs: [
-                    { orderable: false, targets: [0, 5] }, // Disable sorting for No. and Actions columns
-                    { type: 'string', targets: [1, 3, 4] }, // String sorting for name, school, rombel
-                    { type: 'num-fmt', targets: [2] }, // Numeric sorting for NISN
-                    { searchable: false, targets: [0, 5] } // No. and Actions columns not searchable
-                ],
-                pageLength: 25,
-                columns: [
-                    null, // No.
-                    null, // Nama Lengkap
-                    null, // NISN
-                    null, // Sekolah
-                    null, // Rombel
-                    null  // Aksi
-                ]
-            });
+            const table = document.getElementById('siswa-table');
+            const isEmpty = table ? table.querySelector('.empty-state') : null;
+
+            if (table && !isEmpty) {
+                const dataTableManager = new window.DataTableManager();
+                dataTableManager.init('#siswa-table', {
+                    order: [[1, 'asc']], // Sort by Student Name column
+                    columnDefs: [
+                        { orderable: false, targets: [0, 5] }, // Disable sorting for No. and Actions columns
+                        { type: 'string', targets: [1, 3, 4] }, // String sorting
+                        { type: 'num-fmt', targets: [2] }, // Numeric sorting for NISN
+                        { searchable: false, targets: [0, 5] } // No. and Actions columns not searchable
+                    ],
+                    pageLength: 25,
+                    paging: false,
+                    info: false
+                });
+            }
         }
         
         // Menambahkan konfirmasi sebelum submit form hapus

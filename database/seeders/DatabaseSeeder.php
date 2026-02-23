@@ -53,6 +53,7 @@ class DatabaseSeeder extends Seeder
         // 2. Import Real Data (Master Data)
         $this->call([
             SekolahSeeder::class,     // Imports DataSekolah.csv
+            InstrukturSeeder::class,  // Imports Data Instruktur Erlass 2025.xlsx (70 instructors)
             // ManualSiswaSeeder::class, // Imports siswa_import.csv (Disabled per user request)
             EmployeeSeeder::class,    // Imports employees_import.csv
             RefMateriSeeder::class,   // Syllabus/Materi Dropdowns

@@ -81,7 +81,7 @@
                                         </td>
                                     </tr>
                                 @empty
-                                    <tr>
+                                    <tr class="empty-state">
                                         <td colspan="5" class="text-center">Pengguna tidak ditemukan.</td>
                                     </tr>
                                 @endforelse
@@ -102,25 +102,30 @@
         // Initialize DataTable for Users table
         let usersTable = null;
         if (typeof window.DataTableManager !== 'undefined') {
-            const dataTableManager = new window.DataTableManager();
-            usersTable = dataTableManager.init('#users-table', {
-                order: [[1, 'asc']], // Sort by Name column
-                columnDefs: [
-                    { orderable: false, targets: [4] }, // Disable sorting for Actions column
-                    { type: 'string', targets: [1, 2, 3] }, // String sorting for name, email, role
-                    { type: 'num', targets: [0] } // Numeric sorting for ID
-                ],
-                pageLength: 25,
-                lengthMenu: [10, 25, 50, 100],
-                responsive: true,
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json'
-                },
-                searching: true, // Enable built-in search
-                search: {
-                    search: '{{ request('search') }}' // Apply initial search if exists
-                }
-            });
+            const table = document.getElementById('users-table');
+            const isEmpty = table ? table.querySelector('.empty-state') : null;
+
+            if (table && !isEmpty) {
+                const dataTableManager = new window.DataTableManager();
+                usersTable = dataTableManager.init('#users-table', {
+                    order: [[1, 'asc']], // Sort by Name column
+                    columnDefs: [
+                        { orderable: false, targets: [4] }, // Disable sorting for Actions column
+                        { type: 'string', targets: [1, 2, 3] }, // String sorting for name, email, role
+                        { type: 'num', targets: [0] } // Numeric sorting for ID
+                    ],
+                    pageLength: 25,
+                    lengthMenu: [10, 25, 50, 100],
+                    responsive: true,
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json'
+                    },
+                    searching: true, // Enable built-in search
+                    search: {
+                        search: '{{ request('search') }}' // Apply initial search if exists
+                    }
+                });
+            }
         }
         
         // Connect custom search input to DataTables search

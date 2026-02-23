@@ -8,9 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('siswa', function (Blueprint $table) {
-            $table->renameColumn('rombel', 'kelas');
-        });
+        if (Schema::hasColumn('siswa', 'rombel') && !Schema::hasColumn('siswa', 'kelas')) {
+            Schema::table('siswa', function (Blueprint $table) {
+                $table->renameColumn('rombel', 'kelas');
+            });
+        }
     }
 
     public function down(): void

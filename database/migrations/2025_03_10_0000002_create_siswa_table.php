@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('nisn')->unique();
             $table->string('sekolah_kodlan'); // Changed from foreignId to string
             $table->string('rombel');
+            $table->string('kelas')->nullable();
             $table->timestamps();
 
             // Define foreign key constraint

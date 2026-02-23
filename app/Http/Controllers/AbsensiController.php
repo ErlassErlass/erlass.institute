@@ -37,9 +37,9 @@ class AbsensiController extends Controller
                     ->get();
             }
         } else {
-            // ✅ DIPERBAIKI: Query regular untuk siswa berdasarkan sekolah DAN kelas (menggunakan value rombel dari laporan)
+            // ✅ DIPERBAIKI: Query regular untuk siswa berdasarkan sekolah DAN rombel
             $siswas = Siswa::where('sekolah_kodlan', $laporanMengajar->sekolah_kodlan)
-                ->where('kelas', $laporanMengajar->rombel)
+                ->where('rombel', $laporanMengajar->rombel)
                 ->orderBy('nama_lengkap', 'asc')
                 ->get();
         }
@@ -96,27 +96,22 @@ class AbsensiController extends Controller
                 $ekstrakurikulerSession = $laporanMengajar->ekstrakurikulerSession;
             }
 
-            foreach ($request->absensi as $siswaId => $statusHadir) {
-                // Modified: Allow ad-hoc students.
-                // If it's pure logic, we should only validate strictly if needed.
-                // For flexible attendance (adding student from another class), we relax this check.
-               
-                // Original Check was mostly for pre-validation.
-                // We'll trust the input (Siswa ID) if valid.
-                $siswa = Siswa::find($siswaId);
-                if (!$siswa) continue; 
+            if (is_array($request->absensi)) {
+                foreach ($request->absensi as $siswaId => $statusHadir) {
+                    $siswa = Siswa::find($siswaId);
+                    if (!$siswa) continue; 
 
-
-                // ✅ GUNAKAN updateOrCreate: Mencegah data duplikat.
-                Absensi::updateOrCreate(
-                    [
-                        'laporan_mengajar_id' => $laporanMengajar->id,
-                        'siswa_id' => $siswaId,
-                    ],
-                    [
-                        'hadir' => $statusHadir,
-                    ]
-                );
+                    // ✅ GUNAKAN updateOrCreate: Mencegah data duplikat.
+                    Absensi::updateOrCreate(
+                        [
+                            'laporan_mengajar_id' => $laporanMengajar->id,
+                            'siswa_id' => $siswaId,
+                        ],
+                        [
+                            'hadir' => $statusHadir,
+                        ]
+                    );
+                }
             }
 
             // ✅ HITUNG ULANG: Update jumlah siswa di laporan utama
@@ -159,19 +154,22 @@ class AbsensiController extends Controller
 
             // Send Session Report Notifications (WhatsApp)
             try {
-                // Get students ID from request keys
-                $studentIds = array_keys($request->absensi);
-                
-                $studentsToNotify = Siswa::whereIn('id', $studentIds)
-                                         ->whereNotNull('no_hp_orangtua')
-                                         ->get();
+                // Get students ID from request keys - check if it's an array first
+                $absensiInput = $request->input('absensi');
+                if (is_array($absensiInput)) {
+                    $studentIds = array_keys($absensiInput);
+                    
+                    $studentsToNotify = Siswa::whereIn('id', $studentIds)
+                                             ->whereNotNull('no_hp_orangtua')
+                                             ->get();
 
-                foreach ($studentsToNotify as $student) {
-                    try {
-                        // Send notification
-                        $student->notify(new \App\Notifications\SessionReportNotification($laporanMengajar));
-                    } catch (\Exception $e) {
-                        \Log::error("Failed to notify student {$student->id}: " . $e->getMessage());
+                    foreach ($studentsToNotify as $student) {
+                        try {
+                            // Send notification
+                            $student->notify(new \App\Notifications\SessionReportNotification($laporanMengajar));
+                        } catch (\Exception $e) {
+                            \Log::error("Failed to notify student {$student->id}: " . $e->getMessage());
+                        }
                     }
                 }
             } catch (\Exception $e) {

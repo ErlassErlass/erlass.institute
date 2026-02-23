@@ -55,7 +55,7 @@
                                     </td>
                                 </tr>
                                 @empty
-                                <tr>
+                                <tr class="empty-state">
                                     <td colspan="2" class="text-center text-muted py-5">
                                         <i class="bi bi-calendar-x fs-3"></i>
                                         <p class="mt-2 mb-0">Belum ada catatan absensi untuk laporan ini.</p>
@@ -77,15 +77,20 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize DataTable for Attendance Dates table
         if (typeof window.DataTableManager !== 'undefined') {
-            const dataTableManager = new window.DataTableManager();
-            dataTableManager.init('#absensi-dates-table', {
-                order: [[0, 'desc']], // Sort by Date column (newest first)
-                columnDefs: [
-                    { orderable: false, targets: [1] }, // Disable sorting for Actions column
-                    { type: 'date', targets: [0] } // Date sorting for date column
-                ],
-                pageLength: 15
-            });
+            const table = document.getElementById('absensi-dates-table');
+            const isEmpty = table ? table.querySelector('.empty-state') : null;
+
+            if (table && !isEmpty) {
+                const dataTableManager = new window.DataTableManager();
+                dataTableManager.init('#absensi-dates-table', {
+                    order: [[0, 'desc']], // Sort by Date column (newest first)
+                    columnDefs: [
+                        { orderable: false, targets: [1] }, // Disable sorting for Actions column
+                        { type: 'date', targets: [0] } // Date sorting for date column
+                    ],
+                    pageLength: 15
+                });
+            }
         }
     });
 </script>

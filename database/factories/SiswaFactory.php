@@ -14,6 +14,7 @@ class SiswaFactory extends Factory
             'nisn' => fake()->unique()->numerify('##########'),
             'sekolah_kodlan' => Sekolah::factory(),
             'rombel' => fake()->randomElement(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
+            'kelas' => fake()->randomElement(['4C', '5A', '6B']),
         ];
     }
 

@@ -84,7 +84,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr>
+                            <tr class="empty-state">
                                 <td colspan="5" class="text-center py-5">
                                     <div class="mb-3">
                                         <i class="bi bi-building text-muted fs-1 opacity-25"></i>
@@ -164,23 +164,23 @@
     document.addEventListener('DOMContentLoaded', function () {
         // Initialize DataTable for Sekolah table
         if (typeof window.DataTableManager !== 'undefined') {
-            const dataTableManager = new window.DataTableManager();
-            dataTableManager.init('#sekolah-table', {
-                order: [[1, 'asc']], // Sort by School Name column
-                columnDefs: [
-                    { orderable: false, targets: [4] }, // Disable sorting for Actions column
-                    { type: 'string', targets: [0, 1, 2, 3] }, // String sorting for text columns
-                    { searchable: false, targets: [4] } // Actions column not searchable
-                ],
-                pageLength: 25,
-                columns: [
-                    null, // Kode Sekolah
-                    null, // Nama Sekolah
-                    null, // Provinsi
-                    null, // Kecamatan
-                    null  // Aksi
-                ]
-            });
+            const table = document.getElementById('sekolah-table');
+            const isEmpty = table ? table.querySelector('.empty-state') : null;
+
+            if (table && !isEmpty) {
+                const dataTableManager = new window.DataTableManager();
+                dataTableManager.init('#sekolah-table', {
+                    order: [[1, 'asc']], // Sort by School Name column
+                    columnDefs: [
+                        { orderable: false, targets: [4] }, // Disable sorting for Actions column
+                        { type: 'string', targets: [0, 1, 2, 3] }, // String sorting for text columns
+                        { searchable: false, targets: [4] } // Actions column not searchable
+                    ],
+                    pageLength: 25,
+                    paging: false,
+                    info: false
+                });
+            }
         }
         
         // Menambahkan konfirmasi sebelum submit form hapus

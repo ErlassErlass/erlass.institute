@@ -15,6 +15,7 @@ return new class extends Migration
             $table->boolean('hadir')->default(false);
             $table->string('e_signature_instruktur')->nullable();
             $table->string('e_signature_pic')->nullable();
+            $table->unique(['laporan_mengajar_id', 'siswa_id']);
             $table->timestamps();
         });
     }

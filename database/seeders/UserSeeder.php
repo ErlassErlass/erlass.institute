@@ -14,7 +14,7 @@ class UserSeeder extends Seeder
         User::create([
             'nama_lengkap' => 'Webmaster Erlass',
             'email' => 'webmaster@erlass.com',
-            'password' => bcrypt(env('WEBMASTER_PASSWORD', 'W3bm4st3r_S3cur3_P4ss!')),
+            'password' => bcrypt(env('WEBMASTER_PASSWORD', 'password')),
             'tanggal_lahir' => '1985-01-01',
             'no_telephone' => '08111111111',
             'status' => 'active',
@@ -33,7 +33,7 @@ class UserSeeder extends Seeder
         User::create([
             'nama_lengkap' => 'Admin Erlass',
             'email' => 'admin@erlass.com',
-            'password' => bcrypt(env('ADMIN_PASSWORD', 'Adm1n_S3cur3_P4ss!')),
+            'password' => bcrypt(env('ADMIN_PASSWORD', 'password')),
             'tanggal_lahir' => '1988-05-15',
             'no_telephone' => '08222222222',
             'status' => 'active',
@@ -53,7 +53,7 @@ class UserSeeder extends Seeder
         User::create([
             'nama_lengkap' => 'Instruktur Erlass',
             'email' => 'instruktur@erlass.com',
-            'password' => bcrypt(env('INSTRUCTOR_PASSWORD', 'Instr_S3cur3_P4ss!')),
+            'password' => bcrypt(env('INSTRUCTOR_PASSWORD', 'password')),
             'tanggal_lahir' => '1992-03-20',
             'no_telephone' => '08333333333',
             'status' => 'active',
@@ -73,7 +73,7 @@ class UserSeeder extends Seeder
         User::create([
             'nama_lengkap' => 'Instruktur Pending',
             'email' => 'pending@erlass.com',
-            'password' => bcrypt(env('PENDING_PASSWORD', 'P3nd1ng_S3cur3_P4ss!')),
+            'password' => bcrypt(env('PENDING_PASSWORD', 'password')),
             'tanggal_lahir' => '1990-07-10',
             'no_telephone' => '08444444444',
             'status' => 'active',

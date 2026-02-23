@@ -87,7 +87,7 @@ class LaporanMengajarPolicy
     /**
      * Siapa yang boleh menghapus laporan.
      */
-    public function destroy(User $user, LaporanMengajar $laporanMengajar): bool
+    public function delete(User $user, LaporanMengajar $laporanMengajar): bool
     {
         // Hanya admin yang bisa (sudah ditangani `before`), yang lain ditolak.
         return false;

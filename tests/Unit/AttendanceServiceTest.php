@@ -84,9 +84,10 @@ class AttendanceServiceTest extends TestCase
 
     public function test_can_calculate_dropouts_with_consecutive_absences(): void
     {
-        // Create multiple reports for consecutive testing
+        // Reports are created from newest to oldest: sub1 (yesterday), sub2, sub3, sub4
+        // The main report (laporanMengajar) in setUp is sub0 (today).
         $reports = [];
-        for ($i = 0; $i < 4; $i++) {
+        for ($i = 1; $i <= 4; $i++) {
             $reports[] = LaporanMengajar::factory()->create([
                 'user_id_instruktur' => $this->instructor->id,
                 'sekolah_kodlan' => 'TEST001',
@@ -104,18 +105,26 @@ class AttendanceServiceTest extends TestCase
             ]);
         }
 
-        // Student 2: Absent in last 3 consecutive sessions (should be dropout)
-        foreach (array_slice($reports, 0, 3) as $report) {
+        // Student 2: Absent in current report (today) AND last 2 consecutive previous sessions (total 3)
+        // Main report: Absent
+        Absensi::create([
+            'laporan_mengajar_id' => $this->laporanMengajar->id,
+            'siswa_id' => $this->siswa2->id,
+            'hadir' => false,
+        ]);
+
+        // Previous reports: sub1 (absent), sub2 (absent)
+        foreach (range(0, 1) as $index) {
             Absensi::create([
-                'laporan_mengajar_id' => $report->id,
+                'laporan_mengajar_id' => $reports[$index]->id,
                 'siswa_id' => $this->siswa2->id,
                 'hadir' => false,
             ]);
         }
 
-        // Present in the oldest session
+        // Present in report sub3 to break streak
         Absensi::create([
-            'laporan_mengajar_id' => $reports[3]->id,
+            'laporan_mengajar_id' => $reports[2]->id,
             'siswa_id' => $this->siswa2->id,
             'hadir' => true,
         ]);
