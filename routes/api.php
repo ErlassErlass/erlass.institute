@@ -14,10 +14,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// ✅ HANYA PERLU BLOK INI UNTUK FITUR SEKOLAH
-Route::prefix('sekolah')->name('api.sekolah.')->group(function () {
+// ✅ API Sekolah — rate limited (60 req/min)
+Route::middleware('throttle:60,1')->prefix('sekolah')->name('api.sekolah.')->group(function () {
 
     // Route ini satu-satunya yang dibutuhkan untuk dropdown pencarian Select2
     Route::get('/search', [SekolahApiController::class, 'search'])->name('search');
 
 });
+

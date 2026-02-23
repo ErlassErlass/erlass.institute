@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Division;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Hash;
 
@@ -33,7 +34,7 @@ class EmployeeController extends Controller
         }
 
         $employees = $query->paginate(15);
-        $divisions = Division::all();
+        $divisions = Cache::remember('divisions_list', 3600, fn () => Division::all());
 
         return view('admin.employees.index', compact('employees', 'divisions'));
     }
@@ -43,7 +44,7 @@ class EmployeeController extends Controller
      */
     public function create()
     {
-        $divisions = Division::all();
+        $divisions = Cache::remember('divisions_list', 3600, fn () => Division::all());
         return view('admin.employees.create', compact('divisions'));
     }
 
@@ -79,7 +80,7 @@ class EmployeeController extends Controller
      */
     public function edit(User $employee)
     {
-        $divisions = Division::all();
+        $divisions = Cache::remember('divisions_list', 3600, fn () => Division::all());
         return view('admin.employees.edit', compact('employee', 'divisions'));
     }
 
