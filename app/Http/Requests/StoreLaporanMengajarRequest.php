@@ -27,7 +27,7 @@ class StoreLaporanMengajarRequest extends FormRequest
             'pertemuan_ke' => 'required|integer|min:1|max:50',
             'rombel' => 'required|string|max:10',
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
-            'jadwal_mengajar' => 'required|date|after_or_equal:' . now()->subDays(7)->format('Y-m-d'),
+            'jadwal_mengajar' => 'required|date|after_or_equal:'.now()->subDays(7)->format('Y-m-d'),
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
             'kategori_pengajaran' => 'required|string|max:100',
@@ -90,7 +90,7 @@ class StoreLaporanMengajarRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             // Custom validation: Ensure instructor is not the same as assistant
-            if ($this->user_id_instruktur && $this->user_id_assisten && 
+            if ($this->user_id_instruktur && $this->user_id_assisten &&
                 $this->user_id_instruktur == $this->user_id_assisten) {
                 $validator->errors()->add('user_id_assisten', 'Asisten tidak boleh sama dengan instruktur.');
             }

@@ -1,26 +1,28 @@
 <?php
+
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Absensi extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'absensi';
-    
+
     protected $fillable = [
         'laporan_mengajar_id',
         'siswa_id',
         'hadir',
     ];
-    
+
     protected $guarded = [
         'id',
         'created_at',
         'updated_at',
     ];
-    
+
     protected $casts = [
         'hadir' => 'boolean',
     ];

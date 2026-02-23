@@ -2,35 +2,36 @@
 
 namespace Tests\Unit;
 
-use Tests\TestCase;
 use App\Models\Absensi;
 use App\Models\LaporanMengajar;
+use App\Models\Sekolah;
 use App\Models\Siswa;
 use App\Models\User;
-use App\Models\Sekolah;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class AbsensiTest extends TestCase
 {
     use RefreshDatabase;
 
     private LaporanMengajar $laporanMengajar;
+
     private Siswa $siswa;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $instructor = User::factory()->create(['role' => 'instruktur']);
         $sekolah = Sekolah::factory()->create(['kodlan' => 'TEST001']);
-        
+
         $this->laporanMengajar = LaporanMengajar::factory()->create([
             'user_id_instruktur' => $instructor->id,
-            'sekolah_kodlan' => 'TEST001'
+            'sekolah_kodlan' => 'TEST001',
         ]);
-        
+
         $this->siswa = Siswa::factory()->create([
-            'sekolah_kodlan' => 'TEST001'
+            'sekolah_kodlan' => 'TEST001',
         ]);
     }
 
@@ -39,14 +40,14 @@ class AbsensiTest extends TestCase
         $absensi = Absensi::create([
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa->id,
-            'hadir' => true
+            'hadir' => true,
         ]);
 
         $this->assertDatabaseHas('absensi', [
             'id' => $absensi->id,
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa->id,
-            'hadir' => true
+            'hadir' => true,
         ]);
     }
 
@@ -55,7 +56,7 @@ class AbsensiTest extends TestCase
         $absensi = Absensi::create([
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa->id,
-            'hadir' => true
+            'hadir' => true,
         ]);
 
         $this->assertInstanceOf(LaporanMengajar::class, $absensi->laporanMengajar);
@@ -67,7 +68,7 @@ class AbsensiTest extends TestCase
         $absensi = Absensi::create([
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa->id,
-            'hadir' => true
+            'hadir' => true,
         ]);
 
         $this->assertInstanceOf(Siswa::class, $absensi->siswa);
@@ -79,7 +80,7 @@ class AbsensiTest extends TestCase
         $attributes = [
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa->id,
-            'hadir' => false
+            'hadir' => false,
         ];
 
         $absensi = Absensi::create($attributes);
@@ -95,7 +96,7 @@ class AbsensiTest extends TestCase
         $absensi1 = Absensi::create([
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa->id,
-            'hadir' => 1
+            'hadir' => 1,
         ]);
 
         $this->assertIsBool($absensi1->hadir);
@@ -105,7 +106,7 @@ class AbsensiTest extends TestCase
         $absensi2 = Absensi::create([
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa->id,
-            'hadir' => 0
+            'hadir' => 0,
         ]);
 
         $this->assertIsBool($absensi2->hadir);
@@ -115,7 +116,7 @@ class AbsensiTest extends TestCase
         $absensi3 = Absensi::create([
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa->id,
-            'hadir' => 'true'
+            'hadir' => 'true',
         ]);
 
         $this->assertIsBool($absensi3->hadir);
@@ -127,7 +128,7 @@ class AbsensiTest extends TestCase
         $absensi = Absensi::create([
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa->id,
-            'hadir' => true
+            'hadir' => true,
         ]);
 
         $originalId = $absensi->id;
@@ -137,7 +138,7 @@ class AbsensiTest extends TestCase
         $absensi->update([
             'id' => 999,
             'created_at' => now()->subYear(),
-            'hadir' => false
+            'hadir' => false,
         ]);
 
         $absensi->refresh();
@@ -145,7 +146,7 @@ class AbsensiTest extends TestCase
         // Guarded attributes should not change
         $this->assertEquals($originalId, $absensi->id);
         $this->assertEquals($originalCreatedAt->format('Y-m-d H:i:s'), $absensi->created_at->format('Y-m-d H:i:s'));
-        
+
         // Non-guarded attributes should change
         $this->assertFalse($absensi->hadir);
     }
@@ -156,16 +157,16 @@ class AbsensiTest extends TestCase
         Absensi::create([
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa->id,
-            'hadir' => true
+            'hadir' => true,
         ]);
 
         // Try to create duplicate (should be prevented by database constraint or business logic)
         $this->expectException(\Illuminate\Database\QueryException::class);
-        
+
         Absensi::create([
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa->id,
-            'hadir' => false
+            'hadir' => false,
         ]);
     }
 
@@ -174,7 +175,7 @@ class AbsensiTest extends TestCase
         $absensi = Absensi::create([
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa->id,
-            'hadir' => true
+            'hadir' => true,
         ]);
 
         $this->assertTrue($absensi->hadir);
@@ -191,7 +192,7 @@ class AbsensiTest extends TestCase
 
         // Try to create without required foreign keys
         Absensi::create([
-            'hadir' => true
+            'hadir' => true,
             // Missing laporan_mengajar_id and siswa_id
         ]);
     }
@@ -204,7 +205,7 @@ class AbsensiTest extends TestCase
         Absensi::create([
             'laporan_mengajar_id' => 99999, // Non-existent ID
             'siswa_id' => $this->siswa->id,
-            'hadir' => true
+            'hadir' => true,
         ]);
     }
 
@@ -214,14 +215,14 @@ class AbsensiTest extends TestCase
         $absensi1 = Absensi::create([
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa->id,
-            'hadir' => true
+            'hadir' => true,
         ]);
 
         $siswa2 = Siswa::factory()->create(['sekolah_kodlan' => 'TEST001']);
         $absensi2 = Absensi::create([
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $siswa2->id,
-            'hadir' => false
+            'hadir' => false,
         ]);
 
         $presentCount = Absensi::where('hadir', true)->count();

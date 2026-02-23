@@ -11,7 +11,7 @@
     }
     
     .detail-card:hover {
-        transform: translateY(-2px);
+        /* Transform animation removed for cleaner interface */
     }
     
     .status-badge {
@@ -131,14 +131,10 @@
     .timeline-marker.current {
         background: #007bff;
         box-shadow: 0 0 0 2px #007bff;
-        animation: pulse 2s infinite;
+        /* Pulse animation removed for cleaner interface */
     }
     
-    @keyframes pulse {
-        0% { box-shadow: 0 0 0 2px #007bff; }
-        50% { box-shadow: 0 0 0 8px rgba(0,123,255,0.3); }
-        100% { box-shadow: 0 0 0 2px #007bff; }
-    }
+    /* Pulse keyframe animation removed for cleaner interface */
 </style>
 @endpush
 
@@ -160,6 +156,9 @@
                 </div>
                 <div class="d-flex gap-2">
                     @can('update', $ekstrakurikuler)
+                    <a href="{{ route('ekstrakurikuler.enrollment.index', $ekstrakurikuler) }}" class="btn btn-info text-white">
+                        <i class="fas fa-users"></i> Siswa
+                    </a>
                     <a href="{{ route('ekstrakurikuler.edit', $ekstrakurikuler) }}" class="btn btn-warning">
                         <i class="fas fa-edit"></i> Edit
                     </a>
@@ -377,11 +376,11 @@
                                         <div class="row">
                                             <div class="col-md-4">
                                                 <strong>Tanggal Mulai:</strong><br>
-                                                {{ $ekstrakurikuler->tanggal_mulai ? $ekstrakurikuler->tanggal_mulai->format('d F Y') : '-' }}
+                                                {{ $ekstrakurikuler->tanggal_mulai ? $ekstrakurikuler->tanggal_mulai->format('d/m/Y') : '-' }}
                                             </div>
                                             <div class="col-md-4">
                                                 <strong>Tanggal Selesai:</strong><br>
-                                                {{ $ekstrakurikuler->tanggal_selesai ? $ekstrakurikuler->tanggal_selesai->format('d F Y') : '-' }}
+                                                {{ $ekstrakurikuler->tanggal_selesai ? $ekstrakurikuler->tanggal_selesai->format('d/m/Y') : '-' }}
                                             </div>
                                             <div class="col-md-4">
                                                 <strong>Total Pertemuan:</strong><br>
@@ -399,11 +398,23 @@
                                 @forelse($ekstrakurikuler->rombels as $rombel)
                                 <div class="col-md-6 mb-4">
                                     <div class="card rombel-card">
-                                        <div class="card-header bg-primary text-white">
+                                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                                             <h6 class="mb-0">
                                                 <i class="fas fa-users"></i> {{ $rombel->nama_rombel }}
                                                 <span class="badge badge-light ml-2">{{ $rombel->status_label }}</span>
                                             </h6>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="dropdownMenuButton{{ $rombel->id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="fas fa-cog"></i> Aksi
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ $rombel->id }}">
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#importSiswaModal{{ $rombel->id }}">
+                                                            <i class="fas fa-file-upload text-success me-2"></i> Import Siswa (Excel)
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
@@ -487,6 +498,37 @@
                                     </div>
                                 </div>
                                 @endforelse
+                                
+                                {{-- Modals for Rombel Actions (Placed outside loop if IDs used, or inside if unique) --}}
+                                @foreach($ekstrakurikuler->rombels as $rombel)
+                                <div class="modal fade" id="importSiswaModal{{ $rombel->id }}" tabindex="-1" aria-labelledby="importSiswaModalLabel{{ $rombel->id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <form action="{{ route('rombel.import-siswa', $rombel->id) }}" method="POST" enctype="multipart/form-data">
+                                                @csrf
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="importSiswaModalLabel{{ $rombel->id }}">Import Siswa ke {{ $rombel->nama_rombel }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label for="file_excel" class="form-label">File Excel/CSV (.xlsx, .csv)</label>
+                                                        <input type="file" class="form-control" id="file_excel" name="file" required accept=".xlsx,.xls,.csv">
+                                                        <small class="text-muted">Format: No, Nama Lengkap, NISN (optional), Kelas</small>
+                                                    </div>
+                                                    <div class="alert alert-info small">
+                                                        <i class="fas fa-info-circle"></i> Sistem akan mencocokkan siswa berdasarkan NISN atau Nama + Sekolah. Jika tidak ditemukan, siswa baru akan dibuat otomatis.
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                                    <button type="submit" class="btn btn-primary">Import Data</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
                             </div>
                         </div>
                         
@@ -522,10 +564,17 @@
                                                     <div class="session-card p-3">
                                                         <div class="d-flex justify-content-between align-items-start">
                                                             <div>
-                                                                <h6 class="mb-1">Pertemuan {{ $session->nomor_pertemuan }}</h6>
+                                                                <div class="d-flex align-items-center mb-1">
+                                                                    <h6 class="mb-0 mr-2">Pertemuan {{ $session->nomor_pertemuan }}</h6>
+                                                                    @can('update', $session)
+                                                                    <a href="{{ route('ekstrakurikuler.sessions.edit', $session) }}" class="btn btn-xs btn-outline-warning ms-2" title="Edit Jadwal">
+                                                                        <i class="fas fa-pencil-alt"></i>
+                                                                    </a>
+                                                                    @endcan
+                                                                </div>
                                                                 <div class="text-muted mb-2">
                                                                     <i class="fas fa-calendar"></i> 
-                                                                    {{ $session->tanggal_terjadwal->format('d F Y') }}
+                                                                    {{ $session->tanggal_terjadwal->format('d/m/Y') }}
                                                                     <span class="mx-2">|</span>
                                                                     <i class="fas fa-clock"></i> 
                                                                     {{ $session->jadwal_waktu }}
@@ -558,7 +607,7 @@
                                                         <div class="mt-2 p-2 bg-light rounded">
                                                             <small class="text-muted">
                                                                 <i class="fas fa-check"></i> 
-                                                                Dilaksanakan: {{ $session->tanggal_pelaksanaan->format('d F Y') }}
+                                                                Dilaksanakan: {{ $session->tanggal_pelaksanaan->format('d/m/Y') }}
                                                                 @if($session->waktu_aktual)
                                                                     ({{ $session->waktu_aktual }})
                                                                 @endif
@@ -574,6 +623,50 @@
                                                             </small>
                                                         </div>
                                                         @endif
+
+                                                        {{-- Instructor Actions --}}
+                                                        <div class="mt-3 pt-2 border-top">
+                                                            <div class="d-flex gap-2">
+                                                                @if($session->status == 'terjadwal')
+                                                                    @if(auth()->id() == $session->user_id_instruktur || auth()->user()->hasRole(['admin', 'admin_erlass', 'webmaster']))
+                                                                    <form action="{{ route('ekstrakurikuler.sessions.start', $session) }}" method="POST" class="d-inline" onsubmit="return confirm('Mulai sesi ini sekarang?');">
+                                                                        @csrf
+                                                                        <button type="submit" class="btn btn-sm btn-primary">
+                                                                            <i class="fas fa-play"></i> Mulai Mengajar
+                                                                        </button>
+                                                                    </form>
+                                                                    @endif
+                                                                @elseif($session->status == 'berlangsung')
+                                                                    @if(auth()->id() == $session->user_id_instruktur || auth()->user()->hasRole(['admin', 'admin_erlass', 'webmaster']))
+                                                                    <form action="{{ route('ekstrakurikuler.sessions.complete', $session) }}" method="POST" class="d-inline" onsubmit="return confirm('Selesaikan sesi ini?');">
+                                                                        @csrf
+                                                                        <button type="submit" class="btn btn-sm btn-success">
+                                                                            <i class="fas fa-check"></i> Selesai Mengajar
+                                                                        </button>
+                                                                    </form>
+                                                                    @endif
+                                                                @elseif($session->status == 'selesai')
+                                                                    @if(!$session->laporan_mengajar_id)
+                                                                         @can('create', App\Models\LaporanMengajar::class)
+                                                                         <form action="{{ route('laporan-mengajar.from-ekstrakurikuler', $session) }}" method="POST" class="d-inline">
+                                                                            @csrf
+                                                                            <button class="btn btn-sm btn-info text-white">
+                                                                                <i class="fas fa-file-alt"></i> Buat Laporan
+                                                                            </button>
+                                                                        </form>
+                                                                        @endcan
+                                                                    @else
+                                                                        <a href="{{ route('laporan-mengajar.show', $session->laporan_mengajar_id) }}" class="btn btn-sm btn-outline-info">
+                                                                            <i class="fas fa-eye"></i> Lihat Laporan
+                                                                        </a>
+                                                                        
+                                                                        <a href="{{ route('ekstrakurikuler-session.absensi.create', $session) }}" class="btn btn-sm btn-outline-success">
+                                                                            <i class="fas fa-user-check"></i> Absensi
+                                                                        </a>
+                                                                    @endif
+                                                                @endif
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 @endforeach

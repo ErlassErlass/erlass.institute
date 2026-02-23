@@ -4,20 +4,21 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::table('ekstrakurikuler', function (Blueprint $table) {
             // Rename nama_program to kategori_program with enum values
             $table->enum('kategori_program', [
                 'Coding Scratch',
-                'English Course', 
+                'English Course',
                 'Micro:bit Learning Kit',
                 'Pictoblox AI',
                 'Robotik Explorer',
-                'Robotik Jimu'
+                'Robotik Jimu',
             ])->after('id');
-            
+
             // Remove unnecessary fields
             $table->dropForeign(['user_id_admin']);
             $table->dropColumn([
@@ -25,7 +26,7 @@ return new class extends Migration {
                 'user_id_admin',
                 'email',
                 'keterangan_internet',
-                'catatan_status'
+                'catatan_status',
             ]);
         });
     }
@@ -39,7 +40,7 @@ return new class extends Migration {
             $table->string('email')->nullable();
             $table->text('keterangan_internet')->nullable();
             $table->text('catatan_status')->nullable();
-            
+
             // Drop new field
             $table->dropColumn('kategori_program');
         });

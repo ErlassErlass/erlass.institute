@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Carbon\Carbon;
 
 class SiswaEkstrakurikuler extends Model
 {
@@ -44,9 +43,13 @@ class SiswaEkstrakurikuler extends Model
      * Konstanta untuk status enrollment
      */
     const STATUS_AKTIF = 'aktif';
+
     const STATUS_LULUS = 'lulus';
+
     const STATUS_KELUAR = 'keluar';
+
     const STATUS_PINDAH = 'pindah';
+
     const STATUS_NONAKTIF = 'nonaktif';
 
     /**
@@ -151,6 +154,7 @@ class SiswaEkstrakurikuler extends Model
     public function getDurasiEnrollmentAttribute(): int
     {
         $endDate = $this->tanggal_keluar ?? now();
+
         return $this->tanggal_daftar->diffInDays($endDate);
     }
 
@@ -177,6 +181,7 @@ class SiswaEkstrakurikuler extends Model
     {
         if ($this->status === self::STATUS_NONAKTIF) {
             $this->status = self::STATUS_AKTIF;
+
             return $this->save();
         }
 
@@ -186,13 +191,14 @@ class SiswaEkstrakurikuler extends Model
     /**
      * Method untuk menonaktifkan enrollment.
      */
-    public function deactivate(string $alasan = null): bool
+    public function deactivate(?string $alasan = null): bool
     {
         if ($this->status === self::STATUS_AKTIF) {
             $this->status = self::STATUS_NONAKTIF;
             if ($alasan) {
                 $this->catatan = $alasan;
             }
+
             return $this->save();
         }
 
@@ -202,12 +208,13 @@ class SiswaEkstrakurikuler extends Model
     /**
      * Method untuk mengeluarkan siswa dari program.
      */
-    public function withdraw(string $alasan = null): bool
+    public function withdraw(?string $alasan = null): bool
     {
         if (in_array($this->status, [self::STATUS_AKTIF, self::STATUS_NONAKTIF])) {
             $this->status = self::STATUS_KELUAR;
             $this->tanggal_keluar = now();
             $this->alasan_keluar = $alasan;
+
             return $this->save();
         }
 
@@ -217,20 +224,21 @@ class SiswaEkstrakurikuler extends Model
     /**
      * Method untuk memindahkan siswa ke rombel lain.
      */
-    public function transfer(int $newRombelId, string $alasan = null): bool
+    public function transfer(int $newRombelId, ?string $alasan = null): bool
     {
         if ($this->status === self::STATUS_AKTIF) {
             // Cek apakah rombel baru ada dalam ekstrakurikuler yang sama
             $newRombel = EkstrakurikulerRombel::where('id', $newRombelId)
-                                             ->where('ekstrakurikuler_id', $this->ekstrakurikuler_id)
-                                             ->first();
+                ->where('ekstrakurikuler_id', $this->ekstrakurikuler_id)
+                ->first();
 
-            if (!$newRombel) {
+            if (! $newRombel) {
                 return false;
             }
 
             $this->ekstrakurikuler_rombel_id = $newRombelId;
-            $this->catatan = "Dipindah dari rombel sebelumnya. " . ($alasan ?? '');
+            $this->catatan = 'Dipindah dari rombel sebelumnya. '.($alasan ?? '');
+
             return $this->save();
         }
 
@@ -245,6 +253,7 @@ class SiswaEkstrakurikuler extends Model
         if ($this->status === self::STATUS_AKTIF) {
             $this->status = self::STATUS_LULUS;
             $this->tanggal_keluar = now();
+
             return $this->save();
         }
 

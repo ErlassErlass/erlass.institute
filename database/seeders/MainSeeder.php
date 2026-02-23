@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use App\Models\User;
+use App\Models\LaporanMengajar;
 use App\Models\Sekolah;
 use App\Models\Siswa;
-use App\Models\LaporanMengajar;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class MainSeeder extends Seeder
 {
@@ -30,12 +30,12 @@ class MainSeeder extends Seeder
         User::factory()->create([
             'nama_lengkap' => 'Admin Erlass 1',
             'email' => 'adminerlass1@erlass.com',
-            'role' => 'admin_erlass'
+            'role' => 'admin_erlass',
         ]);
         User::factory()->create([
             'nama_lengkap' => 'Admin Erlass 2',
             'email' => 'adminerlass2@erlass.com',
-            'role' => 'admin_erlass'
+            'role' => 'admin_erlass',
         ]);
 
         // Buat 8 Admin biasa
@@ -46,7 +46,7 @@ class MainSeeder extends Seeder
 
         // 2. Buat 80 Sekolah
         Sekolah::factory(80)->create();
-        
+
         // 3. Buat 500 Siswa (secara acak akan masuk ke 80 sekolah di atas)
         Siswa::factory(500)->create();
 

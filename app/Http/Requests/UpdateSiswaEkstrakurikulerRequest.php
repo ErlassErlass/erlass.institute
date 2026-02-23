@@ -21,7 +21,7 @@ class UpdateSiswaEkstrakurikulerRequest extends FormRequest
     public function rules(): array
     {
         $enrollment = $this->route('enrollment');
-        
+
         return [
             'ekstrakurikuler_rombel_id' => [
                 'required',
@@ -35,26 +35,26 @@ class UpdateSiswaEkstrakurikulerRequest extends FormRequest
             'status' => [
                 'required',
                 'string',
-                Rule::in(['aktif', 'lulus', 'keluar', 'pindah', 'nonaktif'])
+                Rule::in(['aktif', 'lulus', 'keluar', 'pindah', 'nonaktif']),
             ],
             'tanggal_keluar' => [
                 'nullable',
                 'date',
                 'required_if:status,lulus,keluar',
                 'before_or_equal:today',
-                'after_or_equal:' . ($enrollment ? $enrollment->tanggal_daftar->format('Y-m-d') : now()->subYears(2)->format('Y-m-d'))
+                'after_or_equal:'.($enrollment ? $enrollment->tanggal_daftar->format('Y-m-d') : now()->subYears(2)->format('Y-m-d')),
             ],
             'alasan_keluar' => [
                 'nullable',
                 'string',
                 'max:1000',
-                'required_if:status,keluar'
+                'required_if:status,keluar',
             ],
             'catatan' => [
                 'nullable',
                 'string',
-                'max:1000'
-            ]
+                'max:1000',
+            ],
         ];
     }
 
@@ -66,19 +66,19 @@ class UpdateSiswaEkstrakurikulerRequest extends FormRequest
         return [
             'ekstrakurikuler_rombel_id.required' => 'Rombel ekstrakurikuler wajib dipilih.',
             'ekstrakurikuler_rombel_id.exists' => 'Rombel yang dipilih tidak valid atau tidak tersedia.',
-            
+
             'status.required' => 'Status enrollment wajib dipilih.',
             'status.in' => 'Status yang dipilih tidak valid.',
-            
+
             'tanggal_keluar.date' => 'Format tanggal keluar tidak valid.',
             'tanggal_keluar.required_if' => 'Tanggal keluar wajib diisi untuk status lulus atau keluar.',
             'tanggal_keluar.before_or_equal' => 'Tanggal keluar tidak boleh di masa depan.',
             'tanggal_keluar.after_or_equal' => 'Tanggal keluar tidak boleh sebelum tanggal pendaftaran.',
-            
+
             'alasan_keluar.required_if' => 'Alasan keluar wajib diisi untuk status keluar.',
             'alasan_keluar.max' => 'Alasan keluar tidak boleh lebih dari 1000 karakter.',
-            
-            'catatan.max' => 'Catatan tidak boleh lebih dari 1000 karakter.'
+
+            'catatan.max' => 'Catatan tidak boleh lebih dari 1000 karakter.',
         ];
     }
 
@@ -109,7 +109,7 @@ class UpdateSiswaEkstrakurikulerRequest extends FormRequest
         if (in_array($this->status, ['aktif', 'nonaktif'])) {
             $this->merge([
                 'tanggal_keluar' => null,
-                'alasan_keluar' => null
+                'alasan_keluar' => null,
             ]);
         }
     }
@@ -121,23 +121,23 @@ class UpdateSiswaEkstrakurikulerRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $enrollment = $this->route('enrollment');
-            
+
             // Validasi perubahan rombel - cek kapasitas rombel baru
-            if ($this->filled('ekstrakurikuler_rombel_id') && 
-                $enrollment && 
+            if ($this->filled('ekstrakurikuler_rombel_id') &&
+                $enrollment &&
                 $this->ekstrakurikuler_rombel_id != $enrollment->ekstrakurikuler_rombel_id) {
-                
+
                 $newRombel = \App\Models\EkstrakurikulerRombel::find($this->ekstrakurikuler_rombel_id);
-                
+
                 if ($newRombel) {
                     $currentEnrollments = $newRombel->activeEnrollments()
                         ->where('id', '!=', $enrollment->id) // Exclude current enrollment
                         ->count();
                     $maxCapacity = $newRombel->jumlah_siswa;
-                    
+
                     if (($currentEnrollments + 1) > $maxCapacity) {
                         $validator->errors()->add(
-                            'ekstrakurikuler_rombel_id', 
+                            'ekstrakurikuler_rombel_id',
                             "Rombel tujuan sudah penuh (kapasitas maksimal: {$maxCapacity}, saat ini: {$currentEnrollments})."
                         );
                     }
@@ -152,7 +152,7 @@ class UpdateSiswaEkstrakurikulerRequest extends FormRequest
                 // Tidak bisa mengubah dari lulus ke status lain
                 if ($currentStatus === 'lulus' && $newStatus !== 'lulus') {
                     $validator->errors()->add(
-                        'status', 
+                        'status',
                         'Status siswa yang sudah lulus tidak dapat diubah.'
                     );
                 }
@@ -160,7 +160,7 @@ class UpdateSiswaEkstrakurikulerRequest extends FormRequest
                 // Tidak bisa mengubah dari keluar ke aktif (harus didaftarkan ulang)
                 if ($currentStatus === 'keluar' && $newStatus === 'aktif') {
                     $validator->errors()->add(
-                        'status', 
+                        'status',
                         'Siswa yang sudah keluar tidak dapat diaktifkan kembali. Lakukan pendaftaran ulang jika diperlukan.'
                     );
                 }
@@ -170,11 +170,11 @@ class UpdateSiswaEkstrakurikulerRequest extends FormRequest
             if ($this->filled('tanggal_keluar') && $enrollment) {
                 $tanggalKeluar = \Carbon\Carbon::parse($this->tanggal_keluar);
                 $tanggalDaftar = $enrollment->tanggal_daftar;
-                
+
                 if ($tanggalKeluar->lt($tanggalDaftar)) {
                     $validator->errors()->add(
-                        'tanggal_keluar', 
-                        'Tanggal keluar tidak boleh sebelum tanggal pendaftaran (' . $tanggalDaftar->format('d/m/Y') . ').'
+                        'tanggal_keluar',
+                        'Tanggal keluar tidak boleh sebelum tanggal pendaftaran ('.$tanggalDaftar->format('d/m/Y').').'
                     );
                 }
             }

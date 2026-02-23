@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\LaporanMengajar;
 use App\Models\Siswa;
-use Illuminate\Support\Facades\Log;
 
 class AttendanceService
 {
@@ -12,28 +11,28 @@ class AttendanceService
      * Minimum consecutive absences to be considered a dropout
      */
     private const MIN_CONSECUTIVE_ABSENCES = 3;
-    
+
     /**
      * Menghitung jumlah siswa yang dianggap keluar (tidak hadir 3x berturut-turut)
      * pada suatu laporan pertemuan.
      *
-     * @param LaporanMengajar $currentReport Laporan mengajar saat ini.
+     * @param  LaporanMengajar  $currentReport  Laporan mengajar saat ini.
      * @return int Jumlah siswa yang keluar.
      */
     public function calculateDropouts(LaporanMengajar $currentReport): int
     {
-        if (!$currentReport->exists) {
+        if (! $currentReport->exists) {
             throw new \InvalidArgumentException('Current report must be persisted');
         }
 
         $absentStudents = $this->getAbsentStudents($currentReport);
-        
+
         if ($absentStudents->isEmpty()) {
             return 0;
         }
 
         $previousReports = $this->getPreviousReports($currentReport);
-            
+
         if ($previousReports->count() < self::MIN_CONSECUTIVE_ABSENCES - 1) {
             return 0;
         }
@@ -46,9 +45,9 @@ class AttendanceService
      */
     protected function getAbsentStudents(LaporanMengajar $report)
     {
-        return Siswa::whereHas('absensis', function($query) use ($report) {
+        return Siswa::whereHas('absensis', function ($query) use ($report) {
             $query->where('laporan_mengajar_id', $report->id)
-                  ->where('hadir', false);
+                ->where('hadir', false);
         })->get();
     }
 
@@ -74,7 +73,7 @@ class AttendanceService
 
         foreach ($students as $student) {
             $consecutiveAbsences = 1; // Current absence
-            
+
             foreach ($reports as $report) {
                 if ($student->wasAbsentIn($report)) {
                     $consecutiveAbsences++;

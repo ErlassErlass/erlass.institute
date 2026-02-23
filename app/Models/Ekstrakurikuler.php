@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Ekstrakurikuler extends Model
 {
@@ -27,6 +27,7 @@ class Ekstrakurikuler extends Model
         'deskripsi',
         'user_id_sales',
         'region',
+        'city',
         'sekolah_kodlan',
         'alamat_lengkap',
         'google_maps_link',
@@ -50,6 +51,17 @@ class Ekstrakurikuler extends Model
         'status',
         'tanggal_disetujui',
         'disetujui_oleh',
+        'catatan_approval',
+        'tanggal_ditolak',
+        'ditolak_oleh',
+        'alasan_penolakan',
+        'tanggal_aktivasi',
+        'diaktifkan_oleh',
+        'tanggal_selesai_aktual',
+        'diselesaikan_oleh',
+        'tanggal_dibatalkan',
+        'dibatalkan_oleh',
+        'alasan_pembatalan',
         'created_by',
         'updated_by',
     ];
@@ -61,6 +73,10 @@ class Ekstrakurikuler extends Model
         'tanggal_mulai' => 'date',
         'tanggal_selesai' => 'date',
         'tanggal_disetujui' => 'datetime',
+        'tanggal_ditolak' => 'datetime',
+        'tanggal_aktivasi' => 'datetime',
+        'tanggal_selesai_aktual' => 'datetime',
+        'tanggal_dibatalkan' => 'datetime',
         'jarak_km' => 'decimal:2',
         'total_siswa' => 'integer',
         'total_ruangan' => 'integer',
@@ -72,36 +88,52 @@ class Ekstrakurikuler extends Model
      * Konstanta untuk kategori program
      */
     const KATEGORI_CODING_SCRATCH = 'Coding Scratch';
+
     const KATEGORI_ENGLISH_COURSE = 'English Course';
+
     const KATEGORI_MICROBIT_LEARNING = 'Micro:bit Learning Kit';
+
     const KATEGORI_PICTOBLOX_AI = 'Pictoblox AI';
+
     const KATEGORI_ROBOTIK_EXPLORER = 'Robotik Explorer';
+
     const KATEGORI_ROBOTIK_JIMU = 'Robotik Jimu';
 
     /**
      * Konstanta untuk status program
      */
     const STATUS_DRAFT = 'draft';
+
     const STATUS_DIAJUKAN = 'diajukan';
+
     const STATUS_DISETUJUI = 'disetujui';
+
     const STATUS_DITOLAK = 'ditolak';
+
     const STATUS_AKTIF = 'aktif';
+
     const STATUS_SELESAI = 'selesai';
+
     const STATUS_DIBATALKAN = 'dibatalkan';
 
     /**
      * Konstanta untuk frekuensi
      */
     const FREKUENSI_HARIAN = 'harian';
+
     const FREKUENSI_MINGGUAN = 'mingguan';
+
     const FREKUENSI_DUA_MINGGU = 'dua_minggu';
+
     const FREKUENSI_BULANAN = 'bulanan';
 
     /**
      * Konstanta untuk fasilitas
      */
     const FASILITAS_ADA = 'ada';
+
     const FASILITAS_TIDAK_ADA = 'tidak_ada';
+
     const FASILITAS_TIDAK_DIKETAHUI = 'tidak_diketahui';
 
     /**
@@ -119,7 +151,6 @@ class Ekstrakurikuler extends Model
     {
         return $this->belongsTo(User::class, 'user_id_sales');
     }
-
 
     /**
      * Relasi ke User yang menyetujui.
@@ -168,15 +199,15 @@ class Ekstrakurikuler extends Model
     public function siswa(): BelongsToMany
     {
         return $this->belongsToMany(Siswa::class, 'siswa_ekstrakurikuler')
-                    ->withPivot([
-                        'ekstrakurikuler_rombel_id',
-                        'status',
-                        'tanggal_daftar',
-                        'tanggal_keluar',
-                        'alasan_keluar',
-                        'catatan'
-                    ])
-                    ->withTimestamps();
+            ->withPivot([
+                'ekstrakurikuler_rombel_id',
+                'status',
+                'tanggal_daftar',
+                'tanggal_keluar',
+                'alasan_keluar',
+                'catatan',
+            ])
+            ->withTimestamps();
     }
 
     /**
@@ -240,7 +271,7 @@ class Ekstrakurikuler extends Model
      */
     public function scopeByKota($query, $kota)
     {
-        return $query->whereHas('sekolah', function($q) use ($kota) {
+        return $query->whereHas('sekolah', function ($q) use ($kota) {
             $q->where('kota', $kota);
         });
     }
@@ -333,11 +364,11 @@ class Ekstrakurikuler extends Model
     {
         $totalSession = $this->sessions()->count();
         $completedSession = $this->sessions()->where('status', 'selesai')->count();
-        
+
         return [
             'total' => $totalSession,
             'selesai' => $completedSession,
-            'persentase' => $totalSession > 0 ? round(($completedSession / $totalSession) * 100, 2) : 0
+            'persentase' => $totalSession > 0 ? round(($completedSession / $totalSession) * 100, 2) : 0,
         ];
     }
 

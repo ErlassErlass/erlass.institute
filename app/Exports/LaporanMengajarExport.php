@@ -2,7 +2,6 @@
 
 namespace App\Exports;
 
-use App\Models\LaporanMengajar;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -40,7 +39,7 @@ class LaporanMengajarExport implements FromCollection, WithHeadings, WithMapping
             'Refleksi Siswa',
             'Refleksi Capaian',
             'Keaktifan',
-            'Pemahaman Materi'
+            'Pemahaman Materi',
         ];
     }
 
@@ -63,7 +62,7 @@ class LaporanMengajarExport implements FromCollection, WithHeadings, WithMapping
             $laporan->refleksi_siswa,
             $laporan->refleksi_capaian,
             $this->mapKeaktifan($laporan->keaktifan),
-            $this->mapPemahaman($laporan->pemahaman_materi)
+            $this->mapPemahaman($laporan->pemahaman_materi),
         ];
     }
 
@@ -73,8 +72,9 @@ class LaporanMengajarExport implements FromCollection, WithHeadings, WithMapping
             'sangat_pasif' => 'Sangat Pasif',
             'pasif' => 'Pasif',
             'aktif' => 'Aktif',
-            'sangat_aktif' => 'Sangat Aktif'
+            'sangat_aktif' => 'Sangat Aktif',
         ];
+
         return $map[$value] ?? $value;
     }
 
@@ -84,8 +84,9 @@ class LaporanMengajarExport implements FromCollection, WithHeadings, WithMapping
             'belum_paham' => 'Belum Paham',
             'sedikit_paham' => 'Sedikit Paham',
             'paham' => 'Paham',
-            'sangat_paham' => 'Sangat Paham'
+            'sangat_paham' => 'Sangat Paham',
         ];
+
         return $map[$value] ?? $value;
     }
 }

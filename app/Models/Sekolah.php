@@ -56,4 +56,13 @@ class Sekolah extends Model
         // Local key (primary key) di tabel 'sekolah' ini adalah 'kodlan'
         return $this->hasMany(Siswa::class, 'sekolah_kodlan', 'kodlan');
     }
+
+    /**
+     * Relasi ke model Ekstrakurikuler.
+     * Satu Sekolah memiliki banyak Program Ekstrakurikuler.
+     */
+    public function ekstrakurikuler()
+    {
+        return $this->hasMany(Ekstrakurikuler::class, 'sekolah_kodlan', 'kodlan');
+    }
 }

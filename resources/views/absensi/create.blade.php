@@ -106,22 +106,28 @@
                             </div>
                         @endif
                         
+
                         <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                             <div>
+                                <button type="button" class="btn btn-outline-success btn-sm" id="btn-add-student">
+                                    <i class="bi bi-person-plus-fill me-1"></i> Tambah Siswa (Lainnya)
+                                </button>
+                            </div>
+                            <div>
                                 @if($isEkstrakurikuler ?? false)
-                                    <span class="badge bg-warning text-dark">
+                                    <span class="badge bg-warning text-dark me-2">
                                         <i class="bi bi-trophy me-1"></i>Ekstrakurikuler
                                     </span>
                                 @else
-                                    <span class="badge bg-primary">
+                                    <span class="badge bg-primary me-2">
                                         <i class="bi bi-mortarboard me-1"></i>Regular
                                     </span>
                                 @endif
-                                <small class="text-muted ms-2">{{ $siswas->count() }} siswa terdaftar</small>
+                                <small class="text-muted ms-2"><span id="student-count">{{ $siswas->count() }}</span> siswa terdaftar</small>
                             </div>
                             <div>
                                 <a href="{{ route('laporan-mengajar.show', $laporanMengajar) }}" class="btn btn-secondary">Batal</a>
-                                <button type="submit" class="btn btn-primary" {{ $siswas->isEmpty() ? 'disabled' : '' }}>
+                                <button type="submit" class="btn btn-primary">
                                     <i class="bi bi-save me-1"></i> 
                                     @if($isEkstrakurikuler ?? false)
                                         Simpan & Selesaikan Session
@@ -137,4 +143,224 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Cari Siswa -->
+<div class="modal fade" id="searchStudentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cari & Tambah Siswa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="student_search_input" placeholder="Ketik nama siswa (min. 3 huruf)...">
+                </div>
+                <div class="list-group" id="student_search_results">
+                    <!-- Results will appear here -->
+                </div>
+            </div>
+        </div>
+</div>
+</div>
+
+<!-- Modal Tambah Siswa Baru (Nested or Toggle) -->
+<div id="addStudentFormContainer" class="d-none border-top pt-3 mt-3">
+    <h6 class="fw-bold mb-3"><i class="bi bi-person-plus-fill me-2"></i>Tambah Siswa Baru</h6>
+    <form id="quickAddStudentForm">
+        <input type="hidden" name="sekolah_kodlan" value="{{ $laporanMengajar->sekolah_kodlan }}">
+        
+        <div class="mb-2">
+            <label class="form-label small">Nama Lengkap</label>
+            <input type="text" class="form-control form-control-sm" name="nama_lengkap" id="new_student_name" required minlength="3">
+        </div>
+        
+        <div class="row g-2 mb-2">
+            <div class="col-6">
+                <label class="form-label small">Jenis Kelamin</label>
+                <select class="form-select form-select-sm" name="jenis_kelamin" required>
+                    <option value="L">Laki-laki</option>
+                    <option value="P">Perempuan</option>
+                </select>
+            </div>
+            <div class="col-6">
+                <label class="form-label small">Kelas</label>
+                <input type="text" class="form-control form-control-sm" name="kelas" value="{{ $laporanMengajar->rombel }}" required>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+            <button type="button" class="btn btn-sm btn-outline-secondary me-md-2" id="cancelAddStudent">Batal</button>
+            <button type="submit" class="btn btn-sm btn-primary" id="saveNewStudentBtn">Simpan & Tambah</button>
+        </div>
+    </form>
+</div>
+        </div>
+    </div>
+</div>
+
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnAddStudent = document.getElementById('btn-add-student');
+        const searchModal = new bootstrap.Modal(document.getElementById('searchStudentModal'));
+        const searchInput = document.getElementById('student_search_input');
+        const searchResults = document.getElementById('student_search_results');
+        const absensiTableBody = document.querySelector('table tbody');
+        const studentCountSpan = document.getElementById('student-count');
+        let searchTimeout;
+
+        btnAddStudent.addEventListener('click', function() {
+            searchModal.show();
+            setTimeout(() => searchInput.focus(), 500);
+        });
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value;
+            
+            if (query.length < 3) {
+                searchResults.innerHTML = '<div class="text-center text-muted p-3">Ketik minimal 3 huruf</div>';
+                return;
+            }
+
+            searchResults.innerHTML = '<div class="text-center p-3"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Mencari...</div>';
+
+            searchTimeout = setTimeout(() => {
+                fetch(`{{ route('api.ekstrakurikuler.search-student') }}?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(res => {
+                        if(res.success && res.data.length > 0) {
+                            let html = '';
+                            res.data.forEach(student => {
+                                // Check if already added
+                                const exists = document.querySelector(`input[name="absensi[${student.id}]"]`);
+                                
+                                html += `
+                                    <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" 
+                                        onclick="addStudentToTable(${student.id}, '${student.nama_lengkap.replace(/'/g, "\\'")}')" 
+                                        ${exists ? 'disabled' : ''}>
+                                        <div>
+                                            <div class="fw-bold">${student.nama_lengkap}</div>
+                                            <small class="text-muted">${student.sekolah_nama || '-'} (${student.rombel || '-'})</small>
+                                        </div>
+                                        ${exists ? '<span class="badge bg-secondary">Sudah Ada</span>' : '<span class="badge bg-primary"><i class="bi bi-plus"></i></span>'}
+                                    </button>
+                                `;
+                            });
+                            searchResults.innerHTML = html;
+                        } else {
+                            searchResults.innerHTML = '<div class="text-center text-muted p-3">Tidak ditemukan siswa dengan nama tersebut.<br><button type="button" class="btn btn-sm btn-outline-primary mt-2" id="showAddFormBtn">Tambah Siswa Baru</button></div>';
+                            
+                            // Bind click event for the new button
+                            document.querySelector('#showAddFormBtn').addEventListener('click', function() {
+                                document.getElementById('addStudentFormContainer').classList.remove('d-none');
+                                document.getElementById('student_search_input').disabled = true;
+                                document.getElementById('new_student_name').value = query; // Pre-fill name
+                                document.getElementById('new_student_name').focus();
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        searchResults.innerHTML = '<div class="text-center text-danger p-3">Terjadi kesalahan.</div>';
+                    });
+            }, 500);
+        });
+
+        // Cancel Add Student
+        document.getElementById('cancelAddStudent').addEventListener('click', function() {
+            document.getElementById('addStudentFormContainer').classList.add('d-none');
+            document.getElementById('student_search_input').disabled = false;
+            document.getElementById('student_search_input').focus();
+        });
+
+        // Handle Quick Add Student Submit
+        document.getElementById('quickAddStudentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveNewStudentBtn');
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...';
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+
+            fetch("{{ route('api.ekstrakurikuler.store-quick-student') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(res => {
+                if(res.success) {
+                    addStudentToTable(res.data.id, res.data.nama_lengkap);
+                    
+                    // Reset and hide form
+                    this.reset();
+                    document.getElementById('addStudentFormContainer').classList.add('d-none');
+                    document.getElementById('student_search_input').disabled = false;
+                    document.getElementById('student_search_input').value = '';
+                    searchResults.innerHTML = '<div class="alert alert-success m-2 small"><i class="bi bi-check-circle me-1"></i>Siswa berhasil ditambahkan!</div>';
+                } else {
+                    alert('Gagal: ' + (res.message || 'Unknown error'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Terjadi kesalahan saat menyimpan data.');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        });
+
+        window.addStudentToTable = function(id, name) {
+            // Check again if exists
+            if(document.getElementById(`hadir_${id}`)) return;
+
+            const tr = document.createElement('tr');
+            tr.className = 'table-warning'; // Highlight added row
+            tr.innerHTML = `
+                <td>
+                    ${name} <span class="badge bg-info text-dark ms-2">Tambahan</span>
+                </td>
+                <td class="text-center">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="absensi[${id}]" id="hadir_${id}" value="1" checked>
+                    </div>
+                </td>
+                <td class="text-center">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="absensi[${id}]" id="tidak_hadir_${id}" value="0">
+                    </div>
+                </td>
+            `;
+
+            // If table is empty (showing "no data" message), clear it first
+            if(absensiTableBody.querySelector('td[colspan="3"]')) {
+                absensiTableBody.innerHTML = '';
+            }
+
+            absensiTableBody.appendChild(tr);
+            
+            // Update Count
+            studentCountSpan.textContent = parseInt(studentCountSpan.textContent) + 1;
+
+            // Close modal
+            searchModal.hide();
+            searchInput.value = '';
+            searchResults.innerHTML = '';
+            
+            // Enable submit button if it was disabled
+            document.querySelector('button[type="submit"]').disabled = false;
+        };
+    });
+</script>
+@endpush

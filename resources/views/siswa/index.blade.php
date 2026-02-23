@@ -2,98 +2,214 @@
 
 @section('title', 'Daftar Siswa')
 
+
+
 @section('content')
-<div class="container py-4">
-    <div class="row">
-        <div class="col-12">
-            <h1>Daftar Siswa</h1>
-            <p class="text-muted">Kelola data siswa yang terdaftar dalam program.</p>
-
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                        <a href="{{ route('siswa.create') }}" class="btn btn-success">
-                            <i class="bi bi-person-plus-fill me-1"></i> Tambah Siswa
-                        </a>
-                        <form method="GET" action="{{ route('siswa.index') }}" class="d-flex gap-2">
-                            <select name="kodlan" class="form-select" onchange="this.form.submit()">
-                                <option value="">Semua Sekolah</option>
-                                @foreach($sekolahs as $sekolah)
-                                {{-- Menggunakan 'kodlan' sebagai value dan untuk perbandingan --}}
-                                <option value="{{ $sekolah->kodlan }}" {{ request('kodlan') == $sekolah->kodlan ? 'selected' : '' }}>
-                                    {{ $sekolah->namasekolah }}
-                                </option>
-                                @endforeach
-                            </select>
-                            <input type="text" name="search" class="form-control" placeholder="Cari nama siswa..." value="{{ request('search') }}">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-search"></i>
-                            </button>
-                        </form>
-                    </div>
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body p-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <div>
+                    <h1 class="h3 fw-bold text-dark mb-1">Daftar Siswa</h1>
+                    <p class="text-muted mb-0">Kelola data siswa yang terdaftar dalam program.</p>
                 </div>
-
-                <div class="card-body">
-                    @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                    @endif
-
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover datatable" id="siswa-table">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>No.</th>
-                                    <th>Nama Lengkap</th>
-                                    <th>NISN</th>
-                                    <th>Sekolah</th>
-                                    <th>Rombel</th>
-                                    <th class="text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($siswa as $index => $item)
-                                <tr>
-                                    <td>{{ $siswa->firstItem() + $index }}</td>
-                                    <td>{{ $item->nama_lengkap }}</td>
-                                    <td>{{ $item->nisn }}</td>
-                                    <td>{{ $item->sekolah->namasekolah }}</td>
-                                    <td>{{ $item->rombel }}</td>
-                                    <td class="text-center">
-                                        <a href="{{ route('siswa.edit', $item) }}" class="btn btn-sm btn-warning">
-                                            <i class="bi bi-pencil-square"></i> Edit
-                                        </a>
-                                        <form action="{{ route('siswa.destroy', $item) }}" method="POST" class="d-inline delete-form">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger">
-                                                <i class="bi bi-trash"></i> Hapus
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="6" class="text-center">
-                                        Data siswa tidak ditemukan.
-                                        <a href="{{ route('siswa.index') }}" class="btn btn-sm btn-link">Hapus filter</a>
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('siswa.import') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-file-earmark-spreadsheet me-1"></i> Import CSV
+                    </a>
+                    <a href="{{ route('siswa.create') }}" class="btn btn-primary">
+                        <i class="bi bi-person-plus-fill me-1"></i> Tambah Siswa
+                    </a>
                 </div>
-
-                @if ($siswa->hasPages())
-                <div class="card-footer">
-                    {{-- Menambahkan query string filter saat paginasi --}}
-                    {{ $siswa->appends(request()->query())->links() }}
-                </div>
-                @endif
             </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body p-4">
+            <form method="GET" action="{{ route('siswa.index') }}" class="row g-3 align-items-center">
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted">Cari Siswa</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Nama siswa..." value="{{ request('search') }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted">Filter Sekolah</label>
+                    <select name="kodlan" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Sekolah</option>
+                        @foreach($sekolahs as $sekolah)
+                        <option value="{{ $sekolah->kodlan }}" {{ request('kodlan') == $sekolah->kodlan ? 'selected' : '' }}>
+                            {{ $sekolah->namasekolah }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4 text-md-end mt-4">
+                    <button type="submit" class="btn btn-primary px-4">Filter</button>
+                    @if(request()->has('search') || request()->has('kodlan'))
+                        <a href="{{ route('siswa.index') }}" class="btn btn-light border ms-2">Reset</a>
+                    @endif
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="mb-4 px-2">
+        <ul class="nav nav-pills gap-2">
+            <li class="nav-item">
+                <a class="nav-link {{ !request('temp_nisn') ? 'active' : 'bg-white text-dark border' }}" href="{{ route('siswa.index') }}">
+                    Semua Siswa
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request('temp_nisn') ? 'active bg-warning text-dark border-start-0' : 'bg-white text-dark border' }}" href="{{ route('siswa.index', ['temp_nisn' => 1]) }}">
+                    <i class="bi bi-exclamation-triangle me-1"></i> Perlu Verifikasi NISN
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Table Section -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 fw-bold text-dark">Data Siswa</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show m-4" role="alert">
+                <i class="bi bi-check-circle me-1"></i> {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
+
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover align-middle mb-0" id="siswa-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="5%" class="ps-4">No</th>
+                            <th width="25%">Siswa</th>
+                            <th width="15%">NIS/NISN</th>
+                            <th width="20%">Sekolah</th>
+                            <th width="15%">Kelas</th>
+                            <th width="10%" class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($siswa as $index => $item)
+                        <tr class="{{ Str::startsWith($item->nisn, 'TMP') ? 'table-warning' : '' }}">
+                            <td class="text-center text-muted ps-4">{{ $siswa->firstItem() + $index }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px;">
+                                        {{ substr($item->nama_lengkap, 0, 1) }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ $item->nama_lengkap }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-muted font-monospace small">{{ $item->nisn ?? '-' }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-building text-muted small"></i>
+                                    <span class="text-dark small">{{ $item->sekolah->namasekolah }}</span>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">{{ $item->kelas }}</span></td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a href="{{ route('siswa.edit', $item) }}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <form action="{{ route('siswa.destroy', $item) }}" method="POST" class="d-inline delete-form">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="mb-3">
+                                    <i class="bi bi-people text-muted fs-1 opacity-25"></i>
+                                </div>
+                                <h6 class="text-muted">Data Tidak Ditemukan</h6>
+                                <p class="small text-muted">Coba ubah filter pencarian Anda atau tambah siswa baru.</p>
+                                <a href="{{ route('siswa.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-4">Reset Filter</a>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div class="d-md-none">
+                @forelse ($siswa as $item)
+                    <div class="card mb-3 shadow-sm border-0 border-start border-4 {{ Str::startsWith($item->nisn, 'TMP') ? 'border-warning' : 'border-primary' }}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 40px; height: 40px;">
+                                        {{ substr($item->nama_lengkap, 0, 1) }}
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0 text-dark">{{ $item->nama_lengkap }}</h6>
+                                        <span class="badge bg-light text-dark border font-monospace small">{{ $item->nisn ?? '-' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-2 opacity-10">
+
+                            <div class="row g-2 small mb-3">
+                                <div class="col-12">
+                                    <div class="text-muted mb-1"><i class="bi bi-building me-1"></i>Sekolah</div>
+                                    <div class="fw-semibold">{{ $item->sekolah->namasekolah }}</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-muted mb-1"><i class="bi bi-bookmarks me-1"></i>Kelas</div>
+                                    <span class="badge bg-light text-dark border">{{ $item->kelas }}</span>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('siswa.edit', $item) }}" class="btn btn-sm btn-outline-warning flex-grow-1">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </a>
+                                <form action="{{ route('siswa.destroy', $item) }}" method="POST" class="flex-grow-1 delete-form">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                        <i class="bi bi-trash"></i> Hapus
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-center py-5">
+                        <i class="bi bi-people text-muted fs-1 opacity-25"></i>
+                        <h6 class="text-muted mt-3">Data Tidak Ditemukan</h6>
+                        <p class="small text-muted">Coba ubah filter pencarian Anda.</p>
+                    </div>
+                @endforelse
+            </div>
+            
+            @if ($siswa->hasPages())
+            <div class="card-footer bg-white border-top py-3">
+                {{ $siswa->appends(request()->query())->links() }}
+            </div>
+            @endif
         </div>
     </div>
 </div>
@@ -110,9 +226,18 @@
                 columnDefs: [
                     { orderable: false, targets: [0, 5] }, // Disable sorting for No. and Actions columns
                     { type: 'string', targets: [1, 3, 4] }, // String sorting for name, school, rombel
-                    { type: 'num-fmt', targets: [2] } // Numeric sorting for NISN
+                    { type: 'num-fmt', targets: [2] }, // Numeric sorting for NISN
+                    { searchable: false, targets: [0, 5] } // No. and Actions columns not searchable
                 ],
-                pageLength: 25
+                pageLength: 25,
+                columns: [
+                    null, // No.
+                    null, // Nama Lengkap
+                    null, // NISN
+                    null, // Sekolah
+                    null, // Rombel
+                    null  // Aksi
+                ]
             });
         }
         

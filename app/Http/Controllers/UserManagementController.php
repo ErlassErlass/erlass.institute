@@ -15,21 +15,48 @@ class UserManagementController extends Controller
     public function __construct(InstructorVerificationService $verificationService)
     {
         $this->middleware('auth');
-        $this->middleware('role:webmaster')->except(['show', 'edit', 'update']);
+        $this->middleware('role:webmaster,admin_sistem')->except(['show', 'edit', 'update']);
         $this->verificationService = $verificationService;
     }
 
     /**
      * Tampilkan daftar semua user (khusus webmaster)
      */
-    public function index()
+    public function index(Request $request)
     {
         $this->authorize('viewAny', User::class);
-        
-        $users = User::orderBy('created_at', 'desc')->paginate(20);
+
+        $query = User::query();
+
+        // Filter by Role
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
+        }
+
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama_lengkap', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('instructor_id', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
         $statistics = $this->verificationService->getVerificationStatistics();
         
-        return view('admin.users.index', compact('users', 'statistics'));
+        $roles = [
+            'webmaster' => 'Webmaster',
+            'admin' => 'Administrator',
+            'admin_sistem' => 'Admin Sistem',
+            'admin_erlass' => 'Admin Erlass',
+            'instruktur' => 'Instruktur',
+            'sales' => 'Sales',
+            'debug_user' => 'Debug User',
+        ];
+
+        return view('admin.users.index', compact('users', 'statistics', 'roles'));
     }
 
     /**
@@ -38,14 +65,14 @@ class UserManagementController extends Controller
     public function create()
     {
         $this->authorize('create', User::class);
-        
+
         $roles = [
             'webmaster' => 'Webmaster (Akses Penuh)',
-            'admin_erlass' => 'Admin Erlass (Akses Terbatas)',
+            'admin_sistem' => 'Admin Sistem (Akses Terbatas)',
             'instruktur' => 'Instruktur',
-            'debug_user' => 'Debug User (Development)'
+            'debug_user' => 'Debug User (Development)',
         ];
-        
+
         return view('admin.users.create', compact('roles'));
     }
 
@@ -55,7 +82,7 @@ class UserManagementController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', User::class);
-        
+
         $request->validate([
             'nama_lengkap' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -66,13 +93,13 @@ class UserManagementController extends Controller
             'pend_terakhir' => 'required|string|max:10',
             'kompetensi_1' => 'required|string|max:100',
             'kompetensi_2' => 'nullable|string|max:100',
-            'role' => ['required', Rule::in(['webmaster', 'admin_erlass', 'instruktur', 'debug_user'])],
+            'role' => ['required', Rule::in(['webmaster', 'admin_sistem', 'instruktur', 'debug_user'])],
         ]);
 
         $userData = $request->all();
         $userData['password'] = Hash::make($request->password);
         $userData['status'] = 'Aktif';
-        
+
         // Set default verification status berdasarkan role
         if ($request->role === 'instruktur') {
             $userData['is_verified'] = false;
@@ -97,7 +124,7 @@ class UserManagementController extends Controller
     public function show(User $user)
     {
         $this->authorize('view', $user);
-        
+
         return view('admin.users.show', compact('user'));
     }
 
@@ -107,14 +134,14 @@ class UserManagementController extends Controller
     public function edit(User $user)
     {
         $this->authorize('update', $user);
-        
+
         $roles = [
             'webmaster' => 'Webmaster (Akses Penuh)',
-            'admin_erlass' => 'Admin Erlass (Akses Terbatas)',
+            'admin_sistem' => 'Admin Sistem (Akses Terbatas)',
             'instruktur' => 'Instruktur',
-            'debug_user' => 'Debug User (Development)'
+            'debug_user' => 'Debug User (Development)',
         ];
-        
+
         return view('admin.users.edit', compact('user', 'roles'));
     }
 
@@ -124,7 +151,7 @@ class UserManagementController extends Controller
     public function update(Request $request, User $user)
     {
         $this->authorize('update', $user);
-        
+
         $rules = [
             'nama_lengkap' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
@@ -135,12 +162,12 @@ class UserManagementController extends Controller
             'kompetensi_1' => 'required|string|max:100',
             'kompetensi_2' => 'nullable|string|max:100',
         ];
-        
+
         // Hanya webmaster yang bisa mengubah role
         if (auth()->user()->canManageUsers()) {
-            $rules['role'] = ['required', Rule::in(['webmaster', 'admin_erlass', 'instruktur', 'debug_user'])];
+            $rules['role'] = ['required', Rule::in(['webmaster', 'admin_sistem', 'instruktur', 'debug_user'])];
         }
-        
+
         // Validasi password hanya jika diisi
         if ($request->filled('password')) {
             $rules['password'] = 'string|min:8|confirmed';
@@ -149,19 +176,19 @@ class UserManagementController extends Controller
         $request->validate($rules);
 
         $userData = $request->only([
-            'nama_lengkap', 'email', 'tanggal_lahir', 'no_telephone', 
-            'agama', 'pend_terakhir', 'kompetensi_1', 'kompetensi_2'
+            'nama_lengkap', 'email', 'tanggal_lahir', 'no_telephone',
+            'agama', 'pend_terakhir', 'kompetensi_1', 'kompetensi_2',
         ]);
-        
+
         // Update password jika diisi
         if ($request->filled('password')) {
             $userData['password'] = Hash::make($request->password);
         }
-        
+
         // Update role jika user adalah webmaster
         if (auth()->user()->canManageUsers() && $request->filled('role')) {
             $userData['role'] = $request->role;
-            
+
             // Reset verification status jika role berubah ke instruktur
             if ($request->role === 'instruktur' && $user->role !== 'instruktur') {
                 $userData['is_verified'] = false;
@@ -189,7 +216,7 @@ class UserManagementController extends Controller
     public function destroy(User $user)
     {
         $this->authorize('delete', $user);
-        
+
         // Tidak bisa hapus diri sendiri
         if (auth()->id() === $user->id) {
             return back()->with('error', 'Tidak dapat menghapus akun Anda sendiri.');
@@ -207,12 +234,25 @@ class UserManagementController extends Controller
     public function verificationIndex()
     {
         $this->authorize('manageVerification', User::class);
-        
+
         $pendingInstructors = $this->verificationService->getPendingVerifications();
         $statistics = $this->verificationService->getVerificationStatistics();
-        
+
         return view('admin.verification.index', compact('pendingInstructors', 'statistics'));
     }
+
+    /**
+     * Tampilkan detail verifikasi instruktur
+     */
+    public function showVerification(User $instructor)
+    {
+        $this->authorize('manageVerification', User::class);
+        
+        $instructor->load('instructorProfile');
+        
+        return view('admin.verification.show', compact('instructor'));
+    }
+
 
     /**
      * Approve verifikasi instruktur
@@ -220,11 +260,11 @@ class UserManagementController extends Controller
     public function approveInstructor(User $instructor)
     {
         $this->authorize('verifyInstructor', $instructor);
-        
+
         if ($this->verificationService->approveInstructor($instructor, auth()->user())) {
             return back()->with('success', "Instruktur {$instructor->nama_lengkap} berhasil diverifikasi.");
         }
-        
+
         return back()->with('error', 'Gagal memverifikasi instruktur.');
     }
 
@@ -234,15 +274,15 @@ class UserManagementController extends Controller
     public function rejectInstructor(Request $request, User $instructor)
     {
         $this->authorize('verifyInstructor', $instructor);
-        
+
         $request->validate([
-            'rejection_reason' => 'required|string|min:10|max:500'
+            'rejection_reason' => 'required|string|min:10|max:500',
         ]);
-        
+
         if ($this->verificationService->rejectInstructor($instructor, auth()->user(), $request->rejection_reason)) {
             return back()->with('success', "Verifikasi instruktur {$instructor->nama_lengkap} ditolak.");
         }
-        
+
         return back()->with('error', 'Gagal menolak verifikasi instruktur.');
     }
 }

@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SiswaEkstrakurikuler;
-use App\Models\Siswa;
+use App\Http\Requests\BulkImportByRombelRequest;
 use App\Models\Ekstrakurikuler;
 use App\Models\EkstrakurikulerRombel;
+use App\Models\Siswa;
+use App\Models\SiswaEkstrakurikuler;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
 
 class SiswaEkstrakurikulerController extends Controller
 {
@@ -35,14 +35,14 @@ class SiswaEkstrakurikulerController extends Controller
         // Search siswa
         if ($request->filled('search')) {
             $query->whereHas('siswa', function ($q) use ($request) {
-                $q->where('nama_lengkap', 'like', '%' . $request->search . '%')
-                  ->orWhere('nisn', 'like', '%' . $request->search . '%');
+                $q->where('nama_lengkap', 'like', '%'.$request->search.'%')
+                    ->orWhere('nisn', 'like', '%'.$request->search.'%');
             });
         }
 
         $enrollments = $query->orderBy('tanggal_daftar', 'desc')->paginate(20);
         $rombels = $ekstrakurikuler->rombels;
-        
+
         return view('ekstrakurikuler.enrollment.index', compact('ekstrakurikuler', 'enrollments', 'rombels'));
     }
 
@@ -54,12 +54,12 @@ class SiswaEkstrakurikulerController extends Controller
         $this->authorize('update', $ekstrakurikuler);
 
         $rombels = $ekstrakurikuler->rombels;
-        
+
         // Ambil siswa dari sekolah yang sama dan belum terdaftar di ekstrakurikuler ini
         $availableSiswa = Siswa::where('sekolah_kodlan', $ekstrakurikuler->sekolah_kodlan)
             ->whereDoesntHave('ekstrakurikulers', function ($query) use ($ekstrakurikuler) {
                 $query->where('ekstrakurikuler.id', $ekstrakurikuler->id)
-                      ->where('siswa_ekstrakurikuler.status', '!=', 'keluar');
+                    ->where('siswa_ekstrakurikuler.status', '!=', 'keluar');
             })
             ->orderBy('nama_lengkap')
             ->get();
@@ -79,21 +79,20 @@ class SiswaEkstrakurikulerController extends Controller
             'siswa_ids.*' => 'exists:siswa,id',
             'ekstrakurikuler_rombel_id' => 'required|exists:ekstrakurikuler_rombel,id',
             'tanggal_daftar' => 'required|date',
-            'catatan' => 'nullable|string|max:1000'
+            'catatan' => 'nullable|string|max:1000',
         ]);
 
         try {
             DB::beginTransaction();
 
             $rombel = EkstrakurikulerRombel::find($request->ekstrakurikuler_rombel_id);
-            
-            // Validasi rombel masih bisa menampung siswa
+
+            // Validasi rombel masih bisa menampung siswa - REMOVED due to logic error (current > current is always false, but equality check logic was flawed too as it compared against current count not max capacity)
+            // No capacity limit defined strictly in DB yet.
             $currentEnrollments = $rombel->activeEnrollments()->count();
             $newEnrollments = count($request->siswa_ids);
             
-            if (($currentEnrollments + $newEnrollments) > $rombel->getJumlahSiswaAktual()) {
-                return redirect()->back()->with('error', 'Rombel sudah penuh atau melebihi kapasitas.');
-            }
+            // Logic removed: if (($currentEnrollments + $newEnrollments) > $rombel->getJumlahSiswaAktual())
 
             $successCount = 0;
             $duplicateCount = 0;
@@ -107,6 +106,7 @@ class SiswaEkstrakurikulerController extends Controller
 
                 if ($existing) {
                     $duplicateCount++;
+
                     continue;
                 }
 
@@ -122,7 +122,7 @@ class SiswaEkstrakurikulerController extends Controller
                     'ekstrakurikuler_rombel_id' => $request->ekstrakurikuler_rombel_id,
                     'status' => 'aktif',
                     'tanggal_daftar' => $request->tanggal_daftar,
-                    'catatan' => $request->catatan
+                    'catatan' => $request->catatan,
                 ]);
 
                 $successCount++;
@@ -140,7 +140,8 @@ class SiswaEkstrakurikulerController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error saat mendaftarkan siswa: ' . $e->getMessage());
+            \Log::error('Error saat mendaftarkan siswa: '.$e->getMessage());
+
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mendaftarkan siswa.');
         }
     }
@@ -181,7 +182,7 @@ class SiswaEkstrakurikulerController extends Controller
             'status' => 'required|in:aktif,lulus,keluar,pindah,nonaktif',
             'tanggal_keluar' => 'nullable|date|required_if:status,lulus,keluar',
             'alasan_keluar' => 'nullable|string|max:1000|required_if:status,keluar',
-            'catatan' => 'nullable|string|max:1000'
+            'catatan' => 'nullable|string|max:1000',
         ]);
 
         try {
@@ -190,14 +191,15 @@ class SiswaEkstrakurikulerController extends Controller
                 'status' => $request->status,
                 'tanggal_keluar' => $request->tanggal_keluar,
                 'alasan_keluar' => $request->alasan_keluar,
-                'catatan' => $request->catatan
+                'catatan' => $request->catatan,
             ]);
 
             return redirect()->route('ekstrakurikuler.enrollment.show', [$ekstrakurikuler, $enrollment])
                 ->with('success', 'Data enrollment berhasil diperbarui.');
 
         } catch (\Exception $e) {
-            \Log::error('Error saat update enrollment: ' . $e->getMessage());
+            \Log::error('Error saat update enrollment: '.$e->getMessage());
+
             return redirect()->back()->with('error', 'Terjadi kesalahan saat memperbarui data.');
         }
     }
@@ -210,7 +212,7 @@ class SiswaEkstrakurikulerController extends Controller
         $this->authorize('update', $ekstrakurikuler);
 
         $request->validate([
-            'alasan_keluar' => 'required|string|max:1000'
+            'alasan_keluar' => 'required|string|max:1000',
         ]);
 
         try {
@@ -220,7 +222,8 @@ class SiswaEkstrakurikulerController extends Controller
                 ->with('success', 'Siswa berhasil dikeluarkan dari program ekstrakurikuler.');
 
         } catch (\Exception $e) {
-            \Log::error('Error saat mengeluarkan siswa: ' . $e->getMessage());
+            \Log::error('Error saat mengeluarkan siswa: '.$e->getMessage());
+
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengeluarkan siswa.');
         }
     }
@@ -234,16 +237,16 @@ class SiswaEkstrakurikulerController extends Controller
 
         $request->validate([
             'new_rombel_id' => 'required|exists:ekstrakurikuler_rombel,id',
-            'alasan' => 'nullable|string|max:1000'
+            'alasan' => 'nullable|string|max:1000',
         ]);
 
         try {
             $newRombel = EkstrakurikulerRombel::find($request->new_rombel_id);
-            
-            // Validasi rombel baru masih bisa menampung
-            if ($newRombel->activeEnrollments()->count() >= $newRombel->getJumlahSiswaAktual()) {
-                return redirect()->back()->with('error', 'Rombel tujuan sudah penuh.');
-            }
+
+            // Validasi rombel baru masih bisa menampung - REMOVED
+            // if ($newRombel->activeEnrollments()->count() >= $newRombel->getJumlahSiswaAktual()) {
+            //    return redirect()->back()->with('error', 'Rombel tujuan sudah penuh.');
+            // }
 
             $enrollment->transfer($request->new_rombel_id, $request->alasan);
 
@@ -251,7 +254,8 @@ class SiswaEkstrakurikulerController extends Controller
                 ->with('success', 'Siswa berhasil dipindahkan ke rombel baru.');
 
         } catch (\Exception $e) {
-            \Log::error('Error saat memindahkan siswa: ' . $e->getMessage());
+            \Log::error('Error saat memindahkan siswa: '.$e->getMessage());
+
             return redirect()->back()->with('error', 'Terjadi kesalahan saat memindahkan siswa.');
         }
     }
@@ -270,7 +274,8 @@ class SiswaEkstrakurikulerController extends Controller
                 return redirect()->back()->with('error', 'Tidak dapat mengaktifkan siswa ini.');
             }
         } catch (\Exception $e) {
-            \Log::error('Error saat mengaktifkan siswa: ' . $e->getMessage());
+            \Log::error('Error saat mengaktifkan siswa: '.$e->getMessage());
+
             return redirect()->back()->with('error', 'Terjadi kesalahan saat mengaktifkan siswa.');
         }
     }
@@ -290,7 +295,8 @@ class SiswaEkstrakurikulerController extends Controller
                 return redirect()->back()->with('error', 'Tidak dapat meluluskan siswa ini.');
             }
         } catch (\Exception $e) {
-            \Log::error('Error saat meluluskan siswa: ' . $e->getMessage());
+            \Log::error('Error saat meluluskan siswa: '.$e->getMessage());
+
             return redirect()->back()->with('error', 'Terjadi kesalahan saat meluluskan siswa.');
         }
     }
@@ -306,7 +312,7 @@ class SiswaEkstrakurikulerController extends Controller
             'enrollment_ids' => 'required|array|min:1',
             'enrollment_ids.*' => 'exists:siswa_ekstrakurikuler,id',
             'action' => 'required|in:activate,deactivate,graduate,delete',
-            'bulk_alasan' => 'nullable|string|max:1000'
+            'bulk_alasan' => 'nullable|string|max:1000',
         ]);
 
         try {
@@ -321,13 +327,19 @@ class SiswaEkstrakurikulerController extends Controller
             foreach ($enrollments as $enrollment) {
                 switch ($request->action) {
                     case 'activate':
-                        if ($enrollment->activate()) $successCount++;
+                        if ($enrollment->activate()) {
+                            $successCount++;
+                        }
                         break;
                     case 'deactivate':
-                        if ($enrollment->deactivate($request->bulk_alasan)) $successCount++;
+                        if ($enrollment->deactivate($request->bulk_alasan)) {
+                            $successCount++;
+                        }
                         break;
                     case 'graduate':
-                        if ($enrollment->graduate()) $successCount++;
+                        if ($enrollment->graduate()) {
+                            $successCount++;
+                        }
                         break;
                     case 'delete':
                         $enrollment->delete();
@@ -342,8 +354,84 @@ class SiswaEkstrakurikulerController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error saat bulk action enrollment: ' . $e->getMessage());
+            \Log::error('Error saat bulk action enrollment: '.$e->getMessage());
+
             return redirect()->back()->with('error', 'Terjadi kesalahan saat memproses data.');
         }
+    }
+
+    /**
+     * Mendaftarkan semua siswa dari rombel (kelas) tertentu secara bulk.
+     */
+    public function bulkImportByRombel(BulkImportByRombelRequest $request, Ekstrakurikuler $ekstrakurikuler)
+    {
+        $this->authorize('update', $ekstrakurikuler);
+
+        try {
+            DB::beginTransaction();
+
+            $rombel = EkstrakurikulerRombel::find($request->ekstrakurikuler_rombel_id);
+
+            // Ambil semua siswa dari rombel (kelas akademik, misal: 10-A) yang diminta dari sekolah yang sama
+            $siswaFromRombel = Siswa::where('sekolah_kodlan', $ekstrakurikuler->sekolah_kodlan)
+                ->where('rombel', $request->rombel) // Disini 'rombel' adalah Kelas Akademik siswa
+                ->whereDoesntHave('ekstrakurikulers', function ($query) use ($ekstrakurikuler) {
+                    $query->where('ekstrakurikuler.id', $ekstrakurikuler->id)
+                        ->where('siswa_ekstrakurikuler.status', '!=', 'keluar');
+                })
+                ->get();
+
+            if ($siswaFromRombel->isEmpty()) {
+                return redirect()->back()->with('error', 'Tidak ada siswa yang dapat didaftarkan dari kelas '.$request->rombel.'. Siswa mungkin sudah terdaftar atau kelas tidak ditemukan.');
+            }
+
+            // Validasi kapasitas rombel ekstrakurikuler - REMOVED due to logic error
+            // checks were comparing future count against current count
+            $currentEnrollments = $rombel->activeEnrollments()->count();
+            $newEnrollments = $siswaFromRombel->count();
+
+            $successCount = 0;
+
+            foreach ($siswaFromRombel as $siswa) {
+                SiswaEkstrakurikuler::create([
+                    'siswa_id' => $siswa->id,
+                    'ekstrakurikuler_id' => $ekstrakurikuler->id,
+                    'ekstrakurikuler_rombel_id' => $request->ekstrakurikuler_rombel_id, // Target Group ID
+                    'status' => 'aktif',
+                    'tanggal_daftar' => $request->tanggal_daftar,
+                    'catatan' => $request->catatan,
+                ]);
+
+                $successCount++;
+            }
+
+            DB::commit();
+
+            return redirect()->route('ekstrakurikuler.enrollment.index', $ekstrakurikuler)
+                ->with('success', "Berhasil mendaftarkan {$successCount} siswa dari kelas {$request->rombel} ke program ekstrakurikuler.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error saat bulk import by rombel: '.$e->getMessage());
+
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat mendaftarkan siswa dari rombel.');
+        }
+    }
+
+    /**
+     * Mendapatkan daftar rombel yang tersedia dari sekolah.
+     */
+    public function getAvailableRombels(Ekstrakurikuler $ekstrakurikuler)
+    {
+        $this->authorize('view', $ekstrakurikuler);
+
+        $rombels = Siswa::where('sekolah_kodlan', $ekstrakurikuler->sekolah_kodlan)
+            ->distinct()
+            ->pluck('rombel')
+            ->filter()
+            ->sort()
+            ->values();
+
+        return response()->json($rombels);
     }
 }

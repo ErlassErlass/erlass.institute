@@ -17,7 +17,7 @@ return new class extends Migration
             // Tambahkan satu kolom foreign key yang benar
             // Pastikan kolom ini ditambahkan setelah kolom yang sudah ada, misal 'user_id_assisten'
             $table->string('sekolah_kodlan')->after('user_id_assisten')->nullable();
-            
+
             // Buat relasi foreign key
             $table->foreign('sekolah_kodlan')->references('kodlan')->on('sekolah')->onDelete('set null');
         });
@@ -29,7 +29,7 @@ return new class extends Migration
             // Logika untuk rollback jika migrasi dibatalkan
             $table->dropForeign(['sekolah_kodlan']);
             $table->dropColumn('sekolah_kodlan');
-            
+
             $table->string('sekolah_nama');
             $table->string('sekolah_kota');
             $table->string('sekolah_kecamatan');

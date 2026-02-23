@@ -25,12 +25,12 @@ class StoreSiswaEkstrakurikulerRequest extends FormRequest
                 'required',
                 'array',
                 'min:1',
-                'max:50' // Batasi max 50 siswa per batch
+                'max:50', // Batasi max 50 siswa per batch
             ],
             'siswa_ids.*' => [
                 'required',
                 'integer',
-                'exists:siswa,id'
+                'exists:siswa,id',
             ],
             'ekstrakurikuler_rombel_id' => [
                 'required',
@@ -45,13 +45,13 @@ class StoreSiswaEkstrakurikulerRequest extends FormRequest
                 'required',
                 'date',
                 'before_or_equal:today',
-                'after_or_equal:' . now()->subYears(2)->format('Y-m-d') // Max 2 tahun yang lalu
+                'after_or_equal:'.now()->subYears(2)->format('Y-m-d'), // Max 2 tahun yang lalu
             ],
             'catatan' => [
                 'nullable',
                 'string',
-                'max:1000'
-            ]
+                'max:1000',
+            ],
         ];
     }
 
@@ -66,16 +66,16 @@ class StoreSiswaEkstrakurikulerRequest extends FormRequest
             'siswa_ids.min' => 'Pilih minimal satu siswa.',
             'siswa_ids.max' => 'Maksimal 50 siswa dapat didaftarkan dalam satu kali proses.',
             'siswa_ids.*.exists' => 'Salah satu siswa yang dipilih tidak valid.',
-            
+
             'ekstrakurikuler_rombel_id.required' => 'Rombel ekstrakurikuler wajib dipilih.',
             'ekstrakurikuler_rombel_id.exists' => 'Rombel yang dipilih tidak valid atau tidak tersedia.',
-            
+
             'tanggal_daftar.required' => 'Tanggal pendaftaran wajib diisi.',
             'tanggal_daftar.date' => 'Format tanggal pendaftaran tidak valid.',
             'tanggal_daftar.before_or_equal' => 'Tanggal pendaftaran tidak boleh di masa depan.',
             'tanggal_daftar.after_or_equal' => 'Tanggal pendaftaran terlalu lama (maksimal 2 tahun yang lalu).',
-            
-            'catatan.max' => 'Catatan tidak boleh lebih dari 1000 karakter.'
+
+            'catatan.max' => 'Catatan tidak boleh lebih dari 1000 karakter.',
         ];
     }
 
@@ -93,9 +93,9 @@ class StoreSiswaEkstrakurikulerRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         // Pastikan siswa_ids adalah array
-        if ($this->has('siswa_ids') && !is_array($this->siswa_ids)) {
+        if ($this->has('siswa_ids') && ! is_array($this->siswa_ids)) {
             $this->merge([
-                'siswa_ids' => [$this->siswa_ids]
+                'siswa_ids' => [$this->siswa_ids],
             ]);
         }
 
@@ -134,16 +134,16 @@ class StoreSiswaEkstrakurikulerRequest extends FormRequest
             // Validasi kapasitas rombel
             if ($this->filled('ekstrakurikuler_rombel_id') && $this->filled('siswa_ids')) {
                 $rombel = \App\Models\EkstrakurikulerRombel::find($this->ekstrakurikuler_rombel_id);
-                
+
                 if ($rombel) {
                     $currentEnrollments = $rombel->activeEnrollments()->count();
                     $newEnrollments = count($this->siswa_ids);
                     $maxCapacity = $rombel->jumlah_siswa;
-                    
+
                     if (($currentEnrollments + $newEnrollments) > $maxCapacity) {
                         $available = max(0, $maxCapacity - $currentEnrollments);
                         $validator->errors()->add(
-                            'siswa_ids', 
+                            'siswa_ids',
                             "Rombel hanya dapat menampung {$available} siswa lagi (kapasitas maksimal: {$maxCapacity}, saat ini: {$currentEnrollments})."
                         );
                     }
@@ -159,7 +159,7 @@ class StoreSiswaEkstrakurikulerRequest extends FormRequest
 
                 if ($invalidSiswa) {
                     $validator->errors()->add(
-                        'siswa_ids', 
+                        'siswa_ids',
                         'Semua siswa harus berasal dari sekolah yang sama dengan program ekstrakurikuler.'
                     );
                 }
@@ -177,7 +177,7 @@ class StoreSiswaEkstrakurikulerRequest extends FormRequest
                 if ($alreadyEnrolled->isNotEmpty()) {
                     $names = $alreadyEnrolled->pluck('siswa.nama_lengkap')->implode(', ');
                     $validator->errors()->add(
-                        'siswa_ids', 
+                        'siswa_ids',
                         "Siswa berikut sudah terdaftar dalam program ini: {$names}"
                     );
                 }

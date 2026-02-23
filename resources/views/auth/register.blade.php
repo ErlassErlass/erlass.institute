@@ -27,9 +27,7 @@
                     <div class="card-body p-5">
                         <!-- Logo/Brand Section -->
                         <div class="text-center mb-4">
-                            <div class="mb-3">
-                                <i class="bi bi-person-plus-fill text-primary" style="font-size: 3rem;"></i>
-                            </div>
+                                <img src="{{ asset('images/logo-erlass.png') }}" alt="Erlass Logo" class="img-fluid" style="max-height: 80px;">
                             <h1 class="h3 fw-bold text-dark mb-1">Daftar Akun Baru</h1>
                             <p class="text-muted mb-0">Bergabunglah dengan Erlass Ekskul</p>
                         </div>

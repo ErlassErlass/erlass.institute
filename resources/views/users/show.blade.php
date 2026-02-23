@@ -83,7 +83,7 @@
                                     
                                     <div class="mb-3">
                                         <strong>Tanggal Lahir:</strong><br>
-                                        {{ $user->tanggal_lahir ? \Carbon\Carbon::parse($user->tanggal_lahir)->format('d F Y') : '-' }}
+                                        {{ $user->tanggal_lahir ? \Carbon\Carbon::parse($user->tanggal_lahir)->format('d/m/Y') : '-' }}
                                     </div>
                                     
                                     <div class="mb-3">
@@ -137,14 +137,14 @@
                             <div class="mb-3">
                                 <strong>Terdaftar:</strong><br>
                                 <small class="text-muted">
-                                    {{ $user->created_at->format('d F Y H:i') }}
+                                    {{ $user->created_at->format('d/m/Y H:i') }}
                                 </small>
                             </div>
                             
                             <div class="mb-3">
                                 <strong>Terakhir Diperbarui:</strong><br>
                                 <small class="text-muted">
-                                    {{ $user->updated_at->format('d F Y H:i') }}
+                                    {{ $user->updated_at->format('d/m/Y H:i') }}
                                 </small>
                             </div>
                         </div>
@@ -178,7 +178,7 @@
                                     <div class="mb-3">
                                         <strong>Diverifikasi:</strong><br>
                                         <small class="text-muted">
-                                            {{ $user->verified_at->format('d F Y H:i') }}
+                                            {{ $user->verified_at->format('d/m/Y H:i') }}
                                         </small>
                                     </div>
                                 @endif

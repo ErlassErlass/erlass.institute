@@ -2,73 +2,60 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\User;
+use App\Models\LaporanMengajar;
 use App\Models\Sekolah;
 use App\Models\Siswa;
-use App\Models\LaporanMengajar;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
         // 1. Buat User dengan sistem role baru
-        
-        // Buat 1 Webmaster (akses tertinggi)
-        User::factory()->create([
-            'nama_lengkap' => 'Webmaster Utama',
-            'email' => 'webmaster@erlass.com',
-            'role' => 'webmaster'
-        ]);
-        
-        // Buat 1 Admin Erlass (akses terbatas)
-        User::factory()->create([
-            'nama_lengkap' => 'Admin Erlass',
-            'email' => 'admin@erlass.com',
-            'role' => 'admin_erlass'
-        ]);
-        
-        // Buat 1 Debug User untuk development
-        User::factory()->create([
-            'nama_lengkap' => 'Debug User',
-            'email' => 'debug@erlass.com',
-            'role' => 'debug_user'
-        ]);
-        
-        // Buat 47 Instruktur (total user 50)
-        // 40 instruktur terverifikasi
-        User::factory(40)->create([
-            'role' => 'instruktur',
-            'is_verified' => true,
-            'verified_at' => now(),
-            'verification_status' => 'approved'
-        ]);
-        
-        // 5 instruktur pending verifikasi  
-        User::factory(5)->create([
-            'role' => 'instruktur',
-            'is_verified' => false,
-            'verified_at' => null,
-            'verification_status' => 'pending'
-        ]);
-        
-        // 2 instruktur ditolak verifikasinya
-        User::factory(2)->create([
-            'role' => 'instruktur',
-            'is_verified' => false,
-            'verified_at' => null,
-            'verification_status' => 'rejected',
-            'rejection_reason' => 'Dokumen tidak lengkap'
-        ]);
+        $this->call(UserSeeder::class);
+        /* 
+        // Inline factory blocked replaced by UserSeeder class
+        // ...
+        */
 
-        // 2. Buat 80 Sekolah
-        Sekolah::factory(80)->create();
-        
-        // 3. Buat 500 Siswa (secara acak akan masuk ke 80 sekolah di atas)
+        /*
+        // 2. Buat 80 Sekolah dengan variasi jenjang pendidikan
+        Sekolah::factory(50)->create(['jenjang' => 'SD']);
+        Sekolah::factory(30)->create(['jenjang' => 'SMP']);
+
+        // 3. Buat 500 Siswa (secara acak akan masuk ke sekolah di atas)
         Siswa::factory(500)->create();
 
-        // 4. Buat 100 Laporan Mengajar
+        // 4. Buat Program Ekstrakurikuler
+        // 15 program draft dan diajukan
+        \App\Models\Ekstrakurikuler::factory(15)->draft()->create();
+        \App\Models\Ekstrakurikuler::factory(10)->submitted()->create();
+
+        // 20 program yang sudah disetujui
+        \App\Models\Ekstrakurikuler::factory(20)->approved()->create();
+
+        // 25 program aktif berjalan
+        \App\Models\Ekstrakurikuler::factory(25)->active()->create();
+
+        // 8 program yang sudah selesai
+        \App\Models\Ekstrakurikuler::factory(8)->completed()->create();
+
+        // 5 program yang ditolak atau dibatalkan
+        \App\Models\Ekstrakurikuler::factory(3)->rejected()->create();
+        \App\Models\Ekstrakurikuler::factory(2)->cancelled()->create();
+
+        // 5. Buat 100 Laporan Mengajar
         // Ini akan secara otomatis membuat data absensi juga berkat configure() di factory-nya.
         LaporanMengajar::factory(100)->create();
+        */
+
+        // 2. Import Real Data (Master Data)
+        $this->call([
+            SekolahSeeder::class,     // Imports DataSekolah.csv
+            // ManualSiswaSeeder::class, // Imports siswa_import.csv (Disabled per user request)
+            EmployeeSeeder::class,    // Imports employees_import.csv
+            RefMateriSeeder::class,   // Syllabus/Materi Dropdowns
+        ]);
     }
 }

@@ -55,7 +55,7 @@
                 @foreach($salesUsers as $user)
                     <option value="{{ $user->id }}" 
                             {{ old('user_id_sales', $formData['user_id_sales'] ?? '') == $user->id ? 'selected' : '' }}>
-                        {{ $user->nama_lengkap }} ({{ $user->role }})
+                        {{ $user->nama_lengkap }} ({{ $user->division->name ?? 'General' }})
                     </option>
                 @endforeach
             </select>

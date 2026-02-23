@@ -2,13 +2,13 @@
 
 namespace App\Providers;
 
-use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use App\Models\Ekstrakurikuler;
 use App\Models\LaporanMengajar;
 use App\Models\User;
-use App\Models\Ekstrakurikuler;
+use App\Policies\EkstrakurikulerPolicy;
 use App\Policies\LaporanMengajarPolicy;
 use App\Policies\UserPolicy;
-use App\Policies\EkstrakurikulerPolicy;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -21,6 +21,8 @@ class AuthServiceProvider extends ServiceProvider
         LaporanMengajar::class => LaporanMengajarPolicy::class,
         User::class => UserPolicy::class,
         Ekstrakurikuler::class => EkstrakurikulerPolicy::class,
+        \App\Models\EkstrakurikulerSession::class => \App\Policies\EkstrakurikulerSessionPolicy::class,
+        \App\Models\ActivityLog::class => \App\Policies\ActivityLogPolicy::class,
     ];
 
     /**

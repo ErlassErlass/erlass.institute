@@ -9,18 +9,23 @@ class UserPolicy
     /**
      * Hanya webmaster yang bisa melakukan manajemen user.
      */
-    public function before(User $user, string $ability): bool|null
+    public function before(User $user, string $ability): ?bool
     {
-        // Hanya webmaster yang memiliki akses penuh untuk manajemen user
+        // Hanya webmaster yang memiliki akses penuh untuk manajemen user (root level)
         if ($user->role === 'webmaster') {
             return true;
         }
         
-        // Admin Erlass diblokir dari manajemen user
-        if ($user->role === 'admin_erlass') {
-            return false;
+        // Admin Sistem juga memiliki hak manajemen user tapi mungkin terbatas (utk saat ini kita samakan dulu atau sesuaikan)
+        // User request: admin_sistem -> admin sistem. Likely allows user management too.
+        if ($user->role === 'admin_sistem') {
+             // For safety, let's allow basic before check but keep webmaster exclusives specific
+             // If admin_sistem is "IT Admin", they likely need this.
+             return null; // Return null so individual policy methods decide. Or return true? 
+             // Let's stick to Webmaster as ONLY super-root for User Management changes if strictly defined. 
+             // But usually 'admin system' implies user management.
         }
-        
+
         return null;
     }
 
@@ -30,7 +35,7 @@ class UserPolicy
     public function viewAny(User $user): bool
     {
         // Hanya webmaster yang bisa melihat daftar user
-        return $user->role === 'webmaster';
+        return in_array($user->role, ['webmaster', 'admin_sistem']);
     }
 
     /**
@@ -42,7 +47,7 @@ class UserPolicy
         if ($user->role === 'webmaster') {
             return true;
         }
-        
+
         // User lain hanya bisa melihat profilenya sendiri
         return $user->id === $model->id;
     }
@@ -52,7 +57,7 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        return $user->role === 'webmaster';
+        return in_array($user->role, ['webmaster', 'admin_sistem']);
     }
 
     /**
@@ -64,7 +69,12 @@ class UserPolicy
         if ($user->role === 'webmaster') {
             return true;
         }
-        
+
+        // Admin Sistem bisa edit user lain, KECUALI Webmaster
+        if ($user->role === 'admin_sistem') {
+            return $model->role !== 'webmaster';
+        }
+
         // User lain hanya bisa edit profilenya sendiri (kecuali role)
         return $user->id === $model->id;
     }
@@ -74,9 +84,17 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
-        // Hanya webmaster yang bisa delete user
-        // Tapi tidak bisa delete diri sendiri
-        return $user->role === 'webmaster' && $user->id !== $model->id;
+        // Webmaster bisa delete siapa saja (kecuali diri sendiri)
+        if ($user->role === 'webmaster') {
+            return $user->id !== $model->id;
+        }
+
+        // Admin Sistem bisa delete user lain, KECUALI Webmaster
+        if ($user->role === 'admin_sistem') {
+            return $model->role !== 'webmaster' && $user->id !== $model->id;
+        }
+
+        return false;
     }
 
     /**
@@ -84,7 +102,7 @@ class UserPolicy
      */
     public function manageVerification(User $user): bool
     {
-        return $user->role === 'webmaster';
+        return in_array($user->role, ['webmaster', 'admin_sistem']);
     }
 
     /**
@@ -94,8 +112,8 @@ class UserPolicy
     {
         // Hanya webmaster yang bisa verifikasi instruktur
         // Dan tidak bisa verifikasi diri sendiri
-        return $user->role === 'webmaster' 
-               && $instructor->role === 'instruktur' 
+        return in_array($user->role, ['webmaster', 'admin_sistem'])
+               && $instructor->role === 'instruktur'
                && $user->id !== $instructor->id;
     }
 

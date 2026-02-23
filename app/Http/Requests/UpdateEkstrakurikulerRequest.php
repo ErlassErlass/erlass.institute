@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Models\Ekstrakurikuler;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateEkstrakurikulerRequest extends FormRequest
@@ -24,10 +24,10 @@ class UpdateEkstrakurikulerRequest extends FormRequest
     public function rules(): array
     {
         $ekstrakurikuler = $this->route('ekstrakurikuler');
-        
+
         return [
             // Basic Information
-            'nama_program' => 'required|string|max:255',
+            'kategori_program' => 'required|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',
             'user_id_sales' => 'required|exists:users,id',
             'region' => 'nullable|string|in:JAKARTA,DEPOK,BOGOR,TANGERANG,BEKASI',
@@ -35,9 +35,9 @@ class UpdateEkstrakurikulerRequest extends FormRequest
             'status' => [
                 'required',
                 'string',
-                Rule::in($this->getAllowedStatuses($ekstrakurikuler))
+                Rule::in($this->getAllowedStatuses($ekstrakurikuler)),
             ],
-            
+
             // School Information
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
             'alamat_lengkap' => 'required|string',
@@ -47,7 +47,7 @@ class UpdateEkstrakurikulerRequest extends FormRequest
             'penanggung_jawab' => 'required|string|max:255',
             'no_telepon' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',
-            
+
             // Technical Requirements
             'koneksi_internet' => 'required|string|in:ada,tidak_ada,tidak_diketahui',
             'keterangan_internet' => 'nullable|string|max:500',
@@ -56,7 +56,7 @@ class UpdateEkstrakurikulerRequest extends FormRequest
             'kabel_hdmi' => 'required|string|in:ada,tidak_ada,tidak_diketahui',
             'kabel_vga' => 'required|string|in:ada,tidak_ada,tidak_diketahui',
             'keterangan_kabel' => 'nullable|string|max:500',
-            
+
             // Rombel data (if updating rombel information)
             'rombel' => 'sometimes|array',
             'rombel.*.jumlah_siswa' => 'required_with:rombel|integer|min:1|max:50',
@@ -65,7 +65,7 @@ class UpdateEkstrakurikulerRequest extends FormRequest
             'rombel.*.keterangan_ruangan' => 'nullable|string|max:255',
             'rombel.*.hari' => 'required_with:rombel|string|in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
             'rombel.*.jam_mulai' => 'required_with:rombel|date_format:H:i',
-            'rombel.*.tanggal_mulai' => 'required_with:rombel|date|after_or_equal:today',
+            'rombel.*.tanggal_mulai' => 'required_with:rombel|date',
             'rombel.*.tanggal_selesai' => 'required_with:rombel|date|after:rombel.*.tanggal_mulai',
         ];
     }
@@ -77,7 +77,7 @@ class UpdateEkstrakurikulerRequest extends FormRequest
     {
         $user = auth()->user();
         $currentStatus = $ekstrakurikuler->status;
-        
+
         // Admin and webmaster can change to any status
         if (in_array($user->role, ['admin', 'webmaster'])) {
             return [
@@ -90,21 +90,21 @@ class UpdateEkstrakurikulerRequest extends FormRequest
                 Ekstrakurikuler::STATUS_DIBATALKAN,
             ];
         }
-        
+
         // Sales/instructor can only change certain statuses
         switch ($currentStatus) {
             case Ekstrakurikuler::STATUS_DRAFT:
                 return [
                     Ekstrakurikuler::STATUS_DRAFT,
-                    Ekstrakurikuler::STATUS_DIAJUKAN
+                    Ekstrakurikuler::STATUS_DIAJUKAN,
                 ];
-                
+
             case Ekstrakurikuler::STATUS_DITOLAK:
                 return [
                     Ekstrakurikuler::STATUS_DRAFT,
-                    Ekstrakurikuler::STATUS_DIAJUKAN
+                    Ekstrakurikuler::STATUS_DIAJUKAN,
                 ];
-                
+
             case Ekstrakurikuler::STATUS_DIAJUKAN:
             case Ekstrakurikuler::STATUS_DISETUJUI:
             case Ekstrakurikuler::STATUS_AKTIF:
@@ -121,7 +121,7 @@ class UpdateEkstrakurikulerRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'nama_program' => 'nama program',
+            'kategori_program' => 'nama program',
             'user_id_sales' => 'sales/koordinator',
             'sekolah_kodlan' => 'sekolah',
             'alamat_lengkap' => 'alamat lengkap',
@@ -136,7 +136,7 @@ class UpdateEkstrakurikulerRequest extends FormRequest
             'kabel_hdmi' => 'kabel HDMI',
             'kabel_vga' => 'kabel VGA',
             'keterangan_kabel' => 'keterangan kabel',
-            
+
             // Rombel attributes
             'rombel.*.jumlah_siswa' => 'jumlah siswa rombel',
             'rombel.*.total_pertemuan' => 'total pertemuan rombel',
@@ -155,68 +155,68 @@ class UpdateEkstrakurikulerRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'nama_program.required' => 'Nama program ekstrakurikuler wajib diisi.',
-            'nama_program.max' => 'Nama program tidak boleh lebih dari 255 karakter.',
-            
+            'kategori_program.required' => 'Kategori program ekstrakurikuler wajib diisi.',
+            'kategori_program.max' => 'Kategori program tidak boleh lebih dari 255 karakter.',
+
             'user_id_sales.required' => 'Sales/koordinator wajib dipilih.',
             'user_id_sales.exists' => 'Sales/koordinator yang dipilih tidak valid.',
-            
+
             'region.required' => 'Region wajib dipilih.',
             'region.in' => 'Region harus salah satu dari: Jakarta, Depok, Bogor, Tangerang, atau Bekasi.',
-            
+
             'status.required' => 'Status program wajib dipilih.',
             'status.in' => 'Status yang dipilih tidak valid untuk kondisi saat ini.',
-            
+
             'sekolah_kodlan.required' => 'Sekolah wajib dipilih.',
             'sekolah_kodlan.exists' => 'Sekolah yang dipilih tidak valid.',
-            
+
             'alamat_lengkap.required' => 'Alamat lengkap sekolah wajib diisi.',
-            
+
             'google_maps_link.url' => 'Link Google Maps harus berupa URL yang valid.',
-            
+
             'jarak_km.required' => 'Jarak dari POP wajib diisi.',
             'jarak_km.numeric' => 'Jarak harus berupa angka.',
             'jarak_km.min' => 'Jarak tidak boleh kurang dari 0 km.',
             'jarak_km.max' => 'Jarak tidak boleh lebih dari 999.99 km.',
-            
+
             'kepala_sekolah.required' => 'Nama kepala sekolah wajib diisi.',
             'penanggung_jawab.required' => 'Nama penanggung jawab ekstrakurikuler wajib diisi.',
             'no_telepon.required' => 'Nomor telepon penanggung jawab wajib diisi.',
-            
+
             'email.email' => 'Format email tidak valid.',
-            
+
             'koneksi_internet.required' => 'Status koneksi internet wajib dipilih.',
             'koneksi_internet.in' => 'Status koneksi internet tidak valid.',
-            
+
             'proyektor.required' => 'Status proyektor wajib dipilih.',
             'proyektor.in' => 'Status proyektor tidak valid.',
-            
+
             'kabel_hdmi.required' => 'Status kabel HDMI wajib dipilih.',
             'kabel_hdmi.in' => 'Status kabel HDMI tidak valid.',
-            
+
             'kabel_vga.required' => 'Status kabel VGA wajib dipilih.',
             'kabel_vga.in' => 'Status kabel VGA tidak valid.',
-            
+
             // Rombel validation messages
             'rombel.*.jumlah_siswa.required_with' => 'Jumlah siswa rombel wajib diisi.',
             'rombel.*.jumlah_siswa.integer' => 'Jumlah siswa harus berupa angka.',
             'rombel.*.jumlah_siswa.min' => 'Jumlah siswa minimal 1 orang.',
             'rombel.*.jumlah_siswa.max' => 'Jumlah siswa maksimal 50 orang.',
-            
+
             'rombel.*.total_pertemuan.required_with' => 'Total pertemuan rombel wajib diisi.',
             'rombel.*.total_pertemuan.integer' => 'Total pertemuan harus berupa angka.',
             'rombel.*.total_pertemuan.min' => 'Total pertemuan minimal 1.',
             'rombel.*.total_pertemuan.max' => 'Total pertemuan maksimal 50.',
-            
+
             'rombel.*.hari.required_with' => 'Hari kegiatan rombel wajib dipilih.',
             'rombel.*.hari.in' => 'Hari kegiatan tidak valid.',
-            
+
             'rombel.*.jam_mulai.required_with' => 'Jam mulai rombel wajib diisi.',
             'rombel.*.jam_mulai.date_format' => 'Format jam mulai tidak valid (HH:MM).',
-            
+
             'rombel.*.tanggal_mulai.required_with' => 'Tanggal mulai rombel wajib diisi.',
             'rombel.*.tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
-            
+
             'rombel.*.tanggal_selesai.required_with' => 'Tanggal selesai rombel wajib diisi.',
             'rombel.*.tanggal_selesai.after' => 'Tanggal selesai harus setelah tanggal mulai.',
         ];
@@ -230,14 +230,14 @@ class UpdateEkstrakurikulerRequest extends FormRequest
         // Clean phone number
         if ($this->has('no_telepon')) {
             $this->merge([
-                'no_telepon' => preg_replace('/[^0-9+]/', '', $this->no_telepon)
+                'no_telepon' => preg_replace('/[^0-9+]/', '', $this->no_telepon),
             ]);
         }
 
         // Ensure jarak_km is properly formatted
         if ($this->has('jarak_km')) {
             $this->merge([
-                'jarak_km' => is_numeric($this->jarak_km) ? (float) $this->jarak_km : $this->jarak_km
+                'jarak_km' => is_numeric($this->jarak_km) ? (float) $this->jarak_km : $this->jarak_km,
             ]);
         }
     }
@@ -249,12 +249,12 @@ class UpdateEkstrakurikulerRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $ekstrakurikuler = $this->route('ekstrakurikuler');
-            
+
             // Additional validation for active programs
             if ($ekstrakurikuler && $ekstrakurikuler->isActive()) {
                 $this->validateActiveProgram($validator, $ekstrakurikuler);
             }
-            
+
             // Validate rombel date consistency
             if ($this->has('rombel')) {
                 $this->validateRombelDates($validator);
@@ -269,10 +269,10 @@ class UpdateEkstrakurikulerRequest extends FormRequest
     {
         // Check if critical fields are being changed for an active program
         $criticalFields = ['sekolah_kodlan', 'total_rombel'];
-        
+
         foreach ($criticalFields as $field) {
             if ($this->has($field) && $this->input($field) != $ekstrakurikuler->$field) {
-                $validator->errors()->add($field, 
+                $validator->errors()->add($field,
                     'Field ini tidak dapat diubah untuk program yang sedang aktif.'
                 );
             }
@@ -285,21 +285,21 @@ class UpdateEkstrakurikulerRequest extends FormRequest
     private function validateRombelDates($validator): void
     {
         $rombels = $this->input('rombel', []);
-        
+
         foreach ($rombels as $rombelId => $rombelData) {
             if (isset($rombelData['tanggal_mulai']) && isset($rombelData['tanggal_selesai'])) {
                 $startDate = \Carbon\Carbon::parse($rombelData['tanggal_mulai']);
                 $endDate = \Carbon\Carbon::parse($rombelData['tanggal_selesai']);
-                
+
                 if ($endDate->lte($startDate)) {
-                    $validator->errors()->add("rombel.{$rombelId}.tanggal_selesai", 
+                    $validator->errors()->add("rombel.{$rombelId}.tanggal_selesai",
                         'Tanggal selesai harus setelah tanggal mulai.'
                     );
                 }
-                
+
                 // Check if date range is reasonable (not more than 2 years)
                 if ($endDate->diffInMonths($startDate) > 24) {
-                    $validator->errors()->add("rombel.{$rombelId}.tanggal_selesai", 
+                    $validator->errors()->add("rombel.{$rombelId}.tanggal_selesai",
                         'Periode program tidak boleh lebih dari 2 tahun.'
                     );
                 }
@@ -317,7 +317,7 @@ class UpdateEkstrakurikulerRequest extends FormRequest
                 response()->json([
                     'success' => false,
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], 422)
             );
         }

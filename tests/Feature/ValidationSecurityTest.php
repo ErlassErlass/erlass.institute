@@ -2,29 +2,29 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
-use App\Models\Sekolah;
 use App\Models\LaporanMengajar;
-use App\Http\Requests\StoreLaporanMengajarRequest;
-use App\Http\Requests\StoreAbsensiRequest;
+use App\Models\Sekolah;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
+use Tests\TestCase;
 
 class ValidationSecurityTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $instructor;
+
     private User $admin;
+
     private Sekolah $sekolah;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->instructor = User::factory()->create(['role' => 'instruktur']);
         $this->admin = User::factory()->create(['role' => 'admin']);
         $this->sekolah = Sekolah::factory()->create(['kodlan' => 'TEST001']);
@@ -34,7 +34,7 @@ class ValidationSecurityTest extends TestCase
     {
         // Set production environment
         config(['app.env' => 'production']);
-        
+
         $response = $this->get('/debug-login');
         $response->assertStatus(404);
     }
@@ -43,7 +43,7 @@ class ValidationSecurityTest extends TestCase
     {
         // Set local environment but disable debug
         config(['app.env' => 'local', 'app.debug' => false]);
-        
+
         $response = $this->get('/debug-login');
         $response->assertStatus(404);
     }
@@ -52,7 +52,7 @@ class ValidationSecurityTest extends TestCase
     {
         // Test that protected fields cannot be mass assigned
         $laporan = LaporanMengajar::factory()->create([
-            'user_id_instruktur' => $this->instructor->id
+            'user_id_instruktur' => $this->instructor->id,
         ]);
 
         $originalId = $laporan->id;
@@ -63,7 +63,7 @@ class ValidationSecurityTest extends TestCase
             'id' => 99999,
             'created_at' => Carbon::now()->subYear(),
             'updated_at' => Carbon::now()->subYear(),
-            'materi_pengajaran' => 'Updated Material'
+            'materi_pengajaran' => 'Updated Material',
         ]);
 
         $laporan->refresh();
@@ -71,7 +71,7 @@ class ValidationSecurityTest extends TestCase
         // Protected fields should not change
         $this->assertEquals($originalId, $laporan->id);
         $this->assertEquals($originalCreatedAt->format('Y-m-d H:i:s'), $laporan->created_at->format('Y-m-d H:i:s'));
-        
+
         // Fillable fields should change
         $this->assertEquals('Updated Material', $laporan->materi_pengajaran);
     }
@@ -82,7 +82,7 @@ class ValidationSecurityTest extends TestCase
             'user_id_instruktur' => $this->instructor->id,
             'pertemuan_ke' => 1,
             'sekolah_kodlan' => 'TEST001',
-            'jadwal_mengajar' => Carbon::today()->format('d/m/Y')
+            'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
         ];
 
         // Request without CSRF token should fail
@@ -93,7 +93,7 @@ class ValidationSecurityTest extends TestCase
         // With middleware, it should require CSRF
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.store'), $laporanData);
-        
+
         $response->assertStatus(419); // CSRF token mismatch
     }
 
@@ -114,12 +114,12 @@ class ValidationSecurityTest extends TestCase
                 'pertemuan_ke' => 1,
                 'sekolah_kodlan' => 'TEST001',
                 'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
-                'foto_kegiatan' => $file
+                'foto_kegiatan' => $file,
             ];
 
             $response = $this->actingAs($this->instructor)
                 ->post(route('laporan-mengajar.store'), $laporanData);
-            
+
             $response->assertSessionHasErrors(['foto_kegiatan']);
         }
     }
@@ -136,12 +136,12 @@ class ValidationSecurityTest extends TestCase
             'pertemuan_ke' => 1,
             'sekolah_kodlan' => 'TEST001',
             'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
-            'foto_kegiatan' => $oversizedFile
+            'foto_kegiatan' => $oversizedFile,
         ];
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.store'), $laporanData);
-        
+
         $response->assertSessionHasErrors(['foto_kegiatan']);
     }
 
@@ -152,13 +152,13 @@ class ValidationSecurityTest extends TestCase
             "'; DROP TABLE laporan_mengajar; --",
             "' UNION SELECT * FROM users --",
             "1' OR '1'='1",
-            "<script>alert('xss')</script>"
+            "<script>alert('xss')</script>",
         ];
 
         foreach ($maliciousQueries as $query) {
             $response = $this->actingAs($this->instructor)
                 ->get(route('laporan-mengajar.search', ['query' => $query]));
-            
+
             $response->assertStatus(200);
             // Database should still be intact
             $this->assertDatabaseHas('laporan_mengajar', []);
@@ -168,22 +168,22 @@ class ValidationSecurityTest extends TestCase
     public function test_authorization_policies(): void
     {
         $otherInstructor = User::factory()->create(['role' => 'instruktur']);
-        
+
         $laporan = LaporanMengajar::factory()->create([
             'user_id_instruktur' => $otherInstructor->id,
-            'sekolah_kodlan' => 'TEST001'
+            'sekolah_kodlan' => 'TEST001',
         ]);
 
         // Instructor cannot access other's laporan
         $response = $this->actingAs($this->instructor)
             ->get(route('laporan-mengajar.show', $laporan));
-        
+
         $response->assertStatus(403);
 
         // Admin can access any laporan
         $response = $this->actingAs($this->admin)
             ->get(route('laporan-mengajar.show', $laporan));
-        
+
         $response->assertStatus(200);
     }
 
@@ -192,14 +192,14 @@ class ValidationSecurityTest extends TestCase
         $maliciousInput = [
             'materi_pengajaran' => '<script>alert("xss")</script>',
             'refleksi_siswa' => '<?php echo "hack"; ?>',
-            'sekolah_nama' => 'Test<img src=x onerror=alert(1)>'
+            'sekolah_nama' => 'Test<img src=x onerror=alert(1)>',
         ];
 
         $laporanData = array_merge([
             'user_id_instruktur' => $this->instructor->id,
             'pertemuan_ke' => 1,
             'sekolah_kodlan' => 'TEST001',
-            'jadwal_mengajar' => Carbon::today()->format('d/m/Y')
+            'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
         ], $maliciousInput);
 
         $response = $this->actingAs($this->instructor)
@@ -207,7 +207,7 @@ class ValidationSecurityTest extends TestCase
 
         if ($response->status() === 302) { // Redirect on success
             $laporan = LaporanMengajar::latest()->first();
-            
+
             // Verify that malicious scripts are escaped or removed
             $this->assertStringNotContainsString('<script>', $laporan->materi_pengajaran);
             $this->assertStringNotContainsString('<?php', $laporan->refleksi_siswa);
@@ -222,12 +222,12 @@ class ValidationSecurityTest extends TestCase
             'user_id_instruktur' => 99999, // Non-existent user
             'pertemuan_ke' => 1,
             'sekolah_kodlan' => 'TEST001',
-            'jadwal_mengajar' => Carbon::today()->format('d/m/Y')
+            'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
         ];
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.store'), $laporanData);
-        
+
         $response->assertSessionHasErrors(['user_id_instruktur']);
 
         // Test invalid sekolah_kodlan
@@ -236,7 +236,7 @@ class ValidationSecurityTest extends TestCase
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.store'), $laporanData);
-        
+
         $response->assertSessionHasErrors(['sekolah_kodlan']);
     }
 
@@ -247,12 +247,12 @@ class ValidationSecurityTest extends TestCase
             'user_id_instruktur' => $this->instructor->id,
             'pertemuan_ke' => 1,
             'sekolah_kodlan' => 'TEST001',
-            'jadwal_mengajar' => Carbon::tomorrow()->format('d/m/Y')
+            'jadwal_mengajar' => Carbon::tomorrow()->format('d/m/Y'),
         ];
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.store'), $laporanData);
-        
+
         $response->assertSessionHasErrors(['jadwal_mengajar']);
 
         // Test too far in past (>7 days, should fail)
@@ -260,7 +260,7 @@ class ValidationSecurityTest extends TestCase
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.store'), $laporanData);
-        
+
         $response->assertSessionHasErrors(['jadwal_mengajar']);
 
         // Test valid date (within 7 days, should pass)
@@ -268,7 +268,7 @@ class ValidationSecurityTest extends TestCase
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.store'), $laporanData);
-        
+
         $response->assertSessionDoesntHaveErrors(['jadwal_mengajar']);
     }
 
@@ -279,13 +279,13 @@ class ValidationSecurityTest extends TestCase
         // Regular user should not access instructor features
         $response = $this->actingAs($regularUser)
             ->get(route('laporan-mengajar.index'));
-        
+
         $response->assertStatus(403);
 
         // Test middleware role checking
         $response = $this->actingAs($regularUser)
             ->get('/users'); // Admin-only route
-        
+
         $response->assertStatus(403);
     }
 
@@ -294,15 +294,15 @@ class ValidationSecurityTest extends TestCase
         // Test session hijacking protection
         $response = $this->actingAs($this->instructor)
             ->get(route('laporan-mengajar.index'));
-        
+
         $response->assertStatus(200);
-        
+
         // Simulate session manipulation
         session(['user_id' => $this->admin->id]);
-        
+
         $response = $this->actingAs($this->instructor)
             ->get(route('laporan-mengajar.index'));
-        
+
         // Should still be authenticated as instructor, not admin
         $this->assertEquals($this->instructor->id, auth()->id());
     }

@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class InstructorVerificationService
 {
@@ -21,7 +21,7 @@ class InstructorVerificationService
             $documentPaths = [];
             foreach ($documents as $type => $file) {
                 if ($file && $file->isValid()) {
-                    $path = $file->store('verification_documents/' . $instructor->id, 'public');
+                    $path = $file->store('verification_documents/'.$instructor->id, 'public');
                     $documentPaths[$type] = $path;
                 }
             }
@@ -38,19 +38,21 @@ class InstructorVerificationService
             ]);
 
             DB::commit();
+
             return true;
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             // Hapus file yang sudah diupload jika ada error
             foreach ($documentPaths ?? [] as $path) {
                 if (Storage::disk('public')->exists($path)) {
                     Storage::disk('public')->delete($path);
                 }
             }
-            
-            \Log::error('Error submitting instructor verification: ' . $e->getMessage());
+
+            \Log::error('Error submitting instructor verification: '.$e->getMessage());
+
             return false;
         }
     }
@@ -61,9 +63,9 @@ class InstructorVerificationService
     public function approveInstructor(User $instructor, User $verifier): bool
     {
         try {
-            // Validasi: hanya webmaster yang bisa approve
-            if ($verifier->role !== 'webmaster') {
-                throw new \Exception('Hanya webmaster yang dapat memverifikasi instruktur');
+            // Validasi: hanya webmaster dan admin_sistem yang bisa approve
+            if (!in_array($verifier->role, ['webmaster', 'admin_sistem'])) {
+                throw new \Exception('Hanya webmaster dan admin sistem yang dapat memverifikasi instruktur');
             }
 
             // Validasi: instruktur harus memiliki status pending
@@ -85,7 +87,8 @@ class InstructorVerificationService
             return true;
 
         } catch (\Exception $e) {
-            \Log::error('Error approving instructor: ' . $e->getMessage());
+            \Log::error('Error approving instructor: '.$e->getMessage());
+
             return false;
         }
     }
@@ -96,9 +99,9 @@ class InstructorVerificationService
     public function rejectInstructor(User $instructor, User $verifier, string $reason): bool
     {
         try {
-            // Validasi: hanya webmaster yang bisa reject
-            if ($verifier->role !== 'webmaster') {
-                throw new \Exception('Hanya webmaster yang dapat memverifikasi instruktur');
+            // Validasi: hanya webmaster dan admin_sistem yang bisa reject
+            if (!in_array($verifier->role, ['webmaster', 'admin_sistem'])) {
+                throw new \Exception('Hanya webmaster dan admin sistem yang dapat memverifikasi instruktur');
             }
 
             // Validasi: instruktur harus memiliki status pending
@@ -120,7 +123,8 @@ class InstructorVerificationService
             return true;
 
         } catch (\Exception $e) {
-            \Log::error('Error rejecting instructor: ' . $e->getMessage());
+            \Log::error('Error rejecting instructor: '.$e->getMessage());
+
             return false;
         }
     }
@@ -153,7 +157,8 @@ class InstructorVerificationService
             return true;
 
         } catch (\Exception $e) {
-            \Log::error('Error resetting verification status: ' . $e->getMessage());
+            \Log::error('Error resetting verification status: '.$e->getMessage());
+
             return false;
         }
     }
@@ -198,7 +203,7 @@ class InstructorVerificationService
         $requiredDocs = ['ktp', 'ijazah', 'sertifikat_kompetensi'];
 
         foreach ($requiredDocs as $doc) {
-            if (!isset($documents[$doc]) || !$documents[$doc]->isValid()) {
+            if (! isset($documents[$doc]) || ! $documents[$doc]->isValid()) {
                 $errors[] = "Dokumen {$doc} wajib diupload";
             } else {
                 // Validasi ukuran file (max 2MB)
@@ -207,7 +212,7 @@ class InstructorVerificationService
                 }
 
                 // Validasi tipe file
-                if (!in_array($documents[$doc]->getClientOriginalExtension(), ['jpg', 'jpeg', 'png', 'pdf'])) {
+                if (! in_array($documents[$doc]->getClientOriginalExtension(), ['jpg', 'jpeg', 'png', 'pdf'])) {
                     $errors[] = "Dokumen {$doc} harus berformat JPG, PNG, atau PDF";
                 }
             }

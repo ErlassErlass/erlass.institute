@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EkstrakurikulerRombel extends Model
 {
@@ -62,27 +62,39 @@ class EkstrakurikulerRombel extends Model
      * Konstanta untuk status rombel
      */
     const STATUS_BELUM_MULAI = 'belum_mulai';
+
     const STATUS_BERLANGSUNG = 'berlangsung';
+
     const STATUS_SELESAI = 'selesai';
+
     const STATUS_DIBATALKAN = 'dibatalkan';
 
     /**
      * Konstanta untuk hari
      */
     const HARI_SENIN = 'senin';
+
     const HARI_SELASA = 'selasa';
+
     const HARI_RABU = 'rabu';
+
     const HARI_KAMIS = 'kamis';
+
     const HARI_JUMAT = 'jumat';
+
     const HARI_SABTU = 'sabtu';
+
     const HARI_MINGGU = 'minggu';
 
     /**
      * Konstanta untuk frekuensi
      */
     const FREKUENSI_HARIAN = 'harian';
+
     const FREKUENSI_MINGGUAN = 'mingguan';
+
     const FREKUENSI_DUA_MINGGU = 'dua_minggu';
+
     const FREKUENSI_BULANAN = 'bulanan';
 
     /**
@@ -140,15 +152,15 @@ class EkstrakurikulerRombel extends Model
     public function siswa(): BelongsToMany
     {
         return $this->belongsToMany(Siswa::class, 'siswa_ekstrakurikuler', 'ekstrakurikuler_rombel_id', 'siswa_id')
-                    ->withPivot([
-                        'ekstrakurikuler_id',
-                        'status',
-                        'tanggal_daftar',
-                        'tanggal_keluar',
-                        'alasan_keluar',
-                        'catatan'
-                    ])
-                    ->withTimestamps();
+            ->withPivot([
+                'ekstrakurikuler_id',
+                'status',
+                'tanggal_daftar',
+                'tanggal_keluar',
+                'alasan_keluar',
+                'catatan',
+            ])
+            ->withTimestamps();
     }
 
     /**
@@ -213,7 +225,7 @@ class EkstrakurikulerRombel extends Model
     public function scopeByDateRange($query, $startDate, $endDate)
     {
         return $query->whereBetween('tanggal_mulai', [$startDate, $endDate])
-                    ->orWhereBetween('tanggal_selesai', [$startDate, $endDate]);
+            ->orWhereBetween('tanggal_selesai', [$startDate, $endDate]);
     }
 
     /**
@@ -269,7 +281,7 @@ class EkstrakurikulerRombel extends Model
      */
     public function getJadwalWaktuAttribute(): string
     {
-        return $this->jam_mulai->format('H:i') . ' - ' . $this->jam_selesai->format('H:i');
+        return $this->jam_mulai->format('H:i').' - '.$this->jam_selesai->format('H:i');
     }
 
     /**
@@ -293,7 +305,7 @@ class EkstrakurikulerRombel extends Model
      */
     public function isCompleted(): bool
     {
-        return $this->status === self::STATUS_SELESAI || 
+        return $this->status === self::STATUS_SELESAI ||
                $this->pertemuan_selesai >= $this->total_pertemuan;
     }
 
@@ -305,7 +317,7 @@ class EkstrakurikulerRombel extends Model
         if ($this->total_pertemuan <= 0) {
             return 0;
         }
-        
+
         return round(($this->pertemuan_selesai / $this->total_pertemuan) * 100, 2);
     }
 
@@ -324,15 +336,15 @@ class EkstrakurikulerRombel extends Model
     {
         if ($this->pertemuan_selesai < $this->total_pertemuan) {
             $this->pertemuan_selesai++;
-            
+
             // Auto update status jika sudah mencapai total pertemuan
             if ($this->pertemuan_selesai >= $this->total_pertemuan) {
                 $this->status = self::STATUS_SELESAI;
             }
-            
+
             return $this->save();
         }
-        
+
         return false;
     }
 
@@ -342,6 +354,7 @@ class EkstrakurikulerRombel extends Model
     public function incrementJumlahSiswa(): bool
     {
         $this->jumlah_siswa++;
+
         return $this->save();
     }
 
@@ -352,9 +365,10 @@ class EkstrakurikulerRombel extends Model
     {
         if ($this->jumlah_siswa > 0) {
             $this->jumlah_siswa--;
+
             return $this->save();
         }
-        
+
         return false;
     }
 
@@ -364,6 +378,7 @@ class EkstrakurikulerRombel extends Model
     public function syncJumlahSiswa(): bool
     {
         $this->jumlah_siswa = $this->activeEnrollments()->count();
+
         return $this->save();
     }
 
@@ -382,11 +397,11 @@ class EkstrakurikulerRombel extends Model
     {
         // Hapus sessions yang sudah ada dan belum dimulai
         $this->sessions()->where('status', 'terjadwal')->delete();
-        
+
         $currentDate = $this->tanggal_mulai->copy();
         $endDate = $this->tanggal_selesai;
         $sessionCount = 0;
-        
+
         // Mapping hari ke nomor hari dalam minggu (1=Senin, 7=Minggu)
         $hariMapping = [
             self::HARI_SENIN => 1,
@@ -397,23 +412,23 @@ class EkstrakurikulerRombel extends Model
             self::HARI_SABTU => 6,
             self::HARI_MINGGU => 7,
         ];
-        
+
         $targetHari = $hariMapping[$this->hari];
-        
+
         // Interval berdasarkan frekuensi
-        $intervalDays = match($this->frekuensi) {
+        $intervalDays = match ($this->frekuensi) {
             self::FREKUENSI_HARIAN => 1,
             self::FREKUENSI_MINGGUAN => 7,
             self::FREKUENSI_DUA_MINGGU => 14,
             self::FREKUENSI_BULANAN => 30,
             default => 7
         };
-        
+
         // Cari hari pertama yang sesuai dengan jadwal
         while ($currentDate->dayOfWeek !== $targetHari && $currentDate->lte($endDate)) {
             $currentDate->addDay();
         }
-        
+
         // Generate sessions
         while ($currentDate->lte($endDate) && $sessionCount < $this->total_pertemuan) {
             EkstrakurikulerSession::create([
@@ -429,7 +444,7 @@ class EkstrakurikulerRombel extends Model
                 'created_by' => auth()->id(),
                 'updated_by' => auth()->id(),
             ]);
-            
+
             $sessionCount++;
             $currentDate->addDays($intervalDays);
         }

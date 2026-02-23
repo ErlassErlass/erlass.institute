@@ -1,55 +1,136 @@
 @extends('layouts.app')
 
+@section('title', 'Rekap Absensi (Invoice)')
+
 @section('content')
 <div class="container py-4">
-    <h2 class="mb-4">📄 Rekap Absensi @if(!Auth::user()->hasAdminAccess()) Anda @endif</h2>
+    <!-- Header Section -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 fw-bold text-dark mb-1">Rekap Absensi (Invoice)</h1>
+                    <p class="text-muted mb-0">Rekap kehadiran siswa untuk keperluan invoice/tagihan.</p>
+                </div>
+                <div>
+                    <a href="{{ route('absensi.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<table class="table table-bordered table-hover datatable" id="rekap-absensi-table">
-    <thead class="table-light">
-        <tr>
-            <th>#</th>
-            <th>Tanggal</th>
-            <th>Aksi</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse ($absensi_per_tanggal as $index => $row)
-        <tr>
-            <td>{{ $loop->iteration }}</td>
-            <td>{{ \Carbon\Carbon::parse($row->tanggal)->format('d M Y') }}</td>
-            <td>
-                <a href="{{ route('absensi.rekap.tanggal', ['tanggal' => $row->tanggal]) }}" class="btn btn-primary btn-sm">
-                    Lihat Detail
-                </a>
-            </td>
-        </tr>
-        @empty
-        <tr>
-            <td colspan="3" class="text-center">Belum ada data absensi.</td>
-        </tr>
-        @endforelse
-    </tbody>
-</table>
+    <!-- Filter Section -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body p-4">
+            <form action="{{ route('rekap-absensi') }}" method="GET" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Pilih Sekolah</label>
+                    <select name="sekolah_kodlan" class="form-select select2">
+                        <option value="">-- Semua Sekolah --</option>
+                        @foreach($sekolahs as $s)
+                            <option value="{{ $s->kodlan }}" {{ $selectedSekolah == $s->kodlan ? 'selected' : '' }}>
+                                {{ $s->namasekolah }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Pilih Rombel <span class="text-danger">*</span></label>
+                    <select name="rombel" class="form-select select2" required>
+                        <option value="">-- Pilih Rombel --</option>
+                        @foreach($rombels as $r)
+                            <option value="{{ $r }}" {{ $selectedRombel == $r ? 'selected' : '' }}>
+                                {{ $r }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-filter me-1"></i> Tampilkan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-
+    @if($selectedRombel)
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title mb-0 fw-bold text-dark">Hasil Rekap: {{ $selectedRombel }}</h5>
+                        <p class="small text-muted mb-0 mt-1">
+                            <i class="bi bi-info-circle me-1"></i> Rule: Billable jika hadir >= 2x per periode (4 pertemuan)
+                        </p>
+                    </div>
+                    <a href="{{ route('rekap-absensi.export', ['rombel' => $selectedRombel, 'sekolah_kodlan' => $selectedSekolah]) }}" 
+                       class="btn btn-success btn-sm">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle mb-0">
+                        <thead class="table-light text-center align-middle">
+                            <tr>
+                                <th rowspan="2" style="width: 50px;">No</th>
+                                <th rowspan="2" class="text-start ps-3">Nama Siswa</th>
+                                @foreach($rekapData as $period)
+                                    <th colspan="1">Periode {{ $period['index'] }}</th>
+                                @endforeach
+                            </tr>
+                            <tr>
+                                @foreach($rekapData as $period)
+                                    <th class="small text-muted fw-normal">
+                                        {{ $period['dates'] }}
+                                    </th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($students as $index => $student)
+                                <tr>
+                                    <td class="text-center">{{ $index + 1 }}</td>
+                                    <td class="fw-medium ps-3">{{ $student->nama_lengkap }}</td>
+                                    @foreach($rekapData as $period)
+                                        @php
+                                            $stats = $period['student_stats'][$student->id] ?? ['count' => 0, 'is_billable' => false];
+                                            $bgClass = $stats['is_billable'] ? 'bg-success-subtle text-success' : 'text-muted';
+                                            $icon = $stats['is_billable'] ? 'bi-check-circle-fill' : 'bi-dash-circle';
+                                        @endphp
+                                        <td class="text-center {{ $bgClass }}">
+                                            <div class="d-flex flex-column align-items-center">
+                                                <span class="fw-bold fs-5">{{ $stats['count'] }} / 4</span>
+                                                <small class="d-flex align-items-center gap-1">
+                                                    <i class="bi {{ $icon }}"></i>
+                                                    {{ $stats['is_billable'] ? 'Billable' : 'Skip' }}
+                                                </small>
+                                            </div>
+                                        </td>
+                                    @endforeach
+                                </tr>
+                            @endforeach
+                            
+                            @if($students->isEmpty())
+                                <tr>
+                                    <td colspan="{{ count($rekapData) + 2 }}" class="text-center py-4 text-muted">
+                                        Tidak ada data siswa atau laporan ditemukan untuk filter ini.
+                                    </td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @elseif(request()->has('rombel'))
+        <div class="alert alert-info shadow-sm">
+            <i class="bi bi-info-circle me-2"></i> Silakan pilih Rombel untuk melihat rekap.
+        </div>
+    @endif
 </div>
 @endsection
-
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize DataTable for Attendance Recap table
-        if (typeof window.DataTableManager !== 'undefined') {
-            const dataTableManager = new window.DataTableManager();
-            dataTableManager.init('#rekap-absensi-table', {
-                order: [[1, 'desc']], // Sort by Date column (newest first)
-                columnDefs: [
-                    { orderable: false, targets: [0, 2] }, // Disable sorting for # and Actions columns
-                    { type: 'date', targets: [1] } // Date sorting for date column
-                ],
-                pageLength: 15
-            });
-        }
-    });
-</script>
-@endpush

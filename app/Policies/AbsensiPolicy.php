@@ -3,8 +3,8 @@
 namespace App\Policies;
 
 use App\Models\Absensi;
-use App\Models\LaporanMengajar;
 use App\Models\EkstrakurikulerSession;
+use App\Models\LaporanMengajar;
 use App\Models\User;
 
 class AbsensiPolicy
@@ -12,19 +12,20 @@ class AbsensiPolicy
     /**
      * Izinkan admin melakukan apa saja.
      */
-    public function before(User $user, string $ability): bool|null
+    public function before(User $user, string $ability): ?bool
     {
-        if (in_array($user->role, ['admin', 'admin_erlass'])) {
+        if (in_array($user->role, ['webmaster', 'admin_sistem', 'admin'])) {
             return true;
         }
+
         return null;
     }
+
     public function rekap(User $user): bool
     {
         // Izinkan jika role-nya adalah admin atau instruktur
-        return in_array($user->role, ['admin', 'admin_erlass', 'instruktur']);
+        return in_array($user->role, ['webmaster', 'admin_sistem', 'admin', 'instruktur']);
     }
-    
 
     /**
      * Menentukan apakah user bisa membuat absensi untuk laporan tertentu.
@@ -32,14 +33,14 @@ class AbsensiPolicy
     public function create(User $user, LaporanMengajar $laporanMengajar): bool
     {
         // Untuk laporan regular
-        if (!$laporanMengajar->isFromEkstrakurikuler()) {
+        if (! $laporanMengajar->isFromEkstrakurikuler()) {
             return $user->id === $laporanMengajar->user_id_instruktur;
         }
 
         // Untuk laporan ekstrakurikuler, cek juga asisten
         $ekstrakurikulerSession = $laporanMengajar->ekstrakurikulerSession;
         if ($ekstrakurikulerSession) {
-            return $user->id === $ekstrakurikulerSession->user_id_instruktur || 
+            return $user->id === $ekstrakurikulerSession->user_id_instruktur ||
                    $user->id === $ekstrakurikulerSession->user_id_asisten;
         }
 
@@ -52,23 +53,24 @@ class AbsensiPolicy
     public function store(User $user, LaporanMengajar $laporanMengajar): bool
     {
         // Untuk laporan regular
-        if (!$laporanMengajar->isFromEkstrakurikuler()) {
+        if (! $laporanMengajar->isFromEkstrakurikuler()) {
             if ($user->role === 'instruktur') {
                 return $user->isVerifiedInstructor() && $user->id === $laporanMengajar->user_id_instruktur;
             }
+
             return $user->id === $laporanMengajar->user_id_instruktur;
         }
 
         // Untuk laporan ekstrakurikuler
         $ekstrakurikulerSession = $laporanMengajar->ekstrakurikulerSession;
         if ($ekstrakurikulerSession) {
-            $canAccess = $user->id === $ekstrakurikulerSession->user_id_instruktur || 
+            $canAccess = $user->id === $ekstrakurikulerSession->user_id_instruktur ||
                         $user->id === $ekstrakurikulerSession->user_id_asisten;
-            
+
             if ($user->role === 'instruktur' && $canAccess) {
                 return $user->isVerifiedInstructor();
             }
-            
+
             return $canAccess;
         }
 
@@ -76,7 +78,7 @@ class AbsensiPolicy
         if ($user->role === 'instruktur') {
             return $user->isVerifiedInstructor() && $user->id === $laporanMengajar->user_id_instruktur;
         }
-        
+
         return $user->id === $laporanMengajar->user_id_instruktur;
     }
 
@@ -86,7 +88,7 @@ class AbsensiPolicy
     public function createForEkstrakurikuler(User $user, EkstrakurikulerSession $session): bool
     {
         // Cek apakah user adalah instruktur atau asisten dari session
-        $canAccess = $user->id === $session->user_id_instruktur || 
+        $canAccess = $user->id === $session->user_id_instruktur ||
                     $user->id === $session->user_id_asisten;
 
         if ($user->role === 'instruktur' && $canAccess) {

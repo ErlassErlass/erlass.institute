@@ -3,90 +3,76 @@
 @section('title', 'Daftar Laporan Mengajar')
 
 @push('styles')
-{{-- External CSS for the date picker --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<style>
-    /* A more organized CSS block for custom styles */
-    .stat-card {
-        border-radius: 8px;
-        transition: transform 0.3s ease;
-    }
-    .stat-card:hover {
-        transform: translateY(-5px);
-    }
-    .stat-icon {
-        font-size: 2rem;
-        opacity: 0.7;
-    }
-    .badge-custom {
-        padding: 5px 10px;
-        font-weight: normal;
-        font-size: 0.8rem;
-    }
-    /* Active filter alert styling */
-    .alert-info {
-        border-left: 4px solid #0dcaf0;
-    }
-</style>
 @endpush
 
+
+
 @section('content')
-<div class="container py-4">
+<div class="container-fluid py-4">
     {{-- Page Header --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="mb-1">Daftar Laporan Mengajar</h1>
+            <h1 class="h3 fw-bold mb-1"><span class="text-gradient-primary">Daftar Laporan Mengajar</span></h1>
             <p class="text-muted mb-0">Tinjau semua laporan kegiatan mengajar yang telah dibuat.</p>
         </div>
         @can('create', App\Models\LaporanMengajar::class)
-        <a href="{{ route('laporan-mengajar.create') }}" class="btn btn-success">
-            <i class="bi bi-plus-circle me-1"></i> Buat Laporan
+        <a href="{{ route('laporan-mengajar.create') }}" class="btn btn-primary shadow-sm">
+            <i class="bi bi-plus-lg me-2"></i>Buat Laporan Baru
         </a>
         @endcan
     </div>
 
     {{-- Statistics Cards --}}
-    <div class="row mb-4">
-        <div class="col-md-3 col-6 mb-3">
-            <div class="card stat-card bg-primary text-white shadow-sm h-100">
-                <div class="card-body">
-                    <h6 class="text-uppercase mb-1">Total Laporan</h6>
-                    <div class="d-flex justify-content-between align-items-end">
-                        <h3 class="mb-0">{{ $totalLaporan }}</h3>
-                        <i class="bi bi-journal-text stat-icon"></i>
+    <div class="row g-4 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="card glass-card border-0 h-100 p-3">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div>
+                        <p class="text-muted small text-uppercase fw-bold mb-1">Total Laporan</p>
+                        <h3 class="fw-bold text-dark mb-0">{{ $totalLaporan }}</h3>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-3 text-primary">
+                        <i class="bi bi-journal-text fs-4"></i>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-6 mb-3">
-            <div class="card stat-card bg-success text-white shadow-sm h-100">
-                <div class="card-body">
-                    <h6 class="text-uppercase mb-1">Minggu Ini</h6>
-                     <div class="d-flex justify-content-between align-items-end">
-                        <h3 class="mb-0">{{ $laporanMingguIni }}</h3>
-                        <i class="bi bi-calendar-week stat-icon"></i>
+        <div class="col-md-3 col-6">
+            <div class="card glass-card border-0 h-100 p-3">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div>
+                         <p class="text-muted small text-uppercase fw-bold mb-1">Minggu Ini</p>
+                        <h3 class="fw-bold text-dark mb-0">{{ $laporanMingguIni }}</h3>
+                    </div>
+                    <div class="bg-success bg-opacity-10 p-3 rounded-3 text-success">
+                        <i class="bi bi-calendar-week fs-4"></i>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-6 mb-3">
-            <div class="card stat-card bg-info text-white shadow-sm h-100">
-                <div class="card-body">
-                    <h6 class="text-uppercase mb-1">Bulan Ini</h6>
-                     <div class="d-flex justify-content-between align-items-end">
-                        <h3 class="mb-0">{{ $laporanBulanIni }}</h3>
-                        <i class="bi bi-calendar-month stat-icon"></i>
+        <div class="col-md-3 col-6">
+            <div class="card glass-card border-0 h-100 p-3">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div>
+                         <p class="text-muted small text-uppercase fw-bold mb-1">Bulan Ini</p>
+                        <h3 class="fw-bold text-dark mb-0">{{ $laporanBulanIni }}</h3>
+                    </div>
+                    <div class="bg-info bg-opacity-10 p-3 rounded-3 text-info">
+                        <i class="bi bi-calendar-month fs-4"></i>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 col-6 mb-3">
-            <div class="card stat-card bg-warning text-dark shadow-sm h-100">
-                <div class="card-body">
-                    <h6 class="text-uppercase mb-1">Instruktur Aktif</h6>
-                     <div class="d-flex justify-content-between align-items-end">
-                        <h3 class="mb-0">{{ $totalInstruktur }}</h3>
-                        <i class="bi bi-people stat-icon"></i>
+        <div class="col-md-3 col-6">
+            <div class="card glass-card border-0 h-100 p-3">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div>
+                         <p class="text-muted small text-uppercase fw-bold mb-1">Instruktur Aktif</p>
+                        <h3 class="fw-bold text-dark mb-0">{{ $totalInstruktur }}</h3>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 p-3 rounded-3 text-warning">
+                        <i class="bi bi-people fs-4"></i>
                     </div>
                 </div>
             </div>
@@ -94,15 +80,17 @@
     </div>
 
     {{-- Filter Section --}}
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
+    <div class="card glass-card border-0 mb-4">
+        <div class="card-body p-4">
+            <h6 class="card-title fw-bold mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-funnel text-primary"></i> Filter Laporan
+            </h6>
             <form method="GET" action="{{ route('laporan-mengajar.index') }}" id="filterForm">
-                {{-- Note: @csrf is not needed for GET forms as they don't change server state. --}}
-                <div class="row g-3 align-items-end">
-                    @if(in_array(Auth::user()->role, ['admin', 'admin_erlass']))
+                <div class="row g-3">
+                    @if(in_array(Auth::user()->role, ['admin', 'admin_sistem', 'webmaster']))
                     <div class="col-md-3">
-                        <label for="instruktur_id" class="form-label">Instruktur</label>
-                        <select name="instruktur_id" id="instruktur_id" class="form-select">
+                        <label for="instruktur_id" class="form-label small text-muted text-uppercase fw-bold">Instruktur</label>
+                        <select name="instruktur_id" id="instruktur_id" class="form-select border-light-subtle bg-white">
                             <option value="">Semua Instruktur</option>
                             @foreach($instructors as $instructor)
                             <option value="{{ $instructor->id }}" @selected(request('instruktur_id') == $instructor->id)>
@@ -113,32 +101,33 @@
                     </div>
                     @endif
                     <div class="col-md-3">
-                        <label for="date_range" class="form-label">Rentang Tanggal</label>
+                        <label for="date_range" class="form-label small text-muted text-uppercase fw-bold">Rentang Tanggal</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-calendar"></i></span>
-                            <input type="text" name="date_range" id="date_range" class="form-control" placeholder="Pilih rentang" value="{{ request('date_range') }}">
+                            <span class="input-group-text bg-white border-light-subtle"><i class="bi bi-calendar text-primary"></i></span>
+                            <input type="text" name="date_range" id="date_range" class="form-control border-light-subtle bg-white" placeholder="Pilih rentang" value="{{ request('date_range') }}">
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <label for="kategori" class="form-label">Kategori</label>
-                        <select name="kategori" id="kategori" class="form-select">
+                        <label for="kategori" class="form-label small text-muted text-uppercase fw-bold">Kategori</label>
+                        <select name="kategori" id="kategori" class="form-select border-light-subtle bg-white">
                             <option value="">Semua</option>
-                            <option value="Reguler" @selected(request('kategori') == 'Reguler')>Reguler</option>
-                            <option value="Remedial" @selected(request('kategori') == 'Remedial')>Remedial</option>
-                            <option value="Pengayaan" @selected(request('kategori') == 'Pengayaan')>Pengayaan</option>
+                            @foreach($kategoriList as $cat)
+                                <option value="{{ $cat }}" @selected(request('kategori') == $cat)>{{ $cat }}</option>
+                            @endforeach
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <div class="d-flex flex-wrap gap-2 justify-content-end">
-                            <button type="submit" class="btn btn-primary"><i class="bi bi-funnel me-1"></i> Filter</button>
-                            <a href="{{ route('laporan-mengajar.index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise me-1"></i> Reset</a>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="d-flex w-100 gap-2">
+                            <button type="submit" class="btn btn-primary flex-grow-1"><i class="bi bi-search me-1"></i> Terapkan</button>
+                            <a href="{{ route('laporan-mengajar.index') }}" class="btn btn-light text-muted border border-light-subtle" title="Reset Filter"><i class="bi bi-arrow-counterclockwise"></i></a>
                             <div class="btn-group">
-                                <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-download me-1"></i> Export
+                                <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-download"></i>
                                 </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item export-link" href="#" data-format="excel">Excel</a></li>
-                                    <li><a class="dropdown-item export-link" href="#" data-format="pdf">PDF</a></li>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                    <li><h6 class="dropdown-header">Export Data</h6></li>
+                                    <li><a class="dropdown-item export-link" href="#" data-format="excel"><i class="bi bi-file-earmark-excel me-2 text-success"></i> Excel</a></li>
+                                    <li><a class="dropdown-item export-link" href="#" data-format="pdf"><i class="bi bi-file-earmark-pdf me-2 text-danger"></i> PDF</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -149,70 +138,78 @@
     </div>
 
     {{-- Main Data Table --}}
-    <div class="card shadow-sm">
-        <div class="card-body">
+    <div class="card glass-card border-0">
+        <div class="card-body p-0">
             @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="alert alert-success alert-dismissible fade show m-4" role="alert">
                 <i class="bi bi-check-circle me-2"></i> {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             @endif
 
-            <div class="table-responsive">
-                <table class="table table-striped table-hover" id="laporan-mengajar-table">
-                    <thead class="table-dark">
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-modern align-middle mb-0" id="laporan-mengajar-table">
+                    <thead>
                         <tr>
-                            <th>Tanggal</th>
-                            <th>Instruktur</th>
-                            <th>Sekolah</th>
-                            <th>Rombel</th>
-                            <th>Kategori</th>
-                            <th class="text-center">Aksi</th>
+                            <th width="15%">Tanggal</th>
+                            <th width="20%">Instruktur</th>
+                            <th width="25%">Sekolah</th>
+                            <th width="15%">Rombel</th>
+                            <th width="15%">Kategori</th>
+                            <th width="10%" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($laporan as $item)
                         <tr>
                             <td>
-                                <div>{{ \Carbon\Carbon::parse($item->jadwal_mengajar)->isoFormat('D MMM YYYY') }}</div>
-                                <small class="text-muted">{{ $item->jam_mulai }} - {{ $item->jam_selesai }}</small>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-calendar-event text-muted small"></i>
+                                    <span class="fw-medium text-dark">{{ \Carbon\Carbon::parse($item->jadwal_mengajar)->isoFormat('D MMM YYYY') }}</span>
+                                </div>
+                                <small class="text-muted d-block mt-1">{{ $item->jam_mulai }} - {{ $item->jam_selesai }}</small>
                             </td>
                             <td>
-                                <div>{{ $item->instruktur->nama_lengkap ?? 'N/A' }}</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-circle small bg-primary bg-opacity-10 text-primary" style="width: 28px; height: 28px; font-size: 0.75rem;">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                    <span class="text-dark fw-medium">{{ $item->instruktur->nama_lengkap ?? 'N/A' }}</span>
+                                </div>
                                 @if($item->asisten)
-                                <small class="text-muted">Asisten: {{ $item->asisten->nama_lengkap }}</small>
+                                <small class="text-muted d-block mt-1 ps-4 ms-1">Asisten: {{ $item->asisten->nama_lengkap }}</small>
                                 @endif
                             </td>
                             <td>
-                                <div>{{ $item->sekolah->namasekolah ?? 'N/A' }}</div>
-                                <small class="text-muted">{{ $item->sekolah->kec ?? '' }}, {{ $item->sekolah->kotkab ?? '' }}</small>
+                                <div class="fw-medium text-dark">{{ $item->sekolah->namasekolah ?? 'N/A' }}</div>
+                                <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ $item->sekolah->kec ?? '' }}</small>
                             </td>
-                            <td>{{ $item->rombel }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ $item->rombel }}</span></td>
                             <td>
                                 @php
                                 $badgeClass = match($item->kategori_pengajaran) {
-                                    'Reguler' => 'bg-primary',
-                                    'Remedial' => 'bg-warning text-dark',
-                                    'Pengayaan' => 'bg-info text-dark',
-                                    default => 'bg-secondary',
+                                    'Reguler' => 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25',
+                                    'Remedial' => 'bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25',
+                                    'Pengayaan' => 'bg-info bg-opacity-10 text-info border border-info border-opacity-25',
+                                    default => 'bg-secondary bg-opacity-10 text-secondary',
                                 };
                                 @endphp
-                                <span class="badge {{ $badgeClass }} badge-custom">{{ $item->kategori_pengajaran }}</span>
+                                <span class="badge {{ $badgeClass }} rounded-pill px-2 py-1">{{ $item->kategori_pengajaran }}</span>
                             </td>
                             <td class="text-center">
                                 <div class="btn-group" role="group">
                                     @can('view', $item)
-                                    <a href="{{ route('laporan-mengajar.show', $item) }}" class="btn btn-sm btn-info" title="Lihat Detail"><i class="bi bi-eye"></i></a>
-                                    <a href="{{ route('laporan-mengajar.absensi.create', $item) }}" class="btn btn-sm btn-success" title="Input Absensi"><i class="bi bi-person-check"></i></a>
+                                    <a href="{{ route('laporan-mengajar.show', $item) }}" class="btn btn-icon btn-light text-primary border me-1" title="Lihat Detail"><i class="bi bi-eye"></i></a>
+                                    <a href="{{ route('laporan-mengajar.absensi.create', $item) }}" class="btn btn-icon btn-light text-success border me-1" title="Input Absensi"><i class="bi bi-person-check"></i></a>
                                     @endcan
                                     @can('update', $item)
-                                    <a href="{{ route('laporan-mengajar.edit', $item) }}" class="btn btn-sm btn-warning" title="Edit"><i class="bi bi-pencil-square"></i></a>
+                                    <a href="{{ route('laporan-mengajar.edit', $item) }}" class="btn btn-icon btn-light text-warning border me-1" title="Edit"><i class="bi bi-pencil-square"></i></a>
                                     @endcan
                                     @can('delete', $item)
                                     <form action="{{ route('laporan-mengajar.destroy', $item) }}" method="POST" class="d-inline delete-form">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus"><i class="bi bi-trash"></i></button>
+                                        <button type="submit" class="btn btn-icon btn-light text-danger border" title="Hapus"><i class="bi bi-trash"></i></button>
                                     </form>
                                     @endcan
                                 </div>
@@ -221,27 +218,99 @@
                         @empty
                         {{-- This row now uses 6 <td>s to match the header, avoiding colspan for robust DataTables compatibility --}}
                         <tr class="empty-state">
-                            <td class="text-center py-4">
-                                <div class="text-muted">
-                                    <i class="bi bi-journal-x" style="font-size: 2.5rem;"></i>
-                                    <h5 class="mt-2">Tidak ada laporan untuk ditampilkan</h5>
-                                    <p class="mb-0">Coba sesuaikan filter atau buat laporan baru.</p>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="mb-3">
+                                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                        <i class="bi bi-journal-x text-muted" style="font-size: 2.5rem; opacity: 0.3"></i>
+                                    </div>
                                 </div>
+                                <h5 class="fw-bold text-gray-800">Tidak ada laporan untuk ditampilkan</h5>
+                                <p class="text-muted">Coba sesuaikan filter atau buat laporan baru.</p>
                             </td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
                         </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
+
+            <!-- Mobile Card View -->
+            <div class="d-md-none">
+                @forelse($laporan as $item)
+                <div class="card mb-3 shadow-sm border-0 border-start border-4 border-primary">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="fw-bold mb-1 text-primary">{{ \Carbon\Carbon::parse($item->jadwal_mengajar)->isoFormat('D MMM YYYY') }}</h6>
+                                <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ $item->jam_mulai }} - {{ $item->jam_selesai }}</small>
+                            </div>
+                            @php
+                            $badgeClass = match($item->kategori_pengajaran) {
+                                'Reguler' => 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25',
+                                'Remedial' => 'bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25',
+                                'Pengayaan' => 'bg-info bg-opacity-10 text-info border border-info border-opacity-25',
+                                default => 'bg-secondary bg-opacity-10 text-secondary',
+                            };
+                            @endphp
+                            <span class="badge {{ $badgeClass }} rounded-pill">{{ $item->kategori_pengajaran }}</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="fw-bold text-dark">{{ $item->sekolah->namasekolah ?? 'N/A' }}</div>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <span class="badge bg-light text-dark border">{{ $item->rombel }}</span>
+                                <small class="text-muted"><i class="bi bi-person me-1"></i>{{ $item->instruktur->nama_lengkap ?? 'N/A' }}</small>
+                            </div>
+                        </div>
+
+                        <div class="btn-group w-100">
+                             @can('view', $item)
+                            <a href="{{ route('laporan-mengajar.show', $item) }}" class="btn btn-sm btn-outline-primary flex-grow-1">
+                                <i class="bi bi-eye"></i> Detail
+                            </a>
+                             <a href="{{ route('laporan-mengajar.absensi.create', $item) }}" class="btn btn-sm btn-outline-success flex-grow-1">
+                                <i class="bi bi-person-check"></i> Absensi
+                            </a>
+                            @endcan
+                            
+                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="visually-hidden">Toggle Dropdown</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                @can('update', $item)
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('laporan-mengajar.edit', $item) }}">
+                                        <i class="bi bi-pencil-square me-2 text-warning"></i> Edit
+                                    </a>
+                                </li>
+                                @endcan
+                                @can('delete', $item)
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="{{ route('laporan-mengajar.destroy', $item) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Hapus laporan?')">
+                                            <i class="bi bi-trash me-2"></i> Hapus
+                                        </button>
+                                    </form>
+                                </li>
+                                @endcan
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                @empty
+                <div class="text-center py-5 bg-white rounded shadow-sm">
+                    <i class="bi bi-journal-x text-muted fs-1 opacity-25 d-block mb-3"></i>
+                    <h6 class="text-muted fw-bold">Tidak ada laporan</h6>
+                    <p class="small text-muted mb-0">Coba sesuaikan filter atau buat laporan baru.</p>
+                </div>
+                @endforelse
+            </div>
         </div>
 
         @if ($laporan->hasPages())
-        <div class="card-footer bg-light">
+        <div class="card-footer bg-transparent border-top border-light py-3">
             {{ $laporan->appends(request()->query())->links() }}
         </div>
         @endif

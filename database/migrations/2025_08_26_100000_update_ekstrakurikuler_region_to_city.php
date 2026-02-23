@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -30,7 +30,7 @@ return new class extends Migration
             // Tambah index untuk city
             $table->index('city');
         });
-        
+
         // Drop region index secara manual jika ada
         try {
             DB::statement('ALTER TABLE ekstrakurikuler DROP INDEX ekstrakurikuler_region_index');
@@ -44,10 +44,10 @@ return new class extends Migration
         Schema::table('ekstrakurikuler', function (Blueprint $table) {
             // Hapus index city
             $table->dropIndex(['city']);
-            
+
             // Tambah kembali index region
             $table->index('region');
-            
+
             // Hapus kolom city
             $table->dropColumn('city');
         });

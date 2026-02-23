@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\Storage;
 class LaporanMengajar extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'laporan_mengajar';
-    
+
     /**
      * Atribut yang dapat diisi secara massal.
      *
@@ -28,21 +28,19 @@ class LaporanMengajar extends Model
         'jam_selesai',
         'kategori_pengajaran', // Anda mungkin lupa menambahkan ini sebelumnya
         'materi_pengajaran',
-        'sekolah_nama',
-        'sekolah_kota',
-        'sekolah_kecamatan',
         'jumlah_siswa_hadir',
         'jumlah_siswa_keluar',
         'jumlah_siswa_tidak_hadir',
         'foto_kegiatan',
         'foto_absensi_siswa', // Field baru untuk foto absensi
+        'file_project', // File project .sb3
         'refleksi_siswa',
         'refleksi_capaian',
         'keaktifan',
         'pemahaman_materi',
         'metadata_json',
     ];
-    
+
     /**
      * Atribut yang tidak boleh diisi secara massal untuk keamanan.
      *
@@ -53,12 +51,12 @@ class LaporanMengajar extends Model
         'created_at',
         'updated_at',
     ];
-    
+
     protected $attributes = [
-    'jumlah_siswa_hadir' => 0,
-    'jumlah_siswa_tidak_hadir' => 0,
-    'jumlah_siswa_keluar' => 0
-];
+        'jumlah_siswa_hadir' => 0,
+        'jumlah_siswa_tidak_hadir' => 0,
+        'jumlah_siswa_keluar' => 0,
+    ];
 
     /**
      * Casting atribut ke tipe data yang sesuai.
@@ -67,6 +65,7 @@ class LaporanMengajar extends Model
         'jadwal_mengajar' => 'date',
         'metadata_json' => 'json',
     ];
+
     /**
      * Model event untuk menghapus file terkait secara otomatis saat record dihapus.
      */
@@ -79,10 +78,15 @@ class LaporanMengajar extends Model
             if ($laporan->foto_kegiatan) {
                 Storage::disk('public')->delete($laporan->foto_kegiatan);
             }
-            
+
             // ✅ DIPERBAIKI: Hapus foto absensi siswa jika ada, mencegah file sampah.
             if ($laporan->foto_absensi_siswa) {
                 Storage::disk('public')->delete($laporan->foto_absensi_siswa);
+            }
+
+            // Hapus file project jika ada
+            if ($laporan->file_project) {
+                Storage::disk('public')->delete($laporan->file_project);
             }
         });
     }
@@ -102,18 +106,30 @@ class LaporanMengajar extends Model
     {
         return $this->belongsTo(User::class, 'user_id_assisten');
     }
-// app/Models/LaporanMengajar.php
-public function sekolah()
-{
-    return $this->belongsTo(Sekolah::class, 'sekolah_kodlan', 'kodlan');
-}
+
+    // app/Models/LaporanMengajar.php
+    public function sekolah()
+    {
+        return $this->belongsTo(Sekolah::class, 'sekolah_kodlan', 'kodlan');
+    }
 
     /**
      * Relasi ke Absensi.
      */
-    public function absensis()
+    /**
+     * Relasi ke Absensi.
+     */
+    public function absensi()
     {
         return $this->hasMany(Absensi::class, 'laporan_mengajar_id');
+    }
+
+    /**
+     * Alias for backward compatibility if needed, but standardizing on absensi
+     */
+    public function absensis()
+    {
+        return $this->absensi();
     }
 
     /**
@@ -129,7 +145,7 @@ public function sekolah()
      */
     public function getJumlahHadirAttribute()
     {
-        return $this->absensis()->where('hadir', true)->count();
+        return $this->absensi()->where('hadir', true)->count();
     }
 
     /**
@@ -137,7 +153,7 @@ public function sekolah()
      */
     public function getJumlahTidakHadirAttribute()
     {
-        return $this->absensis()->where('hadir', false)->count();
+        return $this->absensi()->where('hadir', false)->count();
     }
 
     /**
@@ -145,7 +161,7 @@ public function sekolah()
      */
     public function isFromEkstrakurikuler(): bool
     {
-        return $this->kategori_pengajaran === 'ekstrakurikuler' || 
+        return $this->kategori_pengajaran === 'ekstrakurikuler' ||
                ($this->metadata_json && isset($this->metadata_json['source']) && $this->metadata_json['source'] === 'ekstrakurikuler');
     }
 
@@ -157,7 +173,7 @@ public function sekolah()
         if ($this->isFromEkstrakurikuler() && $this->metadata_json) {
             return $this->metadata_json;
         }
-        
+
         return null;
     }
 
@@ -167,6 +183,7 @@ public function sekolah()
     public function getEkstrakurikulerName(): ?string
     {
         $data = $this->getEkstrakurikulerData();
+
         return $data['nama_program'] ?? null;
     }
 
@@ -192,6 +209,6 @@ public function sekolah()
     public function scopeRegular($query)
     {
         return $query->where('kategori_pengajaran', '!=', 'ekstrakurikuler')
-                    ->orWhereNull('kategori_pengajaran');
+            ->orWhereNull('kategori_pengajaran');
     }
 }

@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'whatsapp' => [
+        'provider' => env('WHATSAPP_PROVIDER', 'log'),
+        'fonnte_token' => env('WHATSAPP_FONNTE_TOKEN'),
+    ],
+
 ];

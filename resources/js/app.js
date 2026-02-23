@@ -1,14 +1,24 @@
 import './bootstrap';
 import '../css/app.css';
-
-// Bootstrap JS is loaded via CDN in layouts to avoid conflicts
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'datatables.net-bs5/css/dataTables.bootstrap5.min.css';
+import 'datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css';
+import 'select2/dist/css/select2.min.css';
+import 'select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css';
+import "flatpickr/dist/flatpickr.min.css";
 
 // Import Alpine.js
 import Alpine from 'alpinejs';
 
-// Import DataTables
 import 'datatables.net';
-import 'datatables.net-dt';
+import 'datatables.net-bs5';
+import 'datatables.net-responsive-bs5';
+
+// Import Select2 and Flatpickr
+import select2 from 'select2';
+select2(); // Initialize Select2 functionality
+import flatpickr from "flatpickr";
+window.flatpickr = flatpickr;
 
 // Import custom modules
 import { DataTableManager } from './modules/datatable.js';
@@ -30,10 +40,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (document.querySelector('.datatable')) {
         dataTableManager.init();
     }
-    
+
     // Initialize form validation
     new FormValidator();
-    
+
     // Initialize Bootstrap components (if bootstrap is loaded via CDN)
     if (typeof bootstrap !== 'undefined') {
         // Initialize Bootstrap tooltips
@@ -41,17 +51,17 @@ document.addEventListener('DOMContentLoaded', function () {
         tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
-        
+
         // Initialize Bootstrap popovers
         const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
         popoverTriggerList.map(function (popoverTriggerEl) {
             return new bootstrap.Popover(popoverTriggerEl);
         });
     }
-    
+
     // Show flash messages as toasts
     const flashMessages = document.querySelectorAll('.flash-message');
-    flashMessages.forEach(function(message) {
+    flashMessages.forEach(function (message) {
         const type = message.dataset.type || 'info';
         const text = message.textContent.trim();
         if (text) {
@@ -59,9 +69,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         message.remove();
     });
-    
+
     // Handle AJAX form submissions
-    document.addEventListener('submit', function(e) {
+    document.addEventListener('submit', function (e) {
         const form = e.target;
         if (form.classList.contains('ajax-form')) {
             e.preventDefault();
@@ -78,11 +88,11 @@ function handleAjaxForm(form) {
     const formData = new FormData(form);
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
-    
+
     // Show loading state
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memproses...';
-    
+
     fetch(form.action, {
         method: form.method,
         body: formData,
@@ -91,26 +101,26 @@ function handleAjaxForm(form) {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message || 'Operasi berhasil!', 'success');
-            if (data.redirect) {
-                setTimeout(() => window.location.href = data.redirect, 1000);
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message || 'Operasi berhasil!', 'success');
+                if (data.redirect) {
+                    setTimeout(() => window.location.href = data.redirect, 1000);
+                }
+            } else {
+                showToast(data.message || 'Terjadi kesalahan!', 'error');
             }
-        } else {
-            showToast(data.message || 'Terjadi kesalahan!', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showToast('Terjadi kesalahan jaringan!', 'error');
-    })
-    .finally(() => {
-        // Restore button state
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-    });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Terjadi kesalahan jaringan!', 'error');
+        })
+        .finally(() => {
+            // Restore button state
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        });
 }
 
 // Export for global use

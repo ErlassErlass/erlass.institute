@@ -16,9 +16,14 @@
                 <i class="bi bi-arrow-left me-1"></i> Kembali ke Program
             </a>
             @can('update', $ekstrakurikuler)
-                <a href="{{ route('ekstrakurikuler.enrollment.create', $ekstrakurikuler) }}" class="btn btn-primary">
-                    <i class="bi bi-person-plus me-1"></i> Daftarkan Siswa
-                </a>
+                <div class="btn-group" role="group">
+                    <a href="{{ route('ekstrakurikuler.enrollment.create', $ekstrakurikuler) }}" class="btn btn-primary">
+                        <i class="bi bi-person-plus me-1"></i> Daftarkan Siswa
+                    </a>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#bulkImportRombelModal">
+                        <i class="bi bi-people-fill me-1"></i> Import Rombel
+                    </button>
+                </div>
             @endcan
         </div>
     </div>
@@ -244,6 +249,112 @@
     </div>
 </div>
 
+<!-- Bulk Import by Rombel Modal -->
+<div class="modal fade" id="bulkImportRombelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('ekstrakurikuler.enrollment.bulk-import-rombel', $ekstrakurikuler) }}">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-people-fill me-2"></i>Import Siswa dari Rombel
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    @if($errors->bulk_import->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach($errors->bulk_import->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <small>Fitur ini akan mendaftarkan semua siswa dari rombel (kelas) tertentu yang belum terdaftar dalam program ekstrakurikuler ini.</small>
+                    </div>
+
+                    <!-- Rombel Selection -->
+                    <div class="mb-3">
+                        <label for="rombel_select" class="form-label">
+                            <i class="bi bi-collection me-1"></i>Pilih Rombel <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select @error('rombel', 'bulk_import') is-invalid @enderror" id="rombel_select" name="rombel" required>
+                            <option value="">Memuat daftar rombel...</option>
+                        </select>
+                        @error('rombel', 'bulk_import')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <div class="form-text">Pilih rombel/kelas yang siswanya akan didaftarkan.</div>
+                    </div>
+
+                    <!-- Ekstrakurikuler Rombel Selection -->
+                    <div class="mb-3">
+                        <label for="bulk_ekstrakurikuler_rombel_id" class="form-label">
+                            <i class="bi bi-people me-1"></i>Rombel Ekstrakurikuler <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select @error('ekstrakurikuler_rombel_id', 'bulk_import') is-invalid @enderror" id="bulk_ekstrakurikuler_rombel_id" name="ekstrakurikuler_rombel_id" required>
+                            <option value="">Pilih Rombel Ekstrakurikuler...</option>
+                            @foreach($rombels as $rombel)
+                                <option value="{{ $rombel->id }}" 
+                                        data-capacity="{{ $rombel->jumlah_siswa }}"
+                                        data-current="{{ $rombel->getJumlahSiswaAktual() }}">
+                                    {{ $rombel->nama_rombel }} 
+                                    ({{ $rombel->getJumlahSiswaAktual() }}/{{ $rombel->jumlah_siswa }} siswa)
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('ekstrakurikuler_rombel_id', 'bulk_import')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <div class="form-text">Pilih rombel ekstrakurikuler tempat siswa akan ditempatkan.</div>
+                    </div>
+
+                    <!-- Registration Date -->
+                    <div class="mb-3">
+                        <label for="bulk_tanggal_daftar" class="form-label">
+                            <i class="bi bi-calendar me-1"></i>Tanggal Pendaftaran <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" class="form-control @error('tanggal_daftar', 'bulk_import') is-invalid @enderror" id="bulk_tanggal_daftar" name="tanggal_daftar" 
+                               value="{{ old('tanggal_daftar', now()->format('Y-m-d')) }}" max="{{ now()->format('Y-m-d') }}" required>
+                        @error('tanggal_daftar', 'bulk_import')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label for="bulk_catatan" class="form-label">
+                            <i class="bi bi-journal-text me-1"></i>Catatan (Opsional)
+                        </label>
+                        <textarea class="form-control @error('catatan', 'bulk_import') is-invalid @enderror" id="bulk_catatan" name="catatan" rows="3" 
+                                  placeholder="Catatan untuk import rombel ini...">{{ old('catatan') }}</textarea>
+                        @error('catatan', 'bulk_import')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <div class="form-text">Catatan akan disimpan untuk semua siswa yang didaftarkan.</div>
+                    </div>
+
+                    <!-- Preview -->
+                    <div id="rombelPreview" class="alert alert-light" style="display: none;">
+                        <h6><i class="bi bi-eye me-1"></i>Preview:</h6>
+                        <p class="mb-0" id="previewText"></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success" id="bulkImportBtn" disabled>
+                        <i class="bi bi-people-fill me-1"></i>Import Siswa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Bulk Action Modal -->
 <div class="modal fade" id="bulkActionModal" tabindex="-1">
     <div class="modal-dialog">
@@ -331,6 +442,104 @@ function showBulkModal(action) {
     
     modal.show();
 }
+
+// Bulk Import by Rombel functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const bulkImportModal = document.getElementById('bulkImportRombelModal');
+    const rombelSelect = document.getElementById('rombel_select');
+    const ekstrakurikulerRombelSelect = document.getElementById('bulk_ekstrakurikuler_rombel_id');
+    const bulkImportBtn = document.getElementById('bulkImportBtn');
+    const rombelPreview = document.getElementById('rombelPreview');
+    const previewText = document.getElementById('previewText');
+
+    // Load available rombels when modal is opened
+    bulkImportModal.addEventListener('show.bs.modal', function () {
+        loadAvailableRombels();
+    });
+
+    // Load rombels from API
+    function loadAvailableRombels() {
+        fetch('{{ route('ekstrakurikuler.enrollment.available-rombels', $ekstrakurikuler) }}')
+            .then(response => response.json())
+            .then(rombels => {
+                rombelSelect.innerHTML = '<option value="">Pilih Rombel...</option>';
+                rombels.forEach(rombel => {
+                    const option = document.createElement('option');
+                    option.value = rombel;
+                    option.textContent = rombel;
+                    rombelSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading rombels:', error);
+                rombelSelect.innerHTML = '<option value="">Error memuat rombel</option>';
+            });
+    }
+
+    // Update preview and button state when selections change
+    function updateBulkImportPreview() {
+        const selectedRombel = rombelSelect.value;
+        const selectedEkstrakurikulerRombel = ekstrakurikulerRombelSelect.selectedOptions[0];
+        
+        if (selectedRombel && selectedEkstrakurikulerRombel && selectedEkstrakurikulerRombel.value) {
+            const capacity = parseInt(selectedEkstrakurikulerRombel.dataset.capacity);
+            const current = parseInt(selectedEkstrakurikulerRombel.dataset.current);
+            const available = capacity - current;
+            
+            previewText.innerHTML = `
+                <strong>Rombel:</strong> ${selectedRombel}<br>
+                <strong>Tujuan:</strong> ${selectedEkstrakurikulerRombel.textContent}<br>
+                <strong>Slot tersedia:</strong> ${available} dari ${capacity}
+            `;
+            rombelPreview.style.display = 'block';
+            
+            if (available <= 0) {
+                rombelPreview.className = 'alert alert-danger';
+                previewText.innerHTML += '<br><strong class="text-danger">⚠️ Rombel ekstrakurikuler sudah penuh!</strong>';
+                bulkImportBtn.disabled = true;
+            } else if (available <= 5) {
+                rombelPreview.className = 'alert alert-warning';
+                previewText.innerHTML += '<br><strong class="text-warning">⚠️ Slot hampir penuh!</strong>';
+                bulkImportBtn.disabled = false;
+            } else {
+                rombelPreview.className = 'alert alert-light';
+                bulkImportBtn.disabled = false;
+            }
+        } else {
+            rombelPreview.style.display = 'none';
+            bulkImportBtn.disabled = true;
+        }
+    }
+
+    rombelSelect.addEventListener('change', updateBulkImportPreview);
+    ekstrakurikulerRombelSelect.addEventListener('change', updateBulkImportPreview);
+
+    // Reset modal when closed
+    bulkImportModal.addEventListener('hidden.bs.modal', function () {
+        rombelSelect.innerHTML = '<option value="">Memuat daftar rombel...</option>';
+        ekstrakurikulerRombelSelect.value = '';
+        document.getElementById('bulk_catatan').value = '';
+        rombelPreview.style.display = 'none';
+        bulkImportBtn.disabled = true;
+    });
+
+    // Show modal if there are validation errors
+    @if(session('show_bulk_import_modal') && $errors->bulk_import->any())
+        const modal = new bootstrap.Modal(bulkImportModal);
+        modal.show();
+        // Load rombels and restore form values
+        loadAvailableRombels();
+        setTimeout(() => {
+            if ('{{ old('rombel') }}') {
+                rombelSelect.value = '{{ old('rombel') }}';
+            }
+            if ('{{ old('ekstrakurikuler_rombel_id') }}') {
+                ekstrakurikulerRombelSelect.value = '{{ old('ekstrakurikuler_rombel_id') }}';
+            }
+            updateBulkImportPreview();
+        }, 500);
+    @endif
+});
 </script>
 @endpush
 

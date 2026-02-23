@@ -106,6 +106,9 @@
                                                     <span class="badge bg-{{ $ekstrakurikulerSession->status === 'selesai' ? 'success' : 'warning' }}">
                                                         {{ $ekstrakurikulerSession->status_label }}
                                                     </span>
+                                                    <a href="{{ route('ekstrakurikuler.sessions.show', $ekstrakurikulerSession) }}" class="btn btn-sm btn-link p-0 ms-2 text-decoration-none">
+                                                        <i class="bi bi-box-arrow-up-right me-1"></i>Lihat Detail
+                                                    </a>
                                                 </p>
                                             </div>
                                             @if($ekstrakurikulerSession->topik_materi)
@@ -198,11 +201,18 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">Rekap Absensi</h6>
-                    @can('update', $laporanMengajar)
-                    <a href="{{ route('laporan-mengajar.absensi.create', $laporanMengajar) }}" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-pencil me-1"></i> Kelola Absensi
-                    </a>
-                    @endcan
+                    <div class="d-flex">
+                        @if(($isEkstrakurikuler ?? false) && $ekstrakurikulerSession)
+                        <a href="{{ route('ekstrakurikuler-session.print-session', $ekstrakurikulerSession) }}" target="_blank" class="btn btn-sm btn-outline-success me-2">
+                            <i class="bi bi-printer me-1"></i> Print
+                        </a>
+                        @endif
+                        @can('update', $laporanMengajar)
+                        <a href="{{ route('laporan-mengajar.absensi.create', $laporanMengajar) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil me-1"></i> Kelola Absensi
+                        </a>
+                        @endcan
+                    </div>
                 </div>
                 <div class="card-body">
                     <ul class="list-group list-group-flush">
@@ -227,6 +237,16 @@
                     <h6 class="m-0 font-weight-bold text-primary">Dokumentasi</h6>
                 </div>
                 <div class="card-body">
+                    @if($laporanMengajar->file_project)
+                        <div class="mb-3">
+                            <p class="mb-2"><strong>File Project:</strong></p>
+                            <a href="{{ asset('storage/' . $laporanMengajar->file_project) }}" class="btn btn-outline-primary btn-sm" download>
+                                <i class="bi bi-download me-1"></i> Download Project (.sb3/.zip)
+                            </a>
+                        </div>
+                        <hr>
+                    @endif
+
                     @if($laporanMengajar->foto_kegiatan)
                     <p class="mb-2"><strong>Foto Kegiatan:</strong></p>
                     <a href="{{ asset('storage/' . $laporanMengajar->foto_kegiatan) }}" data-fancybox="gallery">
@@ -236,12 +256,16 @@
                     @endif
 
                     @if($laporanMengajar->foto_absensi_siswa)
-                    <p class="mb-2"><strong>Foto Absensi Siswa:</strong></p>
+                    <p class="mb-2">
+                        <strong>Foto Absensi Siswa:</strong>
+                        <br>
+                        <small class="text-danger"><i class="bi bi-info-circle me-1"></i>Pastikan foto memuat TTD PIC Ekskul & Instruktur</small>
+                    </p>
                     <a href="{{ asset('storage/' . $laporanMengajar->foto_absensi_siswa) }}" data-fancybox="gallery">
                         <img src="{{ asset('storage/' . $laporanMengajar->foto_absensi_siswa) }}" class="img-fluid rounded" alt="Foto Absensi">
                     </a>
                     @else
-                    <p class="text-muted text-center">Tidak ada dokumentasi.</p>
+                    <p class="text-muted text-center">Tidak ada dokumentasi foto.</p>
                     @endif
                 </div>
             </div>

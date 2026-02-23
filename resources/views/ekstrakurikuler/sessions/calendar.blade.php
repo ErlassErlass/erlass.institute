@@ -3,89 +3,87 @@
 @section('title', 'Kalender Sesi Ekstrakurikuler')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header Section -->
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+<div class="container py-4">
+    <!-- Header Section -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body p-4">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900">Kalender Sesi Ekstrakurikuler</h1>
-                    <p class="text-gray-600 mt-1">{{ \Carbon\Carbon::create($year, $month)->format('F Y') }}</p>
+                    <h2 class="h3 fw-bold text-dark mb-1">Kalender Sesi Ekstrakurikuler</h2>
+                    <p class="text-muted mb-0">{{ \Carbon\Carbon::create($year, $month)->format('F Y') }}</p>
                 </div>
-                <div class="flex items-center space-x-4 mt-4 lg:mt-0">
-                    <div class="flex items-center space-x-2">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="btn-group" role="group">
                         <a href="{{ route('ekstrakurikuler.sessions.calendar', ['month' => $month - 1 < 1 ? 12 : $month - 1, 'year' => $month - 1 < 1 ? $year - 1 : $year]) }}" 
-                           class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                            </svg>
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-chevron-left"></i>
                         </a>
-                        <span class="text-lg font-medium text-gray-900 min-w-[120px] text-center">
+                        <span class="btn btn-outline-secondary disabled fw-bold px-4 text-dark border-secondary">
                             {{ \Carbon\Carbon::create($year, $month)->format('F Y') }}
                         </span>
                         <a href="{{ route('ekstrakurikuler.sessions.calendar', ['month' => $month + 1 > 12 ? 1 : $month + 1, 'year' => $month + 1 > 12 ? $year + 1 : $year]) }}" 
-                           class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-chevron-right"></i>
                         </a>
                     </div>
                     <a href="{{ route('ekstrakurikuler.sessions.index') }}" 
-                       class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                  d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-                        </svg>
-                        View List
+                       class="btn btn-primary d-flex align-items-center">
+                        <i class="bi bi-list-ul me-2"></i> View List
                     </a>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Legend -->
-        <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <h3 class="text-sm font-medium text-gray-900 mb-3">Legend:</h3>
-            <div class="flex flex-wrap gap-4 text-sm">
-                <div class="flex items-center">
-                    <div class="w-4 h-4 bg-blue-100 border border-blue-300 rounded mr-2"></div>
-                    <span class="text-gray-700">Terjadwal</span>
+    <!-- Legend -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body py-3">
+            <h6 class="card-title text-muted mb-2 small fw-bold text-uppercase">Legend:</h6>
+            <div class="d-flex flex-wrap gap-3 small">
+                <div class="d-flex align-items-center">
+                    <span class="d-inline-block bg-primary rounded me-2" style="width: 16px; height: 16px; opacity: 0.2;"></span>
+                    <span class="text-secondary">Terjadwal</span>
                 </div>
-                <div class="flex items-center">
-                    <div class="w-4 h-4 bg-yellow-100 border border-yellow-300 rounded mr-2"></div>
-                    <span class="text-gray-700">Berlangsung</span>
+                <div class="d-flex align-items-center">
+                    <span class="d-inline-block bg-warning rounded me-2" style="width: 16px; height: 16px; opacity: 0.2;"></span>
+                    <span class="text-secondary">Berlangsung</span>
                 </div>
-                <div class="flex items-center">
-                    <div class="w-4 h-4 bg-green-100 border border-green-300 rounded mr-2"></div>
-                    <span class="text-gray-700">Selesai</span>
+                <div class="d-flex align-items-center">
+                    <span class="d-inline-block bg-success rounded me-2" style="width: 16px; height: 16px; opacity: 0.2;"></span>
+                    <span class="text-secondary">Selesai</span>
                 </div>
-                <div class="flex items-center">
-                    <div class="w-4 h-4 bg-red-100 border border-red-300 rounded mr-2"></div>
-                    <span class="text-gray-700">Dibatalkan</span>
+                <div class="d-flex align-items-center">
+                    <span class="d-inline-block bg-danger rounded me-2" style="width: 16px; height: 16px; opacity: 0.2;"></span>
+                    <span class="text-secondary">Dibatalkan</span>
                 </div>
-                <div class="flex items-center">
-                    <div class="w-4 h-4 bg-gray-100 border border-gray-300 rounded mr-2"></div>
-                    <span class="text-gray-700">Ditunda</span>
+                <div class="d-flex align-items-center">
+                    <span class="d-inline-block bg-secondary rounded me-2" style="width: 16px; height: 16px; opacity: 0.2;"></span>
+                    <span class="text-secondary">Ditunda</span>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Calendar Grid -->
-        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div class="grid grid-cols-7 gap-px bg-gray-200">
-                <!-- Day Headers -->
+    <!-- Calendar Grid -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-0">
+            <!-- Grid Header -->
+            <div class="bg-light border-bottom" style="display: grid; grid-template-columns: repeat(7, 1fr);">
                 @foreach(['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $day)
-                    <div class="bg-gray-50 p-4 text-center">
-                        <div class="text-sm font-medium text-gray-900">{{ $day }}</div>
+                    <div class="p-3 text-center fw-bold text-muted small">
+                        {{ $day }}
                     </div>
                 @endforeach
+            </div>
 
-                @php
-                    $firstDayOfWeek = $startDate->copy()->startOfMonth()->dayOfWeek;
-                    $daysInMonth = $startDate->copy()->endOfMonth()->day;
-                    $currentDate = $startDate->copy()->startOfMonth()->subDays($firstDayOfWeek);
-                @endphp
+            @php
+                $firstDayOfWeek = $startDate->copy()->startOfMonth()->dayOfWeek;
+                $daysInMonth = $startDate->copy()->endOfMonth()->day;
+                $currentDate = $startDate->copy()->startOfMonth()->subDays($firstDayOfWeek);
+            @endphp
 
-                <!-- Calendar Days -->
+            <!-- Calendar Body -->
+            <div class="bg-white" style="display: grid; grid-template-columns: repeat(7, 1fr); border-left: 1px solid #dee2e6; border-top: 1px solid #dee2e6;">
                 @for($i = 0; $i < 42; $i++) <!-- 6 weeks * 7 days -->
                     @php
                         $date = $currentDate->copy()->addDays($i);
@@ -95,209 +93,162 @@
                         $sessionsOnDate = $sessions->get($dateKey, collect());
                     @endphp
                     
-                    <div class="bg-white min-h-[120px] p-2 border-r border-b border-gray-200 
-                                {{ !$isCurrentMonth ? 'bg-gray-50 text-gray-400' : '' }}">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm {{ $isToday ? 'bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-medium' : 'text-gray-900' }}">
+                    <div class="position-relative p-2 border-end border-bottom {{ !$isCurrentMonth ? 'bg-light text-muted' : '' }}" style="min-height: 120px;">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="small fw-bold {{ $isToday ? 'bg-primary text-white rounded-circle d-flex align-items-center justify-content-center' : '' }}" 
+                                  style="{{ $isToday ? 'width: 24px; height: 24px;' : '' }}">
                                 {{ $date->day }}
                             </span>
                             @if($sessionsOnDate->count() > 0)
-                                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                <span class="badge bg-secondary opacity-75 rounded-pill" style="font-size: 0.65rem;">
                                     {{ $sessionsOnDate->count() }} sesi
                                 </span>
                             @endif
                         </div>
 
                         <!-- Sessions on this date -->
-                        <div class="space-y-1">
+                        <div class="d-flex flex-column gap-1">
                             @foreach($sessionsOnDate->take(3) as $session)
-                                <div class="group relative">
-                                    <div class="text-xs p-2 rounded-md border cursor-pointer hover:shadow-sm transition-shadow
+                                <a href="{{ route('ekstrakurikuler.sessions.show', $session) }}" class="text-decoration-none">
+                                    <div class="p-1 rounded border small shadow-sm session-item
                                         @switch($session->status)
-                                            @case('terjadwal')
-                                                bg-blue-50 border-blue-200 text-blue-800
-                                                @break
-                                            @case('berlangsung')
-                                                bg-yellow-50 border-yellow-200 text-yellow-800
-                                                @break
-                                            @case('selesai')
-                                                bg-green-50 border-green-200 text-green-800
-                                                @break
-                                            @case('dibatalkan')
-                                                bg-red-50 border-red-200 text-red-800
-                                                @break
-                                            @case('ditunda')
-                                                bg-gray-50 border-gray-200 text-gray-800
-                                                @break
-                                            @default
-                                                bg-gray-50 border-gray-200 text-gray-800
+                                            @case('terjadwal') bg-soft-primary border-primary text-primary @break
+                                            @case('berlangsung') bg-soft-warning border-warning text-dark @break
+                                            @case('selesai') bg-soft-success border-success text-success @break
+                                            @case('dibatalkan') bg-soft-danger border-danger text-danger @break
+                                            @case('ditunda') bg-soft-secondary border-secondary text-secondary @break
+                                            @default bg-light border-secondary text-muted
                                         @endswitch
-                                    " onclick="showSessionDetails({{ $session->id }})">
-                                        <div class="font-medium truncate">
-                                            {{ $session->rombel->ekstrakurikuler->kategori_program }}
+                                    " data-bs-toggle="tooltip" data-bs-html="true" title="
+                                        <strong>{{ $session->rombel->ekstrakurikuler->kategori_program }}</strong><br>
+                                        {{ $session->rombel->nama_rombel }}<br>
+                                        {{ $session->jam_mulai_terjadwal->format('H:i') }} - {{ $session->jam_selesai_terjadwal->format('H:i') }}<br>
+                                        {{ $session->instruktur->nama_lengkap ?? 'Belum ada instruktur' }}
+                                    ">
+                                        <div class="d-flex align-items-center">
+                                            <div class="text-truncate fw-bold" style="font-size: 0.7rem; max-width: 100%;">
+                                                {{ $session->rombel->ekstrakurikuler->kategori_program }}
+                                            </div>
                                         </div>
-                                        <div class="text-gray-600 truncate">
-                                            {{ $session->rombel->nama_rombel }}
-                                        </div>
-                                        <div class="text-gray-500">
-                                            {{ $session->jam_mulai_terjadwal->format('H:i') }}
+                                        <div class="d-flex justify-content-between align-items-center text-muted" style="font-size: 0.65rem;">
+                                            <span class="text-truncate" style="max-width: 60px;">{{ $session->rombel->nama_rombel }}</span>
+                                            <span>{{ $session->jam_mulai_terjadwal->format('H:i') }}</span>
                                         </div>
                                     </div>
-                                    
-                                    <!-- Tooltip -->
-                                    <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 
-                                                bg-gray-900 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 
-                                                transition-opacity z-10 pointer-events-none whitespace-nowrap">
-                                        <div>{{ $session->rombel->ekstrakurikuler->kategori_program }}</div>
-                                        <div>{{ $session->rombel->nama_rombel }}</div>
-                                        <div>Pertemuan {{ $session->nomor_pertemuan }}</div>
-                                        <div>{{ $session->jam_mulai_terjadwal->format('H:i') }} - {{ $session->jam_selesai_terjadwal->format('H:i') }}</div>
-                                        <div>{{ $session->instruktur->nama_lengkap ?? 'Belum ada instruktur' }}</div>
-                                        <div class="arrow absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 
-                                                    border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                                    </div>
-                                </div>
+                                </a>
                             @endforeach
 
                             @if($sessionsOnDate->count() > 3)
-                                <div class="text-xs text-gray-500 text-center py-1 cursor-pointer hover:text-gray-700"
-                                     onclick="showDateSessions('{{ $dateKey }}')">
+                                <a href="{{ route('ekstrakurikuler.sessions.index', ['tanggal_dari' => $dateKey, 'tanggal_sampai' => $dateKey]) }}" 
+                                   class="text-center small text-muted text-decoration-none py-1 hover-bg-light rounded">
                                     +{{ $sessionsOnDate->count() - 3 }} lainnya
-                                </div>
+                                </a>
                             @endif
                         </div>
                     </div>
-
-                    @if($i % 7 === 6 && $i < 35) <!-- End of week, not last week -->
-                        <!-- Week separator handled by grid -->
-                    @endif
                 @endfor
             </div>
         </div>
-
-        <!-- Quick Stats -->
-        <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-6">
-            @php
-                $monthSessions = $sessions->flatten();
-                $totalSessions = $monthSessions->count();
-                $completedSessions = $monthSessions->where('status', 'selesai')->count();
-                $scheduledSessions = $monthSessions->where('status', 'terjadwal')->count();
-                $canceledSessions = $monthSessions->where('status', 'dibatalkan')->count();
-            @endphp
-            
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
-                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-500">Total Sesi</div>
-                        <div class="text-2xl font-bold text-gray-900">{{ $totalSessions }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
-                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-500">Selesai</div>
-                        <div class="text-2xl font-bold text-gray-900">{{ $completedSessions }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-yellow-100 rounded-md flex items-center justify-center">
-                            <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-500">Terjadwal</div>
-                        <div class="text-2xl font-bold text-gray-900">{{ $scheduledSessions }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-red-100 rounded-md flex items-center justify-center">
-                            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-500">Dibatalkan</div>
-                        <div class="text-2xl font-bold text-gray-900">{{ $canceledSessions }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
-</div>
 
-<!-- Session Detail Modal -->
-<div id="sessionDetailModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-[600px] shadow-lg rounded-md bg-white">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-medium text-gray-900">Detail Sesi</h3>
-            <button onclick="closeSessionDetailModal()" class="text-gray-400 hover:text-gray-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
+    <!-- Quick Stats -->
+    <div class="row g-4">
+        @php
+            $monthSessions = $sessions->flatten();
+            $totalSessions = $monthSessions->count();
+            $completedSessions = $monthSessions->where('status', 'selesai')->count();
+            $scheduledSessions = $monthSessions->where('status', 'terjadwal')->count();
+            $canceledSessions = $monthSessions->where('status', 'dibatalkan')->count();
+        @endphp
         
-        <div id="sessionDetailContent">
-            <!-- Content will be loaded here -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded p-3 bg-soft-primary text-primary">
+                            <i class="bi bi-calendar-check fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <p class="text-muted small mb-0">Total Sesi</p>
+                        <h4 class="fw-bold mb-0">{{ $totalSessions }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded p-3 bg-soft-success text-success">
+                            <i class="bi bi-check-lg fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <p class="text-muted small mb-0">Selesai</p>
+                        <h4 class="fw-bold mb-0">{{ $completedSessions }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded p-3 bg-soft-warning text-warning">
+                            <i class="bi bi-clock fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <p class="text-muted small mb-0">Terjadwal</p>
+                        <h4 class="fw-bold mb-0">{{ $scheduledSessions }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded p-3 bg-soft-danger text-danger">
+                            <i class="bi bi-x-lg fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="ms-3">
+                        <p class="text-muted small mb-0">Dibatalkan</p>
+                        <h4 class="fw-bold mb-0">{{ $canceledSessions }}</h4>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+/* Custom soft colors for calendar items */
+.bg-soft-primary { background-color: rgba(13, 110, 253, 0.1); }
+.bg-soft-success { background-color: rgba(25, 135, 84, 0.1); }
+.bg-soft-warning { background-color: rgba(255, 193, 7, 0.1); }
+.bg-soft-danger { background-color: rgba(220, 53, 69, 0.1); }
+.bg-soft-secondary { background-color: rgba(108, 117, 125, 0.1); }
+
+.session-item:hover {
+    filter: brightness(0.95);
+    transition: filter 0.2s;
+}
+</style>
 
 @push('scripts')
 <script>
-function showSessionDetails(sessionId) {
-    // Show modal
-    document.getElementById('sessionDetailModal').classList.remove('hidden');
-    
-    // Load session details via AJAX
-    fetch(`/ekstrakurikuler/sessions/${sessionId}`)
-        .then(response => response.text())
-        .then(html => {
-            // Extract content from the response (you might need to adjust this)
-            document.getElementById('sessionDetailContent').innerHTML = html;
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
         })
-        .catch(error => {
-            console.error('Error loading session details:', error);
-            document.getElementById('sessionDetailContent').innerHTML = 
-                '<div class="text-red-600">Error loading session details</div>';
-        });
-}
-
-function closeSessionDetailModal() {
-    document.getElementById('sessionDetailModal').classList.add('hidden');
-}
-
-function showDateSessions(date) {
-    // Redirect to sessions index with date filter
-    window.location.href = `/ekstrakurikuler/sessions?tanggal_dari=${date}&tanggal_sampai=${date}`;
-}
+    });
 </script>
 @endpush
 @endsection

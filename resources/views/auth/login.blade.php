@@ -10,9 +10,7 @@
                 <div class="card-body p-5">
                     <!-- Logo/Brand Section -->
                     <div class="text-center mb-5">
-                        <div class="mb-3">
-                            <i class="bi bi-mortarboard-fill text-primary" style="font-size: 3rem;"></i>
-                        </div>
+                            <img src="{{ asset('images/logo-erlass.png') }}" alt="Erlass Logo" class="img-fluid" style="max-height: 80px;">
                         <h1 class="h3 fw-bold text-dark mb-1">Selamat Datang</h1>
                         <p class="text-muted mb-0">Masuk ke akun Erlass Ekskul Anda</p>
                     </div>
@@ -45,20 +43,20 @@
 
                         <!-- Email Field -->
                         <div class="mb-4">
-                            <x-input-label for="email" value="Alamat Email" class="fw-semibold" />
+                            <x-input-label for="email" value="Alamat Email / ID Instruktur" class="fw-semibold" />
                             <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0">
-                                    <i class="bi bi-envelope text-muted"></i>
+                                <span class="input-group-text bg-input border-end-0">
+                                    <i class="bi bi-person-badge text-muted"></i>
                                 </span>
                                 <x-text-input
                                     id="email"
                                     name="email"
-                                    type="email"
+                                    type="text"
                                     :value="old('email')"
                                     required
                                     autofocus
                                     autocomplete="username"
-                                    placeholder="nama@email.com"
+                                    placeholder="email@contoh.com atau ICE20261"
                                     class="border-start-0 ps-0" />
                             </div>
                             <x-input-error :messages="$errors->get('email')" class="mt-2" />
@@ -68,7 +66,7 @@
                         <div class="mb-4">
                             <x-input-label for="password" value="Kata Sandi" class="fw-semibold" />
                             <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0">
+                                <span class="input-group-text bg-input border-end-0">
                                     <i class="bi bi-lock text-muted"></i>
                                 </span>
                                 <x-text-input

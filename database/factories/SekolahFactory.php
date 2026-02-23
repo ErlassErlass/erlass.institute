@@ -13,10 +13,10 @@ class SekolahFactory extends Factory
         $kota = ($provinsi == 'DKI Jakarta') ? fake()->randomElement(['Jakarta Selatan', 'Jakarta Timur', 'Jakarta Pusat']) : fake()->city();
         $kec = fake()->streetName();
         $jenjang = fake()->randomElement(['SD', 'SMP']);
-        $namaSekolah = $jenjang . ' Negeri ' . fake()->numberBetween(1, 20) . ' ' . $kec;
+        $namaSekolah = $jenjang.' Negeri '.fake()->numberBetween(1, 20).' '.$kec;
 
         return [
-            'kodlan' => strtoupper(substr($provinsi, 0, 3)) . '-' . strtoupper(substr($kota, 0, 3)) . '-' . fake()->unique()->numerify('###'),
+            'kodlan' => strtoupper(substr($provinsi, 0, 3)).'-'.strtoupper(substr($kota, 0, 3)).'-'.fake()->unique()->numerify('###'),
             'namasekolah' => $namaSekolah,
             'jenjang' => $jenjang,
             'status' => fake()->randomElement(['Negeri', 'Swasta']),

@@ -6,9 +6,7 @@
                     <div class="card-body p-5">
                         <!-- Logo/Brand Section -->
                         <div class="text-center mb-5">
-                            <div class="mb-3">
-                                <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
-                            </div>
+                                <img src="{{ asset('images/logo-erlass.png') }}" alt="Erlass Logo" class="img-fluid" style="max-height: 80px;">
                             <h1 class="h3 fw-bold text-dark mb-1">Reset Kata Sandi</h1>
                             <p class="text-muted mb-0">
                                 Masukkan kata sandi baru untuk akun Anda

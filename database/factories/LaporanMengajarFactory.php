@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\User;
 use App\Models\Sekolah;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 class LaporanMengajarFactory extends Factory
 {
@@ -15,16 +15,13 @@ class LaporanMengajarFactory extends Factory
             'user_id_instruktur' => User::factory(),
             'user_id_assisten' => null,
             'pertemuan_ke' => $this->faker->numberBetween(1, 16),
-            'rombel' => $this->faker->randomElement(['A1', 'A2', 'B1', 'B2', 'C1']),
+            'rombel' => $this->faker->randomElement(['1', '2', '3', '4', '5']),
             'sekolah_kodlan' => Sekolah::factory(),
             'jadwal_mengajar' => Carbon::today()->subDays($this->faker->numberBetween(0, 7)),
             'jam_mulai' => '08:00',
             'jam_selesai' => '10:00',
             'kategori_pengajaran' => $this->faker->randomElement(['Regular', 'Remedial', 'Pengayaan']),
             'materi_pengajaran' => $this->faker->sentence(8),
-            'sekolah_nama' => $this->faker->company . ' School',
-            'sekolah_kota' => $this->faker->city,
-            'sekolah_kecamatan' => $this->faker->streetName,
             'jumlah_siswa_hadir' => 0,
             'jumlah_siswa_keluar' => 0,
             'jumlah_siswa_tidak_hadir' => 0,
@@ -32,8 +29,8 @@ class LaporanMengajarFactory extends Factory
             'foto_absensi_siswa' => null,
             'refleksi_siswa' => $this->faker->paragraph(2),
             'refleksi_capaian' => $this->faker->paragraph(2),
-            'keaktifan' => $this->faker->numberBetween(1, 10),
-            'pemahaman_materi' => $this->faker->numberBetween(1, 10),
+            'keaktifan' => $this->faker->randomElement(['sangat_pasif', 'pasif', 'aktif', 'sangat_aktif']),
+            'pemahaman_materi' => $this->faker->randomElement(['belum_paham', 'sedikit_paham', 'paham', 'sangat_paham']),
         ];
     }
 
@@ -54,9 +51,6 @@ class LaporanMengajarFactory extends Factory
     {
         return $this->state(fn () => [
             'sekolah_kodlan' => $sekolah->kodlan,
-            'sekolah_nama' => $sekolah->namasekolah,
-            'sekolah_kota' => $sekolah->kota,
-            'sekolah_kecamatan' => $sekolah->kec,
         ]);
     }
 

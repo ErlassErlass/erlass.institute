@@ -10,207 +10,121 @@
 
 <div class="row">
     <div class="col-md-6">
-        <div class="form-group mb-4">
-            <label class="form-label">
-                <i class="fas fa-wifi"></i> Jaringan Internet <span class="required-indicator">*</span>
-            </label>
-            
-            <div class="form-check mb-2">
-                <input class="form-check-input" 
-                       type="radio" 
-                       name="koneksi_internet" 
-                       id="internet_ada" 
-                       value="ada"
-                       {{ old('koneksi_internet', $formData['koneksi_internet'] ?? '') == 'ada' ? 'checked' : '' }}
-                       required>
-                <label class="form-check-label" for="internet_ada">
-                    <span class="badge badge-success">Ada</span> - Koneksi internet tersedia dan stabil
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <label class="form-label mb-0 fw-bold">
+                    <i class="fas fa-wifi text-primary me-2"></i> Jaringan Internet <span class="required-indicator">*</span>
                 </label>
             </div>
-            
-            <div class="form-check mb-2">
-                <input class="form-check-input" 
-                       type="radio" 
-                       name="koneksi_internet" 
-                       id="internet_tidak_ada" 
-                       value="tidak_ada"
-                       {{ old('koneksi_internet', $formData['koneksi_internet'] ?? '') == 'tidak_ada' ? 'checked' : '' }}>
-                <label class="form-check-label" for="internet_tidak_ada">
-                    <span class="badge badge-danger">Tidak Ada</span> - Tidak tersedia koneksi internet
-                </label>
-            </div>
-            
-            <div class="form-check mb-3">
-                <input class="form-check-input" 
-                       type="radio" 
-                       name="koneksi_internet" 
-                       id="internet_tidak_diketahui" 
-                       value="tidak_diketahui"
-                       {{ old('koneksi_internet', $formData['koneksi_internet'] ?? '') == 'tidak_diketahui' ? 'checked' : '' }}>
-                <label class="form-check-label" for="internet_tidak_diketahui">
-                    <span class="badge badge-warning">Tidak Diketahui</span> - Perlu dikonfirmasi
-                </label>
-            </div>
-            
-            <div class="form-group" id="keterangan_internet_group" style="display: none;">
-                <label for="keterangan_internet" class="form-label">Keterangan Internet</label>
-                <textarea class="form-control @error('keterangan_internet') is-invalid @enderror" 
-                          id="keterangan_internet" 
-                          name="keterangan_internet" 
-                          rows="2" 
-                          placeholder="Contoh: WiFi sekolah dengan password, atau hotspot guru...">{{ old('keterangan_internet', $formData['keterangan_internet'] ?? '') }}</textarea>
-                @error('keterangan_internet')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+            <div class="card-body">
+                <div class="option-group" data-target="koneksi_internet">
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="koneksi_internet" id="internet_ada" value="ada" {{ old('koneksi_internet', $formData['koneksi_internet'] ?? '') == 'ada' ? 'checked' : '' }} required>
+                            <label class="btn btn-outline-success w-100" for="internet_ada"><i class="fas fa-check-circle"></i> Ada</label>
+                        </div>
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="koneksi_internet" id="internet_tidak_ada" value="tidak_ada" {{ old('koneksi_internet', $formData['koneksi_internet'] ?? '') == 'tidak_ada' ? 'checked' : '' }}>
+                            <label class="btn btn-outline-danger w-100" for="internet_tidak_ada"><i class="fas fa-times-circle"></i> Tidak</label>
+                        </div>
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="koneksi_internet" id="internet_tidak_diketahui" value="tidak_diketahui" {{ old('koneksi_internet', $formData['koneksi_internet'] ?? '') == 'tidak_diketahui' ? 'checked' : '' }}>
+                            <label class="btn btn-outline-warning w-100" for="internet_tidak_diketahui"><i class="fas fa-question-circle"></i> ?</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3 form-group" id="keterangan_internet_group" style="display: none;">
+                    <textarea class="form-control" name="keterangan_internet" rows="2" placeholder="Nama WiFi / Password (jika ada)...">{{ old('keterangan_internet', $formData['keterangan_internet'] ?? '') }}</textarea>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-md-6">
-        <div class="form-group mb-4">
-            <label class="form-label">
-                <i class="fas fa-video"></i> Proyektor <span class="required-indicator">*</span>
-            </label>
-            
-            <div class="form-check mb-2">
-                <input class="form-check-input" 
-                       type="radio" 
-                       name="proyektor" 
-                       id="proyektor_ada" 
-                       value="ada"
-                       {{ old('proyektor', $formData['proyektor'] ?? '') == 'ada' ? 'checked' : '' }}
-                       required>
-                <label class="form-check-label" for="proyektor_ada">
-                    <span class="badge badge-success">Ada</span> - Proyektor tersedia dan berfungsi
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <label class="form-label mb-0 fw-bold">
+                    <i class="fas fa-video text-primary me-2"></i> Proyektor <span class="required-indicator">*</span>
                 </label>
             </div>
-            
-            <div class="form-check mb-2">
-                <input class="form-check-input" 
-                       type="radio" 
-                       name="proyektor" 
-                       id="proyektor_tidak_ada" 
-                       value="tidak_ada"
-                       {{ old('proyektor', $formData['proyektor'] ?? '') == 'tidak_ada' ? 'checked' : '' }}>
-                <label class="form-check-label" for="proyektor_tidak_ada">
-                    <span class="badge badge-danger">Tidak Ada</span> - Tidak tersedia proyektor
-                </label>
-            </div>
-            
-            <div class="form-check mb-3">
-                <input class="form-check-input" 
-                       type="radio" 
-                       name="proyektor" 
-                       id="proyektor_tidak_diketahui" 
-                       value="tidak_diketahui"
-                       {{ old('proyektor', $formData['proyektor'] ?? '') == 'tidak_diketahui' ? 'checked' : '' }}>
-                <label class="form-check-label" for="proyektor_tidak_diketahui">
-                    <span class="badge badge-warning">Tidak Diketahui</span> - Perlu dikonfirmasi
-                </label>
-            </div>
-            
-            <div class="form-group" id="keterangan_proyektor_group" style="display: none;">
-                <label for="keterangan_proyektor" class="form-label">Keterangan Proyektor</label>
-                <textarea class="form-control @error('keterangan_proyektor') is-invalid @enderror" 
-                          id="keterangan_proyektor" 
-                          name="keterangan_proyektor" 
-                          rows="2" 
-                          placeholder="Contoh: Proyektor di ruang multimedia, resolusi, kondisi...">{{ old('keterangan_proyektor', $formData['keterangan_proyektor'] ?? '') }}</textarea>
-                @error('keterangan_proyektor')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+            <div class="card-body">
+                <div class="option-group" data-target="proyektor">
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="proyektor" id="proyektor_ada" value="ada" {{ old('proyektor', $formData['proyektor'] ?? '') == 'ada' ? 'checked' : '' }} required>
+                            <label class="btn btn-outline-success w-100" for="proyektor_ada"><i class="fas fa-check-circle"></i> Ada</label>
+                        </div>
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="proyektor" id="proyektor_tidak_ada" value="tidak_ada" {{ old('proyektor', $formData['proyektor'] ?? '') == 'tidak_ada' ? 'checked' : '' }}>
+                            <label class="btn btn-outline-danger w-100" for="proyektor_tidak_ada"><i class="fas fa-times-circle"></i> Tidak</label>
+                        </div>
+                        <div class="col-4">
+                            <input type="radio" class="btn-check" name="proyektor" id="proyektor_tidak_diketahui" value="tidak_diketahui" {{ old('proyektor', $formData['proyektor'] ?? '') == 'tidak_diketahui' ? 'checked' : '' }}>
+                            <label class="btn btn-outline-warning w-100" for="proyektor_tidak_diketahui"><i class="fas fa-question-circle"></i> ?</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 form-group" id="keterangan_proyektor_group" style="display: none;">
+                    <textarea class="form-control" name="keterangan_proyektor" rows="2" placeholder="Detail kondisi proyektor...">{{ old('keterangan_proyektor', $formData['keterangan_proyektor'] ?? '') }}</textarea>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-md-6">
-        <div class="form-group mb-4">
-            <label class="form-label">
-                <i class="fas fa-plug"></i> Kabel HDMI <span class="required-indicator">*</span>
-            </label>
-            
-            <div class="form-check mb-2">
-                <input class="form-check-input" 
-                       type="radio" 
-                       name="kabel_hdmi" 
-                       id="hdmi_ada" 
-                       value="ada"
-                       {{ old('kabel_hdmi', $formData['kabel_hdmi'] ?? '') == 'ada' ? 'checked' : '' }}
-                       required>
-                <label class="form-check-label" for="hdmi_ada">
-                    <span class="badge badge-success">Ada</span> - Kabel HDMI tersedia
-                </label>
-            </div>
-            
-            <div class="form-check mb-2">
-                <input class="form-check-input" 
-                       type="radio" 
-                       name="kabel_hdmi" 
-                       id="hdmi_tidak_ada" 
-                       value="tidak_ada"
-                       {{ old('kabel_hdmi', $formData['kabel_hdmi'] ?? '') == 'tidak_ada' ? 'checked' : '' }}>
-                <label class="form-check-label" for="hdmi_tidak_ada">
-                    <span class="badge badge-danger">Tidak Ada</span> - Tidak tersedia kabel HDMI
-                </label>
-            </div>
-            
-            <div class="form-check mb-3">
-                <input class="form-check-input" 
-                       type="radio" 
-                       name="kabel_hdmi" 
-                       id="hdmi_tidak_diketahui" 
-                       value="tidak_diketahui"
-                       {{ old('kabel_hdmi', $formData['kabel_hdmi'] ?? '') == 'tidak_diketahui' ? 'checked' : '' }}>
-                <label class="form-check-label" for="hdmi_tidak_diketahui">
-                    <span class="badge badge-warning">Tidak Diketahui</span> - Perlu dikonfirmasi
-                </label>
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <label class="form-label fw-bold mb-3"><i class="fas fa-plug text-primary me-2"></i> Kabel HDMI <span class="required-indicator">*</span></label>
+                <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" name="kabel_hdmi" id="hdmi_ada" value="ada" {{ old('kabel_hdmi', $formData['kabel_hdmi'] ?? '') == 'ada' ? 'checked' : '' }} required>
+                    <label class="btn btn-outline-success" for="hdmi_ada">Ada</label>
+
+                    <input type="radio" class="btn-check" name="kabel_hdmi" id="hdmi_tidak_ada" value="tidak_ada" {{ old('kabel_hdmi', $formData['kabel_hdmi'] ?? '') == 'tidak_ada' ? 'checked' : '' }}>
+                    <label class="btn btn-outline-danger" for="hdmi_tidak_ada">Tidak</label>
+
+                    <input type="radio" class="btn-check" name="kabel_hdmi" id="hdmi_tidak_diketahui" value="tidak_diketahui" {{ old('kabel_hdmi', $formData['kabel_hdmi'] ?? '') == 'tidak_diketahui' ? 'checked' : '' }}>
+                    <label class="btn btn-outline-warning" for="hdmi_tidak_diketahui">?</label>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-6">
-        <div class="form-group mb-4">
-            <label class="form-label">
-                <i class="fas fa-plug"></i> Kabel VGA <span class="required-indicator">*</span>
-            </label>
-            
-            <div class="form-check mb-2">
-                <input class="form-check-input" 
-                       type="radio" 
-                       name="kabel_vga" 
-                       id="vga_ada" 
-                       value="ada"
-                       {{ old('kabel_vga', $formData['kabel_vga'] ?? '') == 'ada' ? 'checked' : '' }}
-                       required>
-                <label class="form-check-label" for="vga_ada">
-                    <span class="badge badge-success">Ada</span> - Kabel VGA tersedia
-                </label>
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <label class="form-label fw-bold mb-3"><i class="fas fa-plug text-primary me-2"></i> Kabel VGA <span class="required-indicator">*</span></label>
+                <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" name="kabel_vga" id="vga_ada" value="ada" {{ old('kabel_vga', $formData['kabel_vga'] ?? '') == 'ada' ? 'checked' : '' }} required>
+                    <label class="btn btn-outline-success" for="vga_ada">Ada</label>
+
+                    <input type="radio" class="btn-check" name="kabel_vga" id="vga_tidak_ada" value="tidak_ada" {{ old('kabel_vga', $formData['kabel_vga'] ?? '') == 'tidak_ada' ? 'checked' : '' }}>
+                    <label class="btn btn-outline-danger" for="vga_tidak_ada">Tidak</label>
+
+                    <input type="radio" class="btn-check" name="kabel_vga" id="vga_tidak_diketahui" value="tidak_diketahui" {{ old('kabel_vga', $formData['kabel_vga'] ?? '') == 'tidak_diketahui' ? 'checked' : '' }}>
+                    <label class="btn btn-outline-warning" for="vga_tidak_diketahui">?</label>
+                </div>
             </div>
-            
-            <div class="form-check mb-2">
-                <input class="form-check-input" 
-                       type="radio" 
-                       name="kabel_vga" 
-                       id="vga_tidak_ada" 
-                       value="tidak_ada"
-                       {{ old('kabel_vga', $formData['kabel_vga'] ?? '') == 'tidak_ada' ? 'checked' : '' }}>
-                <label class="form-check-label" for="vga_tidak_ada">
-                    <span class="badge badge-danger">Tidak Ada</span> - Tidak tersedia kabel VGA
-                </label>
-            </div>
-            
-            <div class="form-check mb-3">
-                <input class="form-check-input" 
-                       type="radio" 
-                       name="kabel_vga" 
-                       id="vga_tidak_diketahui" 
-                       value="tidak_diketahui"
-                       {{ old('kabel_vga', $formData['kabel_vga'] ?? '') == 'tidak_diketahui' ? 'checked' : '' }}>
-                <label class="form-check-label" for="vga_tidak_diketahui">
-                    <span class="badge badge-warning">Tidak Diketahui</span> - Perlu dikonfirmasi
-                </label>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <label class="form-label fw-bold mb-3"><i class="fas fa-compact-disc text-primary me-2"></i> Kabel Roll <span class="required-indicator">*</span></label>
+                <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" name="kabel_roll" id="roll_ada" value="ada" {{ old('kabel_roll', $formData['kabel_roll'] ?? '') == 'ada' ? 'checked' : '' }} required>
+                    <label class="btn btn-outline-success" for="roll_ada">Ada</label>
+
+                    <input type="radio" class="btn-check" name="kabel_roll" id="roll_tidak_ada" value="tidak_ada" {{ old('kabel_roll', $formData['kabel_roll'] ?? '') == 'tidak_ada' ? 'checked' : '' }}>
+                    <label class="btn btn-outline-danger" for="roll_tidak_ada">Tidak</label>
+
+                    <input type="radio" class="btn-check" name="kabel_roll" id="roll_tidak_diketahui" value="tidak_diketahui" {{ old('kabel_roll', $formData['kabel_roll'] ?? '') == 'tidak_diketahui' ? 'checked' : '' }}>
+                    <label class="btn btn-outline-warning" for="roll_tidak_diketahui">?</label>
+                </div>
             </div>
         </div>
     </div>

@@ -2,14 +2,45 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Database\Eloquent\Factories\HasFactory; // ADD THIS
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable; // ADD THIS
 use Illuminate\Notifications\Notifiable;
-use App\Models\LaporanMengajar; // ADD THIS LINE
 
-class User extends Authenticatable {
-       use HasFactory; // ADD THIS LINE
-    use Notifiable;
+// ADD THIS LINE
+
+class User extends Authenticatable
+{
+    use HasFactory, Notifiable;
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($user) {
+            // Default values for fields that are missing defaults in DB but required
+            if (empty($user->tanggal_lahir)) {
+                $user->tanggal_lahir = '1990-01-01'; // Default dummy date
+            }
+            if (empty($user->agama)) {
+                $user->agama = 'Lainnya';
+            }
+            if (empty($user->pend_terakhir)) {
+                $user->pend_terakhir = 'SMA';
+            }
+            if (empty($user->kompetensi_1)) {
+                $user->kompetensi_1 = 'General';
+            }
+            if (empty($user->status)) {
+                $user->status = 'active';
+            }
+            // Fix for missing email_verified_at column if code tries to access it
+            // Note: If column is missing in DB, we can't save it. 
+            // We should ensure we don't try to save it in Controllers.
+        });
+    }
 
     protected $fillable = [
         'nama_lengkap',
@@ -31,6 +62,8 @@ class User extends Authenticatable {
         'rejection_reason',
         'verification_documents',
         'application_date',
+        'division_id',
+        'instructor_id',
     ];
 
     protected $hidden = [
@@ -42,17 +75,32 @@ class User extends Authenticatable {
         'verified_at' => 'datetime',
         'application_date' => 'datetime',
         'verification_documents' => 'array',
+        'tanggal_lahir' => 'date',
     ];
 
     // Define relationships
-    public function laporanMengajar() {
+    public function laporanMengajar()
+    {
         return $this->hasMany(LaporanMengajar::class, 'user_id_instruktur');
     }
 
-    public function hasRole($roles) {
+    /**
+     * Scope untuk filter instruktur pengajar (exclude staff internal).
+     * Start from ID 48 (Luky).
+     */
+    public function scopeTeachingStaff($query)
+    {
+        return $query->where('role', 'instruktur')
+                     ->whereIn('status', ['active', 'Aktif']);
+                     // Removed ID filter to include legacy/admin instructors like ID 2
+    }
+
+    public function hasRole($roles)
+    {
         if (is_array($roles)) {
             return in_array($this->role, $roles);
         }
+
         return $this->role === $roles;
     }
 
@@ -65,27 +113,11 @@ class User extends Authenticatable {
     }
 
     /**
-     * Cek apakah user adalah admin erlass
-     */
-    public function isAdminErlass(): bool
-    {
-        return $this->role === 'admin_erlass';
-    }
-
-    /**
-     * Cek apakah user adalah instruktur yang terverifikasi
-     */
-    public function isVerifiedInstructor(): bool
-    {
-        return $this->role === 'instruktur' && $this->is_verified && $this->verification_status === 'approved';
-    }
-
-    /**
      * Cek apakah user bisa mengelola user lain (khusus webmaster)
      */
     public function canManageUsers(): bool
     {
-        return $this->role === 'webmaster';
+        return in_array($this->role, ['webmaster', 'admin_sistem']);
     }
 
     /**
@@ -93,7 +125,17 @@ class User extends Authenticatable {
      */
     public function hasAdminAccess(): bool
     {
-        return in_array($this->role, ['webmaster', 'admin_erlass']);
+        return in_array($this->role, ['webmaster', 'admin_sistem', 'admin']);
+    }
+
+    /**
+     * Cek apakah user adalah instruktur yang sudah terverifikasi
+     */
+    public function isVerifiedInstructor(): bool
+    {
+        return $this->role === 'instruktur' && 
+               $this->is_verified && 
+               $this->verification_status === 'approved';
     }
 
     /**
@@ -110,5 +152,39 @@ class User extends Authenticatable {
     public function verifiedInstructors()
     {
         return $this->hasMany(User::class, 'verified_by');
+    }
+
+    /**
+     * Get the division that the user belongs to.
+     */
+    public function division()
+    {
+        return $this->belongsTo(Division::class);
+    }
+
+    /**
+     * Get the instructor profile associated with the user.
+     */
+    public function instructorProfile()
+    {
+        return $this->hasOne(InstructorProfile::class);
+    }
+
+    /**
+     * Get the extracurricular sessions assigned to the instructor.
+     */
+    public function ekstrakurikulerSessions()
+    {
+        return $this->hasMany(EkstrakurikulerSession::class, 'user_id_instruktur');
+    }
+
+    /**
+     * Route notifications for the WhatsApp channel.
+     *
+     * @return string
+     */
+    public function routeNotificationForWhatsapp($notification)
+    {
+        return $this->no_telephone;
     }
 }

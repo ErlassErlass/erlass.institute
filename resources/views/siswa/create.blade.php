@@ -29,8 +29,8 @@
         </div>
 
         <div class="mb-3">
-            <label for="rombel" class="form-label">Rombel</label>
-            <input type="text" class="form-control" name="rombel" required>
+            <label for="kelas" class="form-label">Kelas</label>
+            <input type="text" class="form-control" name="kelas" required>
         </div>
 
         <button type="submit" class="btn btn-primary">Simpan</button>

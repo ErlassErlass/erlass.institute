@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
-use Carbon\Carbon;
-use App\Models\EkstrakurikulerSession;
 use App\Models\EkstrakurikulerRombel;
+use App\Models\EkstrakurikulerSession;
 use App\Models\User;
 use App\Services\SchedulingService;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\View\View;
 
 /**
  * Controller untuk mengelola sessions ekstrakurikuler dengan
@@ -32,24 +32,38 @@ class EkstrakurikulerSessionController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = EkstrakurikulerSession::with(['rombel.ekstrakurikuler', 'instruktur', 'asisten']);
+        $query = EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah', 'instruktur', 'asisten', 'laporanMengajar']);
 
         // Filter berdasarkan status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
+        // Restrict to own sessions if not admin
+        $user = auth()->user();
+        if (! $user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id_instruktur', $user->id)
+                  ->orWhere('user_id_asisten', $user->id);
+            });
+        }
+
         // Filter berdasarkan tanggal
         if ($request->filled('tanggal_dari') && $request->filled('tanggal_sampai')) {
             $query->whereBetween('tanggal_terjadwal', [
                 $request->tanggal_dari,
-                $request->tanggal_sampai
+                $request->tanggal_sampai,
             ]);
         }
 
         // Filter berdasarkan instructor
         if ($request->filled('instruktur')) {
             $query->where('user_id_instruktur', $request->instruktur);
+        }
+
+        // Filter missing instructor (from Dashboard)
+        if ($request->filled('filter_no_instructor')) {
+            $query->whereNull('user_id_instruktur');
         }
 
         // Filter berdasarkan rombel
@@ -60,28 +74,50 @@ class EkstrakurikulerSessionController extends Controller
         // Pencarian
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('topik_materi', 'like', "%{$search}%")
-                  ->orWhere('deskripsi_kegiatan', 'like', "%{$search}%")
-                  ->orWhereHas('rombel.ekstrakurikuler', function($subQ) use ($search) {
-                      $subQ->where('nama_program', 'like', "%{$search}%");
-                  });
+                    ->orWhere('deskripsi_kegiatan', 'like', "%{$search}%")
+                    ->orWhereHas('rombel.ekstrakurikuler', function ($subQ) use ($search) {
+                        $subQ->where('kategori_program', 'like', "%{$search}%")
+                             ->orWhereHas('sekolah', function ($schoolQ) use ($search) {
+                                 $schoolQ->where('namasekolah', 'like', "%{$search}%");
+                             });
+                    });
             });
         }
 
-        $sessions = $query->orderBy('tanggal_terjadwal', 'desc')
-                         ->orderBy('jam_mulai_terjadwal')
-                         ->paginate(20);
+        // Sorting
+        $sort = $request->get('sort', 'meeting_asc'); // Default to meeting ascending
+        
+        switch ($sort) {
+            case 'meeting_asc':
+                $query->orderBy('nomor_pertemuan', 'asc');
+                break;
+            case 'meeting_desc':
+                $query->orderBy('nomor_pertemuan', 'desc');
+                break;
+            case 'date_asc':
+                $query->orderBy('tanggal_terjadwal', 'asc')->orderBy('jam_mulai_terjadwal', 'asc');
+                break;
+            case 'date_desc':
+                $query->orderBy('tanggal_terjadwal', 'desc')->orderBy('jam_mulai_terjadwal', 'desc');
+                break;
+            default:
+                $query->orderBy('nomor_pertemuan', 'asc');
+                break;
+        }
+
+        $sessions = $query->paginate(20)->withQueryString();
 
         // Data untuk filter dropdown
-        $instructors = User::where('is_active', true)
-                          ->whereIn('role', ['admin', 'instruktur'])
-                          ->select('id', 'name')
-                          ->get();
+        $instructors = User::teachingStaff()
+            ->orderBy('nama_lengkap', 'asc')
+            ->select('id', 'nama_lengkap')
+            ->get();
 
         $rombels = EkstrakurikulerRombel::with('ekstrakurikuler')
-                                      ->where('status', '!=', 'dibatalkan')
-                                      ->get();
+            ->where('status', '!=', 'dibatalkan')
+            ->get();
 
         return view('ekstrakurikuler.sessions.index', compact(
             'sessions', 'instructors', 'rombels'
@@ -102,7 +138,7 @@ class EkstrakurikulerSessionController extends Controller
         $sessions = EkstrakurikulerSession::with(['rombel.ekstrakurikuler', 'instruktur'])
             ->whereBetween('tanggal_terjadwal', [$startDate, $endDate])
             ->get()
-            ->groupBy(function($session) {
+            ->groupBy(function ($session) {
                 return $session->tanggal_terjadwal->format('Y-m-d');
             });
 
@@ -116,7 +152,7 @@ class EkstrakurikulerSessionController extends Controller
      */
     public function show(EkstrakurikulerSession $session): View
     {
-        $session->load(['rombel.ekstrakurikuler.sekolah', 'instruktur', 'asisten', 'laporanMengajar']);
+        $session->load(['rombel.ekstrakurikuler.sekolah', 'instruktur', 'asisten', 'laporanMengajar.absensi.siswa']);
 
         return view('ekstrakurikuler.sessions.show', compact('session'));
     }
@@ -126,14 +162,22 @@ class EkstrakurikulerSessionController extends Controller
      */
     public function edit(EkstrakurikulerSession $session): View
     {
+        $this->authorize('update', $session);
         $session->load(['rombel.ekstrakurikuler']);
 
-        $instructors = User::where('is_active', true)
-                          ->whereIn('role', ['admin', 'instruktur'])
-                          ->select('id', 'name')
-                          ->get();
+        $instructors = User::teachingStaff()
+            ->orderBy('nama_lengkap', 'asc')
+            ->select('id', 'nama_lengkap')
+            ->get();
 
-        return view('ekstrakurikuler.sessions.edit', compact('session', 'instructors'));
+        // Ambil daftar materi berdasarkan kategori program
+        $kategori = $session->rombel->ekstrakurikuler->kategori_program;
+        $materiList = \App\Models\RefMateri::where('kategori', $kategori)
+            ->orderByRaw("CASE WHEN materi = 'Lain - Lain' THEN 1 ELSE 0 END")
+            ->orderBy('materi', 'asc')
+            ->pluck('materi');
+
+        return view('ekstrakurikuler.sessions.edit', compact('session', 'instructors', 'materiList'));
     }
 
     /**
@@ -141,6 +185,8 @@ class EkstrakurikulerSessionController extends Controller
      */
     public function update(Request $request, EkstrakurikulerSession $session): RedirectResponse
     {
+        $this->authorize('update', $session);
+        
         $validator = Validator::make($request->all(), [
             'tanggal_terjadwal' => 'required|date',
             'jam_mulai_terjadwal' => 'required|date_format:H:i',
@@ -154,78 +200,93 @@ class EkstrakurikulerSessionController extends Controller
 
         if ($validator->fails()) {
             return redirect()->back()
-                           ->withErrors($validator)
-                           ->withInput();
+                ->withErrors($validator)
+                ->withInput();
         }
 
         // Cek apakah session dapat diupdate
-        if (!in_array($session->status, [
+        if (! in_array($session->status, [
             EkstrakurikulerSession::STATUS_TERJADWAL,
-            EkstrakurikulerSession::STATUS_DITUNDA
+            EkstrakurikulerSession::STATUS_DITUNDA,
         ])) {
             return redirect()->back()
-                           ->withErrors(['status' => 'Session ini tidak dapat diupdate karena sudah ' . $session->status_label]);
+                ->withErrors(['status' => 'Session ini tidak dapat diupdate karena sudah '.$session->status_label]);
         }
 
-        // Cek conflict jika ada perubahan instructor atau waktu
-        if ($request->filled('user_id_instruktur')) {
-            $instructor = User::find($request->user_id_instruktur);
-            $assistant = $request->filled('user_id_asisten') ? User::find($request->user_id_asisten) : null;
-            
-            // Temporary update session untuk check conflict
-            $tempSession = clone $session;
-            $tempSession->fill($request->only([
-                'tanggal_terjadwal',
-                'jam_mulai_terjadwal', 
-                'jam_selesai_terjadwal'
-            ]));
-
-            $conflicts = $this->schedulingService->checkInstructorConflicts($instructor, $tempSession, $assistant);
-            
-            if (!empty($conflicts)) {
-                return redirect()->back()
-                               ->withErrors(['conflict' => 'Conflict detected: ' . implode(', ', $conflicts)]);
-            }
-        }
-
-        $session->update($request->only([
+        // Prepare data for update
+        $data = $request->only([
             'tanggal_terjadwal',
             'jam_mulai_terjadwal',
             'jam_selesai_terjadwal',
-            'user_id_instruktur',
-            'user_id_asisten',
             'topik_materi',
             'deskripsi_kegiatan',
-            'catatan'
-        ]));
+            'catatan',
+        ]);
 
-        return redirect()->route('ekstrakurikuler.sessions.show', $session)
-                        ->with('success', 'Session berhasil diupdate');
+        // Handle nullable foreign keys explicitly
+        $data['user_id_instruktur'] = $request->input('user_id_instruktur') ?: null;
+        $data['user_id_asisten'] = $request->input('user_id_asisten') ?: null;
+
+        // Cek conflict jika ada perubahan instructor atau waktu
+        if ($data['user_id_instruktur']) {
+            $instructor = User::find($data['user_id_instruktur']);
+            $assistant = $data['user_id_asisten'] ? User::find($data['user_id_asisten']) : null;
+
+            // Temporary update session untuk check conflict
+            $tempSession = clone $session;
+            $tempSession->fill($data);
+
+            $conflicts = $this->schedulingService->checkInstructorConflicts($instructor, $tempSession, $assistant);
+
+            // Filter out conflict with the session itself (if needed, though scheduling service usually handles this)
+            // Assuming checkInstructorConflicts handles excluding current session if logic allows, 
+            // but strict check might flag it. 
+            // For now we assume strict check is desired.
+
+            if (! empty($conflicts)) {
+                return redirect()->back()
+                    ->withErrors(['conflict' => 'Conflict detected: '.implode(', ', $conflicts)])
+                    ->withInput();
+            }
+        }
+
+            // Check for SOFT conflicts (availability preference)
+        $softWarnings = [];
+        if ($data['user_id_instruktur']) {
+            // Re-instantiate objects if not already done in hard check block
+             if (!isset($instructor)) $instructor = User::find($data['user_id_instruktur']);
+             if (!isset($tempSession)) {
+                 $tempSession = clone $session;
+                 $tempSession->fill($data);
+             }
+             
+             $softWarnings = $this->schedulingService->checkInstructorSoftConflicts($instructor, $tempSession);
+        }
+
+        $session->update($data);
+
+        $redirect = redirect()->route('ekstrakurikuler.sessions.show', ['session' => $session->id])
+            ->with('success', 'Session berhasil diupdate');
+            
+        if (!empty($softWarnings)) {
+            $redirect->with('warning', 'Session diupdate dengan Peringatan Ketersediaan: ' . implode(', ', $softWarnings));
+        }
+
+        return $redirect;
     }
 
     /**
-     * Mulai session (change status to berlangsung).
+     * Start session.
      */
     public function start(Request $request, EkstrakurikulerSession $session): JsonResponse
     {
-        if (!$session->canStart()) {
+        $this->authorize('start', $session);
+
+        if (! $session->canStart()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Session tidak dapat dimulai saat ini'
+                'message' => 'Session tidak dapat dimulai saat ini (Hanya bisa dimulai hari ini)',
             ], 400);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'topik_materi' => 'nullable|string|max:255',
-            'deskripsi_kegiatan' => 'nullable|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data tidak valid',
-                'errors' => $validator->errors()
-            ], 422);
         }
 
         $started = $session->start($request->only(['topik_materi', 'deskripsi_kegiatan']));
@@ -233,19 +294,21 @@ class EkstrakurikulerSessionController extends Controller
         return response()->json([
             'success' => $started,
             'message' => $started ? 'Session berhasil dimulai' : 'Gagal memulai session',
-            'session' => $started ? $session->fresh() : null
+            'session' => $started ? $session->fresh() : null,
         ]);
     }
 
     /**
-     * Selesaikan session (change status to selesai).
+     * Complete session.
      */
     public function complete(Request $request, EkstrakurikulerSession $session): JsonResponse
     {
-        if (!$session->canComplete()) {
+        $this->authorize('complete', $session);
+
+        if (! $session->canComplete()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Session tidak dapat diselesaikan saat ini'
+                'message' => 'Session tidak dapat diselesaikan saat ini',
             ], 400);
         }
 
@@ -259,7 +322,7 @@ class EkstrakurikulerSessionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Data tidak valid',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -268,7 +331,7 @@ class EkstrakurikulerSessionController extends Controller
         return response()->json([
             'success' => $completed,
             'message' => $completed ? 'Session berhasil diselesaikan' : 'Gagal menyelesaikan session',
-            'session' => $completed ? $session->fresh() : null
+            'session' => $completed ? $session->fresh() : null,
         ]);
     }
 
@@ -277,10 +340,12 @@ class EkstrakurikulerSessionController extends Controller
      */
     public function cancel(Request $request, EkstrakurikulerSession $session): JsonResponse
     {
-        if (!$session->canCancel()) {
+        $this->authorize('cancel', $session);
+
+        if (! $session->canCancel()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Session tidak dapat dibatalkan saat ini'
+                'message' => 'Session tidak dapat dibatalkan saat ini',
             ], 400);
         }
 
@@ -292,7 +357,7 @@ class EkstrakurikulerSessionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Alasan pembatalan harus diisi',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -301,7 +366,7 @@ class EkstrakurikulerSessionController extends Controller
         return response()->json([
             'success' => $cancelled,
             'message' => $cancelled ? 'Session berhasil dibatalkan' : 'Gagal membatalkan session',
-            'session' => $cancelled ? $session->fresh() : null
+            'session' => $cancelled ? $session->fresh() : null,
         ]);
     }
 
@@ -310,10 +375,12 @@ class EkstrakurikulerSessionController extends Controller
      */
     public function reschedule(Request $request, EkstrakurikulerSession $session): JsonResponse
     {
-        if (!$session->canReschedule()) {
+        $this->authorize('reschedule', $session);
+
+        if (! $session->canReschedule()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Session tidak dapat direschedule saat ini'
+                'message' => 'Session tidak dapat direschedule saat ini',
             ], 400);
         }
 
@@ -326,7 +393,7 @@ class EkstrakurikulerSessionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Data tidak valid',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -336,7 +403,7 @@ class EkstrakurikulerSessionController extends Controller
         return response()->json([
             'success' => $rescheduled,
             'message' => $rescheduled ? 'Session berhasil direschedule' : 'Gagal reschedule session',
-            'session' => $rescheduled ? $session->fresh() : null
+            'session' => $rescheduled ? $session->fresh() : null,
         ]);
     }
 
@@ -355,37 +422,37 @@ class EkstrakurikulerSessionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Data tidak valid',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         $sessions = EkstrakurikulerSession::whereIn('id', $request->session_ids)->get();
-        
+
         try {
             DB::beginTransaction();
-            
-            $result = match($request->action) {
+
+            $result = match ($request->action) {
                 'assign_instructor' => $this->bulkAssignInstructor($request, $sessions),
                 'reschedule' => $this->bulkReschedule($request, $sessions),
                 'cancel' => $this->bulkCancel($request, $sessions),
                 'update_time' => $this->bulkUpdateTime($request, $sessions),
                 default => ['success' => false, 'message' => 'Action tidak valid']
             };
-            
+
             if ($result['success']) {
                 DB::commit();
             } else {
                 DB::rollBack();
             }
-            
+
             return response()->json($result);
-            
+
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi error: ' . $e->getMessage()
+                'message' => 'Terjadi error: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -410,15 +477,15 @@ class EkstrakurikulerSessionController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Berhasil generate {$sessions->count()} sessions untuk rombel {$rombel->nama_rombel}",
-                'sessions_count' => $sessions->count()
+                'sessions_count' => $sessions->count(),
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal generate sessions: ' . $e->getMessage()
+                'message' => 'Gagal generate sessions: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -438,7 +505,7 @@ class EkstrakurikulerSessionController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -451,7 +518,7 @@ class EkstrakurikulerSessionController extends Controller
 
         return response()->json([
             'success' => true,
-            'slots' => $slots
+            'slots' => $slots,
         ]);
     }
 
@@ -464,7 +531,7 @@ class EkstrakurikulerSessionController extends Controller
 
         return response()->json([
             'success' => true,
-            'report' => $report
+            'report' => $report,
         ]);
     }
 
@@ -490,7 +557,7 @@ class EkstrakurikulerSessionController extends Controller
         return [
             'success' => $result['failed'] === 0,
             'message' => "Berhasil assign {$result['success']} sessions, gagal {$result['failed']} sessions",
-            'details' => $result
+            'details' => $result,
         ];
     }
 
@@ -514,7 +581,7 @@ class EkstrakurikulerSessionController extends Controller
         return [
             'success' => $result['failed'] === 0,
             'message' => "Berhasil reschedule {$result['success']} sessions, gagal {$result['failed']} sessions",
-            'details' => $result
+            'details' => $result,
         ];
     }
 
@@ -544,7 +611,7 @@ class EkstrakurikulerSessionController extends Controller
 
         return [
             'success' => $failed === 0,
-            'message' => "Berhasil cancel {$success} sessions, gagal {$failed} sessions"
+            'message' => "Berhasil cancel {$success} sessions, gagal {$failed} sessions",
         ];
     }
 
@@ -563,7 +630,7 @@ class EkstrakurikulerSessionController extends Controller
         }
 
         $updateData = array_filter($request->only(['jam_mulai_terjadwal', 'jam_selesai_terjadwal']));
-        
+
         if (empty($updateData)) {
             return ['success' => false, 'message' => 'Tidak ada data waktu yang akan diupdate'];
         }
@@ -572,7 +639,54 @@ class EkstrakurikulerSessionController extends Controller
 
         return [
             'success' => $result,
-            'message' => $result ? 'Berhasil update waktu semua sessions' : 'Gagal update beberapa sessions'
+            'message' => $result ? 'Berhasil update waktu semua sessions' : 'Gagal update beberapa sessions',
         ];
+    }
+    /**
+     * Kirim reminder manual untuk session.
+     */
+    public function sendReminder(Request $request, EkstrakurikulerSession $session): JsonResponse
+    {
+        // Hanya admin/admin_sistem/webmaster yang boleh kirim reminder manual
+        $this->authorize('update', $session); 
+
+        // Validasi input
+        $validator = Validator::make($request->all(), [
+            'custom_message' => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesan tidak valid',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $instructor = $session->instruktur;
+
+        if (! $instructor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Session ini belum memiliki instruktur Assigned',
+            ], 400);
+        }
+
+        try {
+            $instructor->notify(new \App\Notifications\ScheduleReminderNotification($session, $request->custom_message));
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Reminder berhasil dikirim ke ' . $instructor->nama_lengkap,
+            ]);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Manual Reminder Error: " . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengirim reminder: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

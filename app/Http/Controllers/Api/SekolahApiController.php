@@ -16,7 +16,7 @@ class SekolahApiController extends Controller
         $request->validate(['provinsi' => 'required|string']);
 
         $tipe = Sekolah::where('provinsi', $request->query('provinsi'))
-                        ->select('kotkab')->distinct()->pluck('kotkab');
+            ->select('kotkab')->distinct()->pluck('kotkab');
 
         return response()->json($tipe);
     }
@@ -28,12 +28,12 @@ class SekolahApiController extends Controller
     {
         $request->validate([
             'provinsi' => 'required|string',
-            'kotkab'   => 'required|string' // Mengharapkan 'kotkab'
+            'kotkab' => 'required|string', // Mengharapkan 'kotkab'
         ]);
 
         $kota = Sekolah::where('provinsi', $request->query('provinsi'))
-                        ->where('kotkab', $request->query('kotkab')) // Query berdasarkan 'kotkab'
-                        ->select('kota')->distinct()->pluck('kota');
+            ->where('kotkab', $request->query('kotkab')) // Query berdasarkan 'kotkab'
+            ->select('kota')->distinct()->pluck('kota');
 
         return response()->json($kota);
     }
@@ -46,15 +46,15 @@ class SekolahApiController extends Controller
         // ✅ DIPERBAIKI: Menggunakan 'kotkab' sebagai ganti 'kotkab_tipe'
         $request->validate([
             'provinsi' => 'required|string',
-            'kotkab'   => 'required|string',
-            'kota'     => 'required|string'
+            'kotkab' => 'required|string',
+            'kota' => 'required|string',
         ]);
-        
+
         // ✅ DIPERBAIKI: Query berdasarkan 'kotkab'
         $kecamatan = Sekolah::where('provinsi', $request->query('provinsi'))
-                            ->where('kotkab', $request->query('kotkab'))
-                            ->where('kota', $request->query('kota'))
-                            ->select('kec')->distinct()->pluck('kec');
+            ->where('kotkab', $request->query('kotkab'))
+            ->where('kota', $request->query('kota'))
+            ->select('kec')->distinct()->pluck('kec');
 
         return response()->json($kecamatan);
     }
@@ -66,40 +66,39 @@ class SekolahApiController extends Controller
     {
         // ✅ DIPERBAIKI: Menggunakan 'kotkab' sebagai ganti 'kotkab_tipe'
         $request->validate([
-            'provinsi'  => 'required|string',
-            'kotkab'    => 'required|string',
-            'kota'      => 'required|string',
-            'kecamatan' => 'required|string'
+            'provinsi' => 'required|string',
+            'kotkab' => 'required|string',
+            'kota' => 'required|string',
+            'kecamatan' => 'required|string',
         ]);
-        
+
         // ✅ DIPERBAIKI: Query berdasarkan 'kotkab' dan 'kec'
         $sekolah = Sekolah::where('provinsi', $request->query('provinsi'))
-                            ->where('kotkab', $request->query('kotkab'))
-                            ->where('kota', $request->query('kota'))
-                            ->where('kec', $request->query('kecamatan'))
+            ->where('kotkab', $request->query('kotkab'))
+            ->where('kota', $request->query('kota'))
+            ->where('kec', $request->query('kecamatan'))
                             // ✅ DIPERBAIKI: Memilih 'kodlan', bukan 'id'
-                            ->select('kodlan', 'namasekolah')->get();
+            ->select('kodlan', 'namasekolah')->get();
 
         return response()->json($sekolah);
     }
-
 
     public function search(Request $request)
     {
         $searchTerm = $request->query('q', ''); // 'q' adalah parameter default dari Select2
 
-        $sekolahs = Sekolah::where('namasekolah', 'LIKE', '%' . $searchTerm . '%')
-                            ->orWhere('kodlan', 'LIKE', '%' . $searchTerm . '%')
-                            ->orderBy('namasekolah', 'asc')
-                            ->select('kodlan', 'namasekolah')
-                            ->limit(20) // Batasi hasil agar tidak terlalu banyak
-                            ->get();
+        $sekolahs = Sekolah::where('namasekolah', 'LIKE', '%'.$searchTerm.'%')
+            ->orWhere('kodlan', 'LIKE', '%'.$searchTerm.'%')
+            ->orderBy('namasekolah', 'asc')
+            ->select('kodlan', 'namasekolah')
+            ->limit(20) // Batasi hasil agar tidak terlalu banyak
+            ->get();
 
         // Select2 AJAX membutuhkan format JSON dengan key 'results'
         $results = $sekolahs->map(function ($sekolah) {
             return [
                 'id' => $sekolah->kodlan, // 'id' adalah key yang dibutuhkan oleh Select2
-                'text' => $sekolah->namasekolah . ' (' . $sekolah->kodlan . ')' // 'text' untuk tampilan
+                'text' => $sekolah->namasekolah.' ('.$sekolah->kodlan.')', // 'text' untuk tampilan
             ];
         });
 

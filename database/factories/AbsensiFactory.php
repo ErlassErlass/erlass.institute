@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\LaporanMengajar;
 use App\Models\Siswa;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 class AbsensiFactory extends Factory
 {

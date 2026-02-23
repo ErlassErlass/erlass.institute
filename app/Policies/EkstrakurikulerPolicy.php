@@ -4,27 +4,21 @@ namespace App\Policies;
 
 use App\Models\Ekstrakurikuler;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class EkstrakurikulerPolicy
 {
     /**
      * Izinkan webmaster dan admin melakukan semua aksi.
-     * Webmaster memiliki akses penuh, admin memiliki akses terbatas.
+     * Webmaster memiliki akses penuh, admin_erlass memiliki akses terbatas.
      */
-    public function before(User $user, string $ability): bool|null
+    public function before(User $user, string $ability): ?bool
     {
-        // Webmaster memiliki akses penuh ke semua fitur
-        if ($user->role === 'webmaster') {
+        // Webmaster dan Admin memiliki akses penuh ke semua fitur
+        if (in_array($user->role, ['webmaster', 'admin_sistem', 'admin'])) {
             return true;
         }
-        
-        // Admin memiliki akses penuh kecuali beberapa operasi sensitif
-        if ($user->role === 'admin') {
-            return true;
-        }
-        
-        return null; 
+
+        return null;
     }
 
     /**
@@ -32,7 +26,12 @@ class EkstrakurikulerPolicy
      */
     public function viewAny(User $user): bool
     {
-        // Semua user yang login boleh melihat daftar ekstrakurikuler
+        // Instruktur tidak boleh melihat daftar ekstrakurikuler (menu di-hide dan akses ditutup)
+        if ($user->role === 'instruktur') {
+            return false;
+        }
+
+        // Semua user lain boleh
         return true;
     }
 
@@ -43,11 +42,11 @@ class EkstrakurikulerPolicy
     {
         // Sales hanya boleh melihat program yang dia tangani
         if ($user->role === 'instruktur' || $user->role === 'asisten') {
-            return $user->id === $ekstrakurikuler->user_id_sales || 
+            return $user->id === $ekstrakurikuler->user_id_sales ||
                    $user->id === $ekstrakurikuler->user_id_sales;
         }
-        
-        // Admin dan webmaster sudah di-handle di before()
+
+        // Admin ErLass dan webmaster sudah di-handle di before()
         return false;
     }
 
@@ -56,8 +55,8 @@ class EkstrakurikulerPolicy
      */
     public function create(User $user): bool
     {
-        // Hanya admin, webmaster, dan instruktur yang bisa membuat program ekstrakurikuler
-        return in_array($user->role, ['webmaster', 'admin', 'instruktur']);
+        // Hanya admin_erlass, webmaster, dan admin yang bisa membuat program ekstrakurikuler
+        return in_array($user->role, ['webmaster', 'admin_sistem', 'admin']);
     }
 
     /**
@@ -65,19 +64,19 @@ class EkstrakurikulerPolicy
      */
     public function update(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Admin dan webmaster sudah di-handle di before()
-        
-        // Sales hanya boleh edit program yang dia tangani dan masih dalam status draft atau diajukan
+        // Admin ErLass dan webmaster sudah di-handle di before()
+
+        // Instruktur/Asisten hanya boleh edit program yang dia tangani dan masih dalam status draft atau diajukan
         if ($user->role === 'instruktur' || $user->role === 'asisten') {
-            return ($user->id === $ekstrakurikuler->user_id_sales || 
+            return ($user->id === $ekstrakurikuler->user_id_sales ||
                     $user->id === $ekstrakurikuler->user_id_sales) &&
                    in_array($ekstrakurikuler->status, [
                        Ekstrakurikuler::STATUS_DRAFT,
                        Ekstrakurikuler::STATUS_DIAJUKAN,
-                       Ekstrakurikuler::STATUS_DITOLAK
+                       Ekstrakurikuler::STATUS_DITOLAK,
                    ]);
         }
-        
+
         return false;
     }
 
@@ -86,20 +85,20 @@ class EkstrakurikulerPolicy
      */
     public function delete(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Admin dan webmaster sudah di-handle di before()
-        
-        // Sales hanya boleh hapus program yang belum aktif dan dia yang tangani
+        // Admin ErLass dan webmaster sudah di-handle di before()
+
+        // Instruktur/Asisten hanya boleh hapus program yang belum aktif dan dia yang tangani
         if ($user->role === 'instruktur' || $user->role === 'asisten') {
-            return ($user->id === $ekstrakurikuler->user_id_sales || 
+            return ($user->id === $ekstrakurikuler->user_id_sales ||
                     $user->id === $ekstrakurikuler->user_id_sales) &&
-                   !$ekstrakurikuler->isActive() &&
+                   ! $ekstrakurikuler->isActive() &&
                    in_array($ekstrakurikuler->status, [
                        Ekstrakurikuler::STATUS_DRAFT,
                        Ekstrakurikuler::STATUS_DITOLAK,
-                       Ekstrakurikuler::STATUS_DIBATALKAN
+                       Ekstrakurikuler::STATUS_DIBATALKAN,
                    ]);
         }
-        
+
         return false;
     }
 
@@ -108,11 +107,11 @@ class EkstrakurikulerPolicy
      */
     public function approve(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Hanya admin dan webmaster yang bisa menyetujui program
-        if (!in_array($user->role, ['webmaster', 'admin'])) {
+        // Hanya admin_erlass dan webmaster yang bisa menyetujui program
+        if (! in_array($user->role, ['webmaster', 'admin_sistem'])) {
             return false;
         }
-        
+
         // Program harus dalam status 'diajukan' untuk bisa disetujui
         return $ekstrakurikuler->canBeApproved();
     }
@@ -122,11 +121,11 @@ class EkstrakurikulerPolicy
      */
     public function activate(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Hanya admin dan webmaster yang bisa mengaktifkan program
-        if (!in_array($user->role, ['webmaster', 'admin'])) {
+        // Hanya admin_erlass dan webmaster yang bisa mengaktifkan program
+        if (! in_array($user->role, ['webmaster', 'admin_sistem'])) {
             return false;
         }
-        
+
         // Program harus dalam status 'disetujui' untuk bisa diaktifkan
         return $ekstrakurikuler->canBeActivated();
     }
@@ -136,13 +135,27 @@ class EkstrakurikulerPolicy
      */
     public function reject(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Hanya admin dan webmaster yang bisa menolak program
-        if (!in_array($user->role, ['webmaster', 'admin'])) {
+        // Hanya admin_erlass dan webmaster yang bisa menolak program
+        if (! in_array($user->role, ['webmaster', 'admin_sistem'])) {
             return false;
         }
-        
+
         // Program harus dalam status 'diajukan' untuk bisa ditolak
         return $ekstrakurikuler->status === Ekstrakurikuler::STATUS_DIAJUKAN;
+    }
+
+    /**
+     * Determine whether the user can complete the model.
+     */
+    public function complete(User $user, Ekstrakurikuler $ekstrakurikuler): bool
+    {
+        // Hanya admin_erlass dan webmaster yang bisa menyelesaikan program
+        if (! in_array($user->role, ['webmaster', 'admin_sistem'])) {
+            return false;
+        }
+
+        // Program harus dalam status 'aktif' untuk bisa diselesaikan
+        return $ekstrakurikuler->status === Ekstrakurikuler::STATUS_AKTIF;
     }
 
     /**
@@ -150,18 +163,18 @@ class EkstrakurikulerPolicy
      */
     public function cancel(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Admin dan webmaster sudah di-handle di before()
-        
-        // Sales bisa membatalkan program mereka sendiri jika belum selesai
+        // Admin ErLass dan webmaster sudah di-handle di before()
+
+        // Instruktur/Asisten bisa membatalkan program mereka sendiri jika belum selesai
         if ($user->role === 'instruktur' || $user->role === 'asisten') {
-            return ($user->id === $ekstrakurikuler->user_id_sales || 
+            return ($user->id === $ekstrakurikuler->user_id_sales ||
                     $user->id === $ekstrakurikuler->user_id_sales) &&
-                   !in_array($ekstrakurikuler->status, [
+                   ! in_array($ekstrakurikuler->status, [
                        Ekstrakurikuler::STATUS_SELESAI,
-                       Ekstrakurikuler::STATUS_DIBATALKAN
+                       Ekstrakurikuler::STATUS_DIBATALKAN,
                    ]);
         }
-        
+
         return false;
     }
 
@@ -170,14 +183,14 @@ class EkstrakurikulerPolicy
      */
     public function manageRombel(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Admin dan webmaster sudah di-handle di before()
-        
-        // Sales bisa manage rombel untuk program mereka sendiri
+        // Admin ErLass dan webmaster sudah di-handle di before()
+
+        // Instruktur/Asisten bisa manage rombel untuk program mereka sendiri
         if ($user->role === 'instruktur' || $user->role === 'asisten') {
-            return $user->id === $ekstrakurikuler->user_id_sales || 
+            return $user->id === $ekstrakurikuler->user_id_sales ||
                    $user->id === $ekstrakurikuler->user_id_sales;
         }
-        
+
         return false;
     }
 
@@ -186,23 +199,23 @@ class EkstrakurikulerPolicy
      */
     public function manageSessions(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Admin dan webmaster sudah di-handle di before()
-        
+        // Admin ErLass dan webmaster sudah di-handle di before()
+
         // Instruktur dan asisten yang ditugaskan bisa manage sessions
         if ($user->role === 'instruktur' || $user->role === 'asisten') {
             // Check if user is assigned to any rombel in this program
             $isAssigned = $ekstrakurikuler->rombels()
-                ->where(function($query) use ($user) {
+                ->where(function ($query) use ($user) {
                     $query->where('user_id_instruktur', $user->id)
-                          ->orWhere('user_id_asisten', $user->id);
+                        ->orWhere('user_id_asisten', $user->id);
                 })
                 ->exists();
-            
-            return $isAssigned || 
-                   $user->id === $ekstrakurikuler->user_id_sales || 
+
+            return $isAssigned ||
+                   $user->id === $ekstrakurikuler->user_id_sales ||
                    $user->id === $ekstrakurikuler->user_id_sales;
         }
-        
+
         return false;
     }
 
@@ -211,23 +224,23 @@ class EkstrakurikulerPolicy
      */
     public function viewReports(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Admin dan webmaster sudah di-handle di before()
-        
-        // Sales dan instruktur yang terlibat bisa melihat laporan
+        // Admin ErLass dan webmaster sudah di-handle di before()
+
+        // Instruktur/Asisten yang terlibat bisa melihat laporan
         if ($user->role === 'instruktur' || $user->role === 'asisten') {
             // Check if user is involved in this program
             $isInvolved = $ekstrakurikuler->rombels()
-                ->where(function($query) use ($user) {
+                ->where(function ($query) use ($user) {
                     $query->where('user_id_instruktur', $user->id)
-                          ->orWhere('user_id_asisten', $user->id);
+                        ->orWhere('user_id_asisten', $user->id);
                 })
                 ->exists();
-            
-            return $isInvolved || 
-                   $user->id === $ekstrakurikuler->user_id_sales || 
+
+            return $isInvolved ||
+                   $user->id === $ekstrakurikuler->user_id_sales ||
                    $user->id === $ekstrakurikuler->user_id_sales;
         }
-        
+
         return false;
     }
 
@@ -236,8 +249,8 @@ class EkstrakurikulerPolicy
      */
     public function export(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Hanya admin dan webmaster yang bisa export data
-        return in_array($user->role, ['webmaster', 'admin']);
+        // Hanya admin_sistem dan webmaster yang bisa export data
+        return in_array($user->role, ['webmaster', 'admin_sistem']);
     }
 
     /**

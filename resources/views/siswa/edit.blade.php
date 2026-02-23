@@ -48,9 +48,9 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="rombel" class="form-label">Rombongan Belajar (Rombel)</label>
-                            <input type="text" class="form-control @error('rombel') is-invalid @enderror" id="rombel" name="rombel" value="{{ old('rombel', $siswa->rombel) }}" required>
-                             @error('rombel')
+                            <label for="kelas" class="form-label">Kelas</label>
+                            <input type="text" class="form-control @error('kelas') is-invalid @enderror" id="kelas" name="kelas" value="{{ old('kelas', $siswa->kelas) }}" required>
+                             @error('kelas')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

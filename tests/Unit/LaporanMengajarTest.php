@@ -2,38 +2,40 @@
 
 namespace Tests\Unit;
 
-use Tests\TestCase;
+use App\Models\Absensi;
 use App\Models\LaporanMengajar;
-use App\Models\User;
 use App\Models\Sekolah;
 use App\Models\Siswa;
-use App\Models\Absensi;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
+use Tests\TestCase;
 
 class LaporanMengajarTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $instructor;
+
     private User $assistant;
+
     private Sekolah $sekolah;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->instructor = User::factory()->create([
-            'role' => 'instruktur'
+            'role' => 'instruktur',
         ]);
-        
+
         $this->assistant = User::factory()->create([
-            'role' => 'instruktur'
+            'role' => 'instruktur',
         ]);
-        
+
         $this->sekolah = Sekolah::factory()->create([
-            'kodlan' => 'TEST001'
+            'kodlan' => 'TEST001',
         ]);
     }
 
@@ -42,21 +44,21 @@ class LaporanMengajarTest extends TestCase
         $laporan = LaporanMengajar::factory()->create([
             'user_id_instruktur' => $this->instructor->id,
             'sekolah_kodlan' => 'TEST001',
-            'materi_pengajaran' => 'Test Material'
+            'materi_pengajaran' => 'Test Material',
         ]);
 
         $this->assertDatabaseHas('laporan_mengajar', [
             'id' => $laporan->id,
             'user_id_instruktur' => $this->instructor->id,
             'sekolah_kodlan' => 'TEST001',
-            'materi_pengajaran' => 'Test Material'
+            'materi_pengajaran' => 'Test Material',
         ]);
     }
 
     public function test_belongs_to_instructor(): void
     {
         $laporan = LaporanMengajar::factory()->create([
-            'user_id_instruktur' => $this->instructor->id
+            'user_id_instruktur' => $this->instructor->id,
         ]);
 
         $this->assertInstanceOf(User::class, $laporan->instruktur);
@@ -67,7 +69,7 @@ class LaporanMengajarTest extends TestCase
     {
         $laporan = LaporanMengajar::factory()->create([
             'user_id_instruktur' => $this->instructor->id,
-            'user_id_assisten' => $this->assistant->id
+            'user_id_assisten' => $this->assistant->id,
         ]);
 
         $this->assertInstanceOf(User::class, $laporan->asisten);
@@ -77,7 +79,7 @@ class LaporanMengajarTest extends TestCase
     public function test_belongs_to_sekolah(): void
     {
         $laporan = LaporanMengajar::factory()->create([
-            'sekolah_kodlan' => 'TEST001'
+            'sekolah_kodlan' => 'TEST001',
         ]);
 
         $this->assertInstanceOf(Sekolah::class, $laporan->sekolah);
@@ -88,17 +90,17 @@ class LaporanMengajarTest extends TestCase
     {
         $laporan = LaporanMengajar::factory()->create([
             'user_id_instruktur' => $this->instructor->id,
-            'sekolah_kodlan' => 'TEST001'
+            'sekolah_kodlan' => 'TEST001',
         ]);
 
         $siswa = Siswa::factory()->create([
-            'sekolah_kodlan' => 'TEST001'
+            'sekolah_kodlan' => 'TEST001',
         ]);
 
         $absensi = Absensi::create([
             'laporan_mengajar_id' => $laporan->id,
             'siswa_id' => $siswa->id,
-            'hadir' => true
+            'hadir' => true,
         ]);
 
         $this->assertCount(1, $laporan->absensis);
@@ -128,7 +130,7 @@ class LaporanMengajarTest extends TestCase
             'refleksi_siswa' => 'Good participation',
             'refleksi_capaian' => 'Target achieved',
             'keaktifan' => 8,
-            'pemahaman_materi' => 7
+            'pemahaman_materi' => 7,
         ];
 
         $laporan = LaporanMengajar::create($attributes);
@@ -145,7 +147,7 @@ class LaporanMengajarTest extends TestCase
     public function test_default_attributes(): void
     {
         $laporan = LaporanMengajar::factory()->create([
-            'user_id_instruktur' => $this->instructor->id
+            'user_id_instruktur' => $this->instructor->id,
         ]);
 
         $this->assertEquals(0, $laporan->jumlah_siswa_hadir);
@@ -156,7 +158,7 @@ class LaporanMengajarTest extends TestCase
     public function test_guarded_attributes(): void
     {
         $laporan = LaporanMengajar::factory()->create([
-            'user_id_instruktur' => $this->instructor->id
+            'user_id_instruktur' => $this->instructor->id,
         ]);
 
         // Test that guarded attributes cannot be mass assigned
@@ -168,7 +170,7 @@ class LaporanMengajarTest extends TestCase
             'id' => 999,
             'created_at' => Carbon::now()->subYear(),
             'updated_at' => Carbon::now()->subYear(),
-            'materi_pengajaran' => 'Updated Material'
+            'materi_pengajaran' => 'Updated Material',
         ]);
 
         $laporan->refresh();
@@ -181,18 +183,18 @@ class LaporanMengajarTest extends TestCase
     public function test_file_cleanup_on_deletion(): void
     {
         Storage::fake('public');
-        
+
         // Create files
         $fotoKegiatan = 'laporan_mengajar/test_kegiatan.jpg';
         $fotoAbsensi = 'laporan_mengajar_absensi/test_absensi.jpg';
-        
+
         Storage::disk('public')->put($fotoKegiatan, 'fake image content');
         Storage::disk('public')->put($fotoAbsensi, 'fake image content');
 
         $laporan = LaporanMengajar::factory()->create([
             'user_id_instruktur' => $this->instructor->id,
             'foto_kegiatan' => $fotoKegiatan,
-            'foto_absensi_siswa' => $fotoAbsensi
+            'foto_absensi_siswa' => $fotoAbsensi,
         ]);
 
         // Verify files exist
@@ -211,7 +213,7 @@ class LaporanMengajarTest extends TestCase
     {
         $laporan = LaporanMengajar::factory()->create([
             'user_id_instruktur' => $this->instructor->id,
-            'sekolah_kodlan' => 'TEST001'
+            'sekolah_kodlan' => 'TEST001',
         ]);
 
         $siswa1 = Siswa::factory()->create(['sekolah_kodlan' => 'TEST001']);
@@ -222,19 +224,19 @@ class LaporanMengajarTest extends TestCase
         Absensi::create([
             'laporan_mengajar_id' => $laporan->id,
             'siswa_id' => $siswa1->id,
-            'hadir' => true
+            'hadir' => true,
         ]);
-        
+
         Absensi::create([
             'laporan_mengajar_id' => $laporan->id,
             'siswa_id' => $siswa2->id,
-            'hadir' => true
+            'hadir' => true,
         ]);
-        
+
         Absensi::create([
             'laporan_mengajar_id' => $laporan->id,
             'siswa_id' => $siswa3->id,
-            'hadir' => false
+            'hadir' => false,
         ]);
 
         $presentCount = $laporan->absensis()->where('hadir', true)->count();
@@ -250,7 +252,7 @@ class LaporanMengajarTest extends TestCase
 
         // Try to create without required foreign key
         LaporanMengajar::create([
-            'materi_pengajaran' => 'Test Material'
+            'materi_pengajaran' => 'Test Material',
             // Missing user_id_instruktur which should be required
         ]);
     }

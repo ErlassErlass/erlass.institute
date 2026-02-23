@@ -11,7 +11,7 @@
     }
 
     .stat-card:hover {
-        transform: translateY(-5px);
+        /* Transform animation removed for cleaner interface */
     }
 
     .stat-icon {
@@ -98,6 +98,25 @@
             </div>
 
             <!-- Statistics Cards -->
+
+            @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
+
+            @if($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
+
             <div class="row mb-4">
                 <div class="col-xl-3 col-md-6 mb-4">
                     <div class="card border-left-primary shadow h-100 py-2 stat-card">
@@ -271,7 +290,7 @@
                     <h6 class="m-0 font-weight-bold text-primary">Daftar Program Ekstrakurikuler</h6>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
+                    <div class="table-responsive d-none d-md-block">
                         <table class="table table-bordered" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
@@ -308,14 +327,14 @@
                                     <td>
                                         @php
                                         $statusClass = match($ekstrakurikuler->status) {
-                                        'draft' => 'badge-secondary',
-                                        'diajukan' => 'badge-warning',
-                                        'disetujui' => 'badge-info',
-                                        'ditolak' => 'badge-danger',
-                                        'aktif' => 'badge-success',
-                                        'selesai' => 'badge-primary',
-                                        'dibatalkan' => 'badge-dark',
-                                        default => 'badge-secondary'
+                                        'draft' => 'bg-secondary',
+                                        'diajukan' => 'bg-warning text-dark',
+                                        'disetujui' => 'bg-info text-dark',
+                                        'ditolak' => 'bg-danger',
+                                        'aktif' => 'bg-success',
+                                        'selesai' => 'bg-primary',
+                                        'dibatalkan' => 'bg-dark',
+                                        default => 'bg-secondary'
                                         };
                                         @endphp
                                         <span class="badge {{ $statusClass }} badge-custom">
@@ -333,31 +352,49 @@
                                         <small class="text-muted">{{ $percentage }}%</small>
                                     </td>
                                     <td>
-                                        <div class="btn-group" role="group">
-                                            @can('view', $ekstrakurikuler)
-                                            <a href="{{ route('ekstrakurikuler.show', $ekstrakurikuler) }}"
-                                                class="btn btn-sm btn-info" title="Lihat Detail">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            @endcan
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="btn-group-custom">
+                                                @can('view', $ekstrakurikuler)
+                                                <a href="{{ route('ekstrakurikuler.show', $ekstrakurikuler) }}"
+                                                    class="btn-action view" title="Lihat Detail">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                @endcan
 
-                                            @can('update', $ekstrakurikuler)
-                                            <a href="{{ route('ekstrakurikuler.edit', $ekstrakurikuler) }}"
-                                                class="btn btn-sm btn-warning" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            @endcan
+                                                @can('update', $ekstrakurikuler)
+                                                <a href="{{ route('ekstrakurikuler.edit', $ekstrakurikuler) }}"
+                                                    class="btn-action edit" title="Edit">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                @endcan
 
+                                                @can('delete', $ekstrakurikuler)
+                                                @if(!$ekstrakurikuler->isActive())
+                                                <form action="{{ route('ekstrakurikuler.destroy', $ekstrakurikuler) }}"
+                                                    method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn-action delete"
+                                                        title="Hapus"
+                                                        onclick="return confirm('Apakah Anda yakin ingin menghapus program ini?')">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                                @endif
+                                                @endcan
+                                            </div>
+
+                                            {{-- Special Actions outside the main group --}}
                                             @can('approve', $ekstrakurikuler)
                                             @if($ekstrakurikuler->canBeApproved())
                                             <form action="{{ route('ekstrakurikuler.approve', $ekstrakurikuler) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="btn btn-sm btn-success"
+                                                <button type="submit" class="btn btn-sm btn-success rounded-pill px-3"
                                                     title="Setujui"
                                                     onclick="return confirm('Apakah Anda yakin ingin menyetujui program ini?')">
-                                                    <i class="fas fa-check"></i>
+                                                    <i class="bi bi-check-lg me-1"></i> Approve
                                                 </button>
                                             </form>
                                             @endif
@@ -369,25 +406,10 @@
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="btn btn-sm btn-primary"
+                                                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3"
                                                     title="Aktifkan"
                                                     onclick="return confirm('Apakah Anda yakin ingin mengaktifkan program ini?')">
-                                                    <i class="fas fa-play"></i>
-                                                </button>
-                                            </form>
-                                            @endif
-                                            @endcan
-
-                                            @can('delete', $ekstrakurikuler)
-                                            @if(!$ekstrakurikuler->isActive())
-                                            <form action="{{ route('ekstrakurikuler.destroy', $ekstrakurikuler) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger"
-                                                    title="Hapus"
-                                                    onclick="return confirm('Apakah Anda yakin ingin menghapus program ini?')">
-                                                    <i class="fas fa-trash"></i>
+                                                    <i class="bi bi-play-fill me-1"></i> Aktifkan
                                                 </button>
                                             </form>
                                             @endif
@@ -412,6 +434,127 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mobile Card View -->
+                    <div class="d-md-none">
+                        @forelse($ekstrakurikulers as $ekstrakurikuler)
+                        <div class="card mb-3 shadow-sm border-0 border-start border-4 border-primary">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="fw-bold mb-0 text-primary">{{ $ekstrakurikuler->kategori_program }}</h6>
+                                        <small class="text-muted font-monospace">{{ $ekstrakurikuler->sekolah_kodlan }}</small>
+                                    </div>
+                                    @php
+                                    $statusClass = match($ekstrakurikuler->status) {
+                                    'draft' => 'bg-secondary',
+                                    'diajukan' => 'bg-warning text-dark',
+                                    'disetujui' => 'bg-info text-dark',
+                                    'ditolak' => 'bg-danger',
+                                    'aktif' => 'bg-success',
+                                    'selesai' => 'bg-primary',
+                                    'dibatalkan' => 'bg-dark',
+                                    default => 'bg-secondary'
+                                    };
+                                    @endphp
+                                    <span class="badge {{ $statusClass }} rounded-pill">
+                                        {{ $ekstrakurikuler->status_label }}
+                                    </span>
+                                </div>
+
+                                <div class="mb-2">
+                                    <div class="fw-semibold text-dark">{{ $ekstrakurikuler->sekolah?->namasekolah ?? '-' }}</div>
+                                    <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ $ekstrakurikuler->sekolah?->kota ?? '-' }}, {{ $ekstrakurikuler->sekolah?->kec ?? '-' }}</small>
+                                </div>
+
+                                <div class="row g-2 small mb-3 bg-light p-2 rounded">
+                                    <div class="col-4 text-center border-end">
+                                        <div class="fw-bold">{{ $ekstrakurikuler->total_siswa ?? 0 }}</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">Siswa</div>
+                                    </div>
+                                    <div class="col-4 text-center border-end">
+                                        <div class="fw-bold">{{ $ekstrakurikuler->total_rombel ?? 0 }}</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">Rombel</div>
+                                    </div>
+                                    <div class="col-4 text-center">
+                                        @php
+                                        $progress = $ekstrakurikuler->getProgressPertemuan();
+                                        $percentage = $progress['persentase'];
+                                        @endphp
+                                        <div class="fw-bold text-success">{{ $percentage }}%</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">Progress</div>
+                                    </div>
+                                </div>
+
+                                <div class="btn-group w-100">
+                                    @can('view', $ekstrakurikuler)
+                                    <a href="{{ route('ekstrakurikuler.show', $ekstrakurikuler) }}" class="btn btn-sm btn-outline-info">Detail</a>
+                                    @endcan
+                                    
+                                    @can('update', $ekstrakurikuler)
+                                    <a href="{{ route('ekstrakurikuler.edit', $ekstrakurikuler) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    @endcan
+
+                                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <span class="visually-hidden">Toggle Dropdown</span>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
+                                        @can('approve', $ekstrakurikuler)
+                                        @if($ekstrakurikuler->canBeApproved())
+                                        <li>
+                                            <form action="{{ route('ekstrakurikuler.approve', $ekstrakurikuler) }}" method="POST">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="dropdown-item text-success" onclick="return confirm('Approve program?')">
+                                                    <i class="bi bi-check-lg me-2"></i> Approve
+                                                </button>
+                                            </form>
+                                        </li>
+                                        @endif
+                                        @endcan
+
+                                        @can('activate', $ekstrakurikuler)
+                                        @if($ekstrakurikuler->canBeActivated())
+                                        <li>
+                                            <form action="{{ route('ekstrakurikuler.activate', $ekstrakurikuler) }}" method="POST">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="dropdown-item text-primary" onclick="return confirm('Aktifkan program?')">
+                                                    <i class="bi bi-play-fill me-2"></i> Aktifkan
+                                                </button>
+                                            </form>
+                                        </li>
+                                        @endif
+                                        @endcan
+
+                                        @can('delete', $ekstrakurikuler)
+                                        @if(!$ekstrakurikuler->isActive())
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form action="{{ route('ekstrakurikuler.destroy', $ekstrakurikuler) }}" method="POST">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Hapus program?')">
+                                                    <i class="bi bi-trash me-2"></i> Hapus
+                                                </button>
+                                            </form>
+                                        </li>
+                                        @endif
+                                        @endcan
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        @empty
+                        <div class="text-center py-5 bg-white rounded shadow-sm">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="mb-0 fw-bold">Belum ada data</p>
+                            @can('create', App\Models\Ekstrakurikuler::class)
+                            <a href="{{ route('ekstrakurikuler.create') }}" class="btn btn-sm btn-primary mt-2">Tambah Baru</a>
+                            @endcan
+                        </div>
+                        @endforelse
                     </div>
 
                     <!-- Pagination -->

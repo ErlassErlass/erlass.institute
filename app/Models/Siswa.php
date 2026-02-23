@@ -2,26 +2,41 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use Illuminate\Notifications\Notifiable;
 
 class Siswa extends Model
 {
-    use HasFactory;
-    
+    use HasFactory, Notifiable;
+
     protected $table = 'siswa';
-    
+
     protected $fillable = [
         'nama_lengkap',
         'nisn',
         'sekolah_kodlan',
-        'rombel',
+        'kelas',
+        'no_hp_orangtua', // Added
     ];
-    
+
+    // ... existing guarded ...
+
+    /**
+     * Route notifications for the WhatsApp channel.
+     *
+     * @return string
+     */
+    public function routeNotificationForWhatsapp($notification)
+    {
+        return $this->no_hp_orangtua;
+    }
+
+
     protected $guarded = [
         'id',
         'created_at',
@@ -50,15 +65,15 @@ class Siswa extends Model
     public function ekstrakurikulers(): BelongsToMany
     {
         return $this->belongsToMany(Ekstrakurikuler::class, 'siswa_ekstrakurikuler')
-                    ->withPivot([
-                        'ekstrakurikuler_rombel_id',
-                        'status',
-                        'tanggal_daftar',
-                        'tanggal_keluar',
-                        'alasan_keluar',
-                        'catatan'
-                    ])
-                    ->withTimestamps();
+            ->withPivot([
+                'ekstrakurikuler_rombel_id',
+                'status',
+                'tanggal_daftar',
+                'tanggal_keluar',
+                'alasan_keluar',
+                'catatan',
+            ])
+            ->withTimestamps();
     }
 
     /**
@@ -102,8 +117,8 @@ class Siswa extends Model
     public function isEnrolledIn(int $ekstrakurikulerId): bool
     {
         return $this->ekstrakurikulersAktif()
-                    ->where('ekstrakurikuler.id', $ekstrakurikulerId)
-                    ->exists();
+            ->where('ekstrakurikuler.id', $ekstrakurikulerId)
+            ->exists();
     }
 
     /**
@@ -112,9 +127,9 @@ class Siswa extends Model
     public function isEnrolledInRombel(int $ekstrakurikulerRombelId): bool
     {
         return $this->enrollments()
-                    ->where('ekstrakurikuler_rombel_id', $ekstrakurikulerRombelId)
-                    ->where('status', 'aktif')
-                    ->exists();
+            ->where('ekstrakurikuler_rombel_id', $ekstrakurikulerRombelId)
+            ->where('status', 'aktif')
+            ->exists();
     }
 
     /**
@@ -123,7 +138,7 @@ class Siswa extends Model
     public function availableEkstrakurikulers()
     {
         return Ekstrakurikuler::where('sekolah_kodlan', $this->sekolah_kodlan)
-                              ->where('status', Ekstrakurikuler::STATUS_AKTIF);
+            ->where('status', Ekstrakurikuler::STATUS_AKTIF);
     }
 
     /**

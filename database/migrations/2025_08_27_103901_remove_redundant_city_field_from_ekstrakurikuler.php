@@ -12,8 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('ekstrakurikuler', function (Blueprint $table) {
-            // Remove redundant city field since we use sekolah.kotkab directly
-            $table->dropColumn('city');
+            // Drop the city index first if it exists
+            if (Schema::hasColumn('ekstrakurikuler', 'city')) {
+                try {
+                    $table->dropIndex(['city']); // Drop the index properly
+                } catch (\Exception $e) {
+                    // Index might not exist, continue
+                }
+                
+                // Remove redundant city field since we use sekolah.kotkab directly
+                $table->dropColumn('city');
+            }
         });
     }
 
@@ -25,6 +34,8 @@ return new class extends Migration
         Schema::table('ekstrakurikuler', function (Blueprint $table) {
             // Add city field back
             $table->string('city')->nullable()->after('region');
+            // Add index back
+            $table->index('city');
         });
     }
 };

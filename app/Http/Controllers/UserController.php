@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\UpdateUserRequest;
-use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
 {
@@ -19,25 +19,24 @@ class UserController extends Controller
     {
         // Hanya webmaster yang bisa mengakses halaman ini
         Gate::authorize('viewAny', User::class);
-        
+
         $query = User::query();
-        
+
         // Search functionality
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nama_lengkap', 'LIKE', "%{$search}%")
-                  ->orWhere('email', 'LIKE', "%{$search}%");
+                    ->orWhere('email', 'LIKE', "%{$search}%");
             });
         }
-        
+
         $users = $query->orderBy('created_at', 'desc')->get();
-        
+
         return view('users.index', compact('users'));
     }
 
     // Other methods (create, store, edit, update, destroy)
-
 
     /**
      * Show the form for creating a new resource.
@@ -45,9 +44,9 @@ class UserController extends Controller
     public function create()
     {
         Gate::authorize('create', User::class);
-        
+
         $roles = ['webmaster', 'admin_erlass', 'instruktur'];
-        
+
         return view('users.create', compact('roles'));
     }
 
@@ -57,7 +56,7 @@ class UserController extends Controller
     public function store(Request $request)
     {
         Gate::authorize('create', User::class);
-        
+
         $validated = $request->validate([
             'nama_lengkap' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
@@ -81,19 +80,19 @@ class UserController extends Controller
             'status.required' => 'Status wajib dipilih.',
             'role.required' => 'Role wajib dipilih.',
         ]);
-        
+
         // Hash password
         $validated['password'] = Hash::make($validated['password']);
-        
+
         // Set initial verification status for instructors
         if ($validated['role'] === 'instruktur') {
             $validated['is_verified'] = false;
             $validated['verification_status'] = 'pending';
             $validated['application_date'] = now();
         }
-        
+
         User::create($validated);
-        
+
         return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan!');
     }
 
@@ -103,7 +102,7 @@ class UserController extends Controller
     public function show(User $user)
     {
         Gate::authorize('view', $user);
-        
+
         return view('users.show', compact('user'));
     }
 
@@ -113,9 +112,9 @@ class UserController extends Controller
     public function edit(User $user)
     {
         Gate::authorize('update', $user);
-        
+
         $roles = ['webmaster', 'admin_erlass', 'instruktur'];
-        
+
         return view('users.edit', compact('user', 'roles'));
     }
 
@@ -125,32 +124,38 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user)
     {
         Gate::authorize('update', $user);
-        
+
         $validated = $request->validated();
-        
+
         // Jika password diisi, hash password baru
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         } else {
             // Jika password kosong, hapus dari array untuk tidak mengupdate
             unset($validated['password']);
         }
-        
+
         // Cek apakah user mencoba mengubah role sendiri
         if (isset($validated['role']) && $user->id === Auth::id()) {
             return back()->withErrors(['role' => 'Anda tidak dapat mengubah role Anda sendiri.']);
         }
-        
+
         // Cek apakah ini adalah webmaster terakhir yang akan diubah rolenya
         if (isset($validated['role']) && $user->role === 'webmaster' && $validated['role'] !== 'webmaster') {
+            
+            // Hanya webmaster yang bisa mengubah role webmaster lain (redundant with policy but safe)
+            if (Auth::user()->role !== 'webmaster') {
+                 return back()->withErrors(['role' => 'Hanya Webmaster yang dapat mengubah role Webmaster.']);
+            }
+
             $webmasterCount = User::where('role', 'webmaster')->count();
             if ($webmasterCount <= 1) {
                 return back()->withErrors(['role' => 'Tidak dapat mengubah role webmaster terakhir.']);
             }
         }
-        
+
         $user->update($validated);
-        
+
         return redirect()->route('users.index')->with('success', 'User berhasil diperbarui!');
     }
 
@@ -160,23 +165,28 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         Gate::authorize('delete', $user);
-        
+
         // Cek apakah ini adalah webmaster terakhir
         if ($user->role === 'webmaster') {
+            // Hanya webmaster yang bisa menghapus webmaster
+             if (Auth::user()->role !== 'webmaster') {
+                 return back()->withErrors(['delete' => 'Hanya Webmaster yang dapat menghapus akun Webmaster.']);
+            }
+
             $webmasterCount = User::where('role', 'webmaster')->count();
             if ($webmasterCount <= 1) {
                 return back()->withErrors(['delete' => 'Tidak dapat menghapus webmaster terakhir.']);
             }
         }
-        
+
         // Cek apakah user memiliki laporan mengajar yang terkait
         if ($user->laporanMengajar()->exists()) {
             return back()->withErrors(['delete' => 'User tidak dapat dihapus karena masih memiliki data laporan mengajar terkait.']);
         }
-        
+
         $userName = $user->nama_lengkap;
         $user->delete();
-        
+
         return redirect()->route('users.index')->with('success', "User {$userName} berhasil dihapus!");
     }
 
@@ -196,10 +206,10 @@ class UserController extends Controller
     public function updateProfile(Request $request)
     {
         $user = $request->user();
-        
+
         $request->validate([
             'nama_lengkap' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'tanggal_lahir' => ['nullable', 'date'],
             'no_telephone' => ['nullable', 'string', 'max:20'],
             'agama' => ['nullable', 'string', 'max:50'],
@@ -209,8 +219,8 @@ class UserController extends Controller
         ]);
 
         $user->update($request->only([
-            'nama_lengkap', 'email', 'tanggal_lahir', 'no_telephone', 
-            'agama', 'pend_terakhir', 'kompetensi_1', 'kompetensi_2'
+            'nama_lengkap', 'email', 'tanggal_lahir', 'no_telephone',
+            'agama', 'pend_terakhir', 'kompetensi_1', 'kompetensi_2',
         ]));
 
         return redirect()->route('profile.edit')->with('status', 'Profile updated successfully!');

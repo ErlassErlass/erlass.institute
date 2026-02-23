@@ -2,10 +2,9 @@
 
 namespace App\Policies;
 
-use App\Models\LaporanMengajar;
 use App\Models\EkstrakurikulerSession;
+use App\Models\LaporanMengajar;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class LaporanMengajarPolicy
 {
@@ -13,23 +12,14 @@ class LaporanMengajarPolicy
      * Izinkan webmaster dan admin_erlass melakukan semua aksi.
      * Webmaster memiliki akses penuh, admin_erlass memiliki akses terbatas.
      */
-    public function before(User $user, string $ability): bool|null
+    public function before(User $user, string $ability): ?bool
     {
-        // Webmaster memiliki akses penuh ke semua fitur
-        if ($user->role === 'webmaster') {
+        // Webmaster dan Admin memiliki akses penuh ke semua fitur
+        if (in_array($user->role, ['webmaster', 'admin_sistem', 'admin'])) {
             return true;
         }
-        
-        // Admin Erlass memiliki akses terbatas (tidak bisa manage users)
-        if ($user->role === 'admin_erlass') {
-            // Blokir akses ke manajemen user untuk admin_erlass
-            if (in_array($ability, ['manageUsers', 'createUser', 'updateUser', 'deleteUser'])) {
-                return false;
-            }
-            return true;
-        }
-        
-        return null; 
+
+        return null;
     }
 
     /**
@@ -49,13 +39,13 @@ class LaporanMengajarPolicy
         if ($laporanMengajar->isFromEkstrakurikuler()) {
             $ekstrakurikulerSession = $laporanMengajar->ekstrakurikulerSession;
             if ($ekstrakurikulerSession) {
-                $canAccess = $user->id === $ekstrakurikulerSession->user_id_instruktur || 
+                $canAccess = $user->id === $ekstrakurikulerSession->user_id_instruktur ||
                             $user->id === $ekstrakurikulerSession->user_id_asisten;
-                
+
                 if ($user->role === 'instruktur' && $canAccess) {
                     return $user->isVerifiedInstructor();
                 }
-                
+
                 return $canAccess;
             }
         }
@@ -64,7 +54,7 @@ class LaporanMengajarPolicy
         if ($user->role === 'instruktur') {
             return $user->isVerifiedInstructor() && $user->id === $laporanMengajar->user_id_instruktur;
         }
-        
+
         return $user->id === $laporanMengajar->user_id_instruktur;
     }
 
@@ -77,7 +67,7 @@ class LaporanMengajarPolicy
         if ($user->role === 'instruktur') {
             return $user->isVerifiedInstructor();
         }
-        
+
         return false;
     }
 
@@ -86,7 +76,11 @@ class LaporanMengajarPolicy
      */
     public function update(User $user, LaporanMengajar $laporanMengajar): bool
     {
-        // Hanya admin yang bisa (sudah ditangani `before`), yang lain ditolak.
+        // Instruktur boleh update laporannya sendiri (untuk mengisi data)
+        if ($user->role === 'instruktur') {
+            return $user->id === $laporanMengajar->user_id_instruktur;
+        }
+
         return false;
     }
 
@@ -105,7 +99,7 @@ class LaporanMengajarPolicy
     public function createFromEkstrakurikuler(User $user, EkstrakurikulerSession $session): bool
     {
         // Cek apakah user adalah instruktur atau asisten dari session
-        $canAccess = $user->id === $session->user_id_instruktur || 
+        $canAccess = $user->id === $session->user_id_instruktur ||
                     $user->id === $session->user_id_asisten;
 
         if ($user->role === 'instruktur' && $canAccess) {
@@ -124,7 +118,7 @@ class LaporanMengajarPolicy
         if ($user->role === 'instruktur') {
             return $user->isVerifiedInstructor();
         }
-        
+
         // Admin bisa akses semua (sudah ditangani di before)
         return false;
     }

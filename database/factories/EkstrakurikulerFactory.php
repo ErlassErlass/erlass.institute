@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Ekstrakurikuler;
-use App\Models\User;
 use App\Models\Sekolah;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -27,17 +27,17 @@ class EkstrakurikulerFactory extends Factory
     public function definition(): array
     {
         $kategoriProgram = $this->faker->randomElement([
-            'Coding Scratch', 
-            'English Course', 
-            'Micro:bit Learning Kit', 
-            'Pictoblox AI', 
-            'Robotik Explorer', 
-            'Robotik Jimu'
+            'Coding Scratch',
+            'English Course',
+            'Micro:bit Learning Kit',
+            'Pictoblox AI',
+            'Robotik Explorer',
+            'Robotik Jimu',
         ]);
 
         $cities = [
             'Jakarta Pusat', 'Jakarta Utara', 'Jakarta Selatan', 'Jakarta Timur', 'Jakarta Barat',
-            'Kota Depok', 'Kota Bogor', 'Kota Tangerang', 'Kota Bekasi'
+            'Kota Depok', 'Kota Bogor', 'Kota Tangerang', 'Kota Bekasi',
         ];
 
         $city = $this->faker->randomElement($cities);
@@ -51,7 +51,6 @@ class EkstrakurikulerFactory extends Factory
             'deskripsi' => $this->faker->optional()->paragraph(),
             'user_id_sales' => User::factory(),
             'region' => $region,
-            'city' => $city,
             'sekolah_kodlan' => Sekolah::factory(),
             'alamat_lengkap' => $this->faker->address(),
             'google_maps_link' => $this->faker->optional()->url(),
@@ -59,7 +58,6 @@ class EkstrakurikulerFactory extends Factory
             'kepala_sekolah' => $this->faker->name(),
             'penanggung_jawab' => $this->faker->name(),
             'no_telepon' => $this->faker->phoneNumber(),
-            'email' => $this->faker->optional()->email(),
             'koneksi_internet' => $this->faker->randomElement(['ada', 'tidak_ada', 'tidak_diketahui']),
             'proyektor' => $this->faker->randomElement(['ada', 'tidak_ada', 'tidak_diketahui']),
             'keterangan_proyektor' => $this->faker->optional()->sentence(),
@@ -91,14 +89,14 @@ class EkstrakurikulerFactory extends Factory
     {
         $cityToRegionMap = [
             'Jakarta Pusat' => 'JAKARTA',
-            'Jakarta Utara' => 'JAKARTA', 
+            'Jakarta Utara' => 'JAKARTA',
             'Jakarta Selatan' => 'JAKARTA',
             'Jakarta Timur' => 'JAKARTA',
             'Jakarta Barat' => 'JAKARTA',
             'Kota Depok' => 'DEPOK',
             'Kota Bogor' => 'BOGOR',
             'Kota Tangerang' => 'TANGERANG',
-            'Kota Bekasi' => 'BEKASI'
+            'Kota Bekasi' => 'BEKASI',
         ];
 
         return $cityToRegionMap[$city] ?? strtoupper(explode(' ', $city)[1] ?? $city);

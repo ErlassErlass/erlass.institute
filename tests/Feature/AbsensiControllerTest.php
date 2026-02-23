@@ -2,69 +2,74 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
+use App\Models\Absensi;
+use App\Models\LaporanMengajar;
 use App\Models\Sekolah;
 use App\Models\Siswa;
-use App\Models\LaporanMengajar;
-use App\Models\Absensi;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class AbsensiControllerTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $instructor;
+
     private User $admin;
+
     private Sekolah $sekolah;
+
     private Siswa $siswa1;
+
     private Siswa $siswa2;
+
     private LaporanMengajar $laporanMengajar;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->instructor = User::factory()->create([
             'role' => 'instruktur',
-            'nama_lengkap' => 'Test Instructor'
+            'nama_lengkap' => 'Test Instructor',
         ]);
-        
+
         $this->admin = User::factory()->create([
             'role' => 'admin',
-            'nama_lengkap' => 'Test Admin'
+            'nama_lengkap' => 'Test Admin',
         ]);
-        
+
         $this->sekolah = Sekolah::factory()->create([
             'kodlan' => 'TEST001',
-            'namasekolah' => 'Test School'
+            'namasekolah' => 'Test School',
         ]);
-        
+
         $this->siswa1 = Siswa::factory()->create([
             'nama_lengkap' => 'Siswa 1',
             'sekolah_kodlan' => 'TEST001',
-            'rombel' => 'A1'
+            'rombel' => 'A1',
         ]);
-        
+
         $this->siswa2 = Siswa::factory()->create([
             'nama_lengkap' => 'Siswa 2',
             'sekolah_kodlan' => 'TEST001',
-            'rombel' => 'A1'
+            'rombel' => 'A1',
         ]);
-        
+
         $this->laporanMengajar = LaporanMengajar::factory()->create([
             'user_id_instruktur' => $this->instructor->id,
             'sekolah_kodlan' => 'TEST001',
             'rombel' => 'A1',
-            'jadwal_mengajar' => Carbon::today()->format('Y-m-d')
+            'jadwal_mengajar' => Carbon::today()->format('Y-m-d'),
         ]);
     }
 
     public function test_guest_cannot_access_absensi_create(): void
     {
         $response = $this->get(route('laporan-mengajar.absensi.create', $this->laporanMengajar));
-        
+
         $response->assertRedirect(route('login'));
     }
 
@@ -72,7 +77,7 @@ class AbsensiControllerTest extends TestCase
     {
         $response = $this->actingAs($this->instructor)
             ->get(route('laporan-mengajar.absensi.create', $this->laporanMengajar));
-        
+
         $response->assertStatus(200);
         $response->assertViewIs('absensi.create');
         $response->assertViewHas('laporanMengajar', $this->laporanMengajar);
@@ -84,12 +89,12 @@ class AbsensiControllerTest extends TestCase
         $otherInstructor = User::factory()->create(['role' => 'instruktur']);
         $otherLaporan = LaporanMengajar::factory()->create([
             'user_id_instruktur' => $otherInstructor->id,
-            'sekolah_kodlan' => 'TEST001'
+            'sekolah_kodlan' => 'TEST001',
         ]);
 
         $response = $this->actingAs($this->instructor)
             ->get(route('laporan-mengajar.absensi.create', $otherLaporan));
-        
+
         $response->assertStatus(403);
     }
 
@@ -97,7 +102,7 @@ class AbsensiControllerTest extends TestCase
     {
         $response = $this->actingAs($this->admin)
             ->get(route('laporan-mengajar.absensi.create', $this->laporanMengajar));
-        
+
         $response->assertStatus(200);
         $response->assertViewIs('absensi.create');
     }
@@ -107,14 +112,14 @@ class AbsensiControllerTest extends TestCase
         // Create student in different rombel (should not appear)
         $siswa3 = Siswa::factory()->create([
             'sekolah_kodlan' => 'TEST001',
-            'rombel' => 'B1'
+            'rombel' => 'B1',
         ]);
 
         $response = $this->actingAs($this->instructor)
             ->get(route('laporan-mengajar.absensi.create', $this->laporanMengajar));
-        
+
         $response->assertStatus(200);
-        
+
         $siswas = $response->viewData('siswas');
         $this->assertCount(2, $siswas); // Only siswa1 and siswa2 from rombel A1
         $this->assertTrue($siswas->contains('id', $this->siswa1->id));
@@ -128,12 +133,12 @@ class AbsensiControllerTest extends TestCase
             'absensi' => [
                 $this->siswa1->id => 1, // Present
                 $this->siswa2->id => 0, // Absent
-            ]
+            ],
         ];
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.absensi.store', $this->laporanMengajar), $absensiData);
-        
+
         $response->assertRedirect(route('laporan-mengajar.show', $this->laporanMengajar));
         $response->assertSessionHas('success');
 
@@ -141,13 +146,13 @@ class AbsensiControllerTest extends TestCase
         $this->assertDatabaseHas('absensi', [
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa1->id,
-            'hadir' => true
+            'hadir' => true,
         ]);
 
         $this->assertDatabaseHas('absensi', [
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa2->id,
-            'hadir' => false
+            'hadir' => false,
         ]);
 
         // Verify laporan statistics were updated
@@ -162,7 +167,7 @@ class AbsensiControllerTest extends TestCase
         Absensi::create([
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa1->id,
-            'hadir' => true
+            'hadir' => true,
         ]);
 
         // Update attendance
@@ -170,25 +175,25 @@ class AbsensiControllerTest extends TestCase
             'absensi' => [
                 $this->siswa1->id => 0, // Change to absent
                 $this->siswa2->id => 1, // Add new present
-            ]
+            ],
         ];
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.absensi.store', $this->laporanMengajar), $absensiData);
-        
+
         $response->assertRedirect(route('laporan-mengajar.show', $this->laporanMengajar));
 
         // Verify attendance was updated
         $this->assertDatabaseHas('absensi', [
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa1->id,
-            'hadir' => false // Updated
+            'hadir' => false, // Updated
         ]);
 
         $this->assertDatabaseHas('absensi', [
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa2->id,
-            'hadir' => true // Added
+            'hadir' => true, // Added
         ]);
     }
 
@@ -196,7 +201,7 @@ class AbsensiControllerTest extends TestCase
     {
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.absensi.store', $this->laporanMengajar), []);
-        
+
         $response->assertSessionHasErrors(['absensi']);
     }
 
@@ -204,9 +209,9 @@ class AbsensiControllerTest extends TestCase
     {
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.absensi.store', $this->laporanMengajar), [
-                'absensi' => 'invalid_format'
+                'absensi' => 'invalid_format',
             ]);
-        
+
         $response->assertSessionHasErrors(['absensi']);
     }
 
@@ -214,13 +219,13 @@ class AbsensiControllerTest extends TestCase
     {
         $absensiData = [
             'absensi' => [
-                $this->siswa1->id => 'invalid_boolean'
-            ]
+                $this->siswa1->id => 'invalid_boolean',
+            ],
         ];
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.absensi.store', $this->laporanMengajar), $absensiData);
-        
+
         $response->assertSessionHasErrors(['absensi.*']);
     }
 
@@ -228,13 +233,13 @@ class AbsensiControllerTest extends TestCase
     {
         $absensiData = [
             'absensi' => [
-                99999 => 1 // Non-existent student ID
-            ]
+                99999 => 1, // Non-existent student ID
+            ],
         ];
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.absensi.store', $this->laporanMengajar), $absensiData);
-        
+
         $response->assertSessionHasErrors(['absensi']);
     }
 
@@ -245,7 +250,7 @@ class AbsensiControllerTest extends TestCase
             'absensi' => [
                 $this->siswa1->id => 1,
                 $this->siswa2->id => 1,
-            ]
+            ],
         ];
 
         // Force database error by setting invalid foreign key
@@ -270,7 +275,7 @@ class AbsensiControllerTest extends TestCase
                 'user_id_instruktur' => $this->instructor->id,
                 'sekolah_kodlan' => 'TEST001',
                 'rombel' => 'A1',
-                'jadwal_mengajar' => Carbon::today()->subDays($i)->format('Y-m-d')
+                'jadwal_mengajar' => Carbon::today()->subDays($i)->format('Y-m-d'),
             ]);
         }
 
@@ -279,7 +284,7 @@ class AbsensiControllerTest extends TestCase
             Absensi::create([
                 'laporan_mengajar_id' => $report->id,
                 'siswa_id' => $this->siswa1->id,
-                'hadir' => false
+                'hadir' => false,
             ]);
         }
 
@@ -287,12 +292,12 @@ class AbsensiControllerTest extends TestCase
             'absensi' => [
                 $this->siswa1->id => 0, // Another absence
                 $this->siswa2->id => 1,
-            ]
+            ],
         ];
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.absensi.store', $this->laporanMengajar), $absensiData);
-        
+
         $response->assertRedirect();
 
         // Verify dropout count was calculated
@@ -306,14 +311,14 @@ class AbsensiControllerTest extends TestCase
         Absensi::create([
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa1->id,
-            'hadir' => true
+            'hadir' => true,
         ]);
 
         $response = $this->actingAs($this->instructor)
             ->get(route('laporan-mengajar.absensi.create', $this->laporanMengajar));
-        
+
         $response->assertStatus(200);
-        
+
         $existingAbsensi = $response->viewData('existingAbsensi');
         $this->assertEquals(1, $existingAbsensi[$this->siswa1->id]);
         $this->assertArrayNotHasKey($this->siswa2->id, $existingAbsensi->toArray());

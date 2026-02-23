@@ -3,141 +3,35 @@
 @section('title', 'Buat Laporan Mengajar')
 
 @push('styles')
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
-<style>
-    .card-header {
-        background-color: #4e73df;
-        color: white;
-    }
-
-    .section-header {
-        color: #4e73df;
-        font-weight: 600;
-        border-left: 4px solid #4e73df;
-        padding-left: 10px;
-    }
-
-    .form-section {
-        background-color: #f8f9fc;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 25px;
-        border-left: 3px solid #4e73df;
-    }
-
-    .file-upload-preview {
-        width: 100px;
-        height: 100px;
-        object-fit: cover;
-        border-radius: 8px;
-        display: none;
-        margin-top: 10px;
-    }
-
-    .select2-container--bootstrap-5 .select2-selection {
-        height: auto;
-        min-height: 38px;
-    }
-
-    .progress-indicator {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 20px;
-    }
-
-    .progress-step {
-        text-align: center;
-        position: relative;
-        flex: 1;
-    }
-
-    .progress-step:not(:last-child):after {
-        content: '';
-        position: absolute;
-        top: 15px;
-        left: 50%;
-        right: -50%;
-        height: 2px;
-        background: #e3e6f0;
-        z-index: 1;
-    }
-
-    .step-number {
-        width: 30px;
-        height: 30px;
-        background: #e3e6f0;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 5px;
-        position: relative;
-        z-index: 2;
-        color: #858796;
-        font-weight: bold;
-    }
-
-    .step-label {
-        font-size: 12px;
-        color: #858796;
-    }
-
-    .active-step .step-number {
-        background: #4e73df;
-        color: white;
-    }
-
-    .active-step .step-label {
-        color: #4e73df;
-        font-weight: bold;
-    }
-
-    .character-counter {
-        font-size: 12px;
-        color: #6c757d;
-        text-align: right;
-    }
-
-    .character-counter.warning {
-        color: #ffc107;
-    }
-
-    .character-counter.danger {
-        color: #dc3545;
-    }
-</style>
 @endpush
 
 @section('content')
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-md-10 col-lg-8">
-            <div class="progress-indicator">
-                <div class="progress-step active-step">
-                    <div class="step-number">1</div>
-                    <div class="step-label">Informasi Dasar</div>
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-transparent py-3">
+                    <h1 class="h4 mb-0 fw-bold text-gradient-primary"><i class="fas fa-plus-circle me-2"></i>Buat Laporan Mengajar</h1>
                 </div>
-                <div class="progress-step">
-                    <div class="step-number">2</div>
-                    <div class="step-label">Detail Pengajaran</div>
+                
+                <div class="alert alert-danger m-3 border-0 shadow-sm" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle fa-2x me-3 text-danger"></i>
+                        <div>
+                            <h5 class="alert-heading fw-bold mb-1">DILARANG MENGISI UNTUK JADWAL RUTIN!</h5>
+                            <p class="mb-0">
+                                Halaman ini <strong>KHUSUS</strong> untuk membuat Laporan Mengajar <strong>DI LUAR JADWAL / TAMBAHAN</strong> (Ad-Hoc).
+                                <br>
+                                Jika Anda ingin mengisi laporan untuk kelas terjadwal, silakan buka menu <strong>Jadwal Mengajar</strong> atau <strong>Dashboard</strong>.
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <div class="progress-step">
-                    <div class="step-number">3</div>
-                    <div class="step-label">Evaluasi</div>
-                </div>
-                <div class="progress-step">
-                    <div class="step-number">4</div>
-                    <div class="step-label">Dokumentasi</div>
-                </div>
-            </div>
 
-            <div class="card shadow-lg">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h1 class="h4 mb-0"><i class="fas fa-book-open me-2"></i>Formulir Laporan Mengajar</h1>
-                    <span class="badge bg-light text-dark">Draft</span>
-                </div>
+
 
                 <form method="POST" action="{{ route('laporan-mengajar.store') }}" enctype="multipart/form-data" id="laporanForm">
                     @csrf
@@ -155,8 +49,8 @@
                         @endif
 
                         <!-- Section 1: Basic Information -->
-                        <div class="form-section">
-                            <h5 class="section-header"><i class="fas fa-user-tie me-2"></i>Informasi Instruktur</h5>
+                        <div class="mb-4">
+                            <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom"><i class="fas fa-user-tie me-2"></i>Informasi Instruktur</h5>
                             <input type="hidden" name="user_id_instruktur" value="{{ Auth::id() }}">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
@@ -181,8 +75,7 @@
                                 </div>
                             </div>
 
-                            <h5 class="section-header mt-4"><i class="fas fa-school me-2"></i>Lokasi Mengajar</h5>
-                            {{-- BENAR: Menggunakan name="sekolah_kodlan" dan @error('sekolah_kodlan') --}}
+                            <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom mt-4"><i class="fas fa-school me-2"></i>Lokasi Mengajar</h5>
                             <div class="mb-3">
                                 <label for="sekolah_kodlan" class="form-label">Cari & Pilih Sekolah</label>
                                 <div class="input-group">
@@ -201,8 +94,8 @@
                         </div>
 
                         <!-- Section 2: Teaching Details -->
-                        <div class="form-section">
-                            <h5 class="section-header"><i class="fas fa-chalkboard-teacher me-2"></i>Detail Pengajaran</h5>
+                        <div class="mb-4">
+                            <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom"><i class="fas fa-chalkboard-teacher me-2"></i>Detail Pengajaran</h5>
                             <div class="row">
                                 <div class="col-md-4 mb-3">
                                     <label for="pertemuan_ke" class="form-label">Pertemuan Ke-</label>
@@ -226,14 +119,11 @@
                                         <span class="input-group-text"><i class="fas fa-tag"></i></span>
                                         <select name="kategori_pengajaran" id="kategori_pengajaran" class="form-select @error('kategori_pengajaran') is-invalid @enderror" required>
                                             <option value="">Pilih Kategori</option>
-
-                                            {{-- ✅ LOOP MELALUI VARIABEL $kategori DARI CONTROLLER --}}
                                             @foreach ($kategori as $kat)
                                             <option value="{{ $kat }}" {{ old('kategori_pengajaran', $laporanMengajar->kategori_pengajaran ?? '') == $kat ? 'selected' : '' }}>
                                                 {{ $kat }}
                                             </option>
                                             @endforeach
-
                                         </select>
                                     </div>
                                     @error('kategori_pengajaran') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
@@ -269,81 +159,37 @@
 
                             <div class="mb-3">
                                 <label for="materi_pengajaran" class="form-label">Materi Pengajaran</label>
-                                <textarea name="materi_pengajaran" id="materi_pengajaran" class="form-control @error('materi_pengajaran') is-invalid @enderror" required rows="3"></textarea>
-                                <div class="character-counter" id="materi-counter">0/500 karakter</div>
+                                <textarea name="materi_pengajaran" id="materi_pengajaran" class="form-control @error('materi_pengajaran') is-invalid @enderror" rows="3" required placeholder="Tuliskan materi pengajaran...">{{ old('materi_pengajaran') }}</textarea>
                                 @error('materi_pengajaran') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
                         </div>
 
-                        <h5 class="section-header mt-4"><i class="fas fa-chart-line me-2"></i>Evaluasi Pembelajaran</h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="keaktifan" class="form-label">Keaktifan Siswa</label>
-                                <select name="keaktifan" id="keaktifan" class="form-select @error('keaktifan') is-invalid @enderror" required>
-                                    <option value="sangat_pasif">Sangat Pasif</option>
-                                    <option value="pasif">Pasif</option>
-                                    <option value="aktif">Aktif</option>
-                                    <option value="sangat_aktif">Sangat Aktif</option>
-                                </select>
-                                @error('keaktifan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="pemahaman_materi" class="form-label">Pemahaman Materi Siswa</label>
-                                <select name="pemahaman_materi" id="pemahaman_materi" class="form-select @error('pemahaman_materi') is-invalid @enderror" required>
-                                    <option value="belum_paham">Belum Paham</option>
-                                    <option value="sedikit_paham">Sedikit Paham</option>
-                                    <option value="paham">Paham</option>
-                                    <option value="sangat_paham">Sangat Paham</option>
-                                </select>
-                                @error('pemahaman_materi') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                            </div>
-                        </div>
+                        <!-- Evaluasi Section Removed -->
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="refleksi_siswa" class="form-label">Refleksi Siswa</label>
-                                <textarea name="refleksi_siswa" id="refleksi_siswa" class="form-control @error('refleksi_siswa') is-invalid @enderror" required rows="3"></textarea>
-                                <div class="character-counter" id="refleksi-counter">0/300 karakter</div>
-                                @error('refleksi_siswa') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="refleksi_capaian" class="form-label">Refleksi Capaian</label>
-                                <textarea name="refleksi_capaian" id="refleksi_capaian" class="form-control @error('refleksi_capaian') is-invalid @enderror" required rows="3"></textarea>
-                                <div class="character-counter" id="capaian-counter">0/300 karakter</div>
-                                @error('refleksi_capaian') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                            </div>
-                        </div>
-
-                        <!-- Section 4: Documentation -->
-                        <div class="form-section">
-                            <h5 class="section-header"><i class="fas fa-images me-2"></i>Dokumentasi Kegiatan</h5>
+                        <!-- Section 3: Documentation -->
+                        <div class="mb-4">
+                            <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom"><i class="fas fa-images me-2"></i>Dokumentasi Kegiatan</h5>
                             <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i>Upload foto kegiatan dan absensi dengan format JPEG/PNG (maksimal 2MB)
+                                <i class="fas fa-info-circle me-2"></i>Upload foto kegiatan dengan format JPEG/PNG (maksimal 5MB)
                             </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="foto_kegiatan" class="form-label">Foto Kegiatan</label>
-                                    <input type="file" name="foto_kegiatan" id="foto_kegiatan" class="form-control @error('foto_kegiatan') is-invalid @enderror" accept="image/*">
-                                    <img id="foto_kegiatan_preview" class="file-upload-preview" src="#" alt="Preview Foto Kegiatan">
-                                    @error('foto_kegiatan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="foto_absensi_siswa" class="form-label">Foto Absensi Siswa</label>
-                                    <input type="file" name="foto_absensi_siswa" id="foto_absensi_siswa" class="form-control @error('foto_absensi_siswa') is-invalid @enderror" accept="image/*">
-                                    <img id="foto_absensi_preview" class="file-upload-preview" src="#" alt="Preview Foto Absensi">
-                                    @error('foto_absensi_siswa') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                                </div>
+                            <div class="mb-3">
+                                <label for="foto_kegiatan" class="form-label">Foto Kegiatan</label>
+                                <input type="file" name="foto_kegiatan" id="foto_kegiatan" class="form-control @error('foto_kegiatan') is-invalid @enderror" accept="image/*">
+                                <img id="foto_kegiatan_preview" class="file-upload-preview" src="#" alt="Preview Foto Kegiatan">
+                                @error('foto_kegiatan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
+                            
+                            <!-- Foto Absensi Input Removed -->
                         </div>
                     </div>
 
-                    <div class="card-footer bg-light d-flex justify-content-between">
+                    <div class="card-footer bg-light d-flex justify-content-between flex-wrap gap-2">
                         <button type="button" class="btn btn-outline-secondary" id="saveDraftBtn">
                             <i class="fas fa-save me-1"></i> Simpan Draft
                         </button>
-                        <div>
-                            <a href="{{ route('laporan-mengajar.index') }}" class="btn btn-secondary me-2">
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('laporan-mengajar.index') }}" class="btn btn-secondary">
                                 <i class="fas fa-times me-1"></i> Batal
                             </a>
                             <button type="submit" class="btn btn-primary">
@@ -358,8 +204,10 @@
 </div>
 @endsection
 
+<!-- Pending Sessions Modal (Keep existing) -->
+<!-- ... -->
+
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -368,6 +216,7 @@
         // Initialize Select2 for school search
         $('#sekolah-search').select2({
             theme: "bootstrap-5",
+            width: '100%',
             placeholder: 'Ketik nama sekolah atau kode...',
             ajax: {
                 url: "{{ url('/laporan-mengajar/search') }}",
@@ -378,7 +227,7 @@
                 },
                 data: function(params) {
                     return {
-                        q: params.term.trim()
+                        q: (params.term || '').trim()
                     };
                 },
                 processResults: function(data) {
@@ -449,32 +298,29 @@
             readURL(this, '#foto_kegiatan_preview');
         });
 
-        $("#foto_absensi_siswa").change(function() {
-            readURL(this, '#foto_absensi_preview');
+        // Helper: Dynamic Rombel Placeholder based on Category
+        $('#kategori_pengajaran').change(function() {
+            var kategori = $(this).val();
+            var rombelInput = $('#rombel'); 
+
+            // Dynamic Placeholder Logic
+            if (kategori === 'Pameran') {
+                rombelInput.attr('placeholder', 'Contoh: Booth Utama / Tim Pameran');
+            } else if (kategori === 'Pendampingan Lomba') {
+                rombelInput.attr('placeholder', 'Contoh: Nama Tim / Nama Event Lomba');
+            } else if (kategori === 'Sosialisasi bersama Sales') {
+                rombelInput.attr('placeholder', 'Contoh: Calon Orang Tua Siswa / Peserta Sosialisasi');
+            } else if (kategori === 'Trial Class') {
+                rombelInput.attr('placeholder', 'Contoh: Nama Siswa Trial / Kelompok Trial');
+            } else {
+                rombelInput.attr('placeholder', 'Contoh: 1A, 2B, TK-A'); // Default
+            }
         });
 
-        // Character counters for textareas
-        function setupCharacterCounter(textareaId, counterId, maxLength) {
-            $(textareaId).on('input', function() {
-                var length = $(this).val().length;
-                var remaining = maxLength - length;
-                $(counterId).text(length + '/' + maxLength + ' karakter');
-
-                if (remaining < 50) {
-                    $(counterId).removeClass('warning danger').addClass('warning');
-                }
-                if (remaining < 20) {
-                    $(counterId).removeClass('warning').addClass('danger');
-                }
-                if (remaining >= 50) {
-                    $(counterId).removeClass('warning danger');
-                }
-            }).trigger('input');
+        // Trigger change on load if category is already selected
+        if ($('#kategori_pengajaran').val()) {
+            $('#kategori_pengajaran').trigger('change');
         }
-
-        setupCharacterCounter('#materi_pengajaran', '#materi-counter', 500);
-        setupCharacterCounter('#refleksi_siswa', '#refleksi-counter', 300);
-        setupCharacterCounter('#refleksi_capaian', '#capaian-counter', 300);
 
         // Save as draft functionality
         $('#saveDraftBtn').click(function() {
@@ -542,12 +388,62 @@
 
                     if (hours > 0) durationText += hours + ' jam ';
                     if (minutes > 0) durationText += minutes + ' menit';
-
-                    // You can display this somewhere if you add a duration display element
-                    console.log('Durasi: ' + durationText.trim());
+                    
+                    // console.log('Durasi: ' + durationText.trim());
                 }
             }
         });
     });
+</script>
+<script>
+    // Load Pending Sessions logic
+    function loadPendingSessions() {
+        const listContainer = document.getElementById('sessionsList');
+        const loading = document.getElementById('loadingSessions');
+        const empty = document.getElementById('emptySessions');
+        
+        listContainer.classList.add('d-none');
+        empty.classList.add('d-none');
+        loading.classList.remove('d-none');
+        listContainer.innerHTML = '';
+
+        fetch("{{ route('laporan-mengajar.pending-sessions') }}")
+            .then(response => response.json())
+            .then(data => {
+                loading.classList.add('d-none');
+                
+                if (data.sessions.length === 0) {
+                    empty.classList.remove('d-none');
+                } else {
+                    listContainer.classList.remove('d-none');
+                    data.sessions.forEach(session => {
+                        const item = document.createElement('a');
+                        item.href = session.url;
+                        item.className = 'list-group-item list-group-item-action p-3';
+                        item.innerHTML = `
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1 text-primary fw-bold">${session.program} - Pertemuan ${session.pertemuan_ke}</h6>
+                                    <p class="mb-1 fw-bold">${session.sekolah}</p>
+                                    <small class="text-muted"><i class="fas fa-users me-1"></i> ${session.rombel}</small>
+                                </div>
+                                <div class="text-end">
+                                    <small class="fw-bold d-block">${session.tanggal}</small>
+                                    <small class="text-muted">${session.jam}</small>
+                                    <span class="badge bg-primary rounded-pill mt-2">Pilih <i class="fas fa-arrow-right ms-1"></i></span>
+                                </div>
+                            </div>
+                        `;
+                        listContainer.appendChild(item);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching sessions:', error);
+                loading.classList.add('d-none');
+                empty.innerHTML = '<p class="text-danger">Gagal memuat data. Silakan coba lagi.</p>';
+                empty.classList.remove('d-none');
+            });
+    }
 </script>
 @endpush

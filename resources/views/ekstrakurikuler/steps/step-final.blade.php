@@ -521,8 +521,8 @@ function loadSessionPreview() {
     `;
     
     // Make AJAX request to get session preview
-    fetch('{{ route("ekstrakurikuler.preview-sessions") }}', {
-        method: 'GET',
+    fetch('{{ route("api.ekstrakurikuler.preview-sessions") }}', {
+        method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',

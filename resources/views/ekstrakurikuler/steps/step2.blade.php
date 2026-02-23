@@ -15,7 +15,7 @@
                     required>
                 <option value="">Pilih Sekolah</option>
                 @if(isset($formData['city']) && $formData['city'])
-                    @foreach($sekolahs->where('kotkab', $formData['city']) as $sekolah)
+                    @foreach($sekolahs->where('kota', $formData['city']) as $sekolah)
                         <option value="{{ $sekolah->kodlan }}" 
                                 {{ old('sekolah_kodlan', $formData['sekolah_kodlan'] ?? '') == $sekolah->kodlan ? 'selected' : '' }}
                                 data-kotkab="{{ $sekolah->kotkab }}"
@@ -28,8 +28,9 @@
                         <option value="{{ $sekolah->kodlan }}" 
                                 {{ old('sekolah_kodlan', $formData['sekolah_kodlan'] ?? '') == $sekolah->kodlan ? 'selected' : '' }}
                                 data-kotkab="{{ $sekolah->kotkab }}"
-                                data-kec="{{ $sekolah->kec }}">
-                            {{ $sekolah->namasekolah }} - {{ $sekolah->kotkab }}
+                                data-kec="{{ $sekolah->kec }}"
+                                data-kota="{{ $sekolah->kota }}">
+                            {{ $sekolah->namasekolah }} - {{ $sekolah->kota }}
                         </option>
                     @endforeach
                 @endif
@@ -212,29 +213,52 @@
     </ul>
 </div>
 
+@push('scripts')
 <script>
-// Auto-fill address based on school selection
-document.getElementById('sekolah_kodlan').addEventListener('change', function() {
-    const selectedOption = this.options[this.selectedIndex];
-    if (selectedOption.value) {
-        const alamatField = document.getElementById('alamat_lengkap');
-        if (!alamatField.value) {
-            const kotkab = selectedOption.getAttribute('data-kotkab');
-            const kec = selectedOption.getAttribute('data-kec');
-            alamatField.value = `${selectedOption.text}\n${kec}, ${kotkab}`;
-        }
+$(document).ready(function() {
+    // Check if Select2 is loaded
+    if (typeof $.fn.select2 === 'undefined') {
+        console.error('Select2 is not loaded!');
+        return;
     }
-});
 
-// Validate phone number format
-document.getElementById('no_telepon').addEventListener('input', function() {
-    let value = this.value.replace(/\D/g, ''); // Remove non-digits
-    
-    // Add country code if not present
-    if (value.length > 0 && !value.startsWith('62') && !value.startsWith('0')) {
-        value = '0' + value;
-    }
-    
-    this.value = value;
+    // Initialize Select2
+    $('#sekolah_kodlan').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: 'Pilih Sekolah',
+        allowClear: true,
+        dropdownParent: $('body') // Ensure dropdown renders correctly
+    });
+
+    // Auto-fill address based on school selection
+    // Note: Select2 triggers 'change' event on the original select
+    $('#sekolah_kodlan').on('change', function() {
+        const selectedOption = $(this).find(':selected');
+        if (selectedOption.val()) {
+            const alamatField = $('#alamat_lengkap');
+            // Only auto-fill if empty to avoid overwriting user edits
+            if (!alamatField.val()) {
+                const kotkab = selectedOption.data('kotkab');
+                const kec = selectedOption.data('kec');
+                // Use empty string fallback if data attributes are missing
+                const location = (kec && kotkab) ? `\n${kec}, ${kotkab}` : '';
+                alamatField.val(`${selectedOption.text().trim()}${location}`);
+            }
+        }
+    });
+
+    // Validate phone number format
+    $('#no_telepon').on('input', function() {
+        let value = $(this).val().replace(/\D/g, ''); // Remove non-digits
+        
+        // Add country code if not present
+        if (value.length > 0 && !value.startsWith('62') && !value.startsWith('0')) {
+            value = '0' + value;
+        }
+        
+        $(this).val(value);
+    });
 });
 </script>
+@endpush

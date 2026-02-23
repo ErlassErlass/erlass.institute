@@ -1,117 +1,119 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 py-6">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <div>
-            <h1 class="text-2xl font-bold mb-2">🗓️ Rekap Absensi Tanggal {{ \Carbon\Carbon::parse($tanggal)->format('d M Y') }}</h1>
+            <h1 class="h3 fw-bold text-dark mb-1">🗓️ Rekap Absensi Tanggal {{ \Carbon\Carbon::parse($tanggal)->format('d M Y') }}</h1>
             
             @if($laporan_mengajar)
-                <p class="text-gray-600">
-                    Sekolah: <strong>{{ $laporan_mengajar->sekolah_nama }}</strong> | 
-                    Rombel: <strong>{{ $laporan_mengajar->rombel }}</strong>
+                <p class="text-muted mb-0">
+                    Sekolah: <strong class="text-dark">{{ $laporan_mengajar->sekolah_nama }}</strong> | 
+                    Rombel: <strong class="text-dark">{{ $laporan_mengajar->rombel }}</strong>
                 </p>
             @else
-                <p class="text-gray-600">
+                <p class="text-muted mb-0">
                     Menampilkan absensi dari beberapa laporan.
                 </p>
             @endif
         </div>
         
-        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-            <form method="GET" action="{{ route('rekap-absensi') }}" class="w-full">
-                <button type="submit" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg w-full md:w-auto flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
-                    </svg>
-                    Kembali
+        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
+            <form method="GET" action="{{ route('rekap-absensi') }}" class="d-inline">
+                <button type="submit" class="btn btn-light border w-100 w-sm-auto d-flex align-items-center justify-content-center">
+                    <i class="bi bi-arrow-left me-2"></i> Kembali
                 </button>
             </form>
             
-            <form method="GET" action="{{ route('absensi.rekap-by-date', $tanggal) }}" class="w-full">
-                <div class="relative">
+            <form method="GET" action="{{ route('absensi.rekap-by-date', $tanggal) }}" class="flex-grow-1">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
                     <input type="text" name="search" placeholder="Cari nama siswa..." 
                            value="{{ request('search') }}" 
-                           class="pl-10 pr-4 py-2 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-                        </svg>
-                    </div>
+                           class="form-control border-start-0 ps-0">
                 </div>
             </form>
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow overflow-hidden mb-6">
-        <div class="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div class="flex items-center">
-                <span class="text-sm font-medium text-gray-700 mr-3">Filter:</span>
-                <div class="flex flex-wrap gap-2">
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-white py-3 border-bottom d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+            <div class="d-flex align-items-center">
+                <span class="fw-bold text-muted small text-uppercase me-2">Filter:</span>
+                <div class="btn-group" role="group">
                     <a href="{{ route('absensi.rekap-by-date', ['tanggal' => $tanggal, 'status' => 'all']) }}" 
-                       class="px-3 py-1 text-xs rounded-full {{ request('status') == 'all' || !request('status') ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' }}">
+                       class="btn btn-sm {{ request('status') == 'all' || !request('status') ? 'btn-primary' : 'btn-outline-secondary' }}">
                         Semua
                     </a>
                     <a href="{{ route('absensi.rekap-by-date', ['tanggal' => $tanggal, 'status' => 'hadir']) }}" 
-                       class="px-3 py-1 text-xs rounded-full {{ request('status') == 'hadir' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                       class="btn btn-sm {{ request('status') == 'hadir' ? 'btn-success' : 'btn-outline-secondary' }}">
                         Hadir
                     </a>
                     <a href="{{ route('absensi.rekap-by-date', ['tanggal' => $tanggal, 'status' => 'tidak-hadir']) }}" 
-                       class="px-3 py-1 text-xs rounded-full {{ request('status') == 'tidak-hadir' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800' }}">
+                       class="btn btn-sm {{ request('status') == 'tidak-hadir' ? 'btn-danger' : 'btn-outline-secondary' }}">
                         Tidak Hadir
                     </a>
                 </div>
             </div>
             
-            <div class="text-sm text-gray-500">
-                Total: <span class="font-medium">{{ $absensis->total() }}</span> data
-            </div>
+            <small class="text-muted">
+                Total: <span class="fw-bold text-dark">{{ $absensis->total() }}</span> data
+            </small>
         </div>
         
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 datatable" id="absensi-detail-table">
-                <thead class="bg-gray-50">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 datatable" id="absensi-detail-table">
+                <thead class="table-light">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Siswa</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sekolah</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rombel</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catatan</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                        <th class="px-3 py-3 text-center" style="width: 50px;">#</th>
+                        <th class="px-3 py-3">Nama Siswa</th>
+                        <th class="px-3 py-3">Sekolah</th>
+                        <th class="px-3 py-3">Rombel</th>
+                        <th class="px-3 py-3 text-center">Status</th>
+                        <th class="px-3 py-3">Catatan</th>
+                        <th class="px-3 py-3 text-end" style="width: 150px;">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody>
                     @forelse($absensis as $index => $absen)
                     <tr>
-                        <td class="px-4 py-3 text-sm text-gray-700">{{ ($absensis->currentPage() - 1) * $absensis->perPage() + $loop->iteration }}</td>
-                        <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $absen->siswa->nama_lengkap ?? '-' }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-700">{{ $absen->laporanMengajar->sekolah_nama ?? '-' }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-700">{{ $absen->laporanMengajar->rombel ?? '-' }}</td>
-                        <td class="px-4 py-3 text-sm">
+                        <td class="px-3 text-center text-muted">{{ ($absensis->currentPage() - 1) * $absensis->perPage() + $loop->iteration }}</td>
+                        <td class="px-3 fw-bold">{{ $absen->siswa->nama_lengkap ?? '-' }}</td>
+                        <td class="px-3 text-muted small">{{ $absen->laporanMengajar->sekolah_nama ?? '-' }}</td>
+                        <td class="px-3 text-muted small">{{ $absen->laporanMengajar->rombel ?? '-' }}</td>
+                        <td class="px-3 text-center">
                             @if($absen->hadir == 1)
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Hadir</span>
+                                <span class="badge bg-success rounded-pill">Hadir</span>
                             @else
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Tidak Hadir</span>
+                                <span class="badge bg-danger rounded-pill">Tidak Hadir</span>
                             @endif
                         </td>
-                        <td class="px-4 py-3 text-sm text-gray-700">{{ $absen->catatan ?? '-' }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-700">
-                            @can('update', $absen)
-                            <a href="{{ route('absensi.edit', $absen->id) }}" class="text-blue-600 hover:text-blue-900 mr-2">Edit</a>
-                            @endcan
-                            @can('delete', $absen)
-                            <form action="{{ route('absensi.destroy', $absen->id) }}" method="POST" class="inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Apakah Anda yakin ingin menghapus absensi ini?')">Hapus</button>
-                            </form>
-                            @endcan
+                        <td class="px-3 text-muted small">{{ $absen->catatan ?? '-' }}</td>
+                        <td class="px-3 text-end">
+                            <div class="btn-group btn-group-sm">
+                                @can('update', $absen)
+                                <a href="{{ route('absensi.edit', $absen->id) }}" class="btn btn-light text-primary" title="Edit">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                @endcan
+                                @can('delete', $absen)
+                                <form action="{{ route('absensi.destroy', $absen->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-light text-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus absensi ini?')" title="Hapus">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                                @endcan
+                            </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-4 text-center text-sm text-gray-500">Tidak ada data absensi yang ditemukan.</td>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                            <p class="mb-0">Tidak ada data absensi yang ditemukan.</p>
+                        </td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -119,12 +121,8 @@
         </div>
         
         @if($absensis->hasPages())
-        <div class="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div class="w-100">
-                    {{ $absensis->appends(request()->query())->links() }}
-                </div>
-            </div>
+        <div class="card-footer bg-white py-3 border-top-0">
+            {{ $absensis->appends(request()->query())->links() }}
         </div>
         @endif
     </div>
@@ -143,7 +141,18 @@
                     { orderable: false, targets: [0, 6] }, // Disable sorting for # and Actions columns
                     { type: 'string', targets: [1, 2, 3, 4, 5] } // String sorting for other columns
                 ],
-                pageLength: 25
+                pageLength: 25,
+                language: {
+                    search: "Cari:",
+                    lengthMenu: "_MENU_ item per halaman",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ item",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Prev"
+                    }
+                }
             });
         }
     });

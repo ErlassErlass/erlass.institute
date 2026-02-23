@@ -23,10 +23,10 @@ class UpdateUserRequest extends FormRequest
     public function rules(): array
     {
         $userId = $this->route('user')?->id;
-        
+
         return [
             'nama_lengkap' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $userId],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$userId],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
             'tanggal_lahir' => ['nullable', 'date', 'before:today'],
             'no_telephone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
@@ -36,7 +36,7 @@ class UpdateUserRequest extends FormRequest
             'kompetensi_1' => ['nullable', 'string', 'max:255'],
             'kompetensi_2' => ['nullable', 'string', 'max:255'],
             'role' => ['required', 'in:webmaster,admin_erlass,instruktur'],
-            
+
             // Field untuk sistem verifikasi instruktur
             'is_verified' => ['boolean'],
             'verification_status' => ['nullable', 'in:pending,approved,rejected'],

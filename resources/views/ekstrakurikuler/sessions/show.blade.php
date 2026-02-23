@@ -3,381 +3,421 @@
 @section('title', 'Detail Sesi Ekstrakurikuler')
 
 @section('content')
-<div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header Section -->
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{{ route('ekstrakurikuler.sessions.index') }}" class="text-decoration-none">
+                    <i class="bi bi-calendar-event me-1"></i>Sessions
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Pertemuan {{ $session->nomor_pertemuan }}</li>
+        </ol>
+    </nav>
+
+    <!-- Header Section -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body p-4">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
                 <div>
-                    <nav class="flex mb-4" aria-label="Breadcrumb">
-                        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                            <li class="inline-flex items-center">
-                                <a href="{{ route('ekstrakurikuler.sessions.index') }}" 
-                                   class="text-gray-700 hover:text-blue-600 inline-flex items-center">
-                                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
-                                    </svg>
-                                    Sessions
-                                </a>
-                            </li>
-                            <li>
-                                <div class="flex items-center">
-                                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                                    </svg>
-                                    <span class="ml-1 text-gray-500 md:ml-2">Pertemuan {{ $session->nomor_pertemuan }}</span>
-                                </div>
-                            </li>
-                        </ol>
-                    </nav>
-                    
-                    <h1 class="text-2xl font-bold text-gray-900">
+                    <h2 class="h3 fw-bold text-primary mb-1">
                         {{ $session->rombel->ekstrakurikuler->kategori_program }} - Pertemuan {{ $session->nomor_pertemuan }}
-                    </h1>
-                    <p class="text-gray-600 mt-1">{{ $session->rombel->nama_rombel }}</p>
+                    </h2>
+                    <p class="text-muted mb-0 fs-5">{{ $session->rombel->nama_rombel }}</p>
                 </div>
                 
-                <div class="flex flex-col sm:flex-row gap-3 mt-4 lg:mt-0">
-                    @if($session->canStart())
-                        <button onclick="startSession()" 
-                                class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m-2-6h.01M5 8h14l-1.5 4.5h-11L5 8z"></path>
-                            </svg>
-                            Mulai Sesi
-                        </button>
-                    @endif
-                    
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ route('ekstrakurikuler-session.print-session', $session) }}" 
+                       class="btn btn-outline-dark border" target="_blank">
+                        <i class="bi bi-printer me-1"></i> Cetak Presensi
+                    </a>
+
                     @if($session->canComplete())
-                        <button onclick="completeSession()" 
-                                class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            Selesai Sesi
-                        </button>
-                    @endif
-                    
-                    @if(in_array($session->status, ['terjadwal', 'ditunda']))
-                        <a href="{{ route('ekstrakurikuler.sessions.edit', $session) }}" 
-                           class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                            Edit
+                        <a href="{{ route('ekstrakurikuler.sessions.report.create', $session) }}" 
+                           class="btn btn-primary">
+                            <i class="bi bi-file-earmark-check me-1"></i> Buat Laporan & Absensi
                         </a>
                     @endif
+                    
+                    @can('update', $session)
+                        @if(in_array($session->status, ['terjadwal', 'ditunda']))
+                            <a href="{{ route('ekstrakurikuler.sessions.edit', $session) }}" 
+                               class="btn btn-outline-primary">
+                                <i class="bi bi-pencil me-1"></i> Edit
+                            </a>
+                        @endif
+                    @endcan
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Main Content -->
-            <div class="lg:col-span-2 space-y-6">
-                <!-- Session Info -->
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Sesi</h3>
-                    
-                    <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Status</dt>
-                            <dd class="mt-1">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                                    @switch($session->status)
-                                        @case('terjadwal')
-                                            bg-blue-100 text-blue-800
-                                            @break
-                                        @case('berlangsung')
-                                            bg-yellow-100 text-yellow-800
-                                            @break
-                                        @case('selesai')
-                                            bg-green-100 text-green-800
-                                            @break
-                                        @case('dibatalkan')
-                                            bg-red-100 text-red-800
-                                            @break
-                                        @case('ditunda')
-                                            bg-gray-100 text-gray-800
-                                            @break
-                                    @endswitch
-                                ">
+    <div class="row g-4">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Session Info -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="card-title mb-0 fw-bold text-secondary"><i class="bi bi-info-circle me-2"></i>Informasi Sesi</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="small text-muted text-uppercase fw-bold">Status</label>
+                            <div class="mt-1">
+                                @php
+                                    $statusClass = match($session->status) {
+                                        'terjadwal' => 'primary',
+                                        'berlangsung' => 'warning',
+                                        'selesai' => 'success',
+                                        'dibatalkan' => 'danger',
+                                        'ditunda' => 'secondary',
+                                        default => 'secondary'
+                                    };
+                                @endphp
+                                <span class="badge bg-{{ $statusClass }} fs-6 px-3 py-2 rounded-pill">
                                     {{ $session->status_label }}
                                 </span>
-                            </dd>
+                            </div>
                         </div>
                         
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Pertemuan Ke</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $session->nomor_pertemuan }}</dd>
+                        <div class="col-md-6">
+                            <label class="small text-muted text-uppercase fw-bold">Pertemuan Ke</label>
+                            <p class="fs-5 mb-0 fw-medium">{{ $session->nomor_pertemuan }}</p>
                         </div>
                         
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Tanggal Terjadwal</dt>
-                            <dd class="mt-1 text-sm text-gray-900">
-                                {{ $session->tanggal_terjadwal->format('l, d F Y') }}
-                            </dd>
+                        <div class="col-md-6">
+                            <label class="small text-muted text-uppercase fw-bold">Tanggal Terjadwal</label>
+                            <p class="mb-0 fw-medium">
+                                <i class="bi bi-calendar me-1 text-primary"></i>
+                                {{ $session->tanggal_terjadwal->format('d/m/Y') }}
+                            </p>
                         </div>
                         
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Waktu Terjadwal</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $session->jadwal_waktu }}</dd>
+                        <div class="col-md-6">
+                            <label class="small text-muted text-uppercase fw-bold">Waktu Terjadwal</label>
+                            <p class="mb-0 fw-medium">
+                                <i class="bi bi-clock me-1 text-primary"></i>
+                                {{ $session->jadwal_waktu }}
+                                <span class="badge text-bg-light border ms-2">{{ $session->durasi_terjadwal }} menit</span>
+                            </p>
                         </div>
                         
                         @if($session->tanggal_pelaksanaan)
-                            <div>
-                                <dt class="text-sm font-medium text-gray-500">Tanggal Pelaksanaan</dt>
-                                <dd class="mt-1 text-sm text-gray-900">
-                                    {{ \Carbon\Carbon::parse($session->tanggal_pelaksanaan)->format('l, d F Y') }}
-                                </dd>
+                            <div class="col-md-6">
+                                <label class="small text-muted text-uppercase fw-bold">Tanggal Pelaksanaan</label>
+                                <p class="mb-0 fw-medium">
+                                    {{ \Carbon\Carbon::parse($session->tanggal_pelaksanaan)->format('d/m/Y') }}
+                                </p>
                             </div>
                         @endif
                         
                         @if($session->waktu_aktual)
-                            <div>
-                                <dt class="text-sm font-medium text-gray-500">Waktu Aktual</dt>
-                                <dd class="mt-1 text-sm text-gray-900">{{ $session->waktu_aktual }}</dd>
+                            <div class="col-md-6">
+                                <label class="small text-muted text-uppercase fw-bold">Waktu Aktual</label>
+                                <p class="mb-0 fw-medium">
+                                    {{ $session->waktu_aktual }}
+                                    @if($session->durasi_aktual)
+                                        <span class="badge text-bg-light border ms-2">{{ $session->durasi_aktual }} menit</span>
+                                    @endif
+                                </p>
                             </div>
                         @endif
-
-                        @if($session->durasi_terjadwal)
-                            <div>
-                                <dt class="text-sm font-medium text-gray-500">Durasi Terjadwal</dt>
-                                <dd class="mt-1 text-sm text-gray-900">{{ $session->durasi_terjadwal }} menit</dd>
-                            </div>
-                        @endif
-
-                        @if($session->durasi_aktual)
-                            <div>
-                                <dt class="text-sm font-medium text-gray-500">Durasi Aktual</dt>
-                                <dd class="mt-1 text-sm text-gray-900">{{ $session->durasi_aktual }} menit</dd>
-                            </div>
-                        @endif
-                    </dl>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Program & Rombel Info -->
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Program & Rombel</h3>
-                    
-                    <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Nama Program</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $session->rombel->ekstrakurikuler->kategori_program }}</dd>
-                        </div>
-                        
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Rombel</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $session->rombel->nama_rombel }}</dd>
-                        </div>
-                        
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Sekolah</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $session->rombel->ekstrakurikuler->sekolah->namasekolah }}</dd>
-                        </div>
-                        
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Ruangan</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $session->rombel->ruangan ?? '-' }}</dd>
-                        </div>
-                        
-                        <div>
-                            <dt class="text-sm font-medium text-gray-500">Jumlah Siswa</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $session->rombel->jumlah_siswa }} siswa</dd>
-                        </div>
-                    </dl>
+            <!-- Program & Rombel Info -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="card-title mb-0 fw-bold text-secondary"><i class="bi bi-building me-2"></i>Detail Kelas</h5>
                 </div>
-
-                <!-- Content & Notes -->
-                @if($session->topik_materi || $session->deskripsi_kegiatan || $session->catatan)
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Materi & Catatan</h3>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="small text-muted text-uppercase fw-bold">Nama Program</label>
+                            <p class="mb-0 fw-medium">{{ $session->rombel->ekstrakurikuler->kategori_program }}</p>
+                        </div>
                         
+                        <div class="col-md-6">
+                            <label class="small text-muted text-uppercase fw-bold">Rombel</label>
+                            <p class="mb-0 fw-medium">{{ $session->rombel->nama_rombel }}</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="small text-muted text-uppercase fw-bold">Sekolah</label>
+                            <p class="mb-0 fw-medium text-primary">{{ $session->rombel->ekstrakurikuler->sekolah->namasekolah }}</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="small text-muted text-uppercase fw-bold">Ruangan</label>
+                            <p class="mb-0 fw-medium">{{ $session->rombel->ruangan ?? '-' }}</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="small text-muted text-uppercase fw-bold">Jumlah Siswa</label>
+                            <p class="mb-0 fw-medium"><i class="bi bi-people me-1"></i> {{ $session->rombel->jumlah_siswa }} siswa</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content & Notes -->
+            @if($session->topik_materi || $session->deskripsi_kegiatan || $session->catatan)
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0 fw-bold text-secondary"><i class="bi bi-journal-text me-2"></i>Materi & Catatan</h5>
+                    </div>
+                    <div class="card-body">
                         @if($session->topik_materi)
                             <div class="mb-4">
-                                <dt class="text-sm font-medium text-gray-500 mb-2">Topik Materi</dt>
-                                <dd class="text-sm text-gray-900 bg-gray-50 p-3 rounded-md">{{ $session->topik_materi }}</dd>
+                                <label class="small text-muted text-uppercase fw-bold mb-2">Topik Materi</label>
+                                <div class="p-3 bg-light rounded border-start border-4 border-primary">
+                                    {{ $session->topik_materi }}
+                                </div>
                             </div>
                         @endif
                         
                         @if($session->deskripsi_kegiatan)
                             <div class="mb-4">
-                                <dt class="text-sm font-medium text-gray-500 mb-2">Deskripsi Kegiatan</dt>
-                                <dd class="text-sm text-gray-900 bg-gray-50 p-3 rounded-md">{{ $session->deskripsi_kegiatan }}</dd>
+                                <label class="small text-muted text-uppercase fw-bold mb-2">Deskripsi Kegiatan</label>
+                                <div class="p-3 bg-light rounded">
+                                    {{ $session->deskripsi_kegiatan }}
+                                </div>
                             </div>
                         @endif
                         
                         @if($session->catatan)
                             <div>
-                                <dt class="text-sm font-medium text-gray-500 mb-2">Catatan</dt>
-                                <dd class="text-sm text-gray-900 bg-gray-50 p-3 rounded-md">{{ $session->catatan }}</dd>
+                                <label class="small text-muted text-uppercase fw-bold mb-2">Catatan</label>
+                                <div class="p-3 bg-light rounded text-muted fst-italic">
+                                    {{ $session->catatan }}
+                                </div>
                             </div>
                         @endif
                     </div>
-                @endif
+                </div>
+            @endif
 
-                <!-- Cancellation/Reschedule Info -->
-                @if($session->alasan_pembatalan || $session->tanggal_pengganti)
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">
+            <!-- Cancellation/Reschedule Info -->
+            @if($session->alasan_pembatalan || $session->tanggal_pengganti)
+                <div class="card shadow-sm mb-4 border-{{ $session->status === 'dibatalkan' ? 'danger' : 'warning' }}">
+                    <div class="card-header text-white bg-{{ $session->status === 'dibatalkan' ? 'danger' : 'warning' }} py-3">
+                        <h5 class="card-title mb-0 fw-bold">
                             @if($session->status === 'dibatalkan')
-                                Informasi Pembatalan
+                                <i class="bi bi-exclamation-triangle me-2"></i>Informasi Pembatalan
                             @else
-                                Informasi Reschedule
+                                <i class="bi bi-clock-history me-2"></i>Informasi Reschedule
                             @endif
-                        </h3>
-                        
+                        </h5>
+                    </div>
+                    <div class="card-body">
                         @if($session->alasan_pembatalan)
-                            <div class="mb-4">
-                                <dt class="text-sm font-medium text-gray-500 mb-2">Alasan</dt>
-                                <dd class="text-sm text-gray-900 bg-red-50 p-3 rounded-md border border-red-200">
-                                    {{ $session->alasan_pembatalan }}
-                                </dd>
+                            <div class="mb-3">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Alasan</label>
+                                <p class="mb-0">{{ $session->alasan_pembatalan }}</p>
                             </div>
                         @endif
                         
                         @if($session->tanggal_pengganti)
                             <div>
-                                <dt class="text-sm font-medium text-gray-500 mb-2">Tanggal Pengganti</dt>
-                                <dd class="text-sm text-gray-900 bg-yellow-50 p-3 rounded-md border border-yellow-200">
-                                    {{ \Carbon\Carbon::parse($session->tanggal_pengganti)->format('l, d F Y') }}
-                                </dd>
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Tanggal Pengganti</label>
+                                <p class="mb-0 fw-bold">
+                                    {{ \Carbon\Carbon::parse($session->tanggal_pengganti)->format('d/m/Y') }}
+                                </p>
                             </div>
                         @endif
                     </div>
-                @endif
+                </div>
+            @endif
 
-                <!-- Laporan Mengajar -->
-                @if($session->laporanMengajar)
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Laporan Mengajar</h3>
-                        
-                        <div class="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-md">
-                            <div>
-                                <p class="text-sm text-green-800 font-medium">
-                                    Laporan telah dibuat
-                                </p>
-                                <p class="text-xs text-green-600">
-                                    {{ $session->laporanMengajar->created_at->format('d/m/Y H:i') }}
-                                </p>
-                            </div>
-                            <a href="{{ route('laporan-mengajar.show', $session->laporanMengajar) }}" 
-                               class="inline-flex items-center px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700">
-                                Lihat Laporan
-                            </a>
+            <!-- Laporan Mengajar -->
+            @if($session->laporanMengajar)
+                <div class="card shadow-sm mb-4 border-success">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="text-success mb-1"><i class="bi bi-check-circle-fill me-2"></i>Laporan Tersedia</h5>
+                            <small class="text-muted">Dibuat pada {{ $session->laporanMengajar->created_at->format('d/m/Y H:i') }}</small>
+                        </div>
+                        <a href="{{ route('laporan-mengajar.show', $session->laporanMengajar) }}" 
+                           class="btn btn-success">
+                            Lihat Laporan
+                        </a>
+                    </div>
+                </div>
+            @endif
+
+            
+            <!-- Daftar Kehadiran (New Section) -->
+            @if($session->laporanMengajar && $session->laporanMengajar->absensi->count() > 0)
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 fw-bold text-secondary">
+                            <i class="bi bi-person-check me-2"></i>Daftar Kehadiran Siswa
+                        </h5>
+                        <span class="badge bg-primary rounded-pill">
+                            {{ $session->laporanMengajar->jumlah_siswa_hadir }} / {{ $session->laporanMengajar->absensi->count() }} Hadir
+                        </span>
+                    </div>
+                    <div class="card-body p-0">
+                         <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4" style="width: 50px;">#</th>
+                                        <th>Nama Siswa</th>
+                                        <th class="text-center" style="width: 120px;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($session->laporanMengajar->absensi as $index => $absen)
+                                    <tr>
+                                        <td class="ps-4 text-muted">{{ $index + 1 }}</td>
+                                        <td class="fw-medium">{{ $absen->siswa->nama_lengkap ?? 'Siswa Terhapus' }}</td>
+                                        <td class="text-center">
+                                            @if($absen->hadir)
+                                                <span class="badge bg-success-subtle text-success border border-success px-3">
+                                                    <i class="bi bi-check-circle-fill me-1"></i> Hadir
+                                                </span>
+                                            @else
+                                                <span class="badge bg-danger-subtle text-danger border border-danger px-3">
+                                                    <i class="bi bi-x-circle-fill me-1"></i> Absen
+                                                </span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                @endif
-            </div>
+                </div>
+            @endif
+        </div>
 
-            <!-- Sidebar -->
-            <div class="space-y-6">
-                <!-- Instructor Info -->
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Tim Pengajar</h3>
-                    
-                    @if($session->instruktur)
-                        <div class="flex items-center space-x-3 mb-4">
-                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                </svg>
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top: 2rem; z-index: 1;">
+                <!-- Tim Pengajar -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0 fw-bold text-secondary"><i class="bi bi-people-fill me-2"></i>Tim Pengajar</h5>
+                    </div>
+                    <div class="card-body">
+                        @if($session->instruktur)
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar bg-primary-subtle text-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                        <i class="bi bi-person-video3 fs-4"></i>
+                                    </div>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="mb-0 fw-bold text-dark">{{ $session->instruktur->nama_lengkap }}</h6>
+                                    <small class="text-muted">Instruktur Utama</small>
+                                </div>
                             </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-900">{{ $session->instruktur->nama_lengkap }}</p>
-                                <p class="text-xs text-gray-500">Instruktur</p>
+                        @else
+                            <div class="alert alert-warning mb-3">
+                                <i class="bi bi-exclamation-circle me-1"></i> Belum ada instruktur
                             </div>
-                        </div>
-                    @else
-                        <div class="text-sm text-gray-500 mb-4">
-                            Belum ada instruktur yang ditugaskan
-                        </div>
-                    @endif
-                    
-                    @if($session->asisten)
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                </svg>
+                        @endif
+                        
+                        @if($session->asisten)
+                            <hr>
+                            <div class="d-flex align-items-center mt-3">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar bg-success-subtle text-success rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                        <i class="bi bi-person-badge fs-4"></i>
+                                    </div>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="mb-0 fw-bold text-dark">{{ $session->asisten->nama_lengkap }}</h6>
+                                    <small class="text-muted">Asisten</small>
+                                </div>
                             </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-900">{{ $session->asisten->nama_lengkap }}</p>
-                                <p class="text-xs text-gray-500">Asisten</p>
-                            </div>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-                    
-                    <div class="space-y-2">
-                        @if($session->canCancel())
-                            <button onclick="showCancelModal()" 
-                                    class="w-full flex items-center px-3 py-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                                Batalkan Sesi
-                            </button>
-                        @endif
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0 fw-bold text-secondary"><i class="bi bi-gear-fill me-2"></i>Aksi Cepat</h5>
+                    </div>
+                    <div class="card-body d-grid gap-2">
+                        @can('cancel', $session)
+                            @if($session->canCancel())
+                                <button type="button" class="btn btn-outline-danger text-start" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                                    <i class="bi bi-x-circle me-2"></i> Batalkan Sesi
+                                </button>
+                            @endif
+                        @endcan
                         
-                        @if($session->canReschedule())
-                            <button onclick="showRescheduleModal()" 
-                                    class="w-full flex items-center px-3 py-2 text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-md hover:bg-yellow-100">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                                Reschedule
-                            </button>
-                        @endif
+                        @can('reschedule', $session)
+                            @if($session->canReschedule())
+                                <button type="button" class="btn btn-outline-warning text-dark text-start" data-bs-toggle="modal" data-bs-target="#rescheduleModal">
+                                    <i class="bi bi-calendar2-range me-2"></i> Reschedule
+                                </button>
+                            @endif
+                        @endcan
                         
                         @if($session->status === 'selesai' && !$session->laporanMengajar)
-                            <button onclick="createLaporan()" 
-                                    class="w-full flex items-center px-3 py-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-md hover:bg-green-100">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                                Buat Laporan
+                            <button onclick="createLaporan()" class="btn btn-outline-success text-start">
+                                <i class="bi bi-file-earmark-plus me-2"></i> Buat Laporan
                             </button>
                         @endif
+
+                        <!-- Manual Reminder Button -->
+                        @if(auth()->user()->hasRole(['admin', 'admin_sistem', 'webmaster']) && $session->instruktur)
+                            <button type="button" class="btn btn-outline-info text-dark text-start" data-bs-toggle="modal" data-bs-target="#reminderModal">
+                                <i class="bi bi-whatsapp me-2"></i> Kirim Reminder
+                            </button>
+                        @endif
+
+                        @cannot('cancel', $session)
+                             @if(!in_array($session->status, ['selesai']))
+                                <div class="text-center text-muted small fst-italic">
+                                    Hanya Admin yang dapat mengubah jadwal
+                                </div>
+                             @endif
+                        @endcannot
                     </div>
                 </div>
 
                 <!-- Activity Log -->
-                <div class="bg-white rounded-lg shadow-sm p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Riwayat</h3>
-                    
-                    <div class="space-y-3">
-                        <div class="flex items-start space-x-3">
-                            <div class="w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
-                            <div>
-                                <p class="text-sm text-gray-900">Sesi dibuat</p>
-                                <p class="text-xs text-gray-500">{{ $session->created_at->format('d/m/Y H:i') }}</p>
-                            </div>
-                        </div>
-                        
-                        @if($session->updated_at->ne($session->created_at))
-                            <div class="flex items-start space-x-3">
-                                <div class="w-2 h-2 bg-yellow-400 rounded-full mt-2"></div>
+                <div class="card shadow-sm border-0 bg-transparent">
+                    <div class="card-body p-0">
+                        <h6 class="text-muted text-uppercase small fw-bold mb-3 ms-1">Riwayat Aktivitas</h6>
+                        <ul class="list-group list-group-flush bg-transparent">
+                            <li class="list-group-item bg-transparent d-flex align-items-start border-0 ps-0">
+                                <i class="bi bi-circle-fill text-primary mt-1 me-2" style="font-size: 8px;"></i>
                                 <div>
-                                    <p class="text-sm text-gray-900">Terakhir diupdate</p>
-                                    <p class="text-xs text-gray-500">{{ $session->updated_at->format('d/m/Y H:i') }}</p>
+                                    <p class="mb-0 small fw-bold">Sesi dibuat</p>
+                                    <small class="text-muted">{{ $session->created_at->format('d/m/Y H:i') }}</small>
                                 </div>
-                            </div>
-                        @endif
-                        
-                        @if($session->status === 'selesai')
-                            <div class="flex items-start space-x-3">
-                                <div class="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
+                            </li>
+                            
+                            @if($session->updated_at->ne($session->created_at))
+                            <li class="list-group-item bg-transparent d-flex align-items-start border-0 ps-0">
+                                <i class="bi bi-circle-fill text-warning mt-1 me-2" style="font-size: 8px;"></i>
                                 <div>
-                                    <p class="text-sm text-gray-900">Sesi selesai</p>
-                                    <p class="text-xs text-gray-500">{{ $session->updated_at->format('d/m/Y H:i') }}</p>
+                                    <p class="mb-0 small fw-bold">Terakhir diupdate</p>
+                                    <small class="text-muted">{{ $session->updated_at->format('d/m/Y H:i') }}</small>
                                 </div>
-                            </div>
-                        @endif
+                            </li>
+                            @endif
+                            
+                            @if($session->status === 'selesai')
+                            <li class="list-group-item bg-transparent d-flex align-items-start border-0 ps-0">
+                                <i class="bi bi-circle-fill text-success mt-1 me-2" style="font-size: 8px;"></i>
+                                <div>
+                                    <p class="mb-0 small fw-bold">Sesi selesai</p>
+                                    <small class="text-muted">{{ $session->updated_at->format('d/m/Y H:i') }}</small>
+                                </div>
+                            </li>
+                            @endif
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -385,173 +425,217 @@
     </div>
 </div>
 
-<!-- Modals -->
 <!-- Cancel Modal -->
-<div id="cancelModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Batalkan Sesi</h3>
-        <form id="cancelForm">
-            @csrf
-            <div class="mb-4">
-                <label for="cancel_reason" class="block text-sm font-medium text-gray-700 mb-2">Alasan Pembatalan</label>
-                <textarea name="alasan_pembatalan" id="cancel_reason" rows="4" required
-                          class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"></textarea>
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="cancelModalLabel">Batalkan Sesi</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="flex justify-end space-x-3">
-                <button type="button" onclick="hideCancelModal()" 
-                        class="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400">
-                    Batal
-                </button>
-                <button type="submit" 
-                        class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700">
-                    Batalkan Sesi
-                </button>
-            </div>
-        </form>
+            <form id="cancelForm">
+                <div class="modal-body">
+                    <div class="alert alert-warning d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
+                        <div>
+                            Tindakan ini tidak dapat dibatalkan.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cancel_reason" class="form-label">Alasan Pembatalan <span class="text-danger">*</span></label>
+                        <textarea name="alasan_pembatalan" id="cancel_reason" rows="3" required class="form-control" placeholder="Jelaskan alasan pembatalan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-danger">Batalkan Sesi</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 <!-- Reschedule Modal -->
-<div id="rescheduleModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Reschedule Sesi</h3>
-        <form id="rescheduleForm">
-            @csrf
-            <div class="mb-4">
-                <label for="new_date" class="block text-sm font-medium text-gray-700 mb-2">Tanggal Baru</label>
-                <input type="date" name="tanggal_pengganti" id="new_date" required
-                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500">
+<div class="modal fade" id="rescheduleModal" tabindex="-1" aria-labelledby="rescheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title text-dark" id="rescheduleModalLabel">Reschedule Sesi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="mb-4">
-                <label for="reschedule_reason" class="block text-sm font-medium text-gray-700 mb-2">Alasan (Opsional)</label>
-                <textarea name="alasan" id="reschedule_reason" rows="3"
-                          class="w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"></textarea>
+            <form id="rescheduleForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="new_date" class="form-label">Tanggal Baru <span class="text-danger">*</span></label>
+                        <input type="date" name="tanggal_pengganti" id="new_date" required class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="reschedule_reason" class="form-label">Alasan (Opsional)</label>
+                        <textarea name="alasan" id="reschedule_reason" rows="3" class="form-control" placeholder="Catatan tambahan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-warning text-dark">Simpan Jadwal Baru</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Manual Reminder Modal -->
+<div class="modal fade" id="reminderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Kirim Reminder Manual</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="flex justify-end space-x-3">
-                <button type="button" onclick="hideRescheduleModal()" 
-                        class="px-4 py-2 bg-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-400">
-                    Batal
-                </button>
-                <button type="submit" 
-                        class="px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-md hover:bg-yellow-700">
-                    Reschedule
-                </button>
-            </div>
-        </form>
+            <form id="reminderForm">
+                <div class="modal-body">
+                    <p>Kirim notifikasi WhatsApp ke instruktur: <strong>{{ $session->instruktur->nama_lengkap ?? 'Instruktur' }}</strong></p>
+                    
+                    <div class="mb-3">
+                        <label for="customMessage" class="form-label">Pesan Tambahan (Opsional)</label>
+                        <textarea class="form-control" id="customMessage" rows="3" placeholder="Contoh: Harap datang 15 menit lebih awal."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="btnSendReminder">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Kirim Sekarang
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 @push('scripts')
 <script>
-const sessionId = {{ $session->id }};
+    const sessionId = {{ $session->id }};
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-function startSession() {
-    if (confirm('Apakah Anda yakin ingin memulai sesi ini?')) {
-        // Implementation for starting session
-        fetch(`/ekstrakurikuler/sessions/${sessionId}/start`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+    // Helper untuk handle request
+    async function sendRequest(url, method, body = null) {
+        try {
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                }
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
+            
+            const response = await fetch(url, options);
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                return { success: true, data: data };
+            } else {
+                return { success: false, message: data.message || 'Terjadi kesalahan' };
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            return { success: false, message: 'Terjadi kesalahan koneksi' };
+        }
+    }
+
+    function confirmCompleteSession() {
+        if (confirm('Apakah Anda yakin ingin menyelesaikan sesi ini?')) {
+            sendRequest(`/ekstrakurikuler/sessions/${sessionId}/complete`, 'POST')
+                .then(result => {
+                    if (result.success) {
+                        location.reload();
+                    } else {
+                        alert(result.message);
+                    }
+                });
+        }
+    }
+
+    function createLaporan() {
+        window.location.href = `/laporan-mengajar/create?session_id=${sessionId}`;
+    }
+
+    // Modal Form Formatting to JSON for consistent API handling
+    document.getElementById('cancelForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const reason = document.getElementById('cancel_reason').value;
+        
+        // Disable button
+        const btn = this.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = 'Memproses...';
+
+        sendRequest(`/ekstrakurikuler/sessions/${sessionId}/cancel`, 'POST', { alasan_pembatalan: reason })
+            .then(result => {
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert(result.message);
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            });
+    });
+
+    document.getElementById('rescheduleForm').addEventListener('submit', function(e) {
+        // ... (existing helper logic) ...
+        e.preventDefault();
+        const newDate = document.getElementById('new_date').value;
+        const reason = document.getElementById('reschedule_reason').value;
+        
+        const btn = this.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = 'Memproses...';
+
+        sendRequest(`/ekstrakurikuler/sessions/${sessionId}/reschedule`, 'POST', { 
+            tanggal_pengganti: newDate,
+            alasan: reason 
+        }).then(result => {
+            if (result.success) {
                 location.reload();
             } else {
-                alert('Gagal memulai sesi: ' + data.message);
+                alert(result.message);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         });
-    }
-}
-
-function completeSession() {
-    if (confirm('Apakah Anda yakin ingin menyelesaikan sesi ini?')) {
-        // Implementation for completing session
-        fetch(`/ekstrakurikuler/sessions/${sessionId}/complete`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Gagal menyelesaikan sesi: ' + data.message);
-            }
-        });
-    }
-}
-
-function showCancelModal() {
-    document.getElementById('cancelModal').classList.remove('hidden');
-}
-
-function hideCancelModal() {
-    document.getElementById('cancelModal').classList.add('hidden');
-}
-
-function showRescheduleModal() {
-    document.getElementById('rescheduleModal').classList.remove('hidden');
-}
-
-function hideRescheduleModal() {
-    document.getElementById('rescheduleModal').classList.add('hidden');
-}
-
-function createLaporan() {
-    // Redirect to laporan creation or show modal
-    window.location.href = `/laporan-mengajar/create?session_id=${sessionId}`;
-}
-
-// Form submissions
-document.getElementById('cancelForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    
-    fetch(`/ekstrakurikuler/sessions/${sessionId}/cancel`, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Gagal membatalkan sesi: ' + data.message);
-        }
     });
-});
 
-document.getElementById('rescheduleForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    
-    fetch(`/ekstrakurikuler/sessions/${sessionId}/reschedule`, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Gagal reschedule sesi: ' + data.message);
-        }
+    // Manual Reminder Logic for Show View
+    document.getElementById('reminderForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const message = document.getElementById('customMessage').value;
+        const btn = document.getElementById('btnSendReminder');
+        const spinner = btn.querySelector('.spinner-border');
+        
+        btn.disabled = true;
+        spinner.classList.remove('d-none');
+        
+        sendRequest(`/ekstrakurikuler/sessions/${sessionId}/remind`, 'POST', { custom_message: message })
+            .then(result => {
+                if (result.success) {
+                    alert('Sukses: ' + result.data.message);
+                    bootstrap.Modal.getInstance(document.getElementById('reminderModal')).hide();
+                } else {
+                    alert('Gagal: ' + result.message);
+                }
+            })
+            .finally(() => {
+                btn.disabled = false;
+                spinner.classList.add('d-none');
+            });
     });
-});
 </script>
 @endpush
 @endsection

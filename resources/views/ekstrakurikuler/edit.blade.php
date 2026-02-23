@@ -127,6 +127,18 @@
                 </nav>
             </div>
 
+            <!-- Validation Errors -->
+            @if ($errors->any())
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
             <!-- Form Container -->
             <div class="edit-card">
                 <div class="section-header">
@@ -766,7 +778,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function validateForm() {
     let isValid = true;
     const requiredFields = [
-        'kategori_program', 'user_id_sales', 'city', 'region', 'status',
+        'kategori_program', 'user_id_sales', 'city', 'status',
         'sekolah_kodlan', 'alamat_lengkap', 'jarak_km',
         'kepala_sekolah', 'penanggung_jawab', 'no_telepon'
     ];

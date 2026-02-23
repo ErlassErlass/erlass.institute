@@ -20,5 +20,4 @@ class Kernel extends HttpKernel
             // API middleware...
         ],
     ];
-
 }

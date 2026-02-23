@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EkstrakurikulerSession extends Model
 {
@@ -61,10 +61,15 @@ class EkstrakurikulerSession extends Model
      * Konstanta untuk status session
      */
     const STATUS_TERJADWAL = 'terjadwal';
+
     const STATUS_BERLANGSUNG = 'berlangsung';
+
     const STATUS_SELESAI = 'selesai';
+
     const STATUS_DIBATALKAN = 'dibatalkan';
+
     const STATUS_DITUNDA = 'ditunda';
+
     const STATUS_TIDAK_HADIR = 'tidak_hadir';
 
     /**
@@ -193,7 +198,7 @@ class EkstrakurikulerSession extends Model
      */
     public function getJadwalWaktuAttribute(): string
     {
-        return $this->jam_mulai_terjadwal->format('H:i') . ' - ' . $this->jam_selesai_terjadwal->format('H:i');
+        return $this->jam_mulai_terjadwal->format('H:i').' - '.$this->jam_selesai_terjadwal->format('H:i');
     }
 
     /**
@@ -201,11 +206,11 @@ class EkstrakurikulerSession extends Model
      */
     public function getWaktuAktualAttribute(): ?string
     {
-        if (!$this->jam_mulai_aktual || !$this->jam_selesai_aktual) {
+        if (! $this->jam_mulai_aktual || ! $this->jam_selesai_aktual) {
             return null;
         }
-        
-        return $this->jam_mulai_aktual->format('H:i') . ' - ' . $this->jam_selesai_aktual->format('H:i');
+
+        return $this->jam_mulai_aktual->format('H:i').' - '.$this->jam_selesai_aktual->format('H:i');
     }
 
     /**
@@ -221,10 +226,10 @@ class EkstrakurikulerSession extends Model
      */
     public function getDurasiAktualAttribute(): ?int
     {
-        if (!$this->jam_mulai_aktual || !$this->jam_selesai_aktual) {
+        if (! $this->jam_mulai_aktual || ! $this->jam_selesai_aktual) {
             return null;
         }
-        
+
         return $this->jam_mulai_aktual->diffInMinutes($this->jam_selesai_aktual);
     }
 
@@ -249,16 +254,19 @@ class EkstrakurikulerSession extends Model
      */
     public function canStart(): bool
     {
-        return $this->status === self::STATUS_TERJADWAL && 
+        return $this->status === self::STATUS_TERJADWAL &&
                ($this->isToday() || $this->isPast());
     }
 
     /**
      * Cek apakah session dapat diselesaikan.
      */
+    /**
+     * Cek apakah session dapat diselesaikan.
+     */
     public function canComplete(): bool
     {
-        return $this->status === self::STATUS_BERLANGSUNG;
+        return in_array($this->status, [self::STATUS_BERLANGSUNG, self::STATUS_TERJADWAL]);
     }
 
     /**
@@ -282,19 +290,19 @@ class EkstrakurikulerSession extends Model
      */
     public function start(array $data = []): bool
     {
-        if (!$this->canStart()) {
+        if (! $this->canStart()) {
             return false;
         }
 
         $this->status = self::STATUS_BERLANGSUNG;
         $this->tanggal_pelaksanaan = now()->toDateString();
         $this->jam_mulai_aktual = now()->format('H:i');
-        
-        if (!empty($data['topik_materi'])) {
+
+        if (! empty($data['topik_materi'])) {
             $this->topik_materi = $data['topik_materi'];
         }
-        
-        if (!empty($data['deskripsi_kegiatan'])) {
+
+        if (! empty($data['deskripsi_kegiatan'])) {
             $this->deskripsi_kegiatan = $data['deskripsi_kegiatan'];
         }
 
@@ -306,33 +314,44 @@ class EkstrakurikulerSession extends Model
      */
     public function complete(array $data = []): bool
     {
-        if (!$this->canComplete()) {
+        if (! $this->canComplete()) {
             return false;
         }
 
         $this->status = self::STATUS_SELESAI;
-        $this->jam_selesai_aktual = now()->format('H:i');
         
-        if (!empty($data['catatan'])) {
+        // Set tanggal pelaksanaan jika belum ada
+        if (! $this->tanggal_pelaksanaan) {
+            $this->tanggal_pelaksanaan = now()->toDateString();
+        }
+
+        // Set waktu aktual
+        if (! $this->jam_mulai_aktual) {
+            // Jika langsung complete tanpa start, gunakan waktu jadwal atau now
+            $this->jam_mulai_aktual = $this->jam_mulai_terjadwal; 
+        }
+        $this->jam_selesai_aktual = now()->format('H:i');
+
+        if (! empty($data['catatan'])) {
             $this->catatan = $data['catatan'];
         }
-        
-        if (!empty($data['deskripsi_kegiatan'])) {
+
+        if (! empty($data['deskripsi_kegiatan'])) {
             $this->deskripsi_kegiatan = $data['deskripsi_kegiatan'];
         }
-        
-        if (!empty($data['laporan_mengajar_id'])) {
+
+        if (! empty($data['laporan_mengajar_id'])) {
             $this->laporan_mengajar_id = $data['laporan_mengajar_id'];
         }
 
         $saved = $this->save();
-        
+
         // Update progress rombel dan auto-create laporan mengajar
         if ($saved) {
             $this->rombel->incrementPertemuanSelesai();
-            
+
             // Auto-create laporan mengajar jika belum ada
-            if (!$this->laporan_mengajar_id && isset($data['auto_create_laporan']) && $data['auto_create_laporan']) {
+            if (! $this->laporan_mengajar_id && isset($data['auto_create_laporan']) && $data['auto_create_laporan']) {
                 $this->autoCreateLaporanMengajar();
             }
         }
@@ -343,9 +362,9 @@ class EkstrakurikulerSession extends Model
     /**
      * Method untuk membatalkan session.
      */
-    public function cancel(string $alasan = null): bool
+    public function cancel(?string $alasan = null): bool
     {
-        if (!$this->canCancel()) {
+        if (! $this->canCancel()) {
             return false;
         }
 
@@ -358,9 +377,9 @@ class EkstrakurikulerSession extends Model
     /**
      * Method untuk menunda session ke tanggal lain.
      */
-    public function reschedule(Carbon $newDate, string $alasan = null): bool
+    public function reschedule(Carbon $newDate, ?string $alasan = null): bool
     {
-        if (!$this->canReschedule()) {
+        if (! $this->canReschedule()) {
             return false;
         }
 
@@ -374,9 +393,9 @@ class EkstrakurikulerSession extends Model
     /**
      * Method untuk menandai instruktur tidak hadir.
      */
-    public function markAbsent(string $alasan = null): bool
+    public function markAbsent(?string $alasan = null): bool
     {
-        if (!in_array($this->status, [self::STATUS_TERJADWAL, self::STATUS_BERLANGSUNG])) {
+        if (! in_array($this->status, [self::STATUS_TERJADWAL, self::STATUS_BERLANGSUNG])) {
             return false;
         }
 
@@ -401,32 +420,33 @@ class EkstrakurikulerSession extends Model
         $rombel = $this->rombel;
 
         $laporanData = array_merge([
-            'user_id_instruktur' => $this->user_id_instruktur,
+            'user_id_instruktur' => $this->user_id_instruktur ?? auth()->id(),
             'user_id_assisten' => $this->user_id_asisten,
             'pertemuan_ke' => $this->nomor_pertemuan,
             'rombel' => $rombel->nama_rombel,
-            'jadwal_mengajar' => $this->tanggal_pelaksanaan,
+            'jadwal_mengajar' => $this->tanggal_pelaksanaan ?? $this->tanggal_terjadwal ?? now(),
             'jam_mulai' => $this->jam_mulai_aktual,
             'jam_selesai' => $this->jam_selesai_aktual,
             'kategori_pengajaran' => 'ekstrakurikuler',
-            'materi_pengajaran' => $this->topik_materi ?? $ekstrakurikuler->nama_program,
-            'sekolah_kota' => $sekolah->kotkab ?? '',
-            'sekolah_kecamatan' => $sekolah->kec ?? '',
-            'sekolah_nama' => $sekolah->namasekolah ?? '',
+            'materi_pengajaran' => $this->topik_materi ?? $ekstrakurikuler->nama_program ?? 'Materi Ekstrakurikuler',
             'sekolah_kodlan' => $ekstrakurikuler->sekolah_kodlan,
             'jumlah_siswa_hadir' => $rombel->getJumlahSiswaAktual(),
             'jumlah_siswa_keluar' => 0,
+            'refleksi_siswa' => '-',
+            'refleksi_capaian' => '-',
+            'keaktifan' => 'aktif', // Default enum
+            'pemahaman_materi' => 'paham', // Default enum
             'metadata_json' => json_encode([
                 'ekstrakurikuler_session_id' => $this->id,
                 'ekstrakurikuler_id' => $this->ekstrakurikuler_id,
                 'ekstrakurikuler_rombel_id' => $this->ekstrakurikuler_rombel_id,
-                'nama_program' => $ekstrakurikuler->nama_program,
-                'source' => 'ekstrakurikuler'
-            ])
+                'nama_program' => $ekstrakurikuler->kategori_program ?? $ekstrakurikuler->nama_program,
+                'source' => 'ekstrakurikuler',
+            ]),
         ], $data);
 
         $laporan = LaporanMengajar::create($laporanData);
-        
+
         if ($laporan) {
             $this->laporan_mengajar_id = $laporan->id;
             $this->save();
@@ -440,10 +460,10 @@ class EkstrakurikulerSession extends Model
      */
     public function autoCreateLaporanMengajar(): ?LaporanMengajar
     {
-        if ($this->status === self::STATUS_SELESAI && !$this->laporan_mengajar_id) {
+        if ($this->status === self::STATUS_SELESAI && ! $this->laporan_mengajar_id) {
             return $this->createLaporanMengajar([
                 'deskripsi_kegiatan' => $this->deskripsi_kegiatan,
-                'catatan' => $this->catatan
+                'catatan' => $this->catatan,
             ]);
         }
 

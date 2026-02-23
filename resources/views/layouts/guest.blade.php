@@ -9,7 +9,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -21,41 +21,68 @@
     @stack('styles')
     
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
+        :root {
+            /* Palette: Modern Elegant (Shared with App) */
+            --font-primary: 'Outfit', sans-serif;
+            --primary-color: #3b82f6; 
+            --primary-dark: #2563eb;
+            --bg-body: #f1f5f9;
         }
-        
-        .bg-gradient-soft {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        body {
+            font-family: var(--font-primary);
+            background-color: var(--bg-body);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.1) 0px, transparent 50%);
+            background-attachment: fixed; 
+            color: #334155;
+            -webkit-font-smoothing: antialiased;
         }
         
         .card {
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
             transition: all 0.3s ease;
-            border: none;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
         }
         
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+        .form-control {
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            border: 1px solid #e2e8f0;
+            background-color: rgba(255,255,255,0.8);
         }
-        
+
         .form-control:focus {
-            border-color: #4e73df;
-            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+            background-color: #fff;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
         
         .btn {
-            border-radius: 0.35rem;
+            border-radius: 12px;
+            padding: 0.8rem 1.5rem;
+            font-weight: 500;
+            letter-spacing: 0.01em;
             transition: all 0.3s;
         }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            border: none;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
         
-        .btn:hover {
+        .btn-primary:hover {
             transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
         }
     </style>
 </head>
-<body class="bg-light min-vh-100 d-flex align-items-center">
+<body class="min-vh-100 d-flex align-items-center justify-content-center py-4">
     <main class="w-100">
         @yield('content')
         {{ $slot ?? '' }}
