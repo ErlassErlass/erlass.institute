@@ -14,7 +14,7 @@ class SekolahSeeder extends Seeder
      */
     public function run(): void
     {
-        $csvFile = base_path('DataSekolah.csv');
+        $csvFile = base_path('database/data/DataSekolah.csv');
         
         if (!file_exists($csvFile)) {
             $this->command->error("File DataSekolah.csv not found at: $csvFile");

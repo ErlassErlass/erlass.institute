@@ -15,7 +15,7 @@ class EmployeeSeeder extends Seeder
      */
     public function run(): void
     {
-        $csvFile = base_path('employees_import.csv');
+        $csvFile = base_path('database/data/employees_import.csv');
         
         if (!file_exists($csvFile)) {
             $this->command->error("File employees_import.csv not found.");

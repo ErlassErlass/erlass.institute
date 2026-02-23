@@ -43,18 +43,18 @@ Aplikasi menyimpan banyak foto (Laporan Kegiatan, Absensi):
 
 ## 2. Rekomendasi Hosting
 
-### ⭐ Rekomendasi: VPS + Hosting Panel (CyberPanel/RunCloud)
+### ⭐ Rekomendasi: VPS + Docker
 
-Untuk skala aplikasi ini (monolith Laravel, tim kecil), opsi **VPS + Panel** adalah sweet spot terbaik:
+Jika VPS akan digunakan untuk **beberapa aplikasi sekaligus**, Docker adalah pilihan terbaik karena setiap app terisolasi di containernya sendiri — tidak ada konflik PHP version, library, atau dependency antar app.
 
 | Opsi | Cocok Untuk | Harga/Bulan | Kompleksitas |
 |------|-------------|-------------|--------------|
-| **Shared Hosting + cPanel** | MVP / tahap awal | Rp 30-100rb | ⭐ Rendah |
-| **VPS + CyberPanel** ⭐ | Production serius | Rp 50-150rb | ⭐⭐ Sedang |
+| **VPS + Docker** ⭐ | Multi-app, isolasi penuh | Rp 100-200rb | ⭐⭐ Sedang |
+| **VPS + CyberPanel** | Single app, GUI-friendly | Rp 50-150rb | ⭐⭐ Sedang |
 | **VPS + RunCloud/Ploi** | CI/CD otomatis | Rp 100-250rb | ⭐⭐ Sedang |
-| **Docker** | Microservices / tim DevOps | Rp 100-300rb | ⭐⭐⭐ Tinggi |
+| **Shared Hosting + cPanel** | MVP / tahap awal | Rp 30-100rb | ⭐ Rendah |
 
-> **Catatan**: Docker tersedia sebagai opsi alternatif — lihat [DEPLOYMENT_DOCKER.md](./DEPLOYMENT_DOCKER.md).
+> **Panduan Docker lengkap**: Lihat [DEPLOYMENT_DOCKER.md](./DEPLOYMENT_DOCKER.md) untuk instruksi Docker Compose, CI/CD, dan container management.
 
 ### Provider VPS Lokal yang Direkomendasikan
 *   **IDCloudHost** — Data center Indonesia, latency rendah

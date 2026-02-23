@@ -21,3 +21,9 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/.claude
+
+# Debug files
+debug_*.php
+debug_*.json
+**/debug_temp.php

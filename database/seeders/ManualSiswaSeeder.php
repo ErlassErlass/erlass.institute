@@ -13,7 +13,7 @@ class ManualSiswaSeeder extends Seeder
      */
     public function run(): void
     {
-        $csvFile = base_path('siswa_import.csv');
+        $csvFile = base_path('database/data/siswa_import.csv');
         
         if (!file_exists($csvFile)) {
             $this->command->error("File siswa_import.csv not found in project root.");

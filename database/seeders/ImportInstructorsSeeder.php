@@ -16,7 +16,7 @@ class ImportInstructorsSeeder extends Seeder
 {
     public function run(): void
     {
-        $path = base_path('Data Instruktur Erlass 2025.xlsx');
+        $path = base_path('database/data/Data Instruktur Erlass 2025.xlsx');
 
         if (!file_exists($path)) {
             $this->command->error("File not found: $path");
