@@ -14,7 +14,8 @@ return Application::configure(basePath: dirname(__DIR__)) // <-- This is the cor
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
+        $middleware->append(\Sentry\Laravel\Tracing\Middleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        \Sentry\Laravel\Integration::handles($exceptions);
     })->create();
