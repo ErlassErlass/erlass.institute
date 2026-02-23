@@ -464,6 +464,62 @@ class LaporanMengajarController extends Controller
             ->with('success', 'Laporan berhasil diperbarui.');
     }
 
+    /**
+     * Ekstrakurikuler dashboard — redirects to index with ekskul filter.
+     */
+    public function ekstrakurikulerDashboard()
+    {
+        return redirect()->route('laporan-mengajar.index', ['kategori' => 'ekstrakurikuler']);
+    }
+
+    /**
+     * Create a laporan mengajar from an ekstrakurikuler session.
+     */
+    public function createFromEkstrakurikuler(EkstrakurikulerSession $session)
+    {
+        $this->authorize('create', LaporanMengajar::class);
+
+        // Check if a report already exists for this session
+        $existing = LaporanMengajar::where('ekstrakurikuler_session_id', $session->id)->first();
+        if ($existing) {
+            return redirect()->route('laporan-mengajar.show', $existing)
+                ->with('info', 'Laporan untuk sesi ini sudah ada.');
+        }
+
+        $rombel = $session->rombel;
+        $ekskul = $rombel->ekstrakurikuler;
+        $sekolah = $ekskul->sekolah;
+
+        $validated = [
+            'user_id_instruktur' => Auth::id(),
+            'sekolah_kodlan' => $sekolah->kodlan,
+            'rombel' => $rombel->nama_rombel,
+            'kategori_pengajaran' => $ekskul->kategori_program ?? 'Ekstrakurikuler',
+            'pertemuan_ke' => $session->nomor_pertemuan ?? 1,
+            'jadwal_mengajar' => $session->tanggal_terjadwal->format('Y-m-d'),
+            'jam_mulai' => $session->jam_mulai_terjadwal ?? '08:00',
+            'jam_selesai' => $session->jam_selesai_terjadwal ?? '09:30',
+            'materi_pengajaran' => $session->topik_materi ?? '-',
+            'status' => 'draft',
+            'ekstrakurikuler_session_id' => $session->id,
+            'jumlah_siswa_hadir' => 0,
+            'jumlah_siswa_tidak_hadir' => 0,
+            'jumlah_siswa_keluar' => 0,
+            'keaktifan' => 'aktif',
+            'pemahaman_materi' => 'paham',
+            'refleksi_siswa' => '-',
+            'refleksi_capaian' => '-',
+        ];
+
+        $laporan = LaporanMengajar::create($validated);
+
+        // Update session status
+        $session->update(['status' => 'berlangsung']);
+
+        return redirect()->route('laporan-mengajar.absensi.create', $laporan)
+            ->with('success', 'Laporan dari sesi ekstrakurikuler berhasil dibuat! Silakan isi absensi.');
+    }
+
     public function destroy(LaporanMengajar $laporanMengajar)
     {
         $this->authorize('delete', $laporanMengajar);

@@ -126,11 +126,14 @@ if (! function_exists('return_bytes')) {
     {
         $val = trim($val);
         $last = strtolower($val[strlen($val) - 1]);
+        $val = (int) $val;
         switch ($last) {
             case 'g':
                 $val *= 1024;
+                // no break — intentional fall-through
             case 'm':
                 $val *= 1024;
+                // no break — intentional fall-through
             case 'k':
                 $val *= 1024;
         }
