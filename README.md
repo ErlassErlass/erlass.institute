@@ -4,17 +4,22 @@ Dashboard Manajemen Sistem untuk Erlass (Pendidikan).
 
 ## 📚 Dokumentasi
 
-Dokumentasi proyek telah dipusatkan dan diperbarui.
+Lihat [docs/README.md](docs/README.md) untuk index lengkap.
 
 ### Panduan Pengguna
-- **[Panduan Pengguna](docs/USER_MANUAL.md)**: Panduan lengkap penggunaan fitur Ekstrakurikuler, Wizard Permintaan, dan Jadwal Harian.
-- **[Dokumentasi Umum](DOKUMENTASI.md)**: Gambaran umum sistem.
+- **[Panduan Pengguna](docs/user/USER_GUIDE.md)**: Panduan lengkap penggunaan per role
+- **[SOP & Tupoksi](docs/user/SOP_TUPOKSI.md)**: SOP tiap jabatan
+- **[Role Access Matrix](docs/user/ROLE_ACCESS_MATRIX.md)**: Matrix akses fitur
 
 ### Panduan Pengembang
-- **[Panduan Teknis](docs/TECHNICAL_GUIDE.md)**: Ringkasan arsitektur, penjelasan Service Layer, dan catatan Skema Database.
-- **[Panduan Deployment](docs/DEPLOYMENT.md)**: Instruksi untuk deploy ke Production/Staging.
-- **[Workflow](WORKFLOW.md)**: Standar alur kerja pengembangan.
-- **[Panduan Refactoring](REFACTORING_GUIDE.md)**: Pedoman untuk refactoring kode.
+- **[Panduan Teknis](docs/dev/TECHNICAL_GUIDE.md)**: Arsitektur & tech stack
+- **[Database Schema](docs/dev/DATABASE_SCHEMA.md)**: Skema database & relasi
+- **[Workflow](docs/dev/WORKFLOW.md)**: Development workflow
+
+### Deployment & Monitoring
+- **[Panduan Deployment](docs/ops/DEPLOYMENT_GUIDE.md)**: Deploy ke VPS / Docker
+- **[Sentry Monitoring](docs/ops/SENTRY_MONITORING.md)**: Bug & performance monitoring
+- **[Fonnte Integration](docs/integration/FONNTE_INTEGRATION.md)**: WhatsApp Gateway
 
 ## 🚀 Mulai Cepat
 
