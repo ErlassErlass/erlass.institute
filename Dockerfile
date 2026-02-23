@@ -29,6 +29,10 @@ RUN apk add --no-cache \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
+    libzip-dev \
+    libxml2-dev \
+    icu-dev \
+    oniguruma-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         pdo \
@@ -37,7 +41,11 @@ RUN apk add --no-cache \
         pdo_sqlite \
         gd \
         bcmath \
-        opcache
+        opcache \
+        zip \
+        intl \
+        exif \
+        mbstring
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
