@@ -49,11 +49,11 @@ class UserController extends Controller
 
         $users = $query->orderBy('created_at', 'desc')->paginate(25)->withQueryString();
 
-        // Role options for filter dropdown
+        // Role options for filter dropdown (sesuai data di database)
         $roles = [
             'webmaster' => 'Webmaster',
             'admin_sistem' => 'Admin Sistem',
-            'admin_erlass' => 'Admin Erlass',
+            'admin' => 'Admin',
             'instruktur' => 'Instruktur',
             'sales' => 'Sales',
         ];
