@@ -286,13 +286,27 @@ document.addEventListener('DOMContentLoaded', function() {
         const jamMulai = jamMulaiInput.value;
         
         if (totalPertemuan > 0 && tanggalMulai && tanggalSelesai && hari) {
-            // Calculate total weeks needed
+            // Calculate actual occurrences of the target day within the range
             const startDate = new Date(tanggalMulai);
             const endDate = new Date(tanggalSelesai);
-            const daysBetween = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-            const weeksBetween = Math.ceil(daysBetween / 7);
             
-            document.getElementById('total_weeks').textContent = weeksBetween;
+            const dayMapping = {
+                'senin': 1, 'selasa': 2, 'rabu': 3, 'kamis': 4, 
+                'jumat': 5, 'sabtu': 6, 'minggu': 0
+            };
+            const targetDay = dayMapping[hari];
+            
+            // Count occurrences of target day
+            let availableSlots = 0;
+            let current = new Date(startDate);
+            while (current <= endDate) {
+                if (current.getDay() === targetDay) {
+                    availableSlots++;
+                }
+                current.setDate(current.getDate() + 1);
+            }
+            
+            document.getElementById('total_weeks').textContent = availableSlots;
             
             // Calculate duration estimate
             const durationEstimate = `${totalPertemuan} x 2 jam = ${totalPertemuan * 2} jam`;
@@ -301,7 +315,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Determine schedule status
             let scheduleStatus = '';
             let statusClass = '';
-            if (totalPertemuan <= weeksBetween) {
+            if (totalPertemuan <= availableSlots) {
                 scheduleStatus = 'Sesuai';
                 statusClass = 'text-success';
             } else {
@@ -410,12 +424,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentDate.setDate(currentDate.getDate() + 1);
             }
             
-            // Calculate end date (last meeting + buffer)
+            // Calculate end date (exactly at the last meeting)
             const lastMeetingDate = new Date(currentDate);
             lastMeetingDate.setDate(lastMeetingDate.getDate() + (totalPertemuan - 1) * 7);
-            
-            // Add 1 week buffer
-            lastMeetingDate.setDate(lastMeetingDate.getDate() + 7);
             
             const formattedEndDate = lastMeetingDate.toISOString().split('T')[0];
             tanggalSelesaiInput.value = formattedEndDate;

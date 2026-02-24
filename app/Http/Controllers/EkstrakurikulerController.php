@@ -103,11 +103,17 @@ class EkstrakurikulerController extends Controller
         $regions = $this->regionService->getAvailableRegions();
         $kotaOptions = $this->regionService->getAvailableCities();
 
+        // Calculate next and previous steps
+        $nextStep = $this->formService->calculateNextStep($step, $formData);
+        $prevStep = $this->formService->calculatePreviousStep($step, $formData);
+
         return view('ekstrakurikuler.create', array_merge($dropdownData, [
             'step' => $step,
             'formData' => $formData,
             'regions' => $regions,
             'kotaOptions' => $kotaOptions,
+            'nextStep' => $nextStep,
+            'prevStep' => $prevStep,
         ]));
     }
 
@@ -117,7 +123,9 @@ class EkstrakurikulerController extends Controller
     public function processStep(Request $request)
     {
         $step = (int) $request->input('current_step', 1);
-        $nextStep = (int) $request->input('next_step', $step + 1);
+        
+        // Get current form data just in case we need it for validation or navigation
+        $currentFormData = $this->formService->getFormData();
 
         // Validasi menggunakan form service
         $this->formService->validateStep($request, $step);
@@ -132,6 +140,9 @@ class EkstrakurikulerController extends Controller
         }
 
         // Redirect ke next step
+        $updatedFormData = $this->formService->getFormData();
+        $nextStep = $this->formService->calculateNextStep($step, $updatedFormData);
+
         if ($nextStep > 10) {
             $nextStep = 10;
         }
@@ -148,8 +159,8 @@ class EkstrakurikulerController extends Controller
         try {
             $ekstrakurikuler = $this->formService->storeEkstrakurikuler($request);
 
-            return redirect()->to(route('ekstrakurikuler.show', $ekstrakurikuler) . '#sessions')
-                ->with('success', 'Program ekstrakurikuler berhasil dibuat! Silakan cek Jadwal dan Daftar Siswa.');
+            return redirect()->route('ekstrakurikuler.index')
+                ->with('success', 'Program ekstrakurikuler berhasil dibuat!');
 
         } catch (\Exception $e) {
             Log::error('Error in EkstrakurikulerController@store', [

@@ -104,18 +104,21 @@
 <div class="row">
     <div class="col-12">
         <div class="form-group mb-3">
-            <label for="google_maps_link" class="form-label">Link Google Maps</label>
+            <label for="google_maps_link" class="form-label">
+                Link Google Maps <span class="required-indicator">*</span>
+            </label>
             <input type="url" 
                    class="form-control @error('google_maps_link') is-invalid @enderror" 
                    id="google_maps_link" 
                    name="google_maps_link" 
                    value="{{ old('google_maps_link', $formData['google_maps_link'] ?? '') }}" 
-                   placeholder="https://maps.google.com/...">
+                   placeholder="https://maps.google.com/..."
+                   required>
             @error('google_maps_link')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
             <small class="form-text text-muted">
-                Link Google Maps untuk memudahkan navigasi instruktur (opsional)
+                Link Google Maps untuk memudahkan navigasi instruktur
             </small>
         </div>
     </div>

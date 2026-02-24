@@ -14,7 +14,7 @@
     
     <div class="summary-row">
         <span class="summary-label">Nama Program:</span>
-        <span class="summary-value">{{ $formData['kategori_program'] ?? '-' }}</span>
+        <span class="summary-value">{{ $formData['nama_program'] ?? $formData['kategori_program'] ?? '-' }}</span>
     </div>
     
     <div class="summary-row">
@@ -39,8 +39,8 @@
     <div class="summary-row">
         <span class="summary-label">Status:</span>
         <span class="summary-value">
-            <span class="badge badge-{{ $formData['status'] == 'diajukan' ? 'warning' : 'secondary' }}">
-                {{ $formData['status'] == 'diajukan' ? 'Diajukan' : 'Draft' }}
+            <span class="badge badge-{{ ($formData['status'] ?? 'draft') == 'diajukan' ? 'warning' : 'secondary' }}">
+                {{ ($formData['status'] ?? 'draft') == 'diajukan' ? 'Diajukan' : 'Draft' }}
             </span>
         </span>
     </div>
@@ -198,7 +198,12 @@
     <h6 class="summary-title"><i class="fas fa-layer-group"></i> Detail Rombel</h6>
     
     <div class="row">
-        @foreach($formData['rombels'] as $rombelNumber => $rombel)
+        @php
+            $totalRombelLimit = $formData['total_rombel'] ?? 0;
+        @endphp
+        @for($rombelNumber = 1; $rombelNumber <= $totalRombelLimit; $rombelNumber++)
+            @if(isset($formData['rombels'][$rombelNumber]))
+                @php $rombel = $formData['rombels'][$rombelNumber]; @endphp
         <div class="col-md-6 mb-3">
             <div class="card border-primary">
                 <div class="card-header bg-primary text-white py-2">
@@ -260,7 +265,8 @@
                 </div>
             </div>
         </div>
-        @endforeach
+            @endif
+        @endfor
     </div>
 </div>
 @endif
@@ -293,9 +299,12 @@
         $totalPertemuanAll = 0;
         
         if (isset($formData['rombels'])) {
-            foreach ($formData['rombels'] as $rombel) {
-                $totalSiswaRombel += $rombel['jumlah_siswa'] ?? 0;
-                $totalPertemuanAll += $rombel['total_pertemuan'] ?? 0;
+            for ($i = 1; $i <= $totalRombel; $i++) {
+                if (isset($formData['rombels'][$i])) {
+                    $rombel = $formData['rombels'][$i];
+                    $totalSiswaRombel += $rombel['jumlah_siswa'] ?? 0;
+                    $totalPertemuanAll += $rombel['total_pertemuan'] ?? 0;
+                }
             }
         }
         
@@ -426,19 +435,24 @@ function runValidationChecks() {
     }
     
     // Rombel validation
-    if (!formData.rombels || Object.keys(formData.rombels).length < formData.total_rombel) {
+    const totalRombel = parseInt(formData.total_rombel || 0);
+    const configuredRombels = formData.rombels ? Object.keys(formData.rombels).filter(k => parseInt(k) <= totalRombel).length : 0;
+    
+    if (!formData.rombels || configuredRombels < totalRombel) {
         checks.push({ status: 'error', message: 'Data rombel belum lengkap' });
     } else {
-        checks.push({ status: 'success', message: `${Object.keys(formData.rombels).length} rombel telah dikonfigurasi` });
+        checks.push({ status: 'success', message: `${configuredRombels} rombel telah dikonfigurasi` });
         
         // Check total students consistency
         let totalSiswaRombel = 0;
-        Object.values(formData.rombels).forEach(rombel => {
-            totalSiswaRombel += parseInt(rombel.jumlah_siswa || 0);
-        });
+        for (let i = 1; i <= totalRombel; i++) {
+            if (formData.rombels[i]) {
+                totalSiswaRombel += parseInt(formData.rombels[i].jumlah_siswa || 0);
+            }
+        }
         
         if (totalSiswaRombel != formData.total_siswa) {
-            checks.push({ status: 'warning', message: `Total siswa rombel (${totalSiswaRombel}) tidak sesuai dengan total siswa (${formData.total_siswa})` });
+            checks.push({ status: 'error', message: `Total siswa rombel (${totalSiswaRombel}) tidak sesuai dengan total siswa (${formData.total_siswa})` });
         } else {
             checks.push({ status: 'success', message: 'Total siswa rombel sesuai dengan target' });
         }
@@ -446,10 +460,15 @@ function runValidationChecks() {
     
     // Check for schedule conflicts
     if (formData.rombels) {
-        const schedules = Object.values(formData.rombels).map(rombel => ({
-            hari: rombel.hari,
-            jam_mulai: rombel.jam_mulai
-        }));
+        const schedules = [];
+        for (let i = 1; i <= totalRombel; i++) {
+            if (formData.rombels[i]) {
+                schedules.push({
+                    hari: formData.rombels[i].hari,
+                    jam_mulai: formData.rombels[i].jam_mulai
+                });
+            }
+        }
         
         const conflicts = findScheduleConflicts(schedules);
         if (conflicts.length > 0) {

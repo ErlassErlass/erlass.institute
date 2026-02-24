@@ -379,19 +379,6 @@
                                     <i class="fas fa-check"></i> Selesai & Simpan
                                 </button>
                             @else
-                                @php
-                                    $nextStep = $step + 1;
-                                    if ($step == 4 && isset($formData['total_rombel'])) {
-                                        $nextStep = 5; // First rombel step
-                                    } elseif ($step >= 5 && $step < 9) {
-                                        // Check if we need to skip to final step
-                                        if (isset($formData['total_rombel']) && $step >= (4 + $formData['total_rombel'])) {
-                                            $nextStep = 10;
-                                        }
-                                    } elseif ($step == 9) {
-                                        $nextStep = 10;
-                                    }
-                                @endphp
                                 <button type="submit" name="next_step" value="{{ $nextStep }}" class="btn btn-primary btn-step">
                                     Selanjutnya <i class="fas fa-arrow-right"></i>
                                 </button>
@@ -547,7 +534,7 @@ function validateCurrentStep() {
 
 function validateStep1() {
     let isValid = true;
-    const requiredFields = ['kategori_program', 'user_id_sales', 'city', 'status'];
+    const requiredFields = ['kategori_program', 'user_id_sales', 'city'];
     
     requiredFields.forEach(fieldName => {
         const field = document.querySelector(`[name="${fieldName}"]`);
@@ -563,7 +550,7 @@ function validateStep1() {
 function validateStep2() {
     let isValid = true;
     const requiredFields = [
-        'sekolah_kodlan', 'alamat_lengkap', 'jarak_km', 
+        'sekolah_kodlan', 'alamat_lengkap', 'google_maps_link', 'jarak_km', 
         'kepala_sekolah', 'penanggung_jawab', 'no_telepon'
     ];
     
@@ -662,24 +649,13 @@ function showFieldError(field, message) {
 }
 
 function goToPreviousStep() {
-    const currentStep = {{ $step }};
-    let previousStep = currentStep - 1;
-    
-    // Skip steps based on total_rombel
-    const totalRombel = {{ $formData['total_rombel'] ?? 2 }};
-    if (currentStep == 10 && totalRombel < 5) {
-        previousStep = 4 + totalRombel;
-    }
-    
-    window.location.href = `{{ route('ekstrakurikuler.create.step', ['step' => '__STEP__']) }}`.replace('__STEP__', previousStep);
+    const prevStep = {{ $prevStep ?? ($step > 1 ? $step - 1 : 1) }};
+    window.location.href = `{{ route('ekstrakurikuler.create.step', ['step' => '__STEP__']) }}`.replace('__STEP__', prevStep);
 }
 
 function saveDraft() {
     // Save current form data
     saveFormDataToSession();
-    
-    // Show success message
-    alert('Data berhasil disimpan sebagai draft. Anda dapat melanjutkan nanti.');
 }
 
 function saveFormDataToSession() {
@@ -753,28 +729,28 @@ function handleCityChange(event) {
     
     // Map city to region for backward compatibility
     const cityToRegionMap = {
-        'Jakarta Barat': 'JAKARTA',
-        'Jakarta Pusat': 'JAKARTA',
-        'Jakarta Selatan': 'JAKARTA',
-        'Jakarta Timur': 'JAKARTA',
-        'Jakarta Utara': 'JAKARTA',
-        'Kota Jakarta Barat': 'JAKARTA',
-        'Kota Jakarta Pusat': 'JAKARTA',
-        'Kota Jakarta Selatan': 'JAKARTA',
-        'Kota Jakarta Timur': 'JAKARTA',
-        'Kota Jakarta Utara': 'JAKARTA',
-        'Kota Depok': 'DEPOK',
-        'Depok': 'DEPOK',
-        'Kota Bogor': 'BOGOR',
-        'Kab. Bogor': 'BOGOR',
-        'Bogor': 'BOGOR',
-        'Kota Tangerang': 'TANGERANG',
-        'Kota Tangerang Selatan': 'TANGERANG',
-        'Kab. Tangerang': 'TANGERANG',
-        'Tangerang': 'TANGERANG',
-        'Kota Bekasi': 'BEKASI',
-        'Kab. Bekasi': 'BEKASI',
-        'Bekasi': 'BEKASI'
+        'JAKARTA BARAT': 'JAKARTA',
+        'JAKARTA PUSAT': 'JAKARTA',
+        'JAKARTA SELATAN': 'JAKARTA',
+        'JAKARTA TIMUR': 'JAKARTA',
+        'JAKARTA UTARA': 'JAKARTA',
+        'KOTA JAKARTA BARAT': 'JAKARTA',
+        'KOTA JAKARTA PUSAT': 'JAKARTA',
+        'KOTA JAKARTA SELATAN': 'JAKARTA',
+        'KOTA JAKARTA TIMUR': 'JAKARTA',
+        'KOTA JAKARTA UTARA': 'JAKARTA',
+        'KOTA DEPOK': 'DEPOK',
+        'DEPOK': 'DEPOK',
+        'KOTA BOGOR': 'BOGOR',
+        'KAB. BOGOR': 'BOGOR',
+        'BOGOR': 'BOGOR',
+        'KOTA TANGERANG': 'TANGERANG',
+        'KOTA TANGERANG SELATAN': 'TANGERANG',
+        'KAB. TANGERANG': 'TANGERANG',
+        'TANGERANG': 'TANGERANG',
+        'KOTA BEKASI': 'BEKASI',
+        'KAB. BEKASI': 'BEKASI',
+        'BEKASI': 'BEKASI'
     };
     
     // Set region field based on city selection

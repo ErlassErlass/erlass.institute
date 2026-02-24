@@ -124,6 +124,7 @@ class EkstrakurikulerFormService
             'total_rombel' => 2,
             'total_siswa' => 0,
             'total_ruangan' => 1,
+            'status' => 'draft',
         ]);
     }
 
@@ -162,12 +163,12 @@ class EkstrakurikulerFormService
     protected function extractStep1Data(Request $request): array
     {
         $data = $request->only([
-            'kategori_program', 'user_id_sales', 'region', 'city', 'status', 'deskripsi',
+            'nama_program', 'kategori_program', 'user_id_sales', 'region', 'city', 'status', 'deskripsi',
         ]);
 
-        // Set nama_program based on kategori_program for compatibility
-        if ($request->has('kategori_program')) {
-            $data['nama_program'] = $request->kategori_program;
+        // Set nama_program based on kategori_program if not explicitly provided
+        if (empty($data['nama_program']) && !empty($data['kategori_program'])) {
+            $data['nama_program'] = $data['kategori_program'];
         }
 
         return $data;
@@ -258,11 +259,11 @@ class EkstrakurikulerFormService
     protected function getStep1ValidationRules(): array
     {
         return [
+            'nama_program' => 'nullable|string|max:255',
             'kategori_program' => 'required|string|in:Coding Scratch,English Course,Micro:bit Learning Kit,Pictoblox AI,Robotik Explorer,Robotik Jimu',
             'user_id_sales' => 'required|exists:users,id',
             'region' => 'nullable|string',
             'city' => 'nullable|string',
-            'status' => 'required|string|in:draft,diajukan',
         ];
     }
 
@@ -274,7 +275,7 @@ class EkstrakurikulerFormService
         return [
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
             'alamat_lengkap' => 'required|string',
-            'google_maps_link' => 'nullable|url',
+            'google_maps_link' => 'required|url',
             'jarak_km' => 'required|numeric|min:0',
             'kepala_sekolah' => 'required|string|max:255',
             'penanggung_jawab' => 'required|string|max:255',
@@ -342,6 +343,19 @@ class EkstrakurikulerFormService
         if (empty($formData['rombels']) || count($formData['rombels']) < $formData['total_rombel']) {
             throw new \Exception('Data rombel tidak lengkap');
         }
+
+        // Check student count consistency
+        $totalSiswaTarget = $formData['total_siswa'] ?? 0;
+        $totalSiswaActual = 0;
+        foreach ($formData['rombels'] as $rombelNumber => $rombel) {
+            if ($rombelNumber <= $formData['total_rombel']) {
+                $totalSiswaActual += $rombel['jumlah_siswa'] ?? 0;
+            }
+        }
+
+        if ($totalSiswaActual != $totalSiswaTarget) {
+            throw new \Exception("Total siswa di rombel ({$totalSiswaActual}) tidak sesuai dengan target ({$totalSiswaTarget})");
+        }
     }
 
     /**
@@ -361,19 +375,55 @@ class EkstrakurikulerFormService
     }
 
     /**
-     * Get next step number
-     */
-    public function getNextStep(int $currentStep): int
-    {
-        return min($currentStep + 1, 10);
-    }
-
-    /**
      * Check if step is final
      */
     public function isFinalStep(int $step): bool
     {
         return $step === 10;
+    }
+
+    /**
+     * Get next step number based on total_rombel
+     */
+    public function calculateNextStep(int $currentStep, array $formData): int
+    {
+        $totalRombel = $formData['total_rombel'] ?? 2;
+        
+        switch ($currentStep) {
+            case 4:
+                return 5;
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+                $rombelNumber = $currentStep - 4;
+                if ($rombelNumber >= $totalRombel) {
+                    return 10;
+                }
+                return $currentStep + 1;
+            case 10:
+                return 10;
+            default:
+                return $currentStep + 1;
+        }
+    }
+
+    /**
+     * Get previous step number based on total_rombel
+     */
+    public function calculatePreviousStep(int $currentStep, array $formData): int
+    {
+        $totalRombel = $formData['total_rombel'] ?? 2;
+        
+        switch ($currentStep) {
+            case 5:
+                return 4;
+            case 10:
+                return 4 + $totalRombel;
+            default:
+                return max(1, $currentStep - 1);
+        }
     }
 
     /**
@@ -399,7 +449,10 @@ class EkstrakurikulerFormService
     public function saveStepData(array $stepData): void
     {
         $formData = $this->getFormData();
-        $formData = array_merge($formData, $stepData);
+        
+        // Use recursive replacement to preserve rombels array structure
+        $formData = array_replace_recursive($formData, $stepData);
+        
         \Illuminate\Support\Facades\Session::put('ekstrakurikuler_form_data', $formData);
     }
 
@@ -422,19 +475,23 @@ class EkstrakurikulerFormService
         $totalPertemuanAll = 0;
 
         if (isset($formData['rombels'])) {
-            foreach ($formData['rombels'] as $rombel) {
-                $totalSiswaRombel += $rombel['jumlah_siswa'];
-                $totalPertemuanAll += $rombel['total_pertemuan'];
+            $totalRombel = $formData['total_rombel'] ?? 1;
+            for ($i = 1; $i <= $totalRombel; $i++) {
+                if (isset($formData['rombels'][$i])) {
+                    $rombel = $formData['rombels'][$i];
+                    $totalSiswaRombel += $rombel['jumlah_siswa'];
+                    $totalPertemuanAll += $rombel['total_pertemuan'];
 
-                $mulai = \Carbon\Carbon::parse($rombel['tanggal_mulai']);
-                $selesai = \Carbon\Carbon::parse($rombel['tanggal_selesai']);
+                    $mulai = \Carbon\Carbon::parse($rombel['tanggal_mulai']);
+                    $selesai = \Carbon\Carbon::parse($rombel['tanggal_selesai']);
 
-                if (! $tanggalMulaiEarliest || $mulai->lt($tanggalMulaiEarliest)) {
-                    $tanggalMulaiEarliest = $mulai;
-                }
+                    if (! $tanggalMulaiEarliest || $mulai->lt($tanggalMulaiEarliest)) {
+                        $tanggalMulaiEarliest = $mulai;
+                    }
 
-                if (! $tanggalSelesaiLatest || $selesai->gt($tanggalSelesaiLatest)) {
-                    $tanggalSelesaiLatest = $selesai;
+                    if (! $tanggalSelesaiLatest || $selesai->gt($tanggalSelesaiLatest)) {
+                        $tanggalSelesaiLatest = $selesai;
+                    }
                 }
             }
         }
@@ -442,9 +499,11 @@ class EkstrakurikulerFormService
         return \Illuminate\Support\Facades\DB::transaction(function () use ($formData, $tanggalMulaiEarliest, $tanggalSelesaiLatest, $totalPertemuanAll, $totalSiswaRombel) {
             // Create ekstrakurikuler
             $ekstrakurikuler = \App\Models\Ekstrakurikuler::create([
+                'nama_program' => $formData['nama_program'] ?? $formData['kategori_program'],
                 'kategori_program' => $formData['kategori_program'],
                 'user_id_sales' => $formData['user_id_sales'],
                 'region' => $formData['region'] ?? null,
+                'city' => $formData['city'] ?? null,
                 'status' => $formData['status'] ?? 'draft',
                 'deskripsi' => $formData['deskripsi'] ?? null,
                 'sekolah_kodlan' => $formData['sekolah_kodlan'],
@@ -474,31 +533,34 @@ class EkstrakurikulerFormService
 
             // Create rombels and generate sessions
             if (isset($formData['rombels'])) {
-                foreach ($formData['rombels'] as $rombelNumber => $rombelData) {
-                    $rombel = \App\Models\EkstrakurikulerRombel::create([
-                        'ekstrakurikuler_id' => $ekstrakurikuler->id,
-                        'nama_rombel' => "Rombel {$rombelNumber}",
-                        'nomor_rombel' => $rombelNumber,
-                        'total_pertemuan' => $rombelData['total_pertemuan'],
-                        'tanggal_mulai' => $rombelData['tanggal_mulai'],
-                        'tanggal_selesai' => $rombelData['tanggal_selesai'],
-                        'hari' => $rombelData['hari'],
-                        'jam_mulai' => $rombelData['jam_mulai'],
-                        'jam_selesai' => $rombelData['jam_selesai'] ?? \Carbon\Carbon::parse($rombelData['jam_mulai'])->addHours(2)->format('H:i'), // Ensure fallback
-                        'jumlah_siswa' => $rombelData['jumlah_siswa'],
-                        'ruangan' => $rombelData['ruangan'] ?? '',
-                        'keterangan_ruangan' => $rombelData['keterangan_ruangan'] ?? '',
-                        'keterangan_ruangan' => $rombelData['keterangan_ruangan'] ?? '',
-                        'status' => 'belum_mulai',
-                        'created_by' => auth()->id(),
-                        'updated_by' => auth()->id(),
-                    ]);
+                $totalRombelLimit = $formData['total_rombel'] ?? 1;
+                for ($rombelNumber = 1; $rombelNumber <= $totalRombelLimit; $rombelNumber++) {
+                    if (isset($formData['rombels'][$rombelNumber])) {
+                        $rombelData = $formData['rombels'][$rombelNumber];
+                        $rombel = \App\Models\EkstrakurikulerRombel::create([
+                            'ekstrakurikuler_id' => $ekstrakurikuler->id,
+                            'nama_rombel' => "Rombel {$rombelNumber}",
+                            'nomor_rombel' => $rombelNumber,
+                            'total_pertemuan' => $rombelData['total_pertemuan'],
+                            'tanggal_mulai' => $rombelData['tanggal_mulai'],
+                            'tanggal_selesai' => $rombelData['tanggal_selesai'],
+                            'hari' => $rombelData['hari'],
+                            'jam_mulai' => $rombelData['jam_mulai'],
+                            'jam_selesai' => $rombelData['jam_selesai'] ?? \Carbon\Carbon::parse($rombelData['jam_mulai'])->addHours(2)->format('H:i'), // Ensure fallback
+                            'jumlah_siswa' => $rombelData['jumlah_siswa'],
+                            'ruangan' => $rombelData['ruangan'] ?? '',
+                            'keterangan_ruangan' => $rombelData['keterangan_ruangan'] ?? '',
+                            'status' => 'belum_mulai',
+                            'created_by' => auth()->id(),
+                            'updated_by' => auth()->id(),
+                        ]);
 
-                    // AUTO GENERATE SCHEDULE
-                    try {
-                        $this->schedulingService->generateSessionsForRombel($rombel, ['replace_existing' => true]);
-                    } catch (\Exception $e) {
-                        \Illuminate\Support\Facades\Log::warning("Gagal generate session untuk rombel {$rombel->id}: " . $e->getMessage());
+                        // AUTO GENERATE SCHEDULE
+                        try {
+                            $this->schedulingService->generateSessionsForRombel($rombel, ['replace_existing' => true]);
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::warning("Gagal generate session untuk rombel {$rombel->id}: " . $e->getMessage());
+                        }
                     }
                 }
             }

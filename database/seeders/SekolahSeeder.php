@@ -80,7 +80,7 @@ class SekolahSeeder extends Seeder
                     'pd' => !empty($data[6]) ? trim($data[6]) : null,
                     'kec' => trim($data[7]),
                     'kotkab' => trim($data[8]),
-                    'kota' => trim($data[9]),
+                    'kota' => preg_replace('/\s+\d+$/', '', trim($data[9])),
                     'provinsi' => $provinsi,
                     // Add Alamat if schema allows (we just added it)
                     'alamat' => isset($data[11]) ? trim($data[11]) : null,

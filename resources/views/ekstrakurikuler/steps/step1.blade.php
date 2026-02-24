@@ -4,6 +4,27 @@
 </div>
 
 <div class="row">
+    <div class="col-12">
+        <div class="form-group mb-3">
+            <label for="nama_program" class="form-label">
+                Nama Program <span class="text-muted">(Optional)</span>
+            </label>
+            <input type="text" class="form-control @error('nama_program') is-invalid @enderror" 
+                   id="nama_program" 
+                   name="nama_program" 
+                   value="{{ old('nama_program', $formData['nama_program'] ?? '') }}"
+                   placeholder="Contoh: English Course Grade 5">
+            @error('nama_program')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+            <small class="form-text text-muted">
+                Nama khusus untuk program ini. Jika dikosongkan, akan menggunakan nama kategori.
+            </small>
+        </div>
+    </div>
+</div>
+
+<div class="row">
     <div class="col-md-6">
         <div class="form-group mb-3">
             <label for="kategori_program" class="form-label">
@@ -186,6 +207,8 @@
     </div>
 </div>
 
+</div>
+
 <div class="row">
     <div class="col-12">
         <div class="form-group mb-3">
@@ -216,7 +239,6 @@
 </div>
 
 @push('scripts')
-<script src="{{ asset('js/modules/ekstrakurikuler-city-filter.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const kategoriSelect = document.getElementById('kategori_program');
