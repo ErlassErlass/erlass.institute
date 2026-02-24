@@ -403,8 +403,8 @@
                                 <li><a class="dropdown-item" href="{{ route('admin.verification.index') }}">
                                     <i class="bi bi-patch-check me-2 text-primary"></i>Verifikasi Instruktur
                                 </a></li>
-                                <li><a class="dropdown-item" href="{{ route('admin.users.index') }}">
-                                    <i class="bi bi-person-gear me-2 text-dark"></i>Manajemen User
+                                <li><a class="dropdown-item" href="{{ route('users.index') }}">
+                                    <i class="bi bi-people me-2 text-dark"></i>Manajemen User
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                             @endif
@@ -415,10 +415,8 @@
                             <li><a class="dropdown-item" href="{{ route('admin.analytics.schedule-distribution') }}">
                                 <i class="bi bi-calendar-week me-2 text-primary"></i>Distribusi Jadwal
                             </a></li>
-                            
-                            <li><a class="dropdown-item" href="{{ route('admin.employees.index') }}">
-                                <i class="bi bi-person-workspace me-2 text-success"></i>Data Karyawan
-                            </a></li>
+
+
                             @if(Auth::user()->canManageUsers())
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ route('admin.activity-logs.index') }}">

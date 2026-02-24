@@ -201,11 +201,19 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-    // User Management Routes (Khusus Webmaster)
+    // Admin Panel Routes
     Route::prefix('admin')->name('admin.')->group(function () {
-        Route::resource('users', UserManagementController::class);
         Route::resource('activity-logs', ActivityLogController::class)->only(['index']); // Logging route
-        Route::resource('employees', \App\Http\Controllers\EmployeeController::class);
+
+        // Redirect old admin/users and admin/employees to /users (consolidated)
+        Route::get('users', fn () => redirect()->route('users.index'))->name('users.index');
+        Route::get('users/create', fn () => redirect()->route('users.create'))->name('users.create');
+        Route::get('users/{user}', fn ($user) => redirect()->route('users.show', $user))->name('users.show');
+        Route::get('users/{user}/edit', fn ($user) => redirect()->route('users.edit', $user))->name('users.edit');
+        Route::get('employees', fn () => redirect()->route('users.index'))->name('employees.index');
+        Route::get('employees/create', fn () => redirect()->route('users.create'))->name('employees.create');
+        Route::get('employees/{employee}', fn ($employee) => redirect()->route('users.show', $employee))->name('employees.show');
+        Route::get('employees/{employee}/edit', fn ($employee) => redirect()->route('users.edit', $employee))->name('employees.edit');
 
         // Instructor Verification Routes
         Route::get('verification', [UserManagementController::class, 'verificationIndex'])
