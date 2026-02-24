@@ -108,7 +108,7 @@ class DashboardController extends Controller
             ]);
 
         // 2. Recent Sessions - select only needed columns
-        $recent_sessions = \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler:id,nama_program'])
+        $recent_sessions = \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler:id,kategori_program'])
             ->select('id', 'ekstrakurikuler_rombel_id', 'status', 'topik_materi', 'updated_at')
             ->whereIn('status', ['berjalan', 'selesai'])
             ->orderBy('updated_at', 'desc')
@@ -125,7 +125,7 @@ class DashboardController extends Controller
                     'color' => $color,
                     'bg' => $bg,
                     'title' => $statusLabel,
-                    'desc' => ($item->rombel->ekstrakurikuler->nama_program ?? 'Ekskul') . ' - Topik: ' . \Illuminate\Support\Str::limit($item->topik_materi ?? 'Tanpa Topik', 20),
+                    'desc' => ($item->rombel->ekstrakurikuler->kategori_program ?? 'Ekskul') . ' - Topik: ' . \Illuminate\Support\Str::limit($item->topik_materi ?? 'Tanpa Topik', 20),
                     'time' => $item->updated_at,
                     'link' => route('ekstrakurikuler.sessions.show', $item->id)
                 ];
