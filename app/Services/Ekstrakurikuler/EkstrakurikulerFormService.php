@@ -162,16 +162,9 @@ class EkstrakurikulerFormService
      */
     protected function extractStep1Data(Request $request): array
     {
-        $data = $request->only([
-            'nama_program', 'kategori_program', 'user_id_sales', 'region', 'city', 'status', 'deskripsi',
+        return $request->only([
+            'kategori_program', 'user_id_sales', 'region', 'deskripsi',
         ]);
-
-        // Set nama_program based on kategori_program if not explicitly provided
-        if (empty($data['nama_program']) && !empty($data['kategori_program'])) {
-            $data['nama_program'] = $data['kategori_program'];
-        }
-
-        return $data;
     }
 
     /**
@@ -259,7 +252,6 @@ class EkstrakurikulerFormService
     protected function getStep1ValidationRules(): array
     {
         return [
-            'nama_program' => 'nullable|string|max:255',
             'kategori_program' => 'required|string|in:Coding Scratch,English Course,Micro:bit Learning Kit,Pictoblox AI,Robotik Explorer,Robotik Jimu',
             'user_id_sales' => 'required|exists:users,id',
             'region' => 'nullable|string',
@@ -464,9 +456,20 @@ class EkstrakurikulerFormService
     public function storeEkstrakurikuler(\Illuminate\Http\Request $request): \App\Models\Ekstrakurikuler
     {
         $formData = $this->getFormData();
+        \Illuminate\Support\Facades\Log::info('Attempting to store Ekstrakurikuler', ['form_data_keys' => array_keys($formData)]);
         
         // Validate final form
-        $this->validateFinalForm($formData);
+        try {
+            $this->validateFinalForm($formData);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('Validation failed in storeEkstrakurikuler', [
+                'error' => $e->getMessage(),
+                'form_data' => $formData
+            ]);
+            throw $e;
+        }
+
+        \Illuminate\Support\Facades\Log::info('Validation passed, proceeding to database transaction');
 
         // Calculate totals and dates from rombels
         $totalSiswaRombel = 0;
@@ -496,15 +499,16 @@ class EkstrakurikulerFormService
             }
         }
         
+
         return \Illuminate\Support\Facades\DB::transaction(function () use ($formData, $tanggalMulaiEarliest, $tanggalSelesaiLatest, $totalPertemuanAll, $totalSiswaRombel) {
             // Create ekstrakurikuler
             $ekstrakurikuler = \App\Models\Ekstrakurikuler::create([
-                'nama_program' => $formData['nama_program'] ?? $formData['kategori_program'],
                 'kategori_program' => $formData['kategori_program'],
                 'user_id_sales' => $formData['user_id_sales'],
                 'region' => $formData['region'] ?? null,
-                'city' => $formData['city'] ?? null,
-                'status' => $formData['status'] ?? 'draft',
+                'status' => \App\Models\Ekstrakurikuler::STATUS_AKTIF,
+                'tanggal_aktivasi' => now(),
+                'diaktifkan_oleh' => auth()->id(),
                 'deskripsi' => $formData['deskripsi'] ?? null,
                 'sekolah_kodlan' => $formData['sekolah_kodlan'],
                 'alamat_lengkap' => $formData['alamat_lengkap'],
@@ -550,7 +554,7 @@ class EkstrakurikulerFormService
                             'jumlah_siswa' => $rombelData['jumlah_siswa'],
                             'ruangan' => $rombelData['ruangan'] ?? '',
                             'keterangan_ruangan' => $rombelData['keterangan_ruangan'] ?? '',
-                            'status' => 'belum_mulai',
+                            'status' => \App\Models\EkstrakurikulerRombel::STATUS_BERLANGSUNG,
                             'created_by' => auth()->id(),
                             'updated_by' => auth()->id(),
                         ]);

@@ -2,6 +2,17 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.2.1] - 2026-02-24
+
+### Diperbaiki (Fixed)
+- **Wizard Persistence**:
+    - **Critical**: Perbaikan bug tombol "Selesai & Simpan" yang kehilangan atribut `name="submit_final"`, mencegah data tersimpan di database.
+    - Sinkronisasi Step Counter agar tidak muncul "Langkah 10 dari 9".
+    - Pembersihan "Tips" yang menyesatkan di Step 1.
+- **Ekstrakurikuler Schema Revert**:
+    - Menghapus fitur `Nama Program` dan mengembalikan penggunaan `Kategori Program` sebagai identitas utama program sesuai kebutuhan operasional.
+    - Rollback migrasi database dan pembersihan referensi kolom di Model & Service.
+
 ## [1.2.0] - 2026-02-23
 
 ### Ditambahkan (Added)

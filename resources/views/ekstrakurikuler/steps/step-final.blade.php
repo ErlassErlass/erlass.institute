@@ -1,11 +1,11 @@
 {{-- Step Final: Validation & Summary --}}
 <div class="section-title">
-    <h5><i class="fas fa-check-circle text-primary"></i> Ringkasan & Validasi Final</h5>
+    <h5><i class="fas fa-check-circle text-primary"></i> Ringkasan & Validasi Final (Langkah 10)</h5>
 </div>
 
 <div class="alert alert-success">
     <h6><i class="fas fa-info-circle"></i> Langkah Terakhir</h6>
-    <p class="mb-0">Periksa kembali semua data yang telah Anda masukkan. Setelah menekan tombol "Selesai & Simpan", program ekstrakurikuler akan dibuat dan jadwal pertemuan akan digenerate otomatis.</p>
+    <p class="mb-0">Periksa kembali semua data yang telah Anda masukkan. Setelah menekan tombol "Selesai & Simpan", program ekstrakurikuler akan dibuat dengan status <strong>Aktif</strong> dan jadwal pertemuan akan digenerate otomatis.</p>
 </div>
 
 <!-- Program Summary -->
@@ -13,8 +13,8 @@
     <h6 class="summary-title"><i class="fas fa-info-circle"></i> Informasi Program</h6>
     
     <div class="summary-row">
-        <span class="summary-label">Nama Program:</span>
-        <span class="summary-value">{{ $formData['nama_program'] ?? $formData['kategori_program'] ?? '-' }}</span>
+        <span class="summary-label">Kategori Program:</span>
+        <span class="summary-value">{{ $formData['kategori_program'] ?? '-' }}</span>
     </div>
     
     <div class="summary-row">
@@ -39,9 +39,7 @@
     <div class="summary-row">
         <span class="summary-label">Status:</span>
         <span class="summary-value">
-            <span class="badge badge-{{ ($formData['status'] ?? 'draft') == 'diajukan' ? 'warning' : 'secondary' }}">
-                {{ ($formData['status'] ?? 'draft') == 'diajukan' ? 'Diajukan' : 'Draft' }}
-            </span>
+            <span class="badge badge-success">Aktif</span>
         </span>
     </div>
     
@@ -370,6 +368,10 @@
         Setelah disimpan, sistem akan otomatis menggenerate jadwal pertemuan untuk setiap rombel. 
         Data masih dapat diedit sebelum program diaktifkan.
     </small>
+<div class="mt-4 text-right">
+    <button type="submit" name="submit_final" value="1" class="btn btn-success btn-lg px-5">
+        <i class="fas fa-save"></i> Selesai & Simpan
+    </button>
 </div>
 
 <script>

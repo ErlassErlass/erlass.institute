@@ -134,6 +134,7 @@ class EkstrakurikulerController extends Controller
         $stepData = $this->formService->getStepData($request, $step);
         $this->formService->saveStepData($stepData);
 
+
         // Jika ini final step, proses complete form
         if ($request->has('submit_final')) {
             return $this->store($request);

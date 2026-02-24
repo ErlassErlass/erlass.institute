@@ -22,7 +22,6 @@ class Ekstrakurikuler extends Model
      * Atribut yang dapat diisi secara massal.
      */
     protected $fillable = [
-        'nama_program',
         'kategori_program',
         'deskripsi',
         'jenis_pembayaran',
@@ -30,7 +29,6 @@ class Ekstrakurikuler extends Model
         'jumlah_siswa_per_alat',
         'user_id_sales',
         'region',
-        'city',
         'sekolah_kodlan',
         'alamat_lengkap',
         'google_maps_link',

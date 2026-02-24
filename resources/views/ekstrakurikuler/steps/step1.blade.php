@@ -3,26 +3,6 @@
     <h5><i class="fas fa-info-circle text-primary"></i> Informasi Dasar Program</h5>
 </div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="form-group mb-3">
-            <label for="nama_program" class="form-label">
-                Nama Program <span class="text-muted">(Optional)</span>
-            </label>
-            <input type="text" class="form-control @error('nama_program') is-invalid @enderror" 
-                   id="nama_program" 
-                   name="nama_program" 
-                   value="{{ old('nama_program', $formData['nama_program'] ?? '') }}"
-                   placeholder="Contoh: English Course Grade 5">
-            @error('nama_program')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-            <small class="form-text text-muted">
-                Nama khusus untuk program ini. Jika dikosongkan, akan menggunakan nama kategori.
-            </small>
-        </div>
-    </div>
-</div>
 
 <div class="row">
     <div class="col-md-6">
@@ -231,7 +211,7 @@
 <div class="alert alert-info">
     <h6><i class="fas fa-lightbulb"></i> Tips:</h6>
     <ul class="mb-0">
-        <li>Gunakan nama program yang mudah diingat dan menggambarkan isi program</li>
+        <li>Pilih kategori program ekstrakurikuler yang sesuai</li>
         <li>Pastikan sales/koordinator yang dipilih memiliki kompetensi di bidang tersebut</li>
         <li>Kota akan mempengaruhi daftar sekolah yang tersedia di Step 2</li>
         <li>Untuk program Microbit/Robotik, pastikan konfigurasi alat sudah benar</li>

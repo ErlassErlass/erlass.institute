@@ -130,6 +130,10 @@ class EkstrakurikulerApiController extends Controller
     {
         try {
             $preview = $this->formService->previewSessions();
+            Log::info('previewSessions called', [
+                'preview_summary' => $preview['summary'] ?? null,
+                'rombel_count' => count($preview['previews'] ?? [])
+            ]);
 
             return response()->json($preview);
 

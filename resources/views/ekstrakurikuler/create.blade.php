@@ -274,13 +274,11 @@
                             @case(10) Ringkasan & Validasi @break
                         @endswitch
                     </h4>
-                    <p class="mb-0 opacity-75">Langkah {{ $step }} dari {{ ($formData['total_rombel'] ?? 2) > 4 ? ($formData['total_rombel'] ?? 2) + 5 : 9 }}</p>
+                    <p class="mb-0 opacity-75">Langkah {{ $step }} dari {{ max($step, (isset($formData['total_rombel']) ? $formData['total_rombel'] + 5 : 9)) }}</p>
                     
                     <div class="progress-container">
                         @php
-                            $totalSteps = isset($formData['total_rombel']) && $formData['total_rombel'] > 0 
-                                        ? $formData['total_rombel'] + 5 
-                                        : 9;
+                            $totalSteps = max($step, (isset($formData['total_rombel']) ? $formData['total_rombel'] + 5 : 9));
                             $progressPercentage = ($step / $totalSteps) * 100;
                         @endphp
                         <div class="progress-bar" style="width: {{ $progressPercentage }}%"></div>
