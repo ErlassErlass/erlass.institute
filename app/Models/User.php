@@ -20,9 +20,18 @@ class User extends Authenticatable
         parent::boot();
 
         static::creating(function ($user) {
-            // Default values for fields that are missing defaults in DB but required
+            // Default values for fields that are missing
+            if (empty($user->status)) {
+                $user->status = 'Aktif';
+            }
+
+            // Automate instructor_id for new instructors
+            if ($user->role === 'instruktur' && empty($user->instructor_id)) {
+                $user->instructor_id = static::generateInstructorId();
+            }
+
             if (empty($user->tanggal_lahir)) {
-                $user->tanggal_lahir = '1990-01-01'; // Default dummy date
+                $user->tanggal_lahir = '1990-01-01';
             }
             if (empty($user->agama)) {
                 $user->agama = 'Lainnya';
@@ -33,13 +42,30 @@ class User extends Authenticatable
             if (empty($user->kompetensi_1)) {
                 $user->kompetensi_1 = 'General';
             }
-            if (empty($user->status)) {
-                $user->status = 'active';
-            }
-            // Fix for missing email_verified_at column if code tries to access it
-            // Note: If column is missing in DB, we can't save it. 
-            // We should ensure we don't try to save it in Controllers.
         });
+    }
+
+    /**
+     * Generate a unique instructor ID based on the current year.
+     * Pattern: ICE[YEAR][SEQUENCE] (e.g., ICE20261)
+     */
+    public static function generateInstructorId()
+    {
+        $year = date('Y');
+        $prefix = 'ICE' . $year;
+
+        $latestUser = static::where('instructor_id', 'LIKE', "{$prefix}%")
+                            ->orderByRaw('LENGTH(instructor_id) DESC')
+                            ->orderBy('instructor_id', 'desc')
+                            ->first();
+
+        if ($latestUser) {
+            $sequence = intval(substr($latestUser->instructor_id, 7)) + 1;
+        } else {
+            $sequence = 1;
+        }
+
+        return $prefix . $sequence;
     }
 
     protected $fillable = [

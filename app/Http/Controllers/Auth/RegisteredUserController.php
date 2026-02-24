@@ -39,7 +39,7 @@ class RegisteredUserController extends Controller
             'agama' => ['required', 'string'],
             'pend_terakhir' => ['required', 'string'],
             'kompetensi_1' => ['required', 'string'],
-            'kompetensi_2' => ['nullable', 'string'], // Optional
+            'kompetensi_2' => ['nullable', 'string'],
         ]);
 
         $user = User::create([
@@ -48,12 +48,15 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
             'tanggal_lahir' => $request->tanggal_lahir,
             'no_telephone' => $request->no_telephone,
-            'status' => 'active', // Default value
+            'status' => 'Aktif',
             'agama' => $request->agama,
             'pend_terakhir' => $request->pend_terakhir,
             'kompetensi_1' => $request->kompetensi_1,
             'kompetensi_2' => $request->kompetensi_2,
-            'role' => 'instruktur', // Default role
+            'role' => 'instruktur',
+            'is_verified' => false,
+            'verification_status' => 'pending',
+            'application_date' => now(),
         ]);
 
         event(new Registered($user));

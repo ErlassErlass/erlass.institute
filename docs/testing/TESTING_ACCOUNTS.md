@@ -7,12 +7,12 @@ Dokumen ini berisi daftar lengkap akun pengguna yang tersedia di sistem (Local E
 ## 1. Akun Sistem Utama (Hardcoded)
 Akun-akun ini dibuat oleh `UserSeeder.php` dan selalu tersedia setelah `php artisan migrate:fresh --seed`.
 
-| Role | Nama | Email | Password Default | Akses |
+| Role | Nama | Email / ID | Password Default | Akses |
 |---|---|---|---|---|
 | **Webmaster** | Webmaster Erlass | `webmaster@erlass.institute` | `password` | Full Access (Super Admin) |
 | **Admin Sistem** | Admin Erlass | `admin@erlass.institute` | `password` | Manajemen User & Sistem |
-| **Instruktur** | Instruktur Erlass | `instruktur@erlass.institute` | `password` | Absensi & Laporan (Verified) |
-| **Instruktur** | Instruktur Pending | `pending@erlass.institute` | `password` | Terbatas (Unverified) |
+| **Instruktur** | Instruktur Erlass | `instruktur@erlass.institute` / `ICE20251` | `password` | Absensi & Laporan (Verified) |
+| **Instruktur** | Instruktur Pending | `pending@erlass.institute` / `ICE20252` | `password` | Terbatas (Unverified) |
 
 > **Catatan**: Jika di `.env` anda mengubah `WEBMASTER_PASSWORD` dsb, gunakan password tersebut. Jika tidak, defaultnya adalah `password`.
 
@@ -87,10 +87,21 @@ Email digenerate dengan pola: `nama_lengkap@erlass.institute` (lowercase, spasi 
 ---
 
 ## 4. Cara Login
-1.  Buka halaman Login: `/login`
-2.  Masukkan **Email** dari daftar di atas.
-3.  Masukkan **Password Default** sesuai kategori akunnya (`password` atau `Employee_2026!`).
-4.  Jika gagal, coba reset database: `php artisan migrate:fresh --seed`.
+Sistem mendukung login menggunakan dua metode identitas:
+1.  **Email**: Masukkan alamat email dari daftar di atas.
+2.  **ID Instruktur**: Untuk role Instruktur, bisa menggunakan ID (contoh: `ICE20251` atau `ICE20261`).
+
+**Password Default**: Gunakan password sesuai kategori akunnya (`password` atau `Employee_2026!`).
+
+> **Pro Tip**: Jika gagal login atau data berantakan, reset database dengan: `php artisan migrate:fresh --seed`.
+
+---
+
+## 5. Alur Registrasi Mandiri (Self-Registration)
+Instruktur baru dapat mendaftar sendiri melalui halaman `/register`.
+- **Otomatisasi ID**: Sistem secara otomatis akan men-generate `instructor_id` berbasis tahun (Format: `ICE[TAHUN][URUTAN]`).
+- **Status Verifikasi**: Pendaftaran baru otomatis berstatus **Pending**. Admin/Webmaster harus memverifikasi akun ini di dashboard sebelum instruktur dapat mengakses fitur penuh.
+- **Data Default**: Akun baru akan memiliki status default **Aktif**.
 
 ---
 
