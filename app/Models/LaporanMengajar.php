@@ -5,12 +5,27 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\DashboardController;
 
 class LaporanMengajar extends Model
 {
     use HasFactory;
 
     protected $table = 'laporan_mengajar';
+
+    /**
+     * Clear dashboard cache when reports change.
+     */
+    protected static function booted(): void
+    {
+        $bustCache = function ($model) {
+            DashboardController::clearCache($model->user_id_instruktur);
+        };
+
+        static::created($bustCache);
+        static::updated($bustCache);
+        static::deleted($bustCache);
+    }
 
     /**
      * Atribut yang dapat diisi secara massal.
