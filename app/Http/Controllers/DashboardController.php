@@ -109,7 +109,7 @@ class DashboardController extends Controller
 
         // 2. Recent Sessions - select only needed columns
         $recent_sessions = \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler:id,nama_program'])
-            ->select('id', 'rombel_id', 'status', 'topik_materi', 'updated_at')
+            ->select('id', 'ekstrakurikuler_rombel_id', 'status', 'topik_materi', 'updated_at')
             ->whereIn('status', ['berjalan', 'selesai'])
             ->orderBy('updated_at', 'desc')
             ->take(5)
