@@ -78,7 +78,7 @@ class UserController extends Controller
     {
         Gate::authorize('create', User::class);
 
-        $roles = ['webmaster', 'admin_erlass', 'instruktur'];
+        $roles = ['webmaster', 'admin_sistem', 'admin', 'instruktur', 'sales'];
 
         return view('users.create', compact('roles'));
     }
@@ -146,7 +146,7 @@ class UserController extends Controller
     {
         Gate::authorize('update', $user);
 
-        $roles = ['webmaster', 'admin_erlass', 'instruktur'];
+        $roles = ['webmaster', 'admin_sistem', 'admin', 'instruktur', 'sales'];
 
         return view('users.edit', compact('user', 'roles'));
     }
