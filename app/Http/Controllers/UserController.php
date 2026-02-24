@@ -17,7 +17,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        // Hanya webmaster yang bisa mengakses halaman ini
+        // Hanya webmaster/admin_sistem yang bisa mengakses halaman ini
         Gate::authorize('viewAny', User::class);
 
         $query = User::query();
@@ -31,9 +31,42 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->orderBy('created_at', 'desc')->get();
+        // Role filter
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
+        }
 
-        return view('users.index', compact('users'));
+        // Status filter
+        if ($request->filled('status')) {
+            if ($request->status === 'pending') {
+                $query->where('verification_status', 'pending');
+            } elseif ($request->status === 'approved') {
+                $query->where('verification_status', 'approved');
+            } elseif ($request->status === 'rejected') {
+                $query->where('verification_status', 'rejected');
+            }
+        }
+
+        $users = $query->orderBy('created_at', 'desc')->paginate(25)->withQueryString();
+
+        // Role options for filter dropdown
+        $roles = [
+            'webmaster' => 'Webmaster',
+            'admin_sistem' => 'Admin Sistem',
+            'admin_erlass' => 'Admin Erlass',
+            'instruktur' => 'Instruktur',
+            'sales' => 'Sales',
+        ];
+
+        // Statistics
+        $statistics = [
+            'total_instructors' => User::where('role', 'instruktur')->count(),
+            'approved_instructors' => User::where('role', 'instruktur')->where('verification_status', 'approved')->count(),
+            'pending_verification' => User::where('role', 'instruktur')->where('verification_status', 'pending')->count(),
+            'rejected_instructors' => User::where('role', 'instruktur')->where('verification_status', 'rejected')->count(),
+        ];
+
+        return view('users.index', compact('users', 'roles', 'statistics'));
     }
 
     // Other methods (create, store, edit, update, destroy)
