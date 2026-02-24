@@ -103,17 +103,11 @@ class EkstrakurikulerController extends Controller
         $regions = $this->regionService->getAvailableRegions();
         $kotaOptions = $this->regionService->getAvailableCities();
 
-        $statuses = [
-            Ekstrakurikuler::STATUS_DRAFT => 'Draft',
-            Ekstrakurikuler::STATUS_DIAJUKAN => 'Diajukan',
-        ];
-
         return view('ekstrakurikuler.create', array_merge($dropdownData, [
             'step' => $step,
             'formData' => $formData,
             'regions' => $regions,
             'kotaOptions' => $kotaOptions,
-            'statuses' => $statuses,
         ]));
     }
 

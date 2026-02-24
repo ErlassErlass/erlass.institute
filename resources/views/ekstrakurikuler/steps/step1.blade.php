@@ -101,27 +101,87 @@
 
     <div class="col-md-6">
         <div class="form-group mb-3">
-            <label for="status" class="form-label">
-                Status <span class="required-indicator">*</span>
+            <label for="jenis_pembayaran" class="form-label">
+                Jenis Pembayaran <span class="required-indicator">*</span>
             </label>
-            <select class="form-control @error('status') is-invalid @enderror" 
-                    id="status" 
-                    name="status" 
+            <select class="form-control @error('jenis_pembayaran') is-invalid @enderror" 
+                    id="jenis_pembayaran" 
+                    name="jenis_pembayaran" 
                     required>
-                <option value="">Pilih Status</option>
-                @foreach($statuses as $value => $label)
+                <option value="">Pilih Jenis Pembayaran</option>
+                @foreach(\App\Models\Ekstrakurikuler::JENIS_PEMBAYARAN_OPTIONS as $value => $label)
                     <option value="{{ $value }}" 
-                            {{ old('status', $formData['status'] ?? '') == $value ? 'selected' : '' }}>
+                            {{ old('jenis_pembayaran', $formData['jenis_pembayaran'] ?? '') == $value ? 'selected' : '' }}>
                         {{ $label }}
                     </option>
                 @endforeach
             </select>
-            @error('status')
+            @error('jenis_pembayaran')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
             <small class="form-text text-muted">
-                Status awal program (dapat diubah nanti)
+                Model pembayaran yang diterapkan untuk program ini
             </small>
+        </div>
+    </div>
+</div>
+
+{{-- Conditional Equipment Section (Microbit / Robotik only) --}}
+<div class="row" id="equipment-section" style="display: none;">
+    <div class="col-12">
+        <div class="card border-primary mb-3">
+            <div class="card-header bg-primary-subtle">
+                <h6 class="mb-0"><i class="fas fa-tools text-primary"></i> Konfigurasi Alat</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label class="form-label">
+                                Jenis Alat <span class="required-indicator">*</span>
+                            </label>
+                            @foreach(\App\Models\Ekstrakurikuler::JENIS_ALAT_OPTIONS as $value => $label)
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" 
+                                           name="jenis_alat" 
+                                           id="jenis_alat_{{ $value }}" 
+                                           value="{{ $value }}"
+                                           {{ old('jenis_alat', $formData['jenis_alat'] ?? '') == $value ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="jenis_alat_{{ $value }}">
+                                        {{ $label }}
+                                    </label>
+                                </div>
+                            @endforeach
+                            @error('jenis_alat')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="col-md-6" id="group-size-section" style="display: none;">
+                        <div class="form-group mb-3">
+                            <label class="form-label">
+                                Jumlah Siswa per Alat <span class="required-indicator">*</span>
+                            </label>
+                            @foreach([2, 3, 4, 5] as $size)
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" 
+                                           name="jumlah_siswa_per_alat" 
+                                           id="group_size_{{ $size }}" 
+                                           value="{{ $size }}"
+                                           {{ old('jumlah_siswa_per_alat', $formData['jumlah_siswa_per_alat'] ?? '') == $size ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="group_size_{{ $size }}">
+                                        {{ $size }} Siswa per Alat
+                                    </label>
+                                </div>
+                            @endforeach
+                            @error('jumlah_siswa_per_alat')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -151,10 +211,52 @@
         <li>Gunakan nama program yang mudah diingat dan menggambarkan isi program</li>
         <li>Pastikan sales/koordinator yang dipilih memiliki kompetensi di bidang tersebut</li>
         <li>Kota akan mempengaruhi daftar sekolah yang tersedia di Step 2</li>
-        <li>Pilih kota yang sesuai dengan lokasi sekolah target</li>
+        <li>Untuk program Microbit/Robotik, pastikan konfigurasi alat sudah benar</li>
     </ul>
 </div>
 
 @push('scripts')
 <script src="{{ asset('js/modules/ekstrakurikuler-city-filter.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const kategoriSelect = document.getElementById('kategori_program');
+    const equipmentSection = document.getElementById('equipment-section');
+    const groupSizeSection = document.getElementById('group-size-section');
+    const jenisAlatRadios = document.querySelectorAll('input[name="jenis_alat"]');
+    
+    // Categories that require equipment config
+    const kategoriButuhAlat = ['Micro:bit Learning Kit', 'Robotik Explorer', 'Robotik Jimu'];
+    
+    function toggleEquipment() {
+        const selectedKategori = kategoriSelect.value;
+        const showEquipment = kategoriButuhAlat.includes(selectedKategori);
+        
+        equipmentSection.style.display = showEquipment ? '' : 'none';
+        
+        // Clear equipment fields if hidden
+        if (!showEquipment) {
+            jenisAlatRadios.forEach(r => r.checked = false);
+            document.querySelectorAll('input[name="jumlah_siswa_per_alat"]').forEach(r => r.checked = false);
+            groupSizeSection.style.display = 'none';
+        }
+    }
+    
+    function toggleGroupSize() {
+        const selectedAlat = document.querySelector('input[name="jenis_alat"]:checked');
+        groupSizeSection.style.display = (selectedAlat && selectedAlat.value === 'per_kelompok') ? '' : 'none';
+        
+        // Clear group size if switching to per_siswa
+        if (selectedAlat && selectedAlat.value === 'per_siswa') {
+            document.querySelectorAll('input[name="jumlah_siswa_per_alat"]').forEach(r => r.checked = false);
+        }
+    }
+    
+    kategoriSelect.addEventListener('change', toggleEquipment);
+    jenisAlatRadios.forEach(radio => radio.addEventListener('change', toggleGroupSize));
+    
+    // Initialize on load
+    toggleEquipment();
+    toggleGroupSize();
+});
+</script>
 @endpush

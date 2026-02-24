@@ -25,6 +25,9 @@ class Ekstrakurikuler extends Model
         'nama_program',
         'kategori_program',
         'deskripsi',
+        'jenis_pembayaran',
+        'jenis_alat',
+        'jumlah_siswa_per_alat',
         'user_id_sales',
         'region',
         'city',
@@ -117,24 +120,62 @@ class Ekstrakurikuler extends Model
     const STATUS_DIBATALKAN = 'dibatalkan';
 
     /**
+     * Konstanta untuk jenis pembayaran
+     */
+    const PEMBAYARAN_PER_SISWA_BULAN = 'per_siswa_bulan';
+    const PEMBAYARAN_PER_SISWA_SEMESTER = 'per_siswa_semester';
+    const PEMBAYARAN_PER_SISWA_TAHUN = 'per_siswa_tahun';
+    const PEMBAYARAN_PER_PERTEMUAN_INSTRUKTUR = 'per_pertemuan_instruktur';
+
+    const JENIS_PEMBAYARAN_OPTIONS = [
+        self::PEMBAYARAN_PER_SISWA_BULAN => 'Pembayaran per Siswa / Bulan',
+        self::PEMBAYARAN_PER_SISWA_SEMESTER => 'Pembayaran per Siswa / Semester',
+        self::PEMBAYARAN_PER_SISWA_TAHUN => 'Pembayaran per Siswa / Tahun',
+        self::PEMBAYARAN_PER_PERTEMUAN_INSTRUKTUR => 'Pembayaran per Pertemuan / Instruktur',
+    ];
+
+    /**
+     * Konstanta untuk jenis alat (khusus program robotik/microbit)
+     */
+    const ALAT_PER_SISWA = 'per_siswa';
+    const ALAT_PER_KELOMPOK = 'per_kelompok';
+
+    const JENIS_ALAT_OPTIONS = [
+        self::ALAT_PER_SISWA => 'Alat per Siswa',
+        self::ALAT_PER_KELOMPOK => 'Alat per Kelompok',
+    ];
+
+    /**
+     * Kategori program yang membutuhkan konfigurasi alat
+     */
+    const KATEGORI_BUTUH_ALAT = [
+        self::KATEGORI_MICROBIT_LEARNING,
+        self::KATEGORI_ROBOTIK_EXPLORER,
+        self::KATEGORI_ROBOTIK_JIMU,
+    ];
+
+    /**
      * Konstanta untuk frekuensi
      */
     const FREKUENSI_HARIAN = 'harian';
-
     const FREKUENSI_MINGGUAN = 'mingguan';
-
     const FREKUENSI_DUA_MINGGU = 'dua_minggu';
-
     const FREKUENSI_BULANAN = 'bulanan';
 
     /**
      * Konstanta untuk fasilitas
      */
     const FASILITAS_ADA = 'ada';
-
     const FASILITAS_TIDAK_ADA = 'tidak_ada';
-
     const FASILITAS_TIDAK_DIKETAHUI = 'tidak_diketahui';
+
+    /**
+     * Cek apakah kategori program membutuhkan konfigurasi alat.
+     */
+    public function butuhKonfigurasiAlat(): bool
+    {
+        return in_array($this->kategori_program, self::KATEGORI_BUTUH_ALAT);
+    }
 
     /**
      * Relasi ke model Sekolah.
