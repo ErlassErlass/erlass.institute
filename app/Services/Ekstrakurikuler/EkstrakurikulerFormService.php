@@ -252,7 +252,14 @@ class EkstrakurikulerFormService
     protected function getStep1ValidationRules(): array
     {
         return [
-            'kategori_program' => 'required|string|in:Coding Scratch,English Course,Micro:bit Learning Kit,Pictoblox AI,Robotik Explorer,Robotik Jimu',
+            'kategori_program' => 'required|string|in:' . implode(',', [
+                \App\Models\Ekstrakurikuler::KATEGORI_CODING_SCRATCH,
+                \App\Models\Ekstrakurikuler::KATEGORI_ENGLISH_COURSE,
+                \App\Models\Ekstrakurikuler::KATEGORI_MICROBIT_LEARNING,
+                \App\Models\Ekstrakurikuler::KATEGORI_PICTOBLOX_AI,
+                \App\Models\Ekstrakurikuler::KATEGORI_ROBOTIK_EXPLORER,
+                \App\Models\Ekstrakurikuler::KATEGORI_ROBOTIK_JIMU,
+            ]),
             'user_id_sales' => 'required|exists:users,id',
             'region' => 'nullable|string',
             'city' => 'nullable|string',

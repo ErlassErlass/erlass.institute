@@ -64,8 +64,8 @@ class InstructorProfileController extends Controller
             'status_pernikahan' => 'required|string|max:50',
 
             // Documents (nullable if already exists, but required for completion)
-            'foto_ktp' => 'nullable|image|max:2048',
-            'foto_npwp' => 'nullable|image|max:2048',
+            'foto_ktp' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'foto_npwp' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'cv' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
 
             // Professional

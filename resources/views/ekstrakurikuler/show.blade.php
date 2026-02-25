@@ -513,8 +513,11 @@
                                                 <div class="modal-body">
                                                     <div class="mb-3">
                                                         <label for="file_excel" class="form-label">File Excel/CSV (.xlsx, .csv)</label>
-                                                        <input type="file" class="form-control" id="file_excel" name="file" required accept=".xlsx,.xls,.csv">
-                                                        <small class="text-muted">Format: No, Nama Lengkap, NISN (optional), Kelas</small>
+                                                        <input type="file" class="form-control" id="file_excel" name="file" required accept=".xlsx,.xls,.csv" data-max-size="2097152">
+                                                        <div class="form-text mt-1">
+                                                            <i class="fas fa-info-circle"></i> Format: .xlsx, .xls, .csv | Maksimal: 2MB
+                                                        </div>
+                                                        <small class="text-muted d-block mt-1">Data: No, Nama Lengkap, NISN (optional), Kelas</small>
                                                     </div>
                                                     <div class="alert alert-info small">
                                                         <i class="fas fa-info-circle"></i> Sistem akan mencocokkan siswa berdasarkan NISN atau Nama + Sekolah. Jika tidak ditemukan, siswa baru akan dibuat otomatis.

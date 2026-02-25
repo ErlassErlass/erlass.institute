@@ -175,8 +175,10 @@
 
                             <div class="mb-3">
                                 <label for="foto_kegiatan" class="form-label">Foto Kegiatan</label>
-                                <input type="file" name="foto_kegiatan" id="foto_kegiatan" class="form-control @error('foto_kegiatan') is-invalid @enderror" accept="image/*">
-                                <img id="foto_kegiatan_preview" class="file-upload-preview" src="#" alt="Preview Foto Kegiatan">
+                                <input type="file" name="foto_kegiatan" id="foto_kegiatan" class="form-control @error('foto_kegiatan') is-invalid @enderror" accept="image/jpeg,image/png,image/jpg,image/gif" data-max-size="5242880">
+                                <div class="form-text mt-1">
+                                    <i class="bi bi-info-circle me-1"></i> Format: JPEG, PNG, JPG, GIF | Maksimal: 5MB
+                                </div>
                                 @error('foto_kegiatan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
                             
@@ -281,22 +283,7 @@
             scrollbar: true
         });
 
-        // Image preview functionality
-        function readURL(input, previewId) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-
-                reader.onload = function(e) {
-                    $(previewId).attr('src', e.target.result).show();
-                }
-
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        $("#foto_kegiatan").change(function() {
-            readURL(this, '#foto_kegiatan_preview');
-        });
+        // Image preview functionality is now handled by FormValidator globally
 
         // Helper: Dynamic Rombel Placeholder based on Category
         $('#kategori_pengajaran').change(function() {

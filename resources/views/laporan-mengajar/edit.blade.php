@@ -193,7 +193,8 @@
                                     </div>
                                 </div>
                                 @endif
-                                <input type="file" name="foto_kegiatan" id="foto_kegiatan" class="form-control @error('foto_kegiatan') is-invalid @enderror" accept="image/*">
+                                <input type="file" name="foto_kegiatan" id="foto_kegiatan" class="form-control @error('foto_kegiatan') is-invalid @enderror" accept="image/jpeg,image/png,image/jpg,image/gif" data-max-size="5242880">
+                                <small class="text-muted">Format: JPEG, PNG, JPG, GIF. Maks: 5MB</small>
                                 @error('foto_kegiatan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
                             

@@ -14,25 +14,18 @@
                     id="kategori_program" 
                     name="kategori_program" 
                     required>
-                <option value="">Pilih Kategori Program</option>
-                <option value="Coding Scratch" {{ old('kategori_program', $formData['kategori_program'] ?? '') == 'Coding Scratch' ? 'selected' : '' }}>
-                    Coding Scratch
-                </option>
-                <option value="English Course" {{ old('kategori_program', $formData['kategori_program'] ?? '') == 'English Course' ? 'selected' : '' }}>
-                    English Course
-                </option>
-                <option value="Micro:bit Learning Kit" {{ old('kategori_program', $formData['kategori_program'] ?? '') == 'Micro:bit Learning Kit' ? 'selected' : '' }}>
-                    Micro:bit Learning Kit
-                </option>
-                <option value="Pictoblox AI" {{ old('kategori_program', $formData['kategori_program'] ?? '') == 'Pictoblox AI' ? 'selected' : '' }}>
-                    Pictoblox AI
-                </option>
-                <option value="Robotik Explorer" {{ old('kategori_program', $formData['kategori_program'] ?? '') == 'Robotik Explorer' ? 'selected' : '' }}>
-                    Robotik Explorer
-                </option>
-                <option value="Robotik Jimu" {{ old('kategori_program', $formData['kategori_program'] ?? '') == 'Robotik Jimu' ? 'selected' : '' }}>
-                    Robotik Jimu
-                </option>
+                @foreach([
+                    \App\Models\Ekstrakurikuler::KATEGORI_CODING_SCRATCH,
+                    \App\Models\Ekstrakurikuler::KATEGORI_ENGLISH_COURSE,
+                    \App\Models\Ekstrakurikuler::KATEGORI_MICROBIT_LEARNING,
+                    \App\Models\Ekstrakurikuler::KATEGORI_PICTOBLOX_AI,
+                    \App\Models\Ekstrakurikuler::KATEGORI_ROBOTIK_EXPLORER,
+                    \App\Models\Ekstrakurikuler::KATEGORI_ROBOTIK_JIMU,
+                ] as $kat)
+                    <option value="{{ $kat }}" {{ old('kategori_program', $formData['kategori_program'] ?? '') == $kat ? 'selected' : '' }}>
+                        {{ $kat }}
+                    </option>
+                @endforeach
             </select>
             @error('kategori_program')
                 <div class="invalid-feedback">{{ $message }}</div>
@@ -227,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const jenisAlatRadios = document.querySelectorAll('input[name="jenis_alat"]');
     
     // Categories that require equipment config
-    const kategoriButuhAlat = ['Micro:bit Learning Kit', 'Robotik Explorer', 'Robotik Jimu'];
+    const kategoriButuhAlat = {!! json_encode(\App\Models\Ekstrakurikuler::KATEGORI_BUTUH_ALAT) !!};
     
     function toggleEquipment() {
         const selectedKategori = kategoriSelect.value;

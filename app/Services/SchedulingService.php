@@ -19,16 +19,30 @@ class SchedulingService
      */
     protected array $nationalHolidays = [
         // Format: 'YYYY-MM-DD'
-        '2025-01-01', // Tahun Baru
-        '2025-02-12', // Imlek (contoh)
-        '2025-03-31', // Nyepi (contoh)
-        '2025-04-18', // Good Friday (contoh)
-        '2025-05-01', // Hari Buruh
-        '2025-05-29', // Ascension Day (contoh)
-        '2025-06-01', // Pancasila Day
-        '2025-08-17', // Independence Day
-        '2025-12-25', // Christmas
-        '2025-12-31', // New Year's Eve
+        '2026-01-01', // Tahun Baru Masehi
+        '2026-01-16', // Isra Mikraj
+        '2026-02-16', // Cuti Bersama Imlek
+        '2026-02-17', // Tahun Baru Imlek
+        '2026-03-18', // Cuti Bersama Nyepi
+        '2026-03-19', // Hari Suci Nyepi
+        '2026-03-20', // Cuti Bersama Idul Fitri
+        '2026-03-21', // Idul Fitri
+        '2026-03-22', // Idul Fitri
+        '2026-03-23', // Cuti Bersama Idul Fitri
+        '2026-03-24', // Cuti Bersama Idul Fitri
+        '2026-04-03', // Wafat Yesus Kristus
+        '2026-05-01', // Hari Buruh
+        '2026-05-14', // Kenaikan Yesus Kristus
+        '2026-05-15', // Cuti Bersama Kenaikan
+        '2026-05-27', // Idul Adha
+        '2026-05-28', // Cuti Bersama Idul Adha
+        '2026-05-31', // Hari Raya Waisak
+        '2026-06-01', // Hari Lahir Pancasila
+        '2026-06-16', // Tahun Baru Islam
+        '2026-08-17', // Hari Kemerdekaan RI
+        '2026-08-25', // Maulid Nabi Muhammad SAW
+        '2026-12-24', // Cuti Bersama Natal
+        '2026-12-25', // Hari Raya Natal
     ];
 
     /**

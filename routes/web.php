@@ -153,7 +153,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('dropdown-data', [EkstrakurikulerApiController::class, 'getDropdownData'])->name('dropdown-data');
         Route::post('save-step', [EkstrakurikulerApiController::class, 'saveStepData'])->name('save-step');
         Route::get('form-progress', [EkstrakurikulerApiController::class, 'getFormProgress'])->name('form-progress');
-        Route::get('form-progress', [EkstrakurikulerApiController::class, 'getFormProgress'])->name('form-progress');
         Route::get('search-student', [EkstrakurikulerApiController::class, 'searchStudent'])->name('search-student');
         Route::post('store-quick-student', [EkstrakurikulerApiController::class, 'storeQuickStudent'])->name('store-quick-student'); // NEW
     });
@@ -274,8 +273,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('laporan-mengajar/from-ekstrakurikuler/{session}', [LaporanMengajarController::class, 'createFromEkstrakurikuler'])
         ->name('laporan-mengajar.from-ekstrakurikuler');
 
-    // Absensi index with filter support
-    Route::get('absensi', [AbsensiController::class, 'index'])->name('absensi.index');
+    // Absensi index with filter support (covered by resource, but explicity for clarity if needed)
+    // No explicit route needed here if resource(index) is active
     Route::get('laporan-mengajar/{laporan_mengajar}/absensi/tanggal/{tanggal}', [AbsensiController::class, 'showByDate'])
         ->name('laporan-mengajar.absensi.tanggal');
 });

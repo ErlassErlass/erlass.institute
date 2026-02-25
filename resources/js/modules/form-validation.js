@@ -40,10 +40,10 @@ export class FormValidator {
     setupCustomValidators() {
         // Date validation (not in future for reports)
         this.setupDateValidation();
-        
+
         // Time validation (end time after start time)
         this.setupTimeValidation();
-        
+
         // File validation (size and type)
         this.setupFileValidation();
     }
@@ -92,19 +92,54 @@ export class FormValidator {
             if (e.target.matches('input[type="file"]')) {
                 const file = e.target.files[0];
                 if (file) {
-                    // Check file size (2MB limit)
-                    if (file.size > 2 * 1024 * 1024) {
-                        this.showValidationError(e.target, 'Ukuran file maksimal 2MB');
+                    // 1. Get custom limits from data attributes or defaults
+                    const maxSize = parseInt(e.target.dataset.maxSize) || 2 * 1024 * 1024; // Default 2MB
+                    const maxSizeMb = (maxSize / (1024 * 1024)).toFixed(0);
+
+                    // Check file size
+                    if (file.size > maxSize) {
+                        this.showValidationError(e.target, `Ukuran file maksimal ${maxSizeMb}MB`);
                         e.target.value = '';
                         return;
                     }
 
-                    // Check file type
-                    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
-                    if (!allowedTypes.includes(file.type)) {
-                        this.showValidationError(e.target, 'Hanya file gambar (JPEG, PNG, JPG, GIF) yang diizinkan');
-                        e.target.value = '';
-                        return;
+                    // 2. Comprehensive Type Validation via 'accept' attribute
+                    const acceptAttr = e.target.getAttribute('accept');
+                    if (acceptAttr) {
+                        const allowedList = acceptAttr.split(',').map(item => item.trim());
+                        const fileName = file.name.toLowerCase();
+                        const fileType = file.type.toLowerCase();
+
+                        let isAllowed = false;
+                        for (const allowed of allowedList) {
+                            if (allowed.startsWith('.')) {
+                                // Extension check (e.g. .csv)
+                                if (fileName.endsWith(allowed)) {
+                                    isAllowed = true;
+                                    break;
+                                }
+                            } else if (allowed.includes('*')) {
+                                // Wildcard check (e.g. image/*)
+                                const baseType = allowed.split('/')[0];
+                                if (fileType.startsWith(baseType + '/')) {
+                                    isAllowed = true;
+                                    break;
+                                }
+                            } else {
+                                // Mime type check (e.g. image/jpeg)
+                                if (fileType === allowed) {
+                                    isAllowed = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!isAllowed) {
+                            const readableAllowed = allowedList.join(', ').toUpperCase();
+                            this.showValidationError(e.target, `Format file tidak sesuai. Diizinkan: ${readableAllowed}`);
+                            e.target.value = '';
+                            return;
+                        }
                     }
 
                     this.clearValidationError(e.target);
@@ -117,13 +152,13 @@ export class FormValidator {
     setupFormSubmissionHandlers() {
         document.addEventListener('submit', (e) => {
             const form = e.target;
-            
+
             // Add loading state to submit button
             const submitBtn = form.querySelector('button[type="submit"]');
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
-                
+
                 // Re-enable after 10 seconds as fallback
                 setTimeout(() => {
                     submitBtn.disabled = false;
@@ -135,7 +170,7 @@ export class FormValidator {
 
     showValidationError(input, message) {
         input.classList.add('is-invalid');
-        
+
         // Remove existing error message
         const existingError = input.parentNode.querySelector('.invalid-feedback');
         if (existingError) {
@@ -164,14 +199,19 @@ export class FormValidator {
             existingPreview.remove();
         }
 
-        if (file && file.type.startsWith('image/')) {
+        // Only show preview for images IF the input expects an image
+        const acceptAttr = input.getAttribute('accept');
+        const isImageField = acceptAttr && acceptAttr.includes('image');
+
+        if (isImageField && file && file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const preview = document.createElement('img');
                 preview.src = e.target.result;
-                preview.className = 'file-preview mt-2';
+                preview.className = 'file-preview mt-2 rounded shadow-sm';
                 preview.style.maxWidth = '200px';
                 preview.style.maxHeight = '200px';
+                preview.style.display = 'block';
                 input.parentNode.appendChild(preview);
             };
             reader.readAsDataURL(file);

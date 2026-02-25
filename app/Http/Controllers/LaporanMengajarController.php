@@ -562,7 +562,7 @@ class LaporanMengajarController extends Controller
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
             'materi_pengajaran' => 'required|string',
-            'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // Increased to 5MB
+            'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // Increased to 5MB and added GIF
             // Removed: foto_absensi_siswa, refleksi_siswa, refleksi_capaian, keaktifan, pemahaman_materi
         ];
     }

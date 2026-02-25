@@ -30,12 +30,14 @@
                         </div>
 
                         <div class="mb-4">
-                            <label for="file" class="form-label fw-bold">Pilih File</label>
-                            <input type="file" class="form-control form-control-lg @error('file') is-invalid @enderror" id="file" name="file" required>
+                            <label for="file" class="form-label fw-bold">Pilih File (CSV atau Excel)</label>
+                            <input type="file" class="form-control form-control-lg @error('file') is-invalid @enderror" id="file" name="file" accept=".csv, .xlsx, .xls" data-max-size="2097152" required>
                             @error('file')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <div class="form-text">Maksimal ukuran file: 2MB</div>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle me-1"></i> Format: .csv, .xlsx, .xls | Maksimal: 2MB
+                            </div>
                         </div>
 
                         <div class="d-flex justify-content-between">

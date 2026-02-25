@@ -229,13 +229,13 @@
                                 
                                 <div class="col-md-4">
                                     <label class="form-label small text-muted">Upload KTP <span class="text-danger">*</span></label>
-                                    <input class="form-control" type="file" name="foto_ktp" accept="image/*" {{ isset($profile->foto_ktp) ? '' : 'required' }} />
-                                    <div class="form-text small">Format Image (JPG/PNG). {{ isset($profile->foto_ktp) ? 'Biarkan kosong jika tidak diubah.' : '' }}</div>
+                                    <input class="form-control" type="file" name="foto_ktp" accept="image/jpeg,image/png,image/jpg,image/gif" data-max-size="5242880" {{ isset($profile->foto_ktp) ? '' : 'required' }} />
+                                    <div class="form-text small">Format Image (JPG/PNG/GIF). Maks 5MB. {{ isset($profile->foto_ktp) ? 'Biarkan kosong jika tidak diubah.' : '' }}</div>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small text-muted">Upload NPWP</label>
-                                    <input class="form-control" type="file" name="foto_npwp" accept="image/*" />
-                                    <div class="form-text small">{{ isset($profile->foto_npwp) ? 'Biarkan kosong jika tidak diubah.' : '' }}</div>
+                                    <input class="form-control" type="file" name="foto_npwp" accept="image/jpeg,image/png,image/jpg,image/gif" data-max-size="5242880" />
+                                    <div class="form-text small">Format Image (JPG/PNG/GIF). Maks 5MB. {{ isset($profile->foto_npwp) ? 'Biarkan kosong jika tidak diubah.' : '' }}</div>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small text-muted">Upload CV <span class="text-danger">*</span></label>

@@ -90,10 +90,10 @@ class StoreLaporanMengajarRequest extends FormRequest
             'jam_selesai.after' => 'Jam selesai harus setelah jam mulai.',
             'foto_kegiatan.image' => 'File foto kegiatan harus berupa gambar.',
             'foto_kegiatan.mimes' => 'Foto kegiatan harus berformat jpeg, png, jpg, atau gif.',
-            'foto_kegiatan.max' => 'Ukuran foto kegiatan maksimal 2MB.',
+            'foto_kegiatan.max' => 'Ukuran foto kegiatan maksimal 5MB.',
             'foto_absensi_siswa.image' => 'File foto absensi harus berupa gambar.',
             'foto_absensi_siswa.mimes' => 'Foto absensi harus berformat jpeg, png, jpg, atau gif.',
-            'foto_absensi_siswa.max' => 'Ukuran foto absensi maksimal 2MB.',
+            'foto_absensi_siswa.max' => 'Ukuran foto absensi maksimal 5MB.',
         ];
     }
 
