@@ -141,7 +141,7 @@ class EkstrakurikulerReportController extends Controller
                 'metadata_json' => [
                     'source' => 'ekstrakurikuler',
                     'session_id' => $session->id,
-                    'program' => $session->rombel->ekstrakurikuler->nama_program,
+                    'program' => $session->rombel->ekstrakurikuler->kategori_program,
                 ]
             ]);
 

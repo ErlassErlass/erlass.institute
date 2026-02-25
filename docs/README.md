@@ -31,6 +31,7 @@ docs/
 | [REFACTORING_GUIDE.md](dev/REFACTORING_GUIDE.md) | Panduan refactoring |
 | [WORKFLOW.md](dev/WORKFLOW.md) | Development workflow |
 | [PERFORMANCE_ANALYSIS.md](dev/PERFORMANCE_ANALYSIS.md) | Analisis performa |
+| [CONVENTIONS.md](dev/CONVENTIONS.md) | Konvensi teknis (Rombel, Kodlan, dll) |
 
 ### 🚀 Operations (`docs/ops/`)
 | File | Deskripsi |

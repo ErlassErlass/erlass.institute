@@ -61,6 +61,8 @@ class SiswaController extends Controller
             'kelas' => 'required|string',
         ]);
 
+        $validated['rombel'] = $validated['kelas'];
+
         Siswa::create($validated);
 
         return redirect()->route('siswa.index')->with('success', 'Siswa added!');
@@ -90,6 +92,8 @@ class SiswaController extends Controller
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
             'kelas' => 'required|string',
         ]);
+
+        $validated['rombel'] = $validated['kelas'];
 
         $siswa->update($validated);
 

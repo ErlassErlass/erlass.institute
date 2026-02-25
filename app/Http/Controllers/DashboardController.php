@@ -241,12 +241,14 @@ class DashboardController extends Controller
             'pending_students' => \App\Models\Siswa::where('nisn', 'like', 'TMP%')->count(),
             'pending_instruktur' => \App\Models\User::where('role', 'instruktur')->where('verification_status', 'pending')->count(),
             'pending_sessions_no_instructor' => \App\Models\EkstrakurikulerSession::whereNull('user_id_instruktur')
-                ->whereDate('tanggal_pelaksanaan', '>=', Carbon::today())
+                ->where('status', 'terjadwal')
+                ->whereDate('tanggal_terjadwal', '>=', Carbon::today())
                 ->count(),
             'urgent_sessions_list' => \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah:kodlan,namasekolah'])
                 ->whereNull('user_id_instruktur')
-                ->whereDate('tanggal_pelaksanaan', '>=', Carbon::today())
-                ->orderBy('tanggal_pelaksanaan', 'asc')
+                ->where('status', 'terjadwal')
+                ->whereDate('tanggal_terjadwal', '>=', Carbon::today())
+                ->orderBy('tanggal_terjadwal', 'asc')
                 ->take(3)
                 ->get(),
             'admin_pending_reports' => in_array(auth()->user()->role, ['admin', 'admin_sistem', 'webmaster'])

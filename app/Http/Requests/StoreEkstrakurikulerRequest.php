@@ -24,7 +24,7 @@ class StoreEkstrakurikulerRequest extends FormRequest
     {
         return [
             // Basic Information
-            'nama_program' => 'required|string|max:255',
+            'kategori_program' => 'required|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',
             'user_id_sales' => 'required|exists:users,id',
             'region' => 'nullable|string|in:JAKARTA,DEPOK,BOGOR,TANGERANG,BEKASI',
@@ -70,7 +70,7 @@ class StoreEkstrakurikulerRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'nama_program' => 'nama program',
+            'kategori_program' => 'kategori program',
             'user_id_sales' => 'sales/koordinator',
             'sekolah_kodlan' => 'sekolah',
             'alamat_lengkap' => 'alamat lengkap',
@@ -100,8 +100,8 @@ class StoreEkstrakurikulerRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'nama_program.required' => 'Nama program ekstrakurikuler wajib diisi.',
-            'nama_program.max' => 'Nama program tidak boleh lebih dari 255 karakter.',
+            'kategori_program.required' => 'Kategori program ekstrakurikuler wajib diisi.',
+            'kategori_program.max' => 'Kategori program tidak boleh lebih dari 255 karakter.',
 
             'user_id_sales.required' => 'Sales/koordinator wajib dipilih.',
             'user_id_sales.exists' => 'Sales/koordinator yang dipilih tidak valid.',

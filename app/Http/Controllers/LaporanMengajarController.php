@@ -395,7 +395,7 @@ class LaporanMengajarController extends Controller
             $ekstrakurikulerSession = $laporanMengajar->ekstrakurikulerSession;
             if ($ekstrakurikulerSession) {
                 $ekstrakurikulerData = [
-                    'nama_program' => $ekstrakurikulerSession->rombel->ekstrakurikuler->kategori_program ?? 'Ekstrakurikuler',
+                    'kategori_program' => $ekstrakurikulerSession->rombel->ekstrakurikuler->kategori_program ?? 'Ekstrakurikuler',
                 ];
             }
         }

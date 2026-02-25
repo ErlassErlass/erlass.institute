@@ -166,6 +166,7 @@ class SiswaImporterService
                 'nama_lengkap' => $data['nama_lengkap'],
                 'sekolah_kodlan' => $data['sekolah_kodlan'],
                 'kelas' => $data['kelas'],
+                'rombel' => $data['kelas'], // Sync rombel with kelas
             ]
         );
     }
@@ -243,12 +244,7 @@ class SiswaImporterService
 
             // Logic to find or create siswa
             // Linked to the school of the Ekstrakurikuler
-            $sekolahId = $rombel->ekstrakurikuler->sekolah_id; // Using ID not Kodlan? Check relationship.
-            // Rombel->Ekstrakurikuler->Sekolah model uses 'kodlan' usually but let's check. 
-            // In Siswa model: 'sekolah_kodlan'. 
-            // In Ekstrakurikuler: 'sekolah_id' usually foreign key to 'id' or 'kodlan'.
-            // Let's assume standardized on 'kodlan' if that's what Siswa uses.
-            // Actually, let's look at Siswa model quickly if needed, but safe bet is:
+            $sekolahKodlan = $rombel->ekstrakurikuler->sekolah_kodlan;
             
             $searchCriteria = [];
             if ($nisn) {
@@ -271,7 +267,9 @@ class SiswaImporterService
                 ],
                 [
                     'nisn' => $nisn, 
-                    'kelas' => $kelas // 'kelas' column in Siswa table (was 'rombel')
+                    'kelas' => $kelas,
+                    'rombel' => $kelas, // Sync rombel with kelas
+                    'sekolah_kodlan' => $rombel->ekstrakurikuler->sekolah_kodlan ?? null
                 ]
             );
 

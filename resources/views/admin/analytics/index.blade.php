@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `
                 <tr>
                     <td class="fw-medium ps-4 text-dark">${row.sekolah_nama}</td>
-                    <td class="text-secondary">${row.nama_program}</td>
+                    <td class="text-secondary">${row.kategori_program}</td>
                     <td><span class="badge bg-light text-dark border rounded-pill px-3">${row.nama_rombel}</span></td>
                     <td class="text-center fw-bold text-primary pe-4 fs-6">${row.total_siswa}</td>
                 </tr>

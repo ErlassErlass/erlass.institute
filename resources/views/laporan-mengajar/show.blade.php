@@ -43,7 +43,7 @@
                 {{ $laporanMengajar->sekolah->namasekolah ?? 'Sekolah tidak ditemukan' }}
                 @if($isEkstrakurikuler ?? false)
                     <span class="badge bg-warning text-dark ms-2">
-                        <i class="bi bi-trophy me-1"></i>{{ $ekstrakurikulerData['nama_program'] ?? 'Ekstrakurikuler' }}
+                        <i class="bi bi-trophy me-1"></i>{{ $ekstrakurikulerData['kategori_program'] ?? $ekstrakurikulerData['nama_program'] ?? 'Ekstrakurikuler' }}
                     </span>
                 @endif
             </p>
@@ -97,7 +97,7 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <small class="text-muted">Program:</small>
-                                            <p class="mb-1"><strong>{{ $ekstrakurikulerData['nama_program'] ?? 'N/A' }}</strong></p>
+                                            <p class="mb-1"><strong>{{ $ekstrakurikulerData['kategori_program'] ?? $ekstrakurikulerData['nama_program'] ?? 'N/A' }}</strong></p>
                                         </div>
                                         @if($ekstrakurikulerSession)
                                             <div class="col-md-6">

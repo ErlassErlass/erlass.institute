@@ -99,13 +99,6 @@ class CreateEkstrakurikulerStep1Request extends FormRequest
             ]);
         }
 
-        // Set nama_program for compatibility
-        if ($this->has('kategori_program')) {
-            $this->merge([
-                'nama_program' => $this->kategori_program,
-            ]);
-        }
-
         // Auto-set status to 'disetujui' (auto-approve)
         $this->merge([
             'status' => Ekstrakurikuler::STATUS_DISETUJUI,

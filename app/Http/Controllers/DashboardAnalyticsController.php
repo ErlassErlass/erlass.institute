@@ -46,7 +46,7 @@ class DashboardAnalyticsController extends Controller
             ->join('sekolah as s', 'e.sekolah_kodlan', '=', 's.kodlan')
             ->select(
                 's.namasekolah as sekolah_nama',
-                'e.kategori_program as nama_program',
+                'e.kategori_program',
                 'r.nama_rombel',
                 DB::raw('COUNT(DISTINCT se.siswa_id) as total_siswa')
             )

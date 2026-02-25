@@ -200,7 +200,7 @@ class LaporanMengajar extends Model
     {
         $data = $this->getEkstrakurikulerData();
 
-        return $data['nama_program'] ?? null;
+        return $data['kategori_program'] ?? $data['nama_program'] ?? null;
     }
 
     /**

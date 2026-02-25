@@ -13,8 +13,20 @@ use Illuminate\Notifications\Notifiable;
 class Siswa extends Model
 {
     use HasFactory, Notifiable;
-
+    
     protected $table = 'siswa';
+
+    protected static function booted()
+    {
+        static::saving(function ($siswa) {
+            // Sinkronisasi rombel ke kelas (atau sebaliknya) jika salah satu kosong
+            if (empty($siswa->rombel) && !empty($siswa->kelas)) {
+                $siswa->rombel = $siswa->kelas;
+            } elseif (empty($siswa->kelas) && !empty($siswa->rombel)) {
+                $siswa->kelas = $siswa->rombel;
+            }
+        });
+    }
 
     protected $fillable = [
         'nama_lengkap',

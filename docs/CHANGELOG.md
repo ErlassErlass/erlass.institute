@@ -2,6 +2,21 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.2.2] - 2026-02-25
+
+### Ditambahkan (Added)
+- **Error Monitoring**:
+    - Integrasi penuh **Sentry SDK** untuk pelacakan error dan monitoring performa.
+    - Konfigurasi kanal log `sentry` yang terintegrasi dengan `LOG_STACK`.
+    - Penambahan variabel `.env` baru: `SENTRY_LARAVEL_DSN` dan `SENTRY_TRACES_SAMPLE_RATE`.
+
+### Diperbaiki (Fixed)
+- **Student Visibility & Management**:
+    - **Critical**: Sinkronisasi otomatis kolom `rombel` dan `kelas` pada tabel `siswa`. Memperbaiki bug dimana siswa baru tidak muncul di daftar absensi karena kolom `rombel` kosong.
+    - Standarisasi referensi sekolah di `SiswaImporterService` menggunakan `sekolah_kodlan` untuk konsistensi data.
+    - Pembersihan final referensi `nama_program` yang tersisa di `EkstrakurikulerSessionSeeder`.
+
+
 ## [1.2.1] - 2026-02-24
 
 ### Diperbaiki (Fixed)

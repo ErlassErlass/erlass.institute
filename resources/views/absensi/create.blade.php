@@ -21,7 +21,7 @@
                             <div class="d-flex align-items-center">
                                 <i class="bi bi-trophy-fill me-2"></i>
                                 <div>
-                                    <p class="mb-1"><strong>Program Ekstrakurikuler:</strong> {{ $ekstrakurikulerSession->ekstrakurikuler->nama_program ?? 'N/A' }}</p>
+                                    <p class="mb-1"><strong>Program Ekstrakurikuler:</strong> {{ $ekstrakurikulerSession->ekstrakurikuler->kategori_program ?? 'N/A' }}</p>
                                     <p class="mb-1"><strong>Rombel:</strong> {{ $ekstrakurikulerSession->rombel->nama_rombel ?? $laporanMengajar->rombel }}</p>
                                     <p class="mb-1"><strong>Pertemuan:</strong> Ke-{{ $laporanMengajar->pertemuan_ke }} dari {{ $ekstrakurikulerSession->ekstrakurikuler->total_pertemuan ?? 'N/A' }}</p>
                                     <p class="mb-1"><strong>Sekolah:</strong> {{ $laporanMengajar->sekolah->namasekolah ?? 'N/A' }}</p>

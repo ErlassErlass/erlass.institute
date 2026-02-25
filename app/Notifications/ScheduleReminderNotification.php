@@ -85,7 +85,7 @@ class ScheduleReminderNotification extends Notification
         $program = $this->session->ekstrakurikuler; 
         $school = $program->sekolah->namasekolah;
         $class = $this->session->rombel->nama_rombel;
-        $category = $program->kategori_program ?? $program->nama_program;
+        $category = $program->kategori_program;
         $meeting = $this->session->nomor_pertemuan;
         $maps = $program->google_maps_link;
 

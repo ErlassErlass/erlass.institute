@@ -428,21 +428,21 @@ class EkstrakurikulerSession extends Model
             'jam_mulai' => $this->jam_mulai_aktual,
             'jam_selesai' => $this->jam_selesai_aktual,
             'kategori_pengajaran' => 'ekstrakurikuler',
-            'materi_pengajaran' => $this->topik_materi ?? $ekstrakurikuler->nama_program ?? 'Materi Ekstrakurikuler',
-            'sekolah_kodlan' => $ekstrakurikuler->sekolah_kodlan,
-            'jumlah_siswa_hadir' => $rombel->getJumlahSiswaAktual(),
-            'jumlah_siswa_keluar' => 0,
-            'refleksi_siswa' => '-',
-            'refleksi_capaian' => '-',
-            'keaktifan' => 'aktif', // Default enum
-            'pemahaman_materi' => 'paham', // Default enum
-            'metadata_json' => json_encode([
-                'ekstrakurikuler_session_id' => $this->id,
-                'ekstrakurikuler_id' => $this->ekstrakurikuler_id,
-                'ekstrakurikuler_rombel_id' => $this->ekstrakurikuler_rombel_id,
-                'nama_program' => $ekstrakurikuler->kategori_program ?? $ekstrakurikuler->nama_program,
-                'source' => 'ekstrakurikuler',
-            ]),
+                'materi_pengajaran' => $this->topik_materi ?? $ekstrakurikuler->kategori_program ?? 'Materi Ekstrakurikuler',
+                'sekolah_kodlan' => $ekstrakurikuler->sekolah_kodlan,
+                'jumlah_siswa_hadir' => $rombel->getJumlahSiswaAktual(),
+                'jumlah_siswa_keluar' => 0,
+                'refleksi_siswa' => '-',
+                'refleksi_capaian' => '-',
+                'keaktifan' => 'aktif', // Default enum
+                'pemahaman_materi' => 'paham', // Default enum
+                'metadata_json' => json_encode([
+                    'ekstrakurikuler_session_id' => $this->id,
+                    'ekstrakurikuler_id' => $this->ekstrakurikuler_id,
+                    'ekstrakurikuler_rombel_id' => $this->ekstrakurikuler_rombel_id,
+                    'kategori_program' => $ekstrakurikuler->kategori_program,
+                    'source' => 'ekstrakurikuler',
+                ]),
         ], $data);
 
         $laporan = LaporanMengajar::create($laporanData);

@@ -92,6 +92,6 @@ class EkstrakurikulerSessionSeeder extends Seeder
             $current->addDay();
         }
         
-        $this->command->info('Generated sessions for ' . $ekskul->nama_program);
+        $this->command->info('Generated sessions for ' . $ekskul->kategori_program);
     }
 }
