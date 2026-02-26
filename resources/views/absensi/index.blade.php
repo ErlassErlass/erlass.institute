@@ -55,11 +55,11 @@
                 </div>
                 <div class="col-md-2">
                     <label for="tanggal_mulai" class="form-label small fw-bold">Dari Tanggal</label>
-                    <input type="date" class="form-control form-control-sm" name="tanggal_mulai" value="{{ request('tanggal_mulai') }}">
+                    <input type="text" class="form-control form-control-sm datepicker" name="tanggal_mulai" value="{{ request('tanggal_mulai') }}" placeholder="DD-MM-YYYY">
                 </div>
                 <div class="col-md-2">
                     <label for="tanggal_selesai" class="form-label small fw-bold">Sampai Tanggal</label>
-                    <input type="date" class="form-control form-control-sm" name="tanggal_selesai" value="{{ request('tanggal_selesai') }}">
+                    <input type="text" class="form-control form-control-sm datepicker" name="tanggal_selesai" value="{{ request('tanggal_selesai') }}" placeholder="DD-MM-YYYY">
                 </div>
                 <div class="col-md-3">
                     <button type="submit" class="btn btn-primary btn-sm w-100">

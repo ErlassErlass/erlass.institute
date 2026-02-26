@@ -113,10 +113,10 @@ Untuk tabel dengan data besar (Users, Laporan), kita menggunakan **Server-Side P
 
 ### 1. Date Formatting
 Semua tampilan tanggal di aplikasi wajib mengikuti format standard Indonesia.
-*   **Format**: `dd/mm/yyyy` (Contoh: `04/02/2026`).
-*   **Implementasi Blade**: `{{ $date->format('d/m/Y') }}`.
-*   **Input HTML**: Tetap gunakan format standard global `Y-m-d` untuk value input date `<input type="date" value="2026-02-04">`, namun label/text helper bisa menampilkan format ID.
-*   **Audit**: Cek `AbsensiController` dan view-view terkait untuk konsistensi.
+*   **Format Tampilan**: `DD-MM-YYYY` (Contoh: `04-02-2026`).
+*   **Implementasi Blade**: `{{ $date->format('d-m-Y') }}`.
+*   **Input HTML (Flatpickr)**: Gunakan `<input type="text" class="datepicker">`. Flatpickr akan menangani tampilan format Indonesia (`altFormat: "d-m-Y"`) sementara tetap mengirimkan format `Y-m-d` ke server untuk kompatibilitas database.
+*   **Audit**: Hindari penggunaan `<input type="date">` pada form baru untuk konsistensi UI di berbagai browser (menghindari native picker).
 
 ### 2. Frontend Assets (Vite)
 Aplikasi menggunakan Vite untuk manajemen aset (CSS/JS). Jika terjadi error `ERR_CONNECTION_REFUSED` pada `5173`, artinya mode development tidak aktif.

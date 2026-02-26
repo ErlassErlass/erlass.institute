@@ -28,3 +28,13 @@ Aplikasi menggunakan `kodlan` (Kode Sekolah) sebagai Primary Key utama untuk tab
 - Gunakan **`kategori_program`** untuk merujuk pada jenis ekstrakurikuler (misal: "Coding Scratch").
 - Kolom `nama_program` telah dihapuskan untuk menghindari duplikasi data.
 - Jika mereferensikan nama di metadata, gunakan key `kategori_program`.
+31: 
+32: ## Datepicker (Flatpickr)
+33: 
+34: Aplikasi menggunakan Flatpickr untuk seluruh input tanggal dan waktu.
+35: 
+36: **Aturan Penting**:
+37: - Gunakan **`class="datepicker"`** untuk input tanggal standar (format tampilan `DD-MM-YYYY`).
+38: - Gunakan **`class="time-picker"`** atau **`class="timepicker"`** untuk input waktu (24 jam).
+39: - Hindari memanggil `flatpickr()` secara lokal di dalam file Blade. Gunakan fungsi global **`window.initDatepickers()`** jika ada elemen yang baru ditambahkan secara dinamis (AJAX).
+40: - Pastikan input bertipe `text`, bukan `date`, untuk mencegah konflik dengan native picker bawaan browser.

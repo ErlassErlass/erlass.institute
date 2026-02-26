@@ -3,7 +3,6 @@
 @section('title', 'Edit Program Ekstrakurikuler')
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
     .edit-card {
         border-radius: 8px;
@@ -674,20 +673,22 @@
                                 <div class="col-md-3">
                                     <div class="form-group mb-3">
                                         <label class="form-label">Tanggal Mulai</label>
-                                        <input type="date" 
-                                               class="form-control" 
+                                        <input type="text" 
+                                               class="form-control datepicker" 
                                                name="rombel[{{ $rombel->id }}][tanggal_mulai]" 
-                                               value="{{ $rombel->tanggal_mulai ? $rombel->tanggal_mulai->format('Y-m-d') : '' }}">
+                                               value="{{ $rombel->tanggal_mulai ? $rombel->tanggal_mulai->format('Y-m-d') : '' }}"
+                                               placeholder="DD-MM-YYYY">
                                     </div>
                                 </div>
 
                                 <div class="col-md-3">
                                     <div class="form-group mb-3">
                                         <label class="form-label">Tanggal Selesai</label>
-                                        <input type="date" 
-                                               class="form-control" 
+                                        <input type="text" 
+                                               class="form-control datepicker" 
                                                name="rombel[{{ $rombel->id }}][tanggal_selesai]" 
-                                               value="{{ $rombel->tanggal_selesai ? $rombel->tanggal_selesai->format('Y-m-d') : '' }}">
+                                               value="{{ $rombel->tanggal_selesai ? $rombel->tanggal_selesai->format('Y-m-d') : '' }}"
+                                               placeholder="DD-MM-YYYY">
                                     </div>
                                 </div>
                             </div>
@@ -740,15 +741,8 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize date pickers
-    flatpickr('input[type="date"]', {
-        dateFormat: 'Y-m-d',
-        locale: 'id'
-    });
-
     // Form validation
     const form = document.getElementById('editForm');
     form.addEventListener('submit', function(e) {

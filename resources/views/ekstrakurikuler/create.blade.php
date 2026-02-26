@@ -3,7 +3,6 @@
 @section('title', 'Tambah Program Ekstrakurikuler')
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
     .step-container {
         background: white;
@@ -366,9 +365,7 @@
                         </div>
 
                         <div class="text-center">
-                            <button type="button" class="btn btn-outline-primary" onclick="saveDraft()">
-                                <i class="fas fa-save"></i> Simpan Draft
-                            </button>
+                            {{-- Simpan Draft button removed per request --}}
                         </div>
 
                         <div>
@@ -420,25 +417,9 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize flatpickr for date inputs
-    flatpickr('.date-picker', {
-        dateFormat: 'Y-m-d',
-        locale: 'id',
-        minDate: 'today'
-    });
-    
-    // Initialize flatpickr for time inputs
-    flatpickr('.time-picker', {
-        enableTime: true,
-        noCalendar: true,
-        dateFormat: 'H:i',
-        time_24hr: true,
-        locale: 'id'
-    });
+    // Note: initDatepickers() is called in app.js
 
     // Auto-calculate end date based on meetings and frequency
     const pertemuanInput = document.querySelector('input[name*="_total_pertemuan"]');

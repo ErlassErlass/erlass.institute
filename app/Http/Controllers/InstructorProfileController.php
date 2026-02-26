@@ -54,7 +54,7 @@ class InstructorProfileController extends Controller
         $request->validate([
             // Personal Info
             'tanggal_lahir' => 'required|date',
-            'no_telephone' => 'required|string|max:20', // Add validation for phone number
+            'no_telephone' => 'required|string|max:20', 
             'gelar_depan' => 'nullable|string|max:50',
             'gelar_belakang' => 'nullable|string|max:50', 
             'nama_panggilan' => 'required|string|max:100',
@@ -71,7 +71,7 @@ class InstructorProfileController extends Controller
             // Professional
             'pekerjaan_terakhir' => 'required|string',
             'jenjang_mengajar' => 'required|string',
-            'pend_terakhir' => 'required|string',
+            'pend_terakhir' => 'required|string|in:SMA/SMK Sederajat,D3,D4/S1,S2,S3',
             'universitas_jurusan' => 'required|string',
             
             // Financial & Legal
@@ -97,10 +97,11 @@ class InstructorProfileController extends Controller
         try {
             DB::beginTransaction();
 
-            // Update User Phone Number & Birth Date
+            // Update User Phone Number, Birth Date & Education Level
             $user->update([
                 'no_telephone' => $request->no_telephone,
-                'tanggal_lahir' => $request->tanggal_lahir
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'pend_terakhir' => $request->pend_terakhir
             ]);
 
             // 1. Upload Files
@@ -128,9 +129,9 @@ class InstructorProfileController extends Controller
                 'alamat_domisili' => $request->alamat_domisili,
                 'kota_domisili' => $request->kota_domisili,
                 'status_pernikahan' => $request->status_pernikahan,
-                'foto_ktp' => $docPaths['foto_ktp'] ?? ($user->instructorProfile->foto_ktp ?? null),
-                'foto_npwp' => $docPaths['foto_npwp'] ?? ($user->instructorProfile->foto_npwp ?? null),
-                'cv_link' => $docPaths['cv_link'] ?? ($user->instructorProfile->cv_link ?? null),
+                'foto_ktp' => $docPaths['foto_ktp'] ?? ($user->instructorProfile?->foto_ktp ?? null),
+                'foto_npwp' => $docPaths['foto_npwp'] ?? ($user->instructorProfile?->foto_npwp ?? null),
+                'cv_link' => $docPaths['cv_link'] ?? ($user->instructorProfile?->cv_link ?? null),
                 'pekerjaan_terakhir' => $request->pekerjaan_terakhir,
                 'jenjang_mengajar' => $request->jenjang_mengajar,
                 'universitas_jurusan' => $request->universitas_jurusan,

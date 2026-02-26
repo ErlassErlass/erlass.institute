@@ -3,7 +3,6 @@
 @section('title', 'Manajemen Ekstrakurikuler')
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
     .stat-card {
         border-radius: 8px;
@@ -571,7 +570,6 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="{{ asset('js/modules/ekstrakurikuler-city-filter.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -579,7 +577,7 @@
         const dateRangeInput = document.getElementById('date_range');
         const clearButton = document.querySelector('.clear-date');
 
-        if (dateRangeInput) {
+        if (dateRangeInput && typeof flatpickr !== 'undefined') {
             flatpickr(dateRangeInput, {
                 mode: 'range',
                 dateFormat: 'd/m/Y',

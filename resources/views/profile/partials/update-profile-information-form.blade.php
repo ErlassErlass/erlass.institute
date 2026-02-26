@@ -1,8 +1,4 @@
 <section>
-    @if (session('status'))
-        <x-alert type="success" :message="session('status')" />
-    @endif
-
     <form method="post" action="{{ route('profile.update') }}">
         @csrf
         @method('patch')
@@ -24,7 +20,7 @@
         <div class="row">
             <div class="col-md-6 mb-3">
                 <x-input-label for="tanggal_lahir" :value="__('Birth Date')" />
-                <x-text-input id="tanggal_lahir" name="tanggal_lahir" type="date" class="form-control" :value="old('tanggal_lahir', $user->tanggal_lahir)" />
+                <x-text-input id="tanggal_lahir" name="tanggal_lahir" type="text" class="form-control datepicker" :value="old('tanggal_lahir', $user->tanggal_lahir ? $user->tanggal_lahir->format('Y-m-d') : '')" placeholder="DD-MM-YYYY" />
                 <x-input-error class="text-danger mt-1" :messages="$errors->get('tanggal_lahir')" />
             </div>
 
@@ -54,9 +50,9 @@
                 <x-input-label for="pend_terakhir" :value="__('Last Education')" />
                 <select id="pend_terakhir" name="pend_terakhir" class="form-select">
                     <option value="">{{ __('Select Education Level') }}</option>
-                    <option value="SMA" {{ old('pend_terakhir', $user->pend_terakhir) == 'SMA' ? 'selected' : '' }}>SMA</option>
+                    <option value="SMA/SMK Sederajat" {{ old('pend_terakhir', $user->pend_terakhir) == 'SMA/SMK Sederajat' ? 'selected' : '' }}>SMA/SMK Sederajat</option>
                     <option value="D3" {{ old('pend_terakhir', $user->pend_terakhir) == 'D3' ? 'selected' : '' }}>D3</option>
-                    <option value="S1" {{ old('pend_terakhir', $user->pend_terakhir) == 'S1' ? 'selected' : '' }}>S1</option>
+                    <option value="D4/S1" {{ old('pend_terakhir', $user->pend_terakhir) == 'D4/S1' ? 'selected' : '' }}>D4/S1</option>
                     <option value="S2" {{ old('pend_terakhir', $user->pend_terakhir) == 'S2' ? 'selected' : '' }}>S2</option>
                     <option value="S3" {{ old('pend_terakhir', $user->pend_terakhir) == 'S3' ? 'selected' : '' }}>S3</option>
                 </select>

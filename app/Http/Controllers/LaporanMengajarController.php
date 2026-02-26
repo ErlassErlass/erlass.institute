@@ -300,8 +300,8 @@ class LaporanMengajarController extends Controller
             
         $selectedSekolah = null;
 
-        if (old('kodlan')) {
-            $selectedSekolah = Sekolah::find(old('kodlan'));
+        if (old('sekolah_kodlan')) {
+            $selectedSekolah = Sekolah::find(old('sekolah_kodlan'));
         }
 
         $kategori = $this->getKategoriList();

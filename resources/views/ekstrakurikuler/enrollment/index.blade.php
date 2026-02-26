@@ -318,8 +318,8 @@
                         <label for="bulk_tanggal_daftar" class="form-label">
                             <i class="bi bi-calendar me-1"></i>Tanggal Pendaftaran <span class="text-danger">*</span>
                         </label>
-                        <input type="date" class="form-control @error('tanggal_daftar', 'bulk_import') is-invalid @enderror" id="bulk_tanggal_daftar" name="tanggal_daftar" 
-                               value="{{ old('tanggal_daftar', now()->format('Y-m-d')) }}" max="{{ now()->format('Y-m-d') }}" required>
+                        <input type="text" class="form-control datepicker @error('tanggal_daftar', 'bulk_import') is-invalid @enderror" id="bulk_tanggal_daftar" name="tanggal_daftar" 
+                               value="{{ old('tanggal_daftar', now()->format('Y-m-d')) }}" placeholder="DD-MM-YYYY" required>
                         @error('tanggal_daftar', 'bulk_import')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

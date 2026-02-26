@@ -36,7 +36,7 @@
                 </div>
                 <div class="col-md-3">
                     <label for="date" class="form-label small fw-bold">Tanggal</label>
-                    <input type="date" class="form-control form-control-sm" name="date" value="{{ request('date') }}">
+                    <input type="text" class="form-control form-control-sm datepicker" name="date" value="{{ request('date') }}" placeholder="DD-MM-YYYY">
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary btn-sm w-100">

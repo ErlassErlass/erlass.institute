@@ -47,11 +47,16 @@ erDiagram
         string email
         string password
         string role
-        string instructor_id "Format: ICE2025XXX"
+        string instructor_id "Format: ICE2026XXX"
         string no_telephone
         date tanggal_lahir
+        string agama
+        string pend_terakhir
+        string kompetensi_1
+        string kompetensi_2
         json verification_documents
-        enum verification_status "pending, verified, rejected"
+        enum verification_status "pending, approved, rejected, incomplete"
+        datetime application_date
     }
 
     INSTRUCTOR_PROFILE {
@@ -82,7 +87,7 @@ erDiagram
         bigint id PK
         string kategori_program
         string sekolah_kodlan FK
-        enum status "draft, diajukan, aktif, selesai"
+        enum status "draft, diajukan, disetujui, ditolak, aktif, selesai, dibatalkan"
     }
 
     EKSTRAKURIKULER_ROMBEL {
@@ -162,3 +167,4 @@ erDiagram
 *   **Soft Deletes**: Digunakan pada tabel `ekstrakurikuler` dan `siswa` untuk mencegah kehilangan data tidak sengaja.
 *   **Foreign Keys**: Constraint SQL aktif untuk menjaga integritas (misal: menghapus Rombel akan gagal jika masih ada Siswa terdaftar).
 *   **File Storage**: Foto disimpan menggunakan path yang di-hash di `storage/app/public` dan tidak dapat diakses langsung tanpa symlink yang benar.
+*   **Data Integrity Fallbacks**: Model `User` memiliki logic `boot` (creating/updating) untuk memastikan field krusial seperti `agama`, `pend_terakhir`, dan `kompetensi_1` tidak bernilai `NULL` demi menjaga stabilitas sistem.

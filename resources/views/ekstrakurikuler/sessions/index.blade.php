@@ -73,16 +73,18 @@
                     <!-- Date Range -->
                     <div class="col-md-6 col-lg-3">
                         <label for="tanggal_dari" class="form-label small fw-bold text-muted">Tanggal Dari</label>
-                        <input type="date" name="tanggal_dari" id="tanggal_dari" 
+                        <input type="text" name="tanggal_dari" id="tanggal_dari" 
                                value="{{ request('tanggal_dari') }}"
-                               class="form-control">
+                               class="form-control datepicker"
+                               placeholder="DD-MM-YYYY">
                     </div>
 
                     <div class="col-md-6 col-lg-3">
                         <label for="tanggal_sampai" class="form-label small fw-bold text-muted">Tanggal Sampai</label>
-                        <input type="date" name="tanggal_sampai" id="tanggal_sampai" 
+                        <input type="text" name="tanggal_sampai" id="tanggal_sampai" 
                                value="{{ request('tanggal_sampai') }}"
-                               class="form-control">
+                               class="form-control datepicker"
+                               placeholder="DD-MM-YYYY">
                     </div>
 
                     <!-- Search & Actions -->

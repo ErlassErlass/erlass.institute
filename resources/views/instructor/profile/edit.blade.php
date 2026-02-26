@@ -69,11 +69,12 @@
                                     <input class="form-control font-monospace" type="text" name="nik" value="{{ old('nik', $profile->nik ?? '') }}" required minlength="16" maxlength="16" />
                                 </div>
 
-                                <div class="col-md-4">
+                                <div class="col-md-6 mb-3">
                                     <label class="form-label small text-muted">Tanggal Lahir <span class="text-danger">*</span></label>
-                                    <input class="form-control" type="date" name="tanggal_lahir" value="{{ old('tanggal_lahir', $user->tanggal_lahir ? \Carbon\Carbon::parse($user->tanggal_lahir)->format('Y-m-d') : '') }}" required />
+                                    <input type="text" name="tanggal_lahir" class="form-control datepicker @error('tanggal_lahir') is-invalid @enderror" value="{{ old('tanggal_lahir', $user->tanggal_lahir ? $user->tanggal_lahir->format('Y-m-d') : '') }}" required placeholder="DD-MM-YYYY">
+                                    @error('tanggal_lahir') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <label class="form-label small text-muted">Agama</label>
                                     <input class="form-control bg-light" type="text" value="{{ $user->agama }}" readonly />
                                 </div>
@@ -128,6 +129,7 @@
                                         <option value="D3" {{ old('pend_terakhir', $user->pend_terakhir) == 'D3' ? 'selected' : '' }}>D3</option>
                                         <option value="D4/S1" {{ old('pend_terakhir', $user->pend_terakhir) == 'D4/S1' ? 'selected' : '' }}>D4/S1</option>
                                         <option value="S2" {{ old('pend_terakhir', $user->pend_terakhir) == 'S2' ? 'selected' : '' }}>S2</option>
+                                        <option value="S3" {{ old('pend_terakhir', $user->pend_terakhir) == 'S3' ? 'selected' : '' }}>S3</option>
                                     </select>
                                 </div>
                                  <div class="col-md-6">

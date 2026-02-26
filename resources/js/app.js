@@ -18,7 +18,39 @@ import 'datatables.net-responsive-bs5';
 import select2 from 'select2';
 select2(); // Initialize Select2 functionality
 import flatpickr from "flatpickr";
+import { Indonesian } from "flatpickr/dist/l10n/id.js";
+
+// Expose flatpickr globally
 window.flatpickr = flatpickr;
+window.flatpickrIndonesian = Indonesian;
+
+// Global initialization function
+window.initDatepickers = function () {
+    // Standard Date Picker
+    flatpickr(".datepicker", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d-m-Y",
+        locale: Indonesian,
+        allowInput: true
+    });
+
+    // Time Picker
+    flatpickr(".timepicker, .time-picker", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true,
+        locale: Indonesian
+    });
+
+    // Date Picker (No Alt Input - for specific cases)
+    flatpickr(".date-picker, .datepicker-basic", {
+        dateFormat: "Y-m-d",
+        locale: Indonesian,
+        allowInput: true
+    });
+};
 
 // Import custom modules
 import { DataTableManager } from './modules/datatable.js';
@@ -43,6 +75,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initialize form validation
     new FormValidator();
+
+    // Initialize Flatpickr datepickers
+    window.initDatepickers();
 
     // Initialize Bootstrap components (if bootstrap is loaded via CDN)
     if (typeof bootstrap !== 'undefined') {

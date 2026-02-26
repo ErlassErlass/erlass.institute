@@ -163,7 +163,8 @@ class EkstrakurikulerFormService
     protected function extractStep1Data(Request $request): array
     {
         return $request->only([
-            'kategori_program', 'user_id_sales', 'region', 'deskripsi',
+            'kategori_program', 'user_id_sales', 'region', 'city', 
+            'jenis_pembayaran', 'jenis_alat', 'jumlah_siswa_per_alat', 'deskripsi',
         ]);
     }
 
@@ -262,7 +263,10 @@ class EkstrakurikulerFormService
             ]),
             'user_id_sales' => 'required|exists:users,id',
             'region' => 'nullable|string',
-            'city' => 'nullable|string',
+            'city' => 'required|string',
+            'jenis_pembayaran' => 'required|string',
+            'jenis_alat' => 'nullable|string',
+            'jumlah_siswa_per_alat' => 'nullable|integer',
         ];
     }
 

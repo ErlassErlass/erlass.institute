@@ -54,6 +54,8 @@ class InstructorRegistrationController extends Controller
             'jenjang_mengajar' => 'required|string',
             'pend_terakhir' => 'required|string',
             'universitas_jurusan' => 'required|string',
+            'kompetensi_1' => 'required|string|max:100',
+            'kompetensi_2' => 'nullable|string|max:100',
             
             // Financial & Legal
             'nama_bank' => 'required|string',
@@ -110,7 +112,8 @@ class InstructorRegistrationController extends Controller
                 'tanggal_lahir' => $request->tanggal_lahir,
                 'agama' => $request->agama,
                 'pend_terakhir' => $request->pend_terakhir,
-                'kompetensi_1' => 'TBD', // To be defined, or redundant with jenjang_mengajar? Using placeholder for now to satisfy model defaults if any
+                'kompetensi_1' => $request->kompetensi_1,
+                'kompetensi_2' => $request->kompetensi_2,
                 'status' => 'active',
                 'is_verified' => false,
                 'verification_status' => 'pending',

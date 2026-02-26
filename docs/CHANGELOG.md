@@ -2,19 +2,50 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
-## [1.2.2] - 2026-02-25
-
-### Ditambahkan (Added)
-- **Error Monitoring**:
-    - Integrasi penuh **Sentry SDK** untuk pelacakan error dan monitoring performa.
-    - Konfigurasi kanal log `sentry` yang terintegrasi dengan `LOG_STACK`.
-    - Penambahan variabel `.env` baru: `SENTRY_LARAVEL_DSN` dan `SENTRY_TRACES_SAMPLE_RATE`.
+## [1.2.5] - 2026-02-26
 
 ### Diperbaiki (Fixed)
-- **Student Visibility & Management**:
-    - **Critical**: Sinkronisasi otomatis kolom `rombel` dan `kelas` pada tabel `siswa`. Memperbaiki bug dimana siswa baru tidak muncul di daftar absensi karena kolom `rombel` kosong.
-    - Standarisasi referensi sekolah di `SiswaImporterService` menggunakan `sekolah_kodlan` untuk konsistensi data.
-    - Pembersihan final referensi `nama_program` yang tersisa di `EkstrakurikulerSessionSeeder`.
+- **Centralized Datepicker (Flatpickr)**:
+    - Stabilisasi infrastruktur Flatpickr dengan konsolidasi inisialisasi ke `resources/js/app.js`.
+    - Perbaikan bug "initDatepickers is not a function" dengan memastikan fungsi terdaftar secara global di objek `window`.
+    - Perbaikan visual datepicker yang sebelumnya berantakan karena missing Flatpickr CSS import di `app.css`.
+    - Standarisasi class picker: `.datepicker` (tanggal), `.time-picker` (waktu), dan `.date-picker` (basic).
+- **Cleanup Views**: Penghapusan puluhan script Flatpickr lokal dan link CDN redundan di berbagai file Blade untuk performa dan maintainability yang lebih baik.
+
+## [1.2.4] - 2026-02-26
+
+### Ditambahkan (Added)
+- **Standardisasi Pendidikan**: Penambahan opsi "S3" pada seluruh dropdown Pendidikan Terakhir untuk sinkronisasi data yang lebih lengkap.
+
+### Diperbaiki (Fixed)
+- **Profile Data Synchronization**:
+    - **Critical**: Perbaikan bug dimana data "Pendidikan Terakhir" tidak tersimpan ke tabel `users` saat diupdate melalui profil instruktur.
+    - Sinkronisasi otomatis antara Profil Akun (`/profile`) dan Profil Instruktur untuk data krusial seperti Tanggal Lahir, No Telepon, dan Pendidikan.
+- **Robustness & Stability**:
+    - Implementasi *Safe Navigation Operator* (`?->`) pada logic update profil instruktur untuk mencegah crash (500 error) saat instruktur melengkapi data pertama kali.
+    - Perbaikan Integrity Constraint Violation pada field `tanggal_lahir`, `agama`, dan `pend_terakhir` dengan sistem fallback pada Model level.
+- **UI/UX Profile**:
+    - Perbaikan format input `date` pada form profil agar data `tanggal_lahir` terisi otomatis (pre-filled).
+
+## [1.2.3] - 2026-02-25
+
+### Ditambahkan (Added)
+- **Deployment Strategy**:
+    - Penambahan `docs/ops/DEPLOYMENT_STRATEGY.md` (Bahasa Indonesia) yang menjelaskan alur sinkronisasi lokal ke live menggunakan Git & Docker.
+- **Improved Validation**:
+    - Standarisasi pesan error upload file di seluruh aplikasi.
+    - Implementasi pembersihan preview otomatis jika file yang dipilih bukan gambar.
+
+### Diperbaiki (Fixed)
+- **File Validation Logic**:
+    - **Critical**: Perbaikan `form-validation.js` untuk mengecek ekstensi file secara ketat berdasarkan atribut `accept`, mencegah file gambar masuk ke form import siswa (CSV/Excel).
+    - Penambahan batasan ukuran file (`data-max-size="2097152"`) pada input file penting.
+- **Ekstrakurikuler Wizard**:
+    - Perbaikan syntax error pada `EkstrakurikulerFormService` (missing function signature) yang menyebabkan halaman crash.
+    - Sinkronisasi teks bantuan (Help Text) pada form import siswa agar lebih informatif.
+    - Pembersihan sisa-sisa logika JavaScript lokal di Laporan Mengajar dan beralih ke `FormValidator` global.
+
+## [1.2.2] - 2026-02-25
 
 
 ## [1.2.1] - 2026-02-24

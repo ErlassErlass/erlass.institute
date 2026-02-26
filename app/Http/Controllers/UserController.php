@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -94,7 +95,7 @@ class UserController extends Controller
             'nama_lengkap' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'tanggal_lahir' => ['nullable', 'date', 'before:today'],
+            'tanggal_lahir' => ['required', 'date', 'before:today'],
             'no_telephone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
             'status' => ['required', 'in:Aktif,Nonaktif'],
             'agama' => ['nullable', 'string', 'max:50'],
@@ -241,14 +242,14 @@ class UserController extends Controller
         $user = $request->user();
 
         $request->validate([
-            'nama_lengkap' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
-            'tanggal_lahir' => ['nullable', 'date'],
-            'no_telephone' => ['nullable', 'string', 'max:20'],
-            'agama' => ['nullable', 'string', 'max:50'],
-            'pend_terakhir' => ['nullable', 'string', 'max:10'],
-            'kompetensi_1' => ['nullable', 'string', 'max:255'],
-            'kompetensi_2' => ['nullable', 'string', 'max:255'],
+            'nama_lengkap' => 'required|string|max:255',
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'tanggal_lahir' => 'required|date',
+            'no_telephone' => 'required|string|max:20',
+            'agama' => 'required|string|max:50',
+            'pend_terakhir' => 'required|string|max:50',
+            'kompetensi_1' => 'required|string|max:100',
+            'kompetensi_2' => 'nullable|string|max:100',
         ]);
 
         $user->update($request->only([
@@ -256,6 +257,6 @@ class UserController extends Controller
             'agama', 'pend_terakhir', 'kompetensi_1', 'kompetensi_2',
         ]));
 
-        return redirect()->route('profile.edit')->with('status', 'Profile updated successfully!');
+        return redirect()->route('profile.edit')->with('success', 'Profile updated successfully!');
     }
 }

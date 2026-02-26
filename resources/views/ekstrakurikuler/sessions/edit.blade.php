@@ -49,11 +49,12 @@
                             <!-- Tanggal -->
                             <div class="col-md-6">
                                 <label for="tanggal_terjadwal" class="form-label">Tanggal Sesi <span class="text-danger">*</span></label>
-                                <input type="date" 
+                                <input type="text" 
                                        name="tanggal_terjadwal" 
                                        id="tanggal_terjadwal" 
                                        value="{{ old('tanggal_terjadwal', $session->tanggal_terjadwal->format('Y-m-d')) }}"
-                                       class="form-control @error('tanggal_terjadwal') is-invalid @enderror">
+                                       class="form-control datepicker @error('tanggal_terjadwal') is-invalid @enderror"
+                                       placeholder="DD-MM-YYYY">
                                 @error('tanggal_terjadwal')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

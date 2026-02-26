@@ -49,25 +49,25 @@ Admin memiliki akses penuh terhadap sistem.
 
 ### 6. Membuat Program Ekstrakurikuler Baru
 
-Modul ini menggunakan **Wizard 10-Langkah** untuk memastikan kelengkapan data sebelum program dibuat.
+Modul ini menggunakan **Wizard Multi-Step** untuk memastikan kelengkapan data sebelum program dibuat.
 
 #### Cara Akses
 1. Login sebagai **Sales**, **Admin**, atau **Webmaster**.
 2. Masuk ke menu **Program Ekskul** (Menu ini tidak terlihat oleh Instruktur).
 3. Klik tombol **Tambah Program**.
 
-#### Langkah-Langkah
-1. **Info Program**: Isi kategori program (misal: "Coding Scratch") dan pilih User Sales.
-2. **Sekolah**: Cari sekolah berdasarkan database (Database sudah dibersihkan untuk wilayah Jawa).
-3. **Teknis**: Isi detail kebutuhan teknis (Proyektor, Internet, dll).
-4. **Struktur**: Tentukan Total Siswa, Total Ruangan, dan Total Rombel.
-5. **Detail Rombel**: Untuk setiap rombel, isi **Jadwal** (Hari, Jam Mulai). Sistem akan otomatis menghitung estimasi tanggal selesai berdasarkan jumlah pertemuan.
-   > **PENTING**: Pastikan jadwal tidak bentrok dengan instruktur yang akan ditugaskan nanti.
-6. **Alat & Bahan**: (Opsional) Daftar alat yang dibutuhkan.
-7. **Anggaran**: (Opsional) Estimasi budget.
-8. **Dokumen**: (Opsional) Upload proposal atau dokumen pendukung.
-9. **Review**: Periksa kembali seluruh data.
-10. **Preview Jadwal**: Klik "Generate Preview" untuk melihat simulasi jadwal. Jika sudah sesuai, klik **Simpan / Finish**.
+#### Langkah-Langkah (Wizard)
+1.  **Info Program**: Pilih kategori program (misal: "Coding Scratch") dan tentukan Sales PIC.
+2.  **Sekolah**: Pilih sekolah dari database (otomatis memuat alamat & penanggung jawab).
+3.  **Teknis**: Konfigurasi kebutuhan internet, proyektor, dan kabel.
+4.  **Struktur**: Tentukan total siswa, total ruangan, dan jumlah rombel yang akan dibuat.
+5.  **Detail Rombel (Dinamis)**: Sistem akan menampilkan form pengisian untuk setiap Rombel yang Anda tentukan di langkah 4. 
+    *   Isi **Jadwal** (Hari, Jam Mulai, Tanggal Mulai/Selesai).
+    *   Sistem akan menghitung otomatis estimasi jam selesai (default durasi 2 jam).
+6.  **Review & Preview**: Tinjau simulasi jadwal (Preview) sebelum menekan tombol **Selesai & Simpan**.
+
+> [!TIP]
+> **Import Siswa**: Gunakan fitur Import Excel di halaman Detail Program setelah program berhasil dibuat. Pastikan file dalam format `.xlsx` atau `.csv` dengan ukuran maksimal 2MB. Sistem secara otomatis menolak file gambar pada form ini.
 
 ---
 

@@ -43,6 +43,24 @@ class User extends Authenticatable
                 $user->kompetensi_1 = 'General';
             }
         });
+
+        static::updating(function ($user) {
+            // Prevent tanggal_lahir from being set to null if it was previously set
+            if ($user->isDirty('tanggal_lahir') && empty($user->tanggal_lahir)) {
+                $user->tanggal_lahir = $user->getOriginal('tanggal_lahir') ?: '1990-01-01';
+            }
+
+            // Fallbacks for other NOT NULL fields if they somehow become empty
+            if ($user->isDirty('agama') && empty($user->agama)) {
+                $user->agama = $user->getOriginal('agama') ?: 'Lainnya';
+            }
+            if ($user->isDirty('pend_terakhir') && empty($user->pend_terakhir)) {
+                $user->pend_terakhir = $user->getOriginal('pend_terakhir') ?: 'SMA';
+            }
+            if ($user->isDirty('kompetensi_1') && empty($user->kompetensi_1)) {
+                $user->kompetensi_1 = $user->getOriginal('kompetensi_1') ?: 'General';
+            }
+        });
     }
 
     /**

@@ -86,7 +86,7 @@
 
                                 <div class="col-md-4">
                                     <label class="form-label small text-muted">Tanggal Lahir <span class="text-danger">*</span></label>
-                                    <input class="form-control" type="date" name="tanggal_lahir" value="{{ old('tanggal_lahir') }}" required />
+                                    <input class="form-control datepicker" type="text" name="tanggal_lahir" value="{{ old('tanggal_lahir') }}" required placeholder="Pilih Tanggal" />
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small text-muted">Agama <span class="text-danger">*</span></label>
@@ -156,11 +156,33 @@
                                     <label class="form-label small text-muted">Pekerjaan Terakhir <span class="text-danger">*</span></label>
                                     <input class="form-control" type="text" name="pekerjaan_terakhir" value="{{ old('pekerjaan_terakhir') }}" required />
                                 </div>
-                                <div class="col-md-6">
+                                 <div class="col-md-6">
                                     <label class="form-label small text-muted">Jenjang Mengajar <span class="text-danger">*</span></label>
                                     <input class="form-control" type="text" name="jenjang_mengajar" value="{{ old('jenjang_mengajar') }}" required placeholder="TK, SD, SMP, SMA" />
                                     <div class="form-text small text-muted">Bila guru/pengajar, isi strip jika selain guru</div>
-                                </div>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <label class="form-label small text-muted">Kompetensi Utama <span class="text-danger">*</span></label>
+                                     <select class="form-select @error('kompetensi_1') is-invalid @enderror" name="kompetensi_1" required>
+                                         <option value="">Pilih Kompetensi</option>
+                                         <option value="Coding" {{ old('kompetensi_1') == 'Coding' ? 'selected' : '' }}>Coding</option>
+                                         <option value="Robotik" {{ old('kompetensi_1') == 'Robotik' ? 'selected' : '' }}>Robotik</option>
+                                         <option value="Desain" {{ old('kompetensi_1') == 'Desain' ? 'selected' : '' }}>Desain</option>
+                                         <option value="IoT" {{ old('kompetensi_1') == 'IoT' ? 'selected' : '' }}>IoT</option>
+                                         <option value="Data Science" {{ old('kompetensi_1') == 'Data Science' ? 'selected' : '' }}>Data Science</option>
+                                     </select>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <label class="form-label small text-muted">Kompetensi Pendukung</label>
+                                     <select class="form-select @error('kompetensi_2') is-invalid @enderror" name="kompetensi_2">
+                                         <option value="">Pilih Kompetensi (Opsional)</option>
+                                         <option value="Coding" {{ old('kompetensi_2') == 'Coding' ? 'selected' : '' }}>Coding</option>
+                                         <option value="Robotik" {{ old('kompetensi_2') == 'Robotik' ? 'selected' : '' }}>Robotik</option>
+                                         <option value="Desain" {{ old('kompetensi_2') == 'Desain' ? 'selected' : '' }}>Desain</option>
+                                         <option value="IoT" {{ old('kompetensi_2') == 'IoT' ? 'selected' : '' }}>IoT</option>
+                                         <option value="Data Science" {{ old('kompetensi_2') == 'Data Science' ? 'selected' : '' }}>Data Science</option>
+                                     </select>
+                                 </div>
                              </div>
                          </div>
 

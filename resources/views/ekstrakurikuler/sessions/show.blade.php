@@ -467,7 +467,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="new_date" class="form-label">Tanggal Baru <span class="text-danger">*</span></label>
-                        <input type="date" name="tanggal_pengganti" id="new_date" required class="form-control">
+                        <input type="text" name="tanggal_pengganti" id="new_date" required class="form-control datepicker" placeholder="DD-MM-YYYY">
                     </div>
                     <div class="mb-3">
                         <label for="reschedule_reason" class="form-label">Alasan (Opsional)</label>

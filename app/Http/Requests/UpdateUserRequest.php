@@ -28,7 +28,7 @@ class UpdateUserRequest extends FormRequest
             'nama_lengkap' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$userId],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
-            'tanggal_lahir' => ['nullable', 'date', 'before:today'],
+            'tanggal_lahir' => ['required', 'date', 'before:today'],
             'no_telephone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
             'status' => ['required', 'in:Aktif,Nonaktif'],
             'agama' => ['nullable', 'string', 'max:50'],

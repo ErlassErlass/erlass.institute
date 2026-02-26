@@ -77,12 +77,12 @@
                 <label for="rombel_{{ $rombelNumber }}_tanggal_mulai" class="form-label">
                     <i class="fas fa-play"></i> Mulai Tanggal <span class="required-indicator">*</span>
                 </label>
-                <input type="date" 
-                       class="form-control date-picker @error('rombel_' . $rombelNumber . '_tanggal_mulai') is-invalid @enderror" 
+                <input type="text" 
+                       class="form-control datepicker @error('rombel_' . $rombelNumber . '_tanggal_mulai') is-invalid @enderror" 
                        id="rombel_{{ $rombelNumber }}_tanggal_mulai" 
                        name="rombel_{{ $rombelNumber }}_tanggal_mulai" 
                        value="{{ old('rombel_' . $rombelNumber . '_tanggal_mulai', $currentRombelData['tanggal_mulai'] ?? '') }}" 
-                       min="{{ date('Y-m-d') }}"
+                       placeholder="DD-MM-YYYY"
                        required>
                 @error('rombel_' . $rombelNumber . '_tanggal_mulai')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -95,12 +95,12 @@
                 <label for="rombel_{{ $rombelNumber }}_tanggal_selesai" class="form-label">
                     <i class="fas fa-stop"></i> Sampai Tanggal <span class="required-indicator">*</span>
                 </label>
-                <input type="date" 
-                       class="form-control date-picker @error('rombel_' . $rombelNumber . '_tanggal_selesai') is-invalid @enderror" 
+                <input type="text" 
+                       class="form-control datepicker @error('rombel_' . $rombelNumber . '_tanggal_selesai') is-invalid @enderror" 
                        id="rombel_{{ $rombelNumber }}_tanggal_selesai" 
                        name="rombel_{{ $rombelNumber }}_tanggal_selesai" 
                        value="{{ old('rombel_' . $rombelNumber . '_tanggal_selesai', $currentRombelData['tanggal_selesai'] ?? '') }}" 
-                       min="{{ date('Y-m-d') }}"
+                       placeholder="DD-MM-YYYY"
                        required>
                 @error('rombel_' . $rombelNumber . '_tanggal_selesai')
                     <div class="invalid-feedback">{{ $message }}</div>

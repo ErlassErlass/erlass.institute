@@ -107,10 +107,11 @@
                                             <x-text-input 
                                                 id="tanggal_lahir" 
                                                 name="tanggal_lahir" 
-                                                type="date" 
+                                                type="text" 
                                                 :value="old('tanggal_lahir')" 
                                                 required
-                                                class="border-start-0 ps-0"
+                                                class="border-start-0 ps-0 datepicker"
+                                                placeholder="DD-MM-YYYY"
                                             />
                                         </div>
                                         <x-input-error :messages="$errors->get('tanggal_lahir')" class="mt-2" />

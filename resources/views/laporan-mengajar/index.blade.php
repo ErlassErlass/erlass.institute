@@ -3,7 +3,6 @@
 @section('title', 'Daftar Laporan Mengajar')
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 @endpush
 
 
@@ -320,8 +319,6 @@
 
 @push('scripts')
 {{-- External JS libraries --}}
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

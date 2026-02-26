@@ -13,25 +13,22 @@ Sebelum memulai, pastikan Anda memiliki akses ke akun dengan role berikut (Lihat
 
 ---
 
-## 2. Skenario Pengujian: Role Administrator
-
-**Tujuan**: Memastikan admin dapat mengelola data master, jadwal, dan memonitor kegiatan.
-
-### A. Manajemen Data & Jadwal
+### A. Manajemen Data & Jadwal (Admin/Sales)
 | Fitur | Pertanyaan / Checklist Pengujian | Ekspektasi |
 | :--- | :--- | :--- |
 | **Login Admin** | Apakah Anda bisa login dan langsung melihat Dashboard Admin? | Redirect ke `/dashboard`. |
-| **Data Sekolah** | Coba tambah sekolah baru. Apakah muncul di daftar? Coba edit nama sekolahnya. | Data tersimpan & terupdate. |
-| **Program Ekskul** | Buat Program Ekskul baru (misal: "Robotics 101"). Bisakah Anda assign instruktur ke program ini? | Program terbuat dengan status 'Aktif'. |
-| **Generate Jadwal** | Masuk ke detail Rombel. Klik "Generate Sessions". Apakah jadwal sesi muncul sesuai rentang tanggal yang dipilih? | Sesi terbentuk (misal: 12 pertemuan). |
-| **Edit Jadwal** | Coba ubah tanggal atau instruktur pada **satu sesi** tertentu. Apakah perubahan tersimpan? | Hanya sesi itu yang berubah. |
+| **Wizard Program** | Coba buat Program Ekskul baru. Apakah alur langkah-langkahnya logis (Info > Sekolah > Teknis > Struktur > Rombel > Preview)? | Data tersimpan sebagai 'Aktif' (via wizard). |
+| **Wizard Rombel** | Pada langkah Rombel, apakah jumlah form sesuai dengan "Total Rombel" yang diisi sebelumnya? | Form dinamis sesuai input. |
+| **Import Siswa** | Masuk ke detail Program > Import Siswa. Coba upload file **Gambar**. Apakah sistem menolak dengan pesan error yang jelas? | Error: "Format file tidak sesuai". |
+| **Import Siswa (Valid)** | Coba upload file **Excel/CSV** valid. Apakah data siswa muncul di tab "Siswa"? | Siswa terdaftar di rombel. |
+| **Generate Sesi** | Pastikan sesi terbuat otomatis setelah wizard selesai. Apakah jadwal muncul di dashboard instruktur? | Sesi muncul di agenda. |
 
-### B. Monitoring Laporan
+### B. Monitoring & Analitik
 | Fitur | Pertanyaan / Checklist Pengujian | Ekspektasi |
 | :--- | :--- | :--- |
-| **Verifikasi Laporan** | Buka menu `Laporan Mengajar`. Cari laporan yang statusnya "Diajukan". Apakah Anda bisa melihat foto kegiatan? | Foto muncul & jelas. |
-| **Approval** | Coba ubah status sesi dari "Berlangsung" menjadi "Selesai" (jika instruktur lupa). Apakah berhasil? | Status berubah hijau (Selesai). |
-| **Analitik** | Buka `Dashboard Analitik`. Apakah grafik distribusi jadwal muncul? Coba export ke Excel. | File Excel terunduh. |
+| **Verifikasi Laporan** | Buka menu `Laporan Mengajar`. Cari laporan terbaru. Apakah foto kegiatan & absensi fisik muncul? | Media terlampir dan jelas. |
+| **Status Sesi** | Pastikan status sesi berubah dari "Terjadwal" menjadi "Selesai" setelah instruktur lapor. | Warna indikator berubah hijau. |
+| **Analitik** | Buka `Dashboard Analitik`. Apakah grafik distribusi jadwal muncul? Coba export ke Excel. | Grafik tampil & file terunduh. |
 
 ---
 
@@ -39,20 +36,20 @@ Sebelum memulai, pastikan Anda memiliki akses ke akun dengan role berikut (Lihat
 
 **Tujuan**: Memastikan instruktur dapat melihat jadwal dan mengirim laporan dengan mudah (termasuk via HP).
 
-### A. Sebelum Mengajar
+### A. Persiapan & Profil
 | Fitur | Pertanyaan / Checklist Pengujian | Ekspektasi |
 | :--- | :--- | :--- |
-| **Cek Jadwal** | Login sebagai instruktur. Lihat "Jadwal Saya". Apakah jadwal minggu ini tampil benar? | List jadwal sesuai database. |
-| **Cetak Presensi** | Buka detail sesi besok. Klik "Cetak Presensi". Apakah PDF terdownload dan formatnya rapi? | PDF siap cetak. |
+| **Cek Jadwal** | Login sebagai instruktur. Lihat "Agenda Mendatang". Apakah jadwal tampil benar? | List jadwal sesuai penugasan. |
+| **Profil Lengkap** | Coba edit profil. Apakah date picker untuk Tanggal Lahir berfungsi? | Data tersimpan rapi. |
 
-### B. Proses Pelaporan (Mobile Test disarankan)
+### B. Proses Pelaporan (Skenario Utama)
 | Fitur | Pertanyaan / Checklist Pengujian | Ekspektasi |
 | :--- | :--- | :--- |
-| **Input Laporan** | Buka sesi yang sudah lewat jamnya. Isi form laporan (Topik, Foto). Apakah form mudah diisi di HP? | Form responsif, upload lancar. |
-| **Upload Foto** | Coba upload foto kegiatan & lembar absensi. Apakah preview gambar muncul sebelum disubmit? | Preview muncul. |
-| **Input Absensi** | Centang kehadiran siswa (Hadir/Sakit/Ijin). Simpan. Apakah status sesi berubah jadi "Selesai"? | Sesi selesai, data tersimpan. |
-| **Laporan Ad-Hoc** | Coba buat laporan baru untuk kegiatan di luar jadwal (misal: Lomba). Apakah data sekolah bisa dicari? | Sekolah searchable, laporan tersimpan. |
-| **Edit Laporan** | Coba edit laporan yang baru saja dibuat (misal: ganti topik). Apakah data terupdate? | Perubahan tersimpan. |
+| **Input Laporan** | Buka detail sesi. Klik "Buat Laporan & Absensi". Apakah data terisi otomatis? | Data sekolah/rombel auto-filled. |
+| **Efisiensi Absen** | Coba tekan tombol **"HADIR SEMUA"**. Apakah semua checkbox tercentang otomatis? | Hemat waktu input data. |
+| **Upload Foto** | Coba upload foto kegiatan & absensi. Apakah muncul preview gambar? | Preview tampil (hanya untuk gambar). |
+| **Validasi Ukuran** | Coba upload file > 2MB (jika ada). Apakah sistem memberikan peringatan? | Feedback validasi muncul. |
+| **Selesai Sesi** | Klik "Simpan & Selesaikan". Apakah Anda diarahkan kembali ke jadwal dengan pesan sukses? | Notifikasi sukses muncul. |
 
 ---
 
@@ -60,13 +57,12 @@ Sebelum memulai, pastikan Anda memiliki akses ke akun dengan role berikut (Lihat
 
 **Tujuan**: Memastikan aplikasi nyaman digunakan di layar kecil (HP) oleh semua role.
 
-| Halaman | Pertanyaan / Checklist Pengujian |
-| :--- | :--- |
-| **Login** | Apakah form login terlihat rapi di layar HP? Keyboard menutupi tombol login tidak? |
-| **Navbar** | Klik menu hamburger (garis tiga). Apakah menu navigasi terbuka dan bisa diklik? |
-| **Tabel Data** | Buka daftar user/siswa di HP. Apakah tabel bisa discroll ke samping atau berubah jadi tampilan kartu (Card View)? |
-| **Form Input** | Saat mengisi tanggal/jam, apakah *selector* waktunya mudah digunakan dengan jari? |
-| **Tombol Aksi** | Apakah tombol "Simpan", "Batal", atau "Edit" cukup besar dan tidak saling berdempetan? |
+| Halaman | Pertanyaan / Checklist Pengujian | Ekspektasi PX |
+| :--- | :--- | :--- |
+| **Dashboard** | Apakah baris **Quick Actions** muncul dan mudah diklik? | Tombol besar & responsif. |
+| **Tabel Data** | Buka daftar siswa di HP. Apakah tabel berubah menjadi **Tampilan Kartu (Card View)**? | Informasi tidak terpotong. |
+| **Form Wizard** | Apakah tombol "Next/Langkah Berikutnya" mudah ditekan dengan ibu jari? | Layout nyaman untuk navigasi. |
+| **Sidebar** | Klik menu hamburger. Apakah navigasi tertutup otomatis setelah memilih menu? | Navigasi lancar. |
 
 ---
 

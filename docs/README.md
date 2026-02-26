@@ -38,6 +38,8 @@ docs/
 |------|-----------|
 | [DEPLOYMENT_GUIDE.md](ops/DEPLOYMENT_GUIDE.md) | Panduan deploy (VPS + Docker) |
 | [DEPLOYMENT_DOCKER.md](ops/DEPLOYMENT_DOCKER.md) | Docker Compose setup |
+| [DEPLOYMENT_STRATEGY.md](ops/DEPLOYMENT_STRATEGY.md) | Strategi sinkronisasi (Lokal ke Live) |
+| [LOCAL_TUNNEL_GUIDE.md](ops/LOCAL_TUNNEL_GUIDE.md) | Alternatif gratis ngrok (Cloudflare/LT) |
 | [SENTRY_MONITORING.md](ops/SENTRY_MONITORING.md) | Bug & performance monitoring |
 | [SECURITY_AUDIT_REPORT.md](ops/SECURITY_AUDIT_REPORT.md) | Laporan audit keamanan |
 

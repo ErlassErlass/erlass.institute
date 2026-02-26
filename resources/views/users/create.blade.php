@@ -157,11 +157,12 @@
                                         <!-- Tanggal Lahir -->
                                         <div class="mb-3">
                                             <label for="tanggal_lahir" class="form-label">Tanggal Lahir</label>
-                                            <input type="date" 
-                                                   class="form-control @error('tanggal_lahir') is-invalid @enderror" 
+                                            <input type="text" 
+                                                   class="form-control datepicker @error('tanggal_lahir') is-invalid @enderror" 
                                                    id="tanggal_lahir" 
                                                    name="tanggal_lahir" 
-                                                   value="{{ old('tanggal_lahir') }}">
+                                                   value="{{ old('tanggal_lahir') }}"
+                                                   placeholder="DD-MM-YYYY">
                                             @error('tanggal_lahir')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror

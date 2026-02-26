@@ -87,7 +87,7 @@ class UserManagementController extends Controller
             'tanggal_lahir' => 'required|date',
             'no_telephone' => 'required|string|max:20',
             'agama' => 'required|string|max:50',
-            'pend_terakhir' => 'required|string|max:10',
+            'pend_terakhir' => 'required|string|max:50',
             'kompetensi_1' => 'required|string|max:100',
             'kompetensi_2' => 'nullable|string|max:100',
             'role' => ['required', Rule::in(['webmaster', 'admin_sistem', 'instruktur', 'debug_user'])],
@@ -155,7 +155,7 @@ class UserManagementController extends Controller
             'tanggal_lahir' => 'required|date',
             'no_telephone' => 'required|string|max:20',
             'agama' => 'required|string|max:50',
-            'pend_terakhir' => 'required|string|max:10',
+            'pend_terakhir' => 'required|string|max:50',
             'kompetensi_1' => 'required|string|max:100',
             'kompetensi_2' => 'nullable|string|max:100',
         ];

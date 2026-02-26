@@ -12,8 +12,10 @@
         
         <div class="d-flex gap-2 bg-white p-2 rounded-3 shadow-sm border">
             <form action="{{ route('jadwal.harian') }}" method="GET" class="d-flex align-items-center gap-2">
-                <input type="date" name="date" class="form-control border-0 bg-transparent py-1" 
-                       value="{{ $date->format('Y-m-d') }}" onchange="this.form.submit()" style="max-width: 150px;">
+                <input type="text" name="date" class="form-control datepicker border-0 bg-transparent py-1" 
+                       value="{{ $date->format('Y-m-d') }}" 
+                       placeholder="DD-MM-YYYY"
+                       onchange="this.form.submit()" style="max-width: 150px;">
             </form>
             <div class="vr mx-1"></div>
             <button onclick="copyScheduleToClipboard()" class="btn btn-sm btn-success rounded-pill px-3" title="Salin Jadwal ke WhatsApp">

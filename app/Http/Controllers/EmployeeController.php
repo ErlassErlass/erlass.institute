@@ -60,6 +60,7 @@ class EmployeeController extends Controller
             'role' => 'required|string',
             'division_id' => 'nullable|exists:divisions,id',
             'no_telephone' => 'nullable|string|max:20',
+            'tanggal_lahir' => 'required|date|before:today',
         ]);
 
         User::create([
@@ -69,6 +70,7 @@ class EmployeeController extends Controller
             'role' => $request->role,
             'division_id' => $request->division_id,
             'no_telephone' => $request->no_telephone,
+            'tanggal_lahir' => $request->tanggal_lahir,
         ]);
 
         return redirect()->route('admin.employees.index')
@@ -95,6 +97,7 @@ class EmployeeController extends Controller
             'role' => 'required|string',
             'division_id' => 'nullable|exists:divisions,id',
             'no_telephone' => 'nullable|string|max:20',
+            'tanggal_lahir' => 'required|date|before:today',
         ]);
 
         $data = [
@@ -103,6 +106,7 @@ class EmployeeController extends Controller
             'role' => $request->role,
             'division_id' => $request->division_id,
             'no_telephone' => $request->no_telephone,
+            'tanggal_lahir' => $request->tanggal_lahir,
         ];
 
         if ($request->filled('password')) {

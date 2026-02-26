@@ -81,3 +81,12 @@ Gambar yang diupload tidak tampil (`404 Not Found`) karena *symbolic link* stora
 - Menjalankan perintah `php artisan storage:link`.
 - Memastikan izin folder `storage/app/public` dapat dibaca oleh web server.
 - Verifikasi path gambar menggunakan helper `asset('storage/...')` yang aman.
+### G. Data Integrity & Fallback Logic (Medium)
+**Temuan**:
+Ditemukan potensi crash (Internal Server Error 500) pada halaman profil jika field `tanggal_lahir`, `agama`, atau `pend_terakhir` bernilai `null` di database (terutama untuk user lama atau user hasil import manual). Field-field ini memiliki constraint `NOT NULL` di skema database terbaru namun tidak memiliki pelindung di level aplikasi.
+
+**Perbaikan**:
+- **Model Fallback**: Implementasi logic `creating` dan `updating` pada model `User` untuk mengisi nilai default jika field-field tersebut kosong.
+- **Improved Validation**: Memperketat validasi pada `UserController` dan `InstructorProfileController` untuk memastikan data esensial selalu terisi.
+- **Safe Navigation**: Menggunakan `?->` pada controller instruktur untuk mencegah crash saat relasi profil belum terbentuk.
+- **Integritas Sinkronisasi**: Memastikan data pendidikan terstandardisasi di seluruh form untuk mencegah ketidakkonsistenan data (Misal: "SMA" vs "SMA/SMK Sederajat").

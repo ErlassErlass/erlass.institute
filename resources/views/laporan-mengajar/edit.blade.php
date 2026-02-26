@@ -224,54 +224,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(document).ready(function() {
-        // Initialize Select2 for school search
-        $('#sekolah-search').select2({
-            theme: "bootstrap-5",
-            width: '100%',
-            placeholder: 'Ketik nama sekolah atau kode...',
-            ajax: {
-                url: "{{ url('/laporan-mengajar/search') }}",
-                dataType: 'json',
-                delay: 300,
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                data: function(params) {
-                    return {
-                        q: (params.term || '').trim()
-                    };
-                },
-                processResults: function(data) {
-                    return {
-                        results: data.results
-                    };
-                },
-                error: function(xhr) {
-                    console.error('Search error:', xhr);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Gagal memuat data sekolah. Silakan coba lagi.'
-                    });
-                }
-            },
-            minimumInputLength: 3,
-            language: {
-                inputTooShort: function() {
-                    return 'Ketik minimal 3 karakter';
-                },
-                errorLoading: function() {
-                    return "Gagal memuat hasil. Coba lagi.";
-                },
-                noResults: function() {
-                    return "Tidak ditemukan sekolah dengan kata kunci tersebut";
-                },
-                searching: function() {
-                    return "Mencari...";
-                }
-            }
-        });
-
         // Date picker with proper format handling
         $('#jadwal_mengajar').datepicker({
             format: 'dd/mm/yyyy',

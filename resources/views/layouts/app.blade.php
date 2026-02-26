@@ -19,10 +19,13 @@
     <!-- Additional plugin styles for complex forms -->
     {{-- Plugins (Select2, Flatpickr) now bundled in app.css --}}
     
+    <!-- jQuery (Must be before Vite bundling to be available for layout scripts) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
     <!-- App styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
-    <!-- jQuery & Select2 (Now Bundled via Vite) -->
+    <!-- Plugin scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>

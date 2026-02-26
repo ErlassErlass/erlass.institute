@@ -146,10 +146,10 @@
                             <label for="tanggal_daftar" class="form-label">
                                 <i class="bi bi-calendar me-1"></i>Tanggal Pendaftaran <span class="text-danger">*</span>
                             </label>
-                            <input type="date" class="form-control @error('tanggal_daftar', 'enrollment') is-invalid @enderror" 
+                            <input type="text" class="form-control datepicker @error('tanggal_daftar', 'enrollment') is-invalid @enderror" 
                                    id="tanggal_daftar" name="tanggal_daftar" 
                                    value="{{ old('tanggal_daftar', now()->format('Y-m-d')) }}" 
-                                   max="{{ now()->format('Y-m-d') }}" required>
+                                   placeholder="DD-MM-YYYY" required>
                             @error('tanggal_daftar', 'enrollment')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

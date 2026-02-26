@@ -52,11 +52,12 @@
                             <!-- Tanggal Lahir -->
                             <div class="col-md-6">
                                 <label for="tanggal_lahir" class="form-label fw-semibold text-secondary small">Tanggal Lahir <span class="text-danger">*</span></label>
-                                <input type="date" 
-                                       class="form-control bg-light @error('tanggal_lahir') is-invalid @enderror" 
+                                <input type="text" 
+                                       class="form-control bg-light datepicker @error('tanggal_lahir') is-invalid @enderror" 
                                        id="tanggal_lahir" 
                                        name="tanggal_lahir" 
-                                       value="{{ old('tanggal_lahir', $user->tanggal_lahir ? $user->tanggal_lahir->format('Y-m-d') : '') }}" 
+                                       value="{{ old('tanggal_lahir', $user->tanggal_lahir ? $user->tanggal_lahir->format('d-m-Y') : '') }}" 
+                                       placeholder="DD-MM-YYYY"
                                        required>
                                 @error('tanggal_lahir')
                                     <div class="small text-danger mt-1">{{ $message }}</div>

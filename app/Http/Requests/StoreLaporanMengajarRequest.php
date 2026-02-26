@@ -25,7 +25,7 @@ class StoreLaporanMengajarRequest extends FormRequest
             'user_id_instruktur' => 'sometimes|required|exists:users,id',
             'user_id_assisten' => 'nullable|exists:users,id',
             'pertemuan_ke' => 'required|integer|min:1|max:50',
-            'rombel' => 'required|string|max:10',
+            'rombel' => 'required|string|max:50',
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
             'jadwal_mengajar' => [
                 'required',
