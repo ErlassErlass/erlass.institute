@@ -2,6 +2,18 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.2.6] - 2026-02-26
+
+### Diperbaiki (Fixed)
+- **Stability & JS Infrastructure**:
+    - **jQuery Global Stabilization**: Memindahkan jQuery ke CDN (`<head>`) dan mengeksternalisasi di Vite untuk mencegah konflik bundling dan memastikan ketersediaan global bagi plugin legacy.
+    - **Laporan Mengajar**: Perbaikan sinkronisasi field `sekolah_kodlan` (sebelumnya `kodlan`) agar data sekolah tetap terpilih saat terjadi validasi error.
+    - **Vite Layout Fix**: Perbaikan syntax error pada directive `@vite` di layout yang menyebabkan crash saat parsing Blade.
+    - **Profile Integrity**: Penambahan import `Rule` di `UserController` dan penghapusan popup status ganda pada form profile.
+- **Ekstrakurikuler Wizard**:
+    - Perbaikan ekstraksi data Step 1 (Kota, Jenis Pembayaran, Alat) untuk memastikan filter sekolah di Step 2 berfungsi dengan presisi.
+    - Penghapusan tombol "Simpan Draft" pada form create untuk menyederhanakan workflow.
+
 ## [1.2.5] - 2026-02-26
 
 ### Diperbaiki (Fixed)

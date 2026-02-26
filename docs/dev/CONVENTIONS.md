@@ -38,3 +38,12 @@ Aplikasi menggunakan `kodlan` (Kode Sekolah) sebagai Primary Key utama untuk tab
 38: - Gunakan **`class="time-picker"`** atau **`class="timepicker"`** untuk input waktu (24 jam).
 39: - Hindari memanggil `flatpickr()` secara lokal di dalam file Blade. Gunakan fungsi global **`window.initDatepickers()`** jika ada elemen yang baru ditambahkan secara dinamis (AJAX).
 40: - Pastikan input bertipe `text`, bukan `date`, untuk mencegah konflik dengan native picker bawaan browser.
+
+## Select2 & jQuery
+
+Aplikasi menggunakan Select2 untuk pencarian data besar (Sekolah, Siswa).
+
+**Aturan Penting**:
+- **jQuery Global**: jQuery dimuat via CDN di layout header agar tersedia untuk plugin legacy. Jangan melakukan `import jQuery` di dalam modul JS baru.
+- **Form Laporan Mengajar**: Selalu gunakan nama field **`sekolah_kodlan`** untuk dropdown pencarian sekolah agar sinkron dengan logic controller.
+- **Initialization**: Gunakan pattern retry atau pastikan jQuery tersedia sebelum melakukan inisialisasi Select2 di file Blade.

@@ -119,7 +119,9 @@ Semua tampilan tanggal di aplikasi wajib mengikuti format standard Indonesia.
 *   **Audit**: Hindari penggunaan `<input type="date">` pada form baru untuk konsistensi UI di berbagai browser (menghindari native picker).
 
 ### 2. Frontend Assets (Vite)
-Aplikasi menggunakan Vite untuk manajemen aset (CSS/JS). Jika terjadi error `ERR_CONNECTION_REFUSED` pada `5173`, artinya mode development tidak aktif.
+Aplikasi menggunakan Vite untuk manajemen aset (CSS/JS). Untuk stabilitas, library **jQuery** dimuat via CDN di layout header dan dikonfigurasi sebagai *external dependency* di `vite.config.js` untuk menghindari konflik bundling dengan plugin legacy.
+
+Jika terjadi error `ERR_CONNECTION_REFUSED` pada `5173`, artinya mode development tidak aktif.
 
 **Solusi Production/Deployment**:
 Selalu jalankan build aset statis agar aplikasi tidak bergantung pada dev server.
