@@ -59,6 +59,7 @@ class SiswaController extends Controller
             'nisn' => 'required|string|unique:siswa,nisn',
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
             'kelas' => 'required|string',
+            'no_hp_orangtua' => 'required|string|min:10|max:15',
         ]);
 
         $validated['rombel'] = $validated['kelas'];
@@ -91,6 +92,7 @@ class SiswaController extends Controller
             'nisn' => 'required|string|unique:siswa,nisn,'.$siswa->id,
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
             'kelas' => 'required|string',
+            'no_hp_orangtua' => 'required|string|min:10|max:15',
         ]);
 
         $validated['rombel'] = $validated['kelas'];

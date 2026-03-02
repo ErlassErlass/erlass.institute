@@ -33,6 +33,12 @@
             <input type="text" class="form-control" name="kelas" required>
         </div>
 
+        <div class="mb-3">
+            <label for="no_hp_orangtua" class="form-label">No. WA Orang Tua</label>
+            <input type="text" class="form-control" name="no_hp_orangtua" placeholder="Contoh: 08123456789" required>
+            <small class="text-muted">Gunakan format angka saja tanpa spasi atau karakter khusus.</small>
+        </div>
+
         <button type="submit" class="btn btn-primary">Simpan</button>
     </form>
 </div>

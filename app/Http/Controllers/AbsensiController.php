@@ -165,7 +165,42 @@ class AbsensiController extends Controller
 
                     foreach ($studentsToNotify as $student) {
                         try {
-                            // Send notification
+                            // Check if student was marked PRESENT in this submission
+                            $isPresent = isset($absensiInput[$student->id]) && $absensiInput[$student->id] == 1;
+                            
+                            if ($isPresent) {
+                                // 1. Count Total Present Sessions for this Student in this Rombel
+                                // Need to find all LaporanMengajar for this Rombel first
+                                $rombelReports = LaporanMengajar::where('sekolah_kodlan', $laporanMengajar->sekolah_kodlan)
+                                    ->where('rombel', $laporanMengajar->rombel)
+                                    ->orderBy('jadwal_mengajar', 'asc')
+                                    ->get();
+
+                                $attendanceRecords = Absensi::whereIn('laporan_mengajar_id', $rombelReports->pluck('id'))
+                                    ->where('siswa_id', $student->id)
+                                    ->where('hadir', true)
+                                    ->get();
+
+                                $totalPresent = $attendanceRecords->count();
+
+                                // 2. Trigger Rule (Every 4 Sessions)
+                                if ($totalPresent > 0 && $totalPresent % 4 == 0) {
+                                    // Get the last 4 reports where student was present
+                                    $last4ReportIds = $attendanceRecords->sortByDesc('created_at')->take(4)->pluck('laporan_mengajar_id');
+                                    
+                                    $last4Reports = LaporanMengajar::whereIn('id', $last4ReportIds)
+                                        ->orderBy('jadwal_mengajar', 'asc')
+                                        ->get();
+
+                                    if ($isEkstrakurikuler && $ekstrakurikulerSession) {
+                                        $rombelModel = $ekstrakurikulerSession->rombel;
+                                        // Dispatch Progress Reminder
+                                        $student->notify(new \App\Notifications\ProgressReminderNotification($student, $rombelModel, $last4Reports));
+                                    }
+                                }
+                            }
+                            
+                            // Send standard notification (if any existing behavior needed)
                             $student->notify(new \App\Notifications\SessionReportNotification($laporanMengajar));
                         } catch (\Exception $e) {
                             \Log::error("Failed to notify student {$student->id}: " . $e->getMessage());

@@ -9,6 +9,7 @@ use App\Models\Siswa;
 use App\Models\SiswaEkstrakurikuler;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Notifications\WelcomeParentNotification;
 
 class SiswaEkstrakurikulerController extends Controller
 {
@@ -126,6 +127,16 @@ class SiswaEkstrakurikulerController extends Controller
                 ]);
 
                 $successCount++;
+
+                // Trigger Welcome Message if parent phone number is present
+                if ($siswa->no_hp_orangtua) {
+                    try {
+                        $rombelModel = EkstrakurikulerRombel::find($request->ekstrakurikuler_rombel_id);
+                        $siswa->notify(new WelcomeParentNotification($siswa, $rombelModel));
+                    } catch (\Exception $e) {
+                        \Log::error('Gagal mengirim WhatsApp Welcome Message ke siswa ID: ' . $siswa->id . '. Error: ' . $e->getMessage());
+                    }
+                }
             }
 
             DB::commit();
@@ -403,6 +414,16 @@ class SiswaEkstrakurikulerController extends Controller
                 ]);
 
                 $successCount++;
+
+                // Trigger Welcome Message if parent phone number is present
+                if ($siswa->no_hp_orangtua) {
+                    try {
+                        $rombelModel = EkstrakurikulerRombel::find($request->ekstrakurikuler_rombel_id);
+                        $siswa->notify(new WelcomeParentNotification($siswa, $rombelModel));
+                    } catch (\Exception $e) {
+                        \Log::error('Gagal mengirim WhatsApp Welcome Message ke siswa ID: ' . $siswa->id . '. Error: ' . $e->getMessage());
+                    }
+                }
             }
 
             DB::commit();

@@ -155,6 +155,7 @@ class SiswaImporterService
             'nisn' => 'required|string', // Removed unique check here to handle updates/duplicates gracefully
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
             'kelas' => 'required|string',
+            'no_hp_orangtua' => 'required|string|min:10|max:15',
         ]);
     }
 
@@ -167,6 +168,7 @@ class SiswaImporterService
                 'sekolah_kodlan' => $data['sekolah_kodlan'],
                 'kelas' => $data['kelas'],
                 'rombel' => $data['kelas'], // Sync rombel with kelas
+                'no_hp_orangtua' => $data['no_hp_orangtua'],
             ]
         );
     }
@@ -181,6 +183,7 @@ class SiswaImporterService
             'nisn' => ['nisn', 'nis', 'nomor_induk_siswa_nasional', 'nomor_induk'],
             'sekolah_kodlan' => ['sekolah_kodlan', 'kode_sekolah', 'kodlan', 'kode', 'sekolah_id', 'id_sekolah', 'npsn'],
             'kelas' => ['rombel', 'kelas', 'rombongan_belajar_saat_ini', 'rombongan_belajar', 'class', 'grade'],
+            'no_hp_orangtua' => ['no_hp_orangtua', 'no_hp', 'hp', 'no_wa', 'whatsapp', 'no_hp_ortu', 'no_telp_orangtua', 'no_hp_wali'],
         ];
 
         // Process standard keys first
