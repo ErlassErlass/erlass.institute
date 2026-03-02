@@ -32,17 +32,16 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="sekolah_id" class="form-label">Sekolah</label>
-                            <select name="sekolah_id" id="sekolah_id" class="form-select @error('sekolah_id') is-invalid @enderror" required>
+                            <label for="sekolah_kodlan" class="form-label">Sekolah</label>
+                            <select name="sekolah_kodlan" id="sekolah_kodlan" class="form-select select2 @error('sekolah_kodlan') is-invalid @enderror" required>
                                 <option value="">Pilih Sekolah</option>
                                 @foreach ($sekolahs as $sekolah)
-                                    {{-- Menggunakan $siswa->sekolah_id untuk perbandingan --}}
-                                    <option value="{{ $sekolah->id }}" {{ old('sekolah_id', $siswa->sekolah_id) == $sekolah->id ? 'selected' : '' }}>
+                                    <option value="{{ $sekolah->kodlan }}" {{ old('sekolah_kodlan', $siswa->sekolah_kodlan) == $sekolah->kodlan ? 'selected' : '' }}>
                                         {{ $sekolah->namasekolah }} ({{ $sekolah->kodlan }})
                                     </option>
                                 @endforeach
                             </select>
-                             @error('sekolah_id')
+                             @error('sekolah_kodlan')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -76,3 +75,16 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        if ($('.select2').length > 0) {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+        }
+    });
+</script>
+@endpush

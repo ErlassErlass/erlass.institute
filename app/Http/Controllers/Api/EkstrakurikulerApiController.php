@@ -368,7 +368,7 @@ class EkstrakurikulerApiController extends Controller
     public function searchStudent(Request $request): JsonResponse
     {
         try {
-            $search = $request->query('q');
+            $search = trim($request->query('q'));
             
             if (empty($search) || strlen($search) < 3) {
                 return response()->json([
@@ -378,10 +378,19 @@ class EkstrakurikulerApiController extends Controller
                 ]);
             }
 
-            $students = \App\Models\Siswa::where('nama_lengkap', 'like', "%{$search}%")
-                ->select('id', 'nama_lengkap', 'sekolah_nama', 'rombel')
+            $students = \App\Models\Siswa::with('sekolah:kodlan,namasekolah')
+                ->where('nama_lengkap', 'like', "%{$search}%")
+                ->select('id', 'nama_lengkap', 'sekolah_kodlan', 'rombel')
                 ->limit(10)
-                ->get();
+                ->get()
+                ->map(function($student) {
+                    return [
+                        'id' => $student->id,
+                        'nama_lengkap' => $student->nama_lengkap,
+                        'sekolah_nama' => $student->sekolah ? $student->sekolah->namasekolah : $student->sekolah_kodlan,
+                        'rombel' => $student->rombel,
+                    ];
+                });
                 
             return response()->json([
                 'success' => true,
@@ -411,6 +420,7 @@ class EkstrakurikulerApiController extends Controller
                 'sekolah_kodlan' => 'required|string|exists:sekolah,kodlan',
                 'jenis_kelamin' => 'required|in:L,P',
                 'kelas' => 'required|string|max:50', // Added validation
+                'no_hp_orangtua' => 'required|string|max:20', // Wajib untuk WA Notif
             ]);
 
             $student = \App\Models\Siswa::create([
@@ -420,6 +430,7 @@ class EkstrakurikulerApiController extends Controller
                 // Generate temporary NISN: TEMP + UNIX Seconds + Random 3 digit
                 'nisn' => 'TMP' . time() . rand(100, 999), 
                 'kelas' => $request->kelas, // Use input
+                'no_hp_orangtua' => $request->no_hp_orangtua,
             ]);
 
             // Log activity for mitigation/audit

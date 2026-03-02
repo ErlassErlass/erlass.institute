@@ -45,6 +45,11 @@ class ProgressReminderNotification extends Notification implements ShouldQueue
      */
     public function toWhatsApp($notifiable)
     {
+        // Pastikan relasi diload jika model ini di-rehydrate oleh Queue
+        $this->rombel->loadMissing(['ekstrakurikuler']);
+
+        \Carbon\Carbon::setLocale('id'); // Ensure Indonesian Locale
+
         $kategoriKursus = $this->rombel->ekstrakurikuler->kategori_program ?? 'Program';
         $reportDetails = "";
 
@@ -54,9 +59,11 @@ class ProgressReminderNotification extends Notification implements ShouldQueue
             $reportDetails .= "- Pertemuan " . ($index + 1) . " ({$tanggal}): {$materi}\n";
         }
 
-        return "Halo Kak, ini adalah pesan Reminder Progress Belajar.\n\n"
-            . "Siswa atas nama *{$this->siswa->nama_lengkap}* sudah mengikuti 4x pertemuan untuk kelas *{$kategoriKursus}* dengan rincian materi sebagai berikut:\n\n"
+        return "Yth. Bapak/Ibu Orang Tua/Wali,\n\n"
+            . "Melalui pesan ini kami ingin menginformasikan progres belajar ananda *{$this->siswa->nama_lengkap}*.\n\n"
+            . "Ananda telah menyelesaikan 4 (empat) sesi pertemuan untuk program *{$kategoriKursus}* dengan rincian materi sebagai berikut:\n\n"
             . $reportDetails
-            . "\nTerima kasih telah mempercayakan pendidikan ananda di Coding Erlass!";
+            . "\nKami berharap proses belajar ini terus memberikan wawasan dan keterampilan baru yang bermanfaat.\n\n"
+            . "Terima kasih atas perhatian dan kerja sama yang baik.";
     }
 }

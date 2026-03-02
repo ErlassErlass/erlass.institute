@@ -101,6 +101,27 @@ class AbsensiController extends Controller
                     $siswa = Siswa::find($siswaId);
                     if (!$siswa) continue; 
 
+                    if ($isEkstrakurikuler && $ekstrakurikulerSession) {
+                        $rombel = $ekstrakurikulerSession->rombel;
+                        $isEnrolled = $rombel->siswa()->where('siswa_id', $siswaId)->exists();
+                        
+                        // Auto-enroll jika belum terdaftar
+                        if (!$isEnrolled) {
+                            $rombel->siswa()->attach($siswaId, [
+                                'ekstrakurikuler_id' => $rombel->ekstrakurikuler_id,
+                                'status' => 'aktif',
+                                'tanggal_daftar' => now(),
+                                'catatan' => 'Auto-enrolled via Absensi Session #' . $ekstrakurikulerSession->id
+                            ]);
+                            $rombel->incrementJumlahSiswa();
+
+                            // Dispatch Welcome Notification
+                            if ($siswa->no_hp_orangtua) {
+                                $siswa->notify(new \App\Notifications\WelcomeParentNotification($siswa, $rombel));
+                            }
+                        }
+                    }
+
                     // ✅ GUNAKAN updateOrCreate: Mencegah data duplikat.
                     Absensi::updateOrCreate(
                         [

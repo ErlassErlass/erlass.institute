@@ -110,6 +110,8 @@ Route::middleware(['auth'])->group(function () {
         // Manual Reminder
         Route::post('sessions/{session}/remind', [EkstrakurikulerSessionController::class, 'sendReminder'])
             ->name('sessions.remind');
+        Route::post('sessions/{session}/progress-remind', [EkstrakurikulerSessionController::class, 'sendProgressReminder'])
+            ->name('sessions.progress-remind');
 
         // Reports
         Route::get('rombel/{rombel}/scheduling-report', [EkstrakurikulerSessionController::class, 'schedulingReport'])

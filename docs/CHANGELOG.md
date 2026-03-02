@@ -10,11 +10,18 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
     - **Progress Reminder**: Notifikasi otomatis setiap kelipatan 4x kehadiran anak di sebuah ekstrakurikuler. Merekap 4 tanggal kehadiran terakhir beserta topik materi yang diajarkan berturut-turut.
 - **Sistem Data**: 
     - Penambahan field `no_hp_orangtua` di tabel `siswa`.
-    - Wajib mengisi Nomor WA Orang Tua di form Create & Edit Siswa, serta fitur Bulk Import Siswa CSV.
+    - Wajib mengisi Nomor WA Orang Tua di form Create & Edit Siswa, Bulk Import Siswa CSV, dan fitur Tambah Siswa Baru (Quick Add) oleh instruktur di menu Laporan Mengajar / Absensi.
+    - Siswa yang ditambahkan secara Quick Add akan otomatis terdaftar di rombel dan langsung mendapat Welcome Message.
 
 ## [1.2.6] - 2026-02-26
 
 ### Diperbaiki (Fixed)
+- **Data Integrity**: Memperbaiki issue _Foreign Key Constraint Violation_ (`Cannot delete or update a parent row`) saat Admin menghapus data Siswa (`SiswaController::destroy`). Sistem sekarang akan otomatis menghapus record terkait di tabel `absensi` dan `siswa_ekstrakurikuler` sebelum menghapus data Siswa utama secara permanen.
+- **UI/UX Siswa**: Memperbaiki dropdown 'Sekolah' di modul Edit Siswa agar memuat opsi yang tersimpan secara benar (`sekolah_kodlan`), serta menambahkan fitur pencarian (Select2) pada dropdown Sekolah di form Tambah & Edit Siswa.
+- **Student Search API**: Memperbaiki issue Error 500 saat mencari siswa (di fitur Tambah Siswa Baru pada Absensi) yang disebabkan oleh referensi kolom SQL yang tidak valid (`sekolah_nama` diganti dengan relasi yang benar), serta menambahkan filter `trim()` untuk menangani spasi berlebih pada pencarian seperti `"halootest "`.
+- **System Worker**: Resolusi `Class "Redis" not found` saat Instrukur mensubmit laporan sesi dengan mengubah konfigurasi `QUEUE_CONNECTION` di `.env` dari `redis` menjadi `sync`, sehingga notifikasi WhatsApp yang di-_trigger_ dari laporan mengajar dapat dikirim secara langsung tanpa memerlukan service Redis yang tidak terinstal.
+- **WhatsApp Templates**: Melakukan penyempurnaan teks notifikasi (Welcome Message, Progress Reminder, & Schedule Reminder) menjadi format yang disetujui (memuat kombinasi gaya kasual, penempatan emoji, dan memastikan terjemahan nama hari/bulan menggunakan bahasa Indonesia via `Carbon::setLocale('id')`). Khusus untuk `ScheduleReminderNotification`, format tanggal lengkap bahasa Indonesia telah ditambahkan berserta emoji.
+- **Progress Reminder API**: Memperbaiki masalah Logika Notifikasi Reminder (Kelipatan 4x Sesi) yang tidak memicu pengiriman pesan WhatsApp karena adanya *bypass* logika absensi di `EkstrakurikulerReportController`. Kini, sistem Reminder dimuatkan secara penuh baik untuk laporan baru maupun proses pengeditan Absensi lama (`AbsensiController`). Juga ditambahkan fitur **Bagikan Progress Reminder (Manual)** di halaman Detail Sesi bagi Instruktur/Admin untuk memicu pengiriman ulang secara eksplisit kapanpun dubutuhkan.
 - **Stability & JS Infrastructure**:
     - **jQuery Global Stabilization**: Memindahkan jQuery ke CDN (`<head>`) dan mengeksternalisasi di Vite untuk mencegah konflik bundling dan memastikan ketersediaan global bagi plugin legacy.
     - **Laporan Mengajar**: Perbaikan sinkronisasi field `sekolah_kodlan` (sebelumnya `kodlan`) agar data sekolah tetap terpilih saat terjadi validasi error.

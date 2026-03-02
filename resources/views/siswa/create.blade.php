@@ -20,10 +20,10 @@
         <div class="mb-3">
             <label for="sekolah_kodlan" class="form-label">Sekolah</label>
             <!-- resources/views/siswa/create.blade.php -->
-            <select name="sekolah_kodlan" class="form-select" required>
+            <select name="sekolah_kodlan" class="form-select select2" required>
                 <option value="">Pilih Sekolah</option>
                 @foreach ($sekolah as $kode => $nama)
-                <option value="{{ $kode }}">{{ $nama }}</option>
+                <option value="{{ $kode }}" {{ old('sekolah_kodlan') == $kode ? 'selected' : '' }}>{{ $nama }}</option>
                 @endforeach
             </select>
         </div>
@@ -43,3 +43,16 @@
     </form>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        if ($('.select2').length > 0) {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+        }
+    });
+</script>
+@endpush

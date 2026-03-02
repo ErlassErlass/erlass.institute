@@ -202,6 +202,12 @@
                 <input type="text" class="form-control form-control-sm" name="kelas" value="{{ $laporanMengajar->rombel }}" required>
             </div>
         </div>
+        
+        <div class="mb-2">
+            <label class="form-label small">No. HP/WA Orang Tua <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-sm" name="no_hp_orangtua" placeholder="08xxxx" required maxlength="20">
+            <div class="form-text" style="font-size: 0.7rem;">Wajib untuk mengirim notifikasi absensi dan laporan.</div>
+        </div>
 
         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
             <button type="button" class="btn btn-sm btn-outline-secondary me-md-2" id="cancelAddStudent">Batal</button>

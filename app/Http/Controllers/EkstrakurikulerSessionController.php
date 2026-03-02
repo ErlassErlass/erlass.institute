@@ -689,4 +689,74 @@ class EkstrakurikulerSessionController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Kirim reminder manual untuk progress report siswa.
+     */
+    public function sendProgressReminder(Request $request, EkstrakurikulerSession $session): RedirectResponse
+    {
+        // Hanya admin/admin_sistem/webmaster/instruktur yang ditugaskan yang boleh kirim
+        $this->authorize('update', $session);
+
+        if ($session->status !== EkstrakurikulerSession::STATUS_SELESAI || !$session->laporan_mengajar_id) {
+            return redirect()->back()->with('error', 'Reminder progress hanya bisa dikirim untuk sesi yang sudah selesai dan memiliki laporan mengajar.');
+        }
+
+        $laporan = $session->laporanMengajar;
+        $rombel = $session->rombel;
+
+        try {
+            // Find students who were PRESENT in this specific session
+            $presentStudentIds = \App\Models\Absensi::where('laporan_mengajar_id', $laporan->id)
+                ->where('hadir', true)
+                ->pluck('siswa_id');
+
+            $studentsToNotify = \App\Models\Siswa::whereIn('id', $presentStudentIds)
+                                     ->whereNotNull('no_hp_orangtua')
+                                     ->get();
+
+            $messagesSent = 0;
+
+            foreach ($studentsToNotify as $student) {
+                try {
+                    $rombelReports = $rombel->sessions()
+                        ->whereNotNull('laporan_mengajar_id')
+                        ->with('laporanMengajar') 
+                        ->get()
+                        ->pluck('laporanMengajar')
+                        ->filter();
+
+                    $attendanceRecords = \App\Models\Absensi::whereIn('laporan_mengajar_id', $rombelReports->pluck('id'))
+                        ->where('siswa_id', $student->id)
+                        ->where('hadir', true)
+                        ->get();
+
+                    $totalPresent = $attendanceRecords->count();
+
+                    // If they have attended at least 4 times (or you can remove % 4 condition if you want it to trigger regardless, but let's strictly find the last 4)
+                    if ($totalPresent >= 4) {
+                        $last4ReportIds = $attendanceRecords->sortByDesc('created_at')->take(4)->pluck('laporan_mengajar_id');
+                        $last4Reports = \App\Models\LaporanMengajar::whereIn('id', $last4ReportIds)
+                            ->orderBy('jadwal_mengajar', 'asc')
+                            ->get();
+
+                        $student->notify(new \App\Notifications\ProgressReminderNotification($student, $rombel, $last4Reports));
+                        $messagesSent++;
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("Manual ProgressReminder Error for student {$student->id}: " . $e->getMessage());
+                }
+            }
+            
+            if ($messagesSent > 0) {
+                return redirect()->back()->with('success', "Berhasil mengirim {$messagesSent} pesan Progress Reminder ke WhatsApp orang tua siswa.");
+            } else {
+                return redirect()->back()->with('info', "Tidak ada pesan yang dikirim. Pastikan siswa tujuan memiliki No. HP dan sudah hadir minimal 4 kali.");
+            }
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Manual Batch Progress Reminder Error: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan sistem saat mengirim pesan reminder.');
+        }
+    }
 }

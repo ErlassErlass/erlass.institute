@@ -256,6 +256,11 @@
                                     <label class="form-label">Kelas <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="newStudentClass" placeholder="Contoh: 7A, 8B, X-1" required>
                                 </div>
+                                <div class="mb-3">
+                                    <label class="form-label">No. WA Orang Tua <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="newStudentPhone" placeholder="08xxxx" required maxlength="20">
+                                    <div class="form-text" style="font-size: 0.7rem;">Wajib untuk mengirim notifikasi report/absensi.</div>
+                                </div>
                                 <input type="hidden" id="schoolKodlan" value="{{ $session->rombel->ekstrakurikuler->sekolah_kodlan }}">
                                 <button type="submit" class="btn btn-primary w-100">
                                     <i class="bi bi-person-plus me-1"></i> Simpan & Tambahkan
@@ -419,6 +424,7 @@
                         nama_lengkap: name,
                         jenis_kelamin: gender,
                         kelas: studentClass,
+                        no_hp_orangtua: document.getElementById('newStudentPhone').value,
                         sekolah_kodlan: kodlan
                     })
                 })
@@ -429,6 +435,7 @@
                         // Reset form
                         document.getElementById('newStudentName').value = '';
                         document.getElementById('newStudentClass').value = '';
+                        document.getElementById('newStudentPhone').value = '';
                         // Switch back to search tab maybe? Or just alert success
                         alert('Siswa berhasil ditambahkan dan masuk daftar hadir.');
                     } else {

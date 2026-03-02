@@ -43,6 +43,9 @@ class WelcomeParentNotification extends Notification implements ShouldQueue
      */
     public function toWhatsApp($notifiable)
     {
+        // Pastikan relasi diload jika model ini di-rehydrate oleh Queue
+        $this->rombel->loadMissing(['ekstrakurikuler', 'sessions']);
+
         $kategoriKursus = $this->rombel->ekstrakurikuler->kategori_program ?? 'Program';
         
         // Find the first session to get Day and Time
@@ -56,8 +59,8 @@ class WelcomeParentNotification extends Notification implements ShouldQueue
         if ($firstSession) {
             $dateInfo = $firstSession->tanggal_terjadwal ?? $firstSession->tanggal_pelaksanaan;
             if ($dateInfo) {
-                // Translated day name in Indonesian
-                $hari = $dateInfo->translatedFormat('l'); 
+                \Carbon\Carbon::setLocale('id'); // Ensure Indonesian Locale
+                $hari = \Carbon\Carbon::parse($dateInfo)->translatedFormat('l'); 
             }
             
             // Assuming format like '14:00 - 15:30' or just '14:00'
@@ -67,8 +70,13 @@ class WelcomeParentNotification extends Notification implements ShouldQueue
             }
         }
 
-        return "Selamat {$this->siswa->nama_lengkap} sudah terdaftar di Coding Erlass.\n"
-            . "Kelas {$kategoriKursus} setiap hari {$hari} Pukul {$jamMulai}.\n\n"
-            . "Oiya, tanyakan apakah Nama Siswanya sudah benar ya Kak, karena untuk keperluan cetak report akhir semester/tahun.";
+        return "Yth. Bapak/Ibu Orang Tua/Wali,\n\n"
+            . "Selamat! Ananda *{$this->siswa->nama_lengkap}* sudah terdaftar di Program Ekstrakurikuler Coding Erlass. 🎉\n\n"
+            . "📘 *Detail Kelas:*\n"
+            . "📚 Program: {$kategoriKursus}\n"
+            . "📅 Jadwal: Setiap hari {$hari}\n"
+            . "⏰ Jam: {$jamMulai} WIB\n\n"
+            . "Oiya, mohon bantuannya untuk mencek apakah ejaan Nama Siswanya sudah benar ya, Kak. Hal ini untuk keperluan cetak sertifikat dan laporan akhir semester nanti. 📝✨\n\n"
+            . "Terima kasih atas kepercayaannya! 🚀";
     }
 }

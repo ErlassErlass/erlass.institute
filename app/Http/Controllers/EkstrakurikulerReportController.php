@@ -160,6 +160,12 @@ class EkstrakurikulerReportController extends Controller
                     ]);
                     // Update rombel student count
                     $rombel->incrementJumlahSiswa();
+
+                    // Dispatch Welcome Notification
+                    $siswa = Siswa::find($siswaId);
+                    if ($siswa && $siswa->no_hp_orangtua) {
+                        $siswa->notify(new \App\Notifications\WelcomeParentNotification($siswa, $rombel));
+                    }
                 }
 
                 Absensi::create([
@@ -175,6 +181,47 @@ class EkstrakurikulerReportController extends Controller
                 'catatan' => $request->catatan,
                 'auto_create_laporan' => false // We just created it manually
             ]);
+
+            // 4.5. Trigger WhatsApp Progress Reminder
+            try {
+                $studentsToNotify = Siswa::whereIn('id', array_keys($request->absensi))
+                                         ->whereNotNull('no_hp_orangtua')
+                                         ->get();
+
+                foreach ($studentsToNotify as $student) {
+                    $isPresent = isset($request->absensi[$student->id]) && $request->absensi[$student->id] == 1;
+                    if ($isPresent) {
+                        try {
+                            $rombelReports = $rombel->sessions()
+                                ->whereNotNull('laporan_mengajar_id')
+                                ->with('laporanMengajar') 
+                                ->get()
+                                ->pluck('laporanMengajar')
+                                ->filter();
+
+                            $attendanceRecords = Absensi::whereIn('laporan_mengajar_id', $rombelReports->pluck('id'))
+                                ->where('siswa_id', $student->id)
+                                ->where('hadir', true)
+                                ->get();
+
+                            $totalPresent = $attendanceRecords->count();
+
+                            if ($totalPresent > 0 && $totalPresent % 4 == 0) {
+                                $last4ReportIds = $attendanceRecords->sortByDesc('created_at')->take(4)->pluck('laporan_mengajar_id');
+                                $last4Reports = LaporanMengajar::whereIn('id', $last4ReportIds)
+                                    ->orderBy('jadwal_mengajar', 'asc')
+                                    ->get();
+
+                                $student->notify(new \App\Notifications\ProgressReminderNotification($student, $rombel, $last4Reports));
+                            }
+                        } catch (\Exception $e) {
+                            Log::error("ProgressReminder Error for student {$student->id}: " . $e->getMessage());
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::error("Notification Batch Error in ReportController: " . $e->getMessage());
+            }
 
             // 5. Activity Log
             ActivityLog::create([

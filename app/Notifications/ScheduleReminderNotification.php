@@ -80,7 +80,11 @@ class ScheduleReminderNotification extends Notification
      */
     public function toWhatsApp($notifiable)
     {
+        \Carbon\Carbon::setLocale('id');
+
         $time = $this->session->jam_mulai_terjadwal->format('H:i');
+        $date = $this->session->tanggal_terjadwal->translatedFormat('l, d F Y');
+        
         // Use shorter variable names for readability
         $program = $this->session->ekstrakurikuler; 
         $school = $program->sekolah->namasekolah;
@@ -95,7 +99,8 @@ class ScheduleReminderNotification extends Notification
         $msg .= "📘 *Detail Kelas:*\n";
         $msg .= "📚 Program: {$category}\n";
         $msg .= "🔢 Pertemuan ke: {$meeting}\n";
-        $msg .= "⏰ Jam: {$time}\n";
+        $msg .= "📅 Tanggal: {$date}\n";
+        $msg .= "⏰ Jam: {$time} WIB\n";
         $msg .= "🏫 Tempat: {$school}\n";
         $msg .= "👩‍🏫 Kelas: {$class}\n";
         

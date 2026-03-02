@@ -105,7 +105,15 @@ class SiswaController extends Controller
     public function destroy(Siswa $siswa)
     {
         if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
-        $siswa->delete();
+        
+        \Illuminate\Support\Facades\DB::transaction(function () use ($siswa) {
+            // Hapus data absensi terkait untuk menghindari foreign key constraint violation
+            $siswa->absensis()->delete();
+            // Hapus data pendaftaran ekstrakurikuler (pivot table)
+            $siswa->enrollments()->delete();
+            // Hapus data siswa
+            $siswa->delete();
+        });
 
         return redirect()->route('siswa.index')->with('success', 'Siswa deleted!');
     }

@@ -95,7 +95,7 @@ Proses registrasi instruktur melibatkan transaksi database (`DB::transaction`) u
 ### 6. WhatsApp Notifications (Fonnte)
 **Channel**: `App\Notifications\Channels\WhatsAppChannel`
 **Integrasi Mendasar**: Menggunakan Token dari `.env` (`FONNTE_TOKEN`) dan dikonfigurasi melalui `config/services.php`.
-*   **Logika Welcome Message**: Di-trigger di `SiswaEkstrakurikulerController` (saat enrollment manual dan bulk). Dynamic Data diambil dari Model Rekap Jadwal & Sesi `EkstrakurikulerSession`.
+*   **Logika Welcome Message**: Di-trigger saat pendaftaran siswa ke rombel melalui `SiswaEkstrakurikulerController` (manual & bulk) serta fitur **Quick Add Siswa** oleh Instruktur di `AbsensiController` dan `EkstrakurikulerReportController`. Dynamic Data diambil dari Model Rekap Jadwal & Sesi `EkstrakurikulerSession`.
 *   **Logika Progress Reminder**: Di-trigger di `AbsensiController::store`. Syarat: Siswa *must be marked present*, kemudian sistem menghitung kelipatan `total_hadir % 4 == 0`. Jika memenuhi, notif mengambil 4 LaporanMengajar historikal terakhir siswa tersebut di satu Rombel.
 
 ### 7. Analytics & Visualization
