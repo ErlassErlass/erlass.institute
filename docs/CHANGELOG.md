@@ -2,6 +2,16 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.2.7] - 2026-03-02
+
+### Fitur Baru (Added)
+- **WhatsApp Notifications (Integrasi Fonnte)**:
+    - **Welcome Message**: Pengiriman otomatis pesan selamat datang ke WhatsApp Orang Tua (H+0) saat anak didaftarkan ke Rombel Ekstrakurikuler. Menarik data jadwal (Hari & Jam) dari sesi pertama secara dinamis.
+    - **Progress Reminder**: Notifikasi otomatis setiap kelipatan 4x kehadiran anak di sebuah ekstrakurikuler. Merekap 4 tanggal kehadiran terakhir beserta topik materi yang diajarkan berturut-turut.
+- **Sistem Data**: 
+    - Penambahan field `no_hp_orangtua` di tabel `siswa`.
+    - Wajib mengisi Nomor WA Orang Tua di form Create & Edit Siswa, serta fitur Bulk Import Siswa CSV.
+
 ## [1.2.6] - 2026-02-26
 
 ### Diperbaiki (Fixed)

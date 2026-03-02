@@ -92,7 +92,13 @@ Proses registrasi instruktur melibatkan transaksi database (`DB::transaction`) u
 *   **H+1 Restriction**: Instruktur tidak bisa membuat laporan untuk tanggal yang sudah lewat > 1 hari (`store` method).
 *   **Auto Creation**: Jika sesi ekstrakurikuler selesai, laporan bisa dibuat otomatis dari sesi tersebut (`createFromEkstrakurikuler`).
 
-### 6. Analytics & Visualization
+### 6. WhatsApp Notifications (Fonnte)
+**Channel**: `App\Notifications\Channels\WhatsAppChannel`
+**Integrasi Mendasar**: Menggunakan Token dari `.env` (`FONNTE_TOKEN`) dan dikonfigurasi melalui `config/services.php`.
+*   **Logika Welcome Message**: Di-trigger di `SiswaEkstrakurikulerController` (saat enrollment manual dan bulk). Dynamic Data diambil dari Model Rekap Jadwal & Sesi `EkstrakurikulerSession`.
+*   **Logika Progress Reminder**: Di-trigger di `AbsensiController::store`. Syarat: Siswa *must be marked present*, kemudian sistem menghitung kelipatan `total_hadir % 4 == 0`. Jika memenuhi, notif mengambil 4 LaporanMengajar historikal terakhir siswa tersebut di satu Rombel.
+
+### 7. Analytics & Visualization
 **Controller**: `DashboardAnalyticsController`
 **Libraries**:
 *   `Chart.js` (via CDN) untuk rendering grafik.
