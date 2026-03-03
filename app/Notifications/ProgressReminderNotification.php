@@ -57,7 +57,7 @@ class ProgressReminderNotification extends Notification implements ShouldQueue
 
         foreach ($this->reports as $index => $report) {
             $tanggal = \Carbon\Carbon::parse($report->jadwal_mengajar)->translatedFormat('l, d F Y');
-            $materi = $report->topik_materi ?? $report->materi ?? 'Materi belum diisi';
+            $materi = $report->materi_pengajaran ?? 'Materi belum diisi';
             
             // Cek kehadiran siswa pada laporan ini
             $absensi = \App\Models\Absensi::where('laporan_mengajar_id', $report->id)
