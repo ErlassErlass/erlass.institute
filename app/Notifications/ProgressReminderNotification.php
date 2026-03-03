@@ -52,18 +52,29 @@ class ProgressReminderNotification extends Notification implements ShouldQueue
 
         $kategoriKursus = $this->rombel->ekstrakurikuler->kategori_program ?? 'Program';
         $reportDetails = "";
+        
+        $totalHadir = count($this->reports);
 
         foreach ($this->reports as $index => $report) {
             $tanggal = \Carbon\Carbon::parse($report->jadwal_mengajar)->translatedFormat('d F Y');
             $materi = $report->topik_materi ?? $report->materi ?? 'Materi belum diisi';
             $reportDetails .= "- Pertemuan " . ($index + 1) . " ({$tanggal}): {$materi}\n";
         }
+        
+        // Tambahkan info "Tidak Hadir" jika total laporan kehadiran yang didapat kurang dari 4
+        if ($totalHadir < 4) {
+            for ($i = $totalHadir + 1; $i <= 4; $i++) {
+                $reportDetails .= "- Pertemuan {$i}: (Tidak Hadir / Belum Ada Data)\n";
+            }
+        }
 
         return "Yth. Bapak/Ibu Orang Tua/Wali,\n\n"
             . "Melalui pesan ini kami ingin menginformasikan progres belajar ananda *{$this->siswa->nama_lengkap}*.\n\n"
-            . "Ananda telah menyelesaikan 4 (empat) sesi pertemuan untuk program *{$kategoriKursus}* dengan rincian materi sebagai berikut:\n\n"
+            . "Berikut adalah rincian materi dari 4 sesi/pertemuan di kelas *{$kategoriKursus}*:\n\n"
             . $reportDetails
-            . "\nKami berharap proses belajar ini terus memberikan wawasan dan keterampilan baru yang bermanfaat.\n\n"
-            . "Terima kasih atas perhatian dan kerja sama yang baik.";
+            . "\nKami berharap proses belajar ini terus memberikan wawasan dan keterampilan baru yang bermanfaat bagi ananda.\n\n"
+            . "💡 *Informasi Tambahan:*\n"
+            . "Pendidikan yang berkesinambungan adalah kunci kesuksesan anak. Untuk memastikan kelancaran administrasi dan agar ananda tetap dapat mengikuti sesi seru selanjutnya tanpa kendala, mohon kesediaannya untuk menyelesaikan pembayaran tagihan kursus periode ini (jika belum).\n\n"
+            . "Terima kasih banyak atas dukungan, kepercayaan, dan kerja sama yang baik dari Bapak/Ibu. ✨";
     }
 }
