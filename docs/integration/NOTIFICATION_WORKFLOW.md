@@ -33,12 +33,36 @@ Saat instruktur baru mendaftar melalui form registrasi, sistem akan:
 >
 > ID Instruktur: *ICE2025XXX*
 > Password: *[Password/OTP]*
->
 > Silakan login di: [Link Login]
 
 ---
 
-### B. Pengingat Progress Anak (Ekstrakurikuler)
+### B. Welcome Message Anak (Ekstrakurikuler)
+Saat data anak berhasil didaftarkan ke Rombel Ekstrakurikuler.
+
+1.  **Trigger:** Pendaftaran siswa via form Create Siswa (`SiswaEkstrakurikulerController`), Import Excel, atau fitur *Quick Add* oleh Instruktur di halaman Absensi.
+2.  **Kondisi:** Status siswa memiliki `no_hp_orangtua` yang valid.
+3.  **Notifikasi:** `WelcomeParentNotification`.
+4.  **Penerima:** Orang Tua Siswa (`Siswa` model).
+5.  **Tujuan:** Menyapa orang tua, mengkonfirmasi pendaftaran anak, dan memberikan informasi jadwal pertama.
+
+**Isi Pesan (WhatsApp):**
+> Yth. Bapak/Ibu Orang Tua/Wali,
+> 
+> Selamat! Ananda *[Nama Siswa]* sudah terdaftar di Program Ekstrakurikuler Coding Erlass. 🎉
+> 
+> 📘 *Detail Kelas:*
+> 📚 Program: [Nama Kategori Program]
+> 📅 Jadwal: Setiap hari [Hari]
+> ⏰ Jam: [Jam Mulai] WIB
+> 
+> Oiya, mohon bantuannya untuk mencek apakah ejaan Nama Siswanya sudah benar ya, Kak. Hal ini untuk keperluan cetak sertifikat dan laporan akhir semester nanti. 📝✨
+> 
+> Terima kasih atas kepercayaannya! 🚀
+
+---
+
+### C. Pengingat Progress Anak (Ekstrakurikuler)
 Untuk kelas ekstrakurikuler, Notifikasi Progress akan dikirimkan setiap anak mencapai kelipatan 4 kali kehadiran.
 
 1.  **Trigger:** `AbsensiController@store` atau `EkstrakurikulerReportController@store`.
@@ -51,18 +75,20 @@ Untuk kelas ekstrakurikuler, Notifikasi Progress akan dikirimkan setiap anak men
 5.  **Tujuan:** Memberikan rekapitulasi materi atas 4 pertemuan terakhir.
 
 **Isi Pesan (WhatsApp):**
-> Yth. Bapak/Ibu Orang Tua/Wali,
+> Halo Bapak/Ibu! 👋
 > 
-> Melalui pesan ini kami ingin menginformasikan progres belajar ananda *[Nama Siswa]*.
+> Berikut rekap 4 pertemuan terakhir ananda *[Nama Siswa]* di kelas *[Kategori Program]* 🚀:
 > 
-> Ananda telah menyelesaikan 4 (empat) sesi pertemuan untuk program *[Nama Program]* dengan rincian materi sebagai berikut:
+> ✅ P.1 (Senin, 02 Maret 2026): Pengenalan Basic
+> ❌ P.2 (Senin, 09 Maret 2026): (Tidak Hadir)
+> ➖ P.3: (Belum Ada Kelas)
+> ➖ P.4: (Belum Ada Kelas)
 > 
-> - Pertemuan 1 (Tanggal): Topik 1
-> - Pertemuan 2 (Tanggal): Topik 2
-...
-> Terima kasih atas perhatian dan kerja sama yang baik. ✨
+> Semoga ananda semakin semangat belajarnya! 🌟
+> 
+> Terima kasih atas dukungannya. ✨
 
-### C. Laporan Mengajar & Absensi (Reguler)
+### D. Laporan Mengajar & Absensi (Reguler)
 Setiap kali instruktur mengisi absensi untuk sebuah sesi Reguler, notifikasi akan dikirimkan kepada Orang Tua/Siswa.
 
 1.  **Trigger:** `AbsensiController@store`.
@@ -84,7 +110,7 @@ Setiap kali instruktur mengisi absensi untuk sebuah sesi Reguler, notifikasi aka
 >
 > Selengkapnya: [Link Laporan]
 
-### D. Broadcast Message (Pengumuman Massal)
+### E. Broadcast Message (Pengumuman Massal)
 Admin/Webmaster dapat mengirim pesan pengumuman ke **seluruh** instruktur aktif.
 
 1.  **Trigger:** Menu *Broadcast* di Dashboard.
@@ -103,7 +129,7 @@ Admin/Webmaster dapat mengirim pesan pengumuman ke **seluruh** instruktur aktif.
 > Terima kasih,
 > Manajemen Erlass
 
-### E. Manual Reminder & Progress Trigger (Admin to Instructor/Parents)
+### F. Manual Reminder & Progress Trigger (Admin to Instructor/Parents)
 Admin dapat mengirimkan pengingat mengajar manual kepada instruktur, atau mengirim ulang **Progress Reminder** secara manual ke nomor HP Orang Tua dari sebuah halaman sesi.
 
 **1. Schedule Reminder Manual:**
@@ -118,7 +144,7 @@ Admin dapat mengirimkan pengingat mengajar manual kepada instruktur, atau mengir
 *   **Penerima:** Seluruh Siswa di sesi tersebut yang (1) Hadir, (2) Memiliki nomor `no_hp_orangtua`, dan (3) Total kehadirannya >= 4 secara agregat.
 *   **Pesan:** Rekap 4 progres terakhir materi anak tersebut.
 
-### F. Notifikasi Kelengkapan Profil
+### G. Notifikasi Kelengkapan Profil
 Sistem akan mendeteksi jika data instruktur belum lengkap, terutama nomor kontak.
 
 1.  **Trigger:** Login ke Dashboard sebagai Instruktur.

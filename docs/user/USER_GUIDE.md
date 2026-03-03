@@ -39,9 +39,10 @@ Admin memiliki akses penuh terhadap sistem.
 *   **Verifikasi TTD**: Memastikan foto absensi memiliki TTD yang valid.
 
 ### 4. Notifikasi & Komunikasi (WhatsApp)
-*   Mengirim reminder manual jadwa mengajar via WhatsApp kepada Instruktur.
-*   Mengirim **Progress Reminder** secara manual kepada Orang Tua siswa (Rekap 4x pertemuan materi anak).
-*   Menerima laporan notifikasi otomatis setiap kali pendaftaran siswa baru berhasil dilakukan.
+Fitur notifikasi WhatsApp (Fonnte) sudah terintegrasi secara cerdas:
+*   **Welcome Message Otomatis**: Setiap kali ada Siswa Baru yang masuk ke dalam Rombel (via Import Excel, Tambah Manual, atau *Quick Add* Instruktur), sistem akan mendeteksi `no_hp_orangtua` dan menembakkan pesan sambutan lengkap dengan hari dan jam mulai kelas.
+*   **Progress Reminder Otomatis/Manual**: Setiap 4x kehadiran anak, sistem mengirim ringkasan belajar ke Orang Tua. Admin juga bisa **mengirim ulang secara manual** dari halaman Detail Sesi. Laporan kini menggunakan format Emoji interaktif (✅ / ❌) yang detail untuk setiap pertemuannya.
+*   **Pengingat Instruktur**: Mengirim reminder manual jadwal mengajar kepada Instruktur.
 
 ### 5. Analisis Jadwal & Beban Kerja
 *   **Distribusi Jadwal**: Melihat grafik beban kerja instruktur untuk memastikan pembagian jam mengajar yang adil.
@@ -69,7 +70,7 @@ Modul ini menggunakan **Wizard Multi-Step** untuk memastikan kelengkapan data se
 6.  **Review & Preview**: Tinjau simulasi jadwal (Preview) sebelum menekan tombol **Selesai & Simpan**.
 
 > [!TIP]
-> **Import Siswa**: Gunakan fitur Import Excel di halaman Detail Program setelah program berhasil dibuat. Pastikan file dalam format `.xlsx` atau `.csv` dengan ukuran maksimal 2MB. Sistem secara otomatis menolak file gambar pada form ini.
+> **Import & Registrasi Siswa**: Gunakan fitur Import Excel di halaman Detail Program setelah Rombel dibuat. Pastikan memiliki header `no_hp_orangtua` yang valid. Sistem akan **otomatis mengirim Welcome Message WhatsApp** kepada orang tua sesaat setelah pendaftaran berhasil. Fitur pesan otomatis ini juga berlaku untuk fitur *Quick Add* oleh Instruktur di halaman Absensi.
 
 ---
 
