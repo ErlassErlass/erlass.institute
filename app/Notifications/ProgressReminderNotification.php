@@ -65,24 +65,23 @@ class ProgressReminderNotification extends Notification implements ShouldQueue
                                           ->first();
             
             if ($absensi && $absensi->hadir) {
-                $reportDetails .= "- Pertemuan " . ($index + 1) . " ({$tanggal}): {$materi} *(Hadir)*\n";
+                $reportDetails .= "✅ P." . ($index + 1) . " ({$tanggal}): {$materi}\n";
             } else {
-                $reportDetails .= "- Pertemuan " . ($index + 1) . ": (Tidak Hadir / Belum Ada Data)\n";
+                $reportDetails .= "❌ P." . ($index + 1) . " ({$tanggal}): (Tidak Hadir)\n";
             }
         }
         
-        // Tambahkan info "Tidak Hadir" jika total laporan kehadiran yang didapat kurang dari 4
+        // Tambahkan info jika total laporan kehadiran yang didapat kurang dari 4 (kelas memang belum sampai 4 sesi)
         if ($totalHadir < 4) {
             for ($i = $totalHadir + 1; $i <= 4; $i++) {
-                $reportDetails .= "- Pertemuan {$i}: (Tidak Hadir / Belum Ada Data)\n";
+                $reportDetails .= "➖ P.{$i}: (Belum Ada Kelas)\n";
             }
         }
 
-        return "Yth. Bapak/Ibu Orang Tua/Wali,\n\n"
-            . "Melalui pesan ini kami ingin menginformasikan progres belajar ananda *{$this->siswa->nama_lengkap}*.\n\n"
-            . "Berikut adalah rincian materi dari 4 sesi/pertemuan di kelas *{$kategoriKursus}*:\n\n"
+        return "Halo Bapak/Ibu! 👋\n\n"
+            . "Berikut rekap 4 pertemuan terakhir ananda *{$this->siswa->nama_lengkap}* di kelas *{$kategoriKursus}* 🚀:\n\n"
             . $reportDetails
-            . "\nKami berharap proses belajar ini terus memberikan wawasan dan keterampilan baru yang bermanfaat bagi ananda.\n\n"
-            . "Terima kasih banyak atas dukungan, kepercayaan, dan kerja sama yang baik dari Bapak/Ibu. ✨";
+            . "\nSemoga ananda semakin semangat belajarnya! 🌟\n\n"
+            . "Terima kasih atas dukungannya. ✨";
     }
 }
