@@ -35,6 +35,16 @@ This document outlines potential features and enhancements for the **Erlass Eksk
   - **Agent Framework**: LangChain for PHP (LLPhant) atau memisahkan microservice AI menggunakan Python (LangChain/LlamaIndex).
   - **Vector Database**: PostgreSQL Tensor/Pgvector atau Pinecone untuk RAG (*Retrieval-Augmented Generation*) agar AI memahami konteks data spesifik aplikasi.
   - **Background Worker**: Redis & Laravel Horizon mutlak diperlukan untuk proses *AI streaming/generation* secara asinkron agar tidak membebani server utama.
+### 7. 📱 Native Mobile App (App Store & Play Store)
+- **Concept**: Mengemas ulang atau membangun dari awal aplikasi khusus *mobile* berbasis iOS dan Android.
+- **Benefit**:
+  - **Akses Sekali Klik**: Orang tua, instruktur, dan admin dapat mengunduh aplikasi resmi dari Apple App Store atau Google Play Store secara langsung.
+  - **Push Notification Asli**: Menggeser ketergantungan WhatsApp ke *Native Push Notifications* yang gratis dan lebih terintegrasi.
+  - **Fungsionalitas Optimal**: Akses kamera (untuk absen foto), GPS, dan performa *offline* yang jauh lebih lancar dibanding PWA.
+- **Tech Requirements**:
+  - **Framework Mobile**: Flutter atau React Native agar pengembangan bisa satu basis kode untuk 2 platform (iOS & Android).
+  - **API Backend**: Pengembangan Laravel RESTful API atau GraphQL yang lebih komprehensif sebagai jalur komunikasi antara server dan aplikasi *mobile*.
+  - **Developer Accounts**: Apple Developer Program ($99/tahun) dan Google Play Console ($25/lifetime) untuk publikasi aplikasi.
 
 ---
 *Last Updated: March 03, 2026*
