@@ -73,7 +73,6 @@ class ProgressReminderNotification extends Notification implements ShouldQueue
             . "Berikut adalah rincian materi dari 4 sesi/pertemuan di kelas *{$kategoriKursus}*:\n\n"
             . $reportDetails
             . "\nKami berharap proses belajar ini terus memberikan wawasan dan keterampilan baru yang bermanfaat bagi ananda.\n\n"
-            . "Sebagai pengingat, apabila Bapak/Ibu belum menyelesaikan administrasi kursus untuk periode kali ini, mohon berkenan meluangkan waktunya untuk melakukan pembayaran agar kegiatan belajar dapat terus berjalan dengan lancar. 🙏\n\n"
             . "Terima kasih banyak atas dukungan, kepercayaan, dan kerja sama yang baik dari Bapak/Ibu. ✨";
     }
 }
