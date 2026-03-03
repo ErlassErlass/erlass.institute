@@ -38,8 +38,10 @@ Admin memiliki akses penuh terhadap sistem.
 *   **Jadwal Sesi**: Membuat dan mengatur jadwal sesi ekstrakurikuler.
 *   **Verifikasi TTD**: Memastikan foto absensi memiliki TTD yang valid.
 
-### 4. Notifikasi
-*   Mengirim reminder manual via WhatsApp kepada instruktur.
+### 4. Notifikasi & Komunikasi (WhatsApp)
+*   Mengirim reminder manual jadwa mengajar via WhatsApp kepada Instruktur.
+*   Mengirim **Progress Reminder** secara manual kepada Orang Tua siswa (Rekap 4x pertemuan materi anak).
+*   Menerima laporan notifikasi otomatis setiap kali pendaftaran siswa baru berhasil dilakukan.
 
 ### 5. Analisis Jadwal & Beban Kerja
 *   **Distribusi Jadwal**: Melihat grafik beban kerja instruktur untuk memastikan pembagian jam mengajar yang adil.
@@ -110,6 +112,7 @@ Terdapat **dua cara** membuat laporan:
 5.  **Fitur Efisiensi (Mark All)**: Gunakan tombol **"HADIR SEMUA"** atau **"TIDAK HADIR"** di bagian atas tabel untuk menandai seluruh siswa secara cepat.
 6.  Isi topik materi, foto kegiatan, evaluasi keaktifan dan pemahaman siswa.
 7.  Klik **"Simpan Laporan & Selesaikan Sesi"**. Status sesi akan otomatis berubah menjadi **"Selesai"**.
+    > **Info Notifikasi**: Jika laporan ini merupakan **kelipatan sesi ke-4** untuk seorang siswa, sistem akan menembakkan pesan WhatsApp kepada orang tua siswa yang berisi ringkasan progres belajar mereka.
 
 #### B. Laporan Ad-Hoc (Luar Jadwal)
 > **Gunakan ini untuk: Pameran, Lomba, Sosialisasi atau Pendampingan.**

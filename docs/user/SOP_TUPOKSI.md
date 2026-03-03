@@ -40,10 +40,11 @@ Admin bertanggung jawab atas pengelolaan data master, penjadwalan, dan monitorin
 1.  **Monitoring Jadwal**: Cek menu `Jadwal Mengajar` atau Dashboard untuk melihat sesi yang akan berjalan.
 2.  **Handle Perubahan Jadwal**:
     *   Jika Instruktur berhalangan, Admin dapat melakukan **Reschedule** atau **Pembatalan Sesi** di menu `Jadwal Mengajar`.
-3.  **Review Laporan**:
+3.  **Review Laporan & Notifikasi**:
     *   Buka menu `Absensi & Laporan > Riwayat Laporan`.
     *   Cek apakah Instruktur sudah submit laporan.
     *   Verifikasi foto kegiatan dan foto absensi fisik.
+    *   (Opsional) Kirim **Manual Progress Reminder** WhatsApp ke Orang Tua jika sistem otomatis tertunda atau orang tua meminta resend, melalui halaman *Detail Sesi* yang sudah selesai.
 
 ---
 

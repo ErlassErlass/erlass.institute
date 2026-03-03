@@ -94,9 +94,11 @@ Proses registrasi instruktur melibatkan transaksi database (`DB::transaction`) u
 
 ### 6. WhatsApp Notifications (Fonnte)
 **Channel**: `App\Notifications\Channels\WhatsAppChannel`
-**Integrasi Mendasar**: Menggunakan Token dari `.env` (`FONNTE_TOKEN`) dan dikonfigurasi melalui `config/services.php`.
-*   **Logika Welcome Message**: Di-trigger saat pendaftaran siswa ke rombel melalui `SiswaEkstrakurikulerController` (manual & bulk) serta fitur **Quick Add Siswa** oleh Instruktur di `AbsensiController` dan `EkstrakurikulerReportController`. Dynamic Data diambil dari Model Rekap Jadwal & Sesi `EkstrakurikulerSession`.
-*   **Logika Progress Reminder**: Di-trigger di `AbsensiController::store`. Syarat: Siswa *must be marked present*, kemudian sistem menghitung kelipatan `total_hadir % 4 == 0`. Jika memenuhi, notif mengambil 4 LaporanMengajar historikal terakhir siswa tersebut di satu Rombel.
+**Integrasi Mendasar**: Menggunakan Token dari `.env` (`WHATSAPP_FONNTE_TOKEN`) dan mode environment (`WHATSAPP_PROVIDER` = `log` atau `fonnte`), dikonfigurasi melalui `config/services.php`.
+*   **Queue Connection**: Fonnte notifications diproses melalui Queue. Wajib menggunakan `QUEUE_CONNECTION=sync` (jika Redis tidak tersedia) di `.env` agar report submitter tidak mengalami error `Class "Redis" not found`.
+*   **Logika Welcome Message (`WelcomeParentNotification`)**: Di-trigger saat pendaftaran siswa ke rombel melalui `SiswaEkstrakurikulerController` (manual & bulk) serta fitur **Quick Add Siswa** oleh Instruktur di `AbsensiController` dan `EkstrakurikulerReportController`. Menyapa secara kasual dengan detail program, jadwal, dan emoji.
+*   **Logika Progress Reminder (`ProgressReminderNotification`)**: Di-trigger di `AbsensiController::store` dan `EkstrakurikulerReportController::store`. Syarat: Siswa *must be marked present*, kemudian sistem menghitung kelipatan `total_hadir % 4 == 0`. Jika memenuhi, notif mengambil 4 `LaporanMengajar` historikal terakhir siswa tersebut di satu Rombel. Terfasilitasi juga secara manual via `EkstrakurikulerSessionController@sendProgressReminder`.
+*   **Logika Schedule Reminder (`ScheduleReminderNotification`)**: Dikirim ke Instruktur secara sinkron (H-1) atau manual oleh Admin dari halaman Session. Menggunakan `Carbon::setLocale('id')` untuk menerjemahkan tanggal.
 
 ### 7. Analytics & Visualization
 **Controller**: `DashboardAnalyticsController`

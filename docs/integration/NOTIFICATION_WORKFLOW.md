@@ -38,8 +38,32 @@ Saat instruktur baru mendaftar melalui form registrasi, sistem akan:
 
 ---
 
-### B. Laporan Mengajar & Absensi
-Setiap kali instruktur mengisi absensi untuk sebuah sesi (Baik Regular maupun Ekstrakurikuler), notifikasi akan dikirimkan kepada Orang Tua/Siswa.
+### B. Pengingat Progress Anak (Ekstrakurikuler)
+Untuk kelas ekstrakurikuler, Notifikasi Progress akan dikirimkan setiap anak mencapai kelipatan 4 kali kehadiran.
+
+1.  **Trigger:** `AbsensiController@store` atau `EkstrakurikulerReportController@store`.
+2.  **Kondisi:**
+    *   Siswa ditandai Hadir ('1').
+    *   Total kehadiran siswa di Rombel tersebut genap berkelipatan 4 (sesi ke-4, ke-8, dst).
+    *   Status siswa memiliki `no_hp_orangtua` yang valid.
+3.  **Notifikasi:** `ProgressReminderNotification`.
+4.  **Penerima:** Orang Tua Siswa (`Siswa` model).
+5.  **Tujuan:** Memberikan rekapitulasi materi atas 4 pertemuan terakhir.
+
+**Isi Pesan (WhatsApp):**
+> Yth. Bapak/Ibu Orang Tua/Wali,
+> 
+> Melalui pesan ini kami ingin menginformasikan progres belajar ananda *[Nama Siswa]*.
+> 
+> Ananda telah menyelesaikan 4 (empat) sesi pertemuan untuk program *[Nama Program]* dengan rincian materi sebagai berikut:
+> 
+> - Pertemuan 1 (Tanggal): Topik 1
+> - Pertemuan 2 (Tanggal): Topik 2
+...
+> Terima kasih atas perhatian dan kerja sama yang baik. ✨
+
+### C. Laporan Mengajar & Absensi (Reguler)
+Setiap kali instruktur mengisi absensi untuk sebuah sesi Reguler, notifikasi akan dikirimkan kepada Orang Tua/Siswa.
 
 1.  **Trigger:** `AbsensiController@store`.
 2.  **Kondisi:**
@@ -79,33 +103,20 @@ Admin/Webmaster dapat mengirim pesan pengumuman ke **seluruh** instruktur aktif.
 > Terima kasih,
 > Manajemen Erlass
 
-### E. Manual Reminder (Admin to Instructor)
-Admin dapat mengirimkan pengingat atau pengumuman manual kepada instruktur untuk sesi tertentu.
+### E. Manual Reminder & Progress Trigger (Admin to Instructor/Parents)
+Admin dapat mengirimkan pengingat mengajar manual kepada instruktur, atau mengirim ulang **Progress Reminder** secara manual ke nomor HP Orang Tua dari sebuah halaman sesi.
 
-1.  **Trigger:** Tombol "Kirim Reminder" di halaman *Daftar Sesi* atau *Detail Sesi*.
-2.  **Controller:** `EkstrakurikulerSessionController@sendReminder`.
-3.  **Syarat:**
-    *   Sesi memiliki instruktur yang assigned.
-    *   Instruktur memiliki `no_telephone` yang valid.
-4.  **Fitur:** Template pesan lengkap dengan Link Maps & Kategori Program.
+**1. Schedule Reminder Manual:**
+*   **Trigger:** Tombol "Kirim Reminder" di halaman *Daftar Sesi* atau *Detail Sesi*.
+*   **Controller:** `EkstrakurikulerSessionController@sendReminder`.
+*   **Penerima:** Instruktur (melalui tabel `users.no_telephone`).
+*   **Pesan:** Format detail kehadiran instruktur, lokasi peta, dan catatan manual tambahan.
 
-**Isi Pesan (WhatsApp):**
-> Halo *[Nama Instruktur]*! 🌟
->
-> Jangan lupa, hari ini ada jadwal mengajar yang menanti kehadiran Anda!
->
-> 📘 *Detail Kelas:*
-> 📚 Program: [Nama Program]
-> 🔢 Pertemuan ke: [X]
-> ⏰ Jam: [HH:MM]
-> 🏫 Tempat: [Nama Sekolah]
-> 👩‍🏫 Kelas: [Nama Rombel]
-> 📍 Link Maps: [Link Google Maps]
->
-> 💡 *Catatan Penting:*
-> [Pesan Tambahan Anda]
->
-> Mari buat sesi hari ini seru dan berkesan untuk anak-anak! 🎉...
+**2. Progress Reminder Manual (Orang Tua):**
+*   **Trigger:** Tombol "Bagikan Progress Reminder" (hijau) di halaman *Detail Sesi* (hanya muncul jika sesi Selesai dan ber-Laporan).
+*   **Controller:** `EkstrakurikulerSessionController@sendProgressReminder`.
+*   **Penerima:** Seluruh Siswa di sesi tersebut yang (1) Hadir, (2) Memiliki nomor `no_hp_orangtua`, dan (3) Total kehadirannya >= 4 secara agregat.
+*   **Pesan:** Rekap 4 progres terakhir materi anak tersebut.
 
 ### F. Notifikasi Kelengkapan Profil
 Sistem akan mendeteksi jika data instruktur belum lengkap, terutama nomor kontak.

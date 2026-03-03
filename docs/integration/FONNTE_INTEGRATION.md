@@ -101,9 +101,14 @@ public function routeNotificationForWhatsapp($notification)
 | # | Notification Class | Trigger | Penerima | Pesan |
 |---|--------------------|---------|----------|-------|
 | 1 | `WelcomeInstructorNotification` | Registrasi instruktur baru | Instruktur | ID login + password sementara |
-| 2 | `SessionReportNotification` | Absensi diisi | Orang tua siswa | Laporan sesi belajar anak |
-| 3 | `ScheduleReminderNotification` | H-1 jam sebelum sesi | Instruktur | Pengingat jadwal + detail lokasi |
-| 4 | `InstructorBroadcastNotification` | Admin kirim broadcast | Semua instruktur | Pengumuman / info penting |
+| 2 | `WelcomeParentNotification` | Siswa didaftarkan ke Rombel | Orang tua siswa | Ucapan selamat, jadwal, reminder cek ejaan nama |
+| 3 | `SessionReportNotification` | Absensi diisi (Reguler) | Orang tua siswa | Laporan sesi belajar anak |
+| 4 | `ProgressReminderNotification` | Kelipatan 4x hadir (Ekstrakurikuler) | Orang tua siswa | Rekap materi 4 sesi terakhir anak |
+| 5 | `ScheduleReminderNotification` | H-1 jam / Trigger Manual | Instruktur | Pengingat jadwal + detail lokasi + Pesan kustom |
+| 6 | `InstructorBroadcastNotification` | Admin kirim broadcast | Semua instruktur | Pengumuman / info penting |
+
+> [!IMPORTANT]
+> **Queue Connection untuk Fonnte**: Dikarenakan Fonnte Notification dapat di-_trigger_ dari proses seperti Submit Laporan Mengajar yang berat, Laravel mencoba mengantrekan (Queue) pesan. Jika server Anda belum menginstall Redis, pastikan `QUEUE_CONNECTION=sync` di file `.env`. Jika diset ke `redis` namun Redis tidak ada, aplikasi akan menerima error `Class "Redis" not found` dan form tidak tersimpan.
 
 ### Contoh Membuat Notification Baru
 
