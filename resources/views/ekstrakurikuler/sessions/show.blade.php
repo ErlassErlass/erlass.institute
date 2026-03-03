@@ -51,7 +51,7 @@
                         @if($session->status === 'selesai' && $session->laporan_mengajar_id)
                             <form action="{{ route('ekstrakurikuler.sessions.progress-remind', $session) }}" method="POST" class="d-inline">
                                 @csrf
-                                <button type="submit" class="btn btn-success" onclick="return confirm('Apakah Anda yakin ingin mengirim ulang Pesan Pengingat Progress ke WhatsApp Orang Tua untuk siswa yang sudah menyelesaikan 4 sesi up to sesi ini?');">
+                                <button type="submit" class="btn btn-success" onclick="return confirm('Apakah Anda yakin ingin mengirim ulang Pesan Pengingat Progress ke WhatsApp Orang Tua untuk siswa yang sudah menyelesaikan minimal 2 sesi berjalan?');">
                                     <i class="bi bi-whatsapp me-1"></i> Bagikan Progress Reminder
                                 </button>
                             </form>

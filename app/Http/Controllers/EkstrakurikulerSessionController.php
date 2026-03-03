@@ -733,8 +733,9 @@ class EkstrakurikulerSessionController extends Controller
 
                     $totalPresent = $attendanceRecords->count();
 
-                    // If they have attended at least 4 times (or you can remove % 4 condition if you want it to trigger regardless, but let's strictly find the last 4)
-                    if ($totalPresent >= 4) {
+                    // If they have attended at least 2 times for manual trigger
+                    if ($totalPresent >= 2) {
+                        // Still take up to the last 4 for the report summary
                         $last4ReportIds = $attendanceRecords->sortByDesc('created_at')->take(4)->pluck('laporan_mengajar_id');
                         $last4Reports = \App\Models\LaporanMengajar::whereIn('id', $last4ReportIds)
                             ->orderBy('jadwal_mengajar', 'asc')

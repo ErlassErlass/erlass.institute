@@ -123,7 +123,7 @@ class EkstrakurikulerReportController extends Controller
                 'pertemuan_ke' => $session->nomor_pertemuan,
                 'rombel' => $session->rombel->nama_rombel,
                 'sekolah_kodlan' => $session->rombel->ekstrakurikuler->sekolah_kodlan,
-                'jadwal_mengajar' => now()->toDateString(), // Start date
+                'jadwal_mengajar' => $session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal,
                 'jam_mulai' => $session->jam_mulai_terjadwal, // Defaulting to scheduled if not tracked
                 'jam_selesai' => now()->format('H:i'), // Finished just now
                 'kategori_pengajaran' => 'ekstrakurikuler',
