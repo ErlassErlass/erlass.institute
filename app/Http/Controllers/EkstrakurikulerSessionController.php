@@ -735,11 +735,8 @@ class EkstrakurikulerSessionController extends Controller
 
                     // If they have attended at least 2 times for manual trigger
                     if ($totalPresent >= 2) {
-                        // Still take up to the last 4 for the report summary
-                        $last4ReportIds = $attendanceRecords->sortByDesc('created_at')->take(4)->pluck('laporan_mengajar_id');
-                        $last4Reports = \App\Models\LaporanMengajar::whereIn('id', $last4ReportIds)
-                            ->orderBy('jadwal_mengajar', 'asc')
-                            ->get();
+                        // Get the last 4 reports of the rombel
+                        $last4Reports = $rombelReports->sortByDesc('jadwal_mengajar')->take(4)->sortBy('jadwal_mengajar')->values();
 
                         $student->notify(new \App\Notifications\ProgressReminderNotification($student, $rombel, $last4Reports));
                         $messagesSent++;

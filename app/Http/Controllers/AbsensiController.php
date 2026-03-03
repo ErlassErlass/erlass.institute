@@ -206,12 +206,8 @@ class AbsensiController extends Controller
 
                                 // 2. Trigger Rule (Every 4 Sessions)
                                 if ($totalPresent > 0 && $totalPresent % 4 == 0) {
-                                    // Get the last 4 reports where student was present
-                                    $last4ReportIds = $attendanceRecords->sortByDesc('created_at')->take(4)->pluck('laporan_mengajar_id');
-                                    
-                                    $last4Reports = LaporanMengajar::whereIn('id', $last4ReportIds)
-                                        ->orderBy('jadwal_mengajar', 'asc')
-                                        ->get();
+                                    // Get the last 4 reports of the rombel
+                                    $last4Reports = $rombelReports->sortByDesc('jadwal_mengajar')->take(4)->sortBy('jadwal_mengajar')->values();
 
                                     if ($isEkstrakurikuler && $ekstrakurikulerSession) {
                                         $rombelModel = $ekstrakurikulerSession->rombel;
