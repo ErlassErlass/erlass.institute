@@ -56,7 +56,7 @@ class ProgressReminderNotification extends Notification implements ShouldQueue
         $totalHadir = count($this->reports);
 
         foreach ($this->reports as $index => $report) {
-            $tanggal = \Carbon\Carbon::parse($report->jadwal_mengajar)->translatedFormat('d F Y');
+            $tanggal = \Carbon\Carbon::parse($report->jadwal_mengajar)->translatedFormat('l, d F Y');
             $materi = $report->topik_materi ?? $report->materi ?? 'Materi belum diisi';
             $reportDetails .= "- Pertemuan " . ($index + 1) . " ({$tanggal}): {$materi}\n";
         }
