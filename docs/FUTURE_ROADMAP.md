@@ -24,5 +24,17 @@ This document outlines potential features and enhancements for the **Erlass Eksk
 - **Concept**: Transformasi web menjadi PWA yang dapat di-install di layar utama HP.
 - **Benefit**: Mempercepat akses instruktur dan mendukung caching data dasar untuk kondisi sinyal internet yang lemah.
 
+### 6. 🤖 Smart AI Agent Integration (Assistant & Chatbot)
+- **Concept**: Mengembangkan agen AI menggunakan LLM (Large Language Model) yang dapat berinteraksi dengan database Erlass Ekskul, diintegrasikan baik di Dashboard Admin maupun via WhatsApp (Fonnte).
+- **Benefit**:
+  - **Bagi Admin**: Memungkinkan pencarian data natural ("Berapa persen tingkat kehadiran ekskul Tari bulan Februari?").
+  - **Bagi Orang Tua**: Chatbot WhatsApp 24/7 yang dapat menjawab jadwal, progres belajar, dan reminder secara luwes layaknya manusia.
+  - **Bagi Instruktur**: *Automated Insight* untuk menyimpulkan ratusan narasi laporan menjadi satu paragraf ringkasan kompetensi siswa.
+- **Tech Requirements**:
+  - **LLM API**: OpenAI API, Anthropic, atau Gemini.
+  - **Agent Framework**: LangChain for PHP (LLPhant) atau memisahkan microservice AI menggunakan Python (LangChain/LlamaIndex).
+  - **Vector Database**: PostgreSQL Tensor/Pgvector atau Pinecone untuk RAG (*Retrieval-Augmented Generation*) agar AI memahami konteks data spesifik aplikasi.
+  - **Background Worker**: Redis & Laravel Horizon mutlak diperlukan untuk proses *AI streaming/generation* secara asinkron agar tidak membebani server utama.
+
 ---
-*Last Updated: February 23, 2026*
+*Last Updated: March 03, 2026*
