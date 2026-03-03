@@ -19,11 +19,6 @@ use Illuminate\Support\Facades\Route;
 
 // Debug routes removed for security - use php artisan tinker for debugging
 
-// Rombel Management Routes
-
-
-Route::post('/rombel/{rombel}/import-siswa', [App\Http\Controllers\RombelSiswaController::class, 'importToRombel'])->name('rombel.import-siswa');
-
 
 require __DIR__.'/auth.php';
 require __DIR__.'/health.php';
@@ -64,8 +59,13 @@ Route::middleware(['auth'])->group(function () {
     // Siswa Import Routes
     Route::get('siswa/import', [SiswaController::class, 'import'])->name('siswa.import');
     Route::post('siswa/import', [SiswaController::class, 'processImport'])->name('siswa.process-import');
+    Route::post('/rombel/{rombel}/import-siswa', [App\Http\Controllers\RombelSiswaController::class, 'importToRombel'])->name('rombel.import-siswa');
     Route::resource('siswa', SiswaController::class);
-    Route::resource('users', UserController::class); // Otorisasi via Policy lebih disarankan
+    
+    // User Management (Admin Only)
+    Route::middleware(['role:webmaster,admin_sistem,admin'])->group(function () {
+        Route::resource('users', UserController::class); // Otorisasi via Policy lebih disarankan
+    });
     Route::resource('laporan-mengajar', LaporanMengajarController::class);
 
     // Jadwal Harian
@@ -203,7 +203,7 @@ Route::middleware(['auth'])->group(function () {
 
 
     // Admin Panel Routes
-    Route::prefix('admin')->name('admin.')->group(function () {
+    Route::prefix('admin')->name('admin.')->middleware(['role:webmaster,admin_sistem,admin'])->group(function () {
         Route::resource('activity-logs', ActivityLogController::class)->only(['index']); // Logging route
 
         // Redirect old admin/users and admin/employees to /users (consolidated)
@@ -226,18 +226,16 @@ Route::middleware(['auth'])->group(function () {
         Route::post('verification/{instructor}/reject', [UserManagementController::class, 'rejectInstructor'])
             ->name('verification.reject');
 
-        Route::middleware(['role:webmaster,admin_sistem,admin'])->group(function () {
-            Route::get('analytics', [\App\Http\Controllers\DashboardAnalyticsController::class, 'index'])
-                ->name('analytics.index');
-            Route::get('analytics/data', [\App\Http\Controllers\DashboardAnalyticsController::class, 'getData'])
-                ->name('analytics.data');
-            // Schedule Distribution
-            Route::get('analytics/schedule-distribution/export', [\App\Http\Controllers\DashboardAnalyticsController::class, 'exportScheduleDistribution'])
-                ->name('analytics.schedule-distribution.export');
-
-            Route::get('analytics/schedule-distribution', [\App\Http\Controllers\DashboardAnalyticsController::class, 'scheduleDistribution'])
-                ->name('analytics.schedule-distribution');
-        });
+        // Analytics Routes
+        Route::get('analytics', [\App\Http\Controllers\DashboardAnalyticsController::class, 'index'])
+            ->name('analytics.index');
+        Route::get('analytics/data', [\App\Http\Controllers\DashboardAnalyticsController::class, 'getData'])
+            ->name('analytics.data');
+        // Schedule Distribution
+        Route::get('analytics/schedule-distribution/export', [\App\Http\Controllers\DashboardAnalyticsController::class, 'exportScheduleDistribution'])
+            ->name('analytics.schedule-distribution.export');
+        Route::get('analytics/schedule-distribution', [\App\Http\Controllers\DashboardAnalyticsController::class, 'scheduleDistribution'])
+            ->name('analytics.schedule-distribution');
 
         // Broadcast Routes
         Route::get('broadcast', [\App\Http\Controllers\Admin\BroadcastController::class, 'create'])->name('broadcast.create');

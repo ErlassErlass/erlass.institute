@@ -100,7 +100,13 @@ Proses registrasi instruktur melibatkan transaksi database (`DB::transaction`) u
 *   **Logika Progress Reminder (`ProgressReminderNotification`)**: Di-trigger di `AbsensiController::store` dan `EkstrakurikulerReportController::store`. Syarat: Siswa *must be marked present*, kemudian sistem menghitung kelipatan `total_hadir % 4 == 0`. Jika memenuhi, notif mengambil 4 `LaporanMengajar` historikal terakhir siswa tersebut di satu Rombel. Terfasilitasi juga secara manual via `EkstrakurikulerSessionController@sendProgressReminder`.
 *   **Logika Schedule Reminder (`ScheduleReminderNotification`)**: Dikirim ke Instruktur secara sinkron (H-1) atau manual oleh Admin dari halaman Session. Menggunakan `Carbon::setLocale('id')` untuk menerjemahkan tanggal.
 
-### 7. Analytics & Visualization
+### 7. Route Security & Role Middleware (Best Practices)
+Berdasarkan best practices Laravel 12.x keamanan tingkat rute (*Defense-in-Depth*) harus diterapkan di `routes/web.php` untuk membalikkan potensi human error di controller.
+*   **Group Middleware**: Pastikan semua route yang bersifat sensitif dan membutuhkan peran tertentu dibungkus dalam *Route Group* menggunakan sintaks `Route::middleware(['role:webmaster,admin_sistem,admin'])->group(...)`.
+*   **Avoid Exposed Routes**: Jangan tinggalkan endpoint proses kritikal (misalnya import, export, bulk action) di luar jangkauan `Route::middleware(['auth'])`.
+*   **Akses Hierarkis**: Untuk fitur manajemen inti seperti `users` atau `activity-logs`, pastikan berada secara kuat di dalam penjagaan role *Admin/Webmaster*.
+
+### 8. Analytics & Visualization
 **Controller**: `DashboardAnalyticsController`
 **Libraries**:
 *   `Chart.js` (via CDN) untuk rendering grafik.
