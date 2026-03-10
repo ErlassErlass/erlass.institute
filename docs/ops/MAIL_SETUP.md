@@ -6,13 +6,15 @@ Panduan lengkap setup email domain, konfigurasi Laravel SMTP, dan strategi distr
 
 ## 1. Arsitektur Notifikasi Saat Ini
 
-Sistem Erlass sudah memiliki **4 notification classes** yang siap digunakan:
+Sistem Erlass sudah memiliki **6 notification classes** yang siap digunakan:
 
 | Notification | Fungsi | Channel Aktif |
 |:---|:---|:---|
 | `WelcomeInstructorNotification` | Sambutan instruktur baru + password | WhatsApp |
+| `WelcomeParentNotification` | Sambutan anak di ekskul baru | WhatsApp |
 | `ScheduleReminderNotification` | Pengingat jadwal mengajar | WhatsApp |
-| `SessionReportNotification` | Notif laporan sesi selesai | WhatsApp |
+| `SessionReportNotification` | Notif laporan sesi selesai (Ortu) | WhatsApp |
+| `ProgressReminderNotification` | Rekap progress 4 sesi (Ortu) | WhatsApp |
 | `InstructorBroadcastNotification` | Broadcast umum ke instruktur | WhatsApp |
 
 > [!IMPORTANT]
@@ -222,6 +224,11 @@ Instruktur baru mendaftar
 Sistem kirim WelcomeInstructorNotification
     ├── WhatsApp (via Fonnte) → langsung ke HP instruktur
     └── Email (via SMTP) → ke email pribadi instruktur
+
+Anak baru didaftarkan di Rombel Ekskul
+    ↓
+Sistem kirim WelcomeParentNotification
+    └── WhatsApp (via Fonnte) → ke nomor Orang Tua
     
 Jadwal mendekati H-1
     ↓
@@ -229,10 +236,15 @@ Sistem kirim ScheduleReminderNotification
     ├── WhatsApp → ke HP instruktur
     └── Email → ke email instruktur (opsional)
 
-Laporan selesai diisi
+Laporan harian selesai diisi
     ↓
 Sistem kirim SessionReportNotification
-    └── WhatsApp → ke admin yang terkait
+    └── WhatsApp → ke nomor Orang Tua
+
+Siswa genap mencapai 4x Kehadiran
+    ↓
+Sistem kirim ProgressReminderNotification
+    └── WhatsApp → ke nomor Orang Tua
 ```
 
 ---
