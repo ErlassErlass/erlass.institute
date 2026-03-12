@@ -7,6 +7,11 @@ import 'select2/dist/css/select2.min.css';
 import 'select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css';
 import "flatpickr/dist/flatpickr.min.css";
 
+// Import jQuery and make it available globally
+import jQuery from 'jquery';
+window.$ = jQuery;
+window.jQuery = jQuery;
+
 // Import Alpine.js
 import Alpine from 'alpinejs';
 
@@ -79,8 +84,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initialize Flatpickr datepickers
     window.initDatepickers();
 
-    // Initialize Bootstrap components (if bootstrap is loaded via CDN)
-    if (typeof bootstrap !== 'undefined') {
+    // Initialize Bootstrap components
+    const bootstrap = window.bootstrap;
+    if (bootstrap) {
         // Initialize Bootstrap tooltips
         const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.map(function (tooltipTriggerEl) {

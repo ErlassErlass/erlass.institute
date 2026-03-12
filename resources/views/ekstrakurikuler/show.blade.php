@@ -187,6 +187,18 @@
                         </form>
                         @endif
                     @endcan
+
+                    @can('complete', $ekstrakurikuler)
+                        @if($ekstrakurikuler->canBeCompleted())
+                        <form action="{{ route('ekstrakurikuler.complete', $ekstrakurikuler) }}" method="POST" class="d-inline">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="btn btn-success" onclick="return confirm('Tandai program Ekstrakurikuler ini telah selesai?')">
+                                <i class="fas fa-flag-checkered"></i> Selesaikan
+                            </button>
+                        </form>
+                        @endif
+                    @endcan
                     
                     <a href="{{ route('ekstrakurikuler.index') }}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Kembali
@@ -601,9 +613,16 @@
                                                                 @endif
                                                             </div>
                                                             
-                                                            <span class="badge {{ $statusClass }}">
-                                                                {{ $session->status_label }}
-                                                            </span>
+                                                            <div class="text-right d-flex flex-column align-items-end">
+                                                                <span class="badge {{ $statusClass }} mb-1">
+                                                                    {{ $session->status_label }}
+                                                                </span>
+                                                                @if($session->status === 'selesai' && !$session->laporan_mengajar_id)
+                                                                <span class="badge badge-danger">
+                                                                    <i class="fas fa-exclamation-circle"></i> Belum Dilaporkan
+                                                                </span>
+                                                                @endif
+                                                            </div>
                                                         </div>
                                                         
                                                         @if($session->status === 'selesai' && $session->tanggal_pelaksanaan)

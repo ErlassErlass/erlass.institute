@@ -9,7 +9,7 @@ Akun-akun ini dibuat oleh `UserSeeder.php` dan selalu tersedia setelah `php arti
 
 | Role | Nama | Email / ID | Password Default | Akses |
 |---|---|---|---|---|
-| **Webmaster** | Webmaster Erlass | `webmaster@erlass.institute` | `password` | Full Access (Super Admin) |
+| **Webmaster** | Webmaster Erlass | `webmaster@erlass.institute` | `W3bm4st3r_S3cur3_P4ss!` | Full Access (Super Admin) |
 | **Admin Sistem** | Admin Erlass | `admin@erlass.institute` | `password` | Manajemen User & Sistem |
 | **Instruktur** | Instruktur Erlass | `instruktur@erlass.institute` / `ICE20251` | `password` | Absensi & Laporan (Verified) |
 | **Instruktur** | Instruktur Pending | `pending@erlass.institute` / `ICE20252` | `password` | Terbatas (Unverified) |

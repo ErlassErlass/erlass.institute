@@ -61,7 +61,17 @@ Jika VPS akan digunakan untuk **beberapa aplikasi sekaligus**, Docker adalah pil
 *   **DigitalOcean** (SGP Region) — Stabil, dokumentasi bagus
 *   **Vultr** (SGP Region) — Harga kompetitif
 
----
+### ⭐ Opsi 2: Bare-Metal Ubuntu (Native)
+
+Cocok untuk efisiensi sumber daya maksimal atau jika server hanya digunakan untuk tujuan spesifik. Isolasi dilakukan manual melalui Nginx Server Blocks, MySQL User Privileges, dan Redis Prefixes.
+
+| Pro | Kontra |
+|-----|--------|
+| Performa native (non-virtualized) | Manajemen dependensi manual |
+| Efisiensi RAM (Tanpa overhead Docker) | Risiko konflik library sistem global |
+| Pengaturan SSL Nginx lebih simpel | Dokumentasi isolasi harus disiplin |
+
+> **Panduan Isolasi Multi-App**: Lihat `/root/PANDUAN_ISOLASI_APLIKASI.md` untuk teknik menjalankan banyak aplikasi native tanpa tabrakan.
 
 ## 3. Instalasi Baru (Fresh Install)
 

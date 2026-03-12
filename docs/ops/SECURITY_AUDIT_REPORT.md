@@ -90,3 +90,20 @@ Ditemukan potensi crash (Internal Server Error 500) pada halaman profil jika fie
 - **Improved Validation**: Memperketat validasi pada `UserController` dan `InstructorProfileController` untuk memastikan data esensial selalu terisi.
 - **Safe Navigation**: Menggunakan `?->` pada controller instruktur untuk mencegah crash saat relasi profil belum terbentuk.
 - **Integritas Sinkronisasi**: Memastikan data pendidikan terstandardisasi di seluruh form untuk mencegah ketidakkonsistenan data (Misal: "SMA" vs "SMA/SMK Sederajat").
+
+---
+
+## 5. Pembaruan Audit (11 Maret 2026)
+
+### H. Transisi Bare-Metal & Penguatan Sesi (High)
+**Temuan**:
+Transisi dari Docker ke Native OS Server berpotensi menimbulkan tabrakan sesi (*Session Collision*) dan masalah hak akses file sistem.
+- `REDIS_PREFIX` sebelumnya kosong (Risiko tabrakan dengan aplikasi lain di server yang sama).
+- Root direktori berada di `/root` (Risiko keamanan izin akses).
+
+**Perbaikan**:
+- **Pemindahan Web Root**: Aplikasi dipindahkan ke `/var/www/webapperlass` dengan kepemilikan `www-data:www-data` (755).
+- **Enforcement Redis Prefix**: Menambahkan `REDIS_PREFIX=webapperlass_` unik untuk mengisolasi memori sesi dari aplikasi lain.
+- **PHP-FPM Socket**: Beralih dari port TCP ke Unix Socket (`php8.3-fpm.sock`) untuk keamanan internal.
+- **Firewall Enforcement**: Aktivasi sistem `UFW` yang membatasi akses publik hanya pada port 80 dan 443.
+

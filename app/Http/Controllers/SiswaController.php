@@ -36,7 +36,7 @@ class SiswaController extends Controller
         }
 
         $siswa = $query->latest()->paginate(10);
-        $sekolahs = Sekolah::orderBy('namasekolah')->get();
+        $sekolahs = Sekolah::whereHas('siswa')->orderBy('namasekolah')->get();
 
         return view('siswa.index', compact('siswa', 'sekolahs'));
     }

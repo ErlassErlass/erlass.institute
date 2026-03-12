@@ -19,8 +19,7 @@
     <!-- Additional plugin styles for complex forms -->
     {{-- Plugins (Select2, Flatpickr) now bundled in app.css --}}
     
-    <!-- jQuery (Must be before Vite bundling to be available for layout scripts) -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Plugin styles bundled in app.css -->
     
     <!-- App styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -363,7 +362,7 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs(['ekstrakurikuler.sessions.*', 'ekstrakurikuler.reports.*']) ? 'active' : '' }}" 
                            href="{{ route('ekstrakurikuler.sessions.index') }}">
-                            Jadwal & Laporan
+                            Agenda Kegiatan
                         </a>
                     </li>
 
@@ -371,7 +370,7 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('laporan-mengajar.create') ? 'active' : '' }}" 
                            href="{{ route('laporan-mengajar.create') }}">
-                            Buat Laporan Baru
+                            Isi Jurnal Baru
                         </a>
                     </li>
                     @endif
@@ -379,7 +378,7 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {{ request()->routeIs(['absensi.*', 'rekap-absensi', 'laporan-mengajar.*']) ? 'active' : '' }}" 
                            href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Absensi & Laporan
+                            Absensi & Jurnal
                         </a>
                         <ul class="dropdown-menu animate slideIn">
                             <li><a class="dropdown-item" href="{{ route('absensi.index') }}">
@@ -390,7 +389,7 @@
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ route('laporan-mengajar.index') }}">
-                                <i class="bi bi-journal-text me-2 text-warning"></i>Riwayat Laporan
+                                <i class="bi bi-journal-text me-2 text-warning"></i>Riwayat Jurnal
                             </a></li>
                         </ul>
                     </li>

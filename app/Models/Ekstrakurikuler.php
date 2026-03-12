@@ -365,6 +365,14 @@ class Ekstrakurikuler extends Model
     }
 
     /**
+     * Cek apakah program bisa diselesaikan.
+     */
+    public function canBeCompleted(): bool
+    {
+        return $this->status === self::STATUS_AKTIF;
+    }
+
+    /**
      * Cek apakah program sedang berjalan.
      */
     public function isActive(): bool

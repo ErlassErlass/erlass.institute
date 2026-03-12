@@ -1,5 +1,6 @@
 // Import Bootstrap Bundle (includes Popper)
-import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import 'bootstrap';
+import * as bootstrap from 'bootstrap';
 window.bootstrap = bootstrap;
 
 // Axios setup

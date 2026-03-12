@@ -108,8 +108,10 @@ class SiswaImporterService
             }
         } elseif (in_array(strtolower($extension), ['xlsx', 'xls'])) {
             try {
-                // Read the file using Maatwebsite Excel
-                $array = \Maatwebsite\Excel\Facades\Excel::toArray([], $filePath);
+                // Determine reader type based on extension
+                $readerType = strtolower($extension) === 'xls' ? \Maatwebsite\Excel\Excel::XLS : \Maatwebsite\Excel\Excel::XLSX;
+                // Read the file using Maatwebsite Excel by explicitly setting the readerType
+                $array = \Maatwebsite\Excel\Facades\Excel::toArray([], $filePath, null, $readerType);
                 
                 if (!empty($array) && !empty($array[0])) {
                     $rows = $array[0]; // Get the first sheet

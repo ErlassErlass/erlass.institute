@@ -117,7 +117,7 @@
             @endif
 
             <div class="row mb-4">
-                <div class="col-xl-3 col-md-6 mb-4">
+                <div class="col-xl-4 col-md-4 mb-4">
                     <div class="card border-left-primary shadow h-100 py-2 stat-card">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
@@ -134,7 +134,7 @@
                     </div>
                 </div>
 
-                <div class="col-xl-3 col-md-6 mb-4">
+                <div class="col-xl-4 col-md-4 mb-4">
                     <div class="card border-left-success shadow h-100 py-2 stat-card">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
@@ -151,24 +151,7 @@
                     </div>
                 </div>
 
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-warning shadow h-100 py-2 stat-card">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                        Menunggu Persetujuan</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $stats['diajukan'] }}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-clock fa-2x text-gray-300 stat-icon"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6 mb-4">
+                <div class="col-xl-4 col-md-4 mb-4">
                     <div class="card border-left-info shadow h-100 py-2 stat-card">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
@@ -195,24 +178,11 @@
                     <form method="GET" action="{{ route('ekstrakurikuler.index') }}" id="filterForm">
                         <div class="row">
                             <!-- Search -->
-                            <div class="col-md-3 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label for="search" class="form-label">Pencarian</label>
                                 <input type="text" class="form-control" id="search" name="search"
                                     value="{{ request('search') }}"
                                     placeholder="Nama program atau sekolah...">
-                            </div>
-
-                            <!-- Status Filter -->
-                            <div class="col-md-2 mb-3">
-                                <label for="status" class="form-label">Status</label>
-                                <select class="form-control" id="status" name="status">
-                                    <option value="">Semua Status</option>
-                                    @foreach($statuses as $value => $label)
-                                    <option value="{{ $value }}" {{ request('status') == $value ? 'selected' : '' }}>
-                                        {{ $label }}
-                                    </option>
-                                    @endforeach
-                                </select>
                             </div>
 
                             <!-- Region Filter -->
@@ -598,7 +568,7 @@
         }
 
         // Auto-submit form on select change
-        const selects = document.querySelectorAll('#status, #region, #sekolah_kodlan');
+        const selects = document.querySelectorAll('#region, #kota, #sekolah_kodlan');
         selects.forEach(select => {
             select.addEventListener('change', function() {
                 document.getElementById('filterForm').submit();

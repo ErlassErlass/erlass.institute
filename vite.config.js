@@ -8,17 +8,4 @@ export default defineConfig({
             refresh: true,
         }),
     ],
-    build: {
-        rollupOptions: {
-            external: ['jquery'],
-            output: {
-                globals: {
-                    jquery: '$',
-                },
-            },
-        },
-    },
-    optimizeDeps: {
-        exclude: ['jquery'],
-    },
 });

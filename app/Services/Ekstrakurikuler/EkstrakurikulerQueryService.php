@@ -34,10 +34,6 @@ class EkstrakurikulerQueryService
      */
     protected function applyFilters($query, Request $request)
     {
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
         if ($request->filled('region')) {
             $query->where('region', $request->region);
         }
