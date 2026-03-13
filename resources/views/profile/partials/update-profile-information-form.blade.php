@@ -66,6 +66,7 @@
                 <select id="kompetensi_1" name="kompetensi_1" class="form-select">
                     <option value="">{{ __('Select Competency') }}</option>
                     <option value="Coding" {{ old('kompetensi_1', $user->kompetensi_1) == 'Coding' ? 'selected' : '' }}>Coding</option>
+                    <option value="Bahasa Inggris" {{ old('kompetensi_1', $user->kompetensi_1) == 'Bahasa Inggris' ? 'selected' : '' }}>Bahasa Inggris</option>
                     <option value="Robotik" {{ old('kompetensi_1', $user->kompetensi_1) == 'Robotik' ? 'selected' : '' }}>Robotik</option>
                     <option value="Desain" {{ old('kompetensi_1', $user->kompetensi_1) == 'Desain' ? 'selected' : '' }}>Desain</option>
                     <option value="IoT" {{ old('kompetensi_1', $user->kompetensi_1) == 'IoT' ? 'selected' : '' }}>IoT</option>
@@ -79,6 +80,7 @@
                 <select id="kompetensi_2" name="kompetensi_2" class="form-select">
                     <option value="">{{ __('Select Competency (Optional)') }}</option>
                     <option value="Coding" {{ old('kompetensi_2', $user->kompetensi_2) == 'Coding' ? 'selected' : '' }}>Coding</option>
+                    <option value="Bahasa Inggris" {{ old('kompetensi_2', $user->kompetensi_2) == 'Bahasa Inggris' ? 'selected' : '' }}>Bahasa Inggris</option>
                     <option value="Robotik" {{ old('kompetensi_2', $user->kompetensi_2) == 'Robotik' ? 'selected' : '' }}>Robotik</option>
                     <option value="Desain" {{ old('kompetensi_2', $user->kompetensi_2) == 'Desain' ? 'selected' : '' }}>Desain</option>
                     <option value="IoT" {{ old('kompetensi_2', $user->kompetensi_2) == 'IoT' ? 'selected' : '' }}>IoT</option>
