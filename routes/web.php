@@ -13,6 +13,9 @@ use App\Http\Controllers\SiswaEkstrakurikulerController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SalesmanController;
+use App\Http\Controllers\OrderSpController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -61,6 +64,19 @@ Route::middleware(['auth'])->group(function () {
     Route::post('siswa/import', [SiswaController::class, 'processImport'])->name('siswa.process-import');
     Route::post('/rombel/{rombel}/import-siswa', [App\Http\Controllers\RombelSiswaController::class, 'importToRombel'])->name('rombel.import-siswa');
     Route::resource('siswa', SiswaController::class);
+
+    // AOQCS Phase 1 - Master Data & SP Modules
+    Route::middleware(['role:webmaster,admin_sistem,admin'])->group(function () {
+        Route::resource('products', ProductController::class);
+        Route::post('salesmen/import', [SalesmanController::class, 'import'])->name('salesmen.import');
+        Route::resource('salesmen', SalesmanController::class);
+    });
+
+    Route::middleware(['role:webmaster,admin_sistem,admin,sales'])->group(function () {
+        Route::patch('orders-sp/{orders_sp}/submit', [OrderSpController::class, 'submit'])->name('orders-sp.submit');
+        Route::post('orders-sp/import', [OrderSpController::class, 'import'])->name('orders-sp.import');
+        Route::resource('orders-sp', OrderSpController::class);
+    });
     
     // User Management (Admin Only)
     Route::middleware(['role:webmaster,admin_sistem,admin'])->group(function () {

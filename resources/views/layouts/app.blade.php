@@ -370,6 +370,14 @@
                             <li><a class="dropdown-item" href="{{ route('siswa.index') }}">
                                 <i class="bi bi-people me-2 text-success"></i>Database Siswa
                             </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">AOQCS Master Data</h6></li>
+                            <li><a class="dropdown-item" href="{{ route('products.index') }}">
+                                <i class="bi bi-box-seam me-2 text-warning"></i>Database Produk
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ route('salesmen.index') }}">
+                                <i class="bi bi-person-badge me-2 text-success"></i>Database Salesman
+                            </a></li>
                         </ul>
                     </li>
                     @endif
@@ -383,6 +391,15 @@
                             </a>
                         </li>
                         @endcan
+                    @endif
+
+                    @if(in_array(Auth::user()?->role, ['webmaster', 'admin_sistem', 'admin', 'sales']))
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('orders-sp.*') ? 'active' : '' }}" 
+                               href="{{ route('orders-sp.index') }}">
+                                Surat Pesanan (SP)
+                            </a>
+                        </li>
                     @endif
 
                     <li class="nav-item">
