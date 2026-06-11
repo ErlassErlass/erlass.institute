@@ -11,10 +11,7 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Register the schedule reminder command
-Artisan::command('schedule:remind', function () {
-    $this->call(SendScheduleReminders::class);
-})->purpose('Send reminders to instructors 1 hour before session');
+// The schedule reminder command is handled via App\Console\Commands\SendScheduleReminders
 
 // Schedule the command within the closure for newer Laravel versions or just register it
 // Note: In modern Laravel 11, console.php handles scheduling differently.

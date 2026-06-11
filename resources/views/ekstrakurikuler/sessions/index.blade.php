@@ -420,52 +420,10 @@
 
 <!-- Bulk Actions Modal Placeholder -->
 <!-- ... (Existing Bulk Modal) ... -->
-<div class="modal fade" id="bulkActionModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Bulk Action</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="bulkActionContent">
-                <p class="text-muted text-center my-3">Fitur ini akan segera tersedia.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <!-- Manual Reminder Modal -->
-<div class="modal fade" id="reminderModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Kirim Reminder Manual</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="reminderForm">
-                <div class="modal-body">
-                    <input type="hidden" id="reminderSessionId">
-                    <p>Kirim notifikasi WhatsApp ke instruktur: <strong id="reminderInstructorName"></strong></p>
-                    
-                    <div class="mb-3">
-                        <label for="customMessage" class="form-label">Pesan Tambahan (Opsional)</label>
-                        <textarea class="form-control" id="customMessage" rows="3" placeholder="Contoh: Harap datang 15 menit lebih awal."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary" id="btnSendReminder">
-                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                        Kirim Sekarang
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+
 
 @push('scripts')
 <script>
@@ -647,4 +605,55 @@ function showBulkTimeUpdateForm() {
 }
 </script>
 @endpush
+
+@push('modals')
+<div class="modal fade" id="reminderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Kirim Reminder Manual</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="reminderForm">
+                <div class="modal-body">
+                    <input type="hidden" id="reminderSessionId">
+                    <p>Kirim notifikasi WhatsApp ke instruktur: <strong id="reminderInstructorName"></strong></p>
+                    
+                    <div class="mb-3">
+                        <label for="customMessage" class="form-label">Pesan Tambahan (Opsional)</label>
+                        <textarea class="form-control" id="customMessage" rows="3" placeholder="Contoh: Harap datang 15 menit lebih awal."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="btnSendReminder">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Kirim Sekarang
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="bulkActionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bulk Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="bulkActionContent">
+                <p class="text-muted text-center my-3">Fitur ini akan segera tersedia.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+@endpush
+
 @endsection
+@push('modals')
+
+</div>
+@endpush

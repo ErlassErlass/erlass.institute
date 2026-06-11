@@ -311,13 +311,18 @@ tar -xzf storage_backup_20260223.tar.gz -C /var/www/erlass/
   sudo apt install certbot python3-certbot-nginx
   sudo certbot --nginx -d erlass.com -d www.erlass.com
   ```
-- [ ] **Firewall**: Setup UFW
+- [x] **SSH Hardening**: Matikan login password.
+  - Set `PasswordAuthentication no` dan `PermitRootLogin prohibit-password` di `/etc/ssh/sshd_config`.
+- [x] **Firewall (UFW)**: Setup UFW dengan limitasi.
   ```bash
-  sudo ufw allow 22    # SSH
-  sudo ufw allow 80    # HTTP
-  sudo ufw allow 443   # HTTPS
+  sudo ufw limit 22/tcp    # SSH (Rate limiting)
+  sudo ufw allow 80/tcp    # HTTP
+  sudo ufw allow 443/tcp   # HTTPS
+  sudo ufw deny 81/tcp     # Port non-standar/terlarang
   sudo ufw enable
   ```
+- [x] **Brute-Force Protection**: Install `fail2ban`.
+- [x] **Auto-Security Patches**: Aktifkan `unattended-upgrades`.
 - [ ] **APP_DEBUG=false** di `.env` production
 - [ ] **APP_ENV=production** di `.env`
 - [ ] Password database kuat & berbeda dari development

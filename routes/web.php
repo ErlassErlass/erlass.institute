@@ -65,6 +65,7 @@ Route::middleware(['auth'])->group(function () {
     // User Management (Admin Only)
     Route::middleware(['role:webmaster,admin_sistem,admin'])->group(function () {
         Route::resource('users', UserController::class); // Otorisasi via Policy lebih disarankan
+        Route::post('/ekstrakurikuler/{ekstrakurikuler}/cancel', [EkstrakurikulerController::class, 'cancel'])->name('ekstrakurikuler.cancel');
     });
     Route::resource('laporan-mengajar', LaporanMengajarController::class);
 
@@ -142,8 +143,6 @@ Route::middleware(['auth'])->group(function () {
         ->name('ekstrakurikuler.activate');
     Route::patch('ekstrakurikuler/{ekstrakurikuler}/complete', [EkstrakurikulerController::class, 'complete'])
         ->name('ekstrakurikuler.complete');
-    Route::patch('ekstrakurikuler/{ekstrakurikuler}/cancel', [EkstrakurikulerController::class, 'cancel'])
-        ->name('ekstrakurikuler.cancel');
 
     // API routes for ekstrakurikuler (moved to dedicated API controller)
     Route::prefix('api/ekstrakurikuler')->name('api.ekstrakurikuler.')->group(function () {
@@ -277,4 +276,19 @@ Route::middleware(['auth'])->group(function () {
     // No explicit route needed here if resource(index) is active
     Route::get('laporan-mengajar/{laporan_mengajar}/absensi/tanggal/{tanggal}', [AbsensiController::class, 'showByDate'])
         ->name('laporan-mengajar.absensi.tanggal');
+});
+
+// Late Report Grace System Routes
+Route::middleware(['auth'])->group(function () {
+    Route::post('sessions/{session}/late-report-request', [App\Http\Controllers\LateReportRequestController::class, 'store'])
+        ->name('sessions.late-report-request.store');
+
+    Route::middleware(['role:admin,admin_sistem,webmaster'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('late-report-requests', [App\Http\Controllers\LateReportRequestController::class, 'index'])
+            ->name('late-reports.index');
+        Route::post('late-report-requests/{lateReportRequest}/approve', [App\Http\Controllers\LateReportRequestController::class, 'approve'])
+            ->name('late-reports.approve');
+        Route::post('late-report-requests/{lateReportRequest}/reject', [App\Http\Controllers\LateReportRequestController::class, 'reject'])
+            ->name('late-reports.reject');
+    });
 });

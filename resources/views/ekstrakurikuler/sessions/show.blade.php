@@ -62,6 +62,60 @@
         </div>
     </div>
 
+    
+    @if(Auth::user()->role === "instruktur" && $session->canComplete())
+        @php
+            $scheduleDate = $session->tanggal_terjadwal; 
+            $deadline = $scheduleDate->copy()->addDay()->endOfDay();
+            $isLocked = now()->greaterThan($deadline);
+            $hasApprovedRequest = $session->lateReportRequests()
+                ->where("user_id", Auth::id())
+                ->where("status", "approved")
+                ->exists();
+            $pendingRequest = $session->lateReportRequests()
+                ->where("user_id", Auth::id())
+                ->where("status", "pending")
+                ->first();
+        @endphp
+
+        @if($isLocked && !$hasApprovedRequest)
+            <div class="card shadow-sm mb-4 border-start border-4 border-warning">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="bg-warning bg-opacity-10 p-2 rounded text-warning">
+                            <i class="bi bi-clock-history fs-3"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="fw-bold text-dark mb-2">Batas Waktu Pelaporan Habis</h5>
+                            @if($pendingRequest)
+                                <div class="alert alert-info border-0 shadow-sm mb-0">
+                                    <i class="bi bi-hourglass-split me-2"></i> Permohonan buka akses sedang menunggu persetujuan Admin.
+                                </div>
+                            @elseif(Auth::user()->monthly_late_report_quota > 0)
+                                <p class="text-muted small mb-3">
+                                    Sesi ini sudah melewati batas H+1. Anda masih memiliki <strong>{{ Auth::user()->monthly_late_report_quota }}</strong> kuota bantuan bulan ini untuk membuka laporan ini.
+                                </p>
+                                <form action="{{ route('sessions.late-report-request.store', $session) }}" method="POST">
+                                    @csrf
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Alasan Keterlambatan</label>
+                                        <textarea name="reason" class="form-control form-control-sm" rows="2" required placeholder="Contoh: Terkendala sinyal, sakit, atau alasan lainnya..."></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-warning btn-sm fw-bold">
+                                        <i class="bi bi-send me-1"></i> Kirim Permintaan Buka Akses
+                                    </button>
+                                </form>
+                            @else
+                                <div class="alert alert-danger border-0 shadow-sm mb-0">
+                                    <i class="bi bi-exclamation-octagon-fill me-2"></i> Kuota bantuan bulanan Anda sudah habis. Silakan hubungi Admin secara manual untuk bantuan.
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endif
     <div class="row g-4">
         <!-- Main Content -->
         <div class="col-lg-8">
@@ -435,91 +489,13 @@
 </div>
 
 <!-- Cancel Modal -->
-<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="cancelModalLabel">Batalkan Sesi</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="cancelForm">
-                <div class="modal-body">
-                    <div class="alert alert-warning d-flex align-items-center">
-                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
-                        <div>
-                            Tindakan ini tidak dapat dibatalkan.
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="cancel_reason" class="form-label">Alasan Pembatalan <span class="text-danger">*</span></label>
-                        <textarea name="alasan_pembatalan" id="cancel_reason" rows="3" required class="form-control" placeholder="Jelaskan alasan pembatalan..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-danger">Batalkan Sesi</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+
 
 <!-- Reschedule Modal -->
-<div class="modal fade" id="rescheduleModal" tabindex="-1" aria-labelledby="rescheduleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title text-dark" id="rescheduleModalLabel">Reschedule Sesi</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="rescheduleForm">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="new_date" class="form-label">Tanggal Baru <span class="text-danger">*</span></label>
-                        <input type="text" name="tanggal_pengganti" id="new_date" required class="form-control datepicker" placeholder="DD-MM-YYYY">
-                    </div>
-                    <div class="mb-3">
-                        <label for="reschedule_reason" class="form-label">Alasan (Opsional)</label>
-                        <textarea name="alasan" id="reschedule_reason" rows="3" class="form-control" placeholder="Catatan tambahan..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-warning text-dark">Simpan Jadwal Baru</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+
 
 <!-- Manual Reminder Modal -->
-<div class="modal fade" id="reminderModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Kirim Reminder Manual</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="reminderForm">
-                <div class="modal-body">
-                    <p>Kirim notifikasi WhatsApp ke instruktur: <strong>{{ $session->instruktur->nama_lengkap ?? 'Instruktur' }}</strong></p>
-                    
-                    <div class="mb-3">
-                        <label for="customMessage" class="form-label">Pesan Tambahan (Opsional)</label>
-                        <textarea class="form-control" id="customMessage" rows="3" placeholder="Contoh: Harap datang 15 menit lebih awal."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary" id="btnSendReminder">
-                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                        Kirim Sekarang
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+
 
 @push('scripts')
 <script>
@@ -647,4 +623,89 @@
     });
 </script>
 @endpush
+
+@push('modals')
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="cancelModalLabel">Batalkan Sesi</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="cancelForm">
+                <div class="modal-body">
+                    <div class="alert alert-warning d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
+                        <div>
+                            Tindakan ini tidak dapat dibatalkan.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cancel_reason" class="form-label">Alasan Pembatalan <span class="text-danger">*</span></label>
+                        <textarea name="alasan_pembatalan" id="cancel_reason" rows="3" required class="form-control" placeholder="Jelaskan alasan pembatalan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-danger">Batalkan Sesi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="rescheduleModal" tabindex="-1" aria-labelledby="rescheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title text-dark" id="rescheduleModalLabel">Reschedule Sesi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="rescheduleForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="new_date" class="form-label">Tanggal Baru <span class="text-danger">*</span></label>
+                        <input type="text" name="tanggal_pengganti" id="new_date" required class="form-control datepicker" placeholder="DD-MM-YYYY">
+                    </div>
+                    <div class="mb-3">
+                        <label for="reschedule_reason" class="form-label">Alasan (Opsional)</label>
+                        <textarea name="alasan" id="reschedule_reason" rows="3" class="form-control" placeholder="Catatan tambahan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-warning text-dark">Simpan Jadwal Baru</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="reminderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Kirim Reminder Manual</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="reminderForm">
+                <div class="modal-body">
+                    <p>Kirim notifikasi WhatsApp ke instruktur: <strong>{{ $session->instruktur->nama_lengkap ?? 'Instruktur' }}</strong></p>
+                    
+                    <div class="mb-3">
+                        <label for="customMessage" class="form-label">Pesan Tambahan (Opsional)</label>
+                        <textarea class="form-control" id="customMessage" rows="3" placeholder="Contoh: Harap datang 15 menit lebih awal."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="btnSendReminder">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Kirim Sekarang
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endpush
+
 @endsection

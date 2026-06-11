@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+    <style>
+        #nprogress .bar { background: #3b82f6 !important; height: 3px !important; }
+        @keyframes pageFadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        main, .main-content { animation: pageFadeIn 0.4s ease-out forwards; }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+    
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -52,6 +62,20 @@
             --shadow-soft: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.01);
         }
 
+        /* Custom Placeholder */
+        ::placeholder {
+            font-weight: 300 !important;
+            font-size: 0.95em;
+            opacity: 0.55 !important;
+            color: #94a3b8 !important;
+        }
+        ::-moz-placeholder {
+            font-weight: 300 !important;
+            font-size: 0.95em;
+            opacity: 0.55 !important;
+            color: #94a3b8 !important;
+        }
+
         body {
             font-family: var(--font-primary);
             background-color: var(--bg-body);
@@ -88,6 +112,7 @@
             border-radius: var(--btn-radius);
             transition: all 0.2s ease;
             font-size: 0.95rem;
+            white-space: nowrap;
         }
 
         .nav-link:hover {
@@ -299,6 +324,7 @@
         div.dataTables_wrapper div.dataTables_info { color: #94a3b8; padding-top: 1rem; }
         .page-item .page-link { border-radius: 8px; margin: 0 2px; border: none; color: #64748b; }
         .page-item.active .page-link { background-color: var(--primary-color); color: white;box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3); }
+    
     </style>
     
     @stack('styles')
@@ -325,7 +351,7 @@
                         </a>
                     </li>
                     
-                    @if(Auth::user()->hasAdminAccess())
+                    @if(Auth::user()?->hasAdminAccess())
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {{ request()->routeIs(['sekolah.*', 'siswa.*']) ? 'active' : '' }}" 
                            href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -370,15 +396,16 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('laporan-mengajar.create') ? 'active' : '' }}" 
                            href="{{ route('laporan-mengajar.create') }}">
-                            Isi Jurnal Baru
+                            Buat Laporan
                         </a>
                     </li>
                     @endif
                     
+                    {{-- Menu Absensi --}}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs(['absensi.*', 'rekap-absensi', 'laporan-mengajar.*']) ? 'active' : '' }}" 
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs(['absensi.*', 'rekap-absensi']) ? 'active' : '' }}" 
                            href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Absensi & Jurnal
+                            Absensi
                         </a>
                         <ul class="dropdown-menu animate slideIn">
                             <li><a class="dropdown-item" href="{{ route('absensi.index') }}">
@@ -387,14 +414,18 @@
                              <li><a class="dropdown-item" href="{{ route('rekap-absensi') }}">
                                 <i class="bi bi-table me-2 text-info"></i>Rekap Kehadiran
                             </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ route('laporan-mengajar.index') }}">
-                                <i class="bi bi-journal-text me-2 text-warning"></i>Riwayat Jurnal
-                            </a></li>
                         </ul>
                     </li>
 
-                    @if(Auth::user()->hasAdminAccess())
+                    {{-- Menu Riwayat Laporan --}}
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('laporan-mengajar.index') ? 'active' : '' }}" 
+                           href="{{ route('laporan-mengajar.index') }}">
+                            Riwayat Laporan
+                        </a>
+                    </li>
+
+                    @if(Auth::user()?->hasAdminAccess())
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {{ request()->routeIs(['admin.*']) ? 'active' : '' }}" 
                            href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -404,6 +435,9 @@
                             @if(Auth::user()->canManageUsers())
                                 <li><a class="dropdown-item" href="{{ route('admin.verification.index') }}">
                                     <i class="bi bi-patch-check me-2 text-primary"></i>Verifikasi Instruktur
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.late-reports.index') }}">
+                                    <i class="bi bi-clock-history me-2 text-warning"></i>Request Laporan Terlambat
                                 </a></li>
                                 <li><a class="dropdown-item" href="{{ route('users.index') }}">
                                     <i class="bi bi-people me-2 text-dark"></i>Manajemen User
@@ -487,6 +521,7 @@
     <!-- Bootstrap JS -->
     <!-- Plugin scripts (Bundled via Vite) -->
 
+    @stack('modals')
     @stack('scripts')
 
     <!-- Animation Keyframes -->
@@ -503,6 +538,16 @@
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+    
     </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            NProgress.configure({ showSpinner: false, trickleSpeed: 200 });
+            NProgress.done();
+        });
+        window.addEventListener("beforeunload", function() {
+            NProgress.start();
+        });
+    </script>
 </body>
 </html>

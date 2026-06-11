@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+    <style>
+        #nprogress .bar { background: #3b82f6 !important; height: 3px !important; }
+    </style>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -27,6 +32,13 @@
             --primary-color: #3b82f6; 
             --primary-dark: #2563eb;
             --bg-body: #f1f5f9;
+    @keyframes pageFadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    main, .main-content {
+        animation: pageFadeIn 0.4s ease-out forwards;
+    }
         }
 
         body {
@@ -82,7 +94,7 @@
         }
     </style>
 </head>
-<body class="min-vh-100 d-flex align-items-center justify-content-center py-4">
+<body class="min-vh-100">
     <main class="w-100">
         @yield('content')
         {{ $slot ?? '' }}
@@ -91,5 +103,14 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            NProgress.configure({ showSpinner: false, trickleSpeed: 200 });
+            NProgress.done();
+        });
+        window.addEventListener("beforeunload", function() {
+            NProgress.start();
+        });
+    </script>
 </body>
 </html>

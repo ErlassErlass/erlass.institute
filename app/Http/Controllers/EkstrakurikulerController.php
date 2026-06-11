@@ -352,16 +352,51 @@ class EkstrakurikulerController extends Controller
     {
         $this->authorize('cancel', $ekstrakurikuler);
 
+        if ($ekstrakurikuler->status === Ekstrakurikuler::STATUS_DIBATALKAN) {
+            return back()->with('error', 'Program ini sudah dibatalkan sebelumnya.');
+        }
+
         $request->validate([
-            'reason' => 'required|string|max:500',
+            'reason' => 'required|string|min:5'
         ]);
 
-        $result = $this->workflowService->cancel($ekstrakurikuler, $request->reason);
+        try {
+            \DB::beginTransaction();
 
-        if ($result['success']) {
-            return back()->with('success', $result['message']);
-        } else {
-            return back()->withErrors(['error' => $result['message']]);
+            // 1. Update Program Status
+            $ekstrakurikuler->update([
+                'status' => Ekstrakurikuler::STATUS_DIBATALKAN,
+                'alasan_pembatalan' => $request->reason,
+                'tanggal_dibatalkan' => now(),
+                'dibatalkan_oleh' => auth()->id()
+            ]);
+
+            // 2. Cancel Future Sessions (Terjadwal & >= Today)
+            $ekstrakurikuler->sessions()
+                ->where('status', \App\Models\EkstrakurikulerSession::STATUS_TERJADWAL)
+                ->where('tanggal_terjadwal', '>=', now()->toDateString())
+                ->update([
+                    'status' => \App\Models\EkstrakurikulerSession::STATUS_DIBATALKAN,
+                    'alasan_pembatalan' => 'Program dihentikan oleh pusat: ' . $request->reason
+                ]);
+
+            // 3. Unenroll Active Students
+            $ekstrakurikuler->enrollments()
+                ->where('status', \App\Models\SiswaEkstrakurikuler::STATUS_AKTIF)
+                ->update([
+                    'status' => \App\Models\SiswaEkstrakurikuler::STATUS_KELUAR,
+                    'tanggal_keluar' => now(),
+                    'alasan_keluar' => 'Program dibatalkan/dihentikan: ' . $request->reason
+                ]);
+
+            \DB::commit();
+
+            return back()->with('success', 'Program berhasil dibatalkan dan semua jadwal mendatang telah dibersihkan.');
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error canceling program: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan saat membatalkan program.');
         }
     }
 

@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use App\Models\RefMateri;
+use App\Notifications\WelcomeParentNotification;
+use App\Notifications\ProgressReminderNotification;
 
 class EkstrakurikulerReportController extends Controller
 {
@@ -44,7 +48,13 @@ class EkstrakurikulerReportController extends Controller
             // Toleransi: Sampai akhir hari H+1 (misal jadwal tgl 1, batas tgl 2 jam 23:59)
             $deadline = $scheduleDate->copy()->addDay()->endOfDay();
             
-            if (now()->greaterThan($deadline)) {
+            // Cek apakah ada request yang sudah disetujui untuk sesi ini
+            $hasApprovedRequest = $session->lateReportRequests()
+                ->where("user_id", $user->id)
+                ->where("status", "approved")
+                ->exists();
+
+            if (now()->greaterThan($deadline) && !$hasApprovedRequest) {
                  return redirect()->route('ekstrakurikuler.sessions.show', $session)
                     ->with('error', 'Batas waktu pembuatan laporan (H+1) telah habis. Silakan hubungi Admin untuk bantuan.');
             }

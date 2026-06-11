@@ -107,6 +107,18 @@ class EkstrakurikulerSession extends Model
     /**
      * Relasi ke LaporanMengajar jika sudah terintegrasi.
      */
+    public function lateReportRequests()
+    {
+        return $this->hasMany(LateReportRequest::class, "session_id");
+    }
+
+    public function latestApprovedLateReportRequest()
+    {
+        return $this->hasOne(LateReportRequest::class, "session_id")
+            ->where("status", "approved")
+            ->latest();
+    }
+
     public function laporanMengajar(): BelongsTo
     {
         return $this->belongsTo(LaporanMengajar::class, 'laporan_mengajar_id');

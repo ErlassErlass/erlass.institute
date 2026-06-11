@@ -123,6 +123,22 @@ class User extends Authenticatable
     ];
 
     // Define relationships
+    public function lateReportRequests()
+    {
+        return $this->hasMany(LateReportRequest::class);
+    }
+
+    public function getMonthlyLateReportQuotaAttribute()
+    {
+        $approvedThisMonth = $this->lateReportRequests()
+            ->where("status", "approved")
+            ->whereMonth("created_at", now()->month)
+            ->whereYear("created_at", now()->year)
+            ->count();
+
+        return max(0, 3 - $approvedThisMonth);
+    }
+
     public function laporanMengajar()
     {
         return $this->hasMany(LaporanMengajar::class, 'user_id_instruktur');

@@ -93,7 +93,7 @@ export class FormValidator {
                 const file = e.target.files[0];
                 if (file) {
                     // 1. Get custom limits from data attributes or defaults
-                    const maxSize = parseInt(e.target.dataset.maxSize) || 2 * 1024 * 1024; // Default 2MB
+                    const maxSize = parseInt(e.target.dataset.maxSize) || 5 * 1024 * 1024; // Default increased to 5MB
                     const maxSizeMb = (maxSize / (1024 * 1024)).toFixed(0);
 
                     // Check file size

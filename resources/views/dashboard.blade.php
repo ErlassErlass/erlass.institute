@@ -653,7 +653,7 @@
 
 
             {{-- School Distribution (Admin/Webmaster only) --}}
-            @if(auth()->user()->hasAdminAccess())
+            @if(auth()->user()?->hasAdminAccess())
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white border-bottom px-4 py-3">
                     <h5 class="mb-0 fw-bold text-dark">Distribusi Siswa</h5>

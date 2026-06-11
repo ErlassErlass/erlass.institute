@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GudangScan — Warehouse System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+  :root {
+    --bg: #f8fafc;
+    --surface: rgba(255, 255, 255, 0.8);
+    --surface-solid: #ffffff;
+    --surface2: rgba(241, 245, 249, 0.5);
+    --border: rgba(226, 232, 240, 0.5);
+    --accent: #3b82f6;
+    --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    --accent2: #f43f5e;
+    --accent3: #0ea5e9;
+    --accent4: #f59e0b;
+    --text: #1e293b;
+    --muted: #64748b;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --shadow-soft: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+    --shadow-float: 0 20px 40px -10px rgba(59, 130, 246, 0.15);
+    --glass: rgba(255, 255, 255, 0.7);
+    --glass-blur: blur(12px);
+    --transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { 
+    font-family: var(--sans); 
+    background: #f1f5f9; 
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.03) 0, transparent 50%), 
+      radial-gradient(at 50% 0%, rgba(6, 182, 212, 0.03) 0, transparent 50%);
+    color: var(--text); 
+    min-height: 100vh; 
+    min-height: 100svh;
+    overflow-x: hidden; 
+    display: flex;
+    justify-content: center;
+    line-height: 1.6; 
+    overscroll-behavior: none;
+  }
+  
+  .app { 
+    position: relative; 
+    z-index: 1; 
+    width: 100%;
+    max-width: 480px; 
+    background: var(--bg);
+    display: flex; 
+    flex-direction: column; 
+    height: 100vh; 
+    height: 100svh;
+    box-shadow: 0 0 100px rgba(0,0,0,0.05);
+  }
+
+/* ── Header ── */
+header { 
+  padding: 16px; 
+  border-bottom: 1px solid var(--border); 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  position: sticky; 
+  top: 0; 
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur); 
+  -webkit-backdrop-filter: var(--glass-blur);
+  z-index: 100;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+.logo-wrap { display: flex; align-items: center; gap: 10px; }
+.logo-img { height: 28px; width: auto; object-fit: contain; }
+.logo-text { font-weight: 800; font-size: 16px; letter-spacing: -0.02em; background: var(--accent-gradient); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.logo-tag { font-family: var(--mono); font-size: 8px; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-weight: 700; }
+
+.sync-pill { 
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+  font-size: 10px; 
+  font-weight: 600;
+  cursor: pointer; 
+  padding: 5px 10px; 
+  border-radius: 99px; 
+  border: 1px solid var(--border); 
+  background: var(--surface); 
+  transition: all 0.2s;
+  color: var(--muted);
+}
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.sync-dot.on { background: #10b981; }
+.sync-dot.syncing { background: var(--accent); animation: pulse 1s ease-in-out infinite; }
+.sync-dot.err { background: var(--accent2); }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ── Mode banner ── */
+.mode-banner { display: flex; background: var(--surface2); border-radius: 0; padding: 0; flex-shrink: 0; }
+.mode-btn { 
+  flex: 1; 
+  padding: 12px 8px; 
+  text-align: center; 
+  font-size: 11px; 
+  font-weight: 800; 
+  cursor: pointer; 
+  border: none; 
+  background: transparent; 
+  color: var(--muted); 
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.mode-btn.masuk.active { color: var(--accent); border-bottom-color: var(--accent); background: #eff6ff; }
+.mode-btn.keluar.active { color: var(--accent2); border-bottom-color: var(--accent2); background: #fff1f2; }
+.mode-icon{font-size:14px}
+
+/* ── Scroll content ── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(100px + var(--safe-bottom)); 
+  scroll-padding-top: 80px;
+  scroll-padding-bottom: 100px;
+}
+.content::-webkit-scrollbar { width: 5px; }
+.content::-webkit-scrollbar-track { background: transparent; }
+.content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.05); border-radius: 10px; }
+
+/* ── Bottom Nav ── */
+.bottom-nav { 
+  position: fixed; 
+  bottom: 0; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  width: 100%; 
+  max-width: 480px; 
+  background: var(--surface-solid);
+  border-top: 1px solid var(--border); 
+  display: flex; 
+  padding-bottom: var(--safe-bottom); 
+  z-index: 1000;
+  transition: var(--transition);
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.08);
+}
+.nav-item { 
+  flex: 1; 
+  border: none; 
+  background: transparent; 
+  padding: 10px 0; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 4px; 
+  color: var(--muted); 
+  font-size: 9px; 
+  font-weight: 700; 
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+.nav-item::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 40%;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 0 0 4px 4px;
+  transition: var(--transition);
+}
+.nav-item.active { color: var(--accent); }
+.nav-item.active::after { transform: translateX(-50%) scaleX(1); }
+.nav-icon { font-size: 20px; line-height: 1; }
+
+/* ── Panels ── */
+.panel { display: none; padding: 12px 16px; animation: fadeIn 0.3s ease-out; height: 100%; overflow-y: auto; }
+.panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Cards ── */
+.card { 
+  background: var(--surface); 
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border); 
+  border-radius: 20px; 
+  padding: 24px; 
+  margin-bottom: 20px; 
+  box-shadow: var(--shadow-soft);
+  transition: var(--transition);
+  animation: floatIn 0.6s ease-out backwards;
+}
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-float); border-color: var(--accent); }
+
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.card-hd { 
+  font-size: 11px; 
+  font-weight: 800;
+  text-transform: uppercase; 
+  letter-spacing: 0.1em; 
+  color: var(--muted); 
+  margin-bottom: 14px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+}
+.card-hd .tag { padding: 3px 10px; border-radius: 99px; font-size: 10px; font-weight: 800; }
+.tag-masuk { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+.tag-keluar { background: #ffe4e6; color: #9f1239; border: 1px solid #fecdd3; }
+
+/* ── Scanner ── */
+.scanner-area { margin-top: 12px; }
+.scanner-wrap { 
+  position: relative; 
+  width: 100%; 
+  aspect-ratio: 1; 
+  max-height: 280px; 
+  border-radius: 16px; 
+  overflow: hidden; 
+  background: #000; 
+  border: 1px solid var(--border); 
+  box-shadow: var(--shadow);
+}
+#scanner-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+#scanner-canvas { display: none; }
+.scan-overlay { position: absolute; inset: 0; pointer-events: none; display: flex; align-items: center; justify-content: center; }
+.scan-frame { width: 60%; height: 60%; position: relative; }
+.scan-frame::before, .scan-frame::after, .scan-frame span::before, .scan-frame span::after { content: ''; position: absolute; width: 24px; height: 24px; border-color: rgba(255,255,255,0.8); border-style: solid; }
+.scan-frame::before { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+.scan-frame::after { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+.scan-frame span::before { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+.scan-frame span::after { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+.scan-line { 
+  position: absolute; 
+  left: 10%; 
+  right: 10%; 
+  height: 2px; 
+  background: linear-gradient(90deg, transparent, var(--accent), transparent); 
+  box-shadow: 0 0 10px var(--accent);
+  animation: scanMove 2.5s ease-in-out infinite; 
+}
+@keyframes scanMove { 0%, 100% { top: 20%; opacity: 0.8; } 50% { top: 80%; opacity: 0.3; } }
+.cam-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+.cam-icon-big { font-size: 48px; }
+.cam-start-btn { background: var(--surface); color: var(--text); border: none; border-radius: 12px; padding: 12px 28px; font-weight: 700; cursor: pointer; box-shadow: var(--shadow-lg); transition: all 0.2s; }
+.cam-start-btn:active { transform: scale(0.95); }
+.cam-hint { font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 500; }
+.scan-status { text-align: center; font-size: 12px; font-weight: 600; padding: 12px 8px; min-height: 40px; color: var(--muted); }
+.scan-status.ok { color: #10b981; }
+.scan-status.err { color: var(--accent2); }
+.scan-status.info { color: var(--accent); }
+
+/* ── Scanned result box ── */
+.scanned-box { 
+  display: none; 
+  background: #f0f9ff; 
+  border: 1px solid #bae6fd; 
+  border-radius: 12px; 
+  padding: 14px; 
+  margin: 12px 16px 0; 
+}
+.scanned-box.keluar { background: #fff1f2; border-color: #fecdd3; }
+.scanned-code { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--accent); }
+.scanned-box.keluar .scanned-code { color: var(--accent2); }
+.scanned-name { font-size: 13px; font-weight: 600; color: var(--text); margin-top: 2px; line-height: 1.4; }
+.scanned-stok { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.stok-chip { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+.stok-chip.low { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+.stok-chip.zero { background: #ffe4e6; color: #9f1239; border-color: #fecdd3; }
+
+/* ── Form ── */
+.form-area { padding: 0; }
+.fg { margin-bottom: 14px; }
+.fg label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 6px; }
+input[type=text], input[type=number], input[type=url], input[type=password], select, textarea { 
+  width: 100%; 
+  background: var(--surface2); 
+  border: 1px solid var(--border); 
+  border-radius: 12px; 
+  color: var(--text); 
+  font-family: var(--sans); 
+  font-size: 15px; 
+  padding: 13px 15px; 
+  outline: none; 
+  transition: var(--transition);
+  appearance: none;
+  -webkit-appearance: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+input::placeholder, textarea::placeholder { color: #94a3b8; }
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; padding-right: 40px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.qty-wrap { display: flex; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.qty-dec, .qty-inc { width: 48px; height: 48px; background: transparent; border: none; color: var(--text); font-size: 20px; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+.qty-dec:hover, .qty-inc:hover { background: rgba(0,0,0,0.05); }
+#qty-field, #m-qty, #k-qty { flex: 1; border: none; background: transparent; text-align: center; font-size: 18px; font-weight: 800; color: var(--accent); padding: 0; outline: none; }
+#k-qty { color: var(--accent2); }
+
+/* ── Buttons ── */
+.btn { 
+  width: 100%; 
+  padding: 14px; 
+  border-radius: 14px; 
+  border: none; 
+  font-weight: 700; 
+  cursor: pointer; 
+  transition: all 0.2s; 
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-masuk-submit { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); }
+.btn-keluar-submit { background: var(--accent2); color: white; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.2); }
+.btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.btn-sm { width: auto; padding: 7px 14px; font-size: 11px; margin-top: 0; }
+
+/* ── Stats ── */
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px 8px; text-align: center; box-shadow: var(--shadow); }
+.stat-val { font-size: 22px; font-weight: 800; margin-bottom: 2px; }
+.stat-val.g { color: #10b981; }
+.stat-val.r { color: var(--accent2); }
+.stat-val.b { color: var(--accent); }
+.stat-val.y { color: var(--accent4); }
+.stat-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; }
+
+/* ── Stok list ── */
+.filter-row { display: flex; gap: 6px; overflow-x: auto; padding: 12px 0 4px; scrollbar-width: none; flex-shrink: 0; }
+.filter-row::-webkit-scrollbar { display: none; }
+.pill { white-space: nowrap; padding: 6px 14px; border-radius: 99px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--muted); transition: all 0.2s; }
+.pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+.search-box { position: relative; margin-top: 4px; }
+.search-box input { padding-left: 38px; font-size: 13px; }
+.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--muted); pointer-events: none; }
+
+.stok-list { margin-top: 8px; }
+.stok-row { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.stok-row:last-child { border-bottom: none; }
+.stok-left { flex: 1; min-width: 0; padding-right: 12px; }
+.si-code { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 2px; }
+.si-name { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.si-meta { display: flex; gap: 6px; margin-top: 4px; }
+.si-tag { font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 6px; }
+.tag-in { background: #d1fae5; color: #065f46; }
+.tag-out { background: #ffe4e6; color: #9f1239; }
+.si-vals { display: flex; align-items: baseline; gap: 2px; justify-content: flex-end; }
+.si-qty { font-size: 22px; font-weight: 800; }
+.si-unit { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+.q-ok { color: #10b981; }
+.q-low { color: var(--accent4); }
+.q-zero { color: var(--muted); }
+
+/* ── Log ── */
+.log-entry { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.log-entry:last-child { border-bottom: none; }
+.le-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.le-icon.m { background: #d1fae5; color: #065f46; }
+.le-icon.k { background: #ffe4e6; color: #9f1239; }
+.le-body { flex: 1; min-width: 0; }
+.le-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.le-item { font-size: 11px; color: var(--muted); margin-top: 1px; font-weight: 500; }
+.le-meta { font-size: 10px; color: #94a3b8; margin-top: 3px; font-weight: 500; font-family: var(--sans); }
+.le-qty { font-size: 15px; font-weight: 800; white-space: nowrap; }
+.le-qty.m { color: #10b981; }
+.le-qty.k { color: var(--accent2); }
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; font-weight: 500; }
+
+/* ── QR Print ── */
+.qr-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 12px; }
+.qr-item { 
+  background: var(--surface); 
+  border: 1px solid var(--border); 
+  border-radius: 16px; 
+  padding: 16px; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 10px; 
+  box-shadow: var(--shadow);
+}
+.qr-item .qr-wrap { background: #fff; border-radius: 8px; padding: 6px; box-shadow: inset 0 0 0 1px #eee; }
+.qr-kode { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent); text-align: center; }
+.qr-nama { font-size: 10px; color: var(--muted); text-align: center; line-height: 1.4; font-weight: 500; }
+.qr-dl { font-size: 11px; color: var(--accent); cursor: pointer; border: 1px solid var(--border); background: var(--surface2); font-weight: 700; padding: 4px 12px; border-radius: 99px; transition: all 0.2s; }
+.qr-dl:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* ── Setup ── */
+.step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); }
+.step-row { display: flex; gap: 14px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.step-row:last-child { border-bottom: none; }
+.step-n { width: 28px; height: 28px; border-radius: 50%; background: #eff6ff; border: 1px solid #dbeafe; color: var(--accent); font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step-body h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+.step-body p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.step-body code { font-family: var(--mono); font-size: 11px; background: var(--surface2); padding: 2px 6px; border-radius: 4px; color: var(--accent); font-weight: 700; }
+
+/* ── Toast ── */
+#toast { 
+  position: fixed; 
+  bottom: calc(85px + var(--safe-bottom)); 
+  left: 50%; 
+  transform: translateX(-50%) translateY(100px); 
+  background: #1e293b; 
+  color: white; 
+  font-size: 13px; 
+  font-weight: 600;
+  padding: 12px 24px; 
+  border-radius: 12px; 
+  z-index:9999; 
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  white-space: nowrap; 
+  max-width: 88vw; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  pointer-events: none; 
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+#toast.err { background: var(--accent2); }
+
+/* ── Login ── */
+#login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 24px; background-image: radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 20%), radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 20%); }
+.login-box { 
+  width: 100%; max-width: 360px; 
+  background: var(--surface); 
+  backdrop-filter: blur(16px); 
+  border: 1px solid var(--border); 
+  border-radius: 32px; 
+  padding: 32px; 
+  box-shadow: var(--shadow-soft);
+  animation: floatIn 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.login-logo { font-weight: 800; font-size: 32px; text-align: center; margin-bottom: 8px; background: var(--accent-gradient); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.login-sub { text-align: center; font-size: 11px; color: var(--muted); font-weight: 700; margin-bottom: 32px; letter-spacing: 0.1em; text-transform: uppercase; }
+.pin-dots { display: flex; justify-content: center; gap: 14px; margin-bottom: 32px; }
+.pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); transition: var(--transition); background: transparent; }
+.pin-dot.filled { background: var(--accent); border-color: var(--accent); transform: scale(1.2); box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
+.pin-dot.error { background: var(--accent2); border-color: var(--accent2); animation: shake 0.4s ease; }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.num-btn { 
+  padding: 20px 10px; 
+  background: rgba(255,255,255,0.5); 
+  border: 1px solid var(--border); 
+  border-radius: 16px; 
+  color: var(--text); 
+  font-family: var(--mono); 
+  font-size: 24px; 
+  font-weight: 700; 
+  cursor: pointer; 
+  transition: var(--transition); 
+}
+.num-btn:hover { background: var(--surface-solid); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.num-btn:active { transform: scale(0.95); background: var(--surface2); }
+.num-btn.del { font-size: 16px; color: var(--muted); }
+.num-btn.zero { grid-column: 2; }
+.login-err { text-align: center; font-family: var(--mono); font-size: 11px; color: var(--accent2); min-height: 18px; margin-top: 4px; }
+.login-config { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+.config-toggle { font-size: 10px; color: var(--muted); cursor: pointer; text-align: center; margin-bottom: 10px; text-decoration: underline; font-weight: 600; }
+#login-config-fields { display: none; }
+
+/* ── Pending badge ── */
+.pending-badge { background: var(--accent4); color: white; font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 50%; display: none; margin-left: 4px; }
+.pending-badge.show { display: inline-flex; align-items: center; justify-content: center; }
+
+/* ── Print sticker CSS ── */
+@media print {
+  body * { visibility: hidden !important; }
+  #print-area, #print-area * { visibility: visible !important; }
+  #print-area { position: fixed; inset: 0; background: #fff; z-index: 99999; display: flex !important; flex-wrap: wrap; align-content: flex-start; padding: 5mm; gap: 3mm; }
+  @page { margin: 0; size: auto; }
+}
+.size-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:16px; }
+
+/* Print preview modal - FIRM version */
+#print-modal { 
+  display:none; 
+  position:fixed; 
+  inset:0; 
+  background:rgba(0,0,0,.6); 
+  z-index:9000; 
+  align-items:center; 
+  justify-content:center; 
+  padding:20px; 
+  backdrop-filter: blur(8px);
+  overscroll-behavior: contain;
+}
+#print-modal.open { display:flex; }
+.print-box { 
+  background: #fff; 
+  border-radius: 28px; 
+  width:100%; 
+  max-width:440px; 
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh; 
+  max-height: 85svh;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.4); 
+  border: 1px solid rgba(255,255,255,0.2); 
+  overflow: hidden;
+  animation: modalSlide 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+@keyframes modalSlide { 
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.print-hd { padding:20px 24px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; flex-shrink: 0; }
+.print-hd-title { font-family:var(--sans); font-size:14px; color:var(--text); font-weight: 800; }
+.print-body { padding:24px; overflow-y: auto; flex: 1; }
+.print-body::-webkit-scrollbar { width: 4px; }
+.print-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+.print-preview-wrap { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; padding:20px; background:#f8fafc; border-radius:16px; margin-bottom:20px; min-height:100px; border: 1px dashed #cbd5e1; }
+.sticker-preview { background:#fff; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:6px; gap:4px; cursor:pointer; transition:all .2s; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
+.size-btn { padding:10px 4px; border:1px solid #e2e8f0; border-radius:10px; background:#fff; color:var(--muted); font-family:var(--mono); font-size:9px; text-align:center; cursor:pointer; transition:all .2s; font-weight: 700; line-height: 1.3; }
+.size-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(59,130,246,0.05); box-shadow: 0 0 0 1px var(--accent); }
+.qty-sticker-row { display:flex; align-items:center; gap:12px; margin-bottom:18px; padding: 12px; background: #f1f5f9; border-radius: 12px; }
+.qty-sticker-row label { font-family:var(--mono); font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; white-space:nowrap; font-weight: 700; }
+#print-qty { width:60px; text-align:center; font-family:var(--mono); font-size:18px; font-weight:800; color:var(--accent); background: transparent; border: none; }
+.size-btn { padding:12px 4px; border:1px solid var(--border); border-radius:12px; background:var(--surface); color:var(--muted); font-family:var(--mono); font-size:10px; text-align:center; cursor:pointer; transition:all .2s; font-weight: 700; line-height: 1.3; }
+.size-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(59,130,246,0.05); }
+.qty-sticker-row { display:flex; align-items:center; gap:12px; margin-bottom:18px; padding: 14px; background: var(--surface2); border-radius: 12px; }
+.qty-sticker-row label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; white-space:nowrap; font-weight: 700; }
+.print-preview-wrap { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; padding:16px; background:var(--surface2); border-radius:12px; margin-bottom:16px; min-height:100px; border: 1px dashed var(--border); }
+.sticker-preview { background:#fff; border-radius:4px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4px; gap:2px; box-shadow: var(--shadow); }
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">GudangScan</div>
+    <div class="login-sub">WAREHOUSE INVENTORY SYSTEM</div>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+      <div class="pin-dot" id="pd4"></div>
+      <div class="pin-dot" id="pd5"></div>
+    </div>
+    <div class="numpad">
+      <button class="num-btn" onclick="pinPress('1')">1</button>
+      <button class="num-btn" onclick="pinPress('2')">2</button>
+      <button class="num-btn" onclick="pinPress('3')">3</button>
+      <button class="num-btn" onclick="pinPress('4')">4</button>
+      <button class="num-btn" onclick="pinPress('5')">5</button>
+      <button class="num-btn" onclick="pinPress('6')">6</button>
+      <button class="num-btn" onclick="pinPress('7')">7</button>
+      <button class="num-btn" onclick="pinPress('8')">8</button>
+      <button class="num-btn" onclick="pinPress('9')">9</button>
+      <button class="num-btn del" onclick="pinDel()">⌫</button>
+      <button class="num-btn zero" onclick="pinPress('0')">0</button>
+    </div>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-config">
+      <div class="config-toggle" onclick="toggleConfig()">⚙ Koneksi Google Sheets</div>
+      <div id="login-config-fields">
+        <div class="lf"><label>Web App URL</label><input type="url" id="lf-url" placeholder="https://script.google.com/..." style="font-size:11px;font-family:var(--mono)"></div>
+        <div class="lf"><label>Nama Petugas</label><input type="text" id="lf-officer" placeholder="Nama petugas gudang"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div class="app">
+  <header>
+    <div class="logo-wrap">
+      <img src="/images/logo-erlass.png" alt="Erlass Logo" class="logo-img">
+      <div class="logo-text">GudangScan</div>
+      <div class="logo-tag">GUDANG</div>
+    </div>
+    <div class="sync-pill" onclick="goTab('setup')" title="Pengaturan">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-lbl">Offline</span>
+      <span class="pending-badge" id="pending-badge">0</span>
+    </div>
+  </header>
+
+  <!-- Mode banner -->
+  <div class="mode-banner">
+    <button class="mode-btn masuk active" id="mode-masuk" onclick="setMode('masuk')">
+      <span class="mode-icon">↓</span> BARANG MASUK
+    </button>
+    <button class="mode-btn keluar" id="mode-keluar" onclick="setMode('keluar')">
+      <span class="mode-icon">↑</span> BARANG KELUAR
+    </button>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ SCAN TAB ═══ -->
+    <div id="tab-scan" class="panel active">
+      <!-- Scanner -->
+      <div class="scanner-area">
+        <div class="scanner-wrap">
+          <video id="scanner-video" playsinline></video>
+          <canvas id="scanner-canvas"></canvas>
+          <div class="scan-overlay">
+            <div class="scan-frame"><span></span>
+              <div class="scan-line"></div>
+            </div>
+          </div>
+          <div class="cam-overlay" id="cam-overlay">
+            <div class="cam-icon-big">📷</div>
+            <button class="cam-start-btn" onclick="startCamera()">Aktifkan Kamera</button>
+            <div class="cam-hint">atau ketik kode manual di bawah</div>
+          </div>
+        </div>
+        <div class="scan-status" id="scan-status">Siap scan QR barang...</div>
+      </div>
+
+      <!-- Scanned box -->
+      <div class="scanned-box" id="scanned-box">
+        <div class="scanned-code" id="sc-code">—</div>
+        <div class="scanned-name" id="sc-name">—</div>
+        <div class="scanned-stok">
+          <div class="stok-chip" id="sc-stok-chip">Stok: —</div>
+        </div>
+      </div>
+
+      <!-- Form Masuk -->
+      <div id="form-masuk">
+        <div class="card" style="margin-top:10px">
+          <div class="card-hd">Form Barang Masuk <span class="tag tag-masuk">↓ MASUK</span></div>
+          <div class="form-area" style="padding:0">
+            <div class="fg"><label>Kode Barang *</label>
+              <input type="text" id="m-kode" placeholder="Scan QR atau ketik kode..." oninput="autoFillMasuk()" list="kode-list" autocomplete="off" style="text-transform:uppercase">
+              <datalist id="kode-list"></datalist>
+            </div>
+            <div class="fg"><label>Nama Barang</label>
+              <input type="text" id="m-nama" placeholder="Otomatis terisi setelah kode" readonly style="opacity:.7">
+            </div>
+            <div class="row2">
+              <div class="fg"><label>Jumlah *</label>
+                <div class="qty-wrap">
+                  <button class="qty-dec" onclick="changeQty('m',-1)">−</button>
+                  <input type="number" id="m-qty" value="1" min="1" style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent);text-align:center;border:none;background:var(--surface2);border-left:1px solid var(--border);border-right:1px solid var(--border);width:100%;padding:10px 4px;outline:none">
+                  <button class="qty-inc" onclick="changeQty('m',1)">+</button>
+                </div>
+              </div>
+              <div class="fg"><label>Satuan</label>
+                <select id="m-satuan">
+                  <option>pcs</option><option>unit</option><option>set</option><option>box</option><option>lembar</option>
+                </select>
+              </div>
+            </div>
+            <div class="fg"><label>Sumber / Pengirim *</label>
+              <select id="m-sumber">
+                <option value="">-- Pilih sumber --</option>
+                <option>Supplier / Vendor</option>
+                <option>Transfer antar gudang</option>
+                <option>Retur dari karyawan</option>
+                <option>Produksi internal</option>
+                <option>Lainnya</option>
+              </select>
+            </div>
+            <div class="fg"><label>No. Dokumen (Surat Jalan / PO)</label>
+              <input type="text" id="m-nodok" placeholder="Opsional — misal: SJ/2026/001">
+            </div>
+            <div class="fg"><label>Catatan</label>
+              <input type="text" id="m-catatan" placeholder="Opsional">
+            </div>
+            <button class="btn btn-masuk-submit" onclick="submitMasuk()" style="margin-top:4px">↓ Simpan Barang Masuk</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Keluar -->
+      <div id="form-keluar" style="display:none">
+        <div class="card" style="margin-top:10px">
+          <div class="card-hd">Form Barang Keluar <span class="tag tag-keluar">↑ KELUAR</span></div>
+          <div class="form-area" style="padding:0">
+            <div class="fg"><label>Kode Barang *</label>
+              <input type="text" id="k-kode" placeholder="Scan QR atau ketik kode..." oninput="autoFillKeluar()" list="kode-list2" autocomplete="off" style="text-transform:uppercase">
+              <datalist id="kode-list2"></datalist>
+            </div>
+            <div class="fg"><label>Nama Barang</label>
+              <input type="text" id="k-nama" placeholder="Otomatis terisi setelah kode" readonly style="opacity:.7">
+            </div>
+            <div class="row2">
+              <div class="fg"><label>Jumlah *</label>
+                <div class="qty-wrap">
+                  <button class="qty-dec" onclick="changeQty('k',-1)">−</button>
+                  <input type="number" id="k-qty" value="1" min="1" style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent2);text-align:center;border:none;background:var(--surface2);border-left:1px solid var(--border);border-right:1px solid var(--border);width:100%;padding:10px 4px;outline:none">
+                  <button class="qty-inc" onclick="changeQty('k',1)">+</button>
+                </div>
+              </div>
+              <div class="fg"><label>Satuan</label>
+                <select id="k-satuan">
+                  <option>pcs</option><option>unit</option><option>set</option><option>box</option><option>lembar</option>
+                </select>
+              </div>
+            </div>
+            <div class="fg"><label>Penerima / Kelas *</label>
+              <input type="text" id="k-penerima" placeholder="Nama karyawan / kelas / divisi">
+            </div>
+            <div class="fg"><label>Keperluan</label>
+              <select id="k-keperluan">
+                <option value="">-- Pilih keperluan --</option>
+                <option>Kegiatan Kelas</option>
+                <option>Demo / Pameran</option>
+                <option>Training / Workshop</option>
+                <option>Perbaikan / Maintenance</option>
+                <option>Distribusi ke cabang</option>
+                <option>Lainnya</option>
+              </select>
+            </div>
+            <div class="fg"><label>Catatan</label>
+              <input type="text" id="k-catatan" placeholder="Opsional">
+            </div>
+            <button class="btn btn-keluar-submit" onclick="submitKeluar()" style="margin-top:4px">↑ Simpan Barang Keluar</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:16px"></div>
+    </div>
+
+    <!-- ═══ STOK TAB ═══ -->
+    <div id="tab-stok" class="panel">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val g" id="s-total">0</div><div class="stat-lbl">Total Item</div></div>
+        <div class="stat-card"><div class="stat-val r" id="s-kosong">0</div><div class="stat-lbl">Kosong</div></div>
+        <div class="stat-card"><div class="stat-val y" id="s-menipis">0</div><div class="stat-lbl">Menipis</div></div>
+      </div>
+      <div class="filter-row" id="stok-filter"></div>
+      <div class="search-box"><span class="search-icon">🔍</span><input type="text" placeholder="Cari kode / nama..." oninput="renderStok()" id="stok-search"></div>
+      <div class="card" style="padding:8px 14px">
+        <div id="stok-list"><div class="empty">Memuat data stok...</div></div>
+      </div>
+    </div>
+
+    <!-- ═══ LOG TAB ═══ -->
+    <div id="tab-log" class="panel">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val g" id="l-masuk">0</div><div class="stat-lbl">Masuk Total</div></div>
+        <div class="stat-card"><div class="stat-val r" id="l-keluar">0</div><div class="stat-lbl">Keluar Total</div></div>
+        <div class="stat-card"><div class="stat-val b" id="l-hari">0</div><div class="stat-lbl">Hari Ini</div></div>
+      </div>
+      <div style="display:flex;gap:8px;padding:10px 12px 0;align-items:center">
+        <button class="btn btn-secondary btn-sm" onclick="syncAll()" style="flex:1">☁ Sync ke Sheets</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportExcel()" style="flex:1">📥 Export Excel</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearLogConfirm()" style="flex:0 0 auto;color:var(--accent2)">🗑</button>
+      </div>
+      <div class="card" style="padding:8px 14px;margin-top:8px">
+        <div id="log-list"><div class="empty">Belum ada transaksi</div></div>
+      </div>
+    </div>
+
+    <!-- ═══ PRINT TAB ═══ -->
+    <div id="tab-print" class="panel">
+      <div class="card" style="margin-top:10px">
+        <div class="card-hd">🖨️ CETAK STIKER QR</div>
+        <div class="form-area">
+          <div class="fg">
+            <label>Pilih Barang</label>
+            <select id="print-item-select" onchange="updatePrintPreview()">
+              <option value="">-- Semua barang (1 sheet) --</option>
+            </select>
+          </div>
+
+          <div class="qty-sticker-row">
+            <label>Jumlah Copy</label>
+            <div style="display:flex; align-items:center; gap:8px; flex:1; justify-content: flex-end;">
+              <button class="qty-btn" onclick="changePrintQty(-1)" style="width:32px;height:32px;border:1px solid var(--border);border-radius:8px;background:var(--surface)">−</button>
+              <input type="number" id="print-qty" value="1" min="1" max="100" oninput="updatePrintPreview()" style="width:60px; text-align:center; font-family:var(--mono); font-size:18px; font-weight:800; color:var(--accent); background: transparent; border: none;">
+              <button class="qty-btn" onclick="changePrintQty(1)" style="width:32px;height:32px;border:1px solid var(--border);border-radius:8px;background:var(--surface)">+</button>
+            </div>
+          </div>
+
+          <div class="qty-sticker-row" style="margin-top:-10px; background:transparent; padding:0 12px">
+            <label style="cursor:pointer; display:flex; align-items:center; gap:8px; font-size:10px; color:var(--text)">
+              <input type="checkbox" id="use-sn" onchange="updatePrintPreview()" style="width:16px;height:16px;accent-color:var(--accent)"> Gunakan Serial Number (S/N)?
+            </label>
+            <div id="sn-start-wrap" style="display:none; align-items:center; gap:8px">
+              <span style="font-size:10px; color:var(--muted)">No. Awal:</span>
+              <input type="number" id="sn-start" value="1" min="1" style="width:50px; padding:4px; border-radius:6px; border:1px solid var(--border); font-size:11px; text-align:center">
+            </div>
+          </div>
+
+          <label class="fg" style="display:block;margin-bottom:8px">Ukuran Sticker</label>
+          <div class="size-grid" id="size-grid">
+            <div class="size-btn active" data-w="40" data-h="30" onclick="selectSize(this)">40×30 mm<br><span style="font-size:7px;opacity:0.6">Kecil</span></div>
+            <div class="size-btn" data-w="50" data-h="30" onclick="selectSize(this)">50×30 mm<br><span style="font-size:7px;opacity:0.6">Umum</span></div>
+            <div class="size-btn" data-w="62" data-h="29" onclick="selectSize(this)">62×29 mm<br><span style="font-size:7px;opacity:0.6">Brother QL</span></div>
+            <div class="size-btn" data-w="100" data-h="50" onclick="selectSize(this)">100×50 mm<br><span style="font-size:7px;opacity:0.6">Besar</span></div>
+          </div>
+
+          <label class="fg" style="display:block;margin-bottom:8px">Preview</label>
+          <div class="print-preview-wrap" id="print-preview"></div>
+
+          <div style="font-size:10px;color:var(--muted);margin-bottom:18px;line-height:1.6; background: #fffbeb; padding: 10px; border-radius: 8px; border: 1px solid #fef3c7;">
+            💡 <b>Tips:</b> Hubungkan ke printer stiker Bluetooth/WiFi, set <b>Margins = None</b>, dan centang <b>Background graphics</b> saat print.
+          </div>
+
+          <button class="btn btn-masuk-submit" onclick="doPrint()" style="width:100%;justify-content:center;font-size:15px;">🖨 Print Sekarang</button>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+
+    <!-- ═══ SETUP TAB ═══ -->
+    <div id="tab-setup" class="panel">
+      <div class="card" style="margin-top:10px">
+        <div class="card-hd">Status Koneksi</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:4px 0">
+          <div class="sync-dot" id="conn-dot2" style="width:10px;height:10px"></div>
+          <div style="font-size:13px" id="conn-text">Tidak terhubung</div>
+        </div>
+        <div class="fg" style="margin-top:12px"><label>Web App URL (Apps Script)</label>
+          <input type="url" id="sheets-url" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:11px;font-family:var(--mono)">
+        </div>
+        <div class="fg"><label>Secret Token (Sama dengan Code.gs)</label>
+          <input type="password" id="token-input" placeholder="Opsional" style="font-size:11px;font-family:var(--mono)">
+        </div>
+        <div class="fg"><label>Nama Petugas Gudang</label>
+          <input type="text" id="officer-name" placeholder="Tampil di log transaksi">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+          <button class="btn btn-secondary btn-sm" style="flex:1" onclick="testConnection()">🔌 Test</button>
+          <button class="btn btn-secondary btn-sm" style="flex:1;color:var(--accent)" onclick="saveAndConnect()">💾 Simpan</button>
+          <button class="btn btn-secondary btn-sm" style="color:var(--accent2)" onclick="disconnect()">✕</button>
+          <button class="btn btn-secondary btn-sm" style="flex-basis:100%;color:var(--accent4);margin-top:4px" onclick="runDemoSync()">🧪 Run Connectivity Demo</button>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px;text-align:center" id="pending-info"></div>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <div class="card-hd">Cara Penggunaan</div>
+        <div class="step-card" style="margin:0;background:transparent;border:none">
+          <div class="step-row"><div class="step-n">1</div><div class="step-body"><h4>Set URL & Token</h4><p>Buka tab <b>SETUP</b>. Masukkan <b>Web App URL</b> dari script Google Anda dan <b>Secret Token</b> yang sesuai dengan <code>SECRET_TOKEN</code> di Code.gs.</p></div></div>
+          <div class="step-row"><div class="step-n">2</div><div class="step-body"><h4>Simpan & Hubungkan</h4><p>Klik tombol <b>Simpan</b>. Jika indikator berubah menjadi <b>Hijau</b>, aplikasi sudah terhubung ke database cloud.</p></div></div>
+          <div class="step-row"><div class="step-n">3</div><div class="step-body"><h4>Scan & Transaksi</h4><p>Buka tab <b>SCAN</b> untuk mulai bekerja. Pilih mode <b>Masuk</b> atau <b>Keluar</b>, lalu scan stiker barang.</p></div></div>
+          <div class="step-row" style="border:none"><div class="step-n">4</div><div class="step-body"><h4>Auto-Sync Realtime</h4><p>Data akan otomatis terkirim. Jika offline, data tersimpan aman di HP dan akan sinkron otomatis saat internet kembali tersedia.</p></div></div>
+        </div>
+      </div>
+      <div style="height:10px"></div>
+    </div>
+
+  </div><!-- end .content -->
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <button class="nav-item active" id="nav-scan" onclick="goTab('scan')"><span class="nav-icon">📷</span>SCAN</button>
+    <button class="nav-item" id="nav-stok" onclick="goTab('stok')"><span class="nav-icon">📦</span>STOK</button>
+    <button class="nav-item" id="nav-log" onclick="goTab('log')"><span class="nav-icon">📋</span>LOG</button>
+    <button class="nav-item" id="nav-print" onclick="goTab('print')"><span class="nav-icon">🖨️</span>PRINT</button>
+    <button class="nav-item" id="nav-setup" onclick="goTab('setup')"><span class="nav-icon">⚙️</span>SETUP</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- Print area (invisible) -->
+<div id="print-area"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+// ══════════════════════════════════════════════════════
+// MASTER DATA — sama dengan StokScan (sync dari Sheets)
+// ══════════════════════════════════════════════════════
+const DEFAULT_MASTER = [
+  // ── PRODUK UNTUK PENJUALAN (EPI) ──────────────────────
+  {kode:'MSJ01', nama:'Modul Scratch Jilid 1', satuan:'pcs', produk:'Modul', komponen:'Modul Scratch'},
+  {kode:'MSJ02', nama:'Modul Scratch Jilid 2', satuan:'pcs', produk:'Modul', komponen:'Modul Scratch'},
+  {kode:'MSJ03', nama:'Modul Scratch Jilid 3', satuan:'pcs', produk:'Modul', komponen:'Modul Scratch'},
+  {kode:'MSJ04', nama:'Modul Scratch Jilid 4', satuan:'pcs', produk:'Modul', komponen:'Modul Scratch'},
+  {kode:'MSJ05', nama:'Modul Scratch Jilid 5', satuan:'pcs', produk:'Modul', komponen:'Modul Scratch'},
+  {kode:'MSJ06', nama:'Modul Scratch Jilid 6', satuan:'pcs', produk:'Modul', komponen:'Modul Scratch'},
+  {kode:'MSJ07', nama:'Modul Project Scratch', satuan:'pcs', produk:'Modul', komponen:'Modul Scratch'},
+  {kode:'MSJ08', nama:'Modul Project Pictoblox AI', satuan:'pcs', produk:'Modul', komponen:'Modul AI'},
+  {kode:'MSJ09', nama:'Modul Python', satuan:'pcs', produk:'Modul', komponen:'Modul Python'},
+  {kode:'MB01',  nama:'Microbit Beginner', satuan:'pcs', produk:'Microbit Learning Kit', komponen:'Beginner Micro'},
+  {kode:'MLK01', nama:'Microbit Learning Kit', satuan:'pcs', produk:'Microbit Learning Kit', komponen:'Full Kit'},
+  {kode:'RE01',  nama:'Robotic Explorer', satuan:'unit', produk:'Robotic Explorer', komponen:'Jimu'},
+  {kode:'RJ01',  nama:'Robotik Jimu', satuan:'unit', produk:'Robotic Explorer', komponen:'Jimu'},
+  {kode:'ALK01', nama:'Arduino Learning Kit', satuan:'pcs', produk:'Arduino Learning Kit', komponen:'Arduino Kit'},
+
+  // ── PRODUK UNTUK SEWA (SW) ───────────────────────────
+  {kode:'SMB01',  nama:'Sewa Microbit Beginner', satuan:'unit', produk:'Sewa', komponen:'Microbit'},
+  {kode:'SMLK01', nama:'Sewa Microbit Learning Kit', satuan:'unit', produk:'Sewa', komponen:'Microbit'},
+  {kode:'SRE01',  nama:'Sewa Robotik Explorer', satuan:'unit', produk:'Sewa', komponen:'Jimu'},
+  {kode:'SRJ01',  nama:'Sewa Robotik Jimu', satuan:'unit', produk:'Sewa', komponen:'Jimu'},
+  {kode:'SALK01', nama:'Sewa Arduino Learning Kit', satuan:'unit', produk:'Sewa', komponen:'Arduino'},
+
+  // ── PRODUK UNTUK MARKETING (M) ───────────────────────
+  {kode:'MMB01',  nama:'Microbit Beginner (Marketing)', satuan:'pcs', produk:'Marketing', komponen:'Microbit'},
+  {kode:'MMLK01', nama:'Microbit Learning Kit (Marketing)', satuan:'pcs', produk:'Marketing', komponen:'Microbit'},
+  {kode:'MRE01',  nama:'Robotic Explorer (Marketing)', satuan:'unit', produk:'Marketing', komponen:'Jimu'},
+  {kode:'MRJ01',  nama:'Robotik Jimu (Marketing)', satuan:'unit', produk:'Marketing', komponen:'Jimu'},
+  {kode:'MALK01', nama:'Arduino Learning Kit (Marketing)', satuan:'pcs', produk:'Marketing', komponen:'Arduino'},
+
+  // ── ITEM UMUM / SHARED ───────────────────────────────
+  {kode:'ARD-001',nama:'Arduino Uno R3 Atmega328P', satuan:'pcs', produk:'Umum', komponen:'Shared'},
+  {kode:'SRV-001',nama:'Motor Servo SG90', satuan:'pcs', produk:'Umum', komponen:'Shared'},
+  {kode:'SNS-001',nama:'Sensor Ultrasonic HC-SR04', satuan:'pcs', produk:'Umum', komponen:'Shared'},
+  {kode:'LED-R01',nama:'LED 5mm Merah', satuan:'pcs', produk:'Umum', komponen:'Shared'},
+  {kode:'KBL-MM1',nama:'Kabel Jumper Male-Male', satuan:'pcs', produk:'Umum', komponen:'Shared'},
+];
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+const LS = {
+  get: (k,d) => { try { return JSON.parse(localStorage.getItem('gs_'+k)||'null') ?? d; } catch { return d; } },
+  set: (k,v) => { try { localStorage.setItem('gs_'+k, JSON.stringify(v)); } catch {} }
+};
+
+let master   = LS.get('master', null);
+let log      = LS.get('log', []);
+let pending  = LS.get('pending', []);
+let sheetsUrl = LS.get('url', 'https://script.google.com/macros/s/AKfycbxgwqE5ZsrVewzNk2KmxtAhckhna9ltfwVfYXTNTmHTgLGA4OzgyBySN6qST30peYKxlw/exec');
+let SECRET_TOKEN = LS.get('token', '');
+let officerName = LS.get('officer', 'Petugas Gudang');
+let isConnected = false, isSyncing = false;
+let currentMode = 'masuk';
+let cameraActive = false, lastScanned = '', lastScanTime = 0;
+let activeProdukFilter = 'Semua';
+
+const APP_PIN = LS.get('pin', '000000');
+const PIN_LEN = 6;
+let pinBuffer = '', loginAttempts = 0, lockUntil = 0;
+// Print state
+let printSizeW = 40, printSizeH = 30;
+
+if (!master) { master = DEFAULT_MASTER.map(x => ({...x})); LS.set('master', master); }
+
+// ══════════════════════════════════════════════════════
+// PIN LOGIN
+// ══════════════════════════════════════════════════════
+function pinPress(n) {
+  const now = Date.now();
+  if (now < lockUntil) {
+    document.getElementById('login-err').textContent = `Terkunci ${Math.ceil((lockUntil-now)/1000)}d lagi`;
+    return;
+  }
+  if (pinBuffer.length >= PIN_LEN) return;
+  pinBuffer += n;
+  updateDots();
+  if (pinBuffer.length === PIN_LEN) setTimeout(checkPin, 100);
+}
+function pinDel() { pinBuffer = pinBuffer.slice(0,-1); updateDots(); document.getElementById('login-err').textContent=''; }
+function updateDots() {
+  for (let i=0;i<PIN_LEN;i++) {
+    const d = document.getElementById('pd'+i);
+    d.className = 'pin-dot' + (i < pinBuffer.length ? ' filled' : '');
+  }
+}
+function checkPin() {
+  const urlF = document.getElementById('lf-url').value.trim();
+  const offF = document.getElementById('lf-officer').value.trim();
+  if (urlF) { sheetsUrl = urlF; LS.set('url', urlF); }
+  if (offF) { officerName = offF; LS.set('officer', offF); }
+
+  if (pinBuffer === APP_PIN) {
+    loginAttempts = 0;
+    document.getElementById('login-screen').style.display = 'none';
+    initApp();
+  } else {
+    loginAttempts++;
+    for (let i=0;i<PIN_LEN;i++) document.getElementById('pd'+i).className='pin-dot error';
+    if (loginAttempts >= 5) { lockUntil = Date.now()+30000; document.getElementById('login-err').textContent='Terkunci 30 detik!'; }
+    else document.getElementById('login-err').textContent = `PIN salah (${loginAttempts}/5)`;
+    setTimeout(() => { pinBuffer=''; updateDots(); }, 500);
+  }
+}
+function toggleConfig() {
+  const el = document.getElementById('login-config-fields');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('keydown', e => {
+  if (document.getElementById('login-screen').style.display === 'none') return;
+  if (e.key >= '0' && e.key <= '9') pinPress(e.key);
+  if (e.key === 'Backspace') pinDel();
+});
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+function initApp() {
+  buildDatalist();
+  renderStok();
+  renderLog();
+  renderQrGrid();
+  buildQrFilter();
+  if (sheetsUrl) {
+    document.getElementById('sheets-url').value = sheetsUrl;
+    document.getElementById('token-input').value = SECRET_TOKEN;
+    testConnection();
+  }
+  document.getElementById('officer-name').value = officerName;
+  updatePendingBadge();
+  setInterval(() => { if (sheetsUrl && pending.length) syncPending(); }, 30000);
+}
+
+// ══════════════════════════════════════════════════════
+// MODE
+// ══════════════════════════════════════════════════════
+function setMode(m) {
+  currentMode = m;
+  document.getElementById('mode-masuk').className = 'mode-btn masuk' + (m==='masuk'?' active':'');
+  document.getElementById('mode-keluar').className = 'mode-btn keluar' + (m==='keluar'?' active':'');
+  document.getElementById('form-masuk').style.display = m==='masuk' ? 'block' : 'none';
+  document.getElementById('form-keluar').style.display = m==='keluar' ? 'block' : 'none';
+  const box = document.getElementById('scanned-box');
+  box.className = 'scanned-box' + (m==='keluar' ? ' keluar' : '');
+  // Update scan status colour
+  document.getElementById('scan-status').className = 'scan-status' + (cameraActive ? ' info' : '');
+}
+
+// ══════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════
+function goTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  const navBtn = document.getElementById('nav-'+name);
+  if(navBtn) navBtn.classList.add('active');
+
+  if (name==='stok') renderStok();
+  if (name==='log')  renderLog();
+  if (name==='print') { updatePrintSelect(); updatePrintPreview(); }
+  if (name==='setup') {
+    document.getElementById('sheets-url').value = sheetsUrl;
+    document.getElementById('token-input').value = SECRET_TOKEN;
+    document.getElementById('officer-name').value = officerName;
+    updatePendingInfo();
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// CAMERA / QR SCAN
+// ══════════════════════════════════════════════════════
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: {ideal:640}, height: {ideal:640} }
+    });
+    const v = document.getElementById('scanner-video');
+    v.srcObject = stream; v.play();
+    document.getElementById('cam-overlay').style.display = 'none';
+    cameraActive = true;
+    document.getElementById('scan-status').textContent = 'Kamera aktif — arahkan ke QR Code';
+    document.getElementById('scan-status').className = 'scan-status info';
+    startScanLoop();
+  } catch(e) {
+    document.getElementById('scan-status').textContent = 'Izin kamera ditolak. Gunakan input manual.';
+    document.getElementById('scan-status').className = 'scan-status err';
+  }
+}
+
+function startScanLoop() {
+  const v = document.getElementById('scanner-video');
+  const c = document.getElementById('scanner-canvas');
+  const ctx = c.getContext('2d');
+  (function tick() {
+    if (!cameraActive) return;
+    if (v.readyState === v.HAVE_ENOUGH_DATA) {
+      c.width = v.videoWidth; c.height = v.videoHeight;
+      ctx.drawImage(v, 0, 0);
+      const img = ctx.getImageData(0, 0, c.width, c.height);
+      const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+      if (code) {
+        const now = Date.now();
+        if (code.data !== lastScanned || now - lastScanTime > 3000) {
+          lastScanned = code.data;
+          lastScanTime = now;
+          onQRDetected(code.data);
+        }
+      }
+    }
+    requestAnimationFrame(tick);
+  })();
+}
+
+function onQRDetected(raw) {
+  // Support format: "KODE|Nama Barang" atau hanya "KODE"
+  let kode = raw, nama = '';
+  if (raw.includes('|')) { [kode, nama] = raw.split('|'); }
+  kode = kode.trim().toUpperCase();
+  const found = master.find(m => m.kode === kode);
+  if (found) {
+    fillForm(found.kode, found.nama, found.satuan);
+    document.getElementById('scan-status').textContent = `✓ Terdeteksi: ${found.kode}`;
+    document.getElementById('scan-status').className = 'scan-status ok';
+    try { navigator.vibrate && navigator.vibrate([80, 40, 80]); } catch{}
+    showScannedBox(found);
+    showToast(`✓ Scan: ${found.kode}`);
+  } else {
+    document.getElementById('scan-status').textContent = `⚠ Kode tidak ada di master: ${kode}`;
+    document.getElementById('scan-status').className = 'scan-status err';
+    showToast(`⚠ Kode tidak ditemukan: ${kode}`, true);
+  }
+}
+
+function showScannedBox(item) {
+  const stok = calcStok(item.kode);
+  const box = document.getElementById('scanned-box');
+  box.style.display = 'block';
+  document.getElementById('sc-code').textContent = item.kode;
+  document.getElementById('sc-name').textContent = item.nama + (item.produk ? ' · ' + item.produk : '');
+  const chip = document.getElementById('sc-stok-chip');
+  chip.textContent = `Stok: ${stok} ${item.satuan}`;
+  chip.className = 'stok-chip' + (stok <= 0 ? ' zero' : stok < 5 ? ' low' : '');
+}
+
+// ══════════════════════════════════════════════════════
+// FORM FILL
+// ══════════════════════════════════════════════════════
+function fillForm(kode, nama, satuan) {
+  const prefix = currentMode === 'masuk' ? 'm' : 'k';
+  document.getElementById(prefix+'-kode').value = kode;
+  document.getElementById(prefix+'-nama').value = nama;
+  document.getElementById(prefix+'-satuan').value = satuan || 'pcs';
+}
+
+function autoFillMasuk() {
+  const v = document.getElementById('m-kode').value.trim().toUpperCase();
+  const f = master.find(m => m.kode === v);
+  if (f) { document.getElementById('m-nama').value = f.nama; document.getElementById('m-satuan').value = f.satuan; showScannedBox(f); }
+}
+
+function autoFillKeluar() {
+  const v = document.getElementById('k-kode').value.trim().toUpperCase();
+  const f = master.find(m => m.kode === v);
+  if (f) { document.getElementById('k-nama').value = f.nama; document.getElementById('k-satuan').value = f.satuan; showScannedBox(f); }
+}
+
+function buildDatalist() {
+  const html = master.map(m => `<option value="${m.kode}">${m.kode} — ${m.nama}</option>`).join('');
+  document.getElementById('kode-list').innerHTML = html;
+  document.getElementById('kode-list2').innerHTML = html;
+}
+
+function changeQty(prefix, delta) {
+  const id = prefix === 'm' ? 'm-qty' : 'k-qty';
+  const inp = document.getElementById(id);
+  const v = Math.max(1, (parseInt(inp.value) || 1) + delta);
+  inp.value = v;
+}
+
+// ══════════════════════════════════════════════════════
+// SUBMIT TRANSAKSI
+// ══════════════════════════════════════════════════════
+function submitMasuk() {
+  const kode = document.getElementById('m-kode').value.trim().toUpperCase();
+  const nama = document.getElementById('m-nama').value.trim();
+  const qty = parseInt(document.getElementById('m-qty').value) || 0;
+  const satuan = document.getElementById('m-satuan').value;
+  const sumber = document.getElementById('m-sumber').value;
+  const nodok = document.getElementById('m-nodok').value.trim();
+  const catatan = document.getElementById('m-catatan').value.trim();
+
+  if (!kode) return showToast('⚠ Kode barang wajib diisi!', true);
+  if (!nama) return showToast('⚠ Isi kode yang valid atau cari di master', true);
+  if (qty < 1) return showToast('⚠ Jumlah minimal 1', true);
+  if (!sumber) return showToast('⚠ Pilih sumber/pengirim', true);
+
+  const item = master.find(m => m.kode === kode);
+  const entry = {
+    id: 'GS-' + Date.now(),
+    waktu: new Date().toLocaleString('id-ID'),
+    kode, nama,
+    produk: item?.produk || '',
+    komponen: item?.komponen || '',
+    tipe: 'masuk',
+    qty, satuan,
+    sumber, nodok,
+    catatan,
+    petugas: officerName,
+    synced: false
+  };
+
+  log.unshift(entry);
+  pending.unshift(entry);
+  LS.set('log', log);
+  LS.set('pending', pending);
+
+  // Reset form
+  ['m-kode','m-nama','m-nodok','m-catatan'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('m-qty').value = 1;
+  document.getElementById('m-sumber').value = '';
+  document.getElementById('scanned-box').style.display = 'none';
+
+  updatePendingBadge();
+  renderLog();
+  showToast(`✓ Masuk: ${qty} ${satuan} ${kode}`);
+  if (isConnected) syncPending();
+}
+
+function submitKeluar() {
+  const kode = document.getElementById('k-kode').value.trim().toUpperCase();
+  const nama = document.getElementById('k-nama').value.trim();
+  const qty = parseInt(document.getElementById('k-qty').value) || 0;
+  const satuan = document.getElementById('k-satuan').value;
+  const penerima = document.getElementById('k-penerima').value.trim();
+  const keperluan = document.getElementById('k-keperluan').value;
+  const catatan = document.getElementById('k-catatan').value.trim();
+
+  if (!kode) return showToast('⚠ Kode barang wajib diisi!', true);
+  if (!nama) return showToast('⚠ Isi kode yang valid atau cari di master', true);
+  if (qty < 1) return showToast('⚠ Jumlah minimal 1', true);
+  if (!penerima) return showToast('⚠ Isi nama penerima/kelas', true);
+
+  const stokNow = calcStok(kode);
+  if (stokNow < qty) return showToast(`⚠ Stok tidak cukup! Tersedia: ${stokNow}`, true);
+
+  const item = master.find(m => m.kode === kode);
+  const entry = {
+    id: 'GS-' + Date.now(),
+    waktu: new Date().toLocaleString('id-ID'),
+    kode, nama,
+    produk: item?.produk || '',
+    komponen: item?.komponen || '',
+    tipe: 'keluar',
+    qty, satuan,
+    penerima, keperluan,
+    catatan,
+    petugas: officerName,
+    synced: false
+  };
+
+  log.unshift(entry);
+  pending.unshift(entry);
+  LS.set('log', log);
+  LS.set('pending', pending);
+
+  ['k-kode','k-nama','k-penerima','k-catatan'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('k-qty').value = 1;
+  document.getElementById('k-keperluan').value = '';
+  document.getElementById('scanned-box').style.display = 'none';
+
+  updatePendingBadge();
+  renderLog();
+  showToast(`✓ Keluar: ${qty} ${satuan} ${kode} → ${penerima}`);
+  if (isConnected) syncPending();
+}
+
+// ══════════════════════════════════════════════════════
+// STOK CALCULATION
+// ══════════════════════════════════════════════════════
+function calcStok(kode) {
+  let masuk = 0, keluar = 0;
+  log.forEach(e => {
+    if (e.kode !== kode) return;
+    if (e.tipe === 'masuk') masuk += e.qty;
+    else keluar += e.qty;
+  });
+  return masuk - keluar;
+}
+
+function getAllStok() {
+  return master.map(m => {
+    let masuk = 0, keluar = 0;
+    log.forEach(e => {
+      if (e.kode !== m.kode) return;
+      if (e.tipe === 'masuk') masuk += e.qty;
+      else keluar += e.qty;
+    });
+    return { ...m, masuk, keluar, stok: masuk - keluar };
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER STOK
+// ══════════════════════════════════════════════════════
+function getUniqueProduk() {
+  return ['Semua', ...new Set(master.map(m => m.produk).filter(Boolean))];
+}
+
+function renderStok() {
+  const q = (document.getElementById('stok-search')?.value || '').toLowerCase();
+  const data = getAllStok().filter(d =>
+    (activeProdukFilter === 'Semua' || d.produk === activeProdukFilter) &&
+    (!q || d.kode.toLowerCase().includes(q) || d.nama.toLowerCase().includes(q))
+  );
+
+  const all = getAllStok();
+  document.getElementById('s-total').textContent = all.length;
+  document.getElementById('s-kosong').textContent = all.filter(d => d.stok <= 0).length;
+  document.getElementById('s-menipis').textContent = all.filter(d => d.stok > 0 && d.stok < 5).length;
+
+  document.getElementById('stok-filter').innerHTML = getUniqueProduk().map(p =>
+    `<div class="pill${activeProdukFilter===p?' active':''}" onclick="activeProdukFilter='${p.replace(/'/g,"\\'")}';renderStok()">${p}</div>`
+  ).join('');
+
+  const el = document.getElementById('stok-list');
+  if (!data.length) { el.innerHTML = '<div class="empty">Tidak ada data</div>'; return; }
+  el.innerHTML = data.map(d => {
+    const qc = d.stok <= 0 ? 'q-zero' : d.stok < 5 ? 'q-low' : 'q-ok';
+    return `<div class="stok-row">
+      <div class="stok-left">
+        <div class="si-code">${d.kode}</div>
+        <div class="si-name">${d.nama}</div>
+        <div class="si-meta">
+          <span class="si-tag tag-in">+${d.masuk}</span>
+          <span class="si-tag tag-out">-${d.keluar}</span>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="si-vals"><div class="si-qty ${qc}">${d.stok}</div></div>
+        <div class="si-unit">${d.satuan}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER LOG
+// ══════════════════════════════════════════════════════
+function renderLog() {
+  const today = new Date().toDateString();
+  document.getElementById('l-masuk').textContent = log.filter(e => e.tipe==='masuk').reduce((a,e) => a+e.qty, 0);
+  document.getElementById('l-keluar').textContent = log.filter(e => e.tipe==='keluar').reduce((a,e) => a+e.qty, 0);
+  document.getElementById('l-hari').textContent = log.filter(e => new Date(e.waktu).toDateString()===today||e.waktu.includes(new Date().toLocaleDateString('id-ID').split('/').reverse().join('/'))).length;
+
+  const el = document.getElementById('log-list');
+  if (!log.length) { el.innerHTML = '<div class="empty">Belum ada transaksi</div>'; return; }
+  el.innerHTML = log.slice(0, 100).map(e => {
+    const isMasuk = e.tipe === 'masuk';
+    const sub = isMasuk
+      ? `${e.sumber || '—'} ${e.nodok ? '· '+e.nodok : ''}`
+      : `${e.penerima || '—'} ${e.keperluan ? '· '+e.keperluan : ''}`;
+    return `<div class="log-entry">
+      <div class="le-icon ${isMasuk?'m':'k'}">${isMasuk?'↓':'↑'}</div>
+      <div class="le-body">
+        <div class="le-name">${e.kode} <span style="font-weight:400;color:var(--muted)">${e.nama}</span></div>
+        <div class="le-item">${sub}</div>
+        <div class="le-meta">${e.waktu} · ${e.petugas||'—'} ${e.synced?'☁':'⏳'}</div>
+      </div>
+      <div class="le-qty ${isMasuk?'m':'k'}">${isMasuk?'+':'-'}${e.qty}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// ADVANCED PRINT SYSTEM
+// ══════════════════════════════════════════════════════
+function selectSize(el) {
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  printSizeW = parseInt(el.dataset.w);
+  printSizeH = parseInt(el.dataset.h);
+  updatePrintPreview();
+}
+
+function changePrintQty(d) {
+  const inp = document.getElementById('print-qty');
+  const v = (parseInt(inp.value)||1) + d;
+  if (v >= 1 && v <= 100) { inp.value = v; updatePrintPreview(); }
+}
+
+function updatePrintSelect() {
+  const sel = document.getElementById('print-item-select');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">-- Semua barang (1 sheet) --</option>' +
+    master.map((m,i) => `<option value="${i}">${m.kode} — ${m.nama}</option>`).join('');
+}
+
+function buildStickerCanvas(item, pxW, pxH) {
+  const canvas = document.createElement('canvas');
+  const DPR = 3;
+  canvas.width = pxW * DPR; canvas.height = pxH * DPR;
+  canvas.style.width = pxW + 'px'; canvas.style.height = pxH + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(DPR, DPR);
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, pxW, pxH);
+
+  const drawContent = () => {
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    const pad = 4;
+    const side = Math.min(pxW, pxH) - (pad * 2);
+    const qrSize = Math.floor(side * 0.82);
+    const textStart = pad + qrSize + 4;
+
+    const qrX = pad;
+    const qrY = (pxH - qrSize) / 2;
+
+    const drawText = (txt, x, y, size, bold) => {
+      ctx.fillStyle = '#1e293b'; 
+      ctx.font = `${bold?'700 ':'500 '}${size}px "Inter", -apple-system, sans-serif`;
+      ctx.fillText(txt, x, y);
+    };
+
+    const MM_TO_PX_VAL = pxW / printSizeW;
+    const mainFont = MM_TO_PX_VAL * 2.8; 
+    const subFont = MM_TO_PX_VAL * 1.8;
+    const codeFont = MM_TO_PX_VAL * 2.5;
+
+    // Wrap Name
+    let name = item.nama;
+    if (item.sn) name += ` #${item.sn}`; // Add SN label to name for display
+
+    const maxLine = 22;
+    if (name.length > maxLine) {
+      drawText(name.substring(0, maxLine), textStart, qrY + 2, mainFont, true);
+      drawText(name.substring(maxLine, maxLine*2), textStart, qrY + 2 + mainFont + 1, mainFont, true);
+    } else {
+      drawText(name, textStart, qrY + 2, mainFont, true);
+    }
+    
+    // Bottom identifier
+    drawText(item.sn ? `${item.kode}-${item.sn}` : item.kode, textStart, qrY + qrSize - codeFont - 2, codeFont, true);
+    ctx.fillStyle = '#94a3b8'; ctx.font = `500 ${subFont}px Inter, sans-serif`;
+    ctx.fillText('Erlass Inventory', textStart, qrY + qrSize - subFont + 2);
+  };
+
+  const tmpDiv = document.createElement('div');
+  document.body.appendChild(tmpDiv);
+  tmpDiv.style.display = 'none';
+  
+  new QRCode(tmpDiv, { 
+    text: item.sn ? item.kode + '|' + item.sn + '|' + item.nama : item.kode + '|' + item.nama, 
+    width: 256, height: 256, 
+    correctLevel: QRCode.CorrectLevel.H 
+  });
+  
+  const qrEl = tmpDiv.querySelector('img') || tmpDiv.querySelector('canvas');
+
+  const finalize = () => {
+    const pad = 4;
+    const side = Math.min(pxW, pxH) - (pad * 2);
+    const qrSize = Math.floor(side * 0.78); // Reduced for better balance
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    
+    const srcEl = tmpDiv.querySelector('canvas') || tmpDiv.querySelector('img');
+    if (srcEl) {
+      const qrY_center = (pxH - qrSize) / 2;
+      ctx.drawImage(srcEl, pad + 2, qrY_center, qrSize, qrSize);
+    }
+    drawContent();
+    document.body.removeChild(tmpDiv);
+  };
+
+  if (qrEl && (qrEl.complete || qrEl.tagName === 'CANVAS')) {
+    finalize();
+  } else if (qrEl) {
+    qrEl.onload = finalize;
+    // Fallback if onload doesn't fire
+    setTimeout(finalize, 500);
+  } else {
+    // Last resort callback
+    setTimeout(finalize, 100);
+  }
+  return canvas;
+}
+
+function updatePrintPreview() {
+  const preview = document.getElementById('print-preview');
+  if(!preview) return;
+  const useSN = document.getElementById('use-sn').checked;
+  document.getElementById('sn-start-wrap').style.display = useSN ? 'flex' : 'none';
+
+  preview.innerHTML = '';
+  const MM_TO_PX = 3.2;
+  const pxW = Math.round(printSizeW * MM_TO_PX);
+  const pxH = Math.round(printSizeH * MM_TO_PX);
+  let qty = parseInt(document.getElementById('print-qty').value) || 1;
+  const selIdx = document.getElementById('print-item-select').value;
+  
+  if (selIdx === '') {
+    // Demo multi items
+    master.slice(0, 4).forEach(m => {
+      const wrap = document.createElement('div'); wrap.className = 'sticker-preview';
+      wrap.style.width = pxW + 'px'; wrap.style.height = pxH + 'px';
+      wrap.appendChild(buildStickerCanvas(m, pxW, pxH));
+      preview.appendChild(wrap);
+    });
+  } else {
+    const baseItem = master[parseInt(selIdx)];
+    const startSN = parseInt(document.getElementById('sn-start').value) || 1;
+    for (let i = 0; i < Math.min(qty, 4); i++) {
+       const item = { ...baseItem };
+       if (useSN) item.sn = String(startSN + i).padStart(3, '0');
+       const wrap = document.createElement('div'); wrap.className = 'sticker-preview';
+       wrap.style.width = pxW + 'px'; wrap.style.height = pxH + 'px';
+       wrap.appendChild(buildStickerCanvas(item, pxW, pxH));
+       preview.appendChild(wrap);
+    }
+  }
+}
+
+function doPrint() {
+  const MM_TO_PX = 3.78;
+  const pxW = Math.round(printSizeW * MM_TO_PX);
+  const pxH = Math.round(printSizeH * MM_TO_PX);
+  const qty = parseInt(document.getElementById('print-qty').value) || 1;
+  const selIdx = document.getElementById('print-item-select').value;
+  const useSN = document.getElementById('use-sn').checked;
+  const startSN = parseInt(document.getElementById('sn-start').value) || 1;
+
+  if (selIdx === '') return showToast('⚠ Pilih barang spesifik untuk cetak massal', true);
+
+  const baseItem = master[parseInt(selIdx)];
+  const items = [];
+  for (let i = 0; i < qty; i++) {
+    const item = { ...baseItem };
+    if (useSN) item.sn = String(startSN + i).padStart(3, '0');
+    items.push(item);
+  }
+
+  const printArea = document.getElementById('print-area');
+  printArea.innerHTML = '';
+  printArea.style.cssText = `display:flex;flex-wrap:wrap;align-content:flex-start;padding:5mm;gap:3mm;background:#fff;`;
+  items.forEach(item => {
+    const c = buildStickerCanvas(item, pxW, pxH);
+    c.style.width = pxW + 'px'; c.style.height = pxH + 'px';
+    printArea.appendChild(c);
+  });
+  window.print();
+}
+
+// ══════════════════════════════════════════════════════
+// SHEETS API
+// ══════════════════════════════════════════════════════
+async function sheetsGET(params) {
+  if (!sheetsUrl) throw new Error('URL belum diset');
+  params.token = SECRET_TOKEN;
+  const res = await fetch(sheetsUrl + '?' + new URLSearchParams(params).toString());
+  return res.json();
+}
+async function sheetsPOST(body) {
+  if (!sheetsUrl) throw new Error('URL belum diset');
+  body.token = SECRET_TOKEN;
+  const res = await fetch(sheetsUrl, { method:'POST', body: JSON.stringify(body) });
+  return res.json();
+}
+
+async function testConnection() {
+  const urlVal = document.getElementById('sheets-url')?.value.trim() || sheetsUrl;
+  if (!urlVal) { showToast('⚠ Isi URL dulu!', true); return; }
+  sheetsUrl = urlVal; setSyncing(true);
+  try {
+    const r = await sheetsGET({ action:'ping' });
+    if (r.ok) { setConnected(true); showToast('✓ ' + r.message); }
+    else { setConnected(false); showToast('⚠ ' + (r.message||'Gagal'), true); }
+  } catch { setConnected(false); showToast('⚠ Tidak bisa terhubung', true); }
+  setSyncing(false);
+}
+
+async function saveAndConnect() {
+  const url = document.getElementById('sheets-url').value.trim();
+  const tok = document.getElementById('token-input').value.trim();
+  const officer = document.getElementById('officer-name').value.trim();
+  if (!url) { showToast('⚠ Isi URL terlebih dahulu!', true); return; }
+  sheetsUrl = url; LS.set('url', url);
+  SECRET_TOKEN = tok; LS.set('token', tok);
+  if (officer) { officerName = officer; LS.set('officer', officer); }
+  await testConnection();
+  if (isConnected) syncPending();
+}
+
+function disconnect() {
+  sheetsUrl = ''; LS.set('url', '');
+  SECRET_TOKEN = ''; LS.set('token', '');
+  document.getElementById('sheets-url').value = '';
+  document.getElementById('token-input').value = '';
+  setConnected(false); showToast('Koneksi diputus');
+}
+
+async function syncPending() {
+  if (!sheetsUrl || !pending.length || isSyncing) return;
+  setSyncing(true);
+  const failed = [];
+  for (const e of pending) {
+    try {
+      const r = await sheetsPOST({ action: 'addTransaksiGudang', data: e });
+      if (!r.ok) failed.push(e);
+      else e.synced = true;
+    } catch { failed.push(e); }
+  }
+  pending = failed;
+  LS.set('pending', pending);
+  LS.set('log', log);
+  updatePendingBadge();
+  setSyncing(false);
+  if (!failed.length && pending.length === 0) setConnected(true);
+}
+
+async function runDemoSync() {
+  if (!sheetsUrl) { showToast('⚠ Set URL Sheet dulu!', true); return; }
+  setSyncing(true); showToast('🧪 Menjalankan Demo Transaction...');
+  const demoEntry = {
+    id: 'DEMO-' + Date.now().toString().slice(-4),
+    waktu: new Date().toLocaleString('id'),
+    kode: 'DEMO-2026',
+    nama: 'BARANG DEMO SYSTEM',
+    produk: 'Demo',
+    tipe: 'masuk',
+    qty: 1,
+    satuan: 'pcs',
+    sumber: 'Demo Specialist',
+    nodok: 'DEMO/001',
+    catatan: 'Testing koneksi Antigravity Design Export',
+    petugas: officerName
+  };
+  try {
+    const r = await sheetsPOST({ action: 'addTransaksiGudang', data: demoEntry });
+    if (r.ok) {
+      showToast('✓ Demo BERHASIL! Cek Spreadsheet Anda.');
+      setConnected(true);
+    } else {
+      showToast('⚠ Demo Gagal: ' + (r.message||'Cek Token/URL'), true);
+    }
+  } catch(e) {
+    showToast('⚠ Koneksi Gagal!', true);
+    setConnected(false);
+  }
+  setSyncing(false);
+}
+
+async function syncAll() {
+  if (!sheetsUrl) { showToast('⚠ Belum terhubung ke Sheets', true); return; }
+  setSyncing(true); showToast('⏳ Syncing...');
+  try {
+    const r = await sheetsPOST({ action:'syncAllGudang', log, stok: getAllStok(), master });
+    if (r.ok) {
+      pending = []; LS.set('pending', []);
+      log.forEach(e => e.synced = true);
+      LS.set('log', log);
+      setConnected(true);
+      showToast('✓ Full sync berhasil!');
+      updatePendingBadge();
+      renderLog();
+    } else { showToast('⚠ ' + (r.message||'Sync gagal'), true); }
+  } catch { showToast('⚠ Koneksi gagal', true); setConnected(false); }
+  setSyncing(false);
+}
+
+function setConnected(v) {
+  isConnected = v;
+  const dot = document.getElementById('sync-dot'), lbl = document.getElementById('sync-lbl');
+  const dot2 = document.getElementById('conn-dot2'), txt = document.getElementById('conn-text');
+  if (v) {
+    dot.className='sync-dot on'; lbl.textContent='Online'; lbl.style.color='var(--accent)';
+    dot2.className='sync-dot on'; txt.textContent='Terhubung ke Google Sheets ✓';
+  } else {
+    dot.className='sync-dot err'; lbl.textContent='Offline'; lbl.style.color='var(--accent2)';
+    dot2.className='sync-dot err'; txt.textContent='Tidak terhubung ke Sheets';
+  }
+}
+function setSyncing(v) {
+  isSyncing = v;
+  if (v) document.getElementById('sync-dot').className = 'sync-dot syncing';
+  else setConnected(isConnected);
+}
+function updatePendingBadge() {
+  const badge = document.getElementById('pending-badge');
+  if (pending.length) { badge.textContent = pending.length; badge.className = 'pending-badge show'; }
+  else badge.className = 'pending-badge';
+}
+function updatePendingInfo() {
+  const el = document.getElementById('pending-info');
+  if (!el) return;
+  el.textContent = pending.length ? `${pending.length} transaksi belum tersync` : (isConnected ? '✓ Semua tersync' : '');
+  el.style.color = pending.length ? 'var(--accent4)' : 'var(--accent)';
+}
+
+// ══════════════════════════════════════════════════════
+// EXPORT EXCEL
+// ══════════════════════════════════════════════════════
+function exportExcel() {
+  const wb = XLSX.utils.book_new();
+
+  const masukRows = [['ID','Waktu','Kode','Nama Barang','Produk Kit','Qty','Satuan','Sumber','No. Dokumen','Catatan','Petugas']];
+  const keluarRows = [['ID','Waktu','Kode','Nama Barang','Produk Kit','Qty','Satuan','Penerima','Keperluan','Catatan','Petugas']];
+  const stokRows = [['Kode','Nama Barang','Produk Kit','Satuan','Total Masuk','Total Keluar','Stok Akhir']];
+
+  log.forEach(e => {
+    if (e.tipe==='masuk') masukRows.push([e.id,e.waktu,e.kode,e.nama,e.produk||'',e.qty,e.satuan,e.sumber||'',e.nodok||'',e.catatan||'',e.petugas||'']);
+    else keluarRows.push([e.id,e.waktu,e.kode,e.nama,e.produk||'',e.qty,e.satuan,e.penerima||'',e.keperluan||'',e.catatan||'',e.petugas||'']);
+  });
+  getAllStok().forEach(d => stokRows.push([d.kode,d.nama,d.produk||'',d.satuan,d.masuk,d.keluar,d.stok]));
+
+  const ws1 = XLSX.utils.aoa_to_sheet(masukRows);
+  const ws2 = XLSX.utils.aoa_to_sheet(keluarRows);
+  const ws3 = XLSX.utils.aoa_to_sheet(stokRows);
+  ws1['!cols'] = [{wch:18},{wch:20},{wch:12},{wch:30},{wch:20},{wch:6},{wch:6},{wch:20},{wch:16},{wch:20},{wch:14}];
+  ws2['!cols'] = [{wch:18},{wch:20},{wch:12},{wch:30},{wch:20},{wch:6},{wch:6},{wch:18},{wch:20},{wch:20},{wch:14}];
+  ws3['!cols'] = [{wch:12},{wch:30},{wch:20},{wch:6},{wch:10},{wch:10},{wch:10}];
+
+  XLSX.utils.book_append_sheet(wb, ws1, 'Log Masuk');
+  XLSX.utils.book_append_sheet(wb, ws2, 'Log Keluar');
+  XLSX.utils.book_append_sheet(wb, ws3, 'Rekap Stok');
+
+  const fname = `GudangScan_${new Date().toLocaleDateString('id-ID').replace(/\//g,'-')}.xlsx`;
+  XLSX.writeFile(wb, fname);
+  showToast('✓ Excel didownload! (3 sheet)');
+}
+
+function clearLogConfirm() {
+  if (!confirm('Hapus semua log transaksi?\nMaster data & stok akan reset ke 0.\n\nPastikan sudah sync ke Sheets!')) return;
+  log = []; pending = [];
+  LS.set('log', []); LS.set('pending', []);
+  updatePendingBadge(); renderLog(); renderStok();
+  showToast('✓ Log dihapus');
+}
+
+// ══════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg, isErr) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = (isErr ? 'err ' : '') + 'show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = '', 2600);
+}
+</script>
+</body>
+</html>

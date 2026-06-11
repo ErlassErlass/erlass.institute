@@ -2,8 +2,21 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
-## [1.2.7] - 2026-03-02
+## [1.2.8] - 2026-03-13
 
+### Ditambahkan (Added)
+- **UI & UX Enhancements**:
+    - **Custom Error Pages**: Merancang ulan halaman _error_ standar (404, 403, 500) dengan tampilan yang lebih _imut_, unik, dan ramah pengguna (menggunakan SVG ilustratif).
+    - **Global Placeholder**: Memperhalus tampilan dan ketipisan teks *placeholder* di seluruh form aplikasi (termasuk form profil pengguna) melalui konfigurasi CSS pseudo-class di _layout_ utama.
+- **Ekstrakurikuler Management**:
+    - Penambahan lencana peringatan **"Belum Dilaporkan"** (Badge Merah) pada *timeline* sesi jadwal untuk sesi yang berstatus "Selesai" namun belum memiliki laporan mengajar dari instruktur.
+    - Mengakomodasi tombol manual **"Selesaikan"** di menu rentetan aksi (Action Buttons) detail Ekstrakurikuler.
+
+### Diperbaiki (Fixed)
+- **System Stability**:
+    - **Critical**: Memperbaiki masalah **500 Server Error** pada halaman Detail Ekstrakurikuler (`/ekstrakurikuler/{id}`) berkat absennya metode pengkondisian status `canBeCompleted()` di kerangka Model.
+
+## [1.2.7] - 2026-03-02
 ### Fitur Baru (Added)
 - **WhatsApp Notifications (Integrasi Fonnte)**:
     - **Welcome Message**: Pengiriman otomatis pesan selamat datang ke WhatsApp Orang Tua (H+0) saat anak didaftarkan ke Rombel Ekstrakurikuler. Menarik data jadwal (Hari & Jam) dari sesi pertama secara dinamis.

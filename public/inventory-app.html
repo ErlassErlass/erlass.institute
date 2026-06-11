@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>StokScan 2026 — Inventory Manager</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+  :root {
+    --bg: #f8fafc;
+    --surface: rgba(255, 255, 255, 0.8);
+    --surface-solid: #ffffff;
+    --surface2: rgba(241, 245, 249, 0.5);
+    --border: rgba(226, 232, 240, 0.5);
+    --accent: #3b82f6;
+    --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    --accent2: #f43f5e;
+    --accent3: #0ea5e9;
+    --text: #1e293b;
+    --muted: #64748b;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --shadow-soft: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+    --shadow-float: 0 20px 40px -10px rgba(59, 130, 246, 0.15);
+    --glass: rgba(255, 255, 255, 0.7);
+    --glass-blur: blur(12px);
+    --transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --content-pad: 20px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { 
+    font-family: var(--sans); 
+    background: #f1f5f9; 
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.03) 0, transparent 50%), 
+      radial-gradient(at 50% 0%, rgba(6, 182, 212, 0.03) 0, transparent 50%);
+    color: var(--text); 
+    min-height: 100vh; 
+    min-height: 100svh;
+    overflow-x: hidden; 
+    display: flex;
+    justify-content: center;
+    line-height: 1.6; 
+    overscroll-behavior: none;
+  }
+  
+  .app { 
+    position: relative; 
+    z-index: 1; 
+    width: 100%;
+    max-width: 480px; 
+    background: var(--bg);
+    display: flex; 
+    flex-direction: column; 
+    height: 100vh; 
+    height: 100svh;
+    box-shadow: 0 0 100px rgba(0,0,0,0.05);
+  }
+  
+/* ── Header ── */
+header { 
+  padding: 16px; 
+  border-bottom: 1px solid var(--border); 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  position: sticky; 
+  top: 0; 
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur); 
+  -webkit-backdrop-filter: var(--glass-blur);
+  z-index: 100;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+.logo-wrap { display: flex; align-items: center; gap: 10px; }
+.logo-img { height: 28px; width: auto; object-fit: contain; }
+.logo-text { font-weight: 800; font-size: 16px; letter-spacing: -0.02em; background: var(--accent-gradient); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.logo-tag { font-family: var(--mono); font-size: 8px; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-weight: 700; }
+
+.sync-status { 
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+  font-size: 10px; 
+  font-weight: 600;
+  cursor: pointer; 
+  padding: 5px 10px; 
+  border-radius: 99px; 
+  border: 1px solid var(--border); 
+  background: var(--surface); 
+  transition: all 0.2s;
+  color: var(--muted);
+}
+.sync-status:hover { border-color: var(--accent); background: var(--surface2); }
+
+/* ── Mode banner ── */
+.mode-banner { display: flex; background: var(--surface2); border-radius: 0; padding: 0; flex-shrink: 0; }
+.mode-btn { 
+  flex: 1; 
+  padding: 12px 8px; 
+  text-align: center; 
+  font-size: 11px; 
+  font-weight: 800; 
+  cursor: pointer; 
+  border: none; 
+  background: transparent; 
+  color: var(--muted); 
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.mode-btn.masuk.active { color: var(--accent); border-bottom-color: var(--accent); background: #eff6ff; }
+.mode-btn.keluar.active { color: var(--accent2); border-bottom-color: var(--accent2); background: #fff1f2; }
+.mode-icon{font-size:14px}
+
+/* ── Scroll content ── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(100px + var(--safe-bottom)); 
+  scroll-padding-top: 80px;
+  scroll-padding-bottom: 100px;
+}
+.content::-webkit-scrollbar { width: 5px; }
+.content::-webkit-scrollbar-track { background: transparent; }
+.content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.05); border-radius: 10px; }
+
+/* ── Bottom Nav ── */
+.bottom-nav { 
+  position: fixed; 
+  bottom: 0; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  width: 100%; 
+  max-width: 480px; 
+  background: var(--surface-solid);
+  border-top: 1px solid var(--border); 
+  display: flex; 
+  padding-bottom: var(--safe-bottom); 
+  z-index: 1000;
+  transition: var(--transition);
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.08);
+}
+.nav-item { 
+  flex: 1; 
+  border: none; 
+  background: transparent; 
+  padding: 10px 0; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 4px; 
+  color: var(--muted); 
+  font-size: 9px; 
+  font-weight: 700; 
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+.nav-item::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 40%;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 0 0 4px 4px;
+  transition: var(--transition);
+}
+.nav-item.active { color: var(--accent); }
+.nav-item.active::after { transform: translateX(-50%) scaleX(1); }
+.nav-icon { font-size: 20px; line-height: 1; }
+  
+  .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .sync-dot.online { background: #10b981; }
+  .sync-dot.syncing { background: var(--accent); animation: pulse 1s ease-in-out infinite; }
+  .sync-dot.error { background: var(--accent2); }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  
+  .tabs { display: flex; padding: 16px 16px 0; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  
+  .tab { 
+    flex: 1; 
+    padding: 10px 8px; 
+    text-align: center; 
+    font-size: 11px; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    letter-spacing: 0.05em;
+    border-radius: 10px 10px 0 0;
+    cursor: pointer; 
+    color: var(--muted); 
+    background: transparent; 
+    transition: all 0.2s;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+  }
+  .tab.active { 
+    color: var(--accent); 
+    border-bottom-color: var(--accent);
+    background: #eff6ff;
+  }
+  
+  .panel { display: none; padding: 16px; animation: fadeIn 0.3s ease-out; }
+  .panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .card { 
+    background: var(--surface); 
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border); 
+    border-radius: 20px; 
+    padding: var(--content-pad); 
+    margin-bottom: 20px; 
+    box-shadow: var(--shadow-soft);
+    transition: var(--transition);
+    animation: floatIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) backwards;
+  }
+  .card:hover { transform: translateY(-5px); box-shadow: var(--shadow-float); border-color: var(--accent); }
+  
+  @keyframes floatIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .card-title { 
+    font-size: 11px; 
+    font-weight: 800;
+    text-transform: uppercase; 
+    letter-spacing: 0.1em; 
+    color: var(--muted); 
+    margin-bottom: 14px; 
+  }
+  
+  .scanner-wrap { 
+    position: relative; 
+    width: 100%; 
+    aspect-ratio: 1; 
+    border-radius: 12px; 
+    overflow: hidden; 
+    background: #000; 
+    border: 1px solid var(--border); 
+  }
+  #scanner-video { width: 100%; height: 100%; object-fit: cover; }
+  
+  .scan-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  .scan-frame { width: 60%; height: 60%; position: relative; }
+  .scan-frame::before,.scan-frame::after,.scan-frame span::before,.scan-frame span::after { content: ''; position: absolute; width: 24px; height: 24px; border-color: rgba(255,255,255,0.8); border-style: solid; }
+  .scan-frame::before { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+  .scan-frame::after { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+  .scan-frame span::before { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+  .scan-frame span::after { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+  
+  .scanner-status { text-align: center; margin-top: 12px; font-size: 12px; font-weight: 500; color: var(--muted); }
+  
+  #scan-result-box { 
+    display: none; 
+    background: #f0f9ff; 
+    border: 1px solid #bae6fd; 
+    border-radius: 12px; 
+    padding: 14px; 
+    margin-top: 14px; 
+  }
+  .result-code { font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--accent); }
+  .result-name { font-size: 13px; font-weight: 600; color: var(--text); margin-top: 2px; }
+  
+  .cam-start-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); gap: 12px; color: white; }
+  .cam-start-btn { background: var(--surface); color: var(--text); border: none; border-radius: 10px; padding: 12px 24px; font-weight: 700; cursor: pointer; }
+  
+  .input-group { margin-bottom: 14px; }
+  .input-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 6px; display: block; }
+  
+  input[type=text], input[type=number], input[type=url], input[type=password], select { 
+    width: 100%; 
+    background: var(--surface2); 
+    border: 1px solid var(--border); 
+    border-radius: 12px; 
+    color: var(--text); 
+    font-family: var(--sans); 
+    font-size: 15px; 
+    padding: 13px 15px; 
+    outline: none; 
+    transition: all 0.2s; 
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+  
+  .qty-row { display: flex; align-items: center; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .qty-btn { width: 48px; height: 48px; background: transparent; border: none; color: var(--text); font-size: 20px; cursor: pointer; transition: background 0.2s; }
+  .qty-btn:hover { background: rgba(0,0,0,0.05); }
+  #qty-input { flex: 1; border: none; background: transparent; text-align: center; font-size: 18px; font-weight: 800; color: var(--accent); padding: 0; }
+  
+  .btn { 
+    padding: 14px 20px; 
+    border-radius: 14px; 
+    border: none; 
+    font-size: 14px; 
+    font-weight: 700; 
+    cursor: pointer; 
+    transition: all 0.2s; 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 10px; 
+    margin-bottom: 4px;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-masuk { background: var(--accent); color: white; flex: 1; }
+  .btn-masuk:hover { background: #2563eb; }
+  .btn-keluar { background: var(--accent2); color: white; flex: 1; }
+  
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--surface2); }
+  
+  .seg-row { display: flex; background: var(--surface2); border-radius: 10px; padding: 4px; margin-bottom: 16px; }
+  .seg-btn { 
+    flex: 1; 
+    padding: 9px; 
+    text-align: center; 
+    font-size: 11px; 
+    font-weight: 800; 
+    cursor: pointer; 
+    border: none; 
+    background: transparent; 
+    color: var(--muted); 
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+  .seg-btn.active-masuk { background: var(--accent); color: white; box-shadow: var(--shadow); }
+  .seg-btn.active-keluar { background: var(--accent2); color: white; box-shadow: var(--shadow); }
+  
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px 10px; text-align: center; box-shadow: var(--shadow); }
+  .stat-val { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+  .stat-val.blue { color: var(--accent); }
+  .stat-val.green { color: #10b981; }
+  .stat-val.red { color: var(--accent2); }
+  .stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 0.05em; }
+  
+  .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: var(--surface2); font-weight: 700; text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em; color: var(--muted); padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 12px; border-bottom: 1px solid var(--border); color: #475569; }
+  
+  .badge-in { background: #d1fae5; color: #065f46; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 6px; display: inline-block; }
+  .badge-out { background: #ffe4e6; color: #9f1239; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 6px; display: inline-block; }
+  
+  .stok-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .stok-item:last-child { border-bottom: none; }
+  .stok-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .stok-qty { font-size: 20px; font-weight: 800; color: var(--text); }
+  .stok-qty.ok { color: #10b981; }
+  .stok-qty.warning { color: #f59e0b; }
+  .stok-qty.zero { color: var(--muted); }
+  
+  #toast { 
+    position: fixed; 
+    bottom: 24px; 
+    left: 50%; 
+    transform: translateX(-50%) translateY(100px); 
+    background: #1e293b; 
+    color: white; 
+    font-size: 13px; 
+    font-weight: 600;
+    padding: 12px 24px; 
+    border-radius: 12px; 
+    z-index: 1000; 
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  
+  .pill { padding: 6px 14px; border-radius: 99px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--muted); transition: all 0.2s; white-space: nowrap; }
+  .pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+  
+  .stok-tag { font-size: 9px; padding: 1px 5px; border-radius: 4px; font-weight: 800; margin-left: 4px; text-transform: uppercase; }
+  .tag-microbit { background: #bae6fd; color: #0369a1; }
+  .tag-arduino { background: #dcfce7; color: #166534; }
+  .erlass-badge { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; padding: 1px 6px; border-radius: 4px; font-size: 8px; font-weight: 800; }
+  .new-badge { display: inline-block; font-family: var(--mono); font-size: 8px; font-weight: 700; background: rgba(240, 190, 60, 0.15); color: #f0be3c; border: 1px solid rgba(240, 190, 60, 0.3); padding: 1px 5px; border-radius: 10px; margin-left: 5px; vertical-align: middle; }
+  
+  /* Splash / Loading Overlay */
+  .splash-overlay {
+    position: fixed; inset: 0; background: rgba(255,255,255,0.95);
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 9999; backdrop-filter: blur(10px); transition: opacity 0.5s ease;
+  }
+  .splash-content { text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .splash-logo { width: 90px; margin-bottom: 24px; animation: pulse-logo 1.5s infinite; transition: all 0.5s ease; }
+  .splash-success-icon { font-size: 50px; color: var(--accent); display: none; margin-bottom: 20px; animation: bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  @keyframes pulse-logo { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.06); opacity: 1; } }
+  @keyframes bounce-in { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+  .splash-text { font-family: var(--sans); font-weight: 700; color: var(--accent3); letter-spacing: 1px; transition: color 0.3s; }
+  .splash-sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .splash-overlay.success .splash-logo { display: none; }
+  .splash-overlay.success .splash-success-icon { display: block; }
+  .splash-overlay.success .splash-text { color: var(--accent); }
+  
+  /* Smooth CSS Spinner */
+  /* Smooth Image Loader */
+  .splash-spinner {
+    width: 60px; height: 60px;
+    background: url('loader.png') no-repeat center center;
+    background-size: contain;
+    animation: spin 3s linear infinite;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3));
+  }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  .splash-overlay.success .splash-spinner { display: none; }
+  
+  /* Missing Component Styles */
+  #qr-gen-section { display: none; }
+  #qr-canvas-wrap { display: flex; flex-direction: column; align-items: center; margin: 12px 0; gap: 7px; }
+  #qr-canvas-wrap canvas { border-radius: 8px; max-width: 100%; height: auto !important; }
+  
+  #add-form { display: none; background: var(--surface2); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); }
+  
+  #qr-select { margin-bottom: 12px; }
+
+  /* ── Login screen (Erlass Style) ── */
+  #login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 24px; background-image: radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 20%), radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 20%); }
+  .login-box { 
+    width: 100%; max-width: 360px; 
+    background: var(--surface); 
+    backdrop-filter: blur(16px); 
+    border: 1px solid var(--border); 
+    border-radius: 32px; 
+    padding: 32px; 
+    box-shadow: var(--shadow-soft);
+    animation: floatIn 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .login-logo { font-weight: 800; font-size: 32px; text-align: center; margin-bottom: 8px; background: var(--accent-gradient); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .login-sub { text-align: center; font-size: 11px; color: var(--muted); font-weight: 700; margin-bottom: 32px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .pin-display { display: flex; justify-content: center; gap: 14px; margin-bottom: 32px; }
+  .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); transition: var(--transition); background: transparent; }
+  .pin-dot.filled { background: var(--accent); border-color: var(--accent); transform: scale(1.2); box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
+  .pin-dot.error { background: var(--accent2); border-color: var(--accent2); animation: shake 0.4s ease; }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .num-btn { 
+    padding: 20px 10px; 
+    background: rgba(255,255,255,0.5); 
+    border: 1px solid var(--border); 
+    border-radius: 16px; 
+    color: var(--text); 
+    font-family: var(--mono); 
+    font-size: 24px; 
+    font-weight: 700; 
+    cursor: pointer; 
+    transition: var(--transition); 
+  }
+  .num-btn:hover { background: var(--surface-solid); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+  .num-btn:active { transform: scale(0.95); background: var(--surface2); }
+  .num-btn.del { font-size: 16px; color: var(--muted); }
+  .num-btn.zero { grid-column: 2; }
+  .login-err { text-align: center; font-family: var(--mono); font-size: 11px; color: var(--accent2); min-height: 18px; margin-top: 4px; }
+  .login-token-section { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .login-token-toggle { font-size: 10px; color: var(--muted); cursor: pointer; text-align: center; margin-bottom: 10px; text-decoration: underline; font-weight: 600; }
+  #login-token-fields { display: none; }
+
+  /* ── Print sticker CSS ── */
+  @media print {
+    body * { visibility: hidden !important; }
+    #print-area, #print-area * { visibility: visible !important; }
+    #print-area { position: fixed; inset: 0; background: #fff; z-index: 99999; display: flex !important; flex-wrap: wrap; align-content: flex-start; padding: var(--print-margin, 5mm); gap: var(--print-gap, 3mm); }
+    @page { margin: 0; size: var(--page-size, A4); }
+  }
+  /* Print preview modal - FIRM version */
+  #print-modal { 
+    display:none; 
+    position:fixed; 
+    inset:0; 
+    background:rgba(0,0,0,.6); 
+    z-index:9000; 
+    align-items:center; 
+    justify-content:center; 
+    padding:20px; 
+    backdrop-filter: blur(8px);
+    overscroll-behavior: contain;
+  }
+  #print-modal.open { display:flex; }
+  .print-box { 
+    background: #fff; 
+    border-radius: 28px; 
+    width:100%; 
+    max-width:440px; 
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh; 
+    max-height: 85svh;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.4); 
+    border: 1px solid rgba(255,255,255,0.2); 
+    overflow: hidden;
+    animation: modalSlide 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  @keyframes modalSlide { 
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .print-header { padding:20px 24px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; flex-shrink: 0; }
+  .print-header-title { font-family:var(--sans); font-size:14px; color:var(--text); font-weight: 800; }
+  .print-body { padding:24px; overflow-y: auto; flex: 1; }
+  .print-body::-webkit-scrollbar { width: 4px; }
+  .print-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+  .print-preview-wrap { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; padding:20px; background:#f8fafc; border-radius:16px; margin-bottom:20px; min-height:100px; border: 1px dashed #cbd5e1; }
+  .sticker-preview { background:#fff; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:6px; gap:4px; cursor:pointer; transition:all .2s; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
+  .sticker-preview:hover { transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+  .size-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+  .size-btn { padding:10px 4px; border:1px solid #e2e8f0; border-radius:10px; background:#fff; color:var(--muted); font-family:var(--mono); font-size:9px; text-align:center; cursor:pointer; transition:all .2s; font-weight: 700; line-height: 1.3; }
+  .size-btn.active { border-color:var(--accent3); color:var(--accent3); background:rgba(74,158,255,0.05); box-shadow: 0 0 0 1px var(--accent3); }
+  .qty-sticker-row { display:flex; align-items:center; gap:12px; margin-bottom:18px; padding: 12px; background: #f1f5f9; border-radius: 12px; }
+  .qty-sticker-row label { font-family:var(--mono); font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; white-space:nowrap; font-weight: 700; }
+  #print-qty { width:60px; text-align:center; font-family:var(--mono); font-size:18px; font-weight:800; color:var(--accent3); background: transparent; border: none; }
+  #print-area { display:none; }
+</style>
+</head>
+<body>
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">StokScan</div>
+    <div class="login-sub">INVENTORY SYSTEM 2026</div>
+    <div class="pin-display" id="pin-dots">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+      <div class="pin-dot" id="d4"></div>
+      <div class="pin-dot" id="d5"></div>
+    </div>
+    <div class="numpad">
+      <button class="num-btn" onclick="pinPress('1')">1</button>
+      <button class="num-btn" onclick="pinPress('2')">2</button>
+      <button class="num-btn" onclick="pinPress('3')">3</button>
+      <button class="num-btn" onclick="pinPress('4')">4</button>
+      <button class="num-btn" onclick="pinPress('5')">5</button>
+      <button class="num-btn" onclick="pinPress('6')">6</button>
+      <button class="num-btn" onclick="pinPress('7')">7</button>
+      <button class="num-btn" onclick="pinPress('8')">8</button>
+      <button class="num-btn" onclick="pinPress('9')">9</button>
+      <button class="num-btn zero" onclick="pinPress('0')">0</button>
+      <button class="num-btn del" onclick="pinDel()">⌫</button>
+    </div>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-token-section">
+      <div class="login-token-toggle" onclick="toggleTokenFields()">⚙ Pengaturan Hubungan Ke Sheets</div>
+      <div id="login-token-fields">
+        <div class="input-group" style="margin-bottom:0">
+          <label class="input-label">Secret Token</label>
+          <input type="password" id="login-token" placeholder="Token rahasia">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="app">
+  <header>
+    <div class="logo-wrap">
+      <img src="/images/logo-erlass.png" alt="Erlass Logo" class="logo-img">
+      <div class="logo-text">StokScan</div>
+      <div class="logo-tag">MANAGER</div>
+    </div>
+    <div class="sync-status" onclick="goTab('koneksi')">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">Offline</span>
+    </div>
+  </header>
+
+  <!-- Mode banner for Scan tab -->
+  <div class="mode-banner" id="scan-mode-banner">
+    <button class="mode-btn masuk active" id="seg-masuk" onclick="setTipe('masuk')">
+      <span class="mode-icon">↓</span> STOK MASUK
+    </button>
+    <button class="mode-btn keluar" id="seg-keluar" onclick="setTipe('keluar')">
+      <span class="mode-icon">↑</span> STOK KELUAR
+    </button>
+  </div>
+
+  <div class="content">
+
+  <div id="tab-scan" class="panel active">
+    <div class="offline-tip" id="offline-tip">⚠️ Offline — transaksi disimpan lokal, auto-sync saat online kembali</div>
+    <div class="demo-tip">💡 Ketik kode atau scan QR — autocomplete dari <strong id="master-total-tip">0</strong> item</div>
+    <div class="card">
+      <div class="card-title">Scanner QR Code</div>
+      <div class="scanner-wrap">
+        <video id="scanner-video" autoplay muted playsinline></video>
+        <canvas id="scanner-canvas"></canvas>
+        <div class="scan-overlay"><div class="scan-frame"><span></span></div><div class="scan-line"></div></div>
+        <div class="cam-start-overlay" id="cam-overlay">
+          <div class="cam-icon">📷</div>
+          <button class="cam-start-btn" onclick="startCamera()">Aktifkan Kamera</button>
+          <div class="cam-note">Butuh izin kamera browser</div>
+        </div>
+      </div>
+      <div class="scanner-status" id="scan-status">Klik "Aktifkan Kamera" untuk mulai scan</div>
+      <div id="scan-result-box">
+        <div class="result-code" id="res-code"></div>
+        <div class="result-name" id="res-name"></div>
+      </div>
+    </div>
+      <div class="card-title">Input Transaksi</div>
+      <!-- Mode toggle removed from here, moved to top mode-banner -->
+      <div class="input-group">
+        <label class="input-label">Kode Barang</label>
+        <div style="display:flex;gap:7px">
+          <input type="text" id="input-kode" placeholder="Ketik kode atau nama..." oninput="autoFill()" list="kode-list" style="flex:1">
+          <button class="btn btn-secondary" onclick="loadDemo()" style="padding:10px 12px;font-size:12px">Demo</button>
+        </div>
+        <datalist id="kode-list"></datalist>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Nama Barang</label>
+        <input type="text" id="input-nama" placeholder="Terisi otomatis dari kode">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+        <div class="input-group">
+          <label class="input-label">Jumlah</label>
+          <div class="qty-row">
+            <button class="qty-btn" onclick="changeQty(-1)">−</button>
+            <input type="number" id="qty-input" value="1" min="1">
+            <button class="qty-btn" onclick="changeQty(1)">+</button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Satuan</label>
+          <select id="input-satuan"><option>pcs</option><option>unit</option><option>buah</option><option>set</option><option>box</option><option>meter</option><option>rol</option></select>
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Catatan (opsional)</label>
+        <input type="text" id="input-catatan" placeholder="Dari supplier, kondisi, dll">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-masuk" id="btn-masuk-main" onclick="submitTransaksi('masuk')">▲ Stok Masuk</button>
+        <button class="btn btn-keluar" id="btn-keluar-main" onclick="submitTransaksi('keluar')">▼ Stok Keluar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ LOG ══ -->
+  <div id="tab-log" class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted)" id="log-count">0 transaksi</div>
+      <div style="display:flex;gap:7px">
+        <button class="btn btn-green" onclick="syncAll()">☁ Sync</button>
+        <button class="btn btn-danger" onclick="clearLog()">Hapus</button>
+        <button class="btn btn-export" onclick="exportExcel()">⬇ Excel</button>
+      </div>
+    </div>
+    <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="log-search" placeholder="Cari kode, nama, produk..." oninput="renderLog()"></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Waktu</th><th>Kode</th><th>Nama</th><th>Tipe</th><th>Qty</th><th>☁</th></tr></thead>
+        <tbody id="log-body"><tr><td colspan="6" class="empty-state">Belum ada transaksi</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ STOK ══ -->
+  <div id="tab-stok" class="panel">
+    <div class="stats">
+      <div class="stat"><div class="stat-val blue" id="stat-items">0</div><div class="stat-label">Jenis Barang</div></div>
+      <div class="stat"><div class="stat-val green" id="stat-masuk">0</div><div class="stat-label">Total Masuk</div></div>
+      <div class="stat"><div class="stat-val red" id="stat-keluar">0</div><div class="stat-label">Total Keluar</div></div>
+    </div>
+    <div style="display:flex;gap:7px;margin-bottom:10px">
+      <div class="search-wrap" style="flex:1;margin:0"><span class="search-icon">🔍</span><input type="text" id="stok-search" placeholder="Cari barang..." oninput="renderStok()"></div>
+      <button class="btn btn-export" onclick="exportExcel()">⬇ Excel</button>
+    </div>
+    <div class="filter-wrap" id="stok-filter"></div>
+    <div class="card"><div id="stok-list"><div class="empty-state">Belum ada data stok</div></div></div>
+  </div>
+
+  <!-- ══ SETUP ══ -->
+  <div id="tab-setup" class="panel">
+    <div class="card">
+      <div class="card-title">Master Barang — <span style="color:var(--accent)" id="master-count">0</span> item</div>
+      <div style="display:flex;gap:7px;margin-bottom:10px">
+        <div class="search-wrap" style="flex:1;margin:0"><span class="search-icon">🔍</span><input type="text" id="master-search" placeholder="Cari barang..." oninput="renderMaster()"></div>
+        <button class="btn btn-secondary" onclick="showAddForm()" style="font-size:12px;padding:9px 11px">+ Tambah</button>
+      </div>
+      <div id="add-form">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--accent);margin-bottom:9px;text-transform:uppercase;letter-spacing:1px">Tambah Barang Baru</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="input-group" style="margin:0"><label class="input-label">Kode</label><input type="text" id="setup-kode" placeholder="ARD-001"></div>
+          <div class="input-group" style="margin:0"><label class="input-label">Satuan</label><select id="setup-satuan"><option>pcs</option><option>unit</option><option>buah</option><option>set</option><option>box</option></select></div>
+        </div>
+        <div class="input-group" style="margin-top:8px"><label class="input-label">Nama Barang</label><input type="text" id="setup-nama" placeholder="Nama komponen"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="input-group" style="margin:0"><label class="input-label">Produk Kit</label><input type="text" id="setup-produk" placeholder="Arduino Learning Kit"></div>
+          <div class="input-group" style="margin:0"><label class="input-label">Komponen</label><input type="text" id="setup-komponen" placeholder="Arduino Kit"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:9px">
+          <button class="btn btn-masuk" onclick="addMasterBarang()" style="font-size:13px">Simpan</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('add-form').style.display='none'" style="font-size:13px">Batal</button>
+        </div>
+      </div>
+      <div class="filter-wrap" id="master-filter"></div>
+      <div id="master-list"><div class="empty-state">Loading...</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Stiker Alat (QR Code)</div>
+      <div class="input-group"><label class="input-label">Pilih Barang</label><select id="qr-select"><option value="">-- Pilih barang --</option></select></div>
+      <div style="display:flex;gap:7px;margin-bottom:8px">
+        <button class="btn btn-secondary" onclick="generateQR()" style="flex:1;justify-content:center; font-size: 13px;">🔲 Preview QR</button>
+        <button class="btn btn-secondary" onclick="goTab('print')" style="flex:1;justify-content:center; font-size: 13px;">🖨 Print Mode</button>
+      </div>
+      <div id="qr-gen-section">
+        <div id="qr-canvas-wrap"></div>
+        <button class="btn btn-export" onclick="downloadQR()" style="width:100%;justify-content:center;margin-top:4px">⬇ Download PNG</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Reset Data</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-danger" onclick="clearLog()" style="font-size:12px">Hapus Log</button>
+        <button class="btn btn-danger" onclick="resetMaster()" style="font-size:12px">Reset Master 2026</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ KONEKSI ══ -->
+  <div id="tab-koneksi" class="panel">
+    <div class="card" id="conn-card">
+      <div class="card-title">Status Koneksi Google Sheets</div>
+      <div class="connection-info disconnected" id="conn-info">
+        <div class="conn-dot off" id="conn-dot2"></div>
+        <div class="conn-text" id="conn-text">Belum terhubung</div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="input-group">
+          <label class="input-label">Web App URL (Permanen)</label>
+          <div style="display:flex;gap:7px">
+            <input type="url" id="sheets-url" readonly style="flex:1;font-size:11px;font-family:var(--mono);background:var(--surface2);color:var(--muted)">
+            <button class="btn btn-secondary" onclick="testConnection()" style="padding:10px 13px;font-size:12px;white-space:nowrap">Test</button>
+          </div>
+        </div>
+        <div class="input-group" style="margin-top:10px">
+          <label class="input-label">Secret Token</label>
+          <input type="password" id="token-input" placeholder="Token rahasia (sama dengan Code.gs)" oninput="SECRET_TOKEN=this.value;localStorage.setItem('ss_token',this.value)">
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-masuk" onclick="testConnection()" style="font-size:13px">Sambungkan Sekarang</button>
+          <button class="btn btn-secondary" onclick="changePin()" style="font-size:12px">🔑 Ganti PIN</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:7px;flex-wrap:wrap">
+        <button class="btn btn-green" onclick="syncAll()">☁ Full Sync ke Sheets</button>
+        <button class="btn btn-secondary" onclick="pullFromSheets()" style="font-size:12px">⬇ Pull dari Sheets</button>
+      </div>
+      <div id="pending-info" style="margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--muted)"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Panduan Penggunaan</div>
+      <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Cara Scan QR</div><div class="step-desc">Buka tab <code>📷 Scan</code> → klik <code>Aktifkan Kamera</code> → arahkan kamera ke kode QR barang. Data barang akan muncul otomatis.</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Cara Input Manual</div><div class="step-desc">Buka tab <code>📷 Scan</code> → ketik kode atau nama barang di kotak <code>Kode Barang</code>. Pilih dari daftar yang muncul.</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Kirim ke Sheets</div><div class="step-desc">Pilih <code>▲ MASUK</code> atau <code>▼ KELUAR</code> → isi jumlah → klik tombol kirim. Data akan langsung tersinkron ke Google Sheets.</div></div></div>
+      <div class="card" style="margin-top:10px">
+        <div class="card-hd">Cara Menghubungkan</div>
+        <div class="step-card" style="margin:0;background:transparent;border:none">
+          <div class="step-row"><div class="step-n">1</div><div class="step-body"><h4>Input URL & Token</h4><p>Masukkan <b>Web App URL</b> (Macros/s/...) dan <b>Secret Token</b> di kolom atas untuk keamanan akses data.</p></div></div>
+          <div class="step-row"><div class="step-n">2</div><div class="step-body"><h4>Test Koneksi</h4><p>Klik tombol <b>🔌 Test</b>. Pastikan muncul pesan <i>"Berhasil Terhubung"</i> dan indikator berubah menjadi Hijau.</p></div></div>
+          <div class="step-row"><div class="step-n">3</div><div class="step-body"><h4>Kelola Data</h4><p>Sekarang Anda bisa mengelola Master Barang, mencetak stiker QR massal, dan melihat rekap stok realtime.</p></div></div>
+          <div class="step-row" style="border:none"><div class="step-n">4</div><div class="step-body"><h4>Sync Transaksi</h4><p>Semua transaksi dari aplikasi Gudang akan otomatis masuk ke log aplikasi ini selama terhubung internet.</p></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PRINT ══ -->
+    <div id="tab-print" class="panel">
+      <div class="card">
+        <div class="card-title">🖨️ PRINT STICKER QR</div>
+        <div class="form-area">
+          <div class="input-group">
+            <label class="input-label">Pilih Barang</label>
+            <select id="print-item-select" onchange="updatePrintPreview()">
+              <option value="">-- Semua barang (1 sheet) --</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <span class="input-label">Jumlah Copy</span>
+            <div style="display:flex; align-items:center; gap:8px">
+              <button class="btn btn-secondary" onclick="changePrintQty(-1)" style="flex:1;padding:8px">−</button>
+              <input type="number" id="print-qty" value="1" min="1" max="100" oninput="updatePrintPreview()" style="width:70px;text-align:center;font-weight:800;font-size:18px;background:var(--bg)">
+              <button class="btn btn-secondary" onclick="changePrintQty(1)" style="flex:1;padding:8px">+</button>
+            </div>
+          </div>
+
+          <div class="input-group" style="margin-top:-5px">
+            <label style="cursor:pointer; display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600">
+              <input type="checkbox" id="use-sn" onchange="updatePrintPreview()" style="width:18px;height:18px;accent-color:var(--accent)"> Gunakan Serial Number (S/N)?
+            </label>
+            <div id="sn-start-wrap" style="display:none; align-items:center; gap:12px; margin-top:10px; padding:12px; background:var(--surface2); border-radius:12px">
+              <span class="input-label" style="margin:0">Mulai dari No:</span>
+              <input type="number" id="sn-start" value="1" min="1" style="width:70px;text-align:center;padding:8px;border-radius:10px">
+            </div>
+          </div>
+
+          <div class="input-label" style="margin-bottom:8px">Ukuran Sticker</div>
+          <div class="size-grid" id="size-grid">
+            <div class="size-btn active" data-w="40" data-h="30" onclick="selectSize(this)">40×30 mm<br><span style="font-size:7px;opacity:0.6">Kecil</span></div>
+            <div class="size-btn" data-w="50" data-h="30" onclick="selectSize(this)">50×30 mm<br><span style="font-size:7px;opacity:0.6">Umum</span></div>
+            <div class="size-btn" data-w="62" data-h="29" onclick="selectSize(this)">62×29 mm<br><span style="font-size:7px;opacity:0.6">Brother QL</span></div>
+            <div class="size-btn" data-w="100" data-h="50" onclick="selectSize(this)">100×50 mm<br><span style="font-size:7px;opacity:0.6">Besar</span></div>
+          </div>
+
+          <div class="input-label" style="margin-bottom:8px">Preview</div>
+          <div class="print-preview-wrap" id="print-preview" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:16px;background:#f8fafc;border-radius:12px;margin-bottom:16px;min-height:100px;border: 1px dashed #cbd5e1;"></div>
+
+          <div style="font-size:10px;color:var(--muted);margin-bottom:18px;line-height:1.6; background: #fffbeb; padding: 10px; border-radius: 8px; border: 1px solid #fef3c7;">
+            💡 <strong>Tips:</strong> Pilih printer stiker, set <strong>Margins = None</strong>, dan centang <strong>Background graphics</strong>.
+          </div>
+
+          <button class="btn btn-masuk" onclick="doPrint()" style="width:100%;justify-content:center;font-size:15px; background: var(--accent); color: white;">🖨 Print Sekarang</button>
+        </div>
+      </div>
+    </div>
+  </div> <!-- End .content -->
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-scan" onclick="goTab('scan')">
+      <span class="nav-icon">📷</span><span>Scan</span>
+    </button>
+    <button class="nav-item" id="nav-log" onclick="goTab('log')">
+      <span class="nav-icon">📋</span><span>Log</span>
+    </button>
+    <button class="nav-item" id="nav-stok" onclick="goTab('stok')">
+      <span class="nav-icon">📦</span><span>Stok</span>
+    </button>
+    <button class="nav-item" id="nav-print" onclick="goTab('print')">
+      <span class="nav-icon">🖨️</span><span>Print</span>
+    </button>
+    <button class="nav-item" id="nav-setup" onclick="goTab('setup')">
+      <span class="nav-icon">⚙️</span><span>Setup</span>
+    </button>
+  </nav>
+</div> <!-- End .app -->
+<!-- Print area (invisible) -->
+<div id="print-area"></div>
+
+<!-- Splash Screen Overlay -->
+<div id="splash-screen" class="splash-overlay">
+  <div class="splash-content">
+    <div class="splash-spinner"></div>
+    <div class="splash-success-icon">✅</div>
+    <div class="splash-text" id="splash-text">MENYIMPAN DATA...</div>
+    <div class="splash-sub">StokScan System</div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+// MASTER DATA 2026
+// ═══════════════════════════════════════════════════════════
+const INITIAL_MASTER = [
+  // ── PRODUK UNTUK PENJUALAN (EPI) ──────────────────────
+  {kode:'MSJ01', nama:'Modul Scratch Jilid 1', satuan:'pcs', produk:'Modul', komponen:'Modul Scratch'},
+  {kode:'MSJ02', nama:'Modul Scratch Jilid 2', satuan:'pcs', produk:'Modul', komponen:'Modul Scratch'},
+  {kode:'MSJ03', nama:'Modul Scratch Jilid 3', satuan:'pcs', produk:'Modul', komponen:'Modul Scratch'},
+  {kode:'MSJ04', nama:'Modul Scratch Jilid 4', satuan:'pcs', produk:'Modul', komponen:'Modul Scratch'},
+  {kode:'MSJ05', nama:'Modul Scratch Jilid 5', satuan:'pcs', produk:'Modul', komponen:'Modul Scratch'},
+  {kode:'MSJ06', nama:'Modul Scratch Jilid 6', satuan:'pcs', produk:'Modul', komponen:'Modul Scratch'},
+  {kode:'MSJ07', nama:'Modul Project Scratch', satuan:'pcs', produk:'Modul', komponen:'Modul Scratch'},
+  {kode:'MSJ08', nama:'Modul Project Pictoblox AI', satuan:'pcs', produk:'Modul', komponen:'Modul AI'},
+  {kode:'MSJ09', nama:'Modul Python', satuan:'pcs', produk:'Modul', komponen:'Modul Python'},
+  {kode:'MB01',  nama:'Microbit Beginner', satuan:'pcs', produk:'Microbit Learning Kit', komponen:'Beginner Micro'},
+  {kode:'MLK01', nama:'Microbit Learning Kit', satuan:'pcs', produk:'Microbit Learning Kit', komponen:'Full Kit'},
+  {kode:'RE01',  nama:'Robotic Explorer', satuan:'unit', produk:'Robotic Explorer', komponen:'Jimu'},
+  {kode:'RJ01',  nama:'Robotik Jimu', satuan:'unit', produk:'Robotic Explorer', komponen:'Jimu'},
+  {kode:'ALK01', nama:'Arduino Learning Kit', satuan:'pcs', produk:'Arduino Learning Kit', komponen:'Arduino Kit'},
+
+  // ── PRODUK UNTUK SEWA (SW) ───────────────────────────
+  {kode:'SMB01',  nama:'Sewa Microbit Beginner', satuan:'unit', produk:'Sewa', komponen:'Microbit'},
+  {kode:'SMLK01', nama:'Sewa Microbit Learning Kit', satuan:'unit', produk:'Sewa', komponen:'Microbit'},
+  {kode:'SRE01',  nama:'Sewa Robotik Explorer', satuan:'unit', produk:'Sewa', komponen:'Jimu'},
+  {kode:'SRJ01',  nama:'Sewa Robotik Jimu', satuan:'unit', produk:'Sewa', komponen:'Jimu'},
+  {kode:'SALK01', nama:'Sewa Arduino Learning Kit', satuan:'unit', produk:'Sewa', komponen:'Arduino'},
+
+  // ── PRODUK UNTUK MARKETING (M) ───────────────────────
+  {kode:'MMB01',  nama:'Microbit Beginner (Marketing)', satuan:'pcs', produk:'Marketing', komponen:'Microbit'},
+  {kode:'MMLK01', nama:'Microbit Learning Kit (Marketing)', satuan:'pcs', produk:'Marketing', komponen:'Microbit'},
+  {kode:'MRE01',  nama:'Robotic Explorer (Marketing)', satuan:'unit', produk:'Marketing', komponen:'Jimu'},
+  {kode:'MRJ01',  nama:'Robotik Jimu (Marketing)', satuan:'unit', produk:'Marketing', komponen:'Jimu'},
+  {kode:'MALK01', nama:'Arduino Learning Kit (Marketing)', satuan:'pcs', produk:'Marketing', komponen:'Arduino'},
+
+  // ── ITEM UMUM / SHARED ───────────────────────────────
+  {kode:'ARD-001',nama:'Arduino Uno R3 Atmega328P', satuan:'pcs', produk:'Umum', komponen:'Shared'},
+  {kode:'SRV-001',nama:'Motor Servo SG90', satuan:'pcs', produk:'Umum', komponen:'Shared'},
+  {kode:'SNS-001',nama:'Sensor Ultrasonic HC-SR04', satuan:'pcs', produk:'Umum', komponen:'Shared'},
+  {kode:'LED-R01',nama:'LED 5mm Merah', satuan:'pcs', produk:'Umum', komponen:'Shared'},
+  {kode:'KBL-MM1',nama:'Kabel Jumper Male-Male', satuan:'pcs', produk:'Umum', komponen:'Shared'},
+];
+
+// Catatan deduplikasi 2026:
+// - Robotic Explorer TETAP ADA — item unik: JMU-001 (Jimu Trackbot)
+// - Item shared Robotic Explorer (LED, SRV, KBL, dll) pakai kode sama dengan kit lain
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let log      = JSON.parse(localStorage.getItem('ss_log')    || '[]');
+let master   = JSON.parse(localStorage.getItem('ss_master') || 'null');
+let pending  = JSON.parse(localStorage.getItem('ss_pending')|| '[]');
+let sheetsUrl= 'https://script.google.com/macros/s/AKfycbxgwqE5ZsrVewzNk2KmxtAhckhna9ltfwVfYXTNTmHTgLGA4OzgyBySN6qST30peYKxlw/exec'; 
+let isConnected=false, isSyncing=false;
+let currentTipe='masuk', cameraActive=false;
+let lastScanned='', lastScanTime=0;
+let activeStokFilter='Semua', activeMasterFilter='Semua';
+let demoIdx=0;
+
+// ═══════════════════════════════════════════════════════════
+// AUTH — PIN LOGIN + SECRET TOKEN
+// ═══════════════════════════════════════════════════════════
+const APP_PIN = localStorage.getItem('ss_pin') || '000000';
+let SECRET_TOKEN = localStorage.getItem('ss_token') || '';
+let pinBuffer = '';
+const PIN_LENGTH = 6;
+let loginAttempts = 0;
+let lockUntil = 0;
+
+function pinPress(n) {
+  const now = Date.now();
+  if (now < lockUntil) {
+    const sisa = Math.ceil((lockUntil - now) / 1000);
+    document.getElementById('login-err').textContent = 'Terkunci ' + sisa + ' detik lagi...';
+    return;
+  }
+  if (pinBuffer.length >= PIN_LENGTH) return;
+  pinBuffer += n;
+  updatePinDots();
+  if (pinBuffer.length === PIN_LENGTH) setTimeout(checkPin, 120);
+}
+function pinDel() { pinBuffer = pinBuffer.slice(0, -1); updatePinDots(); document.getElementById('login-err').textContent = ''; }
+function updatePinDots() {
+  for (let i = 0; i < PIN_LENGTH; i++) {
+    const dot = document.getElementById('d' + i);
+    dot.className = 'pin-dot' + (i < pinBuffer.length ? ' filled' : '');
+  }
+}
+function checkPin() {
+  const tokenField = document.getElementById('login-token').value.trim();
+  if (tokenField) { SECRET_TOKEN = tokenField; localStorage.setItem('ss_token', tokenField); }
+
+  if (pinBuffer === APP_PIN) {
+    loginAttempts = 0;
+    document.getElementById('login-screen').style.display = 'none';
+    if (sheetsUrl) testConnection();
+    updatePendingInfo();
+  } else {
+    loginAttempts++;
+    for (let i = 0; i < PIN_LENGTH; i++) document.getElementById('d' + i).className = 'pin-dot error';
+    if (loginAttempts >= 5) {
+      lockUntil = Date.now() + 30000;
+      document.getElementById('login-err').textContent = '5x salah — terkunci 30 detik';
+    } else {
+      document.getElementById('login-err').textContent = 'PIN salah (' + loginAttempts + '/5)';
+    }
+    setTimeout(() => { pinBuffer = ''; updatePinDots(); }, 500);
+  }
+}
+function toggleTokenFields() {
+  const el = document.getElementById('login-token-fields');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+function changePin() {
+  const oldPin = prompt('Masukkan PIN lama:');
+  if (oldPin !== APP_PIN) { showToast('⚠ PIN lama salah!', true); return; }
+  const newPin = prompt('Masukkan PIN baru (6 digit angka):');
+  if (!newPin || newPin.length !== PIN_LENGTH || !/^\d+$/.test(newPin)) { showToast('⚠ PIN harus 6 digit angka!', true); return; }
+  const confirm2 = prompt('Konfirmasi PIN baru:');
+  if (newPin !== confirm2) { showToast('⚠ PIN tidak cocok!', true); return; }
+  localStorage.setItem('ss_pin', newPin);
+  showToast('✓ PIN berhasil diubah!');
+}
+document.addEventListener('keydown', e => {
+  if (document.getElementById('login-screen').style.display === 'none') return;
+  if (e.key >= '0' && e.key <= '9') pinPress(e.key);
+  if (e.key === 'Backspace') pinDel();
+});
+
+// First-run atau reset → pakai master 2026
+if (!master) { master=INITIAL_MASTER.map(x=>({...x})); saveMaster(); }
+
+function saveLog()    {localStorage.setItem('ss_log',    JSON.stringify(log));}
+function saveMaster() {localStorage.setItem('ss_master', JSON.stringify(master));}
+function savePending(){localStorage.setItem('ss_pending',JSON.stringify(pending));}
+
+// ═══════════════════════════════════════════════════════════
+// GOOGLE SHEETS API
+// ═══════════════════════════════════════════════════════════
+async function sheetsGET(params){
+  if(!sheetsUrl) throw new Error('URL belum diset');
+  params.token=SECRET_TOKEN;
+  const res=await fetch(sheetsUrl+'?'+new URLSearchParams(params).toString());
+  return res.json();
+}
+async function sheetsPOST(body){
+  if(!sheetsUrl) throw new Error('URL belum diset');
+  body.token=SECRET_TOKEN;
+  const res=await fetch(sheetsUrl,{method:'POST',body:JSON.stringify(body)});
+  return res.json();
+}
+async function testConnection(){
+  if(!sheetsUrl){showToast('⚠ URL belum diset!',true);return;}
+  setSyncing(true);
+  try{
+    const r=await sheetsGET({action:'ping'});
+    if(r.ok){showToast('✓ '+r.message);setConnected(true);}
+    else{showToast('⚠ '+(r.message||'Gagal'),true);setConnected(false);}
+  }catch{showToast('⚠ Tidak bisa terhubung. Cek koneksi.',true);setConnected(false);}
+  setSyncing(false);
+}
+async function saveSheetUrl(){
+  const url=document.getElementById('sheets-url').value.trim();
+  if(!url){showToast('⚠ Isi URL terlebih dahulu!',true);return;}
+  sheetsUrl=url; localStorage.setItem('ss_url',url);
+  await testConnection();
+  if(isConnected) syncPending();
+}
+function disconnectSheets(){
+  sheetsUrl=''; localStorage.removeItem('ss_url');
+  document.getElementById('sheets-url').value='';
+  setConnected(false); showToast('Koneksi diputus');
+}
+async function pushTransaksi(entry){
+  try{const r=await sheetsPOST({action:'addTransaksi',data:entry});return r.ok;}catch{return false;}
+}
+async function syncPending(){
+  if(!sheetsUrl||!pending.length||isSyncing) return;
+  setSyncing(true);
+  const failed=[];
+  for(const e of pending){const ok=await pushTransaksi(e);if(!ok)failed.push(e);}
+  pending=failed; savePending(); updatePendingInfo();
+  setSyncing(false);
+  if(!failed.length) setConnected(true);
+}
+async function syncAll(){
+  if(!sheetsUrl){showToast('⚠ Belum terhubung ke Sheets',true);return;}
+  setSyncing(true); showToast('⏳ Syncing semua data...');
+  try{
+    const r=await sheetsPOST({action:'syncAll',log,stok:getAllStok(),master});
+    if(r.ok){pending=[];savePending();updatePendingInfo();setConnected(true);showToast('✓ Full sync berhasil!');}
+    else{showToast('⚠ Sync gagal: '+(r.message||''),true);}
+  }catch{showToast('⚠ Koneksi gagal',true);setConnected(false);}
+  setSyncing(false);
+}
+async function pullFromSheets(){
+  if(!sheetsUrl){showToast('⚠ Belum terhubung ke Sheets',true);return;}
+  setSyncing(true); showToast('⬇ Mengambil data dari Sheets...');
+  try{
+    const logRes=await sheetsGET({action:'getLog'});
+    if(logRes.ok&&logRes.data.length>1){
+      log=logRes.data.slice(1).map(r=>({id:r[0],waktu:r[1],kode:r[2],nama:r[3],produk:r[4],komponen:r[5],tipe:r[6]==='Masuk'?'masuk':'keluar',qty:Number(r[7]),satuan:r[8],catatan:r[9]||'',synced:true})).reverse();
+      saveLog();
+    }
+    pending=[]; savePending(); setConnected(true);
+    showToast('✓ Data berhasil diambil dari Sheets!');
+    renderLog(); renderStok();
+  }catch{showToast('⚠ Pull gagal',true);}
+  setSyncing(false);
+}
+setInterval(()=>{if(sheetsUrl&&pending.length) syncPending();},30000);
+
+function setConnected(v){
+  isConnected=v;
+  const dot=document.getElementById('sync-dot'),lbl=document.getElementById('sync-label');
+  const dot2=document.getElementById('conn-dot2'),info=document.getElementById('conn-info'),txt=document.getElementById('conn-text');
+  const tip=document.getElementById('offline-tip');
+  if(v){dot.className='sync-dot online';lbl.textContent='Online';lbl.style.color='var(--accent)';dot2.className='conn-dot';info.className='connection-info';txt.textContent='Terhubung ke Google Sheets ✓';tip.style.display='none';}
+  else{dot.className='sync-dot error';lbl.textContent='Offline';lbl.style.color='var(--accent2)';dot2.className='conn-dot off';info.className='connection-info disconnected';txt.textContent='Tidak terhubung';if(sheetsUrl)tip.style.display='flex';}
+}
+function setSyncing(v){isSyncing=v;if(v)document.getElementById('sync-dot').className='sync-dot syncing';else setConnected(isConnected);}
+function updatePendingInfo(){
+  const el=document.getElementById('pending-info');
+  if(!el) return;
+  if(pending.length){el.textContent=pending.length+' transaksi menunggu sync...';el.style.color='var(--accent2)';}
+  else{el.textContent=isConnected?'Semua data tersync ✓':'';el.style.color='var(--accent)';}
+}
+
+// ═══════════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════════
+function goTab(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  const navBtn = document.getElementById('nav-'+name);
+  if(navBtn) navBtn.classList.add('active');
+  
+  // Show/Hide Scan Mode Banner
+  const banner = document.getElementById('scan-mode-banner');
+  if(banner) banner.style.display = (name === 'scan') ? 'flex' : 'none';
+
+  if(name==='log') renderLog();
+  if(name==='stok') renderStok();
+  if(name==='setup'){renderMaster();updateQrSelect();}
+  if(name==='print'){updatePrintSelect();updatePrintPreview();}
+  if(name==='koneksi'){
+    document.getElementById('sheets-url').value=sheetsUrl;
+    const ti=document.getElementById('token-input');
+    if(ti) ti.value=SECRET_TOKEN;
+    updatePendingInfo();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// TIPE / FORM
+// ═══════════════════════════════════════════════════════════
+function setTipe(t){
+  currentTipe=t;
+  document.getElementById('seg-masuk').className='mode-btn masuk'+(t==='masuk'?' active':'');
+  document.getElementById('seg-keluar').className='mode-btn keluar'+(t==='keluar'?' active':'');
+  document.getElementById('btn-masuk-main').style.display=t==='masuk'?'flex':'none';
+  document.getElementById('btn-keluar-main').style.display=t==='keluar'?'flex':'none';
+}
+function autoFill(){
+  const v=document.getElementById('input-kode').value.trim().toUpperCase();
+  const found=master.find(m=>m.kode===v);
+  if(found){document.getElementById('input-nama').value=found.nama;document.getElementById('input-satuan').value=found.satuan;showScanResult(found.kode,found.nama+(found.produk?' · '+found.produk:''));}
+}
+function buildKodeList(){
+  document.getElementById('kode-list').innerHTML=master.map(m=>`<option value="${m.kode}">${m.kode} — ${m.nama}</option>`).join('');
+  const tip=document.getElementById('master-total-tip');if(tip)tip.textContent=master.length;
+}
+function loadDemo(){
+  const b=master[demoIdx%master.length];demoIdx++;
+  document.getElementById('input-kode').value=b.kode;
+  document.getElementById('input-nama').value=b.nama;
+  document.getElementById('input-satuan').value=b.satuan;
+  showScanResult(b.kode,b.nama+(b.produk?' · '+b.produk:''));
+}
+function changeQty(d){const inp=document.getElementById('qty-input');const v=parseInt(inp.value)+d;if(v>=1)inp.value=v;}
+
+// ═══════════════════════════════════════════════════════════
+// CAMERA
+// ═══════════════════════════════════════════════════════════
+async function startCamera(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:640},height:{ideal:640}}});
+    const v=document.getElementById('scanner-video');v.srcObject=stream;v.play();
+    document.getElementById('cam-overlay').style.display='none';cameraActive=true;setStatus('Kamera aktif — arahkan ke QR Code','');startScanLoop();
+  }catch{setStatus('Izin kamera ditolak. Gunakan input manual.','err');}
+}
+function startScanLoop(){
+  const v=document.getElementById('scanner-video'),c=document.getElementById('scanner-canvas'),ctx=c.getContext('2d');
+  (function tick(){
+    if(!cameraActive) return;
+    if(v.readyState===v.HAVE_ENOUGH_DATA){
+      c.width=v.videoWidth;c.height=v.videoHeight;ctx.drawImage(v,0,0);
+      const img=ctx.getImageData(0,0,c.width,c.height);
+      const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
+      if(code){const now=Date.now();if(code.data!==lastScanned||now-lastScanTime>3000){lastScanned=code.data;lastScanTime=now;onQRDetected(code.data);}}
+    }
+    requestAnimationFrame(tick);
+  })();
+}
+function onQRDetected(data){
+  let kode=data,nama='';
+  if(data.includes('|')){[kode,nama]=data.split('|');}
+  else{const f=master.find(m=>m.kode===data);if(f){nama=f.nama;document.getElementById('input-satuan').value=f.satuan;}}
+  document.getElementById('input-kode').value=kode;
+  document.getElementById('input-nama').value=nama;
+  showScanResult(kode,nama||'Kode tidak ditemukan');
+  setStatus('✓ QR terdeteksi: '+kode,'ok');
+  if(navigator.vibrate)navigator.vibrate(50);
+}
+function showScanResult(kode,nama){
+  document.getElementById('scan-result-box').style.display='block';
+  document.getElementById('res-code').textContent=kode;
+  document.getElementById('res-name').textContent=nama;
+}
+function setStatus(msg,cls){const el=document.getElementById('scan-status');el.textContent=msg;el.className='scanner-status '+(cls||'');}
+
+// ═══════════════════════════════════════════════════════════
+// SUBMIT
+// ═══════════════════════════════════════════════════════════
+function showSplash(){
+  const s = document.getElementById('splash-screen');
+  s.classList.remove('success');
+  document.getElementById('splash-text').textContent = 'MENYIMPAN DATA...';
+  s.style.display = 'flex';
+  s.style.opacity = '1';
+}
+function showSuccessSplash(){
+  const s = document.getElementById('splash-screen');
+  s.classList.add('success');
+  document.getElementById('splash-text').textContent = 'BERHASIL!';
+  if(navigator.vibrate) navigator.vibrate([40, 30, 40]);
+}
+function hideSplash(){
+  const s = document.getElementById('splash-screen');
+  setTimeout(() => {
+    s.style.opacity = '0';
+    setTimeout(() => { s.style.display = 'none'; }, 500);
+  }, 1000);
+}
+
+async function submitTransaksi(tipe){
+  const kode=document.getElementById('input-kode').value.trim().toUpperCase();
+  const nama=document.getElementById('input-nama').value.trim();
+  const qty=parseInt(document.getElementById('qty-input').value)||0;
+  const satuan=document.getElementById('input-satuan').value;
+  const catatan=document.getElementById('input-catatan').value.trim();
+  if(!kode){showToast('⚠ Isi kode barang!',true);return;}
+  if(!nama){showToast('⚠ Isi nama barang!',true);return;}
+  if(qty<1){showToast('⚠ Jumlah harus > 0',true);return;}
+  if(tipe==='keluar'&&getStok(kode)<qty){showToast('⚠ Stok tidak cukup! Sisa: '+getStok(kode),true);return;}
+  
+  showSplash();
+  const m=master.find(x=>x.kode===kode);
+  const entry={id:Date.now(),waktu:new Date().toLocaleString('id-ID'),kode,nama,tipe,qty,satuan,catatan,produk:m?.produk||'',komponen:m?.komponen||'',synced:false};
+  log.unshift(entry);
+  if(!m){master.push({kode,nama,satuan,produk:'',komponen:''});saveMaster();}
+  saveLog();
+  
+  if(sheetsUrl && isConnected){
+    setSyncing(true);
+    const ok = await pushTransaksi(entry);
+    if(ok){
+      log[0].synced = true; saveLog();
+      showSuccessSplash();
+    } else {
+      pending.push(entry); savePending(); setConnected(false);
+      hideSplash(); // Hide early if error
+      showToast('⚠️ Gagal sync, disimpan lokal', true);
+    }
+    setSyncing(false);
+  } else {
+    pending.push(entry); savePending();
+    showSuccessSplash();
+    updatePendingInfo();
+  }
+  
+  // Cleanup & Reset
+  ['input-kode', 'input-nama', 'input-catatan'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('qty-input').value = '1';
+  document.getElementById('scan-result-box').style.display = 'none';
+  setStatus('Siap scan berikutnya...', ''); lastScanned = '';
+  renderLog(); renderStok();
+  hideSplash();
+}
+
+// ═══════════════════════════════════════════════════════════
+// STOK
+// ═══════════════════════════════════════════════════════════
+function getStok(kode){return log.reduce((a,e)=>e.kode===kode?a+(e.tipe==='masuk'?e.qty:-e.qty):a,0);}
+function getAllStok(){
+  const map={};
+  master.forEach(m=>{map[m.kode]={kode:m.kode,nama:m.nama,satuan:m.satuan,produk:m.produk||'',komponen:m.komponen||'',stok:0,masuk:0,keluar:0};});
+  log.forEach(e=>{
+    if(!map[e.kode])map[e.kode]={kode:e.kode,nama:e.nama,satuan:e.satuan,produk:e.produk||'',komponen:'',stok:0,masuk:0,keluar:0};
+    if(e.tipe==='masuk'){map[e.kode].stok+=e.qty;map[e.kode].masuk+=e.qty;}
+    else{map[e.kode].stok-=e.qty;map[e.kode].keluar+=e.qty;}
+  });
+  return Object.values(map);
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER LOG
+// ═══════════════════════════════════════════════════════════
+function renderLog(){
+  const q=(document.getElementById('log-search')?.value||'').toLowerCase();
+  const f=log.filter(e=>!q||e.kode.toLowerCase().includes(q)||e.nama.toLowerCase().includes(q)||(e.produk||'').toLowerCase().includes(q));
+  document.getElementById('log-count').textContent=f.length+' transaksi'+(pending.length?' · ⏳'+pending.length+' pending':'');
+  const tb=document.getElementById('log-body');
+  if(!f.length){tb.innerHTML='<tr><td colspan="6" class="empty-state">Tidak ada data</td></tr>';return;}
+  tb.innerHTML=f.map(e=>`<tr>
+    <td><span class="mono-sm">${e.waktu.split(',')[0]}</span><br><span class="mono-sm">${(e.waktu.split(',')[1]||'').trim()}</span></td>
+    <td class="mono-sm">${e.kode}</td>
+    <td><div style="font-size:11px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.nama}</div>${e.produk?`<div class="mono-sm">${e.produk}</div>`:''}</td>
+    <td><span class="badge-${e.tipe}">${e.tipe==='masuk'?'▲ IN':'▼ OUT'}</span></td>
+    <td style="font-family:var(--mono);font-weight:700;font-size:12px;color:${e.tipe==='masuk'?'var(--accent)':'var(--accent2)'}">
+      ${e.tipe==='masuk'?'+':'-'}${e.qty}<span style="font-size:9px;color:var(--muted);font-weight:400"> ${e.satuan}</span>
+    </td>
+    <td style="font-size:13px">${e.synced?'☁':'⏳'}</td>
+  </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER STOK
+// ═══════════════════════════════════════════════════════════
+function getUniqueProduk(){const s=new Set(master.map(m=>m.produk).filter(Boolean));return['Semua',...s];}
+function tagClass(produk){
+  const p=(produk||'').toLowerCase();
+  if(p.includes('microbit')) return 'tag-microbit';
+  if(p.includes('arduino'))  return 'tag-arduino';
+  if(p.includes('robotic'))  return 'tag-robotic';
+  if(p.includes('roboblock'))return 'tag-roboblock';
+  if(p.includes('modul'))    return 'tag-modul';
+  return 'tag-modul';
+}
+function renderStok(){
+  const data=getAllStok();
+  const q=(document.getElementById('stok-search')?.value||'').toLowerCase();
+  const filtered=data.filter(d=>(activeStokFilter==='Semua'||d.produk===activeStokFilter)&&(!q||d.kode.toLowerCase().includes(q)||d.nama.toLowerCase().includes(q)));
+  document.getElementById('stat-items').textContent=data.length;
+  document.getElementById('stat-masuk').textContent=log.filter(e=>e.tipe==='masuk').reduce((a,e)=>a+e.qty,0);
+  document.getElementById('stat-keluar').textContent=log.filter(e=>e.tipe==='keluar').reduce((a,e)=>a+e.qty,0);
+  document.getElementById('stok-filter').innerHTML=getUniqueProduk().map(p=>`<div class="pill${activeStokFilter===p?' active':''}" onclick="activeStokFilter='${p.replace(/'/g,"\\'")}';renderStok()">${p}</div>`).join('');
+  const el=document.getElementById('stok-list');
+  if(!filtered.length){el.innerHTML='<div class="empty-state">Tidak ada data</div>';return;}
+  el.innerHTML=filtered.map(d=>{
+    const cls=d.stok<=0?'zero':(d.stok<5?'warning':'ok');
+    return `<div class="stok-item">
+      <div class="stok-info">
+        <div class="stok-code">${d.kode} ${d.produk?`<span class="stok-tag ${tagClass(d.produk)}">${d.produk.split(' ').slice(0,2).join(' ')}</span>`:''}</div>
+        <div class="stok-name">${d.nama}</div>
+        <div style="font-size:9px;margin-top:1px"><span style="color:var(--accent)">+${d.masuk}</span><span style="color:var(--muted)"> / </span><span style="color:var(--accent2)">-${d.keluar}</span></div>
+      </div>
+      <div style="text-align:right"><div class="stok-qty ${cls}">${d.stok}</div><div class="stok-unit">${d.satuan}</div></div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// MASTER
+// ═══════════════════════════════════════════════════════════
+const NEW_KODES_2026=['MDL-MCB','MDL-ARD'];
+function renderMaster(){
+  const q=(document.getElementById('master-search')?.value||'').toLowerCase();
+  const filtered=master.filter(m=>(activeMasterFilter==='Semua'||m.produk===activeMasterFilter)&&(!q||m.kode.toLowerCase().includes(q)||m.nama.toLowerCase().includes(q)));
+  document.getElementById('master-count').textContent=master.length;
+  document.getElementById('master-filter').innerHTML=getUniqueProduk().map(p=>`<div class="pill${activeMasterFilter===p?' active':''}" onclick="activeMasterFilter='${p.replace(/'/g,"\\'")}';renderMaster()">${p}</div>`).join('');
+  const el=document.getElementById('master-list');
+  if(!filtered.length){el.innerHTML='<div class="empty-state" style="padding:14px">Tidak ada data</div>';return;}
+  el.innerHTML=filtered.map(m=>{
+    const ri=master.indexOf(m);
+    const isNew = NEW_KODES_2026.includes(m.kode);
+    return `<div class="stok-item">
+      <div class="stok-info">
+        <div class="stok-code">${m.kode}${isNew?'<span class="new-badge">NEW 2026</span>':''}</div>
+        <div class="stok-name">${m.nama}</div>
+        <div style="font-size:9px;color:var(--muted)">${m.produk||''} ${m.komponen?'· '+m.komponen:''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px">
+        <span style="font-size:9px;color:var(--muted)">${m.satuan}</span>
+        <button onclick="deleteMaster(${ri})" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:17px;padding:3px;line-height:1">×</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function showAddForm(){document.getElementById('add-form').style.display='block';document.getElementById('setup-kode').focus();}
+function addMasterBarang(){
+  const kode=document.getElementById('setup-kode').value.trim().toUpperCase();
+  const nama=document.getElementById('setup-nama').value.trim();
+  const satuan=document.getElementById('setup-satuan').value;
+  const produk=document.getElementById('setup-produk').value.trim();
+  const komponen=document.getElementById('setup-komponen').value.trim();
+  if(!kode||!nama){showToast('⚠ Isi kode dan nama!',true);return;}
+  if(master.find(m=>m.kode===kode)){showToast('⚠ Kode sudah ada!',true);return;}
+  const item={kode,nama,satuan,produk,komponen};
+  master.push(item);saveMaster();buildKodeList();renderMaster();updateQrSelect();
+  ['setup-kode','setup-nama','setup-produk','setup-komponen'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('add-form').style.display='none';
+  showToast('✓ Barang ditambahkan!');
+  if(sheetsUrl&&isConnected) sheetsPOST({action:'addMaster',data:item}).catch(()=>{});
+}
+function deleteMaster(i){
+  if(!confirm('Hapus "'+master[i].nama+'"?')) return;
+  master.splice(i,1);saveMaster();renderMaster();updateQrSelect();buildKodeList();
+}
+function resetMaster(){
+  if(!confirm('Reset master ke data 2026 ('+INITIAL_MASTER.length+' item)?\nLog transaksi tetap ada.')) return;
+  master=INITIAL_MASTER.map(x=>({...x}));saveMaster();buildKodeList();renderMaster();updateQrSelect();
+  showToast('✓ Master direset ke 2026!');
+}
+
+// ═══════════════════════════════════════════════════════════
+// QR
+// ═══════════════════════════════════════════════════════════
+function updateQrSelect(){
+  document.getElementById('qr-select').innerHTML='<option value="">-- Pilih barang --</option>'+master.map((m,i)=>`<option value="${i}">${m.kode} — ${m.nama}</option>`).join('');
+}
+function generateQR(){
+  const idx=document.getElementById('qr-select').value;
+  if(idx===''){showToast('⚠ Pilih barang dulu!',true);return;}
+  const b=master[parseInt(idx)];
+  const wrap=document.getElementById('qr-canvas-wrap');wrap.innerHTML='';
+  new QRCode(wrap,{text:b.kode+'|'+b.nama,width:200,height:200,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H});
+  const lbl=document.createElement('div');
+  lbl.style.cssText='text-align:center;font-family:var(--mono);font-size:12px;color:var(--text)';
+  lbl.innerHTML=`<strong>${b.kode}</strong><br><span style="color:var(--muted);font-size:10px">${b.nama}</span>`;
+  wrap.appendChild(lbl);
+  document.getElementById('qr-gen-section').style.display='block';
+}
+function downloadQR(){
+  const canvas=document.querySelector('#qr-canvas-wrap canvas');if(!canvas) return;
+  const a=document.createElement('a');
+  a.download='QR-'+document.getElementById('qr-select').selectedOptions[0]?.text+'.png';
+  a.href=canvas.toDataURL();a.click();
+}
+
+// ═══════════════════════════════════════════════════════════
+// EXCEL
+// ═══════════════════════════════════════════════════════════
+function exportExcel(){
+  const wb=XLSX.utils.book_new();
+  const logRows=[['Waktu','Kode','Nama Barang','Produk Kit','Komponen','Tipe','Jumlah','Satuan','Catatan','Tersync']];
+  log.forEach(e=>logRows.push([e.waktu,e.kode,e.nama,e.produk||'',e.komponen||'',e.tipe==='masuk'?'Masuk':'Keluar',e.qty,e.satuan,e.catatan||'',e.synced?'Ya':'Belum']));
+  const ws1=XLSX.utils.aoa_to_sheet(logRows);ws1['!cols']=[{wch:20},{wch:12},{wch:34},{wch:24},{wch:20},{wch:10},{wch:8},{wch:8},{wch:20},{wch:8}];
+  XLSX.utils.book_append_sheet(wb,ws1,'Log Transaksi');
+  const stokRows=[['Kode','Nama Barang','Produk Kit','Komponen','Satuan','Total Masuk','Total Keluar','Stok Akhir']];
+  getAllStok().forEach(d=>stokRows.push([d.kode,d.nama,d.produk,d.komponen,d.satuan,d.masuk,d.keluar,d.stok]));
+  const ws2=XLSX.utils.aoa_to_sheet(stokRows);ws2['!cols']=[{wch:12},{wch:34},{wch:24},{wch:20},{wch:8},{wch:12},{wch:12},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Rekap Stok');
+  const masterRows=[['Kode','Nama Barang','Produk Kit','Komponen','Satuan']];
+  master.forEach(m=>masterRows.push([m.kode,m.nama,m.produk||'',m.komponen||'',m.satuan]));
+  const ws3=XLSX.utils.aoa_to_sheet(masterRows);ws3['!cols']=[{wch:12},{wch:38},{wch:24},{wch:20},{wch:8}];
+  XLSX.utils.book_append_sheet(wb,ws3,'Master Barang');
+  XLSX.writeFile(wb,'StokScan_2026_'+new Date().toLocaleDateString('id-ID').replace(/\//g,'-')+'.xlsx');
+  showToast('✓ Excel didownload! (3 sheet)');
+}
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+function clearLog(){if(!confirm('Hapus semua log?\n(Master tetap ada)')) return; log=[];saveLog();renderLog();}
+let toastTimer;
+function showToast(msg,isErr){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=(isErr?'err ':'')+'show';
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.className='',2800);
+}
+
+// ═══════════════════════════════════════════════════════════
+// PRINT STICKER SYSTEM
+// ═══════════════════════════════════════════════════════════
+let printSizeW = 40, printSizeH = 30;
+
+function selectSize(el) {
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  printSizeW = parseInt(el.dataset.w);
+  printSizeH = parseInt(el.dataset.h);
+  updatePrintPreview();
+}
+function changePrintQty(d) {
+  const inp = document.getElementById('print-qty');
+  const v = (parseInt(inp.value)||1) + d;
+  if (v >= 1 && v <= 100) { inp.value = v; updatePrintPreview(); }
+}
+function updatePrintSelect() {
+  const sel = document.getElementById('print-item-select');
+  sel.innerHTML = '<option value="">-- Semua barang (1 sheet) --</option>' +
+    master.map((m,i) => `<option value="${i}">${m.kode} — ${m.nama}</option>`).join('');
+}
+
+function buildStickerCanvas(item, pxW, pxH) {
+  const canvas = document.createElement('canvas');
+  const DPR = 3; // High resolution for printing
+  canvas.width  = pxW * DPR;
+  canvas.height = pxH * DPR;
+  canvas.style.width  = pxW + 'px';
+  canvas.style.height = pxH + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(DPR, DPR);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, pxW, pxH);
+
+  const tmpDiv = document.createElement('div');
+  tmpDiv.style.display = 'none';
+  document.body.appendChild(tmpDiv);
+  new QRCode(tmpDiv, {
+    text: item.kode + '|' + item.nama,
+    width: 200, height: 200,
+    colorDark: '#000', colorLight: '#fff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+  const qrImg = tmpDiv.querySelector('img') || tmpDiv.querySelector('canvas');
+
+  const pad = 4;
+  const qrSize = pxH - pad * 2;
+  const textX = qrSize + pad * 2;
+  const textW = pxW - textX - pad;
+
+  const drawContent = () => {
+    ctx.fillStyle = '#000';
+    // Kode - Bold & Mono
+    const fs1 = Math.min(11, textW / (item.kode.length * 0.6));
+    ctx.font = `bold ${fs1}px monospace`;
+    ctx.fillText(item.kode, textX, pad + fs1 - 1, textW);
+    
+    // Nama - Sans
+    const fs2 = Math.min(8, textW / 5);
+    ctx.font = `600 ${fs2}px sans-serif`;
+    const words = item.nama.split(' ');
+    let line = '', y = pad + fs1 + fs2 + 1;
+    for (const w of words) {
+      const test = line ? line + ' ' + w : w;
+      if (ctx.measureText(test).width > textW && line) {
+        ctx.fillText(line, textX, y, textW);
+        line = w; y += fs2 + 1.5;
+        if (y > pxH - pad) break;
+      } else { line = test; }
+    }
+    if (line && y <= pxH - pad) ctx.fillText(line, textX, y, textW);
+    
+    // Produk - Small & Muted
+    const fs3 = 6;
+    ctx.font = `${fs3}px sans-serif`;
+    ctx.fillStyle = '#64748b';
+    ctx.fillText(item.produk || 'Erlass Institute', textX, pxH - pad, textW);
+  };
+
+  if (qrImg) {
+    const src = qrImg.tagName === 'CANVAS' ? qrImg.toDataURL() : qrImg.src;
+    const img = new Image();
+    img.onload = () => {
+      ctx.drawImage(img, pad, pad, qrSize, qrSize);
+      drawContent();
+    };
+    img.src = src;
+  }
+  document.body.removeChild(tmpDiv);
+  return canvas;
+}
+
+function updatePrintPreview() {
+  const preview = document.getElementById('print-preview');
+  preview.innerHTML = '';
+  const MM_TO_PX = 3.2; // Preview scale
+  const pxW = Math.round(printSizeW * MM_TO_PX);
+  const pxH = Math.round(printSizeH * MM_TO_PX);
+  const qty = parseInt(document.getElementById('print-qty').value) || 1;
+  const selIdx = document.getElementById('print-item-select').value;
+
+  const demoItems = selIdx !== '' ? Array(qty).fill(master[parseInt(selIdx)]) : master.slice(0, 4);
+
+  demoItems.forEach(item => {
+    const wrap = document.createElement('div');
+    wrap.className = 'sticker-preview';
+    wrap.style.width = pxW + 'px';
+    wrap.style.height = pxH + 'px';
+    const c = buildStickerCanvas(item, pxW, pxH);
+    wrap.appendChild(c);
+    preview.appendChild(wrap);
+  });
+}
+
+function doPrint() {
+  const MM_TO_PX = 3.78; // 1mm ~= 3.78px for printing
+  const pxW = Math.round(printSizeW * MM_TO_PX);
+  const pxH = Math.round(printSizeH * MM_TO_PX);
+  const qty = parseInt(document.getElementById('print-qty').value) || 1;
+  const selIdx = document.getElementById('print-item-select').value;
+  const items = selIdx !== '' ? Array(qty).fill(master[parseInt(selIdx)]) : master;
+
+  const printArea = document.getElementById('print-area');
+  printArea.innerHTML = '';
+  printArea.style.cssText = `display:flex;flex-wrap:wrap;align-content:flex-start;padding:5mm;gap:3mm;background:#fff;`;
+
+  items.forEach(item => {
+    const c = buildStickerCanvas(item, pxW, pxH);
+    c.style.width  = pxW + 'px';
+    c.style.height = pxH + 'px';
+    c.style.display = 'block';
+    c.style.border = '0.1px solid #eee'; // Subtle hairline for cutting guide
+    printArea.appendChild(c);
+  });
+
+  setTimeout(() => {
+    window.print();
+  }, 1000);
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+buildKodeList();renderMaster();updateQrSelect();
+if(sheetsUrl){document.getElementById('sheets-url').value=sheetsUrl;testConnection();}
+updatePendingInfo();
+</script>
+</body>
+</html>

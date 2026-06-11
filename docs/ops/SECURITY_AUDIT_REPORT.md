@@ -107,3 +107,21 @@ Transisi dari Docker ke Native OS Server berpotensi menimbulkan tabrakan sesi (*
 - **PHP-FPM Socket**: Beralih dari port TCP ke Unix Socket (`php8.3-fpm.sock`) untuk keamanan internal.
 - **Firewall Enforcement**: Aktivasi sistem `UFW` yang membatasi akses publik hanya pada port 80 dan 443.
 
+---
+
+## 6. Pembaruan Audit (17 Maret 2026)
+
+### I. Server Hardening & OS Protection (Critical)
+**Uraian**:
+Melakukan pengetatan keamanan pada level Sistem Operasi untuk memitigasi serangan brute-force dan akses ilegal.
+
+**Tindakan**:
+- **SSH Protection**: Mematikan autentikasi *password* (`PasswordAuthentication no`) dan membatasi login root hanya melalui SSH Key (`prohibit-password`). Ini menutup celah serangan kamus (dictionary attack) pada user root.
+- **Fail2Ban Activation**: Memasang dan menginstruksikan `fail2ban` untuk memonitor log SSH. IP penyerang akan diblokir otomatis selama 1 jam setelah 5 kegagalan login.
+- **Firewall Optimization**: 
+    - Mengaktifkan `ufw limit` pada port 22 untuk membatasi jumlah percobaan koneksi per IP.
+    - Menutup port 81 yang tidak teridentifikasi kegunaannya.
+- **Auto-Update Patches**: Mengaktifkan `unattended-upgrades` agar kernel dan library keamanan Ubuntu selalu terbarui secara otomatis setiap hari.
+
+**Status**: **Done**. Konfigurasi telah diverifikasi dan aktif.
+

@@ -48,6 +48,8 @@ Lihat [docs/README.md](docs/README.md) untuk index lengkap.
 - **Wizard Ekstrakurikuler**: Wizard 10-langkah untuk membuat program.
 - **Penjadwalan Otomatis**: Pembuatan sesi cerdas yang melewati hari libur.
 - **Share Jadwal Harian**: Berbagi jadwal harian ke WhatsApp dengan satu klik.
+- **Custom Error Pages**: Halaman pesan kegagalan (404, 403, 500) yang interaktif dan *imut*.
+- **UI Enhancements**: Antarmuka _form_ global dengan placeholder tipis dan elegan.
 
 ## 📝 Log Aktivitas
 Lihat [activity-logs](admin/activity-logs) untuk jejak audit sistem.

@@ -13,6 +13,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\Controller;
+use App\Services\FileUploadService;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+use App\Models\Ekstrakurikuler;
 
 class LaporanMengajarController extends Controller
 {
@@ -541,6 +546,7 @@ class LaporanMengajarController extends Controller
     protected function validationRules(): array
     {
         return [
+            'total_pertemuan' => 'nullable|integer|min:1|max:200',
             'user_id_assisten' => 'nullable|exists:users,id',
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
             'pertemuan_ke' => 'required|integer|min:1',
@@ -562,7 +568,7 @@ class LaporanMengajarController extends Controller
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
             'materi_pengajaran' => 'required|string',
-            'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // Increased to 5MB and added GIF
+            'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // Limit increased to 5MB
             // Removed: foto_absensi_siswa, refleksi_siswa, refleksi_capaian, keaktifan, pemahaman_materi
         ];
     }

@@ -2,140 +2,272 @@
 
 @section('title', 'Login - Erlass Ekskul')
 
+@push('styles')
+<style>
+    body {
+        background-color: #fff !important;
+        background-image: none !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+    
+    .login-container {
+        height: 100vh; overflow: hidden;
+        display: flex;
+    }
+
+    .brand-panel {
+        background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+        color: white;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .brand-panel::before {
+        content: '';
+        position: absolute;
+        top: -10%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .brand-panel::after {
+        content: '';
+        position: absolute;
+        bottom: -5%;
+        left: -5%;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+    }
+
+    .form-panel {
+        overflow-y: auto;
+        flex: 1;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 4rem;
+        position: relative;
+    }
+
+    .login-card {
+        max-width: 450px;
+        width: 100%;
+        margin: 0 auto;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+    }
+
+    .stat-badge {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(8px);
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 500;
+        margin-top: 2rem;
+    }
+
+    @media (max-width: 992px) {
+        .brand-panel {
+            display: none;
+        }
+        .form-panel {
+        overflow-y: auto;
+            padding: 2rem;
+        }
+    }
+    
+    .form-control { border-color: #ced4da !important; }
+    .bg-input {
+        color: #64748b !important;
+        border: 1px solid #ced4da !important;
+        background-color: #f8fafc !important;
+    }
+
+    .wa-float {
+        position: fixed;
+        width: 60px;
+        height: 60px;
+        bottom: 40px;
+        right: 40px;
+        background-color: #25d366;
+        color: #FFF;
+        border-radius: 50px;
+        text-align: center;
+        font-size: 30px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .wa-float:hover {
+        background-color: #128c7e;
+        color: #FFF;
+        transform: scale(1.1);
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-sm-10 col-md-8 col-lg-6 col-xl-5">
-            <div class="card shadow-lg border-0">
-                <div class="card-body p-5">
-                    <!-- Logo/Brand Section -->
-                    <div class="text-center mb-5">
-                            <img src="{{ asset('images/logo-erlass.png') }}" alt="Erlass Logo" class="img-fluid" style="max-height: 80px;">
-                        <h1 class="h3 fw-bold text-dark mb-1">Selamat Datang</h1>
-                        <p class="text-muted mb-0">Masuk ke akun Erlass Ekskul Anda</p>
-                    </div>
+<div class="login-container">
+    <!-- Panel Kiri: Branding -->
+    <div class="brand-panel text-center">
+        <div class="mb-4">
+            <img src="{{ asset('images/logo-erlass.png') }}" alt="Erlass Logo" class="img-fluid" style="max-height: 120px; filter: brightness(0) invert(1);">
+        </div>
+        <h1 class="display-5 fw-bold mb-3">Erlass Ekskul</h1>
+        <p class="lead opacity-90">Sistem Manajemen Ekstrakurikuler Modern & Terintegrasi.</p>
+        <div class="stat-badge">
+            <i class="bi bi-people-fill me-2"></i>
+            Memberdayakan +70 Instruktur Berbakat
+        </div>
+    </div>
 
-                    <!-- Error Messages -->
-                    @if ($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        <strong>Terjadi kesalahan!</strong>
-                        <ul class="mb-0 mt-2">
-                            @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <!-- Panel Kanan: Form -->
+    <div class="form-panel">
+        <div class="login-card">
+            <div class="mb-5">
+                <h2 class="fw-bold text-dark mb-2">Selamat Datang</h2>
+                <p class="text-muted">Masuk ke akun Erlass Ekskul Anda</p>
+            </div>
+
+            <!-- Error Messages -->
+            @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <ul class="mb-0 mt-2 small">
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
+
+            <!-- Session Status -->
+            @if (session('status'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>
+                {{ session('status') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
+
+            <form method="POST" action="{{ route('login') }}" id="loginForm">
+                @csrf
+
+                <!-- Email Field -->
+                <div class="mb-4">
+                    <label for="email" class="form-label fw-semibold">Alamat Email / ID Instruktur</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-input border-end-0">
+                            <i class="bi bi-person-badge text-muted"></i>
+                        </span>
+                        <input
+                            id="email"
+                            name="email"
+                            type="text"
+                            value="{{ old('email') }}"
+                            required
+                            autofocus
+                            autocomplete="username"
+                            placeholder="email@contoh.com atau ICE..."
+                            class="form-control border-start-0 ps-0" />
                     </div>
+                    <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                </div>
+
+                <!-- Password Field -->
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-semibold">Kata Sandi</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-input border-end-0">
+                            <i class="bi bi-lock text-muted"></i>
+                        </span>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            required
+                            autocomplete="current-password"
+                            placeholder="Masukkan kata sandi"
+                            class="form-control border-x-0 ps-0" />
+                        <button type="button" class="btn bg-input border border-start-0 text-muted" id="togglePassword">
+                            <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+                    <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                </div>
+
+                <!-- Remember Me & Forgot Password -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="remember" id="remember" @checked(old('remember'))>
+                        <label class="form-check-label text-muted" for="remember">Ingat saya</label>
+                    </div>
+                    @if (Route::has('password.request'))
+                    <a class="text-decoration-none small text-primary fw-medium" href="{{ route('password.request') }}">Lupa kata sandi?</a>
                     @endif
+                </div>
 
-                    <!-- Session Status -->
-                    @if (session('status'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="bi bi-check-circle me-2"></i>
-                        {{ session('status') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                    @endif
+                <!-- Login Button -->
+                <div class="d-grid mb-4">
+                    <button type="submit" class="btn btn-primary btn-lg py-3 fw-bold shadow-sm" id="loginBtn">
+                        <span class="login-text">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>
+                            Login
+                        </span>
+                        <span class="loading-text d-none">
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Memproses...
+                        </span>
+                    </button>
+                </div>
+            </form>
 
-                    <form method="POST" action="{{ route('login') }}" id="loginForm">
-                        @csrf
-
-                        <!-- Email Field -->
-                        <div class="mb-4">
-                            <x-input-label for="email" value="Alamat Email / ID Instruktur" class="fw-semibold" />
-                            <div class="input-group">
-                                <span class="input-group-text bg-input border-end-0">
-                                    <i class="bi bi-person-badge text-muted"></i>
-                                </span>
-                                <x-text-input
-                                    id="email"
-                                    name="email"
-                                    type="text"
-                                    :value="old('email')"
-                                    required
-                                    autofocus
-                                    autocomplete="username"
-                                    placeholder="email@contoh.com atau ICE20261"
-                                    class="border-start-0 ps-0" />
-                            </div>
-                            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-                        </div>
-
-                        <!-- Password Field -->
-                        <div class="mb-4">
-                            <x-input-label for="password" value="Kata Sandi" class="fw-semibold" />
-                            <div class="input-group">
-                                <span class="input-group-text bg-input border-end-0">
-                                    <i class="bi bi-lock text-muted"></i>
-                                </span>
-                                <x-text-input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    required
-                                    autocomplete="current-password"
-                                    placeholder="Masukkan kata sandi"
-                                    class="border-start-0 border-end-0 ps-0" />
-                                <button type="button" class="btn btn-outline-secondary border-start-0" id="togglePassword">
-                                    <i class="bi bi-eye" id="togglePasswordIcon"></i>
-                                </button>
-                            </div>
-                            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-                        </div>
-
-                        <!-- Remember Me & Forgot Password -->
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            {{-- Grup Checkbox "Ingat Saya" --}}
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="remember" id="remember" @checked(old('remember'))>
-                                <label class="form-check-label text-muted" for="remember">
-                                    Ingat saya
-                                </label>
-                            </div>
-
-                            {{-- Link "Lupa Kata Sandi" --}}
-                            @if (Route::has('password.request'))
-                            <a class="text-decoration-none text-sm text-primary" href="{{ route('password.request') }}">
-                                Lupa kata sandi?
-                            </a>
-                            @endif
-                        </div>
-
-                        <!-- Login Button -->
-                        <div class="d-grid">
-                            <x-primary-button class="btn-lg py-3 fw-semibold" id="loginBtn">
-                                <span class="login-text">
-                                    <i class="bi bi-box-arrow-in-right me-2"></i>
-                                    Login
-                                </span>
-                                <span class="loading-text d-none">
-                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                    Memproses...
-                                </span>
-                            </x-primary-button>
-                        </div>
-                    </form>
-
-                    <!-- Footer -->
-                    <div class="text-center mt-4 pt-3 border-top">
-                        <small class="text-muted">
-                            © {{ date('Y') }} Coding Erlass. Hak cipta dilindungi.
-                        </small>
-                    </div>
+            <!-- Onboarding Section -->
+            <div class="text-center mt-5">
+                <div class="p-3 rounded-4 bg-light">
+                    <p class="text-muted small mb-2">Baru bergabung sebagai Instruktur?</p>
+                    <a href="{{ route('instructor.register') }}" class="btn btn-outline-primary w-100 fw-bold">
+                        Daftar Akun Baru
+                    </a>
                 </div>
             </div>
 
-            <!-- Additional Help Text -->
-            <div class="text-center mt-4">
-                <small class="text-muted">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Butuh bantuan? Hubungi administrator sistem
-                </small>
+            <!-- Footer -->
+            <div class="text-center mt-5 text-muted small">
+                © {{ date('Y') }} Erlass Institute. Hak cipta dilindungi.
             </div>
         </div>
     </div>
 </div>
+
+<!-- WhatsApp Support Floating Button -->
+<a href="https://wa.me/6281234567890?text=Halo%20Admin,%20saya%20butuh%20bantuan%20login%20Erlass%20Ekskul" 
+   class="wa-float" 
+   target="_blank" 
+   title="Hubungi Admin via WhatsApp">
+    <i class="bi bi-whatsapp"></i>
+</a>
 @endsection
 
 @push('scripts')
@@ -150,36 +282,23 @@
             togglePassword.addEventListener('click', function() {
                 const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                 passwordInput.setAttribute('type', type);
-
-                if (type === 'password') {
-                    toggleIcon.classList.remove('bi-eye-slash');
-                    toggleIcon.classList.add('bi-eye');
-                } else {
-                    toggleIcon.classList.remove('bi-eye');
-                    toggleIcon.classList.add('bi-eye-slash');
-                }
+                toggleIcon.classList.toggle('bi-eye');
+                toggleIcon.classList.toggle('bi-eye-slash');
             });
         }
 
-        // Login form submission with loading state
+        // Handle loading state
         const loginForm = document.getElementById('loginForm');
         const loginBtn = document.getElementById('loginBtn');
+        const loginText = document.querySelector('.login-text');
+        const loadingText = document.querySelector('.loading-text');
 
         if (loginForm && loginBtn) {
-            const loginText = loginBtn.querySelector('.login-text');
-            const loadingText = loginBtn.querySelector('.loading-text');
-
             loginForm.addEventListener('submit', function() {
                 loginBtn.disabled = true;
-                if (loginText) loginText.classList.add('d-none');
-                if (loadingText) loadingText.classList.remove('d-none');
+                loginText.classList.add('d-none');
+                loadingText.classList.remove('d-none');
             });
-        }
-
-        // Auto focus on email input when page loads
-        const emailInput = document.getElementById('email');
-        if (emailInput) {
-            emailInput.focus();
         }
     });
 </script>

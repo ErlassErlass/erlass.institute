@@ -68,7 +68,7 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Foto Kegiatan <span class="text-danger">*</span></label>
                                 <input type="file" name="foto_kegiatan" class="form-control @error('foto_kegiatan') is-invalid @enderror" 
-                                       accept="image/*" required>
+                                       accept="image/*" data-max-size="5242880" required>
                                 <small class="text-muted">Format: JPG, PNG. Max: 5MB</small>
                                 @error('foto_kegiatan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
@@ -76,7 +76,7 @@
                             <div class="col-12">
                                 <label class="form-label fw-bold">File Project <span class="text-danger">*</span></label>
                                 <input type="file" name="file_project" class="form-control @error('file_project') is-invalid @enderror" 
-                                       accept=".sb3,.zip,.rar" required>
+                                       accept=".sb3,.zip,.rar" data-max-size="10485760" required>
                                 <small class="text-muted">Format: .sb3 (Scratch) atau .zip. Max: 10MB</small>
                                 @error('file_project')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
@@ -149,7 +149,7 @@
                     <div class="card-footer bg-white p-3">
                          <div class="mb-3">
                             <label class="form-label fw-bold">Foto Lembar Presensi (Wajib TTD) <span class="text-danger">*</span></label>
-                            <input type="file" name="foto_absensi_siswa" class="form-control @error('foto_absensi_siswa') is-invalid @enderror" accept="image/*" required>
+                            <input type="file" name="foto_absensi_siswa" class="form-control @error('foto_absensi_siswa') is-invalid @enderror" accept="image/*" data-max-size="5242880" required>
                             <div class="form-text text-danger"><i class="bi bi-exclamation-circle me-1"></i>Wajib foto fisik absensi yang sudah ditandatangani PIC Ekskul & Instruktur.</div>
                             @error('foto_absensi_siswa')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
