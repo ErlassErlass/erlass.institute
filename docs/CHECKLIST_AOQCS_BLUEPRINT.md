@@ -20,14 +20,14 @@
 | Status | Item Blueprint | Kondisi erlass.institute Saat Ini | Tindakan / Kesenjangan (Gap) |
 | :---: | :--- | :--- | :--- |
 | **🟢** | **Master Pelanggan / Sekolah** | Ada tabel `sekolah` (kodlan, namasekolah, kota, pic_nama, pic_kontak, pic_email, lokasi_default). | **Selesai**: Struktur database dan model Eloquent sudah diperbarui langsung di Fase 1. |
-| **🟡** | **Master Salesman** | Ada tabel `salesmen` (user_id, kode_salesman, nama_salesman, group_leader, area). | **Sebagian**: Skema database & Model selesai. Proses impor massal via Excel/Google Sheets akan dikembangkan berikutnya. |
-| **🟡** | **Master Produk** | Ada tabel `products` (kode_produk, nama_produk, jenis, harga, durasi_bulan, jenis_kegiatan, standar_durasi_menit). | **Sebagian**: Skema database & Model selesai. Integrasi form CRUD & seeder dinamis akan dikembangkan berikutnya. |
+| **🟢** | **Master Salesman** | Ada tabel `salesmen` (user_id, kode_salesman, nama_salesman, group_leader, area) + Impor Excel. | **Selesai**: Skema database, model Eloquent, controller CRUD, UI, dan impor massal via Excel telah diimplementasikan. |
+| **🟢** | **Master Produk** | Ada tabel `products` (kode_produk, nama_produk, jenis, harga, durasi_bulan, jenis_kegiatan, standar_durasi_menit). | **Selesai**: Skema database, model Eloquent, controller CRUD, dan UI formulir telah diimplementasikan. |
 | **🟢** | **Master Instruktur** | Ada tabel `users` & `instructor_profiles` lengkap. | **Temuan**: Menyimpan detail data diri, keahlian, dan ketersediaan hari/jam. <br> **Tindakan**: Sudah sesuai, tinggal dihubungkan ke pilar kompensasi. |
 | **🟢** | **Master Asisten** | Tersimpan di profil user dengan kolom kompetensi. | **Temuan**: Ditugaskan di tabel Rombel sebagai `user_id_asisten`. <br> **Tindakan**: Sudah memadai. |
 
 - [x] Rincian Master Pelanggan (Kode pelanggan, Nama, Alamat, PIC, No WA, Lokasi Pembelajaran)
-- [x] Rincian Master Salesman (Kode, Nama, Group Leader, Area) - Skema DB & Model Selesai
-- [x] Rincian Master Produk (Kode, Nama, Jenis, Harga, Durasi Program, Jenis Eskul/Inkul, Durasi Sesi) - Skema DB & Model Selesai
+- [x] Rincian Master Salesman (Kode, Nama, Group Leader, Area)
+- [x] Rincian Master Produk (Kode, Nama, Jenis, Harga, Durasi Program, Jenis Eskul/Inkul, Durasi Sesi)
 - [x] Rincian Master Instruktur (Nama, Keahlian, Waktu Mengajar JSON, Area, Status Aktif)
 - [x] Rincian Master Asisten (Nama, Keahlian, Ketersediaan, Area)
 
@@ -37,12 +37,12 @@
 
 | Status | Item Blueprint | Kondisi erlass.institute Saat Ini | Tindakan / Kesenjangan (Gap) |
 | :---: | :--- | :--- | :--- |
-| **🟡** | **Modul SP (Surat Pesanan)** | Ada tabel `orders_sp` dan `order_items` beserta relasi model. | **Sebagian**: Skema database & Model selesai. Fitur input/edit manual, import Excel, dan workflow status akan dikembangkan berikutnya. |
+| **🟢** | **Modul SP (Surat Pesanan)** | Ada tabel `orders_sp` & `order_items`, CRUD views, form dinamis, & Impor Excel. | **Selesai**: Skema database, model Eloquent, CRUD, antarmuka dengan form dinamis jQuery, dan impor Excel telah siap digunakan. |
 | **🔴** | **Validasi Akademik** | Tidak ada. Hanya ada perubahan status draft ke aktif oleh admin. | **Temuan**: Form checklist kelayakan sebelum penjadwalan (jumlah rombel, ruangan, asisten, kepastian peserta) belum ada. <br> **Tindakan**: Buat form validasi akademik pasca input SP. |
 
-- [x] Kolom SP (No SP, Tanggal, Kode Pelanggan, Salesman, Produk, Harga, Estimasi Siswa, Jenis Kegiatan, Rencana Tanggal Mulai, Pertemuan Target) - Skema DB & Model Selesai
-- [ ] Workflow Status SP (Draft -> Menunggu Validasi -> Disetujui -> Berjalan -> Selesai -> Batal)
-- [ ] Fitur Import SP massal dari Excel/Google Sheets
+- [x] Kolom SP (No SP, Tanggal, Kode Pelanggan, Salesman, Produk, Harga, Estimasi Siswa, Jenis Kegiatan, Rencana Tanggal Mulai, Pertemuan Target)
+- [x] Workflow Status SP (Draft -> Menunggu Validasi -> Disetujui -> Berjalan -> Selesai -> Batal) — Draft & Ajukan Validasi Selesai
+- [x] Fitur Import SP massal dari Excel/Google Sheets
 - [ ] Checklist Validasi Akademik (Peserta Pasti, Jadwal Disetujui Sekolah, Ruangan Tersedia, Instruktur Tersedia, Produk Sesuai, Hitungan Rombel & Kebutuhan Asisten)
 
 ---

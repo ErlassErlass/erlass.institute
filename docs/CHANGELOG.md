@@ -5,18 +5,27 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 ## [1.3.0] - 2026-06-11
 
 ### Ditambahkan (Added)
-- **AOQCS Phase 1 Foundation (Database & Models)**:
-    - **Skema Database Baru**:
+- **AOQCS Phase 1 - Standardisasi Master Data & Modul SP**:
+    - **Skema Database & Eloquent Models**:
         - Membuat tabel `products` untuk standardisasi program produk, harga, dan durasi sesi.
         - Membuat tabel `salesmen` untuk mendata identitas sales, group leader, dan area kerja.
         - Membuat tabel `orders_sp` dan `order_items` untuk alur Surat Pesanan (SP) terintegrasi.
         - Menambahkan kolom `pic_nama`, `pic_kontak`, `pic_email`, dan `lokasi_default` langsung ke tabel `sekolah`.
-    - **Eloquent Models**:
         - Membuat model `Product`, `Salesman`, `OrderSp`, dan `OrderItem` lengkap dengan relasi Eloquent-nya.
         - Menyelaraskan model `Sekolah` dengan kolom baru dan relasi `ordersSp()`.
-    - **Dokumentasi Database**:
+    - **Logika Impor Excel**:
+        - Membuat import class `SalesmanImport` dan `OrderSpImport` (dengan parser nested order-items transaksional) menggunakan package `maatwebsite/excel`.
+    - **Controllers & Routing**:
+        - Membuat `ProductController`, `SalesmanController`, dan `OrderSpController` dengan perlindungan hak akses (role-based logic gating untuk sales).
+        - Mendaftarkan rute resource dan kustom action (`import`, `submit`) di `routes/web.php`.
+    - **Antarmuka & Views (Bootstrap 5 & jQuery)**:
+        - Membuat halaman CRUD master untuk `products` dan `salesmen` (dilengkapi modal upload).
+        - Membuat halaman `orders_sp` (index, show, create, edit) yang mendukung penambahan baris produk dinamis berbasis jQuery.
+        - Mengintegrasikan sub-menu master data produk/salesman dan menu Surat Pesanan (SP) pada navbar layouts `app.blade.php`.
+    - **Dokumentasi & Backup**:
         - Memperbarui `docs/dev/DATABASE_SCHEMA.md` untuk mencakup diagram ERD Mermaid dan rincian kolom skema database AOQCS Phase 1.
         - Melakukan pembaruan dump database MySQL ke `backups/erlass_db_current.sql`.
+        - Memperbarui dokumen `docs/CHECKLIST_AOQCS_BLUEPRINT.md` dan `docs/ANALISIS_DAN_ROADMAP_AOQCS_ERLASS.md` ke status Selesai.
 
 ## [1.2.8] - 2026-03-13
 

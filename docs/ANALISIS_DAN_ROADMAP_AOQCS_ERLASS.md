@@ -83,9 +83,9 @@ Berikut adalah analisis gap detail antara struktur database erlass.institute saa
 
 | Entitas/Fitur | Kondisi Saat Ini (Laravel 12) | Kebutuhan Blueprint AOQCS | Analisis Gap & Tindakan |
 | :--- | :--- | :--- | :--- |
-| **Sales Order / SP** | Ada tabel `orders_sp` & `order_items` beserta Eloquent Model. | Tabel `orders_sp` & `order_items` dengan status: *Draft, Menunggu Validasi, Disetujui, Berjalan, Selesai, Batal*. | **Selesai (Skema DB & Model)**: Tabel-tabel dan relasi models sudah siap. Sisa implementasi bisnis UI dan impor Excel. |
-| **Master Salesman** | Ada tabel `salesmen` beserta Eloquent Model (terhubung ke users). | Tabel `salesmen` yang mencatat Kode Sales, Nama, Group Leader, dan Wilayah. | **Selesai (Skema DB & Model)**: Skema data terintegrasi. Sisa implementasi UI dan impor Excel. |
-| **Master Produk** | Ada tabel `products` beserta Eloquent Model. | Tabel `products` dinamis berisi Kode Produk, Nama Produk, Durasi Standar (60/75/90 menit), dan Harga. | **Selesai (Skema DB & Model)**: Produk terpusat dan dinamis siap digunakan. |
+| **Sales Order / SP** | Ada tabel `orders_sp` & `order_items`, CRUD views, form dinamis, & Impor Excel. | Tabel `orders_sp` & `order_items` dengan status: *Draft, Menunggu Validasi, Disetujui, Berjalan, Selesai, Batal*. | **Selesai**: Tabel database, Eloquent model, CRUD controller, form dinamis jQuery, dan impor Excel/Google Sheets telah diimplementasikan. |
+| **Master Salesman** | Ada tabel `salesmen` beserta Eloquent Model (terhubung ke users) + Impor Excel. | Tabel `salesmen` yang mencatat Kode Sales, Nama, Group Leader, dan Wilayah. | **Selesai**: Tabel database, Eloquent model, CRUD controller, form manual, dan impor Excel/Google Sheets telah diimplementasikan. |
+| **Master Produk** | Ada tabel `products` beserta Eloquent Model. | Tabel `products` dinamis berisi Kode Produk, Nama Produk, Durasi Standar (60/75/90 menit), dan Harga. | **Selesai**: Tabel database, Eloquent model, CRUD controller, dan form manual telah diimplementasikan. |
 | **Validasi Akademik** | Status program langsung dirubah dari `draft` -> `diajukan` -> `disetujui`. | Tabel checklist `academic_approvals` (verifikasi ruang, jadwal, instruktur, dan kuota siswa). | **Baru**: Buat tabel/log persetujuan kelayakan program sebelum dijadwalkan. |
 | **Status Rombel** | Status: `belum_mulai`, `berlangsung`, `selesai`, `dibatalkan` pada [EkstrakurikulerRombel.php](file:///root/webapperlass/app/Models/EkstrakurikulerRombel.php). | Status: *Belum Mulai, Aktif, Ditunda, Selesai, Batal*. | **Penyelarasan**: Mapping enum status saat ini dengan istilah operasional blueprint. |
 | **Jadwal Sesi** | Menggunakan [EkstrakurikulerSession.php](file:///root/webapperlass/app/Models/EkstrakurikulerSession.php) status: *terjadwal, berlangsung, selesai, dibatalkan, ditunda, tidak_hadir*. | Status: *Terjadwal, Berlangsung, Selesai, Ditunda, Diganti, Libur, Batal*. | **Peningkatan**: Perluas enum status session dengan menambahkan opsi `libur` dan `diganti` (rescheduled). |
@@ -125,7 +125,7 @@ gantt
         *   Membuat tabel `orders_sp` (SP) dan `order_items` sebagai pintu masuk program sekolah.
     2.  **Modifikasi Model Sekolah [SELESAI]**:
         *   Menambahkan kolom data PIC sekolah, email/WA PIC (`pic_nama`, `pic_kontak`, `pic_email`), dan lokasi default pembelajaran (`lokasi_default`) ke tabel `sekolah`.
-    3.  **UI/UX & Import Modul SP & Sales [PROSES]**:
+    3.  **UI/UX & Import Modul SP & Sales [SELESAI]**:
         *   Form penginputan SP oleh sales dengan status *Draft* -> *Menunggu Validasi*.
         *   **Fitur Import**: Menyediakan modul import massal data Salesman dan Surat Pesanan (SP) dari format Excel atau Google Sheets ke dalam sistem.
 *   **Indikator Sukses (KPI)**: Seluruh program baru wajib masuk melalui entry data `orders_sp` (baik via form input maupun import Excel) dan tidak bisa dibuat secara manual langsung di level program.
@@ -228,5 +228,5 @@ Buat tabel honorarium sebagai tabel transaksi terpisah (`session_honor`) yang be
 > **Keputusan Desain Hasil Review**:
 > 1. **Data SP & Sales**: Identitas SP dan Sales diinput langsung ke dalam sistem dengan dukungan modul **Import dari Excel atau Google Sheets** untuk tabel `orders_sp` dan `salesmen`.
 > 2. **Master Tarif & Koreksi Wilayah**: Penentuan tarif mengajar menggunakan aturan umum (*General Tariffs*) dengan fleksibilitas koreksi khusus (*Override/Corrections*) per sekolah/wilayah geografi.
-> 3. **Status Pengembangan**: Cetak biru ini disetujui sebagai acuan dokumentasi. Fondasi database migrations dan Eloquent Models untuk Fase 1 telah diimplementasikan dengan sukses (2026-06-11). Saat ini pengerjaan sedang berjalan pada UI/UX, Controller/Routing, dan logic import Excel/Google Sheets untuk Modul SP & Sales.
+> 3. **Status Pengembangan**: Cetak biru ini disetujui sebagai acuan dokumentasi. Seluruh fitur Fase 1 (Database, Eloquent Models, Logika Impor Excel, Controller/Routing, dan Antarmuka Blade Views) telah diimplementasikan sepenuhnya dengan sukses (2026-06-11). Kita siap beralih ke Fase 2.
 
