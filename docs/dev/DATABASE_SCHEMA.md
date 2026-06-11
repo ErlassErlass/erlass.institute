@@ -9,6 +9,7 @@ Dokumen ini menjelaskan struktur database dan hubungan antar entitas (ERD) untuk
 erDiagram
     SEKOLAH ||--o{ SISWA : "has many"
     SEKOLAH ||--o{ EKSTRAKURIKULER : "hosts"
+    SEKOLAH ||--o{ ORDERS_SP : "has many"
     
     SISWA ||--o{ SISWA_EKSTRAKURIKULER : "enrolls in"
     SISWA ||--o{ ABSENSI : "has attendance"
@@ -17,6 +18,7 @@ erDiagram
     USER ||--o{ EKSTRAKURIKULER_SESSION : "instructs"
     USER ||--o{ LAPORAN_MENGAJAR : "submits"
     USER ||--|| INSTRUCTOR_PROFILE : "has"
+    USER ||--o{ SALESMEN : "references as user"
     
     EKSTRAKURIKULER ||--|{ EKSTRAKURIKULER_ROMBEL : "divided into"
     EKSTRAKURIKULER_ROMBEL ||--o{ SISWA_EKSTRAKURIKULER : "contains"
@@ -25,10 +27,19 @@ erDiagram
     EKSTRAKURIKULER_SESSION ||--o| LAPORAN_MENGAJAR : "verified by"
     LAPORAN_MENGAJAR ||--|{ ABSENSI : "records"
 
+    SALESMEN ||--o{ ORDERS_SP : "issues"
+    ORDERS_SP ||--|{ ORDER_ITEMS : "contains"
+    PRODUCTS ||--o{ ORDER_ITEMS : "ordered as"
+
     SEKOLAH {
         string kodlan PK
         string namasekolah
         string kota
+        text alamat_lengkap
+        string pic_nama
+        string pic_kontak
+        string pic_email
+        enum lokasi_default
     }
 
     SISWA {
@@ -128,6 +139,50 @@ erDiagram
         bigint laporan_mengajar_id FK
         bigint siswa_id FK
         boolean hadir
+    }
+
+    PRODUCTS {
+        bigint id PK
+        string kode_produk
+        string nama_produk
+        string jenis
+        decimal harga
+        int durasi_bulan
+        enum jenis_kegiatan
+        int standar_durasi_menit
+    }
+
+    SALESMEN {
+        bigint id PK
+        bigint user_id FK
+        string kode_salesman
+        string nama_salesman
+        string group_leader
+        string area
+    }
+
+    ORDERS_SP {
+        bigint id PK
+        string nomor_sp
+        date tanggal_sp
+        string sekolah_kodlan FK
+        bigint salesman_id FK
+        int jumlah_peserta_estimasi
+        enum jenis_kegiatan
+        string lokasi_pembelajaran
+        date tanggal_mulai_rencana
+        int jumlah_pertemuan
+        text catatan_khusus
+        enum status
+        bigint created_by FK
+        bigint updated_by FK
+    }
+
+    ORDER_ITEMS {
+        bigint id PK
+        bigint order_sp_id FK
+        bigint product_id FK
+        decimal harga_satuan
     }
 ```
 

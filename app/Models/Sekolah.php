@@ -44,6 +44,11 @@ class Sekolah extends Model
         'kotkab',
         'kota',
         'provinsi',
+        'alamat_lengkap',
+        'pic_nama',
+        'pic_kontak',
+        'pic_email',
+        'lokasi_default',
     ];
 
     /**
@@ -64,5 +69,14 @@ class Sekolah extends Model
     public function ekstrakurikuler()
     {
         return $this->hasMany(Ekstrakurikuler::class, 'sekolah_kodlan', 'kodlan');
+    }
+
+    /**
+     * Relasi ke model OrderSp.
+     * Satu Sekolah memiliki banyak Surat Pesanan (SP).
+     */
+    public function ordersSp()
+    {
+        return $this->hasMany(OrderSp::class, 'sekolah_kodlan', 'kodlan');
     }
 }

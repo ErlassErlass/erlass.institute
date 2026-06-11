@@ -2,6 +2,22 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.3.0] - 2026-06-11
+
+### Ditambahkan (Added)
+- **AOQCS Phase 1 Foundation (Database & Models)**:
+    - **Skema Database Baru**:
+        - Membuat tabel `products` untuk standardisasi program produk, harga, dan durasi sesi.
+        - Membuat tabel `salesmen` untuk mendata identitas sales, group leader, dan area kerja.
+        - Membuat tabel `orders_sp` dan `order_items` untuk alur Surat Pesanan (SP) terintegrasi.
+        - Menambahkan kolom `pic_nama`, `pic_kontak`, `pic_email`, dan `lokasi_default` langsung ke tabel `sekolah`.
+    - **Eloquent Models**:
+        - Membuat model `Product`, `Salesman`, `OrderSp`, dan `OrderItem` lengkap dengan relasi Eloquent-nya.
+        - Menyelaraskan model `Sekolah` dengan kolom baru dan relasi `ordersSp()`.
+    - **Dokumentasi Database**:
+        - Memperbarui `docs/dev/DATABASE_SCHEMA.md` untuk mencakup diagram ERD Mermaid dan rincian kolom skema database AOQCS Phase 1.
+        - Melakukan pembaruan dump database MySQL ke `backups/erlass_db_current.sql`.
+
 ## [1.2.8] - 2026-03-13
 
 ### Ditambahkan (Added)

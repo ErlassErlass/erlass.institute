@@ -19,15 +19,15 @@
 
 | Status | Item Blueprint | Kondisi erlass.institute Saat Ini | Tindakan / Kesenjangan (Gap) |
 | :---: | :--- | :--- | :--- |
-| **🟡** | **Master Pelanggan / Sekolah** | Ada tabel `sekolah` (kodlan, namasekolah, kota). | **Temuan**: Data alamat lengkap, PIC sekolah, nomor WA/email, dan lokasi pembelajaran berada di level `ekstrakurikuler`. <br> **Tindakan**: Pindahkan/hubungkan data ini langsung ke tabel `sekolah` / `school_pics`. |
-| **🔴** | **Master Salesman** | Hanya direpresentasikan sebagai user dengan role `sales`. | **Temuan**: Belum ada tabel `salesmen` yang menyimpan kode salesman, group leader, dan wilayah kerja. <br> **Tindakan**: Buat tabel `salesmen` dan dukung import massal via Excel. |
-| **🔴** | **Master Produk** | Hardcoded sebagai konstanta kategori program di model `Ekstrakurikuler`. | **Temuan**: Belum ada tabel produk yang menampung harga, durasi program, dan durasi standar pertemuan (60/75/90 menit). <br> **Tindakan**: Buat tabel `products` secara dinamis. |
+| **🟢** | **Master Pelanggan / Sekolah** | Ada tabel `sekolah` (kodlan, namasekolah, kota, pic_nama, pic_kontak, pic_email, lokasi_default). | **Selesai**: Struktur database dan model Eloquent sudah diperbarui langsung di Fase 1. |
+| **🟡** | **Master Salesman** | Ada tabel `salesmen` (user_id, kode_salesman, nama_salesman, group_leader, area). | **Sebagian**: Skema database & Model selesai. Proses impor massal via Excel/Google Sheets akan dikembangkan berikutnya. |
+| **🟡** | **Master Produk** | Ada tabel `products` (kode_produk, nama_produk, jenis, harga, durasi_bulan, jenis_kegiatan, standar_durasi_menit). | **Sebagian**: Skema database & Model selesai. Integrasi form CRUD & seeder dinamis akan dikembangkan berikutnya. |
 | **🟢** | **Master Instruktur** | Ada tabel `users` & `instructor_profiles` lengkap. | **Temuan**: Menyimpan detail data diri, keahlian, dan ketersediaan hari/jam. <br> **Tindakan**: Sudah sesuai, tinggal dihubungkan ke pilar kompensasi. |
 | **🟢** | **Master Asisten** | Tersimpan di profil user dengan kolom kompetensi. | **Temuan**: Ditugaskan di tabel Rombel sebagai `user_id_asisten`. <br> **Tindakan**: Sudah memadai. |
 
 - [x] Rincian Master Pelanggan (Kode pelanggan, Nama, Alamat, PIC, No WA, Lokasi Pembelajaran)
-- [ ] Rincian Master Salesman (Kode, Nama, Group Leader, Area)
-- [ ] Rincian Master Produk (Kode, Nama, Jenis, Harga, Durasi Program, Jenis Eskul/Inkul, Durasi Sesi)
+- [x] Rincian Master Salesman (Kode, Nama, Group Leader, Area) - Skema DB & Model Selesai
+- [x] Rincian Master Produk (Kode, Nama, Jenis, Harga, Durasi Program, Jenis Eskul/Inkul, Durasi Sesi) - Skema DB & Model Selesai
 - [x] Rincian Master Instruktur (Nama, Keahlian, Waktu Mengajar JSON, Area, Status Aktif)
 - [x] Rincian Master Asisten (Nama, Keahlian, Ketersediaan, Area)
 
@@ -37,10 +37,10 @@
 
 | Status | Item Blueprint | Kondisi erlass.institute Saat Ini | Tindakan / Kesenjangan (Gap) |
 | :---: | :--- | :--- | :--- |
-| **🔴** | **Modul SP (Surat Pesanan)** | Tidak ada. Program langsung dibuat sebagai draf kelas ekstrakurikuler. | **Temuan**: Siklus pemesanan belum terpisah dari operasional kelas. <br> **Tindakan**: Buat tabel `orders_sp` dan `order_items`. Tambahkan fitur import Excel. |
+| **🟡** | **Modul SP (Surat Pesanan)** | Ada tabel `orders_sp` dan `order_items` beserta relasi model. | **Sebagian**: Skema database & Model selesai. Fitur input/edit manual, import Excel, dan workflow status akan dikembangkan berikutnya. |
 | **🔴** | **Validasi Akademik** | Tidak ada. Hanya ada perubahan status draft ke aktif oleh admin. | **Temuan**: Form checklist kelayakan sebelum penjadwalan (jumlah rombel, ruangan, asisten, kepastian peserta) belum ada. <br> **Tindakan**: Buat form validasi akademik pasca input SP. |
 
-- [ ] Kolom SP (No SP, Tanggal, Kode Pelanggan, Salesman, Produk, Harga, Estimasi Siswa, Jenis Kegiatan, Rencana Tanggal Mulai, Pertemuan Target)
+- [x] Kolom SP (No SP, Tanggal, Kode Pelanggan, Salesman, Produk, Harga, Estimasi Siswa, Jenis Kegiatan, Rencana Tanggal Mulai, Pertemuan Target) - Skema DB & Model Selesai
 - [ ] Workflow Status SP (Draft -> Menunggu Validasi -> Disetujui -> Berjalan -> Selesai -> Batal)
 - [ ] Fitur Import SP massal dari Excel/Google Sheets
 - [ ] Checklist Validasi Akademik (Peserta Pasti, Jadwal Disetujui Sekolah, Ruangan Tersedia, Instruktur Tersedia, Produk Sesuai, Hitungan Rombel & Kebutuhan Asisten)
