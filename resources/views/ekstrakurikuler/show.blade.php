@@ -499,6 +499,15 @@
                                                 </div>
                                             </div>
                                             @endif
+
+                                            {{-- Soft warning: Rombel > 20 siswa tanpa asisten --}}
+                                            @if($rombel->jumlah_siswa > 20 && !$rombel->user_id_asisten)
+                                            <div class="alert alert-warning small mt-3 mb-0 py-2">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                <strong>Perhatian:</strong> Rombel ini memiliki {{ $rombel->jumlah_siswa }} siswa tanpa asisten.
+                                                Disarankan menambahkan asisten untuk rombel dengan &gt;20 siswa.
+                                            </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

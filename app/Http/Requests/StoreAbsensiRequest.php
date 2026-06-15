@@ -23,7 +23,7 @@ class StoreAbsensiRequest extends FormRequest
     {
         return [
             'absensi' => 'required|array|min:1',
-            'absensi.*' => 'required|boolean',
+            'absensi.*' => 'required|in:1,0,hadir,izin,sakit,alpha',
         ];
     }
 
@@ -39,7 +39,7 @@ class StoreAbsensiRequest extends FormRequest
             'absensi.array' => 'Format data absensi tidak valid.',
             'absensi.min' => 'Minimal harus ada 1 siswa yang diabsen.',
             'absensi.*.required' => 'Status kehadiran setiap siswa harus diisi.',
-            'absensi.*.boolean' => 'Status kehadiran harus berupa hadir atau tidak hadir.',
+            'absensi.*.in' => 'Status kehadiran tidak valid.',
         ];
     }
 

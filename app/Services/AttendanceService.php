@@ -47,7 +47,7 @@ class AttendanceService
     {
         return Siswa::whereHas('absensis', function ($query) use ($report) {
             $query->where('laporan_mengajar_id', $report->id)
-                ->where('hadir', false);
+                ->where('status', '!=', 'hadir');
         })->get();
     }
 
@@ -97,7 +97,7 @@ class AttendanceService
     {
         return Siswa::whereHas('absensis', function ($query) use ($report) {
             $query->where('laporan_mengajar_id', $report->id)
-                ->where('hadir', true);
+                ->where('status', 'hadir');
         })->get();
     }
 
@@ -106,8 +106,8 @@ class AttendanceService
      */
     public function calculateAttendanceStats(LaporanMengajar $report): array
     {
-        $presentCount = $report->absensis()->where('hadir', true)->count();
-        $absentCount = $report->absensis()->where('hadir', false)->count();
+        $presentCount = $report->absensis()->where('status', 'hadir')->count();
+        $absentCount = $report->absensis()->whereIn('status', ['izin', 'sakit', 'alpha'])->count();
         $total = $presentCount + $absentCount;
 
         return [

@@ -20,5 +20,20 @@ if (app()->runningInConsole()) {
      app()->booted(function () {
          $schedule = app(Schedule::class);
          $schedule->command('schedule:remind')->everyMinute();
+
+         // H-1 WhatsApp reminder: kirim setiap hari jam 18:00 WIB (11:00 UTC)
+         $schedule->command('schedule:send-reminders')
+                  ->dailyAt('11:00')
+                  ->timezone('Asia/Jakarta')
+                  ->withoutOverlapping()
+                  ->appendOutputTo(storage_path('logs/schedule-reminders.log'));
+
+         // Warning Engine: deteksi otomatis setiap hari jam 21:00 WIB (14:00 UTC)
+         $schedule->command('warnings:detect')
+                  ->dailyAt('14:00')
+                  ->timezone('Asia/Jakarta')
+                  ->withoutOverlapping()
+                  ->appendOutputTo(storage_path('logs/warnings-detect.log'));
      });
 }
+

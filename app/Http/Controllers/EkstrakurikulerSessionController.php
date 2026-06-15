@@ -698,17 +698,17 @@ class EkstrakurikulerSessionController extends Controller
         // Hanya admin/admin_sistem/webmaster/instruktur yang ditugaskan yang boleh kirim
         $this->authorize('update', $session);
 
-        if ($session->status !== EkstrakurikulerSession::STATUS_SELESAI || !$session->laporan_mengajar_id) {
-            return redirect()->back()->with('error', 'Reminder progress hanya bisa dikirim untuk sesi yang sudah selesai dan memiliki laporan mengajar.');
-        }
-
         $laporan = $session->laporanMengajar;
         $rombel = $session->rombel;
+
+        if ($session->status !== EkstrakurikulerSession::STATUS_SELESAI || !$laporan) {
+            return redirect()->back()->with('error', 'Reminder progress hanya bisa dikirim untuk sesi yang sudah selesai dan memiliki laporan mengajar.');
+        }
 
         try {
             // Find students who were PRESENT in this specific session
             $presentStudentIds = \App\Models\Absensi::where('laporan_mengajar_id', $laporan->id)
-                ->where('hadir', true)
+                ->where('status', 'hadir')
                 ->pluck('siswa_id');
 
             $studentsToNotify = \App\Models\Siswa::whereIn('id', $presentStudentIds)
@@ -720,7 +720,7 @@ class EkstrakurikulerSessionController extends Controller
             foreach ($studentsToNotify as $student) {
                 try {
                     $rombelReports = $rombel->sessions()
-                        ->whereNotNull('laporan_mengajar_id')
+                        ->has('laporanMengajar')
                         ->with('laporanMengajar') 
                         ->get()
                         ->pluck('laporanMengajar')
@@ -728,7 +728,7 @@ class EkstrakurikulerSessionController extends Controller
 
                     $attendanceRecords = \App\Models\Absensi::whereIn('laporan_mengajar_id', $rombelReports->pluck('id'))
                         ->where('siswa_id', $student->id)
-                        ->where('hadir', true)
+                        ->where('status', 'hadir')
                         ->get();
 
                     $totalPresent = $attendanceRecords->count();
@@ -756,5 +756,25 @@ class EkstrakurikulerSessionController extends Controller
             \Illuminate\Support\Facades\Log::error("Manual Batch Progress Reminder Error: " . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan sistem saat mengirim pesan reminder.');
         }
+    }
+
+    /**
+     * Override session fee (Admin Only).
+     */
+    public function overrideFee(Request $request, EkstrakurikulerSession $session): \Illuminate\Http\RedirectResponse
+    {
+        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $request->validate([
+            'override_fee' => 'nullable|numeric|min:0',
+        ]);
+
+        $session->update([
+            'override_fee' => $request->input('override_fee') !== null ? (float) $request->input('override_fee') : null,
+        ]);
+
+        return redirect()->back()->with('success', 'Fee sesi berhasil dikoreksi (override)!');
     }
 }

@@ -27,7 +27,7 @@ class LaporanMengajarPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true; // Semua user yang login boleh melihat halaman index.
+        return in_array($user->role, ['webmaster', 'admin_sistem', 'admin', 'instruktur']);
     }
 
     /**

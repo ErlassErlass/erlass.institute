@@ -27,13 +27,14 @@
             <form action="{{ route('rekap-absensi') }}" method="GET" class="row g-3 align-items-end">
                 <div class="col-md-4">
                     <label class="form-label fw-bold">Pilih Sekolah</label>
-                    <select name="sekolah_kodlan" class="form-select select2">
+                    <select name="sekolah_kodlan" id="sekolah_kodlan" class="form-select">
                         <option value="">-- Semua Sekolah --</option>
-                        @foreach($sekolahs as $s)
-                            <option value="{{ $s->kodlan }}" {{ $selectedSekolah == $s->kodlan ? 'selected' : '' }}>
-                                {{ $s->namasekolah }}
-                            </option>
-                        @endforeach
+                        @if($selectedSekolah)
+                            @php $sSekolah = \App\Models\Sekolah::where('kodlan', $selectedSekolah)->first(); @endphp
+                            @if($sSekolah)
+                                <option value="{{ $selectedSekolah }}" selected>{{ $sSekolah->namasekolah }} ({{ $selectedSekolah }})</option>
+                            @endif
+                        @endif
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -134,3 +135,39 @@
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        if ($('.select2').length > 0) {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+        }
+
+        $('#sekolah_kodlan').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: 'Ketik nama sekolah atau kode...',
+            allowClear: true,
+            ajax: {
+                url: "{{ route('api.sekolah.search') }}",
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            }
+        });
+    });
+</script>
+@endpush

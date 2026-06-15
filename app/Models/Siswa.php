@@ -73,6 +73,38 @@ class Siswa extends Model
     }
 
     /**
+     * Relasi ke model StudentScore (one-to-many).
+     */
+    public function studentScores(): HasMany
+    {
+        return $this->hasMany(StudentScore::class, 'siswa_id');
+    }
+
+    /**
+     * Relasi ke model StudentPortfolio (one-to-many).
+     */
+    public function studentPortfolios(): HasMany
+    {
+        return $this->hasMany(StudentPortfolio::class, 'siswa_id');
+    }
+
+    /**
+     * Relasi ke model ReportCard (one-to-many).
+     */
+    public function reportCards(): HasMany
+    {
+        return $this->hasMany(ReportCard::class, 'siswa_id');
+    }
+
+    /**
+     * Relasi ke model Certificate (one-to-many).
+     */
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class, 'siswa_id');
+    }
+
+    /**
      * Relasi many-to-many ke Ekstrakurikuler melalui pivot table siswa_ekstrakurikuler.
      */
     public function ekstrakurikulers(): BelongsToMany
@@ -120,7 +152,7 @@ class Siswa extends Model
     {
         return $this->absensis()
             ->where('laporan_mengajar_id', $report->id)
-            ->where('hadir', false)
+            ->where('status', '!=', 'hadir')
             ->exists();
     }
 

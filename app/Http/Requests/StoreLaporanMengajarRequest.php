@@ -35,8 +35,11 @@ class StoreLaporanMengajarRequest extends FormRequest
                     try {
                         \Carbon\Carbon::createFromFormat('d/m/Y', $value);
                         $inputDate = \Carbon\Carbon::createFromFormat('d/m/Y', $value)->startOfDay();
-                        if ($inputDate->isBefore(now()->subDays(30))) { // Relaxed from 7 to 30 for safety in tests
-                            $fail('Jadwal mengajar tidak boleh lebih dari 30 hari yang lalu.');
+                        if ($inputDate->isBefore(now()->subDays(7)->startOfDay())) {
+                            $fail('Jadwal mengajar tidak boleh lebih dari 7 hari yang lalu.');
+                        }
+                        if ($inputDate->isAfter(now()->endOfDay())) {
+                            $fail('Jadwal mengajar tidak boleh di masa depan.');
                         }
                     } catch (\Exception $e) {
                          try {
@@ -114,5 +117,27 @@ class StoreLaporanMengajarRequest extends FormRequest
                 $validator->errors()->add('user_id_assisten', 'Asisten tidak boleh sama dengan instruktur.');
             }
         });
+    }
+
+    /**
+     * Sanitize validated inputs by stripping HTML/script tags.
+     */
+    public function validated($key = null, $default = null)
+    {
+        $validated = parent::validated($key, $default);
+
+        if (is_array($validated)) {
+            if (isset($validated['materi_pengajaran'])) {
+                $validated['materi_pengajaran'] = strip_tags($validated['materi_pengajaran']);
+            }
+            if (isset($validated['refleksi_siswa'])) {
+                $validated['refleksi_siswa'] = strip_tags($validated['refleksi_siswa']);
+            }
+            if (isset($validated['sekolah_nama'])) {
+                $validated['sekolah_nama'] = strip_tags($validated['sekolah_nama']);
+            }
+        }
+
+        return $validated;
     }
 }

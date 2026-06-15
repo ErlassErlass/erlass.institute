@@ -2,6 +2,90 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.6.0] - 2026-06-15
+
+### Ditambahkan (Added)
+- **AOQCS Phase 4 - Payroll & Kompensasi Instruktur**:
+    - **Skema Database & Eloquent Models**:
+        - Migration `create_salary_rates_table`, `create_payroll_batches_table`, `create_payroll_items_table`, `alter_ekstrakurikuler_session_table`, and `add_level_to_instructor_profiles_table` executed.
+        - Models `SalaryRate`, `PayrollBatch`, `PayrollItem` created; models `User` and `EkstrakurikulerSession` updated with relations, fillables, and accessors.
+    - **Payroll Calculator Service**:
+        - Implemented `PayrollCalculatorService` containing compensation calculations (level-based rates, product category bonuses, punctuality detector with Rp 25.000 late check-in penalty, session override adjustments, and monthly payroll compiler).
+    - **Controllers & Routing**:
+        - Created `SalaryRateController` and `PayrollController` to handle master rates CRUD, batch disbursements lifecycle (Draft -> Processed -> Paid), and instructor slip salary portal.
+        - Mendaftarkan rute master tarif (admin), rute batch payroll (admin), dan rute slip gaji saya (instruktur).
+    - **Views & UI**:
+        - Designed premium Bootstrap 5 views for managing master rates, payroll batches, batch details, and instructor personal salary slips with details receipt cards.
+        - Menyusun menu sekuensial baru **Kompensasi & Payroll** pada sidebar layout.
+    - **Automated Tests**:
+        - Created `tests/Feature/PayrollTest.php` verifying all business rules, role-based controls, calculations, and batch lifecycle transitions. Verified 100% passing tests (112 test suite green).
+
+## [1.5.0] - 2026-06-15
+
+### Ditambahkan (Added)
+- **AOQCS Phase 3 - Presensi, Nilai, Warning, Rapor, Sertifikat, & Left Sidebar Layout**:
+    - **Modul Penilaian & Input Nilai 4x**:
+        - Migration `create_student_scores_table`: menyimpan sub-score (T1-T4, S1-S4, P1-P4) dan hasil akhir.
+        - Model `StudentScore`: boots save hook untuk kalkulasi rata-rata otomatis, bobot NA (Kehadiran 30%, Tugas 30%, Sikap 20%, Proyek 20%), predikat kompetensi otomatis (CODING, USER INTERACTION, GRAPHIC AND DESIGN, DATA HANDLING).
+        - Controller `StudentScoreController`: navigasi rombel, penginputan massal, dan alur finalisasi nilai.
+        - Views: form input massal nilai siswa dan daftar nilai rombel.
+    - **Portofolio Siswa**:
+        - Migration & Model `student_portfolios` untuk menyimpan file portofolio (.sb3, .hex, .py, dll) atau link eksternal per rombel/pertemuan.
+        - Controller `StudentPortfolioController` untuk mengupload, menampilkan, dan menghapus berkas portofolio.
+    - **Rapor & Sertifikat Digital (DomPDF)**:
+        - Migration `create_report_cards_table` dan modifikasi tabel `certificates`.
+        - Model `ReportCard` & `Certificate` terintegrasi dengan siswa.
+        - `ReportCardService`: pembuatan PDF portrait otomatis untuk rapor belajar siswa.
+        - `CertificateService`: pembuatan PDF landscape 2 halaman untuk sertifikat dan transkrip kelulusan siswa, lengkap dengan penyimpanan lokal QR Code.
+        - Controller `ReportCardController` & `CertificateController` untuk download PDF berkas terbit.
+    - **Verifikasi QR Code Publik**:
+        - Tampilan verifikasi publik `/verify/certificate/{certificate_code}` yang dapat diakses tamu tanpa log masuk untuk memvalidasi keaslian dokumen.
+    - **QC Warning System Dashboard**:
+        - Mengintegrasikan panel warning aktif (red/yellow severity) pada dasbor admin.
+        - Aksi resolve warning manual via POST route `/admin/warnings/{warning}/resolve`.
+        - Menampilkan statistik sertifikat terbit/pending dan rapor tergenerasi di dasbor admin.
+    - **Layout Kiri Light Theme**:
+        - Desain ulang `resources/views/layouts/app.blade.php` dengan sidebar kiri navigasi berwarna terang solid putih (`#ffffff`), menghindari warna gelap, responsif, dan menggunakan menu bootstrap collapse.
+        - Memperbaiki bug layout compiler di mana `@endsection` hilang pada `dashboard.blade.php`, mengembalikan nesting halaman yang benar.
+        - Menyusun ulang dan mengelompokkan menu sidebar kiri secara sekuensial mengikuti alur kronologis operasional sekolah (Inisiasi & Kontrak -> Data Master -> Akademik & Penjadwalan -> Aktivitas & Kehadiran -> Penilaian & Kelulusan -> Sistem & Pengaturan).
+
+## [1.4.0] - 2026-06-13
+
+### Ditambahkan (Added)
+- **AOQCS Phase 2 - Validasi Akademik, Penjadwalan, & Notifikasi**:
+    - **Validasi Akademik SP (Opsi B)**:
+        - Migration `add_approval_columns_to_orders_sp`: menambahkan kolom `approved_by` dan `approved_at` ke tabel `orders_sp`.
+        - Model `OrderSp`: menambahkan relasi `approver()`, method `approve()` dengan DB transaction, dan helper `canBeApproved()`.
+        - Controller `OrderSpController@approve`: endpoint admin untuk menyetujui SP berstatus `menunggu_validasi`.
+        - Route `orders-sp/{id}/approve` (PATCH) didaftarkan.
+        - View `orders_sp/show.blade.php`: tombol "Setujui SP" untuk admin dan informasi approver di audit trail.
+    - **Auto-Generate Ekstrakurikuler dari SP**:
+        - Ketika SP disetujui, sistem otomatis membuat record `Ekstrakurikuler` untuk setiap produk di `order_items` dengan status `diajukan`.
+    - **Soft Warning Asisten Rombel**:
+        - Menambahkan alert visual pada halaman detail Ekskul (tab Rombel) untuk rombel yang memiliki >20 siswa tanpa asisten yang ditugaskan.
+    - **Modul Perubahan Jadwal (Schedule Changes)**:
+        - Controller `ScheduleChangeController` dengan workflow multi-level approval: create → approveAcademic → approvePic → apply / reject.
+        - Routes: 8 endpoint (index, create, store, show, approve-academic, approve-pic, apply, reject).
+        - Views: `schedule_changes/index.blade.php`, `schedule_changes/create.blade.php`, `schedule_changes/show.blade.php` dengan approval timeline visual.
+    - **H-1 WhatsApp Reminder (Fonnte API)**:
+        - Artisan command `schedule:send-reminders` untuk mengirim reminder WhatsApp H-1 ke instruktur dan PIC sekolah.
+        - Pesan terformat dengan emoji dan informasi sesi lengkap.
+        - Terjadwal di scheduler Laravel pada pukul 18:00 WIB setiap hari.
+        - Mendukung flag `--dry-run` untuk preview tanpa mengirim pesan.
+
+## [1.3.1] - 2026-06-12
+
+### Diperbaiki & Dioptimalkan (Fixed & Optimized)
+- **Select2 AJAX School Searchbar**:
+  - Mengubah seluruh dropdown pilihan sekolah yang sebelumnya statis menjadi pencarian dinamis (Select2 AJAX search-as-you-type) untuk mendukung data sekolah skala besar (> 20 sekolah) tanpa memperlambat loading awal halaman.
+  - Mengimplementasikan pencarian dinamis pada modul-modul berikut:
+    - **Siswa**: Form Tambah (`siswa/create.blade.php`) & Edit (`siswa/edit.blade.php`) Siswa.
+    - **Surat Pesanan (SP)**: Form Tambah (`orders_sp/create.blade.php`) & Edit (`orders_sp/edit.blade.php`) SP.
+    - **Program Ekskul**: Form Edit (`ekstrakurikuler/edit.blade.php`) & Wizard Step 2 (`ekstrakurikuler/steps/step2.blade.php`).
+    - **Absensi & Kehadiran**: Form filter pencarian Index Absensi (`absensi/index.blade.php`) & Rekap Absensi (`absensi/rekap.blade.php`).
+  - Mendaftarkan file routing `routes/api.php` ke dalam routing kernel `bootstrap/app.php` agar endpoint pencarian sekolah (`/api/sekolah/search`) aktif dan dapat diakses secara global.
+  - Memperbarui query pencarian sekolah pada `SekolahApiController::search` agar turut mengembalikan kolom `kotkab` dan `kec` (kecamatan) guna mendukung fitur auto-fill alamat pada form pembuatan ekskul secara presisi.
+
 ## [1.3.0] - 2026-06-11
 
 ### Ditambahkan (Added)

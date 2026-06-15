@@ -444,6 +444,122 @@
     @else
         <!-- ADMIN STATS -->
         @include('dashboard.partials.admin-stats')
+
+        <!-- Warning & Certificate/Rapor QC Panel -->
+        <div class="row g-4 mb-4">
+            <!-- Warning QC Panel -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold text-dark">
+                            <i class="bi bi-shield-fill-exclamation text-danger me-2"></i>Log Warning Quality Control
+                        </h5>
+                        <span class="badge bg-danger rounded-pill">{{ $warning_merah + $warning_kuning }} Aktif</span>
+                    </div>
+                    <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+                        @if(isset($warning_list) && $warning_list->count() > 0)
+                            <div class="list-group list-group-flush">
+                                @foreach($warning_list as $warning)
+                                    <div class="list-group-item p-3 border-bottom d-flex justify-content-between align-items-start" style="border-left: 4px solid {{ $warning->severity === 'red' ? '#f43f5e' : '#f59e0b' }} !important; background-color: {{ $warning->severity === 'red' ? 'rgba(244, 63, 94, 0.05)' : 'rgba(245, 158, 11, 0.05)' }};">
+                                        <div class="d-flex gap-3">
+                                            <div class="flex-shrink-0 mt-1">
+                                                @if($warning->severity === 'red')
+                                                    <i class="bi bi-x-circle-fill text-danger fs-5"></i>
+                                                @else
+                                                    <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+                                                @endif
+                                            </div>
+                                            <div>
+                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                    <span class="badge bg-{{ $warning->severity === 'red' ? 'danger' : 'warning text-dark' }} text-uppercase font-monospace" style="font-size: 0.65rem;">
+                                                        {{ str_replace('_', ' ', $warning->warning_type) }}
+                                                    </span>
+                                                    <small class="text-muted">{{ $warning->created_at->diffForHumans() }}</small>
+                                                </div>
+                                                <p class="mb-0 text-dark small fw-medium">{{ $warning->notes }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex-shrink-0 ms-2">
+                                            <form action="{{ route('admin.warnings.resolve', $warning->id) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="btn btn-xs btn-outline-success py-1 px-2 rounded" style="font-size: 0.75rem;">
+                                                    <i class="bi bi-check2"></i> Resolve
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="p-5 text-center text-muted">
+                                <i class="bi bi-shield-check text-success fs-1 mb-3 d-block"></i>
+                                <h6 class="fw-bold mb-1 text-dark">Semua Sistem Berjalan Normal</h6>
+                                <p class="mb-0 small text-secondary">Tidak ada peringatan QC aktif saat ini.</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Certificate & Rapor Widget -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h5 class="mb-0 fw-bold text-dark">
+                            <i class="bi bi-patch-check-fill text-primary me-2"></i>Log Rapor & Sertifikat
+                        </h5>
+                    </div>
+                    <div class="card-body p-4 d-flex flex-column justify-content-between">
+                        <div class="d-flex flex-column gap-3 mb-4">
+                            <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-success bg-opacity-10 p-2 rounded text-success">
+                                        <i class="bi bi-patch-check fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold small text-dark">Sertifikat Terbit</h6>
+                                        <small class="text-muted">Issued</small>
+                                    </div>
+                                </div>
+                                <span class="fs-5 fw-bold text-success">{{ $sertifikat_issued }}</span>
+                            </div>
+
+                            <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-warning bg-opacity-10 p-2 rounded text-warning">
+                                        <i class="bi bi-hourglass-split fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold small text-dark">Sertifikat Pending</h6>
+                                        <small class="text-muted">Siswa tidak eligible / belum final</small>
+                                    </div>
+                                </div>
+                                <span class="fs-5 fw-bold text-warning">{{ $sertifikat_pending }}</span>
+                            </div>
+
+                            <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded-3 border">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-info bg-opacity-10 p-2 rounded text-info">
+                                        <i class="bi bi-file-earmark-pdf fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold small text-dark">Rapor Tergenerasi</h6>
+                                        <small class="text-muted">PDF di storage</small>
+                                    </div>
+                                </div>
+                                <span class="fs-5 fw-bold text-info">{{ $rapor_generated }}</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <a href="{{ route('certificates.index') }}" class="btn btn-primary w-100">
+                                Kelola Rapor & Sertifikat <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     @endif
     </div>
 
@@ -743,6 +859,8 @@
         </div>
     </div>
 </div>
+@endsection
+
 @push('styles')
 <style>
     .card-hover {

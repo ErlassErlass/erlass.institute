@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('kompetensi_1'); // Primary competency
             $table->string('kompetensi_2')->nullable(); // Secondary competency
             $table->enum('role', ['instruktur', 'admin', 'admin_erlass']);
+            $table->rememberToken();
             $table->timestamps();
         });
     }

@@ -178,7 +178,6 @@ class EkstrakurikulerControllerTest extends TestCase
         Ekstrakurikuler::factory()->create([
             'user_id_sales' => $user->id,
             'sekolah_kodlan' => $sekolah->kodlan,
-            'city' => 'Jakarta Selatan',
         ]);
 
         // Test that pages load correctly with actual data

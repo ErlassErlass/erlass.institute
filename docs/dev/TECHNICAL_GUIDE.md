@@ -148,3 +148,39 @@ npm run build
 ```
 Hasil build akan masuk ke folder `public/build/`.
 
+## Crucial Business Logic & Services (Tambahan Fase 3 & Fase 4)
+
+### 9. Penilaian & Pelaporan Belajar (Fase 3)
+*   **Model**: `App\Models\StudentScore`
+*   **Rata-rata & NA Otomatis**: Di-boot saat menyimpan record score. Formulanya adalah:
+    `NA = (Kehadiran * 30%) + (Rata-rata Tugas * 30%) + (Rata-rata Sikap * 20%) + (Rata-rata Proyek * 20%)`
+*   **Predikat & Deskripsi**: Ditentukan secara otomatis berdasarkan range nilai:
+    *   &ge; 85: A (Sangat Baik)
+    *   &ge; 70: B (Baik)
+    *   &ge; 55: C (Cukup)
+    *   < 55: D (Kurang)
+*   **Generasi Rapor & Sertifikat (DomPDF)**:
+    *   **Service**: `App\Services\ReportCardService` dan `App\Services\CertificateService`
+    *   Sertifikat hanya diterbitkan jika siswa memiliki tingkat kehadiran &ge; 75% saat kelas difinalisasi (`finalized_at`).
+    *   Setiap sertifikat memiliki kode unik dan QR Code publik yang diverifikasi melalui rute `/verify/certificate/{code}` tanpa perlu login.
+
+### 10. Warning QC Engine (Fase 3)
+*   **Console Command**: `App\Console\Commands\DetectWarnings` (`warnings:detect`)
+*   **Logic**: Berjalan otomatis via scheduler untuk mendeteksi 6 jenis anomali akademik:
+    *   Merah: Jadwal besok tanpa instruktur utama, jadwal hari ini belum terkonfirmasi, kelas selesai tapi belum dilaporkan > 24 jam.
+    *   Kuning: Kehadiran siswa < 70%, request reschedule rombel > 3 kali, progres belajar tertinggal dari time-frame.
+*   **Aksi Resolusi**: Log warning disimpan ke tabel `warnings` dan dapat di-resolve manual oleh Admin via dasbor.
+
+### 11. Kompensasi & Payroll Instruktur (Fase 4)
+*   **Service**: `App\Services\PayrollCalculatorService`
+*   **Tabel Tarif**: `salary_rates` menyimpan base rate dan bonus kategori produk berdasarkan Level Instruktur (`junior`, `madya`, `senior`, `expert`, `master_trainer`) dan Kepakaran Produk.
+*   **Logika Kedisiplinan (Punctuality)**:
+    *   Instruktur check-in mengajar dibandingkan dengan jadwal mulai.
+    *   Keterlambatan > 15 menit memicu status `penalty` dengan denda otomatis sebesar Rp 25.000 (disimpan ke `ekstrakurikuler_sessions.actual_checkin_penalty`).
+*   **Batch Lifecycle**:
+    *   **Draft**: Batch dibuat untuk periode tertentu. Semua sesi pada bulan tersebut dihitung honornya.
+    *   **Processed**: Mengunci record sesi dengan status `processing`. Selama status ini, nominal honor per sesi dan bonus/penalty tidak dapat diubah (dikunci untuk review admin keuangan).
+    *   **Paid**: Menandai seluruh sesi di dalamnya sebagai `paid` dan payroll batch sebagai lunas/terbayar.
+*   **Override & Manual Adjustment**: Admin dapat meng-override nominal honor per sesi atau menambahkan bonus/notes kustom per item payroll sebelum memproses batch tersebut.
+
+

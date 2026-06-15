@@ -46,7 +46,10 @@ class AbsensiController extends Controller
 
         // Ambil data absensi yang sudah ada untuk laporan ini (untuk edit)
         $existingAbsensi = Absensi::where('laporan_mengajar_id', $laporanMengajar->id)
-            ->pluck('hadir', 'siswa_id');
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [$item->siswa_id => ($item->status === 'hadir' ? 1 : 0)];
+            });
 
         return view('absensi.create', compact(
             'laporanMengajar',
@@ -63,7 +66,7 @@ class AbsensiController extends Controller
     public function createForEkstrakurikuler(EkstrakurikulerSession $session)
     {
         // Cek apakah session sudah memiliki laporan mengajar
-        if (! $session->laporan_mengajar_id) {
+        if (! $session->laporanMengajar()->exists()) {
             // Auto-create laporan mengajar jika belum ada
             $laporan = $session->autoCreateLaporanMengajar();
             if (! $laporan) {
@@ -122,6 +125,13 @@ class AbsensiController extends Controller
                         }
                     }
 
+                    $statusVal = $statusHadir;
+                    if ($statusVal == 1 || $statusVal === 'hadir') {
+                        $statusVal = 'hadir';
+                    } elseif ($statusVal == 0 || $statusVal === 'alpha') {
+                        $statusVal = 'alpha';
+                    }
+
                     // ✅ GUNAKAN updateOrCreate: Mencegah data duplikat.
                     Absensi::updateOrCreate(
                         [
@@ -129,15 +139,15 @@ class AbsensiController extends Controller
                             'siswa_id' => $siswaId,
                         ],
                         [
-                            'hadir' => $statusHadir,
+                            'status' => $statusVal,
                         ]
                     );
                 }
             }
 
             // ✅ HITUNG ULANG: Update jumlah siswa di laporan utama
-            $laporanMengajar->jumlah_siswa_hadir = $laporanMengajar->absensis()->where('hadir', true)->count();
-            $laporanMengajar->jumlah_siswa_tidak_hadir = $laporanMengajar->absensis()->where('hadir', false)->count();
+            $laporanMengajar->jumlah_siswa_hadir = $laporanMengajar->absensis()->where('status', 'hadir')->count();
+            $laporanMengajar->jumlah_siswa_tidak_hadir = $laporanMengajar->absensis()->whereIn('status', ['izin', 'sakit', 'alpha'])->count();
 
             // Panggil service untuk menghitung siswa yang keluar (hanya untuk regular)
             if (! $isEkstrakurikuler) {
@@ -199,7 +209,7 @@ class AbsensiController extends Controller
 
                                 $attendanceRecords = Absensi::whereIn('laporan_mengajar_id', $rombelReports->pluck('id'))
                                     ->where('siswa_id', $student->id)
-                                    ->where('hadir', true)
+                                    ->where('status', 'hadir')
                                     ->get();
 
                                 $totalPresent = $attendanceRecords->count();
@@ -400,7 +410,7 @@ class AbsensiController extends Controller
                 foreach ($students as $student) {
                     $attendanceCount = 0;
                     foreach ($chunk as $report) {
-                        $isPresent = $report->absensis->where('siswa_id', $student->id)->where('hadir', 1)->isNotEmpty();
+                        $isPresent = $report->absensis->where('siswa_id', $student->id)->where('status', 'hadir')->isNotEmpty();
                         if ($isPresent) $attendanceCount++;
                     }
 
@@ -499,7 +509,7 @@ class AbsensiController extends Controller
                 // Use eager loaded absensis
                 foreach ($s->laporanMengajar->absensis as $record) {
                     // 1 = Hadir, 0 = Tidak Hadir
-                    $attendanceMap[$s->id][$record->siswa_id] = $record->hadir;
+                    $attendanceMap[$s->id][$record->siswa_id] = ($record->status === 'hadir' ? 1 : 0);
                 }
             }
         }

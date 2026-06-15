@@ -84,26 +84,69 @@ Fitur untuk memantau kesehatan operasional dan mengambil keputusan berbasis data
 
 ---
 
-## 5. Automated Notifications [PLANNED]
+## 5. Automated Notifications [COMPLETED]
 
-Sistem notifikasi proaktif untuk mengurangi beban *follow-up* manual oleh admin.
+Sistem notifikasi proaktif untuk mengotomatisasi pengiriman pesan pengingat kepada instruktur dan orang tua.
 
-### Rencana Fitur:
-1.  **Reminder Laporan (H+1)**:
-    *   **Trigger**: Sesi sudah lewat jadwal tapi status belum 'Selesai'.
-    *   **Action**: Kirim WA/Email ke Instruktur: "Jadwal di [Sekolah] kemarin belum dilaporkan."
-2.  **Reminder Jadwal (H-1)**:
-    *   **Trigger**: Ada jadwal besok pukul 08:00 - 20:00.
-    *   **Action**: Kirim WA ke Instruktur: "Besok ada jadwal di [Sekolah] jam [Waktu]."
-3.  **Alert Konflik**:
-    *   **Trigger**: Admin mencoba jadwal instruktur yang sudah penuh.
-    *   **Action**: Peringatan di UI (Toast/Alert).
+### Fitur Terimplementasi:
+1.  **Welcome Message Otomatis**:
+    *   **Trigger**: Pendaftaran siswa baru ke rombel.
+    *   **Action**: Kirim WhatsApp selamat datang ke Orang Tua berisi jadwal (Hari & Jam) dari sesi pertama.
+2.  **Progress Reminder Otomatis/Manual**:
+    *   **Trigger**: Kehadiran siswa kelipatan 4 pertemuan (`total_hadir % 4 == 0`).
+    *   **Action**: Kirim WhatsApp rekap belajar 4 pertemuan terakhir beserta materi pengajaran. Bisa dipicu manual dari halaman detail sesi.
+3.  **Reminder Jadwal Mengajar H-1**:
+    *   **Trigger**: Sesi mengajar besok terdeteksi jam 18:00 WIB hari ini.
+    *   **Action**: Kirim WhatsApp reminder detail jadwal ke Instruktur utama dan asisten.
 
 ### Teknis:
-*   **Scheduler**: Laravel Cron Job (Hourly/Daily).
-*   **Channel**: WhatsApp (Primary) via 3rd Party API, Email (Secondary).
+*   **API Provider**: Fonnte Gateway (`WHATSAPP_FONNTE_TOKEN`).
+*   **Laravel Scheduler**: Artisan command `schedule:send-reminders` dijalankan otomatis harian pada jam 18:00 WIB.
+
+---
+
+## 6. AOQCS Phase 3 - Penilaian, Portofolio, QC Warning, & Rapor/Sertifikat [COMPLETED]
+
+Meningkatkan pengawasan kualitas pengajaran serta otomatisasi berkas hasil belajar.
+
+### Fitur Terimplementasi:
+1.  **Penilaian Siswa Massal**:
+    *   Penginputan 4 kali evaluasi sub-score (Tugas T1-T4, Sikap S1-S4, Proyek P1-P4).
+    *   Kalkulasi Nilai Akhir (NA) otomatis dengan bobot: Kehadiran 30%, Tugas 30%, Sikap 20%, Proyek 20%.
+    *   Predikat otomatis berdasarkan Kriteria Ketuntasan Minimal (KKM).
+2.  **Portofolio Siswa**:
+    *   Unggah berkas digital pendukung (.sb3 Scratch, .hex Microbit, .py Python, Gambar, PDF) per rombel/pertemuan.
+3.  **Rapor & Sertifikat PDF**:
+    *   Ekspor Rapor Belajar PDF layout Portrait.
+    *   Ekspor Sertifikat Kelulusan + Transkrip Nilai PDF layout Landscape 2 halaman (khusus siswa eligible dengan Kehadiran &ge; 75%).
+    *   QR Code verifikasi publik yang tercetak otomatis di sertifikat.
+4.  **QC Warning Dashboard**:
+    *   Sistem deteksi otomatis 6 jenis anomali (3 warning merah/urgent, 3 warning kuning/tren negatif).
+    *   Aksi resolusi warning manual langsung dari dashboard admin.
+
+---
+
+## 7. AOQCS Phase 4 - Kompensasi & Payroll Instruktur [COMPLETED]
+
+Menghubungkan data operasional mengajar dengan penghitungan honorarium instruktur secara aman dan transparan.
+
+### Fitur Terimplementasi:
+1.  **Master Tarif & Level**:
+    *   Kelola tarif dasar (base rate) dan bonus kepakaran kategori produk per Level Instruktur (Junior, Madya, Senior, Expert, Master Trainer).
+2.  **Detektor Punctuality (Kedisiplinan)**:
+    *   Pencatatan gap waktu check-in aktual vs jadwal kelas. Keterlambatan > 15 menit otomatis memicu penalty berupa denda sebesar Rp 25.000 per sesi.
+3.  **Lifecycle Batch Payroll**:
+    *   Sistem rekapitulasi bulanan otomatis berstatus: `Draft` -> `Processed` -> `Paid`.
+    *   Batch `Processed` mengunci status pembayaran sesi menjadi `processing` agar tidak dapat diubah-ubah selama proses review.
+    *   Batch `Paid` menandai seluruh sesi sebagai `paid` dan memicu finalisasi pembayaran.
+4.  **Override Manual & Bonus**:
+    *   Kemampuan admin keuangan melakukan override nilai honor per sesi dan penambahan bonus/notes kustom per item payroll sebelum finalisasi batch.
+5.  **Slip Gaji Portal**:
+    *   Portal khusus bagi instruktur untuk melihat dan mendownload slip gaji bulanan mereka sendiri secara transparan.
 
 ---
 
 ## Kesimpulan
-Sistem saat ini sudah **Stabil** untuk operasional dasar (Core Features) dan **Mobile Ready** untuk instruktur di lapangan. Fokus pengembangan selanjutnya adalah **Automasi (Notifikasi)** dan **Peningkatan Analitik** untuk memberikan *value* lebih strategis bagi manajemen.
+
+Sistem saat ini telah bertransformasi penuh menjadi **AOQCS Terpadu** yang stabil, mencakup seluruh siklus operasional: inisiasi pesanan (SP), manajemen rombel & asisten, kontrol kehadiran H-1 & presensi detail, penilaian & portofolio digital, warning engine quality control, hingga otomatisasi payroll keuangan instruktur.
+

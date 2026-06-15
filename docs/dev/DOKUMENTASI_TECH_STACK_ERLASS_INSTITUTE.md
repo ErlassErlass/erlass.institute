@@ -37,11 +37,11 @@ Client (Browser)
   ├── Routes (web.php, api.php, auth.php)
   ├── Middleware (Auth, Role, etc.)
   ├── Controllers (15+ controllers)
-  ├── Models (Eloquent ORM) ─── 15 models
+  ├── Models (Eloquent ORM) ─── 25+ models
   ├── Views (Blade + Bootstrap 5)
   └── Jobs/Notifications (Queue via Redis)
       │
-      ├── MySQL Database (erlass_db) ── 24 tabel
+      ├── MySQL Database (erlass_db) ── 38 tabel
       ├── Redis (Cache + Session + Queue)
       └── File Storage (public disk)
            ├── Foto kegiatan mengajar
@@ -137,7 +137,7 @@ Menggunakan **Spatie Laravel Permission** dengan 5 role:
 
 ## 🗄️ Database Schema — `erlass_db`
 
-### Daftar Semua Tabel (24 tabel)
+### Daftar Semua Tabel (38 tabel)
 
 | Tabel | Kategori | Keterangan |
 |-------|----------|------------|
@@ -145,7 +145,12 @@ Menggunakan **Spatie Laravel Permission** dengan 5 role:
 | `instructor_profiles` | Auth | Profil lengkap instruktur |
 | `divisions` | Org | Pembagian divisi internal |
 | `sekolah` | Master | Data sekolah mitra |
+| `school_pics` | Master | Kontak PIC Sekolah |
 | `siswa` | Master | Data siswa |
+| `products` | Master | Standardisasi produk program |
+| `salesmen` | Master | Data salesman & area kerja |
+| `orders_sp` | Sales | Surat Pesanan (SP) |
+| `order_items` | Sales | Item produk dalam SP |
 | `ekstrakurikuler` | Program | Program ekskul di sekolah |
 | `ekstrakurikuler_rombel` | Program | Rombel/grup dalam program |
 | `ekstrakurikuler_session` | Program | Sesi pertemuan per rombel |
@@ -153,7 +158,16 @@ Menggunakan **Spatie Laravel Permission** dengan 5 role:
 | `laporan_mengajar` | Laporan | Laporan per sesi mengajar |
 | `absensi` | Laporan | Absensi siswa per laporan |
 | `ref_materi` | Master | Referensi materi pengajaran |
-| `certificates` | Output | Sertifikat siswa |
+| `schedule_changes` | Workflow | Log & approval perubahan jadwal |
+| `session_confirmations` | Workflow | Log konfirmasi kehadiran H-1 |
+| `warnings` | Workflow | Log system quality control (Warning QC) |
+| `student_scores` | Penilaian | Nilai siswa tugas, sikap, proyek 4x |
+| `student_portfolios` | Penilaian | Portofolio file/tautan karya siswa |
+| `report_cards` | Output | Rapor belajar siswa (PDF) |
+| `certificates` | Output | Sertifikat kelulusan siswa (PDF + QR) |
+| `salary_rates` | Payroll | Master tarif honorarium & bonus |
+| `payroll_batches` | Payroll | Batch siklus pembayaran payroll bulanan |
+| `payroll_items` | Payroll | Struk rekap slip gaji per instruktur |
 | `late_report_requests` | Workflow | Permohonan laporan terlambat |
 | `activity_logs` | Audit | Log aktivitas sistem |
 | `roles` | RBAC | Data role (Spatie) |
@@ -433,144 +447,372 @@ Menggunakan **Spatie Laravel Permission** dengan 5 role:
 
 ```mermaid
 erDiagram
-    users {
-        bigint id PK
-        varchar instructor_id UK
-        varchar nama_lengkap
-        varchar email UK
-        enum role
-        bigint division_id FK
+    SEKOLAH ||--o{ SISWA : "has many"
+    SEKOLAH ||--o{ EKSTRAKURIKULER : "hosts"
+    SEKOLAH ||--o{ ORDERS_SP : "has many"
+    SEKOLAH ||--o{ SCHOOL_PICS : "has pics"
+    
+    SISWA ||--o{ SISWA_EKSTRAKURIKULER : "enrolls in"
+    SISWA ||--o{ ABSENSI : "has attendance"
+    
+    USER ||--o{ EKSTRAKURIKULER : "sales/pic"
+    USER ||--o{ EKSTRAKURIKULER_SESSION : "instructs"
+    USER ||--o{ LAPORAN_MENGAJAR : "submits"
+    USER ||--|| INSTRUCTOR_PROFILE : "has"
+    USER ||--o{ SALESMEN : "references as user"
+    USER ||--o{ SCHEDULE_CHANGES : "requests/approves"
+    USER ||--o{ SESSION_CONFIRMATIONS : "confirm instructor"
+    
+    EKSTRAKURIKULER ||--|{ EKSTRAKURIKULER_ROMBEL : "divided into"
+    EKSTRAKURIKULER_ROMBEL ||--o{ SISWA_EKSTRAKURIKULER : "contains"
+    EKSTRAKURIKULER_ROMBEL ||--o{ EKSTRAKURIKULER_SESSION : "has schedule"
+    
+    LAPORAN_MENGAJAR ||--|| EKSTRAKURIKULER_SESSION : "belongs to session"
+    LAPORAN_MENGAJAR ||--|{ ABSENSI : "records"
+ 
+    SALESMEN ||--o{ ORDERS_SP : "issues"
+    ORDERS_SP ||--|{ ORDER_ITEMS : "contains"
+    PRODUCTS ||--o{ ORDER_ITEMS : "ordered as"
+ 
+    EKSTRAKURIKULER_SESSION ||--o{ SCHEDULE_CHANGES : "has schedule changes"
+    SCHOOL_PICS ||--o{ SCHEDULE_CHANGES : "approves change request"
+    EKSTRAKURIKULER_SESSION ||--o{ SESSION_CONFIRMATIONS : "tracked via H-1 confirmations"
+    EKSTRAKURIKULER_SESSION ||--o{ WARNINGS : "triggers warnings (polymorphic)"
+ 
+    SISWA ||--o{ STUDENT_SCORES : "has scores"
+    SISWA ||--o{ STUDENT_PORTFOLIOS : "has portfolios"
+    SISWA ||--o{ REPORT_CARDS : "has report cards"
+    SISWA ||--o{ CERTIFICATES : "has certificates"
+    
+    EKSTRAKURIKULER ||--o{ STUDENT_SCORES : "grades"
+    EKSTRAKURIKULER ||--o{ STUDENT_PORTFOLIOS : "portfolios"
+    EKSTRAKURIKULER ||--o{ REPORT_CARDS : "report cards"
+    EKSTRAKURIKULER ||--o{ CERTIFICATES : "certificates"
+    
+    EKSTRAKURIKULER_ROMBEL ||--o{ STUDENT_SCORES : "scores"
+    EKSTRAKURIKULER_ROMBEL ||--o{ STUDENT_PORTFOLIOS : "portfolios"
+    EKSTRAKURIKULER_ROMBEL ||--o{ REPORT_CARDS : "report cards"
+    
+    STUDENT_SCORES ||--o{ REPORT_CARDS : "referenced in"
+ 
+    USER ||--o{ SALARY_RATES : "creates/updates"
+    USER ||--o{ PAYROLL_BATCHES : "processes/pays"
+    USER ||--o{ PAYROLL_ITEMS : "receives salary"
+    PAYROLL_BATCHES ||--|{ PAYROLL_ITEMS : "contains"
+    PAYROLL_ITEMS ||--o{ EKSTRAKURIKULER_SESSION : "pays sessions"
+ 
+ 
+    SEKOLAH {
+        string kodlan PK
+        string namasekolah
+        string kota
+        text alamat_lengkap
+        enum lokasi_default
     }
-
-    instructor_profiles {
+ 
+    SCHOOL_PICS {
+        bigint id PK
+        string sekolah_kodlan FK
+        string nama
+        string kontak
+        string email
+        string jabatan
+        bigint user_id FK
+    }
+ 
+    SISWA {
+        bigint id PK
+        string nisn
+        string nama_lengkap
+        string sekolah_kodlan FK
+        string rombel "Grup/Kelompok (Presensi)"
+        string kelas "Kelas Akademik (Master Data)"
+        string no_hp_orangtua
+    }
+ 
+    USER {
+        bigint id PK
+        string name
+        string email
+        string password
+        string role
+        string instructor_id "Format: ICE2026XXX"
+        string no_telephone
+        date tanggal_lahir
+        string agama
+        string pend_terakhir
+        string kompetensi_1
+        string kompetensi_2
+        json verification_documents
+        enum verification_status "pending, approved, rejected, incomplete"
+        datetime application_date
+    }
+ 
+    INSTRUCTOR_PROFILE {
         bigint id PK
         bigint user_id FK
-        varchar foto_ktp
-        varchar foto_npwp
-        json waktu_mengajar
+        string gelar_depan
+        string gelar_belakang
+        string nama_panggilan
+        string no_hp_2 "Darurat"
+        string alamat_domisili
+        string kota_domisili
+        string status_pernikahan
+        string nama_bank
+        string no_rekening
+        string no_npwp
+        string nik
+        string tinggi_berat_badan
+        string riwayat_penyakit
+        string mata_minus
+        json alat_mengajar
+        string catatan_alat
+        string kendaraan
+        string jenis_kendaraan
+        json waktu_mengajar "Matrix Hari x Jam"
+        string level "Junior, Madya, Senior, Expert, Master Trainer"
     }
-
-    divisions {
+ 
+    EKSTRAKURIKULER {
         bigint id PK
-        varchar name
-        bigint division_id FK
+        string kategori_program
+        string sekolah_kodlan FK
+        enum status "draft, diajukan, disetujui, ditolak, aktif, selesai, dibatalkan"
     }
-
-    sekolah {
-        varchar kodlan PK
-        varchar namasekolah
-        enum jenjang
-        varchar kotkab
-        varchar provinsi
-    }
-
-    siswa {
-        bigint id PK
-        varchar nisn UK
-        varchar sekolah_kodlan FK
-        varchar rombel
-        varchar kelas
-    }
-
-    ekstrakurikuler {
-        bigint id PK
-        varchar sekolah_kodlan FK
-        bigint user_id_sales FK
-        bigint user_id_admin FK
-        enum status
-        date tanggal_mulai
-        date tanggal_selesai
-    }
-
-    ekstrakurikuler_rombel {
+ 
+    EKSTRAKURIKULER_ROMBEL {
         bigint id PK
         bigint ekstrakurikuler_id FK
-        bigint user_id_instruktur FK
-        integer nomor_rombel
-        enum hari
-        enum status
+        string nama_rombel
+        string hari
+        time jam_mulai
     }
-
-    ekstrakurikuler_session {
-        bigint id PK
-        bigint ekstrakurikuler_id FK
-        bigint ekstrakurikuler_rombel_id FK
-        bigint user_id_instruktur FK
-        bigint laporan_mengajar_id FK
-        integer nomor_pertemuan
-        enum status
-    }
-
-    siswa_ekstrakurikuler {
+ 
+    SISWA_EKSTRAKURIKULER {
         bigint id PK
         bigint siswa_id FK
         bigint ekstrakurikuler_id FK
         bigint ekstrakurikuler_rombel_id FK
-        enum status
+        enum status "aktif, keluar, lulus"
     }
-
-    laporan_mengajar {
+ 
+    EKSTRAKURIKULER_SESSION {
+        bigint id PK
+        bigint ekstrakurikuler_rombel_id FK
+        date tanggal_terjadwal
+        time jam_mulai_terjadwal
+        enum status "terjadwal, selesai, dibatalkan, ditunda, libur, diganti"
+        string payment_status "unpaid, processing, paid"
+        bigint payroll_item_id FK
+        string actual_checkin_status "excellent, on_time, warning, penalty"
+        decimal actual_checkin_penalty
+        decimal calculated_fee
+        decimal override_fee
+    }
+ 
+    LAPORAN_MENGAJAR {
         bigint id PK
         bigint user_id_instruktur FK
-        bigint user_id_assisten FK
-        integer pertemuan_ke
-        date jadwal_mengajar
-        enum keaktifan
-        enum pemahaman_materi
+        bigint ekstrakurikuler_session_id FK "Inverted 1-to-1 relation"
+        text materi_pengajaran
+        string foto_kegiatan
+        string foto_absensi_siswa "Wajib TTD"
     }
-
-    absensi {
+ 
+    ABSENSI {
         bigint id PK
         bigint laporan_mengajar_id FK
         bigint siswa_id FK
-        boolean hadir
+        enum status "hadir, izin, sakit, alpha"
     }
-
-    certificates {
+ 
+    PRODUCTS {
+        bigint id PK
+        string kode_produk
+        string nama_produk
+        string jenis
+        decimal harga
+        int durasi_bulan
+        enum jenis_kegiatan
+        int standar_durasi_menit
+    }
+ 
+    SALESMEN {
         bigint id PK
         bigint user_id FK
-        bigint ekstrakurikuler_id FK
-        varchar certificate_code UK
+        string kode_salesman
+        string nama_salesman
+        string group_leader
+        string area
     }
-
-    late_report_requests {
+ 
+    ORDERS_SP {
         bigint id PK
-        bigint user_id FK
-        bigint session_id FK
-        bigint admin_id FK
+        string nomor_sp
+        date tanggal_sp
+        string sekolah_kodlan FK
+        bigint salesman_id FK
+        int jumlah_peserta_estimasi
+        enum jenis_kegiatan
+        string lokasi_pembelajaran
+        date tanggal_mulai_rencana
+        int jumlah_pertemuan
+        text catatan_khusus
         enum status
+        bigint created_by FK
+        bigint updated_by FK
     }
-
-    activity_logs {
+ 
+    ORDER_ITEMS {
         bigint id PK
-        bigint user_id FK
-        varchar action
-        json properties
+        bigint order_sp_id FK
+        bigint product_id FK
+        decimal harga_satuan
     }
-
-    users ||--o| instructor_profiles : "punya profil (1:1)"
-    users }o--|| divisions : "tergabung dalam"
-    divisions ||--o{ divisions : "sub-divisi"
-    sekolah ||--o{ siswa : "menampung"
-    sekolah ||--o{ ekstrakurikuler : "menjadi lokasi"
-    users ||--o{ ekstrakurikuler : "sales / admin"
-    ekstrakurikuler ||--o{ ekstrakurikuler_rombel : "terdiri dari rombel"
-    users ||--o{ ekstrakurikuler_rombel : "mengajar sebagai instruktur"
-    ekstrakurikuler_rombel ||--o{ ekstrakurikuler_session : "punya banyak sesi"
-    ekstrakurikuler ||--o{ ekstrakurikuler_session : "punya banyak sesi"
-    users ||--o{ ekstrakurikuler_session : "mengajar di sesi"
-    siswa ||--o{ siswa_ekstrakurikuler : "mendaftar"
-    ekstrakurikuler ||--o{ siswa_ekstrakurikuler : "menampung siswa"
-    ekstrakurikuler_rombel ||--o{ siswa_ekstrakurikuler : "di rombel"
-    users ||--o{ laporan_mengajar : "membuat laporan"
-    laporan_mengajar ||--o{ absensi : "berisi absensi"
-    siswa ||--o{ absensi : "hadir/tidak"
-    ekstrakurikuler_session ||--o| laporan_mengajar : "dilaporkan via"
-    users ||--o{ certificates : "menerima sertifikat"
-    ekstrakurikuler ||--o{ certificates : "menghasilkan sertifikat"
-    users ||--o{ late_report_requests : "mengajukan"
-    ekstrakurikuler_session ||--o{ late_report_requests : "untuk sesi ini"
-    users ||--o{ activity_logs : "dicatat aktivitasnya"
+ 
+    SCHEDULE_CHANGES {
+        bigint id PK
+        bigint ekstrakurikuler_session_id FK
+        bigint requested_by FK
+        date original_date
+        time original_start_time
+        time original_end_time
+        date proposed_date
+        time proposed_start_time
+        time proposed_end_time
+        text reason
+        bigint academic_approver_id FK
+        datetime academic_approved_at
+        bigint school_pic_approver_id FK
+        datetime school_pic_approved_at
+        enum status "pending, approved_academic, approved_pic, rejected, applied"
+        text rejection_reason
+    }
+ 
+    SESSION_CONFIRMATIONS {
+        bigint id PK
+        bigint ekstrakurikuler_session_id FK
+        bigint user_id_instruktur FK
+        enum status "pending, confirmed, absent"
+        datetime confirmed_at
+        text notes
+    }
+ 
+    WARNINGS {
+        bigint id PK
+        enum warning_type "no_instructor, not_confirmed, missing_report, low_attendance, reschedule_limit, behind_target"
+        string sourceable_type
+        bigint sourceable_id
+        enum severity "yellow, red"
+        enum status "active, resolved, ignored"
+        bigint resolved_by FK
+        datetime resolved_at
+        text notes
+    }
+ 
+    STUDENT_SCORES {
+        bigint id PK
+        bigint siswa_id FK
+        bigint ekstrakurikuler_id FK
+        bigint ekstrakurikuler_rombel_id FK
+        decimal nilai_tugas_1
+        decimal nilai_tugas_2
+        decimal nilai_tugas_3
+        decimal nilai_tugas_4
+        decimal nilai_sikap_1
+        decimal nilai_sikap_2
+        decimal nilai_sikap_3
+        decimal nilai_sikap_4
+        decimal nilai_proyek_1
+        decimal nilai_proyek_2
+        decimal nilai_proyek_3
+        decimal nilai_proyek_4
+        decimal nilai_kehadiran
+        decimal nilai_tugas
+        decimal nilai_proyek
+        decimal nilai_sikap
+        decimal nilai_akhir
+        text catatan_guru
+        string projek_scratch
+        string periode
+        datetime finalized_at
+        bigint finalized_by FK
+        bigint created_by FK
+        bigint updated_by FK
+    }
+ 
+    STUDENT_PORTFOLIOS {
+        bigint id PK
+        bigint siswa_id FK
+        bigint ekstrakurikuler_id FK
+        bigint ekstrakurikuler_rombel_id FK
+        string tipe_file
+        string judul
+        text deskripsi
+        string file_path
+        string url_eksternal
+        int pertemuan_ke
+        bigint created_by FK
+    }
+ 
+    REPORT_CARDS {
+        bigint id PK
+        bigint siswa_id FK
+        bigint ekstrakurikuler_id FK
+        bigint ekstrakurikuler_rombel_id FK
+        bigint student_score_id FK
+        string periode
+        string file_path
+        datetime generated_at
+        bigint generated_by FK
+    }
+ 
+    CERTIFICATES {
+        bigint id PK
+        bigint siswa_id FK
+        bigint ekstrakurikuler_id FK
+        string certificate_code
+        date issued_at
+        string file_path
+        string status
+        string qr_code_path
+    }
+ 
+    SALARY_RATES {
+        bigint id PK
+        string level "junior, madya, senior, expert, master_trainer"
+        decimal base_rate
+        string product_category
+        decimal product_bonus
+        bigint created_by FK
+        bigint updated_by FK
+    }
+ 
+    PAYROLL_BATCHES {
+        bigint id PK
+        string code "Format: PAY-YYYYMM"
+        date periode
+        string status "draft, processed, paid"
+        text notes
+        datetime processed_at
+        bigint processed_by FK
+        datetime paid_at
+        bigint paid_by FK
+    }
+ 
+    PAYROLL_ITEMS {
+        bigint id PK
+        bigint payroll_batch_id FK
+        bigint user_id_instruktur FK
+        int total_sessions
+        decimal total_base_fee
+        decimal total_product_bonus
+        decimal total_penalty
+        decimal total_bonus
+        decimal net_salary
+        string status "pending, approved, paid"
+        text notes
+    }
 ```
 
 ---

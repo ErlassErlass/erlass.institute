@@ -35,12 +35,17 @@ class EkstrakurikulerSession extends Model
         'user_id_asisten',
         'topik_materi',
         'deskripsi_kegiatan',
-        'laporan_mengajar_id',
         'catatan',
         'alasan_pembatalan',
         'tanggal_pengganti',
         'created_by',
         'updated_by',
+        'payment_status',
+        'payroll_item_id',
+        'actual_checkin_status',
+        'actual_checkin_penalty',
+        'calculated_fee',
+        'override_fee',
     ];
 
     /**
@@ -105,6 +110,14 @@ class EkstrakurikulerSession extends Model
     }
 
     /**
+     * Relasi ke PayrollItem.
+     */
+    public function payrollItem(): BelongsTo
+    {
+        return $this->belongsTo(PayrollItem::class, 'payroll_item_id');
+    }
+
+    /**
      * Relasi ke LaporanMengajar jika sudah terintegrasi.
      */
     public function lateReportRequests()
@@ -119,9 +132,9 @@ class EkstrakurikulerSession extends Model
             ->latest();
     }
 
-    public function laporanMengajar(): BelongsTo
+    public function laporanMengajar()
     {
-        return $this->belongsTo(LaporanMengajar::class, 'laporan_mengajar_id');
+        return $this->hasOne(LaporanMengajar::class, 'ekstrakurikuler_session_id');
     }
 
     /**
@@ -352,9 +365,7 @@ class EkstrakurikulerSession extends Model
             $this->deskripsi_kegiatan = $data['deskripsi_kegiatan'];
         }
 
-        if (! empty($data['laporan_mengajar_id'])) {
-            $this->laporan_mengajar_id = $data['laporan_mengajar_id'];
-        }
+        // Laporan Mengajar relation is inverted, handled report-side
 
         $saved = $this->save();
 
@@ -363,7 +374,7 @@ class EkstrakurikulerSession extends Model
             $this->rombel->incrementPertemuanSelesai();
 
             // Auto-create laporan mengajar jika belum ada
-            if (! $this->laporan_mengajar_id && isset($data['auto_create_laporan']) && $data['auto_create_laporan']) {
+            if (! $this->laporanMengajar()->exists() && isset($data['auto_create_laporan']) && $data['auto_create_laporan']) {
                 $this->autoCreateLaporanMengajar();
             }
         }
@@ -423,7 +434,7 @@ class EkstrakurikulerSession extends Model
      */
     public function createLaporanMengajar(array $data = []): ?LaporanMengajar
     {
-        if ($this->status !== self::STATUS_SELESAI || $this->laporan_mengajar_id) {
+        if ($this->status !== self::STATUS_SELESAI || $this->laporanMengajar()->exists()) {
             return null;
         }
 
@@ -460,8 +471,7 @@ class EkstrakurikulerSession extends Model
         $laporan = LaporanMengajar::create($laporanData);
 
         if ($laporan) {
-            $this->laporan_mengajar_id = $laporan->id;
-            $this->save();
+            $laporan->update(['ekstrakurikuler_session_id' => $this->id]);
         }
 
         return $laporan;
@@ -472,7 +482,7 @@ class EkstrakurikulerSession extends Model
      */
     public function autoCreateLaporanMengajar(): ?LaporanMengajar
     {
-        if ($this->status === self::STATUS_SELESAI && ! $this->laporan_mengajar_id) {
+        if ($this->status === self::STATUS_SELESAI && ! $this->laporanMengajar()->exists()) {
             return $this->createLaporanMengajar([
                 'deskripsi_kegiatan' => $this->deskripsi_kegiatan,
                 'catatan' => $this->catatan,

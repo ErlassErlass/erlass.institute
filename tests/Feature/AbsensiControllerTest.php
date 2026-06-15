@@ -145,13 +145,13 @@ class AbsensiControllerTest extends TestCase
         $this->assertDatabaseHas('absensi', [
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa1->id,
-            'hadir' => true,
+            'status' => 'hadir',
         ]);
 
         $this->assertDatabaseHas('absensi', [
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa2->id,
-            'hadir' => false,
+            'status' => 'alpha',
         ]);
 
         // Verify laporan statistics were updated
@@ -186,13 +186,13 @@ class AbsensiControllerTest extends TestCase
         $this->assertDatabaseHas('absensi', [
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa1->id,
-            'hadir' => false, // Updated
+            'status' => 'alpha', // Updated
         ]);
 
         $this->assertDatabaseHas('absensi', [
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa2->id,
-            'hadir' => true, // Added
+            'status' => 'hadir', // Added
         ]);
     }
 

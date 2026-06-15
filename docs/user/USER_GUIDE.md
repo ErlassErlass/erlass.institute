@@ -8,8 +8,9 @@ Dokumen ini berisi panduan lengkap penggunaan aplikasi untuk setiap role (peran)
 3. [Role: Instruktur](#role-instruktur)
 4. [Role: Sekolah (PIC)](#role-sekolah-pic)
 5. [Role: Sales / Marketing](#role-sales--marketing)
-6. [Panduan Fitur Detail](#panduan-fitur-detail)
-7. [Keamanan & Hak Akses](#keamanan--hak-akses)
+6. [Kompensasi & Payroll (Fase 4)](#kompensasi--payroll-fase-4)
+7. [Panduan Fitur Detail](#panduan-fitur-detail)
+8. [Keamanan & Hak Akses](#keamanan--hak-akses)
 
 ---
 
@@ -71,6 +72,12 @@ Modul ini menggunakan **Wizard Multi-Step** untuk memastikan kelengkapan data se
 
 > [!TIP]
 > **Import & Registrasi Siswa**: Gunakan fitur Import Excel di halaman Detail Program setelah Rombel dibuat. Pastikan memiliki header `no_hp_orangtua` yang valid. Sistem akan **otomatis mengirim Welcome Message WhatsApp** kepada orang tua sesaat setelah pendaftaran berhasil. Fitur pesan otomatis ini juga berlaku untuk fitur *Quick Add* oleh Instruktur di halaman Absensi.
+
+### 7. Kompensasi & Proses Payroll
+*   **Kelola Tarif**: Admin dan Webmaster dapat mengatur tarif dasar pengajaran per level instruktur (Junior, Madya, Senior, Expert, Master Trainer) dan bonus per kategori produk (Scratch, Microbit, Python, dll.).
+*   **Proses Payroll Bulanan**: Admin keuangan dapat membuat Batch Payroll baru berstatus `Draft` untuk bulan tertentu.
+*   **Pemeriksaan & Override**: Halaman detail batch menampilkan rekap sesi, total tarif dasar, bonus, dan penalty keterlambatan (jika check-in terlambat > 15 menit, didenda Rp 25.000 otomatis). Admin dapat mengubah nominal tarif per sesi (override) atau menambahkan bonus/potongan kustom serta catatan.
+*   **Finalisasi Batch**: Status batch dipindahkan ke `Processed` (mengunci sesi agar tidak terjadi perubahan data selama review) lalu `Paid` (melakukan transfer dan pencatatan lunas).
 
 ---
 
@@ -139,6 +146,11 @@ Terdapat **dua cara** membuat laporan:
 > Halaman "Daftar Laporan Mengajar" berfungsi sebagai **Arsip Pusat**.
 > - Instruktur tidak perlu membuat laporan dari halaman ini (gunakan workflow "Selesai Sesi").
 > - Halaman ini digunakan untuk **Melihat History**, **Edit Data Salah**, atau **Export PDF/Excel** jika diperlukan.
+
+### 6. Slip Gaji Saya (Portal Financial)
+*   Instruktur dapat mengakses menu **Slip Gaji** di sidebar kiri.
+*   Menampilkan rekam jejak slip gaji bulanan yang sudah diproses (`Paid`).
+*   Instruktur dapat mengklik **Detail** untuk melihat struk rincian slip gaji: total sesi mengajar, rincian per sesi, bonus kepakaran, denda keterlambatan, penyesuaian manual dari admin, dan total bersih yang dibayarkan.
 
 ---
 

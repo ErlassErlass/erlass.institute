@@ -33,13 +33,17 @@
 
                         <div class="mb-3">
                             <label for="sekolah_kodlan" class="form-label">Sekolah</label>
-                            <select name="sekolah_kodlan" id="sekolah_kodlan" class="form-select select2 @error('sekolah_kodlan') is-invalid @enderror" required>
-                                <option value="">Pilih Sekolah</option>
-                                @foreach ($sekolahs as $sekolah)
-                                    <option value="{{ $sekolah->kodlan }}" {{ old('sekolah_kodlan', $siswa->sekolah_kodlan) == $sekolah->kodlan ? 'selected' : '' }}>
-                                        {{ $sekolah->namasekolah }} ({{ $sekolah->kodlan }})
+                            <select name="sekolah_kodlan" id="sekolah_kodlan" class="form-select @error('sekolah_kodlan') is-invalid @enderror" required>
+                                <option value="">Ketik nama sekolah atau kode...</option>
+                                @php
+                                    $selectedKodlan = old('sekolah_kodlan', $siswa->sekolah_kodlan);
+                                    $selectedSekolah = \App\Models\Sekolah::where('kodlan', $selectedKodlan)->first();
+                                @endphp
+                                @if($selectedSekolah)
+                                    <option value="{{ $selectedKodlan }}" selected>
+                                        {{ $selectedSekolah->namasekolah }} ({{ $selectedKodlan }})
                                     </option>
-                                @endforeach
+                                @endif
                             </select>
                              @error('sekolah_kodlan')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -79,12 +83,28 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        if ($('.select2').length > 0) {
-            $('.select2').select2({
-                theme: 'bootstrap-5',
-                width: '100%'
-            });
-        }
+        $('#sekolah_kodlan').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: 'Ketik nama sekolah atau kode...',
+            allowClear: true,
+            ajax: {
+                url: "{{ route('api.sekolah.search') }}",
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            }
+        });
     });
 </script>
 @endpush

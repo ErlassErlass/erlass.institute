@@ -14,6 +14,7 @@ class Absensi extends Model
     protected $fillable = [
         'laporan_mengajar_id',
         'siswa_id',
+        'status',
         'hadir',
     ];
 
@@ -23,8 +24,24 @@ class Absensi extends Model
         'updated_at',
     ];
 
+    /**
+     * Backward compatibility accessor for 'hadir'
+     */
+    public function getHadirAttribute(): bool
+    {
+        return ($this->status ?? 'alpha') === 'hadir';
+    }
+
+    /**
+     * Backward compatibility mutator for 'hadir'
+     */
+    public function setHadirAttribute($value): void
+    {
+        $this->attributes['status'] = filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 'hadir' : 'alpha';
+    }
+
     protected $casts = [
-        'hadir' => 'boolean',
+        // status is a string/enum, no cast needed
     ];
 
     /**

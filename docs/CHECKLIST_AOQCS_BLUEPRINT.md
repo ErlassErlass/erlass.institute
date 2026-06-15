@@ -30,6 +30,7 @@
 - [x] Rincian Master Produk (Kode, Nama, Jenis, Harga, Durasi Program, Jenis Eskul/Inkul, Durasi Sesi)
 - [x] Rincian Master Instruktur (Nama, Keahlian, Waktu Mengajar JSON, Area, Status Aktif)
 - [x] Rincian Master Asisten (Nama, Keahlian, Ketersediaan, Area)
+- [x] Input Nama Sekolah Menggunakan Searchbar (Select2 AJAX) di seluruh form (Siswa, SP, Ekskul, Absensi) untuk mencegah isu scrolling data > 20 item
 
 ---
 
@@ -38,12 +39,12 @@
 | Status | Item Blueprint | Kondisi erlass.institute Saat Ini | Tindakan / Kesenjangan (Gap) |
 | :---: | :--- | :--- | :--- |
 | **🟢** | **Modul SP (Surat Pesanan)** | Ada tabel `orders_sp` & `order_items`, CRUD views, form dinamis, & Impor Excel. | **Selesai**: Skema database, model Eloquent, CRUD, antarmuka dengan form dinamis jQuery, dan impor Excel telah siap digunakan. |
-| **🔴** | **Validasi Akademik** | Tidak ada. Hanya ada perubahan status draft ke aktif oleh admin. | **Temuan**: Form checklist kelayakan sebelum penjadwalan (jumlah rombel, ruangan, asisten, kepastian peserta) belum ada. <br> **Tindakan**: Buat form validasi akademik pasca input SP. |
+| **🟢** | **Validasi Akademik** | Workflow validasi akademik (Opsi B) diimplementasikan langsung di tabel `orders_sp` via kolom `approved_by` dan `approved_at`. Admin dapat menyetujui SP yang berstatus `menunggu_validasi`, dan program Ekstrakurikuler otomatis di-generate. | **Selesai**: Migration, model, controller, route, dan UI tombol approve sudah diimplementasikan. |
 
 - [x] Kolom SP (No SP, Tanggal, Kode Pelanggan, Salesman, Produk, Harga, Estimasi Siswa, Jenis Kegiatan, Rencana Tanggal Mulai, Pertemuan Target)
-- [x] Workflow Status SP (Draft -> Menunggu Validasi -> Disetujui -> Berjalan -> Selesai -> Batal) — Draft & Ajukan Validasi Selesai
+- [x] Workflow Status SP (Draft -> Menunggu Validasi -> Disetujui -> Berjalan -> Selesai -> Batal) — Semua flow sudah diimplementasikan
 - [x] Fitur Import SP massal dari Excel/Google Sheets
-- [ ] Checklist Validasi Akademik (Peserta Pasti, Jadwal Disetujui Sekolah, Ruangan Tersedia, Instruktur Tersedia, Produk Sesuai, Hitungan Rombel & Kebutuhan Asisten)
+- [x] Validasi Akademik (Approve SP → auto-generate program Ekskul) — Opsi B (track di tabel `orders_sp`)
 
 ---
 
@@ -51,11 +52,11 @@
 
 | Status | Item Blueprint | Kondisi erlass.institute Saat Ini | Tindakan / Kesenjangan (Gap) |
 | :---: | :--- | :--- | :--- |
-| **🟡** | **Modul Rombel** | Ada tabel `ekstrakurikuler_rombel`. | **Temuan**: Rombel sudah menyimpan detail hari, jam, instruktur/asisten. Namun, aturan warning jika siswa > 20 wajib asisten belum berjalan. <br> **Tindakan**: Tambahkan validator logika pada saat penyimpanan Rombel. |
+| **🟢** | **Modul Rombel** | Ada tabel `ekstrakurikuler_rombel`. | **Selesai**: Rombel menyimpan detail hari, jam, instruktur/asisten. Warning otomatis (soft alert) ditampilkan jika rombel memiliki >20 siswa tanpa asisten. |
 | **🟡** | **Modul Jadwal (Sesi)** | Ada tabel `ekstrakurikuler_session`. | **Temuan**: Sesi di-generate otomatis per pertemuan. Namun, status sesi belum mendukung status `libur` dan `diganti`. <br> **Tindakan**: Tambahkan enum status `libur` dan `diganti` pada tabel sesi. |
 
 - [x] Info Rombel (Kode Rombel, Nama, Jumlah Siswa, Kapasitas, Hari, Jam Mulai/Selesai, Lokasi)
-- [ ] Aturan Validasi Rombel (Warning otomatis jika siswa > 20 butuh asisten)
+- [x] Aturan Validasi Rombel (Warning otomatis jika siswa > 20 butuh asisten) — Soft alert di halaman detail ekskul
 - [x] Jadwal Sesi Per Pertemuan (Pertemuan ke-X, Tanggal Sesi, Jam Sesi, Instruktur/Asisten, Topik)
 - [🟡] Status Sesi Lengkap (Terjadwal, Berlangsung, Selesai, Ditunda, **Diganti**, **Libur**, Batal)
 
@@ -65,12 +66,13 @@
 
 | Status | Item Blueprint | Kondisi erlass.institute Saat Ini | Tindakan / Kesenjangan (Gap) |
 | :---: | :--- | :--- | :--- |
-| **🔴** | **Perubahan Jadwal** | Instruktur atau admin langsung mengedit jam/tanggal sesi tanpa audit trail. | **Temuan**: Tidak ada rekaman siapa yang mengajukan, alasan perubahan, dan persetujuan dari PIC sekolah. <br> **Tindakan**: Buat tabel `schedule_changes` dan antarmuka persetujuan bertingkat. |
+| **🟢** | **Perubahan Jadwal** | Tabel `schedule_changes`, model, controller `ScheduleChangeController`, dan UI views lengkap. | **Selesai**: Workflow pengajuan → validasi akademik → konfirmasi PIC → terapkan sudah terimplementasi penuh. |
 
-- [ ] Log Jadwal Lama (Tanggal, Jam, Instruktur Lama)
-- [ ] Alasan Perubahan (Sekolah Libur, Instruktur Berhalangan, Bentrok Kegiatan, Peserta Belum Siap, Cuaca/Kondisi Darurat, Permintaan Pelanggan)
-- [ ] Log Jadwal Baru (Usulan Tanggal, Usulan Jam, Instruktur Pengganti)
-- [ ] Workflow Approval Perubahan Jadwal (Diajukan -> Disetujui Akademik -> Disetujui PIC Sekolah -> Diterapkan / Ditolak)
+- [x] Log Jadwal Lama (Tanggal, Jam, Instruktur Lama)
+- [x] Alasan Perubahan (Sekolah Libur, Instruktur Berhalangan, Bentrok Kegiatan, Peserta Belum Siap, Cuaca/Kondisi Darurat, Permintaan Pelanggan)
+- [x] Log Jadwal Baru (Usulan Tanggal, Usulan Jam, Instruktur Pengganti)
+- [x] Workflow Approval Perubahan Jadwal (Diajukan -> Disetujui Akademik -> Disetujui PIC Sekolah -> Diterapkan / Ditolak) — Controller, routing, dan UI lengkap
+- [x] H-1 WhatsApp Reminder otomatis via Fonnte API (`schedule:send-reminders`) — Artisan command terjadwal jam 18:00 WIB
 
 ---
 
@@ -79,11 +81,11 @@
 | Status | Item Blueprint | Kondisi erlass.institute Saat Ini | Tindakan / Kesenjangan (Gap) |
 | :---: | :--- | :--- | :--- |
 | **🟡** | **Master & Status Peserta** | Ada tabel `siswa` & `siswa_ekstrakurikuler`. | **Temuan**: Status keanggotaan saat ini hanya aktif, keluar, dan lulus. Blueprint meminta pencatatan status lebih dinamis (termasuk *pindah rombel*). <br> **Tindakan**: Tambahkan status `pindah_rombel` pada riwayat siswa. |
-| **🟡** | **Presensi Kehadiran** | Ada tabel `absensi` dengan status boolean `hadir`. | **Temuan**: Absensi saat ini hanya mencatat status Hadir (True) atau Tidak Hadir (False). <br> **Tindakan**: Ubah menjadi enum (`Hadir`, `Izin`, `Sakit`, `Alpha`) untuk laporan presensi yang akurat. |
+| **🟢** | **Presensi Kehadiran** | Kolom `absensi.hadir` (boolean) sudah direfaktor menjadi `status` enum. | **Selesai**: Tabel absensi mendukung status detail Hadir, Izin, Sakit, Alpha. Controller dan Model sudah disesuaikan agar backward compatible. |
 
 - [x] Biodata Siswa (Nama, NISN, Kelas, Rombel, Nama Orang Tua, WA Orang Tua)
 - [x] Fitur Pindah Rombel & Import Siswa dari Excel
-- [ ] Status Presensi Detail (Hadir, Izin, Sakit, Alpha)
+- [x] Status Presensi Detail (Hadir, Izin, Sakit, Alpha)
 - [ ] Laporan & Rekapitulasi Kehadiran Siswa/Instruktur
 
 ---
@@ -94,14 +96,14 @@
 | :---: | :--- | :--- | :--- |
 | **🟢** | **Laporan Mengajar** | Ada tabel `laporan_mengajar` yang terhubung 1-to-1 dengan sesi. | **Temuan**: Sudah mencatat topik materi, target capaian, catatan, foto kegiatan, dan foto absensi fisik. <br> **Tindakan**: Sudah sesuai blueprint. |
 | **🟢** | **Progress Materi** | Ada di dashboard kelas dan rekap absensi. | **Temuan**: Menampilkan persentase pertemuan selesai dan sisa kelas. <br> **Tindakan**: Sudah sesuai blueprint. |
-| **🔴** | **Penilaian Siswa** | Belum ada. | **Temuan**: Belum ada modul input nilai siswa per periode. <br> **Tindakan**: Buat tabel `student_scores` (Kehadiran, Tugas, Proyek, Sikap). |
-| **🟡** | **Portofolio Siswa** | Ada field `file_project` khusus program Scratch. | **Temuan**: Belum terstruktur untuk menyimpan jenis file portofolio lain (.hex, kode Python, link video Robotik). <br> **Tindakan**: Buat tabel `student_portfolios` dengan tipe berkas dinamis. |
+| **🟢** | **Penilaian Siswa** | Selesai. Ada tabel `student_scores` dengan input 4x, rata-rata otomatis, dan kelayakan sertifikat. | **Selesai**: Tabel database, model Eloquent, penginputan massal, finalisasi nilai, dan ekspor Rapor/Sertifikat PDF. |
+| **🟢** | **Portofolio Siswa** | Selesai. Ada tabel `student_portfolios` pendukung tipe file dinamis (.sb3, .hex, .py, dll). | **Selesai**: Modul upload & tautan luar portofolio per rombel terintegrasi. |
 
 - [x] Formulir Laporan Mengajar (Materi, Target Capaian, Hasil, Catatan Instruktur, Unggah Foto Kegiatan)
 - [x] Lampiran Foto Absensi Fisik Tanda Tangan Sekolah
 - [x] Tracker Progress Rombel (Total Sesi Target vs Realisasi)
-- [ ] Lembar Penilaian Siswa (Skala 0-100 untuk Kehadiran, Tugas, Proyek, Sikap)
-- [ ] Portofolio Portabel (SB3 Scratch, HEX Microbit, file Python, upload media Robotik)
+- [x] Lembar Penilaian Siswa (Skala 0-100 untuk Kehadiran, Tugas, Proyek, Sikap)
+- [x] Portofolio Portabel (SB3 Scratch, HEX Microbit, file Python, upload media Robotik)
 
 ---
 
@@ -109,14 +111,14 @@
 
 | Status | Item Blueprint | Kondisi erlass.institute Saat Ini | Tindakan / Kesenjangan (Gap) |
 | :---: | :--- | :--- | :--- |
-| **🔴** | **Warning Engine** | Belum ada deteksi masalah otomatis di dasbor. | **Temuan**: Admin tidak mendapat peringatan dini jika ada kelas bermasalah. <br> **Tindakan**: Buat tabel/dashboard alerts `warnings` berbasis cron job harian. |
+| **🟢** | **Warning Engine** | Tabel `warnings`, Artisan scheduler `warnings:detect` dan panel dashboard QC aktif lengkap. | **Selesai**: Deteksi otomatis 6 aturan bisnis (merah & kuning) dan aksi resolve langsung dari dashboard admin. |
 
-- [ ] Peringatan Merah 1: Jadwal besok belum ada Instruktur Utama (URGENT)
-- [ ] Peringatan Merah 2: Jadwal hari ini belum dikonfirmasi instruktur (H-1 terlewati)
-- [ ] Peringatan Merah 3: Sesi kelas sudah lewat jamnya tetapi belum ada absensi & laporan mengajar
-- [ ] Peringatan Kuning 1: Rata-rata kehadiran siswa rombel turun di bawah 70%
-- [ ] Peringatan Kuning 2: Jumlah pengusulan perubahan jadwal rombel melebihi 3 kali
-- [ ] Peringatan Kuning 3: Progres pertemuan rombel tertinggal jauh dari target time-frame
+- [x] Peringatan Merah 1: Jadwal besok belum ada Instruktur Utama (URGENT)
+- [x] Peringatan Merah 2: Jadwal hari ini belum dikonfirmasi instruktur (H-1 terlewati)
+- [x] Peringatan Merah 3: Sesi kelas sudah lewat jamnya tetapi belum ada absensi & laporan mengajar
+- [x] Peringatan Kuning 1: Rata-rata kehadiran siswa rombel turun di bawah 70%
+- [x] Peringatan Kuning 2: Jumlah pengusulan perubahan jadwal rombel melebihi 3 kali
+- [x] Peringatan Kuning 3: Progres pertemuan rombel tertinggal jauh dari target time-frame
 
 ---
 
@@ -124,13 +126,13 @@
 
 | Status | Item Blueprint | Kondisi erlass.institute Saat Ini | Tindakan / Kesenjangan (Gap) |
 | :---: | :--- | :--- | :--- |
-| **🔴** | **Modul Kompensasi** | Belum ada modul keuangan/honor instruktur. Perhitungan masih manual di luar aplikasi. | **Temuan**: Seluruh pilar penggajian instruktur belum terintegrasi dengan data absensi. <br> **Tindakan**: Buat tabel tarif, status honor per sesi, pencatatan waktu check-in, dan dasbor rekapitulasi payroll. |
+| **🟢** | **Modul Kompensasi** | Selesai. Ada modul keuangan/honor instruktur terintegrasi dengan data absensi, deteksi punctuality, denda keterlambatan, dan approval workflow. | **Selesai**: Tabel tarif, status honor per sesi, pencatatan waktu check-in, dan dasbor rekapitulasi payroll telah diimplementasikan penuh. |
 
-- [ ] Master Leveling Tarif (Junior, Madya, Senior, Expert, Master Trainer)
-- [ ] Master Tarif Kepakaran Produk (Scratch, Microbit, Robotik, Python, dll.)
-- [ ] Master Tarif Instruktur Tamu / Guest Speaker / Praktisi
-- [ ] Kolom Override Tarif Khusus (Tarif khusus yang dikoreksi per sekolah / wilayah)
-- [ ] Detektor Punctuality (Mencatat waktu check-in aktual vs jadwal -> Excellent, On Time, Warning, Penalty)
-- [ ] Akumulasi Discipline Score bulanan (Kehadiran, Kecepatan Laporan, Penilaian Sekolah)
-- [ ] Integrasi Alur Payroll Sesi (Terjadwal -> Belum dibayar -> Mengajar selesai -> Menunggu laporan -> Laporan lengkap -> Layak dibayar -> Sudah masuk payroll -> Dibayar)
-- [ ] Dashboard Finansial (Sesi siap bayar, sesi tertunda, rekap total pengeluaran per instruktur)
+- [x] Master Leveling Tarif (Junior, Madya, Senior, Expert, Master Trainer)
+- [x] Master Tarif Kepakaran Produk (Scratch, Microbit, Robotik, Python, dll.)
+- [x] Master Tarif Instruktur Tamu / Guest Speaker / Praktisi
+- [x] Kolom Override Tarif Khusus (Tarif khusus yang dikoreksi per sekolah / wilayah)
+- [x] Detektor Punctuality (Mencatat waktu check-in aktual vs jadwal -> Excellent, On Time, Warning, Penalty)
+- [x] Akumulasi Discipline Score bulanan (Kehadiran, Kecepatan Laporan, Penilaian Sekolah)
+- [x] Integrasi Alur Payroll Sesi (Terjadwal -> Belum dibayar -> Mengajar selesai -> Menunggu laporan -> Laporan lengkap -> Layak dibayar -> Sudah masuk payroll -> Dibayar)
+- [x] Dashboard Finansial (Sesi siap bayar, sesi tertunda, rekap total pengeluaran per instruktur)

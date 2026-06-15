@@ -300,13 +300,16 @@
                                             id="sekolah_kodlan" 
                                             name="sekolah_kodlan" 
                                             required>
-                                        <option value="">Pilih Sekolah</option>
-                                        @foreach($sekolahs as $sekolah)
-                                            <option value="{{ $sekolah->kodlan }}" 
-                                                    {{ old('sekolah_kodlan', $ekstrakurikuler->sekolah_kodlan) == $sekolah->kodlan ? 'selected' : '' }}>
-                                                {{ $sekolah->namasekolah }} - {{ $sekolah->kotkab }}
+                                        <option value="">Ketik nama sekolah atau kode...</option>
+                                        @php
+                                            $selectedKodlan = old('sekolah_kodlan', $ekstrakurikuler->sekolah_kodlan);
+                                            $selectedSekolah = \App\Models\Sekolah::where('kodlan', $selectedKodlan)->first();
+                                        @endphp
+                                        @if($selectedSekolah)
+                                            <option value="{{ $selectedKodlan }}" selected>
+                                                {{ $selectedSekolah->namasekolah }} ({{ $selectedKodlan }})
                                             </option>
-                                        @endforeach
+                                        @endif
                                     </select>
                                     @error('sekolah_kodlan')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -743,6 +746,31 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    if (typeof $ !== 'undefined' && $.fn.select2) {
+        $('#sekolah_kodlan').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: 'Ketik nama sekolah atau kode...',
+            allowClear: true,
+            ajax: {
+                url: "{{ route('api.sekolah.search') }}",
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            }
+        });
+    }
+
     // Form validation
     const form = document.getElementById('editForm');
     form.addEventListener('submit', function(e) {

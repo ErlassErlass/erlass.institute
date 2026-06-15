@@ -66,6 +66,18 @@ Fitur: Menambah sekolah baru, edit data siswa, import data.
 | **Tambah Siswa (Saat Laporan)**| ✅ | ✅ | ✅ | ✅ (Via Quick Add) |
 | **Import Data (Excel)** | ✅ | ✅ | ✅ | ❌ |
 
+### 5. Kompensasi & Payroll (Pillar 6)
+Fitur: Mengelola master tarif, memproses batch payroll bulanan, meng-override nominal sesi, melihat slip gaji.
+
+| Fitur | Webmaster | Admin Sistem | Admin (Ops) | Instruktur |
+| :--- | :---: | :---: | :---: | :---: |
+| **Kelola Master Tarif** | ✅ | ✅ | ❌ | ❌ |
+| **Buat/Edit Batch Payroll** | ✅ | ✅ | ❌ | ❌ |
+| **Override Honor Sesi** | ✅ | ✅ | ❌ | ❌ |
+| **Proses/Bayar Payroll** | ✅ | ✅ | ❌ | ❌ |
+| **Lihat Slip Gaji Semua** | ✅ | ✅ | ❌ | ❌ |
+| **Lihat Slip Gaji Pribadi** | ✅ | ✅ | ❌ | ✅ (Hanya miliknya) |
+
 ---
 
 ## Akun Demo (Testing Accounts)

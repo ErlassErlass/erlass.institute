@@ -121,9 +121,12 @@
                                 <label for="sekolah_kodlan" class="form-label text-muted small">Sekolah</label>
                                 <select class="form-control" id="sekolah_kodlan" name="sekolah_kodlan">
                                     <option value="">Semua Sekolah</option>
-                                    @foreach($sekolahs as $sekolah)
-                                    <option value="{{ $sekolah->kodlan }}" {{ request('sekolah_kodlan') == $sekolah->kodlan ? 'selected' : '' }}>{{ $sekolah->namasekolah }}</option>
-                                    @endforeach
+                                    @if(request('sekolah_kodlan'))
+                                        @php $reqSekolah = \App\Models\Sekolah::where('kodlan', request('sekolah_kodlan'))->first(); @endphp
+                                        @if($reqSekolah)
+                                            <option value="{{ request('sekolah_kodlan') }}" selected>{{ $reqSekolah->namasekolah }} ({{ request('sekolah_kodlan') }})</option>
+                                        @endif
+                                    @endif
                                 </select>
                             </div>
                             <div class="col-md-2 mb-3">
@@ -269,8 +272,35 @@
         }
         
         // Auto-submit filter
-        const selects = document.querySelectorAll('#region, #kota, #sekolah_kodlan');
+        const selects = document.querySelectorAll('#region, #kota');
         selects.forEach(select => { select.addEventListener('change', () => document.getElementById('filterForm').submit()); });
+
+        if (typeof $ !== 'undefined' && $.fn.select2) {
+            $('#sekolah_kodlan').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Ketik nama sekolah atau kode...',
+                allowClear: true,
+                ajax: {
+                    url: "{{ route('api.sekolah.search') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results
+                        };
+                    },
+                    cache: true
+                }
+            }).on('change', function() {
+                document.getElementById('filterForm').submit();
+            });
+        }
     });
 
     function clearDateRange() {

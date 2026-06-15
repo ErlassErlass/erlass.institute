@@ -132,7 +132,7 @@ gantt
 
 ---
 
-### 🗓️ FASE 2: Validasi Akademik, Rombel, & Kontrol Perubahan Jadwal
+### 🗓️ FASE 2: Validasi Akademik, Rombel, & Kontrol Perubahan Jadwal [SELESAI]
 *Fase ini berfokus pada transisi dari dokumen SP ke operasional jadwal riil di lapangan.*
 
 *   **Pilar Terkait**: *Operations Control* & *Learning Control*.
@@ -151,7 +151,7 @@ gantt
 
 ---
 
-### 🗓️ FASE 3: Kontrol Presensi Detail, Portofolio, & Warning System
+### 🗓️ FASE 3: Kontrol Presensi Detail, Portofolio, & Warning System [SELESAI]
 *Fase ini meningkatkan pengawasan mutu harian kelas yang sedang berjalan.*
 
 *   **Pilar Terkait**: *Attendance Control*, *Performance Control*, & *Quality Control*.
@@ -169,7 +169,7 @@ gantt
 
 ---
 
-### 🗓️ FASE 4: Otomatisasi Kompensasi (Honorarium) & Payroll
+### 🗓️ FASE 4: Otomatisasi Kompensasi (Honorarium) & Payroll [SELESAI]
 *Fase terakhir yang menghubungkan seluruh data operasional valid menjadi data pembayaran.*
 
 *   **Pilar Terkait**: *Compensation Control*.

@@ -25,7 +25,7 @@ class ValidationSecurityTest extends TestCase
     {
         parent::setUp();
 
-        $this->instructor = User::factory()->create(['role' => 'instruktur']);
+        $this->instructor = User::factory()->verifiedInstructor()->create();
         $this->admin = User::factory()->create(['role' => 'admin']);
         $this->sekolah = Sekolah::factory()->create(['kodlan' => 'TEST001']);
     }
@@ -76,7 +76,41 @@ class ValidationSecurityTest extends TestCase
         $this->assertEquals('Updated Material', $laporan->materi_pengajaran);
     }
 
-    public function test_csrf_protection(): void
+    public function test_csrf_protection_enabled_fails(): void
+    {
+        // Force CSRF middleware to run during tests
+        $this->app->bind(
+            \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
+            function ($app) {
+                return new class($app, $app['encrypter']) extends \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken {
+                    protected function runningUnitTests() { return false; }
+                };
+            }
+        );
+
+        $laporanData = [
+            'user_id_instruktur' => $this->instructor->id,
+            'pertemuan_ke' => 1,
+            'sekolah_kodlan' => 'TEST001',
+            'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
+            'rombel' => '1',
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '09:00',
+            'kategori_pengajaran' => 'Regular',
+            'materi_pengajaran' => 'Test Material',
+            '_token' => 'different-token',
+        ];
+
+        // With middleware and mismatched token/header, it should require CSRF and fail
+        $response = $this->actingAs($this->instructor)
+            ->withSession(['_token' => 'session-token'])
+            ->withHeaders(['X-CSRF-TOKEN' => 'wrong-token'])
+            ->post(route('laporan-mengajar.store'), $laporanData);
+
+        $response->assertStatus(419); // CSRF token mismatch
+    }
+
+    public function test_csrf_protection_disabled_passes(): void
     {
         $laporanData = [
             'user_id_instruktur' => $this->instructor->id,
@@ -85,16 +119,12 @@ class ValidationSecurityTest extends TestCase
             'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
         ];
 
-        // Request without CSRF token should fail
+        // Request without CSRF token bypass should work
         $response = $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class)
             ->actingAs($this->instructor)
             ->post(route('laporan-mengajar.store'), $laporanData);
 
-        // With middleware, it should require CSRF
-        $response = $this->actingAs($this->instructor)
-            ->post(route('laporan-mengajar.store'), $laporanData);
-
-        $response->assertStatus(419); // CSRF token mismatch
+        $this->assertNotEquals(419, $response->status());
     }
 
     public function test_file_upload_security(): void
@@ -114,6 +144,11 @@ class ValidationSecurityTest extends TestCase
                 'pertemuan_ke' => 1,
                 'sekolah_kodlan' => 'TEST001',
                 'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
+                'rombel' => '1',
+                'jam_mulai' => '08:00',
+                'jam_selesai' => '09:00',
+                'kategori_pengajaran' => 'Regular',
+                'materi_pengajaran' => 'Test Material',
                 'foto_kegiatan' => $file,
             ];
 
@@ -128,14 +163,19 @@ class ValidationSecurityTest extends TestCase
     {
         Storage::fake('public');
 
-        // Test oversized file (>2MB)
-        $oversizedFile = UploadedFile::fake()->create('large.jpg', 3000); // 3MB
+        // Test oversized file (>5MB)
+        $oversizedFile = UploadedFile::fake()->create('large.jpg', 6000); // 6MB
 
         $laporanData = [
             'user_id_instruktur' => $this->instructor->id,
             'pertemuan_ke' => 1,
             'sekolah_kodlan' => 'TEST001',
             'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
+            'rombel' => '1',
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '09:00',
+            'kategori_pengajaran' => 'Regular',
+            'materi_pengajaran' => 'Test Material',
             'foto_kegiatan' => $oversizedFile,
         ];
 
@@ -161,7 +201,7 @@ class ValidationSecurityTest extends TestCase
 
             $response->assertStatus(200);
             // Database should still be intact
-            $this->assertDatabaseHas('laporan_mengajar', []);
+            $this->assertDatabaseCount('laporan_mengajar', 0);
         }
     }
 
@@ -200,6 +240,10 @@ class ValidationSecurityTest extends TestCase
             'pertemuan_ke' => 1,
             'sekolah_kodlan' => 'TEST001',
             'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
+            'rombel' => '1',
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '09:00',
+            'kategori_pengajaran' => 'Regular',
         ], $maliciousInput);
 
         $response = $this->actingAs($this->instructor)
@@ -223,6 +267,11 @@ class ValidationSecurityTest extends TestCase
             'pertemuan_ke' => 1,
             'sekolah_kodlan' => 'TEST001',
             'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
+            'rombel' => '1',
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '09:00',
+            'kategori_pengajaran' => 'Regular',
+            'materi_pengajaran' => 'Test Material',
         ];
 
         $response = $this->actingAs($this->instructor)
@@ -248,6 +297,11 @@ class ValidationSecurityTest extends TestCase
             'pertemuan_ke' => 1,
             'sekolah_kodlan' => 'TEST001',
             'jadwal_mengajar' => Carbon::tomorrow()->format('d/m/Y'),
+            'rombel' => '1',
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '09:00',
+            'kategori_pengajaran' => 'Regular',
+            'materi_pengajaran' => 'Test Material',
         ];
 
         $response = $this->actingAs($this->instructor)

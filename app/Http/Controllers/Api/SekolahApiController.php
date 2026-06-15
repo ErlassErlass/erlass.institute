@@ -90,7 +90,7 @@ class SekolahApiController extends Controller
         $sekolahs = Sekolah::where('namasekolah', 'LIKE', '%'.$searchTerm.'%')
             ->orWhere('kodlan', 'LIKE', '%'.$searchTerm.'%')
             ->orderBy('namasekolah', 'asc')
-            ->select('kodlan', 'namasekolah')
+            ->select('kodlan', 'namasekolah', 'kotkab', 'kec')
             ->limit(20) // Batasi hasil agar tidak terlalu banyak
             ->get();
 
@@ -99,6 +99,8 @@ class SekolahApiController extends Controller
             return [
                 'id' => $sekolah->kodlan, // 'id' adalah key yang dibutuhkan oleh Select2
                 'text' => $sekolah->namasekolah.' ('.$sekolah->kodlan.')', // 'text' untuk tampilan
+                'kotkab' => $sekolah->kotkab,
+                'kec' => $sekolah->kec,
             ];
         });
 

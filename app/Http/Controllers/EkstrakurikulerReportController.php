@@ -128,6 +128,7 @@ class EkstrakurikulerReportController extends Controller
             $jumlahSiswaTidakHadir = count($request->absensi) - $hadirCount;
 
             $laporan = LaporanMengajar::create([
+                'ekstrakurikuler_session_id' => $session->id,
                 'user_id_instruktur' => Auth::id(), // Or $session->user_id_instruktur if forcing session instructor
                 'user_id_assisten' => $session->user_id_asisten,
                 'pertemuan_ke' => $session->nomor_pertemuan,
@@ -178,10 +179,17 @@ class EkstrakurikulerReportController extends Controller
                     }
                 }
 
+                $statusVal = $status;
+                if ($statusVal == 1 || $statusVal === 'hadir') {
+                    $statusVal = 'hadir';
+                } elseif ($statusVal == 0 || $statusVal === 'alpha') {
+                    $statusVal = 'alpha';
+                }
+
                 Absensi::create([
                     'laporan_mengajar_id' => $laporan->id,
                     'siswa_id' => $siswaId,
-                    'hadir' => (bool)$status
+                    'status' => $statusVal
                 ]);
             }
 
@@ -203,7 +211,7 @@ class EkstrakurikulerReportController extends Controller
                     if ($isPresent) {
                         try {
                             $rombelReports = $rombel->sessions()
-                                ->whereNotNull('laporan_mengajar_id')
+                                ->has('laporanMengajar')
                                 ->with('laporanMengajar') 
                                 ->get()
                                 ->pluck('laporanMengajar')
@@ -211,7 +219,7 @@ class EkstrakurikulerReportController extends Controller
 
                             $attendanceRecords = Absensi::whereIn('laporan_mengajar_id', $rombelReports->pluck('id'))
                                 ->where('siswa_id', $student->id)
-                                ->where('hadir', true)
+                                ->where('status', 'hadir')
                                 ->get();
 
                             $totalPresent = $attendanceRecords->count();

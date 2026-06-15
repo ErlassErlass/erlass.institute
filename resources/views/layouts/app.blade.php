@@ -324,219 +324,437 @@
         div.dataTables_wrapper div.dataTables_info { color: #94a3b8; padding-top: 1rem; }
         .page-item .page-link { border-radius: 8px; margin: 0 2px; border: none; color: #64748b; }
         .page-item.active .page-link { background-color: var(--primary-color); color: white;box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3); }
-    
+
+        /* Sidebar layout styling */
+        .wrapper {
+            display: flex;
+            width: 100%;
+            align-items: stretch;
+        }
+
+        #sidebar {
+            min-width: 260px;
+            max-width: 260px;
+            background: #ffffff;
+            color: #334155;
+            border-right: 1px solid var(--border-color);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        #sidebar.active {
+            margin-left: -260px;
+        }
+
+        #content {
+            width: calc(100% - 260px);
+            margin-left: 260px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        #content.active {
+            width: 100%;
+            margin-left: 0;
+        }
+
+        /* Top Header Bar */
+        .header-bar {
+            background-color: rgba(255, 255, 255, 0.8) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            height: 70px;
+        }
+
+        /* Sidebar Nav Styling */
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            height: 70px;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0.75rem;
+            list-style: none;
+            margin: 0;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            font-weight: 600;
+            margin: 1.25rem 0.75rem 0.5rem;
+        }
+
+        .sidebar-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #64748b;
+            text-decoration: none;
+            font-weight: 500;
+            border-radius: var(--btn-radius);
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-link:hover {
+            color: var(--primary-color);
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        .sidebar-link.active {
+            color: var(--primary-color);
+            background-color: rgba(59, 130, 246, 0.1);
+            font-weight: 600;
+        }
+
+        .sidebar-link i {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 991.98px) {
+            #sidebar {
+                margin-left: -260px;
+            }
+            #sidebar.active {
+                margin-left: 0;
+            }
+            #content {
+                width: 100%;
+                margin-left: 0;
+            }
+            #content.active {
+                width: calc(100% - 260px);
+                margin-left: 260px;
+            }
+        }
     </style>
     
     @stack('styles')
 </head>
 <body class="d-flex flex-column min-vh-100">
 
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top bg-white">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('dashboard') }}">
-                <img src="{{ asset('images/logo-erlass.png') }}" alt="Erlass Logo" class="me-1" style="height: 32px; width: auto;">
-                <span>Erlass<span class="text-primary">Ekskul</span></span>
-            </a>
-
-            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#main-nav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="main-nav">
-                <!-- Main Navigation Menu -->
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-                            Dashboard
+    @auth
+        <div class="wrapper">
+            <!-- Sidebar -->
+            <nav id="sidebar">
+                <div class="sidebar-header">
+                    <a class="d-flex align-items-center gap-2 text-decoration-none" href="{{ route('dashboard') }}">
+                        <img src="{{ asset('images/logo-erlass.png') }}" alt="Erlass Logo" style="height: 32px; width: auto;">
+                        <span class="fs-5 fw-bold text-dark">Erlass<span class="text-primary">Ekskul</span></span>
+                    </a>
+                </div>
+                
+                <ul class="sidebar-nav">
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Dashboard</span>
                         </a>
                     </li>
-                    
-                    @if(Auth::user()?->hasAdminAccess())
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs(['sekolah.*', 'siswa.*']) ? 'active' : '' }}" 
-                           href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Data Master
-                        </a>
-                        <ul class="dropdown-menu animate slideIn">
-                            <li><h6 class="dropdown-header">Institusi</h6></li>
-                            <li><a class="dropdown-item" href="{{ route('sekolah.index') }}">
-                                <i class="bi bi-building me-2 text-primary"></i>Database Sekolah
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ route('sekolah.distribusi') }}">
-                                <i class="bi bi-pie-chart me-2 text-info"></i>Distribusi Sekolah
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><h6 class="dropdown-header">Peserta Didik</h6></li>
-                            <li><a class="dropdown-item" href="{{ route('siswa.index') }}">
-                                <i class="bi bi-people me-2 text-success"></i>Database Siswa
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><h6 class="dropdown-header">AOQCS Master Data</h6></li>
-                            <li><a class="dropdown-item" href="{{ route('products.index') }}">
-                                <i class="bi bi-box-seam me-2 text-warning"></i>Database Produk
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ route('salesmen.index') }}">
-                                <i class="bi bi-person-badge me-2 text-success"></i>Database Salesman
-                            </a></li>
-                        </ul>
-                    </li>
+
+                    @if(Auth::user()?->hasAdminAccess() || in_array(Auth::user()?->role, ['sales']))
+                        <li class="sidebar-section-title">Inisiasi & Kontrak</li>
+                        @if(Auth::user()?->hasAdminAccess())
+                            <li class="sidebar-item">
+                                <a class="sidebar-link {{ request()->routeIs('products.index') ? 'active' : '' }}" href="{{ route('products.index') }}">
+                                    <i class="bi bi-box-seam"></i>
+                                    <span>Produk</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a class="sidebar-link {{ request()->routeIs('salesmen.index') ? 'active' : '' }}" href="{{ route('salesmen.index') }}">
+                                    <i class="bi bi-person-badge"></i>
+                                    <span>Salesman</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if(in_array(Auth::user()?->role, ['webmaster', 'admin_sistem', 'admin', 'sales']))
+                            <li class="sidebar-item">
+                                <a class="sidebar-link {{ request()->routeIs('orders-sp.index') ? 'active' : '' }}" href="{{ route('orders-sp.index') }}">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                    <span>Surat Pesanan (SP)</span>
+                                </a>
+                            </li>
+                        @endif
                     @endif
-                    
-                    @if(Auth::user()->role !== 'instruktur')
+
+                    @if(Auth::user()?->hasAdminAccess())
+                        <li class="sidebar-section-title">Data Master</li>
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs('sekolah.index') ? 'active' : '' }}" href="{{ route('sekolah.index') }}">
+                                <i class="bi bi-building"></i>
+                                <span>Sekolah</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs('siswa.index') ? 'active' : '' }}" href="{{ route('siswa.index') }}">
+                                <i class="bi bi-people"></i>
+                                <span>Siswa</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs('sekolah.distribusi') ? 'active' : '' }}" href="{{ route('sekolah.distribusi') }}">
+                                <i class="bi bi-pie-chart"></i>
+                                <span>Distribusi Sekolah</span>
+                            </a>
+                        </li>
+                    @endif
+
+                    <li class="sidebar-section-title">Akademik & Penjadwalan</li>
+                    @if(Auth::user()?->role !== 'instruktur')
                         @can('viewAny', App\Models\Ekstrakurikuler::class)
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('ekstrakurikuler.index') ? 'active' : '' }}" 
-                            href="{{ route('ekstrakurikuler.index') }}">
-                                Program Ekskul
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs('ekstrakurikuler.index') ? 'active' : '' }}" href="{{ route('ekstrakurikuler.index') }}">
+                                <i class="bi bi-journal-bookmark"></i>
+                                <span>Program Ekskul</span>
                             </a>
                         </li>
                         @endcan
                     @endif
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ request()->routeIs(['ekstrakurikuler.sessions.*', 'ekstrakurikuler.reports.*']) ? 'active' : '' }}" href="{{ route('ekstrakurikuler.sessions.index') }}">
+                            <i class="bi bi-calendar-event"></i>
+                            <span>Agenda Kegiatan</span>
+                        </a>
+                    </li>
 
-                    @if(in_array(Auth::user()?->role, ['webmaster', 'admin_sistem', 'admin', 'sales']))
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('orders-sp.*') ? 'active' : '' }}" 
-                               href="{{ route('orders-sp.index') }}">
-                                Surat Pesanan (SP)
+                    <li class="sidebar-section-title">Aktivitas & Kehadiran</li>
+                    @if(Auth::user()?->role === 'instruktur')
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs('laporan-mengajar.create') ? 'active' : '' }}" href="{{ route('laporan-mengajar.create') }}">
+                                <i class="bi bi-pencil-square"></i>
+                                <span>Buat Laporan</span>
+                            </a>
+                        </li>
+                    @endif
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ request()->routeIs('laporan-mengajar.index') ? 'active' : '' }}" href="{{ route('laporan-mengajar.index') }}">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Riwayat Laporan</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ request()->routeIs('absensi.index') ? 'active' : '' }}" href="{{ route('absensi.index') }}">
+                            <i class="bi bi-qr-code-scan"></i>
+                            <span>Kelola Absensi</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ request()->routeIs('rekap-absensi') ? 'active' : '' }}" href="{{ route('rekap-absensi') }}">
+                            <i class="bi bi-table"></i>
+                            <span>Rekap Kehadiran</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-section-title">Penilaian & Kelulusan</li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ request()->routeIs(['student-scores.*']) ? 'active' : '' }}" href="{{ route('student-scores.rombel-list') }}">
+                            <i class="bi bi-journal-check"></i>
+                            <span>Penilaian Siswa</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ request()->routeIs(['certificates.index']) ? 'active' : '' }}" href="{{ route('certificates.index') }}">
+                            <i class="bi bi-patch-check"></i>
+                            <span>Sertifikat & Rapor</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-section-title">Kompensasi & Payroll</li>
+                    @if(Auth::user()?->hasAdminAccess())
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs(['admin.salary-rates.*']) ? 'active' : '' }}" href="{{ route('admin.salary-rates.index') }}">
+                                <i class="bi bi-cash-coin"></i>
+                                <span>Master Tarif</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs(['admin.payroll.batches.*']) ? 'active' : '' }}" href="{{ route('admin.payroll.batches.index') }}">
+                                <i class="bi bi-wallet2"></i>
+                                <span>Pencairan Payroll</span>
+                            </a>
+                        </li>
+                    @endif
+                    @if(Auth::user()?->role === 'instruktur' || Auth::user()?->hasAdminAccess())
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs(['payroll.my-salaries', 'payroll.slip.*']) ? 'active' : '' }}" href="{{ route('payroll.my-salaries') }}">
+                                <i class="bi bi-file-earmark-text"></i>
+                                <span>Slip Gaji Saya</span>
                             </a>
                         </li>
                     @endif
 
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs(['ekstrakurikuler.sessions.*', 'ekstrakurikuler.reports.*']) ? 'active' : '' }}" 
-                           href="{{ route('ekstrakurikuler.sessions.index') }}">
-                            Agenda Kegiatan
-                        </a>
-                    </li>
-
-                    @if(Auth::user()->role === 'instruktur')
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('laporan-mengajar.create') ? 'active' : '' }}" 
-                           href="{{ route('laporan-mengajar.create') }}">
-                            Buat Laporan
-                        </a>
-                    </li>
-                    @endif
-                    
-                    {{-- Menu Absensi --}}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs(['absensi.*', 'rekap-absensi']) ? 'active' : '' }}" 
-                           href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Absensi
-                        </a>
-                        <ul class="dropdown-menu animate slideIn">
-                            <li><a class="dropdown-item" href="{{ route('absensi.index') }}">
-                                <i class="bi bi-qr-code-scan me-2 text-primary"></i>Kelola Absensi
-                            </a></li>
-                             <li><a class="dropdown-item" href="{{ route('rekap-absensi') }}">
-                                <i class="bi bi-table me-2 text-info"></i>Rekap Kehadiran
-                            </a></li>
-                        </ul>
-                    </li>
-
-                    {{-- Menu Riwayat Laporan --}}
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('laporan-mengajar.index') ? 'active' : '' }}" 
-                           href="{{ route('laporan-mengajar.index') }}">
-                            Riwayat Laporan
-                        </a>
-                    </li>
-
                     @if(Auth::user()?->hasAdminAccess())
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs(['admin.*']) ? 'active' : '' }}" 
-                           href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Sistem
-                        </a>
-                        <ul class="dropdown-menu animate slideIn">
-                            @if(Auth::user()->canManageUsers())
-                                <li><a class="dropdown-item" href="{{ route('admin.verification.index') }}">
-                                    <i class="bi bi-patch-check me-2 text-primary"></i>Verifikasi Instruktur
-                                </a></li>
-                                <li><a class="dropdown-item" href="{{ route('admin.late-reports.index') }}">
-                                    <i class="bi bi-clock-history me-2 text-warning"></i>Request Laporan Terlambat
-                                </a></li>
-                                <li><a class="dropdown-item" href="{{ route('users.index') }}">
-                                    <i class="bi bi-people me-2 text-dark"></i>Manajemen User
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                            @endif
-                            
-                            <li><a class="dropdown-item" href="{{ route('admin.analytics.index') }}">
-                                <i class="bi bi-graph-up-arrow me-2 text-info"></i>Dashboard Analitik
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ route('admin.analytics.schedule-distribution') }}">
-                                <i class="bi bi-calendar-week me-2 text-primary"></i>Distribusi Jadwal
-                            </a></li>
-
-
-                            @if(Auth::user()->canManageUsers())
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ route('admin.activity-logs.index') }}">
-                                    <i class="bi bi-activity me-2 text-secondary"></i>Log Aktivitas
-                                </a></li>
-                            @endif
-                        </ul>
-                    </li>
+                        <li class="sidebar-section-title">Sistem & Pengaturan</li>
+                        @if(Auth::user()?->canManageUsers())
+                            <li class="sidebar-item">
+                                <a class="sidebar-link {{ request()->routeIs('admin.verification.index') ? 'active' : '' }}" href="{{ route('admin.verification.index') }}">
+                                    <i class="bi bi-shield-check"></i>
+                                    <span>Verifikasi Instruktur</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a class="sidebar-link {{ request()->routeIs('admin.late-reports.index') ? 'active' : '' }}" href="{{ route('admin.late-reports.index') }}">
+                                    <i class="bi bi-hourglass-split"></i>
+                                    <span>Request Laporan</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-item">
+                                <a class="sidebar-link {{ request()->routeIs('users.index') ? 'active' : '' }}" href="{{ route('users.index') }}">
+                                    <i class="bi bi-people-fill"></i>
+                                    <span>Manajemen User</span>
+                                </a>
+                            </li>
+                        @endif
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs('admin.analytics.index') ? 'active' : '' }}" href="{{ route('admin.analytics.index') }}">
+                                <i class="bi bi-graph-up"></i>
+                                <span>Dashboard Analitik</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs('admin.analytics.schedule-distribution') ? 'active' : '' }}" href="{{ route('admin.analytics.schedule-distribution') }}">
+                                <i class="bi bi-calendar-week"></i>
+                                <span>Distribusi Jadwal</span>
+                            </a>
+                        </li>
+                        @if(Auth::user()?->canManageUsers())
+                            <li class="sidebar-item">
+                                <a class="sidebar-link {{ request()->routeIs('admin.activity-logs.index') ? 'active' : '' }}" href="{{ route('admin.activity-logs.index') }}">
+                                    <i class="bi bi-activity"></i>
+                                    <span>Log Aktivitas</span>
+                                </a>
+                            </li>
+                        @endif
                     @endif
                 </ul>
+            </nav>
 
-                <!-- User Menu -->
+            <!-- Content Area -->
+            <div id="content">
+                <!-- Top Header Bar -->
+                <header class="header-bar">
+                    <div class="d-flex align-items-center gap-3">
+                        <button type="button" id="sidebarCollapse" class="btn btn-light border shadow-none p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 10px;">
+                            <i class="bi bi-list fs-4"></i>
+                        </button>
+                        <h5 class="mb-0 fw-semibold text-dark d-none d-md-block">Erlass Portal</h5>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 py-1 pe-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center border" style="width: 38px; height: 38px;">
+                                    <span class="fw-bold">{{ substr(Auth::user()->nama_lengkap, 0, 1) }}</span>
+                                </div>
+                                <div class="d-none d-md-block line-height-sm text-start">
+                                    <span class="d-block fw-bold small text-dark">{{ Str::limit(Auth::user()->nama_lengkap, 15) }}</span>
+                                    <span class="d-block x-small text-muted" style="font-size: 0.7rem;">{{ ucfirst(Auth::user()->role) }}</span>
+                                </div>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end animate slideIn">
+                                <li><div class="dropdown-header">Akun Saya</div></li>
+                                <li><a class="dropdown-item" href="{{ route('profile.edit') }}">
+                                    <i class="bi bi-person me-2"></i>Edit Profil
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="{{ route('logout') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            <i class="bi bi-box-arrow-right me-2"></i>Keluar Aplikasi
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </header>
+
+                <main class="flex-grow-1 py-4 px-3 px-md-4">
+                    @if (session('status') || session('success') || session('error'))
+                    <div class="container-fluid p-0 mb-4 animate slideInDown">
+                        <x-session-status />
+                    </div>
+                    @endif
+                    
+                    @yield('content')
+                </main>
+
+                <footer class="footer mt-auto py-4 bg-white border-top">
+                    <div class="container-fluid text-center">
+                        <p class="mb-0 text-muted small">
+                            &copy; {{ date('Y') }} <strong>Erlass Ekskul</strong>. Crafted with <i class="bi bi-heart-fill text-danger"></i> for Education.
+                        </p>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    @else
+        <!-- Guest Top Navbar Layout -->
+        <nav class="navbar navbar-expand-lg navbar-light fixed-top bg-white">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('home') }}">
+                    <img src="{{ asset('images/logo-erlass.png') }}" alt="Erlass Logo" class="me-1" style="height: 32px; width: auto;">
+                    <span>Erlass<span class="text-primary">Ekskul</span></span>
+                </a>
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 py-1 pe-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                             <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center border" style="width: 38px; height: 38px;">
-                                <span class="fw-bold">{{ substr(Auth::user()->nama_lengkap, 0, 1) }}</span>
-                            </div>
-                            <div class="d-none d-md-block line-height-sm text-start">
-                                <span class="d-block fw-bold small text-dark">{{ Str::limit(Auth::user()->nama_lengkap, 15) }}</span>
-                                <span class="d-block x-small text-muted" style="font-size: 0.7rem;">{{ ucfirst(Auth::user()->role) }}</span>
-                            </div>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end animate slideIn">
-                            <li><div class="dropdown-header">Akun Saya</div></li>
-                            <li><a class="dropdown-item" href="{{ route('profile.edit') }}">
-                                <i class="bi bi-person me-2"></i>Edit Profil
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form action="{{ route('logout') }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item text-danger">
-                                        <i class="bi bi-box-arrow-right me-2"></i>Keluar Aplikasi
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('login') }}">Masuk</a>
                     </li>
                 </ul>
             </div>
-        </div>
-    </nav>
-    
-    <!-- Spacer for Fixed Navbar -->
-    <div style="height: 100px;"></div>
-
-    <main class="flex-grow-1 py-4">
-        <!-- Session Status Messages -->
-        @if (session('status') || session('success') || session('error'))
-        <div class="container mt-4 animate slideInDown">
-            <x-session-status />
-        </div>
-        @endif
+        </nav>
         
-        @yield('content')
-    </main>
+        <!-- Spacer for Fixed Navbar -->
+        <div style="height: 100px;"></div>
 
-    <footer class="footer mt-auto py-4 bg-white border-top">
-        <div class="container text-center">
-            <p class="mb-0 text-muted small">
-                &copy; {{ date('Y') }} <strong>Erlass Ekskul</strong>. Crafted with <i class="bi bi-heart-fill text-danger"></i> for Education.
-            </p>
-        </div>
-    </footer>
-    <!-- Bootstrap JS -->
-    <!-- Plugin scripts (Bundled via Vite) -->
+        <main class="flex-grow-1 py-4">
+            @if (session('status') || session('success') || session('error'))
+            <div class="container mt-4 animate slideInDown">
+                <x-session-status />
+            </div>
+            @endif
+            
+            @yield('content')
+        </main>
+
+        <footer class="footer mt-auto py-4 bg-white border-top">
+            <div class="container text-center">
+                <p class="mb-0 text-muted small">
+                    &copy; {{ date('Y') }} <strong>Erlass Ekskul</strong>. Crafted with <i class="bi bi-heart-fill text-danger"></i> for Education.
+                </p>
+            </div>
+        </footer>
+    @endauth
 
     @stack('modals')
     @stack('scripts')
@@ -555,12 +773,20 @@
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-    
     </style>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             NProgress.configure({ showSpinner: false, trickleSpeed: 200 });
             NProgress.done();
+
+            // Toggle Sidebar event handler
+            const sidebarCollapse = document.getElementById('sidebarCollapse');
+            if (sidebarCollapse) {
+                sidebarCollapse.addEventListener('click', function () {
+                    document.getElementById('sidebar').classList.toggle('active');
+                    document.getElementById('content').classList.toggle('active');
+                });
+            }
         });
         window.addEventListener("beforeunload", function() {
             NProgress.start();

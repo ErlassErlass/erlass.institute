@@ -28,6 +28,15 @@
                             </button>
                         </form>
                     @endif
+                    @if($ordersSp->status === 'menunggu_validasi' && in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin']))
+                        <form action="{{ route('orders-sp.approve', $ordersSp->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Setujui SP ini? Program Ekstrakurikuler akan otomatis di-generate dari setiap item produk.')">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle me-1"></i> Setujui SP
+                            </button>
+                        </form>
+                    @endif
                 </div>
             </div>
         </div>
@@ -241,6 +250,13 @@
                                 <span class="text-muted">Terakhir Diperbarui Oleh</span>
                                 <span class="fw-semibold d-block text-dark">{{ $ordersSp->updater->name }}</span>
                                 <small class="text-muted d-block">{{ $ordersSp->updated_at->format('d/m/Y H:i') }}</small>
+                            </li>
+                        @endif
+                        @if($ordersSp->approver)
+                            <li class="list-group-item px-0 py-2">
+                                <span class="text-muted">Disetujui Oleh</span>
+                                <span class="fw-semibold d-block text-success"><i class="bi bi-check-circle-fill me-1"></i>{{ $ordersSp->approver->name }}</span>
+                                <small class="text-muted d-block">{{ $ordersSp->approved_at->format('d/m/Y H:i') }}</small>
                             </li>
                         @endif
                     </ul>

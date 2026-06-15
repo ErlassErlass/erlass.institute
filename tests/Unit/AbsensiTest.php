@@ -47,7 +47,7 @@ class AbsensiTest extends TestCase
             'id' => $absensi->id,
             'laporan_mengajar_id' => $this->laporanMengajar->id,
             'siswa_id' => $this->siswa->id,
-            'hadir' => true,
+            'status' => 'hadir',
         ]);
     }
 
@@ -230,8 +230,8 @@ class AbsensiTest extends TestCase
             'hadir' => false,
         ]);
 
-        $presentCount = Absensi::where('hadir', true)->count();
-        $absentCount = Absensi::where('hadir', false)->count();
+        $presentCount = Absensi::where('status', 'hadir')->count();
+        $absentCount = Absensi::whereIn('status', ['izin', 'sakit', 'alpha'])->count();
 
         $this->assertEquals(1, $presentCount);
         $this->assertEquals(1, $absentCount);

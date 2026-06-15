@@ -247,4 +247,14 @@ class User extends Authenticatable
     {
         return $this->no_telephone;
     }
+
+    public function payrollItems()
+    {
+        return $this->hasMany(PayrollItem::class, 'user_id_instruktur');
+    }
+
+    public function getLevelAttribute(): string
+    {
+        return $this->instructorProfile ? ($this->instructorProfile->level ?? 'junior') : 'junior';
+    }
 }

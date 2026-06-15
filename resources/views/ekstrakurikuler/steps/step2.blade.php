@@ -13,26 +13,14 @@
                     id="sekolah_kodlan" 
                     name="sekolah_kodlan" 
                     required>
-                <option value="">Pilih Sekolah</option>
-                @if(isset($formData['city']) && $formData['city'])
-                    @foreach($sekolahs->where('kota', $formData['city']) as $sekolah)
-                        <option value="{{ $sekolah->kodlan }}" 
-                                {{ old('sekolah_kodlan', $formData['sekolah_kodlan'] ?? '') == $sekolah->kodlan ? 'selected' : '' }}
-                                data-kotkab="{{ $sekolah->kotkab }}"
-                                data-kec="{{ $sekolah->kec }}">
-                            {{ $sekolah->namasekolah }} - {{ $sekolah->kec }}
+                <option value="">Ketik nama sekolah atau kode...</option>
+                @if(isset($formData['sekolah_kodlan']) && $formData['sekolah_kodlan'])
+                    @php $selectedSekolah = \App\Models\Sekolah::where('kodlan', $formData['sekolah_kodlan'])->first(); @endphp
+                    @if($selectedSekolah)
+                        <option value="{{ $formData['sekolah_kodlan'] }}" selected>
+                            {{ $selectedSekolah->namasekolah }} ({{ $formData['sekolah_kodlan'] }})
                         </option>
-                    @endforeach
-                @else
-                    @foreach($sekolahs as $sekolah)
-                        <option value="{{ $sekolah->kodlan }}" 
-                                {{ old('sekolah_kodlan', $formData['sekolah_kodlan'] ?? '') == $sekolah->kodlan ? 'selected' : '' }}
-                                data-kotkab="{{ $sekolah->kotkab }}"
-                                data-kec="{{ $sekolah->kec }}"
-                                data-kota="{{ $sekolah->kota }}">
-                            {{ $sekolah->namasekolah }} - {{ $sekolah->kota }}
-                        </option>
-                    @endforeach
+                    @endif
                 @endif
             </select>
             @error('sekolah_kodlan')
@@ -229,24 +217,39 @@ $(document).ready(function() {
     $('#sekolah_kodlan').select2({
         theme: 'bootstrap-5',
         width: '100%',
-        placeholder: 'Pilih Sekolah',
+        placeholder: 'Ketik nama sekolah atau kode...',
         allowClear: true,
-        dropdownParent: $('body') // Ensure dropdown renders correctly
+        dropdownParent: $('body'), // Ensure dropdown renders correctly
+        ajax: {
+            url: "{{ route('api.sekolah.search') }}",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: data.results
+                };
+            },
+            cache: true
+        }
     });
 
     // Auto-fill address based on school selection
-    // Note: Select2 triggers 'change' event on the original select
-    $('#sekolah_kodlan').on('change', function() {
-        const selectedOption = $(this).find(':selected');
-        if (selectedOption.val()) {
+    $('#sekolah_kodlan').on('select2:select', function(e) {
+        const data = e.params.data;
+        if (data.id) {
             const alamatField = $('#alamat_lengkap');
             // Only auto-fill if empty to avoid overwriting user edits
             if (!alamatField.val()) {
-                const kotkab = selectedOption.data('kotkab');
-                const kec = selectedOption.data('kec');
+                const kotkab = data.kotkab || '';
+                const kec = data.kec || '';
                 // Use empty string fallback if data attributes are missing
                 const location = (kec && kotkab) ? `\n${kec}, ${kotkab}` : '';
-                alamatField.val(`${selectedOption.text().trim()}${location}`);
+                alamatField.val(`${data.text.trim()}${location}`);
             }
         }
     });

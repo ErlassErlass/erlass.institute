@@ -150,7 +150,7 @@ class OrderSpController extends Controller
      */
     public function show(OrderSp $ordersSp)
     {
-        $ordersSp->load(['sekolah', 'salesman', 'items.product', 'creator', 'updater']);
+        $ordersSp->load(['sekolah', 'salesman', 'items.product', 'creator', 'updater', 'approver']);
         
         // Security check for sales role
         if (auth()->user()->role === 'sales') {
@@ -319,6 +319,37 @@ class OrderSpController extends Controller
         ]);
 
         return redirect()->route('orders-sp.show', $ordersSp->id)->with('success', 'Surat Pesanan (SP) berhasil diajukan untuk validasi akademik!');
+    }
+
+    /**
+     * Approve SP order (validasi akademik).
+     * Otomatis generate program Ekstrakurikuler dari setiap item produk pada SP.
+     * Hanya bisa dilakukan oleh admin/webmaster.
+     *
+     * @param OrderSp $ordersSp
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function approve(OrderSp $ordersSp)
+    {
+        // Hanya admin dan webmaster yang bisa menyetujui
+        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+            abort(403, 'Hanya admin yang dapat menyetujui SP.');
+        }
+
+        if (!$ordersSp->canBeApproved()) {
+            return redirect()->route('orders-sp.show', $ordersSp->id)
+                ->with('error', 'Hanya SP berstatus Menunggu Validasi yang dapat disetujui.');
+        }
+
+        try {
+            $ordersSp->approve(auth()->user());
+
+            return redirect()->route('orders-sp.show', $ordersSp->id)
+                ->with('success', 'SP berhasil disetujui! Program Ekstrakurikuler otomatis di-generate.');
+        } catch (Exception $e) {
+            return redirect()->route('orders-sp.show', $ordersSp->id)
+                ->with('error', 'Terjadi kesalahan saat menyetujui SP: ' . $e->getMessage());
+        }
     }
 
     /**

@@ -19,13 +19,18 @@
 
         <div class="mb-3">
             <label for="sekolah_kodlan" class="form-label">Sekolah</label>
-            <!-- resources/views/siswa/create.blade.php -->
-            <select name="sekolah_kodlan" class="form-select select2" required>
-                <option value="">Pilih Sekolah</option>
-                @foreach ($sekolah as $kode => $nama)
-                <option value="{{ $kode }}" {{ old('sekolah_kodlan') == $kode ? 'selected' : '' }}>{{ $nama }}</option>
-                @endforeach
+            <select name="sekolah_kodlan" id="sekolah_kodlan" class="form-select @error('sekolah_kodlan') is-invalid @enderror" required>
+                <option value="">Ketik nama sekolah atau kode...</option>
+                @if(old('sekolah_kodlan'))
+                    @php $oldSekolah = \App\Models\Sekolah::where('kodlan', old('sekolah_kodlan'))->first(); @endphp
+                    @if($oldSekolah)
+                        <option value="{{ old('sekolah_kodlan') }}" selected>{{ $oldSekolah->namasekolah }} ({{ old('sekolah_kodlan') }})</option>
+                    @endif
+                @endif
             </select>
+            @error('sekolah_kodlan')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
 
         <div class="mb-3">
@@ -47,12 +52,28 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        if ($('.select2').length > 0) {
-            $('.select2').select2({
-                theme: 'bootstrap-5',
-                width: '100%'
-            });
-        }
+        $('#sekolah_kodlan').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: 'Ketik nama sekolah atau kode...',
+            allowClear: true,
+            ajax: {
+                url: "{{ route('api.sekolah.search') }}",
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            }
+        });
     });
 </script>
 @endpush

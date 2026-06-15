@@ -237,8 +237,8 @@ class LaporanMengajarTest extends TestCase
             'hadir' => false,
         ]);
 
-        $presentCount = $laporan->absensis()->where('hadir', true)->count();
-        $absentCount = $laporan->absensis()->where('hadir', false)->count();
+        $presentCount = $laporan->absensis()->where('status', 'hadir')->count();
+        $absentCount = $laporan->absensis()->whereIn('status', ['izin', 'sakit', 'alpha'])->count();
 
         $this->assertEquals(2, $presentCount);
         $this->assertEquals(1, $absentCount);

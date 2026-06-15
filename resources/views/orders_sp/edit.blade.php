@@ -68,11 +68,16 @@
                                         name="sekolah_kodlan" 
                                         required
                                     >
-                                        @foreach($sekolah as $s)
-                                            <option value="{{ $s->kodlan }}" {{ old('sekolah_kodlan', $ordersSp->sekolah_kodlan) == $s->kodlan ? 'selected' : '' }}>
-                                                {{ $s->namasekolah }} ({{ $s->kota }})
+                                        <option value="">Ketik nama sekolah atau kode...</option>
+                                        @php
+                                            $selectedKodlan = old('sekolah_kodlan', $ordersSp->sekolah_kodlan);
+                                            $selectedSekolah = \App\Models\Sekolah::where('kodlan', $selectedKodlan)->first();
+                                        @endphp
+                                        @if($selectedSekolah)
+                                            <option value="{{ $selectedKodlan }}" selected>
+                                                {{ $selectedSekolah->namasekolah }} ({{ $selectedKodlan }})
                                             </option>
-                                        @endforeach
+                                        @endif
                                     </select>
                                     @error('sekolah_kodlan')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -285,6 +290,28 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
+    $('#sekolah_kodlan').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Ketik nama sekolah atau kode...',
+        allowClear: true,
+        ajax: {
+            url: "{{ route('api.sekolah.search') }}",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: data.results
+                };
+            },
+            cache: true
+        }
+    });
+
     let productIndex = {{ $productIndex }};
 
     // Handle selector change to pre-fill price

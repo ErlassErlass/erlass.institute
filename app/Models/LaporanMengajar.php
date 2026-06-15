@@ -33,6 +33,7 @@ class LaporanMengajar extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'ekstrakurikuler_session_id',
         'user_id_instruktur',
         'user_id_assisten',
         'pertemuan_ke',
@@ -153,7 +154,7 @@ class LaporanMengajar extends Model
      */
     public function ekstrakurikulerSession()
     {
-        return $this->hasOne(EkstrakurikulerSession::class, 'laporan_mengajar_id');
+        return $this->belongsTo(EkstrakurikulerSession::class, 'ekstrakurikuler_session_id');
     }
 
     /**
@@ -161,7 +162,7 @@ class LaporanMengajar extends Model
      */
     public function getJumlahHadirAttribute()
     {
-        return $this->absensi()->where('hadir', true)->count();
+        return $this->absensi()->where('status', 'hadir')->count();
     }
 
     /**
@@ -169,7 +170,7 @@ class LaporanMengajar extends Model
      */
     public function getJumlahTidakHadirAttribute()
     {
-        return $this->absensi()->where('hadir', false)->count();
+        return $this->absensi()->whereIn('status', ['izin', 'sakit', 'alpha'])->count();
     }
 
     /**

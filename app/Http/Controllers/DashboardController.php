@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Sekolah;
 use App\Models\Siswa;
 use App\Models\User;
+use App\Models\Warning;
+use App\Models\Certificate;
+use App\Models\ReportCard;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -161,7 +164,7 @@ class DashboardController extends Controller
         return \App\Models\EkstrakurikulerSession::with([
                 'rombel.ekstrakurikuler.sekolah:kodlan,namasekolah',
                 'instruktur:id,nama_lengkap',
-                'laporanMengajar:id'
+                'laporanMengajar:id,ekstrakurikuler_session_id'
             ])
             ->whereDate('tanggal_terjadwal', Carbon::today())
             ->orderBy('jam_mulai_terjadwal', 'asc')
@@ -219,7 +222,7 @@ class DashboardController extends Controller
                 }),
             'instructor_todo_list' => \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah:kodlan,namasekolah'])
                 ->where('user_id_instruktur', $user->id)
-                ->whereNull('laporan_mengajar_id')
+                ->doesntHave('laporanMengajar')
                 ->whereDate('tanggal_terjadwal', '<=', Carbon::today())
                 ->whereIn('status', ['terjadwal', 'berlangsung', 'selesai']) 
                 ->orderBy('tanggal_terjadwal', 'asc') 
@@ -254,13 +257,19 @@ class DashboardController extends Controller
             'admin_pending_reports' => in_array(auth()->user()->role, ['admin', 'admin_sistem', 'webmaster'])
                 ? \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah:kodlan,namasekolah', 'instruktur:id,nama_lengkap'])
                     ->whereNotNull('user_id_instruktur')
-                    ->whereNull('laporan_mengajar_id')
+                    ->doesntHave('laporanMengajar')
                     ->whereDate('tanggal_terjadwal', '<=', Carbon::today())
                     ->whereIn('status', ['terjadwal', 'berlangsung', 'selesai'])
                     ->orderBy('tanggal_terjadwal', 'asc')
                     ->take(10)
                     ->get()
                 : collect(),
+            'warning_merah' => Warning::where('severity', 'red')->where('status', 'active')->count(),
+            'warning_kuning' => Warning::where('severity', 'yellow')->where('status', 'active')->count(),
+            'warning_list' => Warning::with('sourceable')->where('status', 'active')->latest()->take(10)->get(),
+            'sertifikat_issued' => Certificate::where('status', 'issued')->count(),
+            'sertifikat_pending' => Certificate::whereNull('file_path')->count(),
+            'rapor_generated' => ReportCard::whereNotNull('file_path')->count(),
         ];
 
         return array_merge($adminData, $this->getChartData());
@@ -302,7 +311,7 @@ class DashboardController extends Controller
                 ->join('absensi', 'laporan_mengajar.id', '=', 'absensi.laporan_mengajar_id')
                 ->whereBetween('laporan_mengajar.jadwal_mengajar', [$attendanceStart, $attendanceEnd])
                 ->selectRaw("DATE_FORMAT(laporan_mengajar.jadwal_mengajar, '%Y-%m') as month_key")
-                ->selectRaw('SUM(CASE WHEN absensi.hadir = 1 THEN 1 ELSE 0 END) as total_hadir')
+                ->selectRaw("SUM(CASE WHEN absensi.status = 'hadir' THEN 1 ELSE 0 END) as total_hadir")
                 ->selectRaw('COUNT(*) as total_records')
                 ->groupBy('month_key')
                 ->orderBy('month_key')
@@ -334,5 +343,22 @@ class DashboardController extends Controller
                 'attendanceValues' => $attendanceValues
             ];
         });
+    }
+
+    /**
+     * Resolve warning manually.
+     */
+    public function resolveWarning(Warning $warning)
+    {
+        $warning->update([
+            'status' => 'resolved',
+            'resolved_by' => auth()->id(),
+            'resolved_at' => now(),
+            'notes' => $warning->notes . ' (Resolved manual oleh ' . auth()->user()->nama_lengkap . ')'
+        ]);
+
+        self::clearCache();
+
+        return redirect()->back()->with('success', 'Warning berhasil diselesaikan.');
     }
 }

@@ -16,6 +16,13 @@ use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SalesmanController;
 use App\Http\Controllers\OrderSpController;
+use App\Http\Controllers\ScheduleChangeController;
+use App\Http\Controllers\StudentScoreController;
+use App\Http\Controllers\StudentPortfolioController;
+use App\Http\Controllers\ReportCardController;
+use App\Http\Controllers\CertificateController;
+use App\Http\Controllers\SalaryRateController;
+use App\Http\Controllers\PayrollController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -50,11 +57,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/laporan-mengajar/get-materi', [LaporanMengajarController::class, 'getMateri'])
         ->name('laporan-mengajar.get-materi');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/admin/warnings/{warning}/resolve', [DashboardController::class, 'resolveWarning'])
+        ->name('admin.warnings.resolve')
+        ->middleware('role:webmaster,admin_sistem,admin');
+
 
     // Profile routes
     Route::get('/profile', [UserController::class, 'profile'])->name('profile.edit');
     Route::patch('/profile', [UserController::class, 'updateProfile'])->name('profile.update');
-    Route::delete('/profile', [UserController::class, 'destroy'])->name('profile.destroy');
+    Route::delete('/profile', [\App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::resource('sekolah', SekolahController::class);
     // Route::resource('absensi', AbsensiController::class); // Moved down to avoid conflict
@@ -74,6 +85,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['role:webmaster,admin_sistem,admin,sales'])->group(function () {
         Route::patch('orders-sp/{orders_sp}/submit', [OrderSpController::class, 'submit'])->name('orders-sp.submit');
+        Route::patch('orders-sp/{orders_sp}/approve', [OrderSpController::class, 'approve'])->name('orders-sp.approve');
         Route::post('orders-sp/import', [OrderSpController::class, 'import'])->name('orders-sp.import');
         Route::resource('orders-sp', OrderSpController::class);
     });
@@ -87,6 +99,16 @@ Route::middleware(['auth'])->group(function () {
 
     // Jadwal Harian
     Route::get('/jadwal/harian', [App\Http\Controllers\JadwalHarianController::class, 'index'])->name('jadwal.harian');
+
+    // Schedule Changes (Perubahan Jadwal)
+    Route::get('schedule-changes', [ScheduleChangeController::class, 'index'])->name('schedule-changes.index');
+    Route::get('schedule-changes/create/{session}', [ScheduleChangeController::class, 'create'])->name('schedule-changes.create');
+    Route::post('schedule-changes', [ScheduleChangeController::class, 'store'])->name('schedule-changes.store');
+    Route::get('schedule-changes/{scheduleChange}', [ScheduleChangeController::class, 'show'])->name('schedule-changes.show');
+    Route::patch('schedule-changes/{scheduleChange}/approve-academic', [ScheduleChangeController::class, 'approveAcademic'])->name('schedule-changes.approve-academic');
+    Route::patch('schedule-changes/{scheduleChange}/approve-pic', [ScheduleChangeController::class, 'approvePic'])->name('schedule-changes.approve-pic');
+    Route::patch('schedule-changes/{scheduleChange}/apply', [ScheduleChangeController::class, 'apply'])->name('schedule-changes.apply');
+    Route::patch('schedule-changes/{scheduleChange}/reject', [ScheduleChangeController::class, 'reject'])->name('schedule-changes.reject');
 
     // Ekstrakurikuler Session Management Routes (Moved Up for Precedence)
     Route::prefix('ekstrakurikuler')->name('ekstrakurikuler.')->group(function () {
@@ -111,6 +133,8 @@ Route::middleware(['auth'])->group(function () {
             ->name('sessions.cancel');
         Route::post('sessions/{session}/reschedule', [EkstrakurikulerSessionController::class, 'reschedule'])
             ->name('sessions.reschedule');
+        Route::post('sessions/{session}/override-fee', [EkstrakurikulerSessionController::class, 'overrideFee'])
+            ->name('sessions.override-fee');
 
         // Bulk Operations
         Route::post('sessions/bulk', [EkstrakurikulerSessionController::class, 'bulk'])
@@ -226,10 +250,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('users/create', fn () => redirect()->route('users.create'))->name('users.create');
         Route::get('users/{user}', fn ($user) => redirect()->route('users.show', $user))->name('users.show');
         Route::get('users/{user}/edit', fn ($user) => redirect()->route('users.edit', $user))->name('users.edit');
-        Route::get('employees', fn () => redirect()->route('users.index'))->name('employees.index');
-        Route::get('employees/create', fn () => redirect()->route('users.create'))->name('employees.create');
-        Route::get('employees/{employee}', fn ($employee) => redirect()->route('users.show', $employee))->name('employees.show');
-        Route::get('employees/{employee}/edit', fn ($employee) => redirect()->route('users.edit', $employee))->name('employees.edit');
+        Route::resource('employees', \App\Http\Controllers\EmployeeController::class);
 
         // Instructor Verification Routes
         Route::get('verification', [UserManagementController::class, 'verificationIndex'])
@@ -255,6 +276,16 @@ Route::middleware(['auth'])->group(function () {
         // Broadcast Routes
         Route::get('broadcast', [\App\Http\Controllers\Admin\BroadcastController::class, 'create'])->name('broadcast.create');
         Route::post('broadcast', [\App\Http\Controllers\Admin\BroadcastController::class, 'store'])->name('broadcast.store');
+
+        // Salary Rates Master (Admin Only)
+        Route::resource('salary-rates', SalaryRateController::class);
+
+        // Payroll Batches & Disbursements (Admin Only)
+        Route::get('payroll/batches', [PayrollController::class, 'index'])->name('payroll.batches.index');
+        Route::post('payroll/batches', [PayrollController::class, 'storeBatch'])->name('payroll.batches.store');
+        Route::get('payroll/batches/{batch}', [PayrollController::class, 'showBatch'])->name('payroll.batches.show');
+        Route::post('payroll/batches/{batch}/process', [PayrollController::class, 'processBatch'])->name('payroll.batches.process');
+        Route::post('payroll/batches/{batch}/pay', [PayrollController::class, 'payBatch'])->name('payroll.batches.pay');
     });
 
     // Absensi routes - consolidated and organized
@@ -292,7 +323,32 @@ Route::middleware(['auth'])->group(function () {
     // No explicit route needed here if resource(index) is active
     Route::get('laporan-mengajar/{laporan_mengajar}/absensi/tanggal/{tanggal}', [AbsensiController::class, 'showByDate'])
         ->name('laporan-mengajar.absensi.tanggal');
+
+    // AOQCS Phase 3 - Student Scores (Penilaian)
+    Route::get('student-scores', [StudentScoreController::class, 'rombelList'])->name('student-scores.rombel-list');
+    Route::get('student-scores/rombel/{rombel}', [StudentScoreController::class, 'index'])->name('student-scores.index');
+    Route::get('student-scores/rombel/{rombel}/bulk', [StudentScoreController::class, 'bulkInputForm'])->name('student-scores.bulk-input');
+    Route::post('student-scores/rombel/{rombel}/bulk', [StudentScoreController::class, 'storeBulk'])->name('student-scores.store-bulk');
+    Route::patch('student-scores/rombel/{rombel}/finalize', [StudentScoreController::class, 'finalize'])->name('student-scores.finalize');
+
+    // AOQCS Phase 3 - Student Portfolios
+    Route::get('student-portfolios', [StudentPortfolioController::class, 'index'])->name('student-portfolios.index');
+    Route::get('student-portfolios/rombel/{rombel}', [StudentPortfolioController::class, 'rombelIndex'])->name('student-portfolios.rombel');
+    Route::post('student-portfolios', [StudentPortfolioController::class, 'store'])->name('student-portfolios.store');
+    Route::delete('student-portfolios/{portfolio}', [StudentPortfolioController::class, 'destroy'])->name('student-portfolios.destroy');
+
+    // AOQCS Phase 3 - Report Cards & Certificates Downloads
+    Route::get('report-cards/{reportCard}/download', [ReportCardController::class, 'download'])->name('report-cards.download');
+    Route::get('certificates/{certificate}/download', [CertificateController::class, 'download'])->name('certificates.download');
+    Route::get('certificates', [CertificateController::class, 'index'])->name('certificates.index');
+
+    // AOQCS Phase 4 - Payroll / Kompensasi
+    Route::get('payroll/my-salaries', [PayrollController::class, 'mySalaries'])->name('payroll.my-salaries');
+    Route::get('payroll/slip/{id}', [PayrollController::class, 'showSlip'])->name('payroll.slip.show');
 });
+
+// Public Verification Route (No Auth)
+Route::get('/verify/certificate/{certificate_code}', [CertificateController::class, 'verify'])->name('certificates.verify');
 
 // Late Report Grace System Routes
 Route::middleware(['auth'])->group(function () {
