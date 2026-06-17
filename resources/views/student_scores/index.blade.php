@@ -17,7 +17,8 @@
         </div>
         <div class="col-md-6 text-md-end mt-3 mt-md-0">
             @php
-                $isFinalized = $scores->first() && $scores->first()->finalized_at;
+                $firstScore = collect($scores)->first();
+                $isFinalized = $firstScore && $firstScore->finalized_at;
                 $allComplete = true;
                 foreach($scores as $score) {
                     if(!$score->isComplete()) {
