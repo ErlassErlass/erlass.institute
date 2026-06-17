@@ -79,6 +79,10 @@
                                 <span class="text-muted">Bonus Produk:</span>
                                 <span class="fw-semibold text-dark">Rp {{ number_format($item->total_product_bonus, 2, ',', '.') }}</span>
                             </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Uang Transport:</span>
+                                <span class="fw-semibold text-dark">Rp {{ number_format($item->total_transport_fee, 2, ',', '.') }}</span>
+                            </div>
                             @if ($item->total_penalty > 0)
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="text-danger">Denda Terlambat:</span>
@@ -117,6 +121,7 @@
                                     <th>Jadwal / Rombel</th>
                                     <th>Waktu Check-In</th>
                                     <th>Honor Sesi</th>
+                                    <th>Transport</th>
                                     <th>Denda</th>
                                     @if(in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin']))
                                         <th class="text-center">Koreksi</th>
@@ -157,6 +162,9 @@
                                             @else
                                                 <span class="fw-semibold text-dark">Rp {{ number_format($session->calculated_fee, 0, ',', '.') }}</span>
                                             @endif
+                                        </td>
+                                        <td>
+                                            <span class="fw-semibold text-dark">Rp {{ number_format($session->transport_fee, 0, ',', '.') }}</span>
                                         </td>
                                         <td>
                                             @if ($session->actual_checkin_penalty > 0)

@@ -64,6 +64,7 @@ class SekolahController extends Controller
             'kotkab' => 'required|string',
             'kota' => 'required|string',
             'provinsi' => 'required|string',
+            'kustom_transport_fee' => 'nullable|numeric|min:0',
         ]);
 
         Sekolah::create($validated);
@@ -88,6 +89,7 @@ class SekolahController extends Controller
             'kotkab' => 'required|string',
             'kota' => 'required|string',
             'provinsi' => 'required|string',
+            'kustom_transport_fee' => 'nullable|numeric|min:0',
         ]);
 
         $sekolah->update($validated);
@@ -99,9 +101,8 @@ class SekolahController extends Controller
     // Delete: Remove a school
     public function destroy(Sekolah $sekolah)
     {
-        if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
-        $sekolah->delete();
-
-        return redirect()->route('sekolah.index')->with('success', 'Sekolah berhasil dihapus!');
+        // NOTE: Penghapusan master data sekolah dinonaktifkan secara permanen untuk mencegah hilangnya data.
+        return redirect()->route('sekolah.index')
+            ->with('error', 'Penghapusan master data sekolah dinonaktifkan demi keamanan data.');
     }
 }

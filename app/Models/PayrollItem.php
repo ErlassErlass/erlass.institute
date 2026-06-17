@@ -21,6 +21,7 @@ class PayrollItem extends Model
         'total_product_bonus',
         'total_penalty',
         'total_bonus',
+        'total_transport_fee',
         'net_salary',
         'status',
         'notes',
@@ -31,6 +32,7 @@ class PayrollItem extends Model
         'total_product_bonus' => 'decimal:2',
         'total_penalty' => 'decimal:2',
         'total_bonus' => 'decimal:2',
+        'total_transport_fee' => 'decimal:2',
         'net_salary' => 'decimal:2',
     ];
 

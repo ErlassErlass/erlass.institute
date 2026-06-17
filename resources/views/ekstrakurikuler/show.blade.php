@@ -520,6 +520,7 @@
                                 </div>
                                 @endforelse
                                 
+                                @push('modals')
                                 {{-- Modals for Rombel Actions (Placed outside loop if IDs used, or inside if unique) --}}
                                 @foreach($ekstrakurikuler->rombels as $rombel)
                                 <div class="modal fade" id="importSiswaModal{{ $rombel->id }}" tabindex="-1" aria-labelledby="importSiswaModalLabel{{ $rombel->id }}" aria-hidden="true">
@@ -553,6 +554,7 @@
                                     </div>
                                 </div>
                                 @endforeach
+                                @endpush
                             </div>
                         </div>
                         

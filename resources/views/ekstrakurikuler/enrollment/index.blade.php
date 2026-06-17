@@ -249,6 +249,7 @@
     </div>
 </div>
 
+@push('modals')
 <!-- Bulk Import by Rombel Modal -->
 <div class="modal fade" id="bulkImportRombelModal" tabindex="-1">
     <div class="modal-dialog">
@@ -384,6 +385,7 @@
         </div>
     </div>
 </div>
+@endpush
 
 @push('scripts')
 <script>

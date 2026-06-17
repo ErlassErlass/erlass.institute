@@ -240,6 +240,7 @@
 
 <!-- Delete Modal -->
 @if(auth()->id() !== $user->id)
+@push('modals')
 <div class="modal fade" id="deleteUserModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -264,5 +265,6 @@
         </div>
     </div>
 </div>
+@endpush
 @endif
 @endsection

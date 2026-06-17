@@ -34,8 +34,8 @@ Untuk pengembang baru yang akan memodifikasi backend atau frontend aplikasi.
 
 ---
 
-### 🚀 3. Operasional, Deployment & LMS (`docs/ops/`)
-Prosedur sysadmin untuk pemeliharaan server, integrasi Moodle, dan deployment Docker.
+### 🚀 3. Operasional & Deployment (`docs/ops/`)
+Prosedur sysadmin untuk pemeliharaan server dan deployment Docker.
 
 *   [**`DEPLOYMENT_GUIDE.md`**](ops/DEPLOYMENT_GUIDE.md) — Panduan komprehensif deploy VPS, konfigurasi Nginx Reverse Proxy, dan setup SSL Let's Encrypt.
 *   [**`DEPLOYMENT_DOCKER.md`**](ops/DEPLOYMENT_DOCKER.md) — Setup containerization menggunakan Docker Compose.
@@ -45,19 +45,19 @@ Prosedur sysadmin untuk pemeliharaan server, integrasi Moodle, dan deployment Do
 *   [**`SENTRY_MONITORING.md`**](ops/SENTRY_MONITORING.md) — Konfigurasi monitoring bug and performance.
 *   [**`SECURITY_AUDIT_REPORT.md`**](ops/SECURITY_AUDIT_REPORT.md) — Laporan audit keamanan berkala.
 
-#### 🎓 LMS Integration (Moodle Sandbox)
-*   [**`ops/moodle/DOKUMENTASI_MOODLE_SANDBOX.md`**](ops/moodle/DOKUMENTASI_MOODLE_SANDBOX.md) — Gambaran arsitektur integrasi Laravel-Moodle Sandbox.
-*   [**`ops/moodle/PANDUAN_DEPLOYMENT_MOODLE.txt`**](ops/moodle/PANDUAN_DEPLOYMENT_MOODLE.txt) — Langkah-langkah deploy Moodle LMS dari nol di server ini.
-*   [**`ops/moodle/PANDUAN_IMPLEMENTASI_PLUGIN.md`**](ops/moodle/PANDUAN_IMPLEMENTASI_PLUGIN.md) — Panduan memasang plugin sinkronisasi data siswa ke Moodle.
-*   [**`ops/moodle/LOCAL_PAGES_INTEGRATION.md`**](ops/moodle/LOCAL_PAGES_INTEGRATION.md) — Integrasi halaman lokal kustom moodle.
-
 ---
 
 ### 🔌 4. Integrasi Pihak Ketiga (`docs/integration/`)
-Hubungan sistem dengan API eksternal.
+Hubungan sistem dengan API eksternal dan platform pembelajaran (LMS).
 
 *   [**`FONNTE_INTEGRATION.md`**](integration/FONNTE_INTEGRATION.md) — Setup WhatsApp Gateway Fonnte, API Token, dan konfigurasi environment.
 *   [**`NOTIFICATION_WORKFLOW.md`**](integration/NOTIFICATION_WORKFLOW.md) — Alur logika pengiriman notifikasi otomatis (Welcome, Progress Kelipatan 4, dan Reminder).
+
+#### 🎓 LMS Integration (Moodle Sandbox)
+*   [**`integration/moodle/DOKUMENTASI_MOODLE_SANDBOX.md`**](integration/moodle/DOKUMENTASI_MOODLE_SANDBOX.md) — Gambaran arsitektur integrasi Laravel-Moodle Sandbox.
+*   [**`integration/moodle/PANDUAN_IMPLEMENTASI_PLUGIN.md`**](integration/moodle/PANDUAN_IMPLEMENTASI_PLUGIN.md) — Panduan memasang plugin sinkronisasi data siswa ke Moodle.
+*   [**`integration/moodle/LOCAL_PAGES_INTEGRATION.md`**](integration/moodle/LOCAL_PAGES_INTEGRATION.md) — Integrasi halaman lokal kustom Moodle di VPS.
+*   [**`integration/moodle/LOCAL_PAGES_SHARED_HOSTING.md`**](integration/moodle/LOCAL_PAGES_SHARED_HOSTING.md) — Integrasi halaman lokal kustom Moodle di Shared Hosting.
 
 ---
 

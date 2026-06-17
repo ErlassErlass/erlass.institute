@@ -129,6 +129,7 @@
     </div>
 </div>
 
+@push('modals')
 <!-- Import Excel Modal -->
 <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -137,15 +138,24 @@
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold" id="importModalLabel">Impor Data Salesman dari Excel</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="file" class="form-label fw-semibold text-muted small">Pilih File Excel (.xlsx, .xls, .csv)</label>
                         <input type="file" name="file" class="form-control" id="file" accept=".xlsx,.xls,.csv" required>
-                        <div class="form-text small mt-2">
-                            Pastikan header Excel memiliki kolom berikut:<br>
-                            <code>kode_salesman</code>, <code>nama_salesman</code>, <code>group_leader</code>, <code>area</code>, <code>user_email</code> (opsional)
+                        <div class="form-text small mt-3">
+                            <span class="fw-semibold text-dark d-block mb-1">Ketentuan kolom Excel:</span>
+                            <ul class="ps-3 mb-0 text-muted" style="list-style-type: decimal;">
+                                <li class="mb-1"><strong>kode_salesman</strong> <span class="text-danger">*</span>: Kode unik sales (Wajib diisi, harus unik).</li>
+                                <li class="mb-1"><strong>nama_salesman</strong> <span class="text-danger">*</span>: Nama lengkap salesman (Wajib diisi).</li>
+                                <li class="mb-1"><strong>group_leader</strong>: Nama / kode group leader (Opsional).</li>
+                                <li class="mb-1"><strong>area</strong>: Wilayah kerja / cakupan sales (Opsional).</li>
+                                <li class="mb-1"><strong>user_email</strong>: Email akun terdaftar (Opsional). Harus berupa email valid & terdaftar dengan role 'sales'. Jika diisi, sales otomatis terhubung ke user.</li>
+                            </ul>
+                            <div class="mt-2 text-danger" style="font-size: 0.75rem;">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i> Kolom bertanda <span class="text-danger">*</span> wajib ada di file Excel Anda.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -159,4 +169,5 @@
         </div>
     </div>
 </div>
+@endpush
 @endsection

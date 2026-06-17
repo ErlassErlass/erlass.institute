@@ -104,6 +104,7 @@
     </div>
 </div>
 
+@push('modals')
 <!-- Upload Portfolio Modal -->
 <div class="modal fade" id="uploadPortfolioModal" tabindex="-1" aria-labelledby="uploadPortfolioModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -183,6 +184,7 @@
         </form>
     </div>
 </div>
+@endpush
 
 @push('scripts')
 <script>

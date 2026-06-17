@@ -138,6 +138,7 @@ class PayrollTest extends TestCase
             'status' => 'aktif',
             'jenis_pembayaran' => 'per_siswa_bulan',
             'total_pertemuan' => 12,
+            'jarak_km' => 12.50,
         ]);
 
         $rombel = EkstrakurikulerRombel::create([
@@ -174,6 +175,7 @@ class PayrollTest extends TestCase
         $this->assertEquals('on_time', $calc['actual_checkin_status']);
         $this->assertEquals(0.00, $calc['actual_checkin_penalty']);
         $this->assertEquals(200000.00, $calc['net_fee']);
+        $this->assertEquals(37500.00, $calc['transport_fee']); // 12.5 * 3000 = 37500
 
         // Case 2: Late checkin (penalty applied)
         $sessionLate = $rombel->sessions()->where('nomor_pertemuan', 2)->first();
@@ -241,6 +243,7 @@ class PayrollTest extends TestCase
             'status' => 'aktif',
             'jenis_pembayaran' => 'per_siswa_bulan',
             'total_pertemuan' => 12,
+            'jarak_km' => 5.00,
         ]);
 
         $rombel = EkstrakurikulerRombel::create([
@@ -307,7 +310,8 @@ class PayrollTest extends TestCase
         $this->assertNotNull($payrollItem);
         $this->assertEquals($batch->id, $payrollItem->payroll_batch_id);
         $this->assertEquals($instructor->id, $payrollItem->user_id_instruktur);
-        $this->assertEquals(100000.00, $payrollItem->net_salary);
+        $this->assertEquals(20000.00, $payrollItem->total_transport_fee);
+        $this->assertEquals(120000.00, $payrollItem->net_salary);
 
         // 2. Process batch
         $response = $this->actingAs($admin)->post(route('admin.payroll.batches.process', $batch->id));
@@ -323,5 +327,97 @@ class PayrollTest extends TestCase
         $this->assertEquals('paid', $batch->status);
         $this->assertEquals('paid', $session->payment_status);
         $this->assertEquals('paid', $payrollItem->status);
+    }
+
+    public function test_payroll_calculator_transport_fee_priorities()
+    {
+        $instructor = User::create([
+            'nama_lengkap' => 'Instructor Test',
+            'email' => 'instructor@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'instruktur',
+            'status' => 'Aktif',
+            'tanggal_lahir' => '1990-01-01',
+            'agama' => 'Lainnya',
+            'pend_terakhir' => 'SMA',
+            'kompetensi_1' => 'General',
+            'no_telephone' => '081234567890',
+        ]);
+
+        InstructorProfile::create([
+            'user_id' => $instructor->id,
+            'level' => 'junior',
+        ]);
+
+        SalaryRate::create([
+            'level' => 'junior',
+            'base_rate' => 100000.00,
+        ]);
+
+        $sekolah = Sekolah::factory()->create([
+            'kodlan' => 'SCH002',
+            'namasekolah' => 'Priority Test School',
+            'kota' => 'Jakarta',
+            'kustom_transport_fee' => 45000.00,
+        ]);
+
+        $ekskul = Ekstrakurikuler::factory()->create([
+            'kategori_program' => 'Coding Scratch',
+            'sekolah_kodlan' => 'SCH002',
+            'status' => 'aktif',
+            'jenis_pembayaran' => 'per_siswa_bulan',
+            'total_pertemuan' => 12,
+            'jarak_km' => null, // Jarak null
+        ]);
+
+        $rombel = EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nama_rombel' => 'Scratch Priority',
+            'nomor_rombel' => 1,
+            'jumlah_siswa' => 0,
+            'ruangan' => 'Lab 1',
+            'tanggal_mulai' => '2026-06-01',
+            'tanggal_selesai' => '2026-12-01',
+            'hari' => 'rabu',
+            'jam_mulai' => '10:00',
+            'jam_selesai' => '12:00',
+            'total_pertemuan' => 12,
+            'status' => 'berlangsung',
+        ]);
+
+        $session = $rombel->sessions()->where('nomor_pertemuan', 1)->first();
+        $session->update([
+            'tanggal_pelaksanaan' => '2026-06-03',
+            'jam_mulai_aktual' => '10:00',
+            'jam_selesai_aktual' => '12:00',
+            'status' => 'selesai',
+            'user_id_instruktur' => $instructor->id,
+        ]);
+
+        $service = new PayrollCalculatorService();
+
+        // Priority 1: sekolah has kustom_transport_fee = 45000, ekskul jarak_km is null
+        $calc1 = $service->calculateSessionFee($session);
+        $this->assertEquals(45000.00, $calc1['transport_fee']);
+
+        // Priority 2: ekskul jarak_km is defined (say 8 km) -> calculates based on jarak_km (8 * 3000 = 24000)
+        // which takes priority over school custom rate as it's the main reference
+        $ekskul->update(['jarak_km' => 8.00]);
+        $session->refresh();
+        $calc2 = $service->calculateSessionFee($session);
+        $this->assertEquals(24000.00, $calc2['transport_fee']);
+
+        // Priority 2 (Minimum): ekskul jarak_km is defined (say 5 km) -> calculations give 15000, minimum is 20000
+        $ekskul->update(['jarak_km' => 5.00]);
+        $session->refresh();
+        $calc2Min = $service->calculateSessionFee($session);
+        $this->assertEquals(20000.00, $calc2Min['transport_fee']);
+
+        // Priority 3 (Fallback): both jarak_km is null/0 and kustom_transport_fee is null -> flat 30000
+        $ekskul->update(['jarak_km' => 0.00]);
+        $sekolah->update(['kustom_transport_fee' => null]);
+        $session->refresh();
+        $calc3 = $service->calculateSessionFee($session);
+        $this->assertEquals(30000.00, $calc3['transport_fee']);
     }
 }

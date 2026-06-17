@@ -51,19 +51,23 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-sm-6 col-md-3">
+                        <div class="col-sm-6 col-md">
                             <small class="text-muted d-block mb-1">Total Instruktur</small>
                             <span class="fw-bold text-dark fs-5">{{ $batch->items->count() }} orang</span>
                         </div>
-                        <div class="col-sm-6 col-md-3">
+                        <div class="col-sm-6 col-md">
                             <small class="text-muted d-block mb-1">Total Sesi Terbayar</small>
                             <span class="fw-bold text-dark fs-5">{{ $batch->items->sum('total_sessions') }} Sesi</span>
                         </div>
-                        <div class="col-sm-6 col-md-3">
+                        <div class="col-sm-6 col-md">
+                            <small class="text-muted d-block mb-1">Total Uang Transport</small>
+                            <span class="fw-bold text-primary fs-5">Rp {{ number_format($batch->items->sum('total_transport_fee'), 2, ',', '.') }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md">
                             <small class="text-muted d-block mb-1">Total Potongan Denda</small>
                             <span class="fw-bold text-danger fs-5">Rp {{ number_format($batch->items->sum('total_penalty'), 2, ',', '.') }}</span>
                         </div>
-                        <div class="col-sm-6 col-md-3">
+                        <div class="col-sm-6 col-md">
                             <small class="text-muted d-block mb-1">Total Transfer Netto</small>
                             <span class="fw-bold text-success fs-5">Rp {{ number_format($batch->items->sum('net_salary'), 2, ',', '.') }}</span>
                         </div>
@@ -128,6 +132,7 @@
                             <th>Total Sesi</th>
                             <th>Total Honor Dasar</th>
                             <th>Bonus Produk</th>
+                            <th>Uang Transport</th>
                             <th>Potongan Denda</th>
                             <th>Honor Netto</th>
                             <th class="text-center">Aksi</th>
@@ -143,6 +148,7 @@
                                 <td>{{ $item->total_sessions }} Sesi</td>
                                 <td>Rp {{ number_format($item->total_base_fee, 2, ',', '.') }}</td>
                                 <td>Rp {{ number_format($item->total_product_bonus, 2, ',', '.') }}</td>
+                                <td>Rp {{ number_format($item->total_transport_fee, 2, ',', '.') }}</td>
                                 <td>
                                     @if ($item->total_penalty > 0)
                                         <span class="text-danger fw-semibold">-Rp {{ number_format($item->total_penalty, 2, ',', '.') }}</span>

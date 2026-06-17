@@ -158,6 +158,7 @@
     </div>
 </div>
 
+@push('modals')
 <!-- Modal Cari Siswa -->
 <div class="modal fade" id="searchStudentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -175,8 +176,9 @@
                 </div>
             </div>
         </div>
+    </div>
 </div>
-</div>
+@endpush
 
 <!-- Modal Tambah Siswa Baru (Nested or Toggle) -->
 <div id="addStudentFormContainer" class="d-none border-top pt-3 mt-3">

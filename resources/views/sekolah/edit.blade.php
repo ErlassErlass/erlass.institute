@@ -122,6 +122,15 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+
+                                <div class="mb-3">
+                                    <label for="kustom_transport_fee" class="form-label">Custom Transport Fee (Rp)</label>
+                                    <input type="number" step="0.01" class="form-control @error('kustom_transport_fee') is-invalid @enderror" id="kustom_transport_fee" name="kustom_transport_fee" value="{{ old('kustom_transport_fee', $sekolah->kustom_transport_fee) }}" placeholder="Contoh: 35000">
+                                    <small class="text-muted">Kosongkan jika ingin menggunakan perhitungan default.</small>
+                                    @error('kustom_transport_fee')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
                             </div>
                         </div>
                     </div>

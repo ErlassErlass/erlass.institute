@@ -102,24 +102,8 @@ class SekolahSeeder extends Seeder
                 $validKodlans[] = $schoolData['kodlan'];
             }
 
-            // Explicitly delete Lampung and Peror records (User Request)
-            Sekolah::where('provinsi', 'Lampung')->delete();
-            Sekolah::where(function($q) {
-                 $q->where('jenjang', 'Peror')
-                   ->orWhere('status', 'Peror')
-                   ->orWhere('namasekolah', 'LIKE', '%PERORANGAN%');
-            })->delete();
-
-            // Sync: Delete schools that are NOT in the CSV
-            if (!empty($validKodlans)) {
-                try {
-                    $deleted = Sekolah::whereNotIn('kodlan', $validKodlans)->delete();
-                    $this->command->info("Deleted $deleted schools that were not in the CSV.");
-                } catch (\Exception $e) {
-                    $this->command->warn("Could not delete some schools due to foreign key constraints (Siswa table). This is expected if schools have students.");
-                    Log::warning("Sekolah Cleanup Failed: " . $e->getMessage());
-                }
-            }
+            // NOTE: Per User Request, do NOT delete any school master data from the database.
+            // All deletion and sync-cleanup operations are disabled to prevent data loss.
             
             DB::commit();
             $this->command->info("Successfully imported $success schools from $row rows.");

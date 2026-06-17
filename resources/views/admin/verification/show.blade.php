@@ -295,6 +295,7 @@
     @endif
 </div>
 
+@push('modals')
 <!-- Reject Modal -->
 <div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -322,4 +323,5 @@
         </div>
     </div>
 </div>
+@endpush
 @endsection

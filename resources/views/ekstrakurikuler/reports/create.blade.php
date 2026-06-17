@@ -207,6 +207,7 @@
     </div>
 </div>
 
+@push('modals')
 <!-- Modal Tambah Siswa -->
 <div class="modal fade" id="addStudentModal" tabindex="-1">
     <div class="modal-dialog">
@@ -279,6 +280,7 @@
         </div>
     </div>
 </div>
+@endpush
 
 @push('scripts')
 <script>

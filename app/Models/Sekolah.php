@@ -44,11 +44,17 @@ class Sekolah extends Model
         'kotkab',
         'kota',
         'provinsi',
+        'alamat',
         'alamat_lengkap',
-        'pic_nama',
-        'pic_kontak',
-        'pic_email',
         'lokasi_default',
+        'kustom_transport_fee',
+    ];
+
+    /**
+     * Casting tipe data kolom.
+     */
+    protected $casts = [
+        'kustom_transport_fee' => 'decimal:2',
     ];
 
     /**

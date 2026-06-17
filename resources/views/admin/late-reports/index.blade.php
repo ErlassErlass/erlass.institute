@@ -68,6 +68,7 @@
                                             </button>
                                         </div>
 
+                                        @push('modals')
                                         <!-- Reject Modal -->
                                         <div class="modal fade" id="rejectModal{{ $req->id }}" tabindex="-1" aria-hidden="true">
                                             <div class="modal-dialog modal-dialog-centered">
@@ -80,18 +81,19 @@
                                                         </div>
                                                         <div class="modal-body text-start">
                                                             <div class="mb-3">
-                                                                <label class="form-label small fw-bold">Alasan Penolakan</label>
-                                                                <textarea name="admin_notes" class="form-control" rows="3" required placeholder="Berikan alasan mengapa permohonan ditolak..."></textarea>
+                                                                 <label class="form-label small fw-bold">Alasan Penolakan</label>
+                                                                 <textarea name="admin_notes" class="form-control" rows="3" required placeholder="Berikan alasan mengapa permohonan ditolak..."></textarea>
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer border-0">
-                                                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-                                                            <button type="submit" class="btn btn-danger rounded-pill px-4">Kirim Penolakan</button>
+                                                             <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                                                             <button type="submit" class="btn btn-danger rounded-pill px-4">Kirim Penolakan</button>
                                                         </div>
                                                     </form>
                                                 </div>
                                             </div>
                                         </div>
+                                        @endpush
                                     @else
                                         @if($req->admin_notes)
                                             <button class="btn btn-sm btn-light rounded-circle" data-bs-toggle="tooltip" title="{{ $req->admin_notes }}">

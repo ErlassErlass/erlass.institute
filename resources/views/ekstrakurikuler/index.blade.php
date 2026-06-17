@@ -311,7 +311,6 @@
 @endpush
 
 @push('modals')
-@push('modals')
 <!-- Modal Pembatalan -->
 <div class="modal fade" id="modalBatalkanProgram" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">

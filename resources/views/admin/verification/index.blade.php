@@ -160,6 +160,7 @@
                     </div>
                 </div>
 
+                @push('modals')
                 <!-- Reject Modal -->
                 <div class="modal fade" id="rejectModal{{ $instructor->id }}" tabindex="-1">
                     <div class="modal-dialog modal-dialog-centered">
@@ -187,6 +188,7 @@
                         </div>
                     </div>
                 </div>
+                @endpush
             @endforeach
         </div>
     @endif

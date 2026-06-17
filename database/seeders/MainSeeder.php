@@ -19,7 +19,7 @@ class MainSeeder extends Seeder
         // Matikan foreign key check untuk mengosongkan tabel
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         User::truncate();
-        Sekolah::truncate();
+        // Sekolah::truncate(); // NOTE: Jangan pernah hapus master data sekolah!
         Siswa::truncate();
         LaporanMengajar::truncate();
         // Anda bisa tambahkan truncate untuk tabel lain jika perlu (absensi, dll)

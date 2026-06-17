@@ -46,6 +46,7 @@ class EkstrakurikulerSession extends Model
         'actual_checkin_penalty',
         'calculated_fee',
         'override_fee',
+        'transport_fee',
     ];
 
     /**
@@ -60,6 +61,7 @@ class EkstrakurikulerSession extends Model
         'jam_mulai_aktual' => 'datetime:H:i',
         'jam_selesai_aktual' => 'datetime:H:i',
         'nomor_pertemuan' => 'integer',
+        'transport_fee' => 'decimal:2',
     ];
 
     /**

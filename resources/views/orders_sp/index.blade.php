@@ -166,6 +166,7 @@
     </div>
 </div>
 
+@push('modals')
 <!-- Import Excel Modal -->
 <div class="modal fade" id="importSpModal" tabindex="-1" aria-labelledby="importSpModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -196,4 +197,5 @@
         </div>
     </div>
 </div>
+@endpush
 @endsection

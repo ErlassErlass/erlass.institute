@@ -650,10 +650,6 @@ function showBulkTimeUpdateForm() {
             </div>
         </div>
     </div>
-@endpush
-
-@endsection
-@push('modals')
-
 </div>
 @endpush
+@endsection

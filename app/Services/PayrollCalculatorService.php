@@ -87,13 +87,31 @@ class PayrollCalculatorService
         // 4. Calculate total fee (base + bonus)
         $calculatedFee = $baseRate + $productBonus;
 
-        // 5. Apply override if present
+        // 5. Calculate transport fee
+        $transportFee = 0.00;
+        $ekskul = $session->ekstrakurikuler;
+        $sekolah = $ekskul ? $ekskul->sekolah : null;
+
+        if ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km > 0) {
+            // Acuan utama: perhitungan berbasis jarak_km (jarak_km * Rp 3.000, minimal Rp 20.000)
+            $calculatedTransport = (float)$ekskul->jarak_km * 3000.00;
+            $transportFee = max($calculatedTransport, 20000.00);
+        } elseif ($sekolah && $sekolah->kustom_transport_fee !== null) {
+            // Fallback 1: Custom transport fee per school
+            $transportFee = (float)$sekolah->kustom_transport_fee;
+        } else {
+            // Fallback 2: Default flat fee (Rp 30.000)
+            $transportFee = 30000.00;
+        }
+
+        // 6. Apply override if present
         $finalFee = $session->override_fee !== null ? (float) $session->override_fee : $calculatedFee;
 
         return [
             'base_rate' => $baseRate,
             'product_bonus' => $productBonus,
             'calculated_fee' => $calculatedFee,
+            'transport_fee' => $transportFee,
             'actual_checkin_status' => $checkinStatus,
             'actual_checkin_penalty' => $penalty,
             'net_fee' => max(0.00, $finalFee - $penalty)
@@ -134,6 +152,7 @@ class PayrollCalculatorService
                 $totalProductBonus = 0.00;
                 $totalPenalty = 0.00;
                 $totalBonus = 0.00;
+                $totalTransportFee = 0.00;
 
                 // Process each session to store its details
                 foreach ($instructorSessions as $session) {
@@ -144,6 +163,7 @@ class PayrollCalculatorService
                         'actual_checkin_status' => $calc['actual_checkin_status'],
                         'actual_checkin_penalty' => $calc['actual_checkin_penalty'],
                         'calculated_fee' => $calc['calculated_fee'],
+                        'transport_fee' => $calc['transport_fee'],
                         'payment_status' => 'processing',
                     ]);
 
@@ -152,17 +172,20 @@ class PayrollCalculatorService
                     $totalPenalty += $calc['actual_checkin_penalty'];
                 }
 
-                // Check override fee for sessions
+                // Check override fee and sum up transport fee for sessions
                 $actualTotalBase = 0.00;
+                $totalTransportFee = 0.00;
                 foreach ($instructorSessions as $session) {
                     if ($session->override_fee !== null) {
                         $actualTotalBase += (float) $session->override_fee;
                     } else {
                         $actualTotalBase += (float) $session->calculated_fee;
                     }
+                    $totalTransportFee += (float) $session->transport_fee;
                 }
 
-                $netSalary = max(0.00, $actualTotalBase - $totalPenalty);
+                // net_salary = base_fee_with_overrides + total_transport_fee + total_bonus - total_penalty
+                $netSalary = max(0.00, $actualTotalBase + $totalTransportFee + $totalBonus - $totalPenalty);
 
                 // Create payroll item
                 $payrollItem = PayrollItem::create([
@@ -170,11 +193,12 @@ class PayrollCalculatorService
                     'user_id_instruktur' => $instructorId,
                     'total_sessions' => $totalSessions,
                     'total_base_fee' => $instructorSessions->sum(function($s) {
-                        return $s->override_fee !== null ? (float)$s->override_fee - $s->calculated_fee + (float)$s->calculated_fee : (float)$s->calculated_fee;
+                        return $s->override_fee !== null ? (float)$s->override_fee : (float)$s->calculated_fee;
                     }),
                     'total_product_bonus' => $totalProductBonus,
                     'total_penalty' => $totalPenalty,
                     'total_bonus' => $totalBonus,
+                    'total_transport_fee' => $totalTransportFee,
                     'net_salary' => $netSalary,
                     'status' => 'pending',
                 ]);
