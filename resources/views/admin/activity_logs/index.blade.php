@@ -89,9 +89,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="p-3">
-                {{ $logs->appends(request()->except('page'))->links() }}
-            </div>
+            <x-pagination-wrapper :paginator="$logs->appends(request()->except('page'))" class="bg-white border-top py-3" />
         </div>
     </div>
 </div>

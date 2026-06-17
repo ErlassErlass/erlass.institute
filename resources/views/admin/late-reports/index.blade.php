@@ -114,11 +114,7 @@
                     </tbody>
                 </table>
             </div>
-            @if($requests->hasPages())
-                <div class="p-4 border-top">
-                    {{ $requests->links() }}
-                </div>
-            @endif
+            <x-pagination-wrapper :paginator="$requests" class="bg-white border-top py-3" />
         </div>
     </div>
 </div>

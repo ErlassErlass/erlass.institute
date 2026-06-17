@@ -118,11 +118,7 @@
                 </table>
             </div>
         </div>
-        @if($scheduleChanges->hasPages())
-        <div class="card-footer bg-white border-top-0">
-            {{ $scheduleChanges->links() }}
-        </div>
-        @endif
+        <x-pagination-wrapper :paginator="$scheduleChanges->appends(request()->query())" class="bg-white border-top-0 py-3" />
     </div>
 </div>
 @endsection

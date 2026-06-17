@@ -113,9 +113,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="card-footer bg-white border-top p-3">
-                    {{ $scores->appends(request()->query())->links() }}
-                </div>
+                <x-pagination-wrapper :paginator="$scores->appends(request()->query())" class="bg-white border-top py-3" />
             @else
                 <div class="p-5 text-center text-muted">
                     <i class="bi bi-file-earmark-x fs-1 mb-3 d-block text-secondary"></i>

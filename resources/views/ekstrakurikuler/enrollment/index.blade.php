@@ -241,11 +241,7 @@
                 </div>
             @endif
         </div>
-        @if($enrollments->hasPages())
-            <div class="card-footer">
-                {{ $enrollments->withQueryString()->links() }}
-            </div>
-        @endif
+        <x-pagination-wrapper :paginator="$enrollments->withQueryString()" />
     </div>
 </div>
 

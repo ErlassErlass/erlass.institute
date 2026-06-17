@@ -246,7 +246,7 @@
                         @endforeach
                     </div>
 
-                    <div class="mt-3">{{ $ekstrakurikulers->appends(request()->query())->links() }}</div>
+                    <x-pagination-wrapper :paginator="$ekstrakurikulers->appends(request()->query())" class="bg-transparent border-top py-3" />
                 </div>
             </div>
         </div>

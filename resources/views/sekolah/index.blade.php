@@ -149,11 +149,7 @@
                 @endforelse
             </div>
             
-             @if ($sekolah->hasPages())
-                <div class="card-footer bg-white border-top py-3">
-                    {{ $sekolah->links() }}
-                </div>
-            @endif
+            <x-pagination-wrapper :paginator="$sekolah" class="bg-white border-top py-3" />
         </div>
     </div>
 </div>

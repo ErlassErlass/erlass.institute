@@ -121,9 +121,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="mt-3">
-                {{ $laporanMengajars->links() }}
-            </div>
+            <x-pagination-wrapper :paginator="$laporanMengajars" class="bg-white border-top py-3" />
         </div>
     </div>
 </div>

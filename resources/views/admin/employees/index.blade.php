@@ -121,9 +121,7 @@
                 </table>
             </div>
         </div>
-        <div class="card-footer bg-white border-0 py-3">
-            {{ $employees->links() }}
-        </div>
+        <x-pagination-wrapper :paginator="$employees->appends(request()->query())" class="bg-white border-0 py-3" />
     </div>
 </div>
 @endsection

@@ -86,9 +86,7 @@
                 </table>
             </div>
 
-            <div class="d-flex justify-content-end p-4">
-                {{ $items->links() }}
-            </div>
+            <x-pagination-wrapper :paginator="$items" class="bg-white border-top py-3" />
         </div>
     </div>
 </div>

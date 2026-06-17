@@ -288,11 +288,7 @@
             </table>
         </div>
         
-        @if($sessions->hasPages())
-            <div class="card-footer bg-white border-top-0 py-3">
-                {{ $sessions->links() }}
-            </div>
-        @endif
+        <x-pagination-wrapper :paginator="$sessions" class="bg-white border-top-0 py-3" />
     </div>
 
     <!-- Mobile Card View (Visible on Mobile Only) -->
@@ -410,11 +406,7 @@
             </div>
         @endforelse
 
-        @if($sessions->hasPages())
-            <div class="mt-3">
-                {{ $sessions->links() }}
-            </div>
-        @endif
+        <x-pagination-wrapper :paginator="$sessions" class="bg-transparent border-0 px-0 shadow-none mt-3" />
     </div>
 </div>
 

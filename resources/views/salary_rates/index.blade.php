@@ -114,9 +114,7 @@
                 </table>
             </div>
 
-            <div class="d-flex justify-content-end p-4">
-                {{ $rates->appends(request()->query())->links() }}
-            </div>
+            <x-pagination-wrapper :paginator="$rates->appends(request()->query())" class="bg-white border-top py-3" />
         </div>
     </div>
 </div>

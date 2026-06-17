@@ -205,11 +205,7 @@
                 @endforelse
             </div>
             
-            @if ($siswa->hasPages())
-            <div class="card-footer bg-white border-top py-3">
-                {{ $siswa->appends(request()->query())->links() }}
-            </div>
-            @endif
+            <x-pagination-wrapper :paginator="$siswa->appends(request()->query())" class="bg-white border-top py-3" />
         </div>
     </div>
 </div>

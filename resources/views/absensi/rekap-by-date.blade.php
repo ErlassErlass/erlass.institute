@@ -120,11 +120,7 @@
             </table>
         </div>
         
-        @if($absensis->hasPages())
-        <div class="card-footer bg-white py-3 border-top-0">
-            {{ $absensis->appends(request()->query())->links() }}
-        </div>
-        @endif
+        <x-pagination-wrapper :paginator="$absensis->appends(request()->query())" class="bg-white py-3 border-top-0" />
     </div>
 </div>
 @endsection

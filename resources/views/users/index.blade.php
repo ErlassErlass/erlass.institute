@@ -326,12 +326,7 @@
                 @endforelse
             </div>
 
-            <!-- Pagination -->
-            @if($users->hasPages())
-                <div class="d-flex justify-content-center mt-4">
-                    {{ $users->links() }}
-                </div>
-            @endif
+            <x-pagination-wrapper :paginator="$users->appends(request()->query())" class="bg-white border-top py-3" />
         </div>
     </div>
 </div>

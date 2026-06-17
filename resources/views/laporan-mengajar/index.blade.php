@@ -308,11 +308,7 @@
             </div>
         </div>
 
-        @if ($laporan->hasPages())
-        <div class="card-footer bg-transparent border-top border-light py-3">
-            {{ $laporan->appends(request()->query())->links() }}
-        </div>
-        @endif
+        <x-pagination-wrapper :paginator="$laporan->appends(request()->query())" class="bg-transparent border-top border-light py-3" />
     </div>
 </div>
 @endsection

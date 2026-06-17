@@ -123,9 +123,7 @@
                 </table>
             </div>
 
-            <div class="d-flex justify-content-end p-4">
-                {{ $products->appends(request()->query())->links() }}
-            </div>
+            <x-pagination-wrapper :paginator="$products->appends(request()->query())" class="bg-white border-top py-3" />
         </div>
     </div>
 </div>
