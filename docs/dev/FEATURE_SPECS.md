@@ -143,6 +143,9 @@ Menghubungkan data operasional mengajar dengan penghitungan honorarium instruktu
     *   Kemampuan admin keuangan melakukan override nilai honor per sesi dan penambahan bonus/notes kustom per item payroll sebelum finalisasi batch.
 5.  **Slip Gaji Portal**:
     *   Portal khusus bagi instruktur untuk melihat dan mendownload slip gaji bulanan mereka sendiri secara transparan.
+6.  **Uang Transport Instruktur**:
+    *   Logika perhitungan biaya transport per sesi mengajar berdasarkan parameter: jarak_km (Rp 3.000/km, minimum Rp 20.000), tarif kustom flat sekolah, atau flat default Rp 30.000.
+    *   Hanya dialokasikan untuk Instruktur Utama (Asisten Instruktur mendapatkan Rp 0).
 
 ---
 

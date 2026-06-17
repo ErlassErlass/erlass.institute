@@ -68,6 +68,7 @@ erDiagram
         string kota
         text alamat_lengkap
         enum lokasi_default
+        decimal kustom_transport_fee "null"
     }
 
     SCHOOL_PICS {
@@ -168,6 +169,7 @@ erDiagram
         decimal actual_checkin_penalty
         decimal calculated_fee
         decimal override_fee
+        decimal transport_fee
     }
 
     LAPORAN_MENGAJAR {
@@ -367,6 +369,7 @@ erDiagram
         int total_sessions
         decimal total_base_fee
         decimal total_product_bonus
+        decimal total_transport_fee
         decimal total_penalty
         decimal total_bonus
         decimal net_salary

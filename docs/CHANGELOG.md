@@ -2,6 +2,26 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.7.0] - 2026-06-17
+
+### Ditambahkan (Added)
+- **Implementasi Uang Transport Payroll Instruktur**:
+  - Penambahan kolom `kustom_transport_fee` pada model `Sekolah`, `transport_fee` pada model `EkstrakurikulerSession`, dan `total_transport_fee` pada model `PayrollItem`.
+  - Logika perhitungan biaya transport dinamis per sesi pada `PayrollCalculatorService` (berdasarkan `jarak_km` dengan tarif Rp 3.000/km dan batas minimum Rp 20.000, flat rate kustom sekolah, dan fallback default Rp 30.000).
+  - Tampilan kolom Uang Transport di UI rincian batch payroll admin dan slip gaji instruktur, serta input tarif kustom di form sekolah.
+
+### Diperbaiki & Dioptimalkan (Fixed & Optimized)
+- **Perbaikan Modal Shadow (Z-Index Backdrop)**:
+  - Memperbaiki masalah backdrop shadow hitam modal Bootstrap yang menutupi konten modal karena animsi fade-in pada `<main>` layout utama.
+  - Membungkus modal dengan `@push('modals')` pada 13 file views utama agar di-render sejajar dengan `<body>`.
+- **Ketentuan Template Impor Excel Salesman**:
+  - Memperjelas dan memperbanyak detail instruksi kriteria kolom format data file Excel impor salesman di modal `salesmen/index.blade.php`.
+- **Penyeragaman Tampilan Halaman (Pagination)**:
+  - Mengonversi navigasi pagination dan info entri data di 21 file view utama untuk menggunakan komponen Blade `<x-pagination-wrapper>`.
+  - Menjamin parameter filter pencarian tetap dipertahankan dengan `.appends(request()->query())` dan `.withQueryString()`.
+- **Perbaikan Bug Error 500 pada Halaman Nilai Rombel**:
+  - Menyelesaikan masalah crash 500 pada `/student-scores/rombel/{id}` akibat pemanggilan method `first()` pada array PHP dengan menggunakan helper `collect()`.
+
 ## [1.6.0] - 2026-06-15
 
 ### Ditambahkan (Added)
