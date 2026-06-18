@@ -388,11 +388,11 @@
                                         <div class="row">
                                             <div class="col-md-4">
                                                 <strong>Tanggal Mulai:</strong><br>
-                                                {{ $ekstrakurikuler->tanggal_mulai ? $ekstrakurikuler->tanggal_mulai->format('d/m/Y') : '-' }}
+                                                {{ $ekstrakurikuler->tanggal_mulai ? $ekstrakurikuler->tanggal_mulai->locale('id')->translatedFormat('l, d/m/Y') : '-' }}
                                             </div>
                                             <div class="col-md-4">
                                                 <strong>Tanggal Selesai:</strong><br>
-                                                {{ $ekstrakurikuler->tanggal_selesai ? $ekstrakurikuler->tanggal_selesai->format('d/m/Y') : '-' }}
+                                                {{ $ekstrakurikuler->tanggal_selesai ? $ekstrakurikuler->tanggal_selesai->locale('id')->translatedFormat('l, d/m/Y') : '-' }}
                                             </div>
                                             <div class="col-md-4">
                                                 <strong>Total Pertemuan:</strong><br>
