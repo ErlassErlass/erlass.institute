@@ -27,14 +27,13 @@
             <form action="{{ route('rekap-absensi') }}" method="GET" class="row g-3 align-items-end">
                 <div class="col-md-4">
                     <label class="form-label fw-bold">Pilih Sekolah</label>
-                    <select name="sekolah_kodlan" id="sekolah_kodlan" class="form-select">
+                    <select name="sekolah_kodlan" id="sekolah_kodlan" class="form-select select2">
                         <option value="">-- Semua Sekolah --</option>
-                        @if($selectedSekolah)
-                            @php $sSekolah = \App\Models\Sekolah::where('kodlan', $selectedSekolah)->first(); @endphp
-                            @if($sSekolah)
-                                <option value="{{ $selectedSekolah }}" selected>{{ $sSekolah->namasekolah }} ({{ $selectedSekolah }})</option>
-                            @endif
-                        @endif
+                        @foreach($sekolahs as $sekolah)
+                            <option value="{{ $sekolah->kodlan }}" {{ $selectedSekolah == $sekolah->kodlan ? 'selected' : '' }}>
+                                {{ $sekolah->namasekolah }} ({{ $sekolah->kodlan }})
+                            </option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -149,24 +148,8 @@
         $('#sekolah_kodlan').select2({
             theme: 'bootstrap-5',
             width: '100%',
-            placeholder: 'Ketik nama sekolah atau kode...',
-            allowClear: true,
-            ajax: {
-                url: "{{ route('api.sekolah.search') }}",
-                dataType: 'json',
-                delay: 250,
-                data: function (params) {
-                    return {
-                        q: params.term
-                    };
-                },
-                processResults: function (data) {
-                    return {
-                        results: data.results
-                    };
-                },
-                cache: true
-            }
+            placeholder: 'Pilih Sekolah...',
+            allowClear: true
         });
 
         // Dynamic Rombel Filter based on Sekolah selection
