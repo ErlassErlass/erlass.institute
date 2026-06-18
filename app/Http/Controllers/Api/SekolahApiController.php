@@ -86,12 +86,28 @@ class SekolahApiController extends Controller
     public function search(Request $request)
     {
         $searchTerm = $request->query('q', ''); // 'q' adalah parameter default dari Select2
+        $query = Sekolah::query();
 
-        $sekolahs = Sekolah::where('namasekolah', 'LIKE', '%'.$searchTerm.'%')
-            ->orWhere('kodlan', 'LIKE', '%'.$searchTerm.'%')
-            ->orderBy('namasekolah', 'asc')
+        // Filter by City
+        if ($request->filled('kota')) {
+            $query->where('kota', $request->kota);
+        } 
+        // Filter by Region
+        elseif ($request->filled('region')) {
+            $regionService = app(\App\Services\Ekstrakurikuler\RegionMappingService::class);
+            $cities = $regionService->getCitiesByRegion($request->region);
+            $query->whereIn('kota', $cities->toArray());
+        }
+
+        // Group the search term conditions to maintain logical precedence (AND (a OR b))
+        $query->where(function ($q) use ($searchTerm) {
+            $q->where('namasekolah', 'LIKE', '%'.$searchTerm.'%')
+              ->orWhere('kodlan', 'LIKE', '%'.$searchTerm.'%');
+        });
+
+        $sekolahs = $query->orderBy('namasekolah', 'asc')
             ->select('kodlan', 'namasekolah', 'kotkab', 'kec')
-            ->limit(20) // Batasi hasil agar tidak terlalu banyak
+            ->limit(20)
             ->get();
 
         // Select2 AJAX membutuhkan format JSON dengan key 'results'

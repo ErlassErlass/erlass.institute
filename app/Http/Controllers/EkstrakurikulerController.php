@@ -50,6 +50,36 @@ class EkstrakurikulerController extends Controller
      */
     public function index(Request $request)
     {
+        // Normalisasi & Validasikan keselarasan filter silang (Region, Kota, Sekolah)
+        if ($request->filled('region')) {
+            $citiesInRegion = $this->regionService->getCitiesByRegion($request->region);
+            if ($request->filled('kota') && !$citiesInRegion->contains($request->kota)) {
+                $request->offsetUnset('kota');
+                $request->query->remove('kota');
+            }
+        }
+
+        if ($request->filled('sekolah_kodlan')) {
+            $sekolah = \App\Models\Sekolah::find($request->sekolah_kodlan);
+            if ($sekolah) {
+                if ($request->filled('kota')) {
+                    if ($sekolah->kota !== $request->kota) {
+                        $request->offsetUnset('sekolah_kodlan');
+                        $request->query->remove('sekolah_kodlan');
+                    }
+                } elseif ($request->filled('region')) {
+                    $schoolRegion = $this->regionService->mapCityToRegion($sekolah->kota);
+                    if ($schoolRegion !== $request->region) {
+                        $request->offsetUnset('sekolah_kodlan');
+                        $request->query->remove('sekolah_kodlan');
+                    }
+                }
+            } else {
+                $request->offsetUnset('sekolah_kodlan');
+                $request->query->remove('sekolah_kodlan');
+            }
+        }
+
         // Build query dengan filtering menggunakan query service
         $ekstrakurikulerQuery = $this->queryService->buildFilteredQuery($request, auth()->user());
         $ekstrakurikulers = $ekstrakurikulerQuery->latest()->paginate(25);
@@ -59,7 +89,13 @@ class EkstrakurikulerController extends Controller
         
         // Get region data
         $regions = $this->regionService->getAvailableRegions();
-        $kotaOptions = $this->regionService->getAvailableCities();
+        
+        // Dapatkan opsi kota secara dinamis berdasarkan region terpilih
+        if ($request->filled('region')) {
+            $kotaOptions = $this->regionService->getCitiesByRegion($request->region)->toArray();
+        } else {
+            $kotaOptions = $this->regionService->getAvailableCities();
+        }
         
         // Calculate statistics
         $stats = $this->queryService->getStatistics();

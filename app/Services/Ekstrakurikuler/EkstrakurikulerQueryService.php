@@ -34,8 +34,18 @@ class EkstrakurikulerQueryService
      */
     protected function applyFilters($query, Request $request)
     {
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
         if ($request->filled('region')) {
-            $query->where('region', $request->region);
+            $cities = app(\App\Services\Ekstrakurikuler\RegionMappingService::class)->getCitiesByRegion($request->region);
+            $query->where(function ($q) use ($request, $cities) {
+                $q->where('region', $request->region)
+                  ->orWhereHas('sekolah', function ($subQ) use ($cities) {
+                      $subQ->whereIn('kota', $cities->toArray());
+                  });
+            });
         }
 
         if ($request->filled('kota')) {

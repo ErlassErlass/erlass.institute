@@ -4,23 +4,102 @@
 
 @push('styles')
 <style>
-    .stat-card { border-radius: 8px; transition: transform 0.3s ease; }
+    .stat-card { border-radius: 12px; transition: transform 0.3s ease; border: none; }
     .stat-icon { font-size: 2rem; opacity: 0.7; }
-    .quick-filter-btn { border-radius: 20px; padding: 5px 15px; font-size: 0.85rem; }
     .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .badge-custom { padding: 5px 10px; font-weight: normal; font-size: 0.8rem; }
     .clear-date { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); z-index: 10; display: none; padding: 0 8px; }
     .input-group { position: relative; }
     .progress-bar-container { width: 100px; height: 6px; background-color: #e9ecef; border-radius: 3px; overflow: hidden; }
     .progress-bar { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
-    .filter-section { background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
     .btn-action { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s; border: 1px solid #e2e8f0; background: white; color: #64748b; }
     .btn-action:hover { background: #f8fafc; color: var(--primary-color); border-color: var(--primary-color); }
     .btn-action.view:hover { color: var(--secondary-color); border-color: var(--secondary-color); }
     .btn-action.delete:hover { color: var(--danger-color); border-color: var(--danger-color); }
     .btn-action.cancel-trigger:hover { color: var(--danger-color); border-color: var(--danger-color); }
+
+    /* Premium Glassmorphism & Custom elements styling */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 8px 30px 0 rgba(31, 38, 135, 0.03);
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+    .glass-card:hover {
+        box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.06);
+    }
+    .filter-label {
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+    }
+    .form-control-premium {
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        padding: 0.6rem 0.9rem;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        background-color: #f8fafc;
+    }
+    .form-control-premium:focus {
+        background-color: #fff;
+        border-color: var(--primary-color, #4f46e5);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+    /* Status Badge styling */
+    .pill-badge {
+        padding: 6px 12px;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid transparent;
+    }
+    .pill-badge::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    
+    .badge-aktif { background: rgba(34, 197, 94, 0.1); color: #166534; border-color: rgba(34, 197, 94, 0.2); }
+    .badge-aktif::before { background: #22c55e; }
+    
+    .badge-diajukan { background: rgba(234, 179, 8, 0.1); color: #854d0e; border-color: rgba(234, 179, 8, 0.2); }
+    .badge-diajukan::before { background: #eab308; }
+    
+    .badge-selesai { background: rgba(59, 130, 246, 0.1); color: #1e40af; border-color: rgba(59, 130, 246, 0.2); }
+    .badge-selesai::before { background: #3b82f6; }
+    
+    .badge-dibatalkan { background: rgba(100, 116, 139, 0.1); color: #334155; border-color: rgba(100, 116, 139, 0.2); }
+    .badge-dibatalkan::before { background: #64748b; }
+    
+    .badge-draft { background: rgba(148, 163, 184, 0.15); color: #475569; border-color: rgba(148, 163, 184, 0.25); }
+    .badge-draft::before { background: #94a3b8; }
+    
+    .badge-disetujui { background: rgba(16, 185, 129, 0.1); color: #065f46; border-color: rgba(16, 185, 129, 0.2); }
+    .badge-disetujui::before { background: #10b981; }
+
+    .badge-ditolak { background: rgba(239, 68, 68, 0.1); color: #991b1b; border-color: rgba(239, 68, 68, 0.2); }
+    .badge-ditolak::before { background: #ef4444; }
+
+    /* Table row micro-interactions */
+    .table-premium tbody tr {
+        transition: all 0.2s ease;
+    }
+    .table-premium tbody tr:hover {
+        background-color: rgba(248, 250, 252, 0.8) !important;
+        transform: translateY(-1px);
+    }
 </style>
-@endpush
 
 @section('content')
 <div class="container-fluid px-4">
@@ -90,36 +169,58 @@
             </div>
 
             <!-- Filters -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Filter & Pencarian</h6></div>
+            <div class="card glass-card mb-4 border-0">
+                <div class="card-header bg-transparent py-3 border-0"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-filter me-2"></i>Filter & Pencarian</h6></div>
                 <div class="card-body">
                     <form method="GET" action="{{ route('ekstrakurikuler.index') }}" id="filterForm">
                         <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="search" class="form-label text-muted small">Pencarian</label>
-                                <input type="text" class="form-control" id="search" name="search" value="{{ request('search') }}" placeholder="Nama program atau sekolah...">
+                            <div class="col-lg-4 col-md-6 mb-3">
+                                <label for="search" class="filter-label">Pencarian</label>
+                                <input type="text" class="form-control form-control-premium" id="search" name="search" value="{{ request('search') }}" placeholder="Nama program atau sekolah...">
                             </div>
-                            <div class="col-md-2 mb-3">
-                                <label for="region" class="form-label text-muted small">Region</label>
-                                <select class="form-control" id="region" name="region">
+                            <div class="col-lg-2 col-md-6 mb-3">
+                                <label for="status" class="filter-label">Status</label>
+                                <select class="form-control form-control-premium" id="status" name="status">
+                                    <option value="">Semua Status</option>
+                                    <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Draft</option>
+                                    <option value="diajukan" {{ request('status') === 'diajukan' ? 'selected' : '' }}>Diajukan</option>
+                                    <option value="disetujui" {{ request('status') === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
+                                    <option value="ditolak" {{ request('status') === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
+                                    <option value="aktif" {{ request('status') === 'aktif' ? 'selected' : '' }}>Aktif</option>
+                                    <option value="selesai" {{ request('status') === 'selesai' ? 'selected' : '' }}>Selesai</option>
+                                    <option value="dibatalkan" {{ request('status') === 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-2 col-md-6 mb-3">
+                                <label for="region" class="filter-label">Region</label>
+                                <select class="form-control form-control-premium" id="region" name="region">
                                     <option value="">Semua Region</option>
                                     @foreach($regions as $region)
                                     <option value="{{ $region }}" {{ request('region') == $region ? 'selected' : '' }}>{{ $region }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-2 mb-3">
-                                <label for="kota" class="form-label text-muted small">Kota</label>
-                                <select class="form-control" id="kota" name="kota">
+                            <div class="col-lg-2 col-md-6 mb-3">
+                                <label for="kota" class="filter-label">Kota</label>
+                                <select class="form-control form-control-premium" id="kota" name="kota">
                                     <option value="">Semua Kota</option>
                                     @foreach($kotaOptions as $kota)
                                     <option value="{{ $kota }}" {{ request('kota') == $kota ? 'selected' : '' }}>{{ $kota }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-2 mb-3">
-                                <label for="sekolah_kodlan" class="form-label text-muted small">Sekolah</label>
-                                <select class="form-control" id="sekolah_kodlan" name="sekolah_kodlan">
+                            <div class="col-lg-2 col-md-6 mb-3">
+                                <label for="date_range" class="filter-label">Rentang Tanggal</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-premium" id="date_range" name="date_range" value="{{ request('date_range') }}" placeholder="Pilih tanggal...">
+                                    <button type="button" class="btn btn-outline-secondary clear-date" onclick="clearDateRange()" style="display: none;"><i class="fas fa-times"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row align-items-end">
+                            <div class="col-md-9 mb-3">
+                                <label for="sekolah_kodlan" class="filter-label">Sekolah</label>
+                                <select class="form-control form-control-premium" id="sekolah_kodlan" name="sekolah_kodlan">
                                     <option value="">Semua Sekolah</option>
                                     @if(request('sekolah_kodlan'))
                                         @php $reqSekolah = \App\Models\Sekolah::where('kodlan', request('sekolah_kodlan'))->first(); @endphp
@@ -129,64 +230,62 @@
                                     @endif
                                 </select>
                             </div>
-                            <div class="col-md-2 mb-3">
-                                <label for="date_range" class="form-label text-muted small">Rentang Tanggal</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="date_range" name="date_range" value="{{ request('date_range') }}" placeholder="Pilih tanggal...">
-                                    <button type="button" class="btn btn-outline-secondary clear-date" onclick="clearDateRange()" style="display: none;"><i class="fas fa-times"></i></button>
-                                </div>
+                            <div class="col-md-3 mb-3 d-flex gap-2 justify-content-end">
+                                <button type="submit" class="btn btn-primary px-4 py-2" style="border-radius: 10px;"><i class="fas fa-search me-1"></i> Filter</button>
+                                <a href="{{ route('ekstrakurikuler.index') }}" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px;">Reset</a>
                             </div>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary px-4"><i class="fas fa-search me-1"></i> Filter</button>
-                            <a href="{{ route('ekstrakurikuler.index') }}" class="btn btn-outline-secondary">Reset</a>
                         </div>
                     </form>
                 </div>
             </div>
 
             <!-- Data Table -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Daftar Program</h6></div>
+            <div class="card glass-card mb-4 border-0">
+                <div class="card-header bg-transparent py-3 border-0"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-list-ul me-2"></i>Daftar Program</h6></div>
                 <div class="card-body">
                     <div class="table-responsive d-none d-md-block">
-                        <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                        <table class="table table-hover table-premium align-middle" width="100%" cellspacing="0">
                             <thead class="bg-light">
                                 <tr>
-                                    <th>No</th>
+                                    <th class="ps-3">No</th>
                                     <th>Program</th>
                                     <th>Sekolah</th>
-                                    <th>Siswa</th>
+                                    <th class="text-center">Siswa</th>
                                     <th>Status</th>
                                     <th>Progress</th>
-                                    <th>Aksi</th>
+                                    <th class="pe-3">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($ekstrakurikulers as $ekstrakurikuler)
                                 <tr>
-                                    <td>{{ $ekstrakurikulers->firstItem() + $loop->index }}</td>
-                                    <td><div class="fw-bold">{{ $ekstrakurikuler->kategori_program }}</div></td>
-                                    <td><div class="fw-bold">{{ $ekstrakurikuler->sekolah?->namasekolah ?? '-' }}</div><small class="text-muted">{{ $ekstrakurikuler->sekolah?->kota ?? '-' }}</small></td>
-                                    <td class="text-center">{{ $ekstrakurikuler->total_siswa ?? 0 }}</td>
+                                    <td class="ps-3">{{ $ekstrakurikulers->firstItem() + $loop->index }}</td>
+                                    <td><div class="fw-bold text-dark">{{ $ekstrakurikuler->kategori_program }}</div></td>
+                                    <td><div class="fw-bold text-dark">{{ $ekstrakurikuler->sekolah?->namasekolah ?? '-' }}</div><small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ $ekstrakurikuler->sekolah?->kota ?? '-' }}</small></td>
+                                    <td class="text-center fw-semibold text-secondary">{{ $ekstrakurikuler->total_siswa ?? 0 }}</td>
                                     <td>
                                         @php
-                                        $statusClass = match($ekstrakurikuler->status) {
-                                            'aktif' => 'bg-success',
-                                            'selesai' => 'bg-primary',
-                                            'dibatalkan' => 'bg-dark',
-                                            'diajukan' => 'bg-warning text-dark',
-                                            default => 'bg-secondary'
+                                        $badgeClass = match($ekstrakurikuler->status) {
+                                            'aktif' => 'badge-aktif',
+                                            'selesai' => 'badge-selesai',
+                                            'dibatalkan' => 'badge-dibatalkan',
+                                            'diajukan' => 'badge-diajukan',
+                                            'draft' => 'badge-draft',
+                                            'disetujui' => 'badge-disetujui',
+                                            'ditolak' => 'badge-ditolak',
+                                            default => 'badge-draft'
                                         };
                                         @endphp
-                                        <span class="badge {{ $statusClass }}">{{ $ekstrakurikuler->status_label }}</span>
+                                        <span class="pill-badge {{ $badgeClass }}">{{ $ekstrakurikuler->status_label }}</span>
                                     </td>
                                     <td>
                                         @php $progress = $ekstrakurikuler->getProgressPertemuan(); @endphp
-                                        <div class="progress-bar-container"><div class="progress-bar bg-success" style="width: {{ $progress['persentase'] }}%"></div></div>
-                                        <small class="text-muted">{{ $progress['persentase'] }}%</small>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress-bar-container"><div class="progress-bar bg-success" style="width: {{ $progress['persentase'] }}%"></div></div>
+                                            <small class="text-muted fw-semibold">{{ $progress['persentase'] }}%</small>
+                                        </div>
                                     </td>
-                                    <td>
+                                    <td class="pe-3">
                                         <div class="d-flex gap-1">
                                             <a href="{{ route('ekstrakurikuler.show', $ekstrakurikuler) }}" class="btn-action view" title="Detail"><i class="bi bi-eye"></i></a>
                                             <a href="{{ route('ekstrakurikuler.edit', $ekstrakurikuler) }}" class="btn-action edit" title="Edit"><i class="bi bi-pencil"></i></a>
@@ -213,7 +312,7 @@
                                     </td>
                                 </tr>
                                 @empty
-                                <tr><td colspan="7" class="text-center py-4">Belum ada data.</td></tr>
+                                <tr><td colspan="7" class="text-center py-4 text-muted">Belum ada data program ekstrakurikuler yang sesuai filter.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -222,12 +321,24 @@
                     <!-- Mobile View -->
                     <div class="d-md-none">
                         @foreach($ekstrakurikulers as $ekstrakurikuler)
-                        <div class="card mb-3 shadow-sm border-0 border-start border-4 border-primary">
+                        @php
+                        $badgeClass = match($ekstrakurikuler->status) {
+                            'aktif' => 'badge-aktif',
+                            'selesai' => 'badge-selesai',
+                            'dibatalkan' => 'badge-dibatalkan',
+                            'diajukan' => 'badge-diajukan',
+                            'draft' => 'badge-draft',
+                            'disetujui' => 'badge-disetujui',
+                            'ditolak' => 'badge-ditolak',
+                            default => 'badge-draft'
+                        };
+                        @endphp
+                        <div class="card mb-3 shadow-sm border-0 border-start border-4 border-primary" style="border-radius: 8px;">
                             <div class="card-body">
                                 <h6 class="fw-bold text-primary mb-1">{{ $ekstrakurikuler->kategori_program }}</h6>
-                                <p class="small mb-2">{{ $ekstrakurikuler->sekolah?->namasekolah }}</p>
+                                <p class="small mb-2 text-dark fw-semibold">{{ $ekstrakurikuler->sekolah?->namasekolah }}</p>
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="badge {{ $statusClass ?? 'bg-secondary' }}">{{ $ekstrakurikuler->status_label }}</span>
+                                    <span class="pill-badge {{ $badgeClass }}">{{ $ekstrakurikuler->status_label }}</span>
                                     <div class="btn-group">
                                         <a href="{{ route('ekstrakurikuler.show', $ekstrakurikuler) }}" class="btn btn-sm btn-outline-info">Detail</a>
                                         <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown"></button>
@@ -272,7 +383,7 @@
         }
         
         // Auto-submit filter
-        const selects = document.querySelectorAll('#region, #kota');
+        const selects = document.querySelectorAll('#status, #region, #kota');
         selects.forEach(select => { select.addEventListener('change', () => document.getElementById('filterForm').submit()); });
 
         if (typeof $ !== 'undefined' && $.fn.select2) {
@@ -287,7 +398,9 @@
                     delay: 250,
                     data: function (params) {
                         return {
-                            q: params.term
+                            q: params.term,
+                            region: $('#region').val(),
+                            kota: $('#kota').val()
                         };
                     },
                     processResults: function (data) {
