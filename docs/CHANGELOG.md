@@ -2,6 +2,14 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.7.1] - 2026-06-18
+
+### Ditambahkan (Added)
+- **Pelokalan Hari Periode Program**:
+  - Menampilkan nama hari berbahasa Indonesia (Senin - Sabtu) pada tanggal mulai dan selesai di bagian Periode Program halaman detail ekstrakurikuler.
+- **Informasi Penanggung Jawab & Google Maps Instruktur**:
+  - Menampilkan informasi nama Penanggung Jawab, no HP (Call & WhatsApp direct link), dan link Google Maps sekolah di halaman Detail Sesi, Jadwal Harian, dan Dashboard (baik untuk Instruktur maupun Admin).
+
 ## [1.7.0] - 2026-06-17
 
 ### Ditambahkan (Added)
