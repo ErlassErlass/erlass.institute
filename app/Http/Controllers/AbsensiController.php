@@ -314,11 +314,7 @@ class AbsensiController extends Controller
         $selectedRombel = $request->rombel;
         $selectedSekolah = $request->sekolah_kodlan;
 
-        $rombelsQuery = LaporanMengajar::distinct();
-        if ($selectedSekolah) {
-            $rombelsQuery->where('sekolah_kodlan', $selectedSekolah);
-        }
-        $rombels = $rombelsQuery->pluck('rombel')->sort()->values();
+        $rombels = $this->retrieveRombelsForSekolah($selectedSekolah);
 
         $data = $this->getRekapData($selectedRombel, $selectedSekolah);
 
@@ -331,14 +327,31 @@ class AbsensiController extends Controller
     public function getRombelsBySekolah(Request $request)
     {
         $sekolahKodlan = $request->query('sekolah_kodlan');
-
-        $rombelsQuery = LaporanMengajar::distinct();
-        if ($sekolahKodlan) {
-            $rombelsQuery->where('sekolah_kodlan', $sekolahKodlan);
-        }
-        $rombels = $rombelsQuery->pluck('rombel')->sort()->values();
+        $rombels = $this->retrieveRombelsForSekolah($sekolahKodlan);
 
         return response()->json($rombels);
+    }
+
+    /**
+     * Helper to retrieve merged rombels from EkstrakurikulerRombel and LaporanMengajar.
+     */
+    private function retrieveRombelsForSekolah($sekolahKodlan)
+    {
+        $rombelsEkskul = \App\Models\EkstrakurikulerRombel::query();
+        if ($sekolahKodlan) {
+            $rombelsEkskul->whereHas('ekstrakurikuler', function ($q) use ($sekolahKodlan) {
+                $q->where('sekolah_kodlan', $sekolahKodlan);
+            });
+        }
+        $list1 = $rombelsEkskul->pluck('nama_rombel')->toArray();
+
+        $rombelsLaporan = \App\Models\LaporanMengajar::distinct();
+        if ($sekolahKodlan) {
+            $rombelsLaporan->where('sekolah_kodlan', $sekolahKodlan);
+        }
+        $list2 = $rombelsLaporan->pluck('rombel')->toArray();
+
+        return collect(array_merge($list1, $list2))->unique()->sort()->values();
     }
 
     public function export(Request $request)
