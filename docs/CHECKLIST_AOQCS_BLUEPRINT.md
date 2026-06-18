@@ -53,12 +53,12 @@
 | Status | Item Blueprint | Kondisi erlass.institute Saat Ini | Tindakan / Kesenjangan (Gap) |
 | :---: | :--- | :--- | :--- |
 | **🟢** | **Modul Rombel** | Ada tabel `ekstrakurikuler_rombel`. | **Selesai**: Rombel menyimpan detail hari, jam, instruktur/asisten. Warning otomatis (soft alert) ditampilkan jika rombel memiliki >20 siswa tanpa asisten. |
-| **🟡** | **Modul Jadwal (Sesi)** | Ada tabel `ekstrakurikuler_session`. | **Temuan**: Sesi di-generate otomatis per pertemuan. Namun, status sesi belum mendukung status `libur` dan `diganti`. <br> **Tindakan**: Tambahkan enum status `libur` dan `diganti` pada tabel sesi. |
+| **🟢** | **Modul Jadwal (Sesi)** | Ada tabel `ekstrakurikuler_session`. | **Selesai**: Status sesi `libur` dan `diganti` sudah ditambahkan ke skema database (enum) dan model. |
 
 - [x] Info Rombel (Kode Rombel, Nama, Jumlah Siswa, Kapasitas, Hari, Jam Mulai/Selesai, Lokasi)
 - [x] Aturan Validasi Rombel (Warning otomatis jika siswa > 20 butuh asisten) — Soft alert di halaman detail ekskul
 - [x] Jadwal Sesi Per Pertemuan (Pertemuan ke-X, Tanggal Sesi, Jam Sesi, Instruktur/Asisten, Topik)
-- [🟡] Status Sesi Lengkap (Terjadwal, Berlangsung, Selesai, Ditunda, **Diganti**, **Libur**, Batal)
+- [x] Status Sesi Lengkap (Terjadwal, Berlangsung, Selesai, Ditunda, **Diganti**, **Libur**, Batal)
 
 ---
 
