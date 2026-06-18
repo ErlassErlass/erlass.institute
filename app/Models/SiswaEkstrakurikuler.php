@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 class SiswaEkstrakurikuler extends Model
 {
@@ -141,7 +142,7 @@ class SiswaEkstrakurikuler extends Model
             self::STATUS_AKTIF => 'Aktif',
             self::STATUS_LULUS => 'Lulus',
             self::STATUS_KELUAR => 'Keluar',
-            self::STATUS_PINDAH => 'Pindah',
+            self::STATUS_PINDAH => 'Pindah Rombel',
             self::STATUS_NONAKTIF => 'Non Aktif',
         ];
 
@@ -236,10 +237,28 @@ class SiswaEkstrakurikuler extends Model
                 return false;
             }
 
-            $this->ekstrakurikuler_rombel_id = $newRombelId;
-            $this->catatan = 'Dipindah dari rombel sebelumnya. '.($alasan ?? '');
+            $oldRombelId = $this->ekstrakurikuler_rombel_id;
 
-            return $this->save();
+            return DB::transaction(function () use ($newRombelId, $oldRombelId, $alasan) {
+                // 1. Update record saat ini menjadi status pindah
+                $this->status = self::STATUS_PINDAH;
+                $this->tanggal_keluar = now();
+                $this->alasan_keluar = 'Pindah ke Rombel ID: ' . $newRombelId;
+                $this->catatan = 'Pindah ke Rombel ID: ' . $newRombelId . '. ' . ($alasan ?? '');
+                $this->save();
+
+                // 2. Buat record baru untuk rombel tujuan
+                self::create([
+                    'siswa_id' => $this->siswa_id,
+                    'ekstrakurikuler_id' => $this->ekstrakurikuler_id,
+                    'ekstrakurikuler_rombel_id' => $newRombelId,
+                    'status' => self::STATUS_AKTIF,
+                    'tanggal_daftar' => now(),
+                    'catatan' => 'Pindahan dari Rombel ID: ' . $oldRombelId,
+                ]);
+
+                return true;
+            });
         }
 
         return false;

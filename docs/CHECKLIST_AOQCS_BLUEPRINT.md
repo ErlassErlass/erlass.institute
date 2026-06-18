@@ -80,7 +80,7 @@
 
 | Status | Item Blueprint | Kondisi erlass.institute Saat Ini | Tindakan / Kesenjangan (Gap) |
 | :---: | :--- | :--- | :--- |
-| **🟡** | **Master & Status Peserta** | Ada tabel `siswa` & `siswa_ekstrakurikuler`. | **Temuan**: Status keanggotaan saat ini hanya aktif, keluar, dan lulus. Blueprint meminta pencatatan status lebih dinamis (termasuk *pindah rombel*). <br> **Tindakan**: Tambahkan status `pindah_rombel` pada riwayat siswa. |
+| **🟢** | **Master & Status Peserta** | Ada tabel `siswa` & `siswa_ekstrakurikuler`. | **Selesai**: Logika pemindahan rombel menyimpan status `'pindah'` (Pindah Rombel) pada record keanggotaan lama dan membuat record baru berstatus `'aktif'` di rombel tujuan untuk mencatat riwayat pemindahan secara lengkap. |
 | **🟢** | **Presensi Kehadiran** | Kolom `absensi.hadir` (boolean) sudah direfaktor menjadi `status` enum. | **Selesai**: Tabel absensi mendukung status detail Hadir, Izin, Sakit, Alpha. Controller dan Model sudah disesuaikan agar backward compatible. |
 
 - [x] Biodata Siswa (Nama, NISN, Kelas, Rombel, Nama Orang Tua, WA Orang Tua)
