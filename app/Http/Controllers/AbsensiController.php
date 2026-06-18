@@ -314,7 +314,7 @@ class AbsensiController extends Controller
         $selectedRombel = $request->rombel;
         $selectedSekolah = $request->sekolah_kodlan;
 
-        $rombels = $this->retrieveRombelsForSekolah($selectedSekolah);
+        $rombels = $selectedSekolah ? $this->retrieveRombelsForSekolah($selectedSekolah) : collect();
 
         $selectedSchoolName = '';
         if ($selectedSekolah) {

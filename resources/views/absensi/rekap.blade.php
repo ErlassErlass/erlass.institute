@@ -38,13 +38,17 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold">Pilih Rombel <span class="text-danger">*</span></label>
-                    <select name="rombel" id="rombel" class="form-select select2" required>
-                        <option value="">-- Pilih Rombel --</option>
-                        @foreach($rombels as $r)
-                            <option value="{{ $r }}" {{ $selectedRombel == $r ? 'selected' : '' }}>
-                                {{ $r }}
-                            </option>
-                        @endforeach
+                    <select name="rombel" id="rombel" class="form-select select2" required {{ !$selectedSekolah ? 'disabled' : '' }}>
+                        @if(!$selectedSekolah)
+                            <option value="">-- Pilih Sekolah Terlebih Dahulu --</option>
+                        @else
+                            <option value="">-- Pilih Rombel --</option>
+                            @foreach($rombels as $r)
+                                <option value="{{ $r }}" {{ $selectedRombel == $r ? 'selected' : '' }}>
+                                    {{ $r }}
+                                </option>
+                            @endforeach
+                        @endif
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -176,6 +180,14 @@
             var sekolahKodlan = $(this).val();
             var $rombelSelect = $('#rombel');
 
+            if (!sekolahKodlan) {
+                $rombelSelect.empty().append('<option value="">-- Pilih Sekolah Terlebih Dahulu --</option>');
+                $rombelSelect.prop('disabled', true);
+                $rombelSelect.trigger('change');
+                return;
+            }
+
+            $rombelSelect.prop('disabled', false);
             $rombelSelect.empty().append('<option value="">-- Mohon Tunggu... --</option>');
             $rombelSelect.trigger('change');
 
