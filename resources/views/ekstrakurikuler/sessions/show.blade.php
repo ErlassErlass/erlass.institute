@@ -478,12 +478,14 @@
                 </div>
 
                 <!-- Activity Log -->
-                <div class="card shadow-sm border-0 bg-transparent">
-                    <div class="card-body p-0">
-                        <h6 class="text-muted text-uppercase small fw-bold mb-3 ms-1">Riwayat Aktivitas</h6>
-                        <ul class="list-group list-group-flush bg-transparent">
-                            <li class="list-group-item bg-transparent d-flex align-items-start border-0 ps-0">
-                                <i class="bi bi-circle-fill text-primary mt-1 me-2" style="font-size: 8px;"></i>
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0 fw-bold text-secondary"><i class="bi bi-clock-history me-2"></i>Riwayat Aktivitas</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush mb-0">
+                            <li class="list-group-item d-flex align-items-start border-0 ps-0 pt-0">
+                                <i class="bi bi-circle-fill text-primary mt-1.5 me-2" style="font-size: 8px;"></i>
                                 <div>
                                     <p class="mb-0 small fw-bold">Sesi dibuat</p>
                                     <small class="text-muted">{{ $session->created_at->format('d/m/Y H:i') }}</small>
@@ -491,8 +493,8 @@
                             </li>
                             
                             @if($session->updated_at->ne($session->created_at))
-                            <li class="list-group-item bg-transparent d-flex align-items-start border-0 ps-0">
-                                <i class="bi bi-circle-fill text-warning mt-1 me-2" style="font-size: 8px;"></i>
+                            <li class="list-group-item d-flex align-items-start border-0 ps-0">
+                                <i class="bi bi-circle-fill text-warning mt-1.5 me-2" style="font-size: 8px;"></i>
                                 <div>
                                     <p class="mb-0 small fw-bold">Terakhir diupdate</p>
                                     <small class="text-muted">{{ $session->updated_at->format('d/m/Y H:i') }}</small>
@@ -501,8 +503,8 @@
                             @endif
                             
                             @if($session->status === 'selesai')
-                            <li class="list-group-item bg-transparent d-flex align-items-start border-0 ps-0">
-                                <i class="bi bi-circle-fill text-success mt-1 me-2" style="font-size: 8px;"></i>
+                            <li class="list-group-item d-flex align-items-start border-0 ps-0 pb-0">
+                                <i class="bi bi-circle-fill text-success mt-1.5 me-2" style="font-size: 8px;"></i>
                                 <div>
                                     <p class="mb-0 small fw-bold">Sesi selesai</p>
                                     <small class="text-muted">{{ $session->updated_at->format('d/m/Y H:i') }}</small>
