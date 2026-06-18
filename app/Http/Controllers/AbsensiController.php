@@ -311,14 +311,34 @@ class AbsensiController extends Controller
             ->orderBy('namasekolah')
             ->get();
             
-        $rombels = LaporanMengajar::distinct()->pluck('rombel')->sort()->values();
-
         $selectedRombel = $request->rombel;
         $selectedSekolah = $request->sekolah_kodlan;
+
+        $rombelsQuery = LaporanMengajar::distinct();
+        if ($selectedSekolah) {
+            $rombelsQuery->where('sekolah_kodlan', $selectedSekolah);
+        }
+        $rombels = $rombelsQuery->pluck('rombel')->sort()->values();
 
         $data = $this->getRekapData($selectedRombel, $selectedSekolah);
 
         return view('absensi.rekap', array_merge($data, compact('sekolahs', 'rombels', 'selectedRombel', 'selectedSekolah')));
+    }
+
+    /**
+     * AJAX endpoint to get distinct rombels filtered by school.
+     */
+    public function getRombelsBySekolah(Request $request)
+    {
+        $sekolahKodlan = $request->query('sekolah_kodlan');
+
+        $rombelsQuery = LaporanMengajar::distinct();
+        if ($sekolahKodlan) {
+            $rombelsQuery->where('sekolah_kodlan', $sekolahKodlan);
+        }
+        $rombels = $rombelsQuery->pluck('rombel')->sort()->values();
+
+        return response()->json($rombels);
     }
 
     public function export(Request $request)

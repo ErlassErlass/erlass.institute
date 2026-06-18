@@ -39,7 +39,7 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold">Pilih Rombel <span class="text-danger">*</span></label>
-                    <select name="rombel" class="form-select select2" required>
+                    <select name="rombel" id="rombel" class="form-select select2" required>
                         <option value="">-- Pilih Rombel --</option>
                         @foreach($rombels as $r)
                             <option value="{{ $r }}" {{ $selectedRombel == $r ? 'selected' : '' }}>
@@ -167,6 +167,38 @@
                 },
                 cache: true
             }
+        });
+
+        // Dynamic Rombel Filter based on Sekolah selection
+        var isInitialLoad = true;
+        $('#sekolah_kodlan').on('change', function() {
+            if (isInitialLoad) {
+                isInitialLoad = false;
+                return;
+            }
+            var sekolahKodlan = $(this).val();
+            var $rombelSelect = $('#rombel');
+
+            $rombelSelect.empty().append('<option value="">-- Mohon Tunggu... --</option>');
+            $rombelSelect.trigger('change');
+
+            $.ajax({
+                url: "{{ route('rekap-absensi.rombels') }}",
+                type: 'GET',
+                data: { sekolah_kodlan: sekolahKodlan },
+                dataType: 'json',
+                success: function(data) {
+                    $rombelSelect.empty().append('<option value="">-- Pilih Rombel --</option>');
+                    $.each(data, function(key, val) {
+                        $rombelSelect.append('<option value="' + val + '">' + val + '</option>');
+                    });
+                    $rombelSelect.trigger('change');
+                },
+                error: function() {
+                    $rombelSelect.empty().append('<option value="">-- Gagal memuat Rombel --</option>');
+                    $rombelSelect.trigger('change');
+                }
+            });
         });
     });
 </script>

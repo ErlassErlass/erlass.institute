@@ -327,4 +327,75 @@ class AbsensiControllerTest extends TestCase
         $this->assertEquals(1, $existingAbsensi[$this->siswa1->id]);
         $this->assertArrayNotHasKey($this->siswa2->id, $existingAbsensi->toArray());
     }
+
+    public function test_get_rombels_by_sekolah_returns_filtered_rombels(): void
+    {
+        // Create another school and reports
+        $sekolah2 = Sekolah::factory()->create([
+            'kodlan' => 'TEST002',
+            'namasekolah' => 'Test School 2',
+        ]);
+
+        LaporanMengajar::factory()->create([
+            'user_id_instruktur' => $this->instructor->id,
+            'sekolah_kodlan' => 'TEST002',
+            'rombel' => 'B1',
+        ]);
+
+        // Get rombels with TEST001
+        $response = $this->actingAs($this->admin)
+            ->get(route('rekap-absensi.rombels', ['sekolah_kodlan' => 'TEST001']));
+
+        $response->assertStatus(200);
+        $response->assertJson(['A1']);
+        $response->assertJsonMissing(['B1']);
+
+        // Get rombels with TEST002
+        $response = $this->actingAs($this->admin)
+            ->get(route('rekap-absensi.rombels', ['sekolah_kodlan' => 'TEST002']));
+
+        $response->assertStatus(200);
+        $response->assertJson(['B1']);
+        $response->assertJsonMissing(['A1']);
+
+        // Get rombels without sekolah (returns all)
+        $response = $this->actingAs($this->admin)
+            ->get(route('rekap-absensi.rombels'));
+
+        $response->assertStatus(200);
+        $response->assertJsonFragment(['A1']);
+        $response->assertJsonFragment(['B1']);
+    }
+
+    public function test_rekap_filters_rombels_by_sekolah(): void
+    {
+        $sekolah2 = Sekolah::factory()->create([
+            'kodlan' => 'TEST002',
+            'namasekolah' => 'Test School 2',
+        ]);
+
+        LaporanMengajar::factory()->create([
+            'user_id_instruktur' => $this->instructor->id,
+            'sekolah_kodlan' => 'TEST002',
+            'rombel' => 'B1',
+        ]);
+
+        // Access rekap with sekolah_kodlan=TEST001
+        $response = $this->actingAs($this->admin)
+            ->get(route('rekap-absensi', ['sekolah_kodlan' => 'TEST001']));
+
+        $response->assertStatus(200);
+        $rombels = $response->viewData('rombels');
+        $this->assertTrue($rombels->contains('A1'));
+        $this->assertFalse($rombels->contains('B1'));
+
+        // Access rekap with sekolah_kodlan=TEST002
+        $response = $this->actingAs($this->admin)
+            ->get(route('rekap-absensi', ['sekolah_kodlan' => 'TEST002']));
+
+        $response->assertStatus(200);
+        $rombels = $response->viewData('rombels');
+        $this->assertTrue($rombels->contains('B1'));
+        $this->assertFalse($rombels->contains('A1'));
+    }
 }
