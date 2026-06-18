@@ -60,6 +60,14 @@
                     <span class="d-inline-block bg-secondary rounded me-2" style="width: 16px; height: 16px; opacity: 0.2;"></span>
                     <span class="text-secondary">Ditunda</span>
                 </div>
+                <div class="d-flex align-items-center ms-3 border-start ps-3">
+                    <span class="me-2">🔴</span>
+                    <span class="text-danger fw-semibold">Hari Libur Nasional</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="me-2">🟡</span>
+                    <span class="text-warning fw-semibold">Cuti Bersama <small class="text-muted fw-normal">(sesi tetap bisa jalan)</small></span>
+                </div>
             </div>
         </div>
     </div>
@@ -86,16 +94,26 @@
             <div class="bg-white" style="display: grid; grid-template-columns: repeat(7, 1fr); border-left: 1px solid #dee2e6; border-top: 1px solid #dee2e6;">
                 @for($i = 0; $i < 42; $i++) <!-- 6 weeks * 7 days -->
                     @php
-                        $date = $currentDate->copy()->addDays($i);
-                        $dateKey = $date->toDateString();
-                        $isCurrentMonth = $date->month === $month;
-                        $isToday = $date->isToday();
-                        $sessionsOnDate = $sessions->get($dateKey, collect());
-                    @endphp
+                    $date            = $currentDate->copy()->addDays($i);
+                    $dateKey         = $date->toDateString();
+                    $isCurrentMonth  = $date->month === $month;
+                    $isToday         = $date->isToday();
+                    $sessionsOnDate  = $sessions->get($dateKey, collect());
+                    $holiday         = $holidays->get($dateKey);
+                    $isCutiBersama   = isset($holidays[$dateKey]) && $holidays[$dateKey]->jenis === 'cuti_bersama';
+                    $isLiburNasional = $holiday && ! $isCutiBersama;
+                @endphp
                     
-                    <div class="position-relative p-2 border-end border-bottom {{ !$isCurrentMonth ? 'bg-light text-muted' : '' }}" style="min-height: 120px;">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <span class="small fw-bold {{ $isToday ? 'bg-primary text-white rounded-circle d-flex align-items-center justify-content-center' : '' }}" 
+                    <div class="position-relative p-2 border-end border-bottom
+                        {{ !$isCurrentMonth ? 'bg-light text-muted' : '' }}
+                        {{ $isLiburNasional ? 'bg-danger-subtle' : '' }}
+                        {{ $isCutiBersama && $isCurrentMonth ? 'bg-warning-subtle' : '' }}"
+                         style="min-height: 120px;">
+
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <span class="small fw-bold
+                                {{ $isToday ? 'bg-primary text-white rounded-circle d-flex align-items-center justify-content-center' : '' }}
+                                {{ $isLiburNasional && !$isToday ? 'text-danger' : '' }}"
                                   style="{{ $isToday ? 'width: 24px; height: 24px;' : '' }}">
                                 {{ $date->day }}
                             </span>
@@ -105,6 +123,21 @@
                                 </span>
                             @endif
                         </div>
+
+                        {{-- Label hari libur / cuti bersama --}}
+                        @if($isLiburNasional && $isCurrentMonth)
+                            <div class="mb-1">
+                                <span class="badge bg-danger text-white rounded-pill px-2" style="font-size: 0.6rem;">
+                                    🔴 {{ Str::limit($holiday->nama, 22) }}
+                                </span>
+                            </div>
+                        @elseif($isCutiBersama && $isCurrentMonth)
+                            <div class="mb-1">
+                                <span class="badge bg-warning text-dark rounded-pill px-2" style="font-size: 0.6rem;">
+                                    🟡 Cuti Bersama
+                                </span>
+                            </div>
+                        @endif
 
                         <!-- Sessions on this date -->
                         <div class="d-flex flex-column gap-1">

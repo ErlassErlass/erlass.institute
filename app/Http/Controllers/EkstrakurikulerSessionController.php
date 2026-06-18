@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\EkstrakurikulerRombel;
 use App\Models\EkstrakurikulerSession;
 use App\Models\User;
+use App\Services\CalendarService;
 use App\Services\SchedulingService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -21,10 +22,12 @@ use Illuminate\View\View;
 class EkstrakurikulerSessionController extends Controller
 {
     protected SchedulingService $schedulingService;
+    protected CalendarService $calendarService;
 
-    public function __construct(SchedulingService $schedulingService)
+    public function __construct(SchedulingService $schedulingService, CalendarService $calendarService)
     {
         $this->schedulingService = $schedulingService;
+        $this->calendarService   = $calendarService;
     }
 
     /**
@@ -130,10 +133,10 @@ class EkstrakurikulerSessionController extends Controller
     public function calendar(Request $request): View
     {
         $month = $request->get('month', now()->month);
-        $year = $request->get('year', now()->year);
+        $year  = $request->get('year', now()->year);
 
         $startDate = Carbon::create($year, $month, 1);
-        $endDate = $startDate->copy()->endOfMonth();
+        $endDate   = $startDate->copy()->endOfMonth();
 
         $sessions = EkstrakurikulerSession::with(['rombel.ekstrakurikuler', 'instruktur'])
             ->whereBetween('tanggal_terjadwal', [$startDate, $endDate])
@@ -142,8 +145,13 @@ class EkstrakurikulerSessionController extends Controller
                 return $session->tanggal_terjadwal->format('Y-m-d');
             });
 
+        // Data hari libur nasional untuk bulan ini
+        $holidays = $this->calendarService
+            ->getHolidaysInRange($startDate->toDateString(), $endDate->toDateString())
+            ->keyBy(fn ($h) => \Carbon\Carbon::parse($h->tanggal)->toDateString());
+
         return view('ekstrakurikuler.sessions.calendar', compact(
-            'sessions', 'month', 'year', 'startDate', 'endDate'
+            'sessions', 'month', 'year', 'startDate', 'endDate', 'holidays'
         ));
     }
 

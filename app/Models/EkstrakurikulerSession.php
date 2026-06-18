@@ -79,6 +79,10 @@ class EkstrakurikulerSession extends Model
 
     const STATUS_TIDAK_HADIR = 'tidak_hadir';
 
+    const STATUS_LIBUR = 'libur';       // Sesi libur karena hari libur nasional/sekolah
+
+    const STATUS_DIGANTI = 'diganti';   // Sesi sudah diganti ke jadwal baru
+
     /**
      * Relasi ke model Ekstrakurikuler.
      */
@@ -209,12 +213,14 @@ class EkstrakurikulerSession extends Model
     public function getStatusLabelAttribute(): string
     {
         $labels = [
-            self::STATUS_TERJADWAL => 'Terjadwal',
+            self::STATUS_TERJADWAL   => 'Terjadwal',
             self::STATUS_BERLANGSUNG => 'Berlangsung',
-            self::STATUS_SELESAI => 'Selesai',
-            self::STATUS_DIBATALKAN => 'Dibatalkan',
-            self::STATUS_DITUNDA => 'Ditunda',
+            self::STATUS_SELESAI     => 'Selesai',
+            self::STATUS_DIBATALKAN  => 'Dibatalkan',
+            self::STATUS_DITUNDA     => 'Ditunda',
             self::STATUS_TIDAK_HADIR => 'Tidak Hadir',
+            self::STATUS_LIBUR       => 'Libur',
+            self::STATUS_DIGANTI     => 'Diganti',
         ];
 
         return $labels[$this->status] ?? 'Unknown';

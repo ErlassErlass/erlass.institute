@@ -23,6 +23,8 @@ use App\Http\Controllers\ReportCardController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\SalaryRateController;
 use App\Http\Controllers\PayrollController;
+use App\Http\Controllers\Admin\HolidayController;
+use App\Http\Controllers\SchoolCalendarController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -286,6 +288,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('payroll/batches/{batch}', [PayrollController::class, 'showBatch'])->name('payroll.batches.show');
         Route::post('payroll/batches/{batch}/process', [PayrollController::class, 'processBatch'])->name('payroll.batches.process');
         Route::post('payroll/batches/{batch}/pay', [PayrollController::class, 'payBatch'])->name('payroll.batches.pay');
+
+        // Kalender Nasional - Hari Libur (Admin Only)
+        Route::get('holidays', [HolidayController::class, 'index'])->name('holidays.index');
+        Route::post('holidays', [HolidayController::class, 'store'])->name('holidays.store');
+        Route::patch('holidays/{holiday}', [HolidayController::class, 'update'])->name('holidays.update');
+        Route::delete('holidays/{holiday}', [HolidayController::class, 'destroy'])->name('holidays.destroy');
     });
 
     // Absensi routes - consolidated and organized
@@ -300,6 +308,11 @@ Route::middleware(['auth'])->group(function () {
     // Sekolah routes
     Route::get('/distribusi-sekolah', [SekolahController::class, 'distribusi'])->name('sekolah.distribusi');
     Route::get('/sekolah/{kodlan}/siswa', [SekolahController::class, 'siswaBySekolah'])->name('sekolah.siswa');
+
+    // Kalender Akademik per Sekolah
+    Route::get('/sekolah/{kodlan}/calendar', [SchoolCalendarController::class, 'index'])->name('sekolah.calendar.index');
+    Route::post('/sekolah/{kodlan}/calendar', [SchoolCalendarController::class, 'store'])->name('sekolah.calendar.store');
+    Route::delete('/sekolah/{kodlan}/calendar/{schoolCalendar}', [SchoolCalendarController::class, 'destroy'])->name('sekolah.calendar.destroy');
 
     // Nested resource for laporan-mengajar absensi
     Route::resource('laporan-mengajar.absensi', AbsensiController::class)->only(['create', 'store']);

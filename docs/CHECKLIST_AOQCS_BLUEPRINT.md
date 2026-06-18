@@ -86,7 +86,7 @@
 - [x] Biodata Siswa (Nama, NISN, Kelas, Rombel, Nama Orang Tua, WA Orang Tua)
 - [x] Fitur Pindah Rombel & Import Siswa dari Excel
 - [x] Status Presensi Detail (Hadir, Izin, Sakit, Alpha)
-- [ ] Laporan & Rekapitulasi Kehadiran Siswa/Instruktur
+- [x] Laporan & Rekapitulasi Kehadiran Siswa/Instruktur
 
 ---
 
