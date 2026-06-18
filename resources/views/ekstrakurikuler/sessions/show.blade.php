@@ -210,7 +210,14 @@
                         
                         <div class="col-md-6">
                             <label class="small text-muted text-uppercase fw-bold">Sekolah</label>
-                            <p class="mb-0 fw-medium text-primary">{{ $session->rombel->ekstrakurikuler->sekolah->namasekolah }}</p>
+                            <p class="mb-1 fw-bold text-primary">{{ $session->rombel->ekstrakurikuler->sekolah->namasekolah }}</p>
+                            @if($session->rombel->ekstrakurikuler->google_maps_link)
+                                <div class="mt-1">
+                                    <a href="{{ $session->rombel->ekstrakurikuler->google_maps_link }}" target="_blank" class="btn btn-xs btn-outline-primary py-1 px-2.5 rounded-pill" style="font-size: 0.75rem;">
+                                        <i class="bi bi-geo-alt me-1"></i> Buka Peta Lokasi
+                                    </a>
+                                </div>
+                            @endif
                         </div>
                         
                         <div class="col-md-6">
@@ -219,22 +226,9 @@
                         </div>
                         
                         <div class="col-md-6">
-                            <label class="small text-muted text-uppercase fw-bold">Jumlah Siswa</label>
-                            <p class="mb-0 fw-medium"><i class="bi bi-people me-1"></i> {{ $session->rombel->jumlah_siswa }} siswa</p>
-                        </div>
-
-                        <div class="col-md-6">
                             <label class="small text-muted text-uppercase fw-bold">Penanggung Jawab</label>
-                            <p class="mb-0 fw-medium">{{ $session->rombel->ekstrakurikuler->penanggung_jawab ?? '-' }}</p>
-                        </div>
-                        
-                        @if($session->rombel->ekstrakurikuler->no_telepon)
-                        <div class="col-md-6">
-                            <label class="small text-muted text-uppercase fw-bold">No. HP PJ</label>
-                            <div class="d-flex align-items-center gap-2 mt-1">
-                                <a href="tel:{{ $session->rombel->ekstrakurikuler->no_telepon }}" class="btn btn-sm btn-outline-secondary py-1 px-2">
-                                    <i class="bi bi-telephone me-1"></i> {{ $session->rombel->ekstrakurikuler->no_telepon }}
-                                </a>
+                            <p class="mb-1 fw-medium text-dark">{{ $session->rombel->ekstrakurikuler->penanggung_jawab ?? '-' }}</p>
+                            @if($session->rombel->ekstrakurikuler->no_telepon)
                                 @php
                                     $cleanPhone = preg_replace('/[^0-9]/', '', $session->rombel->ekstrakurikuler->no_telepon);
                                     if (str_starts_with($cleanPhone, '0')) {
@@ -242,23 +236,21 @@
                                     }
                                     $waText = urlencode("Halo " . $session->rombel->ekstrakurikuler->penanggung_jawab . ", saya instruktur Erlass untuk ekstrakurikuler " . $session->rombel->ekstrakurikuler->kategori_program . ".");
                                 @endphp
-                                <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="btn btn-sm btn-outline-success py-1 px-2">
-                                    <i class="bi bi-whatsapp me-1"></i> Chat WA
-                                </a>
-                            </div>
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <a href="tel:{{ $session->rombel->ekstrakurikuler->no_telepon }}" class="btn btn-xs btn-outline-secondary py-1 px-2.5 rounded-pill" style="font-size: 0.75rem;">
+                                        <i class="bi bi-telephone me-1"></i> Hubungi
+                                    </a>
+                                    <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="btn btn-xs btn-outline-success py-1 px-2.5 rounded-pill" style="font-size: 0.75rem;">
+                                        <i class="bi bi-whatsapp me-1"></i> WhatsApp
+                                    </a>
+                                </div>
+                            @endif
                         </div>
-                        @endif
 
-                        @if($session->rombel->ekstrakurikuler->google_maps_link)
                         <div class="col-md-6">
-                            <label class="small text-muted text-uppercase fw-bold">Google Maps</label>
-                            <div class="mt-1">
-                                <a href="{{ $session->rombel->ekstrakurikuler->google_maps_link }}" target="_blank" class="btn btn-sm btn-outline-primary py-1 px-2">
-                                    <i class="bi bi-geo-alt me-1"></i> Petunjuk Arah
-                                </a>
-                            </div>
+                            <label class="small text-muted text-uppercase fw-bold">Jumlah Siswa</label>
+                            <p class="mb-0 fw-medium"><i class="bi bi-people me-1 text-primary"></i> {{ $session->rombel->jumlah_siswa }} siswa</p>
                         </div>
-                        @endif
                     </div>
                 </div>
             </div>
