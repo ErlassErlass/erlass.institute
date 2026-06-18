@@ -310,15 +310,40 @@ class AbsensiController extends Controller
             ->select('kodlan', 'namasekolah', 'kotkab', 'kec')
             ->orderBy('namasekolah')
             ->get();
-            
+
         $selectedRombel = $request->rombel;
         $selectedSekolah = $request->sekolah_kodlan;
 
         $rombels = $this->retrieveRombelsForSekolah($selectedSekolah);
 
-        $data = $this->getRekapData($selectedRombel, $selectedSekolah);
+        $selectedSchoolName = '';
+        if ($selectedSekolah) {
+            $sSekolah = \App\Models\Sekolah::where('kodlan', $selectedSekolah)->first();
+            $selectedSchoolName = $sSekolah ? $sSekolah->namasekolah : '';
+        }
 
-        return view('absensi.rekap', array_merge($data, compact('sekolahs', 'rombels', 'selectedRombel', 'selectedSekolah')));
+        $rombelExists = true;
+        if ($selectedRombel) {
+            $rombelExists = $rombels->contains($selectedRombel);
+        }
+
+        if (!$rombelExists) {
+            $data = [
+                'rekapData' => [],
+                'students' => collect()
+            ];
+        } else {
+            $data = $this->getRekapData($selectedRombel, $selectedSekolah);
+        }
+
+        return view('absensi.rekap', array_merge($data, compact(
+            'sekolahs', 
+            'rombels', 
+            'selectedRombel', 
+            'selectedSekolah', 
+            'rombelExists', 
+            'selectedSchoolName'
+        )));
     }
 
     /**

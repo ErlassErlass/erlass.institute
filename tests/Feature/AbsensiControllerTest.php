@@ -398,4 +398,19 @@ class AbsensiControllerTest extends TestCase
         $this->assertTrue($rombels->contains('B1'));
         $this->assertFalse($rombels->contains('A1'));
     }
+
+    public function test_rekap_shows_warning_when_rombel_does_not_exist(): void
+    {
+        // Access rekap with sekolah_kodlan=TEST001 and non-existent rombel
+        $response = $this->actingAs($this->admin)
+            ->get(route('rekap-absensi', [
+                'sekolah_kodlan' => 'TEST001',
+                'rombel' => 'Rombel_Tidak_Ada'
+            ]));
+
+        $response->assertStatus(200);
+        $response->assertViewHas('rombelExists', false);
+        $response->assertSee('Rombel Tidak Ditemukan');
+        $response->assertSee('tidak memiliki');
+    }
 }
