@@ -15,6 +15,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- PWA Meta Tags & Manifest -->
+    <meta name="theme-color" content="#2563eb">
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/logo-erlass.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Erlass Ekskul">
+
     <title>@yield('title', 'Erlass Ekskul')</title>
 
     <!-- Fonts -->
@@ -786,6 +794,17 @@
                     document.getElementById('sidebar').classList.toggle('active');
                     document.getElementById('content').classList.toggle('active');
                 });
+            }
+
+            // PWA Service Worker Registration
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
             }
         });
         window.addEventListener("beforeunload", function() {
