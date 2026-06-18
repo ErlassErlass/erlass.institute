@@ -68,9 +68,28 @@
                                 </td>
                                 <td>
                                     <div class="fw-bold text-dark">{{ $session->ekstrakurikuler->sekolah->namasekolah ?? '-' }}</div>
-                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 mt-1 small">
-                                        {{ $session->ekstrakurikuler->kategori_program }}
-                                    </span>
+                                    <div class="d-flex align-items-center flex-wrap gap-2 mt-1">
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 small">
+                                            {{ $session->ekstrakurikuler->kategori_program }}
+                                        </span>
+                                        @if($session->ekstrakurikuler->google_maps_link)
+                                            <a href="{{ $session->ekstrakurikuler->google_maps_link }}" target="_blank" class="text-primary d-inline-flex align-items-center" title="Buka Google Maps">
+                                                <i class="bi bi-geo-alt-fill"></i>
+                                            </a>
+                                        @endif
+                                        @if($session->ekstrakurikuler->no_telepon)
+                                            @php
+                                                $cleanPhone = preg_replace('/[^0-9]/', '', $session->ekstrakurikuler->no_telepon);
+                                                if (str_starts_with($cleanPhone, '0')) {
+                                                    $cleanPhone = '62' . substr($cleanPhone, 1);
+                                                }
+                                                $waText = urlencode("Halo " . $session->ekstrakurikuler->penanggung_jawab . ", saya instruktur Erlass untuk ekstrakurikuler " . $session->ekstrakurikuler->kategori_program . ".");
+                                            @endphp
+                                            <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $session->ekstrakurikuler->penanggung_jawab }}">
+                                                <i class="bi bi-whatsapp"></i>
+                                            </a>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="fw-medium text-dark">{{ $session->rombel->nama_rombel }}</div>

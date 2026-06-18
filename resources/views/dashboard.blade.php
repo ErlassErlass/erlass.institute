@@ -123,8 +123,25 @@
                             @endif
                         </div>
                         <div class="text-muted small">
-                            <div class="mb-1">
-                                <i class="bi bi-building me-1"></i> {{ $todo->rombel->ekstrakurikuler->sekolah->namasekolah }}
+                            <div class="mb-1 d-flex align-items-center gap-2">
+                                <span><i class="bi bi-building me-1"></i> {{ $todo->rombel->ekstrakurikuler->sekolah->namasekolah }}</span>
+                                @if($todo->rombel->ekstrakurikuler->google_maps_link)
+                                    <a href="{{ $todo->rombel->ekstrakurikuler->google_maps_link }}" target="_blank" class="text-primary d-inline-flex align-items-center" title="Buka Google Maps">
+                                        <i class="bi bi-geo-alt-fill"></i>
+                                    </a>
+                                @endif
+                                @if($todo->rombel->ekstrakurikuler->no_telepon)
+                                    @php
+                                        $cleanPhone = preg_replace('/[^0-9]/', '', $todo->rombel->ekstrakurikuler->no_telepon);
+                                        if (str_starts_with($cleanPhone, '0')) {
+                                            $cleanPhone = '62' . substr($cleanPhone, 1);
+                                        }
+                                        $waText = urlencode("Halo " . $todo->rombel->ekstrakurikuler->penanggung_jawab . ", saya instruktur Erlass untuk ekstrakurikuler " . $todo->rombel->ekstrakurikuler->kategori_program . ".");
+                                    @endphp
+                                    <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $todo->rombel->ekstrakurikuler->penanggung_jawab }}">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </a>
+                                @endif
                             </div>
                             <div>
                                 <i class="bi bi-calendar-event me-1"></i> {{ \Carbon\Carbon::parse($todo->tanggal_terjadwal)->format('d M Y') }}
@@ -170,7 +187,26 @@
                                         {{ $session->jam_mulai_terjadwal->format('H:i') }}
                                     </td>
                                     <td>
-                                        <div class="fw-bold text-dark">{{ $session->rombel->ekstrakurikuler->sekolah->namasekolah }}</div>
+                                        <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                            <span>{{ $session->rombel->ekstrakurikuler->sekolah->namasekolah }}</span>
+                                            @if($session->rombel->ekstrakurikuler->google_maps_link)
+                                                <a href="{{ $session->rombel->ekstrakurikuler->google_maps_link }}" target="_blank" class="text-primary d-inline-flex align-items-center" title="Buka Google Maps">
+                                                    <i class="bi bi-geo-alt-fill"></i>
+                                                </a>
+                                            @endif
+                                            @if($session->rombel->ekstrakurikuler->no_telepon)
+                                                @php
+                                                    $cleanPhone = preg_replace('/[^0-9]/', '', $session->rombel->ekstrakurikuler->no_telepon);
+                                                    if (str_starts_with($cleanPhone, '0')) {
+                                                        $cleanPhone = '62' . substr($cleanPhone, 1);
+                                                    }
+                                                    $waText = urlencode("Halo " . $session->rombel->ekstrakurikuler->penanggung_jawab . ", saya instruktur Erlass untuk ekstrakurikuler " . $session->rombel->ekstrakurikuler->kategori_program . ".");
+                                                @endphp
+                                                <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $session->rombel->ekstrakurikuler->penanggung_jawab }}">
+                                                    <i class="bi bi-whatsapp"></i>
+                                                </a>
+                                            @endif
+                                        </div>
                                         <div class="text-muted small">
                                             {{ $session->rombel->ekstrakurikuler->kategori_program }} - {{ $session->rombel->nama_rombel }}
                                         </div>
@@ -237,7 +273,26 @@
                                         {{ $session->jam_mulai_terjadwal->format('H:i') }} - {{ $session->jam_selesai_terjadwal->format('H:i') }}
                                     </td>
                                     <td>
-                                        <div class="fw-bold text-dark">{{ $session->rombel->ekstrakurikuler->sekolah->namasekolah }}</div>
+                                        <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                            <span>{{ $session->rombel->ekstrakurikuler->sekolah->namasekolah }}</span>
+                                            @if($session->rombel->ekstrakurikuler->google_maps_link)
+                                                <a href="{{ $session->rombel->ekstrakurikuler->google_maps_link }}" target="_blank" class="text-primary d-inline-flex align-items-center" title="Buka Google Maps">
+                                                    <i class="bi bi-geo-alt-fill"></i>
+                                                </a>
+                                            @endif
+                                            @if($session->rombel->ekstrakurikuler->no_telepon)
+                                                @php
+                                                    $cleanPhone = preg_replace('/[^0-9]/', '', $session->rombel->ekstrakurikuler->no_telepon);
+                                                    if (str_starts_with($cleanPhone, '0')) {
+                                                        $cleanPhone = '62' . substr($cleanPhone, 1);
+                                                    }
+                                                    $waText = urlencode("Halo " . $session->rombel->ekstrakurikuler->penanggung_jawab . ", saya instruktur Erlass untuk ekstrakurikuler " . $session->rombel->ekstrakurikuler->kategori_program . ".");
+                                                @endphp
+                                                <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $session->rombel->ekstrakurikuler->penanggung_jawab }}">
+                                                    <i class="bi bi-whatsapp"></i>
+                                                </a>
+                                            @endif
+                                        </div>
                                         <div class="text-muted small">
                                             {{ $session->rombel->ekstrakurikuler->kategori_program }} - {{ $session->rombel->nama_rombel }}
                                         </div>
