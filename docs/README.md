@@ -81,4 +81,5 @@ Logika bisnis spesifik berskala besar yang ditambahkan untuk mendukung operasion
 *   [**`ANALISIS_DAN_ROADMAP_AOQCS_ERLASS.md`**](ANALISIS_DAN_ROADMAP_AOQCS_ERLASS.md) — Analisis Blueprint 2026 dan Rencana Pengembangan AOQCS (Operations, Quality & Compensation).
 *   [**`CHECKLIST_AOQCS_BLUEPRINT.md`**](CHECKLIST_AOQCS_BLUEPRINT.md) — Lembar audit kesiapan dan perbandingan checklist fitur erlass.institute dengan blueprint.
 *   [**`FUTURE_ROADMAP.md`**](FUTURE_ROADMAP.md) — Rencana inovasi sistem jangka panjang (PWA, AI integration, dll.).
+*   [**`CHECKLIST_FUTURE_ROADMAP.md`**](CHECKLIST_FUTURE_ROADMAP.md) — Checklist kesiapan fitur masa depan dan evaluasi progres terhadap roadmap jangka panjang.
 *   [**`CHANGELOG.md`**](CHANGELOG.md) — Log riwayat perubahan versi rilis aplikasi.
