@@ -13,7 +13,8 @@ class SekolahController extends Controller
         $search = $request->input('search');
 
         $sekolah = Sekolah::when($search, function ($query) use ($search) {
-            return $query->where('namasekolah', 'like', "%$search%");
+            return $query->where('namasekolah', 'like', "%$search%")
+                ->orWhere('kodlan', 'like', "%$search%");
         })->paginate(25); // Show 25 records per page
 
         return view('sekolah.index', compact('sekolah'));

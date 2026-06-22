@@ -17,6 +17,16 @@ class ReportCardController extends Controller
             abort(403);
         }
 
+        $user = Auth::user();
+        if ($user->role === 'instruktur') {
+            $rombel = $reportCard->ekstrakurikulerRombel;
+            if (!$rombel || ($rombel->user_id_instruktur !== $user->id && $rombel->user_id_asisten !== $user->id)) {
+                abort(403, 'Akses ditolak.');
+            }
+        } elseif (!$user->hasAdminAccess()) {
+            abort(403, 'Akses ditolak.');
+        }
+
         if ($reportCard->file_path && Storage::disk('public')->exists($reportCard->file_path)) {
             $fileName = basename($reportCard->file_path);
             return Storage::disk('public')->download($reportCard->file_path, $fileName);

@@ -19,7 +19,13 @@ class EkstrakurikulerQueryService
         $query = Ekstrakurikuler::with(['sekolah', 'sales', 'rombels']);
 
         // Filter by user role
-        if (! $user->hasAdminAccess()) {
+        if ($user->hasRole('instruktur')) {
+            // Instruktur hanya melihat ekstrakurikuler yang punya rombel dimana mereka ditugaskan
+            $query->whereHas('rombels', function ($q) use ($user) {
+                $q->where('user_id_instruktur', $user->id)
+                  ->orWhere('user_id_asisten', $user->id);
+            });
+        } elseif (! $user->hasAdminAccess()) {
             $query->where('user_id_sales', $user->id);
         }
 

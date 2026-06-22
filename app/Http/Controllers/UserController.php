@@ -102,7 +102,7 @@ class UserController extends Controller
             'pend_terakhir' => ['nullable', 'string', 'max:10'],
             'kompetensi_1' => ['nullable', 'string', 'max:255'],
             'kompetensi_2' => ['nullable', 'string', 'max:255'],
-            'role' => ['required', 'in:webmaster,admin_erlass,instruktur'],
+            'role' => ['required', 'in:webmaster,admin_sistem,admin,instruktur,sales'],
         ], [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
             'email.required' => 'Email wajib diisi.',
@@ -169,8 +169,8 @@ class UserController extends Controller
             unset($validated['password']);
         }
 
-        // Cek apakah user mencoba mengubah role sendiri
-        if (isset($validated['role']) && $user->id === Auth::id()) {
+        // Cek apakah user mencoba mengubah role sendiri (hanya jika rolenya benar-benar dirubah)
+        if (isset($validated['role']) && $validated['role'] !== $user->role && $user->id === Auth::id()) {
             return back()->withErrors(['role' => 'Anda tidak dapat mengubah role Anda sendiri.']);
         }
 

@@ -171,6 +171,18 @@
             </div>
             @endif
 
+            <!-- PWA Install Banner -->
+            <div id="pwa-install-banner" class="alert alert-info d-flex align-items-center justify-content-between rounded-4 d-none mb-4" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-phone-vibrate fs-4 me-3"></i>
+                    <div>
+                        <strong class="d-block small">Gunakan Aplikasi Lebih Cepat</strong>
+                        <span class="x-small text-muted" style="font-size: 0.75rem;">Pasang Erlass Ekskul di layar utama ponsel Anda.</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm px-3 py-2 fw-semibold" id="btn-pwa-install-login">Install</button>
+            </div>
+
             <form method="POST" action="{{ route('login') }}" id="loginForm">
                 @csrf
 
@@ -262,9 +274,9 @@
 </div>
 
 <!-- WhatsApp Support Floating Button -->
-<a href="https://wa.me/6281234567890?text=Halo%20Admin,%20saya%20butuh%20bantuan%20login%20Erlass%20Ekskul" 
+<a href="whatsapp://send?phone=6281234567890&text=Halo%20Admin,%20saya%20butuh%20bantuan%20login%20Erlass%20Ekskul" 
+   target="_blank" rel="noopener"
    class="wa-float" 
-   target="_blank" 
    title="Hubungi Admin via WhatsApp">
     <i class="bi bi-whatsapp"></i>
 </a>

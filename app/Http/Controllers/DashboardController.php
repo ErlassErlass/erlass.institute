@@ -255,7 +255,7 @@ class DashboardController extends Controller
                 ->take(3)
                 ->get(),
             'admin_pending_reports' => in_array(auth()->user()->role, ['admin', 'admin_sistem', 'webmaster'])
-                ? \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah:kodlan,namasekolah', 'instruktur:id,nama_lengkap'])
+                ? \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah:kodlan,namasekolah', 'instruktur:id,nama_lengkap,no_telephone'])
                     ->whereNotNull('user_id_instruktur')
                     ->doesntHave('laporanMengajar')
                     ->whereDate('tanggal_terjadwal', '<=', Carbon::today())

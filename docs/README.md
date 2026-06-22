@@ -43,6 +43,7 @@ Prosedur sysadmin untuk pemeliharaan server dan deployment Docker.
 *   [**`PANDUAN_SUBDOMAIN.md`**](ops/PANDUAN_SUBDOMAIN.md) — Konfigurasi routing subdomain server Nginx.
 *   [**`DOKUMENTASI_ASSETS_MANAGER.md`**](ops/DOKUMENTASI_ASSETS_MANAGER.md) — Petunjuk penggunaan utilitas Assets Manager.
 *   [**`SENTRY_MONITORING.md`**](ops/SENTRY_MONITORING.md) — Konfigurasi monitoring bug and performance.
+*   [**`VPS_MONITORING.md`**](ops/VPS_MONITORING.md) — Panduan monitoring VPS dan dashboard Netdata.
 *   [**`SECURITY_AUDIT_REPORT.md`**](ops/SECURITY_AUDIT_REPORT.md) — Laporan audit keamanan berkala.
 
 ---

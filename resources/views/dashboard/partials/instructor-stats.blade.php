@@ -1,7 +1,7 @@
 
 <div class="row g-3 mb-4">
     <!-- Total Hours -->
-    <div class="col-md-6 col-xl-4">
+    <div class="col-6 col-md-6 col-xl-4">
         @include('dashboard.partials.stat-card', [
             'bg' => 'bg-primary bg-gradient',
             'icon' => 'bi bi-clock-history',
@@ -12,7 +12,7 @@
     </div>
     
     <!-- Reports Submitted -->
-    <div class="col-md-6 col-xl-4">
+    <div class="col-6 col-md-6 col-xl-4">
         @include('dashboard.partials.stat-card', [
             'bg' => 'bg-success bg-gradient',
             'icon' => 'bi bi-file-earmark-check',
@@ -23,7 +23,7 @@
     </div>
     
     <!-- Next Class -->
-    <div class="col-md-6 col-xl-4">
+    <div class="col-12 col-md-6 col-xl-4">
         <div class="card shadow-sm border-0 h-100 bg-info bg-gradient text-white">
             <div class="card-body">
                 <div class="d-flex align-items-center mb-2">

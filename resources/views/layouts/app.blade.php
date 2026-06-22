@@ -8,22 +8,25 @@
         @keyframes pageFadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         main, .main-content { animation: pageFadeIn 0.4s ease-out forwards; }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
     
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- Favicon & App Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/favicon-192.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon-32.png') }}">
+
     <!-- PWA Meta Tags & Manifest -->
     <meta name="theme-color" content="#2563eb">
     <link rel="manifest" href="{{ asset('manifest.json') }}">
-    <link rel="apple-touch-icon" href="{{ asset('images/logo-erlass.png') }}">
+    <link rel="apple-touch-icon" sizes="192x192" href="{{ asset('images/favicon-192.png') }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Erlass Ekskul">
 
-    <title>@yield('title', 'Erlass Ekskul')</title>
+    <title>@yield('title', 'Dashboard') — Erlass Ekskul</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -93,6 +96,21 @@
                 radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.05) 0px, transparent 50%),
                 radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
             background-attachment: fixed;
+            padding-bottom: env(safe-area-inset-bottom);
+            overscroll-behavior-y: contain; /* Prevents Chrome Android pull-to-refresh reload in PWA mode */
+        }
+
+        /* iOS & Android PWA Touch & tap optimizations */
+        button, a, .btn, .sidebar-link, .btn-action, .list-group-item, #sidebar-backdrop {
+            touch-action: manipulation;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Tactile active feedback for mobile PWA buttons */
+        .btn:active, .sidebar-link:active, .btn-action:active, .list-group-item-action:active {
+            transform: scale(0.97) !important;
+            transition: transform 0.05s ease-out !important;
         }
 
         /* Navbar Styling */
@@ -449,18 +467,27 @@
         /* Responsive */
         @media (max-width: 991.98px) {
             #sidebar {
-                margin-left: -260px;
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                z-index: 1050;
+                margin-left: 0 !important;
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: none;
             }
             #sidebar.active {
-                margin-left: 0;
+                transform: translateX(0);
+                box-shadow: var(--shadow-lg);
             }
             #content {
-                width: 100%;
-                margin-left: 0;
+                width: 100% !important;
+                margin-left: 0 !important;
             }
             #content.active {
-                width: calc(100% - 260px);
-                margin-left: 260px;
+                width: 100% !important;
+                margin-left: 0 !important;
             }
         }
     </style>
@@ -663,6 +690,14 @@
                             </li>
                         @endif
                     @endif
+
+                    <!-- PWA Install Button inside Sidebar -->
+                    <li class="sidebar-item d-none" id="pwa-install-item">
+                        <a href="javascript:void(0)" class="sidebar-link text-primary fw-bold" id="btn-pwa-install">
+                            <i class="bi bi-download"></i>
+                            <span>Install Aplikasi</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
 
@@ -789,12 +824,41 @@
 
             // Toggle Sidebar event handler
             const sidebarCollapse = document.getElementById('sidebarCollapse');
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('content');
+            
+            // Create backdrop element dynamically if it doesn't exist
+            let backdrop = document.getElementById('sidebar-backdrop');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'sidebar-backdrop';
+                backdrop.className = 'fade position-fixed top-0 start-0 w-100 h-100 d-none';
+                backdrop.style.cssText = 'background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 1040; transition: opacity 0.3s ease; cursor: pointer; -webkit-tap-highlight-color: transparent;';
+                document.body.appendChild(backdrop);
+            }
+
             if (sidebarCollapse) {
                 sidebarCollapse.addEventListener('click', function () {
-                    document.getElementById('sidebar').classList.toggle('active');
-                    document.getElementById('content').classList.toggle('active');
+                    const isActive = sidebar.classList.toggle('active');
+                    if (window.innerWidth <= 991.98) {
+                        if (isActive) {
+                            backdrop.classList.remove('d-none');
+                            setTimeout(() => backdrop.classList.add('show'), 10);
+                        } else {
+                            backdrop.classList.remove('show');
+                            setTimeout(() => backdrop.classList.add('d-none'), 300);
+                        }
+                    } else {
+                        content.classList.toggle('active');
+                    }
                 });
             }
+
+            backdrop.addEventListener('click', function() {
+                sidebar.classList.remove('active');
+                backdrop.classList.remove('show');
+                setTimeout(() => backdrop.classList.add('d-none'), 300);
+            });
 
             // PWA Service Worker Registration
             if ('serviceWorker' in navigator) {
@@ -806,6 +870,33 @@
                         console.log('ServiceWorker registration failed: ', err);
                     });
             }
+
+            // PWA Custom Installation Logic
+            let deferredPrompt;
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                
+                // Show custom install sidebar item
+                document.getElementById('pwa-install-item')?.classList.remove('d-none');
+            });
+
+            const btnInstall = document.getElementById('btn-pwa-install');
+            if (btnInstall) {
+                btnInstall.addEventListener('click', async () => {
+                    if (!deferredPrompt) return;
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log('PWA installation choice:', outcome);
+                    deferredPrompt = null;
+                    document.getElementById('pwa-install-item')?.classList.add('d-none');
+                });
+            }
+
+            window.addEventListener('appinstalled', () => {
+                console.log('PWA was installed successfully!');
+                document.getElementById('pwa-install-item')?.classList.add('d-none');
+            });
         });
         window.addEventListener("beforeunload", function() {
             NProgress.start();

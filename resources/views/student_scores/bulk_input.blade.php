@@ -52,28 +52,28 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover align-middle mb-0" style="min-width: 1100px;">
+                        @php
+                            $limit = min(8, $rombel->total_pertemuan ?? 4);
+                        @endphp
                         <thead class="table-light text-center" style="font-size: 0.8rem;">
                             <tr>
                                 <th rowspan="2" class="align-middle ps-3 text-start" style="width: 200px;">Nama Siswa</th>
-                                <th colspan="4" class="bg-primary-subtle text-primary-emphasis py-2">Tugas & Kuis (30%)</th>
-                                <th colspan="4" class="bg-success-subtle text-success-emphasis py-2">Sikap (20%)</th>
-                                <th colspan="4" class="bg-warning-subtle text-warning-emphasis py-2">Proyek Akhir (20%)</th>
+                                <th colspan="{{ $limit }}" class="bg-primary-subtle text-primary-emphasis py-2">Tugas & Kuis (30%)</th>
+                                <th colspan="{{ $limit }}" class="bg-success-subtle text-success-emphasis py-2">Sikap (20%)</th>
+                                <th colspan="{{ $limit }}" class="bg-warning-subtle text-warning-emphasis py-2">Proyek Akhir (20%)</th>
                                 <th rowspan="2" class="align-middle" style="width: 150px;">Projek Scratch</th>
                                 <th rowspan="2" class="align-middle ps-3 text-start" style="width: 220px;">Catatan Guru</th>
                             </tr>
                             <tr>
-                                <th class="py-1">T1</th>
-                                <th class="py-1">T2</th>
-                                <th class="py-1">T3</th>
-                                <th class="py-1">T4</th>
-                                <th class="py-1">S1</th>
-                                <th class="py-1">S2</th>
-                                <th class="py-1">S3</th>
-                                <th class="py-1">S4</th>
-                                <th class="py-1">P1</th>
-                                <th class="py-1">P2</th>
-                                <th class="py-1">P3</th>
-                                <th class="py-1">P4</th>
+                                @for($i = 1; $i <= $limit; $i++)
+                                    <th class="py-1">T{{ $i }}</th>
+                                @endfor
+                                @for($i = 1; $i <= $limit; $i++)
+                                    <th class="py-1">S{{ $i }}</th>
+                                @endfor
+                                @for($i = 1; $i <= $limit; $i++)
+                                    <th class="py-1">P{{ $i }}</th>
+                                @endfor
                             </tr>
                         </thead>
                         <tbody>
@@ -87,8 +87,8 @@
                                         <div class="text-muted x-small font-monospace" style="font-size: 0.75rem;">NISN: {{ $siswa->nisn }}</div>
                                     </td>
                                     
-                                    <!-- Tugas 1-4 -->
-                                    @for($i = 1; $i <= 4; $i++)
+                                    <!-- Tugas 1-limit -->
+                                    @for($i = 1; $i <= $limit; $i++)
                                         <td class="input-cell bg-primary-subtle bg-opacity-10">
                                             <input type="number" step="0.01" min="0" max="100" 
                                                    name="scores[{{ $siswa->id }}][nilai_tugas_{{ $i }}]" 
@@ -98,8 +98,8 @@
                                         </td>
                                     @endfor
                                     
-                                    <!-- Sikap 1-4 -->
-                                    @for($i = 1; $i <= 4; $i++)
+                                    <!-- Sikap 1-limit -->
+                                    @for($i = 1; $i <= $limit; $i++)
                                         <td class="input-cell bg-success-subtle bg-opacity-10">
                                             <input type="number" step="0.01" min="0" max="100" 
                                                    name="scores[{{ $siswa->id }}][nilai_sikap_{{ $i }}]" 
@@ -109,8 +109,8 @@
                                         </td>
                                     @endfor
                                     
-                                    <!-- Proyek 1-4 -->
-                                    @for($i = 1; $i <= 4; $i++)
+                                    <!-- Proyek 1-limit -->
+                                    @for($i = 1; $i <= $limit; $i++)
                                         <td class="input-cell bg-warning-subtle bg-opacity-10">
                                             <input type="number" step="0.01" min="0" max="100" 
                                                    name="scores[{{ $siswa->id }}][nilai_proyek_{{ $i }}]" 

@@ -25,6 +25,10 @@ class LateReportRequestController extends Controller
             return back()->with('error', 'Hanya instruktur yang dapat mengajukan permohonan.');
         }
 
+        if ($session->user_id_instruktur !== $user->id && $session->user_id_asisten !== $user->id) {
+            return back()->with('error', 'Akses ditolak. Anda bukan instruktur atau asisten untuk sesi ini.');
+        }
+
         // Cek kuota bulanan
         if ($user->monthly_late_report_quota <= 0) {
             return back()->with('error', 'Kuota permohonan bulanan Anda sudah habis (Max 3).');

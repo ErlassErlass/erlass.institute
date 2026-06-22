@@ -27,7 +27,7 @@
                     <label class="form-label small fw-bold text-muted">Cari Sekolah</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Nama sekolah..." value="{{ request('search') }}">
+                        <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Nama atau Kode Sekolah (NPSN)..." value="{{ request('search') }}">
                         <button type="submit" class="btn btn-primary">Cari</button>
                     </div>
                 </div>
@@ -91,7 +91,7 @@
                                     </div>
                                     <h6 class="text-muted">Data Tidak Ditemukan</h6>
                                     @if (request('search'))
-                                        <p class="small text-muted">Tidak ada sekolah dengan nama tersebut.</p>
+                                        <p class="small text-muted">Tidak ada sekolah dengan nama atau kode tersebut.</p>
                                         <a href="{{ route('sekolah.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-4">Reset Filter</a>
                                     @endif
                                 </td>
@@ -143,7 +143,7 @@
                         <i class="bi bi-building text-muted fs-1 opacity-25"></i>
                         <h6 class="text-muted mt-3">Data Tidak Ditemukan</h6>
                         @if (request('search'))
-                            <p class="small text-muted">Tidak ada sekolah dengan nama tersebut.</p>
+                            <p class="small text-muted">Tidak ada sekolah dengan nama atau kode tersebut.</p>
                         @endif
                     </div>
                 @endforelse

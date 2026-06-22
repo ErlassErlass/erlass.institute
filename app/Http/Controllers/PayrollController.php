@@ -197,8 +197,11 @@ class PayrollController extends Controller
     {
         $item = PayrollItem::with(['batch', 'instruktur', 'sessions.ekstrakurikuler', 'sessions.rombel'])->findOrFail($id);
 
-        // Ensure instructors can only view their own slips
-        if (auth()->user()->role === 'instruktur' && $item->user_id_instruktur !== auth()->id()) {
+        $user = auth()->user();
+        $isOwner = $item->user_id_instruktur === $user->id;
+        $isAdmin = in_array($user->role, ['webmaster', 'admin_sistem', 'admin']);
+
+        if (!$isOwner && !$isAdmin) {
             abort(403, 'Akses ditolak.');
         }
 

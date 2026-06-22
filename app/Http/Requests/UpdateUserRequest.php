@@ -35,7 +35,7 @@ class UpdateUserRequest extends FormRequest
             'pend_terakhir' => ['nullable', 'string', 'max:10'],
             'kompetensi_1' => ['nullable', 'string', 'max:255'],
             'kompetensi_2' => ['nullable', 'string', 'max:255'],
-            'role' => ['required', 'in:webmaster,admin_erlass,instruktur'],
+            'role' => ['required', 'in:webmaster,admin_sistem,admin,instruktur,sales'],
 
             // Field untuk sistem verifikasi instruktur
             'is_verified' => ['boolean'],

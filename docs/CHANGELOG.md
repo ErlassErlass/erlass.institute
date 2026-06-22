@@ -2,6 +2,66 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.7.4] - 2026-06-22
+
+### Diperbaiki & Dioptimalkan (Fixed & Optimized)
+
+- **Perbaikan Celah Keamanan: Kebocoran Data Sesi antar Instruktur (Data Leakage Fix)**:
+  - **Kalender Sesi (`/ekstrakurikuler/sessions/calendar`)**: Method `calendar()` di [`EkstrakurikulerSessionController`](file:///root/webapperlass/app/Http/Controllers/EkstrakurikulerSessionController.php) tidak memiliki filter user — semua sesi dari semua instruktur ditampilkan ke siapapun yang membuka kalender. Sekarang instruktur hanya melihat sesi yang di-assign ke dirinya sendiri (sebagai instruktur utama atau asisten), sedangkan admin/admin_sistem/webmaster tetap melihat semua sesi.
+  - **Jadwal Harian (`/jadwal/harian`)**: Method `index()` di [`JadwalHarianController`](file:///root/webapperlass/app/Http/Controllers/JadwalHarianController.php) memiliki masalah serupa — menampilkan semua jadwal tanpa filter. Sekarang instruktur hanya melihat jadwal harian miliknya.
+  - **Daftar Ekstrakurikuler (`/ekstrakurikuler`)**: [`EkstrakurikulerQueryService`](file:///root/webapperlass/app/Services/Ekstrakurikuler/EkstrakurikulerQueryService.php) tidak punya kondisi khusus untuk role instruktur (masuk ke kondisi `else` yang memfilter berdasarkan `user_id_sales`). Sekarang instruktur hanya melihat ekstrakurikuler yang memiliki rombel dimana mereka ditugaskan.
+
+- **Catatan Fitur Sudah Benar (Verified)**:
+  - `EkstrakurikulerSessionController::index()` ✅ sudah filter per instruktur
+  - `AbsensiController` ✅ sudah filter per instruktur di semua method
+  - `LaporanMengajarController` ✅ sudah filter per instruktur
+  - `StudentScoreController` ✅ sudah ada `authorizeRombelAccess()` 
+  - `StudentPortfolioController` ✅ sudah ada cek akses per instruktur
+  - `ScheduleChangeController` ✅ sudah filter `requested_by` untuk instruktur
+  - `EkstrakurikulerReportController` ✅ sudah cek `isAssigned`
+
+### Ditambahkan (Added)
+- **Favicon Erlass di Browser Tab**:
+  - Menambahkan tag `<link rel="icon">` pada [`layouts/app.blade.php`](file:///root/webapperlass/resources/views/layouts/app.blade.php) untuk menampilkan ikon roda gigi brand Erlass (biru navy + merah) di tab browser, menggantikan favicon kosong/default.
+  - Menambahkan `favicon-32.png` (32x32) dan `images/favicon-192.png` (192x192) untuk kompatibilitas browser dan PWA.
+  - Format title tab browser diperbarui menjadi `[Halaman] — Erlass Ekskul` agar lebih informatif.
+  - Menghapus duplikat include NProgress yang memuat library CSS+JS dua kali.
+
+## [1.7.3] - 2026-06-22
+
+### Diperbaiki & Dioptimalkan (Fixed & Optimized)
+- **Perbaikan Celah Keamanan (Security Fixes & Hardening)**:
+  - **Pencegahan Arbitrary File Upload (RCE)**: Membatasi ekstensi berkas yang diunggah pada portofolio siswa (`StudentPortfolioController`) agar hanya menerima format non-executable yang aman (`sb3, hex, py, png, jpg, jpeg, pdf, mp4, zip, rar`).
+  - **Pencegahan Bypass Otorisasi Tingkat Objek (BOLA/IDOR)**:
+    - Mengamankan pengisian nilai, input massal, dan finalisasi kelas (`StudentScoreController`) agar hanya dapat diakses oleh instruktur yang ditugaskan atau admin.
+    - Mengamankan aksi view, upload, dan penghapusan portofolio siswa (`StudentPortfolioController`).
+    - Mengamankan pengunduhan PDF rapor belajar (`ReportCardController`) dan sertifikat kelulusan (`CertificateController`) agar hanya bisa diunduh oleh pemilik kelas/siswa yang berhak.
+    - Mengamankan slip gaji (`PayrollController`) agar hanya pemilik struk slip atau admin yang dapat melihat rincian detail slip.
+    - Mengamankan rekap dan ekspor absensi (`AbsensiController`) serta dropdown filter pencarian agar instruktur hanya dapat mengakses data rombel mereka sendiri.
+    - Mengamankan request dispensasi keterlambatan laporan (`LateReportRequestController`) agar dibatasi sesuai jadwal mengajar instruktur yang login.
+- **Pembaruan Dokumentasi Skema & Relasi Database**:
+  - Mendokumentasikan tabel `holidays` dan `school_calendars` serta relasinya pada [DATABASE_SCHEMA.md](file:///root/webapperlass/docs/dev/DATABASE_SCHEMA.md) dan [DOKUMENTASI_TECH_STACK_ERLASS_INSTITUTE.md](file:///root/webapperlass/docs/dev/DOKUMENTASI_TECH_STACK_ERLASS_INSTITUTE.md).
+
+## [1.7.2] - 2026-06-19
+
+### Ditambahkan (Added)
+- **Peningkatan Kapasitas & Fleksibilitas Penilaian Rombel (Hingga 8 Periode)**:
+  - Penambahan kolom penilaian `nilai_tugas_5` s.d `nilai_tugas_8`, `nilai_sikap_5` s.d `nilai_sikap_8`, dan `nilai_proyek_5` s.d `nilai_proyek_8` pada tabel `student_scores`.
+  - Dukungan visual tabel dinamis pada form input nilai massal ([bulk_input.blade.php](file:///root/webapperlass/resources/views/student_scores/bulk_input.blade.php)) yang secara otomatis menyesuaikan jumlah kolom berdasarkan kontrak rombel (`total_pertemuan`), maksimal 8 kolom.
+  - Perhitungan nilai rata-rata otomatis pada model [StudentScore.php](file:///root/webapperlass/app/Models/StudentScore.php) yang memproses data masukan s.d 8 kolom secara aman.
+  - Penyesuaian pemeriksaan kelengkapan syarat kelulusan dan finalisasi kelas (`isComplete()`) agar dinamis mengikuti jumlah pertemuan kontrak kelas.
+
+### Diperbaiki & Dioptimalkan (Fixed & Optimized)
+- **Perbaikan Bug Tampilan Tanggal "Jadwal Tanpa Instruktur"**:
+  - Menyelesaikan bug pada dasbor admin di mana badge tanggal untuk sesi yang belum ada instruktur bernilai salah (menampilkan hari ini) akibat membaca kolom `tanggal_pelaksanaan` yang masih bernilai `null`. Diubah menggunakan kolom `tanggal_terjadwal`.
+- **Integrasi Filter Dropdown "Tanpa Instruktur"**:
+  - Menambahkan opsi khusus "Belum Ada Instruktur / Tanpa Instruktur" pada filter pencarian daftar sesi ([index.blade.php](file:///root/webapperlass/resources/views/ekstrakurikuler/sessions/index.blade.php)) dan mengintegrasikannya dengan aksi tombol dasbor.
+- **Standarisasi Desain Spacing & Kelas CSS**:
+  - Mengganti utility spacing non-standar desimal (`p-2.5`, `mb-1.5`) dengan kelas standar Bootstrap 5 (`p-3`, `mb-2`) untuk menghindari elemen berhimpitan.
+  - Mengganti kelas Tailwind `text-sm` yang tidak terdefinisi di stylesheet proyek dengan inline styling `style="font-size: 0.875rem;"`.
+- **Perbaikan WhatsApp Deep Links di Lingkungan PWA**:
+  - Menambahkan atribut `target="_blank"` dan `rel="noopener"` pada seluruh tautan protokol `whatsapp://` (total 7 berkas views) agar tautan dapat terkelupas dari webview sandbox PWA standalone (khususnya iOS) dan langsung meluncurkan aplikasi WhatsApp native di perangkat seluler.
+
 ## [1.7.1] - 2026-06-18
 
 ### Ditambahkan (Added)

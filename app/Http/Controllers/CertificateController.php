@@ -59,6 +59,25 @@ class CertificateController extends Controller
      */
     public function download(Certificate $certificate)
     {
+        $user = Auth::user();
+        if ($user->role === 'instruktur') {
+             $hasAccess = EkstrakurikulerRombel::where('ekstrakurikuler_id', $certificate->ekstrakurikuler_id)
+                 ->where(function($q) use ($user) {
+                     $q->where('user_id_instruktur', $user->id)
+                       ->orWhere('user_id_asisten', $user->id);
+                 })
+                 ->whereHas('siswa', function($q) use ($certificate) {
+                     $q->where('siswa_id', $certificate->siswa_id);
+                 })
+                 ->exists();
+
+             if (!$hasAccess) {
+                 abort(403, 'Akses ditolak.');
+             }
+        } elseif (!$user->hasAdminAccess()) {
+             abort(403, 'Akses ditolak.');
+        }
+
         if ($certificate->file_path && Storage::disk('public')->exists($certificate->file_path)) {
             $fileName = basename($certificate->file_path);
             return Storage::disk('public')->download($certificate->file_path, $fileName);

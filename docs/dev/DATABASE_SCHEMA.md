@@ -11,6 +11,7 @@ erDiagram
     SEKOLAH ||--o{ EKSTRAKURIKULER : "hosts"
     SEKOLAH ||--o{ ORDERS_SP : "has many"
     SEKOLAH ||--o{ SCHOOL_PICS : "has pics"
+    SEKOLAH ||--o{ SCHOOL_CALENDARS : "has calendars"
     
     SISWA ||--o{ SISWA_EKSTRAKURIKULER : "enrolls in"
     SISWA ||--o{ ABSENSI : "has attendance"
@@ -22,6 +23,7 @@ erDiagram
     USER ||--o{ SALESMEN : "references as user"
     USER ||--o{ SCHEDULE_CHANGES : "requests/approves"
     USER ||--o{ SESSION_CONFIRMATIONS : "confirm instructor"
+    USER ||--o{ SCHOOL_CALENDARS : "creates"
     
     EKSTRAKURIKULER ||--|{ EKSTRAKURIKULER_ROMBEL : "divided into"
     EKSTRAKURIKULER_ROMBEL ||--o{ SISWA_EKSTRAKURIKULER : "contains"
@@ -281,14 +283,26 @@ erDiagram
         decimal nilai_tugas_2
         decimal nilai_tugas_3
         decimal nilai_tugas_4
+        decimal nilai_tugas_5
+        decimal nilai_tugas_6
+        decimal nilai_tugas_7
+        decimal nilai_tugas_8
         decimal nilai_sikap_1
         decimal nilai_sikap_2
         decimal nilai_sikap_3
         decimal nilai_sikap_4
+        decimal nilai_sikap_5
+        decimal nilai_sikap_6
+        decimal nilai_sikap_7
+        decimal nilai_sikap_8
         decimal nilai_proyek_1
         decimal nilai_proyek_2
         decimal nilai_proyek_3
         decimal nilai_proyek_4
+        decimal nilai_proyek_5
+        decimal nilai_proyek_6
+        decimal nilai_proyek_7
+        decimal nilai_proyek_8
         decimal nilai_kehadiran
         decimal nilai_tugas
         decimal nilai_proyek
@@ -376,6 +390,28 @@ erDiagram
         string status "pending, approved, paid"
         text notes
     }
+
+    HOLIDAYS {
+        bigint id PK
+        date tanggal "unique"
+        string nama
+        enum jenis "libur_nasional, cuti_bersama, libur_agama, hari_besar"
+        boolean is_tanggal_merah
+        year tahun
+        text catatan
+    }
+
+    SCHOOL_CALENDARS {
+        bigint id PK
+        string sekolah_kodlan FK
+        date tanggal_mulai
+        date tanggal_selesai
+        string nama
+        enum jenis "libur_sekolah, ujian, kegiatan_sekolah, lainnya"
+        boolean is_blocking
+        text catatan
+        bigint created_by FK
+    }
 ```
 
 ### Penjelasan Entitas Utama
@@ -426,7 +462,7 @@ erDiagram
     *   Tabel log quality control yang terpicu secara polymorphic berdasarkan kriteria monitoring QC.
 
 12. **PENILAIAN SISWA (`student_scores`)**:
-    *   Menyimpan sub-nilai siswa (Tugas, Sikap, Proyek) sebanyak 4x input beserta rata-rata dan Nilai Akhir (NA) otomatis.
+    *   Menyimpan sub-nilai siswa (Tugas, Sikap, Proyek) hingga 8x input (jumlah dinamis mengikuti kontrak pertemuan/rombel) beserta rata-rata dan Nilai Akhir (NA) otomatis.
 
 13. **PORTOFOLIO SISWA (`student_portfolios`)**:
     *   Menampung file portofolio karya digital siswa (Scratch .sb3, Microbit .hex, Python .py, Gambar, Video, PDF) atau tautan link eksternal per rombel.
@@ -436,6 +472,12 @@ erDiagram
 
 15. **SERTIFIKAT DIGITAL (`certificates`)**:
     *   Menyimpan data sertifikat kelulusan siswa yang eligible, beserta kode unik dan tautan QR Code verifikasi publik.
+
+16. **HARI LIBUR NASIONAL (`holidays`)**:
+    *   Menyimpan hari libur resmi nasional (tanggal merah/cuti bersama) untuk validasi penjadwalan.
+
+17. **KALENDER AKADEMIK SEKOLAH (`school_calendars`)**:
+    *   Kalender khusus per sekolah (libur internal, ujian, kegiatan sekolah) yang dapat memblokir pembuatan sesi mengajar jika bertanda `is_blocking = true`.
 
 
 ### Catatan Keamanan & Integritas

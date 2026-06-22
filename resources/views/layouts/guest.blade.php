@@ -9,6 +9,15 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- PWA Meta Tags & Manifest -->
+    <meta name="theme-color" content="#2563eb">
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/logo-erlass.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Erlass Ekskul">
+
     <title>@yield('title', 'Erlass Ekskul')</title>
     
     <!-- Fonts -->
@@ -110,6 +119,50 @@
         });
         window.addEventListener("beforeunload", function() {
             NProgress.start();
+        });
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(function(registration) {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                })
+                .catch(function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+        }
+
+        // PWA Custom Installation Logic
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show custom install elements if present
+            document.getElementById('pwa-install-banner')?.classList.remove('d-none');
+            document.getElementById('btn-pwa-install-guest')?.classList.remove('d-none');
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const handleInstall = async () => {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log('PWA installation choice:', outcome);
+                deferredPrompt = null;
+                
+                document.getElementById('pwa-install-banner')?.classList.add('d-none');
+                document.getElementById('btn-pwa-install-guest')?.classList.add('d-none');
+            };
+
+            document.getElementById('btn-pwa-install-login')?.addEventListener('click', handleInstall);
+            document.getElementById('btn-pwa-install-guest')?.addEventListener('click', handleInstall);
+        });
+
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA was installed successfully!');
+            document.getElementById('pwa-install-banner')?.classList.add('d-none');
+            document.getElementById('btn-pwa-install-guest')?.classList.add('d-none');
         });
     </script>
 </body>

@@ -259,7 +259,16 @@ class AbsensiController extends Controller
      */
     public function index(Request $request)
     {
+        $user = auth()->user();
         $query = LaporanMengajar::with(['instruktur', 'asisten', 'sekolah']);
+
+        // Khusus instruktur, batasi data hanya yang ditugaskan kepada mereka
+        if ($user->role === 'instruktur') {
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id_instruktur', $user->id)
+                  ->orWhere('user_id_assisten', $user->id);
+            });
+        }
 
         // Filter berdasarkan kategori
         if ($request->filled('kategori')) {
@@ -292,12 +301,28 @@ class AbsensiController extends Controller
         $laporanMengajars = $query->orderBy('jadwal_mengajar', 'desc')->paginate(20);
 
         // Get list of schools for filter
-        $sekolahs = \App\Models\Sekolah::select('kodlan', 'namasekolah', 'kotkab', 'kec')
+        if ($user->role === 'instruktur') {
+            $sekolahs = \App\Models\Sekolah::whereHas('ekstrakurikuler.rombels', function ($q) use ($user) {
+                $q->where('user_id_instruktur', $user->id)
+                  ->orWhere('user_id_asisten', $user->id);
+            })
+            ->select('kodlan', 'namasekolah', 'kotkab', 'kec')
             ->orderBy('namasekolah')
             ->get();
-            
-        // Get list of distinct rombels for filter
-        $rombels = LaporanMengajar::distinct()->pluck('rombel')->sort()->values();
+
+            $rombels = \App\Models\EkstrakurikulerRombel::where('user_id_instruktur', $user->id)
+                ->orWhere('user_id_asisten', $user->id)
+                ->distinct()
+                ->pluck('nama_rombel')
+                ->sort()
+                ->values();
+        } else {
+            $sekolahs = \App\Models\Sekolah::select('kodlan', 'namasekolah', 'kotkab', 'kec')
+                ->orderBy('namasekolah')
+                ->get();
+
+            $rombels = LaporanMengajar::distinct()->pluck('rombel')->sort()->values();
+        }
 
         return view('absensi.index', compact('laporanMengajars', 'sekolahs', 'rombels'));
     }
@@ -306,15 +331,40 @@ class AbsensiController extends Controller
      */
     public function rekap(Request $request)
     {
-        $sekolahs = \App\Models\Sekolah::has('ekstrakurikuler')
-            ->select('kodlan', 'namasekolah', 'kotkab', 'kec')
-            ->orderBy('namasekolah')
-            ->get();
-
+        $user = auth()->user();
         $selectedRombel = $request->rombel;
         $selectedSekolah = $request->sekolah_kodlan;
 
+        $this->authorizeSekolahAccess($selectedSekolah);
+        $this->authorizeRombelByNameAccess($selectedRombel);
+
+        if ($user->role === 'instruktur') {
+            $sekolahs = \App\Models\Sekolah::whereHas('ekstrakurikuler.rombels', function ($q) use ($user) {
+                $q->where('user_id_instruktur', $user->id)
+                  ->orWhere('user_id_asisten', $user->id);
+            })
+            ->select('kodlan', 'namasekolah', 'kotkab', 'kec')
+            ->orderBy('namasekolah')
+            ->get();
+        } else {
+            $sekolahs = \App\Models\Sekolah::has('ekstrakurikuler')
+                ->select('kodlan', 'namasekolah', 'kotkab', 'kec')
+                ->orderBy('namasekolah')
+                ->get();
+        }
+
         $rombels = $selectedSekolah ? $this->retrieveRombelsForSekolah($selectedSekolah) : collect();
+
+        // For instructors, filter the list of rombels to only theirs
+        if ($user->role === 'instruktur') {
+            $myRombelNames = \App\Models\EkstrakurikulerRombel::where('user_id_instruktur', $user->id)
+                ->orWhere('user_id_asisten', $user->id)
+                ->pluck('nama_rombel')
+                ->toArray();
+            $rombels = $rombels->filter(function($r) use ($myRombelNames) {
+                return in_array($r, $myRombelNames);
+            })->values();
+        }
 
         $selectedSchoolName = '';
         if ($selectedSekolah) {
@@ -354,6 +404,17 @@ class AbsensiController extends Controller
         $sekolahKodlan = $request->query('sekolah_kodlan');
         $rombels = $this->retrieveRombelsForSekolah($sekolahKodlan);
 
+        $user = auth()->user();
+        if ($user->role === 'instruktur') {
+            $myRombelNames = \App\Models\EkstrakurikulerRombel::where('user_id_instruktur', $user->id)
+                ->orWhere('user_id_asisten', $user->id)
+                ->pluck('nama_rombel')
+                ->toArray();
+            $rombels = $rombels->filter(function($r) use ($myRombelNames) {
+                return in_array($r, $myRombelNames);
+            })->values();
+        }
+
         return response()->json($rombels);
     }
 
@@ -387,6 +448,9 @@ class AbsensiController extends Controller
         if (!$selectedRombel) {
             return redirect()->back()->with('error', 'Silakan pilih Rombel terlebih dahulu.');
         }
+
+        $this->authorizeSekolahAccess($selectedSekolah);
+        $this->authorizeRombelByNameAccess($selectedRombel);
 
         $data = $this->getRekapData($selectedRombel, $selectedSekolah);
         
@@ -425,6 +489,60 @@ class AbsensiController extends Controller
             new \App\Exports\AbsensiRekapExport($data, $selectedRombel, $sekData), 
             $filename
         );
+    }
+
+    /**
+     * Helper to authorize Rombel access by name.
+     */
+    private function authorizeRombelByNameAccess(?string $rombelName)
+    {
+        if (empty($rombelName)) {
+            return;
+        }
+
+        $user = auth()->user();
+        if ($user->role === 'instruktur') {
+            $hasAccess = \App\Models\EkstrakurikulerRombel::where('nama_rombel', $rombelName)
+                ->where(function ($q) use ($user) {
+                    $q->where('user_id_instruktur', $user->id)
+                      ->orWhere('user_id_asisten', $user->id);
+                })
+                ->exists();
+
+            if (!$hasAccess) {
+                abort(403, 'Akses ditolak.');
+            }
+        } elseif (!in_array($user->role, ['webmaster', 'admin_sistem', 'admin'])) {
+            abort(403, 'Akses ditolak.');
+        }
+    }
+
+    /**
+     * Helper to authorize Sekolah access by code.
+     */
+    private function authorizeSekolahAccess(?string $sekolahKodlan)
+    {
+        if (empty($sekolahKodlan)) {
+            return;
+        }
+
+        $user = auth()->user();
+        if ($user->role === 'instruktur') {
+            $hasAccess = \App\Models\EkstrakurikulerRombel::whereHas('ekstrakurikuler', function ($q) use ($sekolahKodlan) {
+                $q->where('sekolah_kodlan', $sekolahKodlan);
+            })
+            ->where(function ($q) use ($user) {
+                $q->where('user_id_instruktur', $user->id)
+                  ->orWhere('user_id_asisten', $user->id);
+            })
+            ->exists();
+
+            if (!$hasAccess) {
+                abort(403, 'Akses ditolak.');
+            }
+        } elseif (!in_array($user->role, ['webmaster', 'admin_sistem', 'admin'])) {
+            abort(403, 'Akses ditolak.');
+        }
     }
     
     /**

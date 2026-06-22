@@ -150,10 +150,12 @@ Hasil build akan masuk ke folder `public/build/`.
 
 ## Crucial Business Logic & Services (Tambahan Fase 3 & Fase 4)
 
-### 9. Penilaian & Pelaporan Belajar (Fase 3)
+### 9. Penilaian & Pelaporan Belajar (Fase 3 & Update 8 Periode)
 *   **Model**: `App\Models\StudentScore`
+*   **Evaluasi Dinamis**: Sistem mendukung input sub-nilai hingga 8 periode (`nilai_tugas_1` s.d `_8`, `nilai_sikap_1` s.d `_8`, `nilai_proyek_1` s.d `_8`). Jumlah kolom input dinilai secara otomatis di view bulk input berdasarkan jumlah kontrak pertemuan rombel (`min(8, total_pertemuan)`).
 *   **Rata-rata & NA Otomatis**: Di-boot saat menyimpan record score. Formulanya adalah:
     `NA = (Kehadiran * 30%) + (Rata-rata Tugas * 30%) + (Rata-rata Sikap * 20%) + (Rata-rata Proyek * 20%)`
+    *Rata-rata dihitung dinamis dengan mengabaikan kolom bernilai null menggunakan `array_filter` agar tetap kompatibel dengan kelas berdurasi pendek (misal: 4 pertemuan).*
 *   **Predikat & Deskripsi**: Ditentukan secara otomatis berdasarkan range nilai:
     *   &ge; 85: A (Sangat Baik)
     *   &ge; 70: B (Baik)

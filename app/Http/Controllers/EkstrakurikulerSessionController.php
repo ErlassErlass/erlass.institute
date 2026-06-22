@@ -60,12 +60,12 @@ class EkstrakurikulerSessionController extends Controller
         }
 
         // Filter berdasarkan instructor
-        if ($request->filled('instruktur')) {
+        if ($request->filled('instruktur') && $request->instruktur !== 'none') {
             $query->where('user_id_instruktur', $request->instruktur);
         }
 
-        // Filter missing instructor (from Dashboard)
-        if ($request->filled('filter_no_instructor')) {
+        // Filter missing instructor (from Dashboard or dropdown option)
+        if ($request->filled('filter_no_instructor') || $request->instruktur === 'none') {
             $query->whereNull('user_id_instruktur');
         }
 
@@ -138,9 +138,19 @@ class EkstrakurikulerSessionController extends Controller
         $startDate = Carbon::create($year, $month, 1);
         $endDate   = $startDate->copy()->endOfMonth();
 
-        $sessions = EkstrakurikulerSession::with(['rombel.ekstrakurikuler', 'instruktur'])
-            ->whereBetween('tanggal_terjadwal', [$startDate, $endDate])
-            ->get()
+        $user = auth()->user();
+        $query = EkstrakurikulerSession::with(['rombel.ekstrakurikuler', 'instruktur'])
+            ->whereBetween('tanggal_terjadwal', [$startDate, $endDate]);
+
+        // Restrict to own sessions if not admin
+        if (! $user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id_instruktur', $user->id)
+                  ->orWhere('user_id_asisten', $user->id);
+            });
+        }
+
+        $sessions = $query->get()
             ->groupBy(function ($session) {
                 return $session->tanggal_terjadwal->format('Y-m-d');
             });

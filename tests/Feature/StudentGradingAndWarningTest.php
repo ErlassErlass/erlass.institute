@@ -60,23 +60,35 @@ class StudentGradingAndWarningTest extends TestCase
             'periode' => 'Semester 1 2026',
             'nilai_kehadiran' => 80.0,
             
-            // Tugas 1-4: average = 80
+            // Tugas 1-8: average = 80
             'nilai_tugas_1' => 90.0,
             'nilai_tugas_2' => 80.0,
             'nilai_tugas_3' => 70.0,
             'nilai_tugas_4' => 80.0,
+            'nilai_tugas_5' => 90.0,
+            'nilai_tugas_6' => 80.0,
+            'nilai_tugas_7' => 70.0,
+            'nilai_tugas_8' => 80.0,
             
-            // Sikap 1-4: average = 90
+            // Sikap 1-8: average = 90
             'nilai_sikap_1' => 90.0,
             'nilai_sikap_2' => 90.0,
             'nilai_sikap_3' => 90.0,
             'nilai_sikap_4' => 90.0,
+            'nilai_sikap_5' => 90.0,
+            'nilai_sikap_6' => 90.0,
+            'nilai_sikap_7' => 90.0,
+            'nilai_sikap_8' => 90.0,
             
-            // Proyek 1-4: average = 85
+            // Proyek 1-8: average = 85
             'nilai_proyek_1' => 85.0,
             'nilai_proyek_2' => 85.0,
             'nilai_proyek_3' => 85.0,
             'nilai_proyek_4' => 85.0,
+            'nilai_proyek_5' => 85.0,
+            'nilai_proyek_6' => 85.0,
+            'nilai_proyek_7' => 85.0,
+            'nilai_proyek_8' => 85.0,
         ]);
 
         // Asserts

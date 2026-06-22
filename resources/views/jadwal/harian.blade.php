@@ -85,7 +85,7 @@
                                                 }
                                                 $waText = urlencode("Halo " . $session->ekstrakurikuler->penanggung_jawab . ", saya instruktur Erlass untuk ekstrakurikuler " . $session->ekstrakurikuler->kategori_program . ".");
                                             @endphp
-                                            <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $session->ekstrakurikuler->penanggung_jawab }}">
+                                            <a href="whatsapp://send?phone={{ $cleanPhone }}&text={{ $waText }}" target="_blank" rel="noopener" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $session->ekstrakurikuler->penanggung_jawab }}">
                                                 <i class="bi bi-whatsapp"></i>
                                             </a>
                                         @endif

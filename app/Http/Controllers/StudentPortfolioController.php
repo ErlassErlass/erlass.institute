@@ -35,6 +35,15 @@ class StudentPortfolioController extends Controller
      */
     public function rombelIndex(EkstrakurikulerRombel $rombel)
     {
+        $user = Auth::user();
+        if ($user->role === 'instruktur') {
+            if ($rombel->user_id_instruktur !== $user->id && $rombel->user_id_asisten !== $user->id) {
+                abort(403, 'Akses ditolak.');
+            }
+        } elseif (!$user->hasAdminAccess()) {
+            abort(403, 'Akses ditolak.');
+        }
+
         $siswaList = $rombel->siswaAktif()->orderBy('nama_lengkap', 'asc')->get();
         
         $portfolios = StudentPortfolio::where('ekstrakurikuler_rombel_id', $rombel->id)
@@ -57,11 +66,20 @@ class StudentPortfolioController extends Controller
             'tipe_file' => 'required|string|in:sb3,hex,py,png,jpg,jpeg,pdf,mp4,link',
             'deskripsi' => 'nullable|string',
             'pertemuan_ke' => 'nullable|integer|between:1,32',
-            'file_upload' => 'nullable|file|max:10240', // 10MB max
+            'file_upload' => 'nullable|file|max:10240|mimes:sb3,hex,py,png,jpg,jpeg,pdf,mp4,zip,rar', // Prevents dynamic script RCE
             'url_eksternal' => 'nullable|url|max:255',
         ]);
 
         $rombel = EkstrakurikulerRombel::findOrFail($request->ekstrakurikuler_rombel_id);
+
+        $user = Auth::user();
+        if ($user->role === 'instruktur') {
+            if ($rombel->user_id_instruktur !== $user->id && $rombel->user_id_asisten !== $user->id) {
+                abort(403, 'Akses ditolak.');
+            }
+        } elseif (!$user->hasAdminAccess()) {
+            abort(403, 'Akses ditolak.');
+        }
 
         $filePath = null;
         if ($request->hasFile('file_upload')) {
@@ -91,6 +109,16 @@ class StudentPortfolioController extends Controller
      */
     public function destroy(StudentPortfolio $portfolio)
     {
+        $user = Auth::user();
+        if ($user->role === 'instruktur') {
+            if ($portfolio->ekstrakurikulerRombel->user_id_instruktur !== $user->id && 
+                $portfolio->ekstrakurikulerRombel->user_id_asisten !== $user->id) {
+                abort(403, 'Akses ditolak.');
+            }
+        } elseif (!$user->hasAdminAccess()) {
+            abort(403, 'Akses ditolak.');
+        }
+
         if ($portfolio->file_path && Storage::disk('public')->exists($portfolio->file_path)) {
             Storage::disk('public')->delete($portfolio->file_path);
         }

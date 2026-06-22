@@ -62,6 +62,9 @@
                         <label for="instruktur" class="form-label small fw-bold text-muted">Instruktur</label>
                         <select name="instruktur" id="instruktur" class="form-select select2">
                             <option value="">Semua Instruktur</option>
+                            <option value="none" {{ request('instruktur') === 'none' || request('filter_no_instructor') ? 'selected' : '' }}>
+                                Belum Ada Instruktur / Tanpa Instruktur
+                            </option>
                             @foreach($instructors as $instructor)
                                 <option value="{{ $instructor->id }}" {{ request('instruktur') == $instructor->id ? 'selected' : '' }}>
                                     {{ $instructor->nama_lengkap }}

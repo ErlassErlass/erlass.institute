@@ -45,6 +45,8 @@ class StudentScoreController extends Controller
      */
     public function index(EkstrakurikulerRombel $rombel)
     {
+        $this->authorizeRombelAccess($rombel);
+
         $siswaList = $rombel->siswaAktif()->orderBy('nama_lengkap', 'asc')->get();
         
         // Find or create scores for active students, and recalculate attendance
@@ -77,6 +79,8 @@ class StudentScoreController extends Controller
      */
     public function bulkInputForm(EkstrakurikulerRombel $rombel)
     {
+        $this->authorizeRombelAccess($rombel);
+
         $siswaList = $rombel->siswaAktif()->orderBy('nama_lengkap', 'asc')->get();
         
         $scores = [];
@@ -108,23 +112,23 @@ class StudentScoreController extends Controller
      */
     public function storeBulk(Request $request, EkstrakurikulerRombel $rombel)
     {
-        $request->validate([
+        $this->authorizeRombelAccess($rombel);
+
+        $limit = min(8, $rombel->total_pertemuan ?? 4);
+
+        $rules = [
             'scores' => 'required|array',
-            'scores.*.nilai_tugas_1' => 'nullable|numeric|between:0,100',
-            'scores.*.nilai_tugas_2' => 'nullable|numeric|between:0,100',
-            'scores.*.nilai_tugas_3' => 'nullable|numeric|between:0,100',
-            'scores.*.nilai_tugas_4' => 'nullable|numeric|between:0,100',
-            'scores.*.nilai_sikap_1' => 'nullable|numeric|between:0,100',
-            'scores.*.nilai_sikap_2' => 'nullable|numeric|between:0,100',
-            'scores.*.nilai_sikap_3' => 'nullable|numeric|between:0,100',
-            'scores.*.nilai_sikap_4' => 'nullable|numeric|between:0,100',
-            'scores.*.nilai_proyek_1' => 'nullable|numeric|between:0,100',
-            'scores.*.nilai_proyek_2' => 'nullable|numeric|between:0,100',
-            'scores.*.nilai_proyek_3' => 'nullable|numeric|between:0,100',
-            'scores.*.nilai_proyek_4' => 'nullable|numeric|between:0,100',
             'scores.*.projek_scratch' => 'nullable|string|max:255',
             'scores.*.catatan_guru' => 'nullable|string',
-        ]);
+        ];
+
+        for ($i = 1; $i <= $limit; $i++) {
+            $rules["scores.*.nilai_tugas_{$i}"] = 'nullable|numeric|between:0,100';
+            $rules["scores.*.nilai_sikap_{$i}"] = 'nullable|numeric|between:0,100';
+            $rules["scores.*.nilai_proyek_{$i}"] = 'nullable|numeric|between:0,100';
+        }
+
+        $request->validate($rules);
 
         $inputScores = $request->input('scores');
 
@@ -155,6 +159,8 @@ class StudentScoreController extends Controller
      */
     public function finalize(EkstrakurikulerRombel $rombel)
     {
+        $this->authorizeRombelAccess($rombel);
+
         $siswaList = $rombel->siswaAktif()->get();
         $scores = StudentScore::where('ekstrakurikuler_rombel_id', $rombel->id)
             ->whereIn('siswa_id', $siswaList->pluck('id'))
@@ -185,5 +191,20 @@ class StudentScoreController extends Controller
 
         return redirect()->route('student-scores.index', $rombel->id)
             ->with('success', 'Nilai berhasil difinalisasi. Rapor dan Sertifikat telah digenerasi.');
+    }
+
+    /**
+     * Helper to authorize Rombel access.
+     */
+    private function authorizeRombelAccess(EkstrakurikulerRombel $rombel)
+    {
+        $user = Auth::user();
+        if ($user->role === 'instruktur') {
+            if ($rombel->user_id_instruktur !== $user->id && $rombel->user_id_asisten !== $user->id) {
+                abort(403, 'Akses ditolak: Anda bukan instruktur atau asisten di rombel ini.');
+            }
+        } elseif (!$user->hasAdminAccess()) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki akses ke rombel ini.');
+        }
     }
 }

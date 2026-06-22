@@ -17,6 +17,7 @@
         </div>
         <div class="col-md-6 text-md-end mt-3 mt-md-0">
             @php
+                $limit = min(8, $rombel->total_pertemuan ?? 4);
                 $firstScore = collect($scores)->first();
                 $isFinalized = $firstScore && $firstScore->finalized_at;
                 $allComplete = true;
@@ -42,7 +43,7 @@
                         </button>
                     </form>
                 @else
-                    <button type="button" class="btn btn-secondary rounded-pill px-4" disabled title="Lengkapi semua 4 input nilai terlebih dahulu untuk memfinalisasi.">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" disabled title="Lengkapi semua {{ $limit }} input nilai terlebih dahulu untuk memfinalisasi.">
                         <i class="bi bi-lock-fill me-1"></i> Finalisasi Kelas (Belum Lengkap)
                     </button>
                 @endif

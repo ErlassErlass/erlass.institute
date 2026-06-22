@@ -40,18 +40,18 @@ Sebelum memulai pengujian, silakan gunakan akun pengujian berikut (lihat detail 
 
 ---
 
-## 4. Skenario Pengujian Instruktur / Admin: Input Nilai 4x & Finalisasi
+## 4. Skenario Pengujian Instruktur / Admin: Input Nilai s.d 8 Periode & Finalisasi
 
-**Tujuan**: Memastikan alur penginputan nilai massal lengkap untuk 4 periode evaluasi (Tugas, Sikap, Proyek) dan proses penguncian nilai berjalan lancar.
+**Tujuan**: Memastikan alur penginputan nilai massal lengkap untuk periode evaluasi dinamis hingga 8x (Tugas, Sikap, Proyek) menyesuaikan dengan kontrak rombel, dan proses penguncian nilai berjalan lancar.
 
 | Langkah Pengujian | Detail Tindakan | Ekspektasi Hasil (Kriteria Sukses) | Status |
 | :--- | :--- | :--- | :---: |
 | **1. Daftar Kelas Penilaian** | Navigasi ke menu **Penilaian Siswa** (`/student-scores`). | - Menampilkan daftar Rombel aktif yang diajar.<br>- Menampilkan indikator progress sesi pertemuan (contoh: 12 / 12 Sesi). | [ ] |
 | **2. Detail Rombel & Nilai** | Klik tombol **"Kelola Nilai"** di salah satu rombel. | - Menampilkan daftar siswa aktif dalam rombel tersebut.<br>- Kolom nilai menampilkan ringkasan Rasio Kehadiran (persen), Rata Tugas, Rata Sikap, Rata Proyek, Nilai Akhir (NA), dan Predikat. | [ ] |
-| **3. Input Nilai Massal** | Klik tombol **"Input/Edit Nilai Massal"** di kanan atas. | - Terbuka halaman tabel input massal.<br>- Tersedia kolom T1 s.d T4, S1 s.d S4, P1 s.d P4, Projek Scratch, dan Catatan Guru untuk setiap siswa.<br>- Seluruh field input dapat diisi angka 0-100. | [ ] |
+| **3. Input Nilai Massal** | Klik tombol **"Input/Edit Nilai Massal"** di kanan atas. | - Terbuka halaman tabel input massal.<br>- Kolom penilaian beradaptasi secara dinamis sesuai total pertemuan kontrak rombel (`min(8, total_pertemuan)`), contohnya T1 s.d T8, S1 s.d S8, P1 s.d P8 untuk kelas 8+ pertemuan.<br>- Seluruh field input dapat diisi angka 0-100. | [ ] |
 | **4. Simpan Nilai Draft** | Masukkan nilai tugas, sikap, proyek secara acak, lalu klik **"Simpan Nilai"**. | - Nilai tersimpan kembali ke database.<br>- Halaman kembali ke daftar nilai dengan status badge **"Draft"** di kolom status siswa. | [ ] |
-| **5. Kalkulasi Rata-rata & NA** | Periksa nilai siswa setelah disimpan. | - Rata-rata Tugas, Sikap, dan Proyek terhitung otomatis.<br>- Nilai Akhir (NA) terhitung otomatis sesuai bobot formula: `NA = (Kehadiran * 0.3) + (Tugas * 0.3) + (Sikap * 0.2) + (Proyek * 0.2)`. | [ ] |
-| **6. Finalisasi Nilai Rombel** | Lengkapi semua kolom nilai 1-4 untuk semua siswa di rombel tersebut. Pastikan tombol **"Finalisasi Kelas"** aktif. Klik tombol tersebut dan konfirmasi. | - Seluruh nilai terkunci (tidak bisa diedit lagi).<br>- Tombol input dinonaktifkan.<br>- Dokumen Rapor PDF dan Sertifikat PDF (bagi siswa yang eligible) langsung digenerasi di background. | [ ] |
+| **5. Kalkulasi Rata-rata & NA** | Periksa nilai siswa setelah disimpan. | - Rata-rata Tugas, Sikap, dan Proyek terhitung otomatis dengan mengabaikan nilai kosong/null.<br>- Nilai Akhir (NA) terhitung otomatis sesuai bobot formula: `NA = (Kehadiran * 0.3) + (Tugas * 0.3) + (Sikap * 0.2) + (Proyek * 0.2)`. | [ ] |
+| **6. Finalisasi Nilai Rombel** | Lengkapi semua kolom nilai yang aktif untuk semua siswa di rombel tersebut. Pastikan tombol **"Finalisasi Kelas"** aktif. Klik tombol tersebut dan konfirmasi. | - Seluruh nilai terkunci (tidak bisa diedit lagi).<br>- Tombol input dinonaktifkan.<br>- Dokumen Rapor PDF dan Sertifikat PDF (bagi siswa yang eligible) langsung digenerasi di background. | [ ] |
 
 ---
 

@@ -27,15 +27,15 @@
                     <p class="text-muted mb-0 fs-5">{{ $session->rombel->nama_rombel }}</p>
                 </div>
                 
-                <div class="d-flex flex-wrap gap-2">
+                <div class="d-grid gap-2 d-sm-flex flex-sm-wrap">
                     <a href="{{ route('ekstrakurikuler-session.print-session', $session) }}" 
-                       class="btn btn-outline-dark border" target="_blank">
+                       class="btn btn-outline-dark border w-100 w-sm-auto" target="_blank">
                         <i class="bi bi-printer me-1"></i> Cetak Presensi
                     </a>
 
                     @if($session->canComplete())
                         <a href="{{ route('ekstrakurikuler.sessions.report.create', $session) }}" 
-                           class="btn btn-primary">
+                           class="btn btn-primary w-100 w-sm-auto">
                             <i class="bi bi-file-earmark-check me-1"></i> Buat Laporan & Absensi
                         </a>
                     @endif
@@ -43,15 +43,15 @@
                     @can('update', $session)
                         @if(in_array($session->status, ['terjadwal', 'ditunda']))
                             <a href="{{ route('ekstrakurikuler.sessions.edit', $session) }}" 
-                               class="btn btn-outline-primary">
+                               class="btn btn-outline-primary w-100 w-sm-auto">
                                 <i class="bi bi-pencil me-1"></i> Edit
                             </a>
                         @endif
 
                         @if($session->status === 'selesai' && $session->laporan_mengajar_id)
-                            <form action="{{ route('ekstrakurikuler.sessions.progress-remind', $session) }}" method="POST" class="d-inline">
+                            <form action="{{ route('ekstrakurikuler.sessions.progress-remind', $session) }}" method="POST" class="d-grid d-sm-inline">
                                 @csrf
-                                <button type="submit" class="btn btn-success" onclick="return confirm('Apakah Anda yakin ingin mengirim ulang Pesan Pengingat Progress ke WhatsApp Orang Tua untuk siswa yang sudah menyelesaikan minimal 2 sesi berjalan?');">
+                                <button type="submit" class="btn btn-success w-100 w-sm-auto" onclick="return confirm('Apakah Anda yakin ingin mengirim ulang Pesan Pengingat Progress ke WhatsApp Orang Tua untuk siswa yang sudah menyelesaikan minimal 2 sesi berjalan?');">
                                     <i class="bi bi-whatsapp me-1"></i> Bagikan Progress Reminder
                                 </button>
                             </form>
@@ -126,7 +126,7 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <label class="small text-muted text-uppercase fw-bold">Status</label>
                             <div class="mt-1">
                                 @php
@@ -145,12 +145,12 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <label class="small text-muted text-uppercase fw-bold">Pertemuan Ke</label>
                             <p class="fs-5 mb-0 fw-medium">{{ $session->nomor_pertemuan }}</p>
                         </div>
                         
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <label class="small text-muted text-uppercase fw-bold">Tanggal Terjadwal</label>
                             <p class="mb-0 fw-medium">
                                 <i class="bi bi-calendar me-1 text-primary"></i>
@@ -158,7 +158,7 @@
                             </p>
                         </div>
                         
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <label class="small text-muted text-uppercase fw-bold">Waktu Terjadwal</label>
                             <p class="mb-0 fw-medium">
                                 <i class="bi bi-clock me-1 text-primary"></i>
@@ -168,7 +168,7 @@
                         </div>
                         
                         @if($session->tanggal_pelaksanaan)
-                            <div class="col-md-6">
+                            <div class="col-6 col-md-6">
                                 <label class="small text-muted text-uppercase fw-bold">Tanggal Pelaksanaan</label>
                                 <p class="mb-0 fw-medium">
                                     {{ \Carbon\Carbon::parse($session->tanggal_pelaksanaan)->format('d/m/Y') }}
@@ -177,7 +177,7 @@
                         @endif
                         
                         @if($session->waktu_aktual)
-                            <div class="col-md-6">
+                            <div class="col-6 col-md-6">
                                 <label class="small text-muted text-uppercase fw-bold">Waktu Aktual</label>
                                 <p class="mb-0 fw-medium">
                                     {{ $session->waktu_aktual }}
@@ -198,17 +198,17 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <label class="small text-muted text-uppercase fw-bold">Nama Program</label>
                             <p class="mb-0 fw-medium">{{ $session->rombel->ekstrakurikuler->kategori_program }}</p>
                         </div>
                         
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <label class="small text-muted text-uppercase fw-bold">Rombel</label>
                             <p class="mb-0 fw-medium">{{ $session->rombel->nama_rombel }}</p>
                         </div>
                         
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <label class="small text-muted text-uppercase fw-bold">Sekolah</label>
                             <p class="mb-1 fw-bold text-primary">{{ $session->rombel->ekstrakurikuler->sekolah->namasekolah }}</p>
                             @if($session->rombel->ekstrakurikuler->google_maps_link)
@@ -220,12 +220,12 @@
                             @endif
                         </div>
                         
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <label class="small text-muted text-uppercase fw-bold">Ruangan</label>
                             <p class="mb-0 fw-medium">{{ $session->rombel->ruangan ?? '-' }}</p>
                         </div>
                         
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <label class="small text-muted text-uppercase fw-bold">Penanggung Jawab</label>
                             <p class="mb-1 fw-medium text-dark">{{ $session->rombel->ekstrakurikuler->penanggung_jawab ?? '-' }}</p>
                             @if($session->rombel->ekstrakurikuler->no_telepon)
@@ -240,14 +240,14 @@
                                     <a href="tel:{{ $session->rombel->ekstrakurikuler->no_telepon }}" class="btn btn-xs btn-outline-secondary py-1 px-2.5 rounded-pill" style="font-size: 0.75rem;">
                                         <i class="bi bi-telephone me-1"></i> Hubungi
                                     </a>
-                                    <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="btn btn-xs btn-outline-success py-1 px-2.5 rounded-pill" style="font-size: 0.75rem;">
+                                    <a href="whatsapp://send?phone={{ $cleanPhone }}&text={{ $waText }}" target="_blank" rel="noopener" class="btn btn-xs btn-outline-success py-1 px-2.5 rounded-pill" style="font-size: 0.75rem;">
                                         <i class="bi bi-whatsapp me-1"></i> WhatsApp
                                     </a>
                                 </div>
                             @endif
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <label class="small text-muted text-uppercase fw-bold">Jumlah Siswa</label>
                             <p class="mb-0 fw-medium"><i class="bi bi-people me-1 text-primary"></i> {{ $session->rombel->jumlah_siswa }} siswa</p>
                         </div>
@@ -483,35 +483,35 @@
                         <h5 class="card-title mb-0 fw-bold text-secondary"><i class="bi bi-clock-history me-2"></i>Riwayat Aktivitas</h5>
                     </div>
                     <div class="card-body">
-                        <ul class="list-group list-group-flush mb-0">
-                            <li class="list-group-item d-flex align-items-start border-0 ps-0 pt-0">
-                                <i class="bi bi-circle-fill text-primary mt-1.5 me-2" style="font-size: 8px;"></i>
-                                <div>
-                                    <p class="mb-0 small fw-bold">Sesi dibuat</p>
+                        <div class="timeline-container">
+                            <div class="timeline-item">
+                                <span class="timeline-badge bg-primary"></span>
+                                <div class="timeline-content">
+                                    <p class="mb-0 small fw-bold text-dark">Sesi dibuat</p>
                                     <small class="text-muted">{{ $session->created_at->format('d/m/Y H:i') }}</small>
                                 </div>
-                            </li>
+                            </div>
                             
                             @if($session->updated_at->ne($session->created_at))
-                            <li class="list-group-item d-flex align-items-start border-0 ps-0">
-                                <i class="bi bi-circle-fill text-warning mt-1.5 me-2" style="font-size: 8px;"></i>
-                                <div>
-                                    <p class="mb-0 small fw-bold">Terakhir diupdate</p>
+                            <div class="timeline-item">
+                                <span class="timeline-badge bg-warning"></span>
+                                <div class="timeline-content">
+                                    <p class="mb-0 small fw-bold text-dark">Terakhir diupdate</p>
                                     <small class="text-muted">{{ $session->updated_at->format('d/m/Y H:i') }}</small>
                                 </div>
-                            </li>
+                            </div>
                             @endif
                             
                             @if($session->status === 'selesai')
-                            <li class="list-group-item d-flex align-items-start border-0 ps-0 pb-0">
-                                <i class="bi bi-circle-fill text-success mt-1.5 me-2" style="font-size: 8px;"></i>
-                                <div>
-                                    <p class="mb-0 small fw-bold">Sesi selesai</p>
+                            <div class="timeline-item">
+                                <span class="timeline-badge bg-success"></span>
+                                <div class="timeline-content">
+                                    <p class="mb-0 small fw-bold text-dark">Sesi selesai</p>
                                     <small class="text-muted">{{ $session->updated_at->format('d/m/Y H:i') }}</small>
                                 </div>
-                            </li>
+                            </div>
                             @endif
-                        </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -737,6 +737,46 @@
         </div>
     </div>
 </div>
+@endpush
+
+@push('styles')
+<style>
+    .timeline-container {
+        position: relative;
+        padding-left: 20px;
+    }
+    .timeline-container::before {
+        content: '';
+        position: absolute;
+        top: 5px;
+        bottom: 5px;
+        left: 3px;
+        width: 2px;
+        background: #e2e8f0;
+    }
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.5rem;
+    }
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+    .timeline-badge {
+        position: absolute;
+        left: -22px;
+        top: 4px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #fff;
+        border: 2px solid #cbd5e1;
+        z-index: 1;
+    }
+    .timeline-badge.bg-primary { border-color: #3b82f6 !important; background-color: #3b82f6 !important; }
+    .timeline-badge.bg-warning { border-color: #f59e0b !important; background-color: #f59e0b !important; }
+    .timeline-badge.bg-success { border-color: #10b981 !important; background-color: #10b981 !important; }
+    .timeline-badge.bg-danger { border-color: #f43f5e !important; background-color: #f43f5e !important; }
+</style>
 @endpush
 
 @endsection

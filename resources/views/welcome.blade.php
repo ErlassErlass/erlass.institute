@@ -75,6 +75,12 @@
                     <i class="bi bi-person-video3 me-2"></i>
                     Mulai Pendaftaran Instruktur
                 </a>
+
+                <!-- PWA Install Button -->
+                <button id="btn-pwa-install-guest" class="btn btn-success btn-lg py-3 fw-bold hover-lift d-none">
+                    <i class="bi bi-download me-2"></i>
+                    Install Aplikasi (PWA)
+                </button>
             </div>
 
             <!-- Visual Mockup Card -->

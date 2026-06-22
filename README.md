@@ -50,6 +50,8 @@ Lihat [docs/README.md](docs/README.md) untuk index lengkap.
 - **Share Jadwal Harian**: Berbagi jadwal harian ke WhatsApp dengan satu klik.
 - **Custom Error Pages**: Halaman pesan kegagalan (404, 403, 500) yang interaktif dan *imut*.
 - **UI Enhancements**: Antarmuka _form_ global dengan placeholder tipis dan elegan.
+- **PWA Support**: Dukungan penuh Progressive Web App (PWA) sehingga aplikasi dapat di-install di perangkat mobile (Android & iOS) dengan optimasi deep link WhatsApp.
+- **Sistem Penilaian Dinamis (s.d 8 Periode)**: Penilaian (Tugas, Sikap, Proyek) yang beradaptasi otomatis sesuai durasi kontrak pertemuan rombel (maksimal 8 periode).
 
 ## 📝 Log Aktivitas
 Lihat [activity-logs](admin/activity-logs) untuk jejak audit sistem.

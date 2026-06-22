@@ -4,7 +4,7 @@
 > **URL Produksi:** https://webapperlass.com  
 > **Lokasi Project:** `/root/webapperlass`  
 > **Database:** `erlass_db` (MySQL)  
-> **Terakhir Diperbarui:** 10 Juni 2026
+> **Terakhir Diperbarui:** 22 Juni 2026
 
 ---
 
@@ -137,7 +137,7 @@ Menggunakan **Spatie Laravel Permission** dengan 5 role:
 
 ## 🗄️ Database Schema — `erlass_db`
 
-### Daftar Semua Tabel (38 tabel)
+### Daftar Semua Tabel (40 tabel)
 
 | Tabel | Kategori | Keterangan |
 |-------|----------|------------|
@@ -149,6 +149,8 @@ Menggunakan **Spatie Laravel Permission** dengan 5 role:
 | `siswa` | Master | Data siswa |
 | `products` | Master | Standardisasi produk program |
 | `salesmen` | Master | Data salesman & area kerja |
+| `holidays` | Master | Hari libur resmi nasional (tanggal merah/cuti bersama) |
+| `school_calendars` | Master | Kalender akademik khusus per sekolah mitra |
 | `orders_sp` | Sales | Surat Pesanan (SP) |
 | `order_items` | Sales | Item produk dalam SP |
 | `ekstrakurikuler` | Program | Program ekskul di sekolah |
@@ -161,7 +163,7 @@ Menggunakan **Spatie Laravel Permission** dengan 5 role:
 | `schedule_changes` | Workflow | Log & approval perubahan jadwal |
 | `session_confirmations` | Workflow | Log konfirmasi kehadiran H-1 |
 | `warnings` | Workflow | Log system quality control (Warning QC) |
-| `student_scores` | Penilaian | Nilai siswa tugas, sikap, proyek 4x |
+| `student_scores` | Penilaian | Nilai siswa tugas, sikap, proyek s.d 8x (dinamis sesuai rombel/kontrak) |
 | `student_portfolios` | Penilaian | Portofolio file/tautan karya siswa |
 | `report_cards` | Output | Rapor belajar siswa (PDF) |
 | `certificates` | Output | Sertifikat kelulusan siswa (PDF + QR) |
@@ -719,14 +721,26 @@ erDiagram
         decimal nilai_tugas_2
         decimal nilai_tugas_3
         decimal nilai_tugas_4
+        decimal nilai_tugas_5
+        decimal nilai_tugas_6
+        decimal nilai_tugas_7
+        decimal nilai_tugas_8
         decimal nilai_sikap_1
         decimal nilai_sikap_2
         decimal nilai_sikap_3
         decimal nilai_sikap_4
+        decimal nilai_sikap_5
+        decimal nilai_sikap_6
+        decimal nilai_sikap_7
+        decimal nilai_sikap_8
         decimal nilai_proyek_1
         decimal nilai_proyek_2
         decimal nilai_proyek_3
         decimal nilai_proyek_4
+        decimal nilai_proyek_5
+        decimal nilai_proyek_6
+        decimal nilai_proyek_7
+        decimal nilai_proyek_8
         decimal nilai_kehadiran
         decimal nilai_tugas
         decimal nilai_proyek
@@ -896,6 +910,84 @@ npm run dev
 | **Sentry** | `SENTRY_LARAVEL_DSN` | Error monitoring real-time |
 | **Redis** | `REDIS_HOST:6379` | Cache, Session, Queue |
 | **SMTP Gmail** | `MAIL_HOST=smtp.gmail.com` | Notifikasi email |
+
+
+---
+
+## 🔐 Keamanan: Kontrol Akses Berbasis Role (Role-Based Access Control)
+
+### Prinsip Umum
+
+Semua controller yang menampilkan data sesi/rombel menggunakan pola filter berikut:
+
+```php
+$user = auth()->user();
+
+// Admin (admin, admin_sistem, webmaster) melihat semua data
+if (! $user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
+    $query->where(function ($q) use ($user) {
+        $q->where('user_id_instruktur', $user->id)
+          ->orWhere('user_id_asisten', $user->id);
+    });
+}
+```
+
+### Status Kontrol Akses per Fitur
+
+| Controller / Fitur | Instruktur Filter | Keterangan |
+|---|---|---|
+| `EkstrakurikulerSessionController::index()` | ✅ Filter by `user_id_instruktur` | Daftar jadwal mengajar |
+| `EkstrakurikulerSessionController::calendar()` | ✅ Filter by `user_id_instruktur` | Kalender sesi (diperbaiki v1.7.4) |
+| `JadwalHarianController::index()` | ✅ Filter by `user_id_instruktur` | Jadwal harian (diperbaiki v1.7.4) |
+| `EkstrakurikulerQueryService::buildFilteredQuery()` | ✅ Filter by rombel assigned | Daftar ekskul (diperbaiki v1.7.4) |
+| `AbsensiController::index()` | ✅ Filter by `user_id_instruktur` | Daftar absensi |
+| `AbsensiController::rekap()` | ✅ `authorizeRombelByNameAccess()` | Rekap absensi |
+| `LaporanMengajarController` | ✅ Filter by `user_id_instruktur` | Laporan mengajar |
+| `StudentScoreController` | ✅ `authorizeRombelAccess()` | Input nilai siswa |
+| `StudentPortfolioController` | ✅ Cek `user_id_instruktur` & asisten | Portfolio siswa |
+| `ScheduleChangeController::index()` | ✅ Filter by `requested_by` | Pengajuan perubahan jadwal |
+| `EkstrakurikulerReportController` | ✅ Cek `isAssigned` | Laporan ekstrakurikuler |
+
+### Method `hasRole()` pada Model User
+
+```php
+public function hasRole($roles)
+{
+    if (is_array($roles)) {
+        return in_array($this->role, $roles);
+    }
+    return $this->role === $roles;
+}
+```
+
+Role yang ada: `webmaster`, `admin_sistem`, `admin`, `instruktur`, `sales`, `koordinator`.
+
+---
+
+## 🖼️ Branding & UI
+
+### Favicon
+
+Favicon browser tab menggunakan ikon roda gigi brand Erlass (biru navy `#2d3a8c` + merah `#e84040`) yang didefinisikan di:
+
+```html
+<!-- resources/views/layouts/app.blade.php -->
+<link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32.png') }}">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/favicon-192.png') }}">
+<link rel="shortcut icon" href="{{ asset('favicon-32.png') }}">
+```
+
+File aset favicon:
+- `/public/favicon-32.png` — ikon 32×32 untuk tab browser
+- `/public/images/favicon-192.png` — ikon 192×192 untuk PWA & iOS home screen
+
+### Format Title
+
+Format title tab: `[Nama Halaman] — Erlass Ekskul`
+
+```blade
+<title>@yield('title', 'Dashboard') — Erlass Ekskul</title>
+```
 
 ---
 

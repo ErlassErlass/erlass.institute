@@ -20,26 +20,34 @@
     @if(Auth::user()->role === 'instruktur')
     <div class="row g-2 mb-4">
         <div class="col-4 col-md-3">
-            <a href="{{ route('ekstrakurikuler.sessions.index') }}" class="btn btn-light border w-100 py-3 shadow-sm card-hover text-decoration-none">
-                <i class="bi bi-calendar-event fs-3 text-primary d-block mb-1"></i>
+            <a href="{{ route('ekstrakurikuler.sessions.index') }}" class="quick-action-btn btn-action-blue shadow-sm">
+                <div class="btn-icon-wrapper">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
                 <span class="small fw-bold text-dark">Jadwal</span>
             </a>
         </div>
         <div class="col-4 col-md-3">
-            <a href="{{ route('laporan-mengajar.create') }}" class="btn btn-light border w-100 py-3 shadow-sm card-hover text-decoration-none">
-                <i class="bi bi-plus-circle fs-3 text-success d-block mb-1"></i>
+            <a href="{{ route('laporan-mengajar.create') }}" class="quick-action-btn btn-action-green shadow-sm">
+                <div class="btn-icon-wrapper">
+                    <i class="bi bi-plus-circle"></i>
+                </div>
                 <span class="small fw-bold text-dark">Laporan</span>
             </a>
         </div>
         <div class="col-4 col-md-3">
-            <a href="{{ route('rekap-absensi') }}" class="btn btn-light border w-100 py-3 shadow-sm card-hover text-decoration-none">
-                <i class="bi bi-file-earmark-check fs-3 text-info d-block mb-1"></i>
+            <a href="{{ route('rekap-absensi') }}" class="quick-action-btn btn-action-cyan shadow-sm">
+                <div class="btn-icon-wrapper">
+                    <i class="bi bi-file-earmark-check"></i>
+                </div>
                 <span class="small fw-bold text-dark">Absen</span>
             </a>
         </div>
         <div class="col-12 col-md-3 d-none d-md-block">
-            <a href="{{ route('laporan-mengajar.index') }}" class="btn btn-light border w-100 py-3 shadow-sm card-hover text-decoration-none h-100 d-flex align-items-center justify-content-center">
-                <i class="bi bi-clock-history me-2 text-warning"></i>
+            <a href="{{ route('laporan-mengajar.index') }}" class="quick-action-btn btn-action-warning shadow-sm">
+                <div class="btn-icon-wrapper">
+                    <i class="bi bi-clock-history"></i>
+                </div>
                 <span class="small fw-bold text-dark">Riwayat</span>
             </a>
         </div>
@@ -48,24 +56,24 @@
 
     <!-- Profile Completion Alert -->
     @if(isset($incomplete_profile) && $incomplete_profile)
-    <div class="alert alert-warning border-0 shadow-sm mb-4" role="alert">
+    <div class="alert premium-alert-warning border-0 shadow-sm mb-4" role="alert">
         <div class="d-flex align-items-start">
-            <div class="bg-warning bg-opacity-25 rounded-circle p-2 me-3 text-warning align-self-start" style="width: fit-content; height: fit-content;">
-                <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+            <div class="premium-icon-warning rounded-circle p-2 me-3 align-self-start d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                <i class="bi bi-exclamation-triangle-fill fs-5"></i>
             </div>
             <div>
-                <h4 class="alert-heading h6 fw-bold mb-2">Profil Belum Lengkap!</h4>
-                <p class="mb-2 small">
+                <h4 class="alert-heading h6 fw-bold mb-1 text-dark">Profil Belum Lengkap!</h4>
+                <p class="mb-2 small text-dark opacity-75">
                     Mohon lengkapi data berikut agar akun Anda dapat diverifikasi dan pembayaran honor dapat diproses:
                 </p>
                 @if(isset($missing_fields) && count($missing_fields) > 0)
-                    <ul class="mb-2 small text-danger fw-semibold">
+                    <ul class="mb-2 small text-danger fw-semibold ps-3">
                         @foreach($missing_fields as $field)
                             <li>{{ $field }}</li>
                         @endforeach
                     </ul>
                 @endif
-                <a href="{{ route('instructor.profile.complete') }}" class="btn btn-sm btn-warning rounded-pill mt-1">
+                <a href="{{ route('instructor.profile.complete') }}" class="btn btn-sm px-4 py-2 text-white fw-bold premium-icon-warning border-0 rounded-pill mt-1" style="transition: all 0.2s;">
                     Lengkapi Sekarang <i class="bi bi-arrow-right ms-1"></i>
                 </a>
             </div>
@@ -75,15 +83,15 @@
 
     <!-- IMPORTANT: Report Usage Warning -->
     @if(Auth::user()->role === 'instruktur')
-    <div class="alert alert-danger border-start border-4 border-danger shadow-sm mb-4" role="alert">
+    <div class="alert premium-alert-danger border-0 shadow-sm mb-4" role="alert">
         <div class="d-flex align-items-start">
-            <div class="me-3">
-                <i class="bi bi-megaphone-fill fs-3 text-danger"></i>
+            <div class="premium-icon-danger rounded-circle p-2 me-3 align-self-start d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                <i class="bi bi-megaphone-fill fs-5"></i>
             </div>
             <div>
-                <h5 class="alert-heading fw-bold mb-2">PENTING: CARA PELAPORAN MENGAJAR</h5>
-                <p class="mb-0">Mohon perhatikan perbedaan cara pelaporan berikut:</p>
-                <ul class="mb-0 mt-2">
+                <h5 class="alert-heading h6 fw-bold mb-2 text-dark">PENTING: CARA PELAPORAN MENGAJAR</h5>
+                <p class="mb-0 small text-dark opacity-75">Mohon perhatikan perbedaan cara pelaporan berikut:</p>
+                <ul class="mb-0 mt-2 small text-dark ps-3">
                     <li class="mb-1">
                         <strong>Kelas Rutin / Terjadwal:</strong> WAJIB melalui menu 
                         <a href="{{ route('ekstrakurikuler.sessions.index') }}" class="fw-bold text-decoration-underline text-danger">Jadwal Mengajar</a>. 
@@ -103,15 +111,15 @@
     <!-- Instructor To-Do List (Urgent Reports) -->
     @if(Auth::user()->role === 'instruktur' && isset($instructor_todo_list) && $instructor_todo_list->count() > 0)
     <div class="card border-warning border-start border-4 shadow-sm mb-4">
-        <div class="card-header bg-warning-subtle text-warning-emphasis fw-bold d-flex justify-content-between align-items-center">
+        <div class="card-header bg-warning-subtle text-warning-emphasis fw-bold d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
             <span><i class="bi bi-exclamation-triangle-fill me-2"></i>WAJIB DILAPORKAN ({{ $instructor_todo_list->count() }})</span>
             <small class="text-muted fst-italic">Deadline Terdekat</small>
         </div>
         <div class="list-group list-group-flush">
             @foreach($instructor_todo_list as $todo)
-                <a href="{{ route('ekstrakurikuler.sessions.report.create', $todo->id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3">
-                    <div>
-                        <div class="d-flex align-items-center gap-2 mb-1">
+                <a href="{{ route('ekstrakurikuler.sessions.report.create', $todo->id) }}" class="list-group-item list-group-item-action d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3">
+                    <div class="w-100 w-sm-auto">
+                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                             <h6 class="mb-0 fw-bold text-dark">
                                 {{ $todo->rombel->ekstrakurikuler->kategori_program }}
                             </h6>
@@ -123,7 +131,7 @@
                             @endif
                         </div>
                         <div class="text-muted small">
-                            <div class="mb-1 d-flex align-items-center gap-2">
+                            <div class="mb-1 d-flex align-items-center gap-2 flex-wrap">
                                 <span><i class="bi bi-building me-1"></i> {{ $todo->rombel->ekstrakurikuler->sekolah->namasekolah }}</span>
                                 @if($todo->rombel->ekstrakurikuler->google_maps_link)
                                     <a href="{{ $todo->rombel->ekstrakurikuler->google_maps_link }}" target="_blank" class="text-primary d-inline-flex align-items-center" title="Buka Google Maps">
@@ -138,7 +146,7 @@
                                         }
                                         $waText = urlencode("Halo " . $todo->rombel->ekstrakurikuler->penanggung_jawab . ", saya instruktur Erlass untuk ekstrakurikuler " . $todo->rombel->ekstrakurikuler->kategori_program . ".");
                                     @endphp
-                                    <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $todo->rombel->ekstrakurikuler->penanggung_jawab }}">
+                                    <a href="whatsapp://send?phone={{ $cleanPhone }}&text={{ $waText }}" target="_blank" rel="noopener" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $todo->rombel->ekstrakurikuler->penanggung_jawab }}">
                                         <i class="bi bi-whatsapp"></i>
                                     </a>
                                 @endif
@@ -150,8 +158,8 @@
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <span class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                    <div class="w-100 w-sm-auto text-end text-sm-start">
+                        <span class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm w-100 w-sm-auto">
                             Buat Laporan <i class="bi bi-arrow-right ms-1"></i>
                         </span>
                     </div>
@@ -202,7 +210,7 @@
                                                     }
                                                     $waText = urlencode("Halo " . $session->rombel->ekstrakurikuler->penanggung_jawab . ", saya instruktur Erlass untuk ekstrakurikuler " . $session->rombel->ekstrakurikuler->kategori_program . ".");
                                                 @endphp
-                                                <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $session->rombel->ekstrakurikuler->penanggung_jawab }}">
+                                                <a href="whatsapp://send?phone={{ $cleanPhone }}&text={{ $waText }}" target="_blank" rel="noopener" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $session->rombel->ekstrakurikuler->penanggung_jawab }}">
                                                     <i class="bi bi-whatsapp"></i>
                                                 </a>
                                             @endif
@@ -288,7 +296,7 @@
                                                     }
                                                     $waText = urlencode("Halo " . $session->rombel->ekstrakurikuler->penanggung_jawab . ", saya instruktur Erlass untuk ekstrakurikuler " . $session->rombel->ekstrakurikuler->kategori_program . ".");
                                                 @endphp
-                                                <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $session->rombel->ekstrakurikuler->penanggung_jawab }}">
+                                                <a href="whatsapp://send?phone={{ $cleanPhone }}&text={{ $waText }}" target="_blank" rel="noopener" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $session->rombel->ekstrakurikuler->penanggung_jawab }}">
                                                     <i class="bi bi-whatsapp"></i>
                                                 </a>
                                             @endif
@@ -348,15 +356,15 @@
     <!-- Admin Monitoring: Pending Reports -->
     @if(isset($admin_pending_reports) && $admin_pending_reports->count() > 0)
     <div class="card border-info border-start border-4 shadow-sm mb-4">
-        <div class="card-header bg-info-subtle text-info-emphasis fw-bold d-flex justify-content-between align-items-center">
+        <div class="card-header bg-info-subtle text-info-emphasis fw-bold d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
             <span><i class="bi bi-clipboard-data me-2"></i>MONITORING: BELUM LAPOR ({{ $admin_pending_reports->count() }} Teratas)</span>
             <small class="text-muted fst-italic">Urut Deadline</small>
         </div>
         <div class="list-group list-group-flush">
             @foreach($admin_pending_reports as $report)
-                <div class="list-group-item d-flex justify-content-between align-items-center p-3">
-                    <div>
-                        <div class="d-flex align-items-center gap-2 mb-1">
+                <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3">
+                    <div class="w-100 w-sm-auto">
+                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                             <h6 class="mb-0 fw-bold text-dark">
                                 {{ $report->instruktur->nama_lengkap ?? 'Tanpa Instruktur' }}
                             </h6>
@@ -375,10 +383,19 @@
                             <i class="bi bi-calendar-event me-1"></i> {{ \Carbon\Carbon::parse($report->tanggal_terjadwal)->format('d M Y') }}
                         </div>
                     </div>
-                    <div>
-                        <a href="https://wa.me/{{ $report->instruktur->no_telephone ?? '' }}?text=Halo%20{{ urlencode($report->instruktur->nama_lengkap) }},%20mohon%20segera%20laporan%20sesi%20{{ urlencode($report->rombel->ekstrakurikuler->kategori_program) }}%20di%20{{ urlencode($report->rombel->ekstrakurikuler->sekolah->namasekolah) }}%20tanggal%20{{ $report->tanggal_terjadwal->format('d/m') }}." 
-                           target="_blank"
-                           class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm {{ empty($report->instruktur->no_telephone) ? 'disabled' : '' }}">
+                    <div class="w-100 w-sm-auto text-end text-sm-start">
+                        @php
+                            $cleanInstrukturPhone = '';
+                            if (!empty($report->instruktur->no_telephone)) {
+                                $cleanInstrukturPhone = preg_replace('/[^0-9]/', '', $report->instruktur->no_telephone);
+                                if (str_starts_with($cleanInstrukturPhone, '0')) {
+                                    $cleanInstrukturPhone = '62' . substr($cleanInstrukturPhone, 1);
+                                }
+                            }
+                            $waMsgText = urlencode("Halo " . ($report->instruktur->nama_lengkap ?? '') . ", mohon segera laporan sesi " . ($report->rombel->ekstrakurikuler->kategori_program ?? '') . " di " . ($report->rombel->ekstrakurikuler->sekolah->namasekolah ?? '') . " tanggal " . ($report->tanggal_terjadwal ? $report->tanggal_terjadwal->format('d/m') : '') . ".");
+                        @endphp
+                        <a @if(!empty($cleanInstrukturPhone)) href="whatsapp://send?phone={{ $cleanInstrukturPhone }}&text={{ $waMsgText }}" target="_blank" rel="noopener" @else href="javascript:void(0)" style="pointer-events: none; opacity: 0.65;" @endif 
+                           class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm w-100 w-sm-auto {{ empty($cleanInstrukturPhone) ? 'disabled' : '' }}">
                             <i class="bi bi-whatsapp me-1"></i> Ingatkan
                         </a>
                     </div>
@@ -443,52 +460,61 @@
                 <!-- Missing Instructors Alert -->
                 <div class="col-12 mt-3">
                     <div class="card text-decoration-none border shadow-sm {{ $pending_sessions_no_instructor > 0 ? 'bg-danger bg-opacity-10 border-danger' : 'bg-light' }}">
-                        <div class="card-body d-flex align-items-center gap-3">
-                            <div class="bg-white p-3 rounded-circle text-danger position-relative border border-danger shadow-sm">
-                                <i class="bi bi-calendar-x fs-4"></i>
-                                @if($pending_sessions_no_instructor > 0)
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger border border-white p-1">
-                                    <span class="visually-hidden">Urgent</span>
-                                </span>
-                                @endif
+                        <div class="card-body d-flex flex-column gap-3">
+                            <div class="d-flex align-items-center gap-3 w-100">
+                                <div class="bg-white p-3 rounded-circle text-danger position-relative border border-danger shadow-sm flex-shrink-0">
+                                    <i class="bi bi-calendar-x fs-4"></i>
+                                    @if($pending_sessions_no_instructor > 0)
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger border border-white p-1">
+                                        <span class="visually-hidden">Urgent</span>
+                                    </span>
+                                    @endif
+                                </div>
+                                <div>
+                                    <h5 class="h6 mb-1 fw-bold text-dark">Jadwal Tanpa Instruktur</h5>
+                                    @if($pending_sessions_no_instructor > 0)
+                                        <small class="text-danger fw-semibold">
+                                            {{ $pending_sessions_no_instructor }} Sesi Belum Ada Pengajar!
+                                        </small>
+                                    @else
+                                        <small class="text-muted">Semua jadwal aman.</small>
+                                    @endif
+                                </div>
                             </div>
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1 fw-bold text-dark">Jadwal Tanpa Instruktur</h6>
-                                @if($pending_sessions_no_instructor > 0)
-                                    <small class="text-danger fw-semibold">
-                                        {{ $pending_sessions_no_instructor }} Sesi Belum Ada Pengajar!
-                                    </small>
-                                    <div class="mt-2">
+
+                            @if($pending_sessions_no_instructor > 0)
+                                <div class="w-100">
+                                    <div class="mt-1">
                                         @foreach($urgent_sessions_list as $session)
-                                            <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded border border-danger border-opacity-25 mb-1 text-sm">
-                                                <div>
+                                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center bg-white p-3 rounded border border-danger border-opacity-25 mb-2 gap-2" style="font-size: 0.875rem;">
+                                                <div class="d-flex align-items-center gap-2 flex-wrap">
                                                     <span class="badge bg-danger">
-                                                        {{ \Carbon\Carbon::parse($session->tanggal_pelaksanaan)->format('d M') }}
+                                                        {{ $session->tanggal_terjadwal->format('d M') }}
                                                     </span>
-                                                    <span class="text-dark fw-medium ms-1">
-                                                        {{ $session->rombel->ekstrakurikuler->sekolah->namasekolah ?? 'Sekolah' }}
+                                                    <span class="text-dark fw-semibold">
+                                                        {{ $session->rombel->ekstrakurikuler->sekolah->namasekolah ?? 'Sekolah' }} - 
+                                                        {{ $session->rombel->ekstrakurikuler->kategori_program ?? 'Program' }} 
+                                                        ({{ $session->rombel->nama_rombel ?? 'Rombel' }})
                                                     </span>
                                                 </div>
-                                                <a href="{{ route('ekstrakurikuler.sessions.edit', $session->id) }}" class="btn btn-xs btn-outline-danger py-0" style="font-size: 0.7rem;">
-                                                    Assign <i class="bi bi-arrow-right"></i>
-                                                </a>
+                                                <div class="text-end text-sm-start w-100 w-sm-auto">
+                                                    <a href="{{ route('ekstrakurikuler.sessions.edit', $session->id) }}" class="btn btn-xs btn-outline-danger py-1 px-3 w-100 w-sm-auto text-center" style="font-size: 0.75rem;">
+                                                        Assign <i class="bi bi-arrow-right"></i>
+                                                    </a>
+                                                </div>
                                             </div>
                                         @endforeach
                                     </div>
-                                @else
-                                    <small class="text-muted">Semua jadwal aman.</small>
-                                @endif
-                            </div>
-                            @if($pending_sessions_no_instructor > 0)
-                            <div class="align-self-start">
-                                <a href="{{ route('ekstrakurikuler.sessions.index', ['filter_no_instructor' => 1]) }}" class="btn btn-sm btn-danger">
-                                    Lihat Semua
-                                </a>
-                            </div>
+                                    <div class="text-end text-sm-start mt-3">
+                                        <a href="{{ route('ekstrakurikuler.sessions.index', ['filter_no_instructor' => 1]) }}" class="btn btn-sm btn-danger w-100 w-sm-auto">
+                                            Lihat Semua
+                                        </a>
+                                    </div>
+                                </div>
                             @endif
-                        </div>
-                    </div>
                 </div>
+            </div>
+            </div> {{-- Closes the main .card at line 408 --}}
         </div>
     </div>
     @endif
@@ -515,7 +541,7 @@
                         @if(isset($warning_list) && $warning_list->count() > 0)
                             <div class="list-group list-group-flush">
                                 @foreach($warning_list as $warning)
-                                    <div class="list-group-item p-3 border-bottom d-flex justify-content-between align-items-start" style="border-left: 4px solid {{ $warning->severity === 'red' ? '#f43f5e' : '#f59e0b' }} !important; background-color: {{ $warning->severity === 'red' ? 'rgba(244, 63, 94, 0.05)' : 'rgba(245, 158, 11, 0.05)' }};">
+                                    <div class="list-group-item p-3 border-bottom d-flex flex-column flex-sm-row justify-content-between align-items-start gap-3" style="border-left: 4px solid {{ $warning->severity === 'red' ? '#f43f5e' : '#f59e0b' }} !important; background-color: {{ $warning->severity === 'red' ? 'rgba(244, 63, 94, 0.05)' : 'rgba(245, 158, 11, 0.05)' }};">
                                         <div class="d-flex gap-3">
                                             <div class="flex-shrink-0 mt-1">
                                                 @if($warning->severity === 'red')
@@ -525,7 +551,7 @@
                                                 @endif
                                             </div>
                                             <div>
-                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                                                     <span class="badge bg-{{ $warning->severity === 'red' ? 'danger' : 'warning text-dark' }} text-uppercase font-monospace" style="font-size: 0.65rem;">
                                                         {{ str_replace('_', ' ', $warning->warning_type) }}
                                                     </span>
@@ -534,10 +560,10 @@
                                                 <p class="mb-0 text-dark small fw-medium">{{ $warning->notes }}</p>
                                             </div>
                                         </div>
-                                        <div class="flex-shrink-0 ms-2">
-                                            <form action="{{ route('admin.warnings.resolve', $warning->id) }}" method="POST">
+                                        <div class="w-100 w-sm-auto text-end text-sm-start flex-shrink-0">
+                                            <form action="{{ route('admin.warnings.resolve', $warning->id) }}" method="POST" class="d-grid d-sm-inline">
                                                 @csrf
-                                                <button type="submit" class="btn btn-xs btn-outline-success py-1 px-2 rounded" style="font-size: 0.75rem;">
+                                                <button type="submit" class="btn btn-xs btn-outline-success py-1 px-2 rounded w-100 w-sm-auto" style="font-size: 0.75rem;">
                                                     <i class="bi bi-check2"></i> Resolve
                                                 </button>
                                             </form>
@@ -616,12 +642,11 @@
             </div>
         </div>
     @endif
-    </div>
 
     <!-- Main Content -->
     <div class="row g-4">
         <!-- Left Column -->
-        <div class="col-lg-8">
+        <div class="{{ Auth::user()->role === 'instruktur' ? 'col-12' : 'col-lg-8' }}">
             <!-- Quick Navigation -->
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-white py-3 border-bottom">
@@ -786,13 +811,13 @@
                                 
                                 <!-- Content -->
                                 <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-1 gap-1">
                                         <h6 class="mb-0 fw-bold text-dark">{{ $activity['title'] }}</h6>
                                         <small class="text-muted" style="font-size: 0.75rem;">
                                             {{ \Carbon\Carbon::parse($activity['time'])->diffForHumans() }}
                                         </small>
                                     </div>
-                                    <p class="mb-1 text-muted small text-truncate" style="max-width: 450px;">
+                                    <p class="mb-1 text-muted small text-truncate" style="max-width: 100%;">
                                         {{ $activity['desc'] }}
                                     </p>
                                     <a href="{{ $activity['link'] }}" class="text-decoration-none text-primary small fw-semibold">
@@ -817,6 +842,7 @@
         </div>
 
         <!-- Right Column -->
+        @if(Auth::user()->role !== 'instruktur')
         <div class="col-lg-4">
             <!-- Charts Partial -->
             @include('dashboard.partials.charts')
@@ -912,6 +938,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 </div>
 @endsection
@@ -935,6 +962,130 @@
     }
     .progress-bar {
         border-radius: 10rem;
+    }
+
+    /* Premium Alert Styles */
+    .premium-alert-warning {
+        background: linear-gradient(135deg, #fffbeb 0%, #fffbeb 100%) !important;
+        border: 1px solid rgba(245, 158, 11, 0.2) !important;
+        border-radius: 16px !important;
+        position: relative;
+        overflow: hidden;
+    }
+    .premium-alert-warning::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #f59e0b, #d97706);
+    }
+    .premium-icon-warning {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #ffffff !important;
+        box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25);
+    }
+    
+    .premium-alert-danger {
+        background: linear-gradient(135deg, #fff1f2 0%, #fff1f2 100%) !important;
+        border: 1px solid rgba(244, 63, 94, 0.18) !important;
+        border-radius: 16px !important;
+        position: relative;
+        overflow: hidden;
+    }
+    .premium-alert-danger::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #f43f5e, #e11d48);
+    }
+    .premium-icon-danger {
+        background: linear-gradient(135deg, #f43f5e, #e11d48);
+        color: #ffffff !important;
+        box-shadow: 0 4px 10px rgba(244, 63, 94, 0.25);
+    }
+
+    /* Premium Quick Action Buttons */
+    .quick-action-btn {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.25rem 0.75rem;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        height: 100%;
+        position: relative;
+    }
+    .quick-action-btn:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.12);
+        background: #ffffff;
+    }
+    .quick-action-btn .btn-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.75rem;
+        font-size: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    .quick-action-btn:hover .btn-icon-wrapper {
+        transform: scale(1.1) rotate(5deg);
+    }
+    
+    .btn-action-blue {
+        color: #2563eb;
+    }
+    .btn-action-blue .btn-icon-wrapper {
+        background-color: rgba(37, 99, 235, 0.08);
+        color: #2563eb;
+    }
+    .btn-action-blue:hover {
+        border-color: rgba(37, 99, 235, 0.3);
+    }
+    
+    .btn-action-green {
+        color: #10b981;
+    }
+    .btn-action-green .btn-icon-wrapper {
+        background-color: rgba(16, 185, 129, 0.08);
+        color: #10b981;
+    }
+    .btn-action-green:hover {
+        border-color: rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-action-cyan {
+        color: #06b6d4;
+    }
+    .btn-action-cyan .btn-icon-wrapper {
+        background-color: rgba(6, 182, 212, 0.08);
+        color: #06b6d4;
+    }
+    .btn-action-cyan:hover {
+        border-color: rgba(6, 182, 212, 0.3);
+    }
+    
+    .btn-action-warning {
+        color: #d97706;
+    }
+    .btn-action-warning .btn-icon-wrapper {
+        background-color: rgba(217, 119, 6, 0.08);
+        color: #d97706;
+    }
+    .btn-action-warning:hover {
+        border-color: rgba(217, 119, 6, 0.3);
     }
 </style>
 @endpush

@@ -25,6 +25,7 @@ Dokumen ini merangkum seluruh spesifikasi fitur utama dalam aplikasi, mulai dari
 *   [x] **Menu Navigasi**: Responsif penuh.
 *   [x] **Halaman Laporan**: Form input dioptimalkan dengan tombol **"Mark All"** (Hadir Semua/TIDAK HADIR).
 *   [x] **Tabel Data Utama**: Mode **Card View** aktif di layar < 768px untuk Siswa, Sekolah, Ekstrakurikuler, dan Laporan.
+*   [x] **Deep Link WhatsApp di PWA Standalone**: Penambahan `target="_blank" rel="noopener"` pada link `whatsapp://` untuk memintas sandbox webview (iOS/Android) sehingga aplikasi WhatsApp native dapat dipicu dengan benar.
 
 ---
 
@@ -111,8 +112,8 @@ Meningkatkan pengawasan kualitas pengajaran serta otomatisasi berkas hasil belaj
 
 ### Fitur Terimplementasi:
 1.  **Penilaian Siswa Massal**:
-    *   Penginputan 4 kali evaluasi sub-score (Tugas T1-T4, Sikap S1-S4, Proyek P1-P4).
-    *   Kalkulasi Nilai Akhir (NA) otomatis dengan bobot: Kehadiran 30%, Tugas 30%, Sikap 20%, Proyek 20%.
+    *   Penginputan dinamis hingga 8 kali evaluasi sub-score (Tugas T1-T8, Sikap S1-S8, Proyek P1-P8) yang menyesuaikan otomatis dengan jumlah pertemuan kontrak rombel/kelas (maksimal 8).
+    *   Kalkulasi Nilai Akhir (NA) otomatis dengan bobot: Kehadiran 30%, Tugas 30%, Sikap 20%, Proyek 20% (rata-rata dihitung hanya berdasarkan kolom-kolom terisi).
     *   Predikat otomatis berdasarkan Kriteria Ketuntasan Minimal (KKM).
 2.  **Portofolio Siswa**:
     *   Unggah berkas digital pendukung (.sb3 Scratch, .hex Microbit, .py Python, Gambar, PDF) per rombel/pertemuan.

@@ -17,20 +17,14 @@ class StudentScore extends Model
         'ekstrakurikuler_id',
         'ekstrakurikuler_rombel_id',
         
-        'nilai_tugas_1',
-        'nilai_tugas_2',
-        'nilai_tugas_3',
-        'nilai_tugas_4',
+        'nilai_tugas_1', 'nilai_tugas_2', 'nilai_tugas_3', 'nilai_tugas_4',
+        'nilai_tugas_5', 'nilai_tugas_6', 'nilai_tugas_7', 'nilai_tugas_8',
         
-        'nilai_sikap_1',
-        'nilai_sikap_2',
-        'nilai_sikap_3',
-        'nilai_sikap_4',
+        'nilai_sikap_1', 'nilai_sikap_2', 'nilai_sikap_3', 'nilai_sikap_4',
+        'nilai_sikap_5', 'nilai_sikap_6', 'nilai_sikap_7', 'nilai_sikap_8',
         
-        'nilai_proyek_1',
-        'nilai_proyek_2',
-        'nilai_proyek_3',
-        'nilai_proyek_4',
+        'nilai_proyek_1', 'nilai_proyek_2', 'nilai_proyek_3', 'nilai_proyek_4',
+        'nilai_proyek_5', 'nilai_proyek_6', 'nilai_proyek_7', 'nilai_proyek_8',
 
         'nilai_kehadiran',
         'nilai_tugas',
@@ -48,20 +42,14 @@ class StudentScore extends Model
     ];
 
     protected $casts = [
-        'nilai_tugas_1' => 'float',
-        'nilai_tugas_2' => 'float',
-        'nilai_tugas_3' => 'float',
-        'nilai_tugas_4' => 'float',
+        'nilai_tugas_1' => 'float', 'nilai_tugas_2' => 'float', 'nilai_tugas_3' => 'float', 'nilai_tugas_4' => 'float',
+        'nilai_tugas_5' => 'float', 'nilai_tugas_6' => 'float', 'nilai_tugas_7' => 'float', 'nilai_tugas_8' => 'float',
         
-        'nilai_sikap_1' => 'float',
-        'nilai_sikap_2' => 'float',
-        'nilai_sikap_3' => 'float',
-        'nilai_sikap_4' => 'float',
+        'nilai_sikap_1' => 'float', 'nilai_sikap_2' => 'float', 'nilai_sikap_3' => 'float', 'nilai_sikap_4' => 'float',
+        'nilai_sikap_5' => 'float', 'nilai_sikap_6' => 'float', 'nilai_sikap_7' => 'float', 'nilai_sikap_8' => 'float',
         
-        'nilai_proyek_1' => 'float',
-        'nilai_proyek_2' => 'float',
-        'nilai_proyek_3' => 'float',
-        'nilai_proyek_4' => 'float',
+        'nilai_proyek_1' => 'float', 'nilai_proyek_2' => 'float', 'nilai_proyek_3' => 'float', 'nilai_proyek_4' => 'float',
+        'nilai_proyek_5' => 'float', 'nilai_proyek_6' => 'float', 'nilai_proyek_7' => 'float', 'nilai_proyek_8' => 'float',
 
         'nilai_kehadiran' => 'float',
         'nilai_tugas' => 'float',
@@ -87,24 +75,18 @@ class StudentScore extends Model
 
             // Calculate averages of existing input columns
             $score->nilai_tugas = round($average([
-                $score->nilai_tugas_1,
-                $score->nilai_tugas_2,
-                $score->nilai_tugas_3,
-                $score->nilai_tugas_4,
+                $score->nilai_tugas_1, $score->nilai_tugas_2, $score->nilai_tugas_3, $score->nilai_tugas_4,
+                $score->nilai_tugas_5, $score->nilai_tugas_6, $score->nilai_tugas_7, $score->nilai_tugas_8,
             ]), 2);
 
             $score->nilai_sikap = round($average([
-                $score->nilai_sikap_1,
-                $score->nilai_sikap_2,
-                $score->nilai_sikap_3,
-                $score->nilai_sikap_4,
+                $score->nilai_sikap_1, $score->nilai_sikap_2, $score->nilai_sikap_3, $score->nilai_sikap_4,
+                $score->nilai_sikap_5, $score->nilai_sikap_6, $score->nilai_sikap_7, $score->nilai_sikap_8,
             ]), 2);
 
             $score->nilai_proyek = round($average([
-                $score->nilai_proyek_1,
-                $score->nilai_proyek_2,
-                $score->nilai_proyek_3,
-                $score->nilai_proyek_4,
+                $score->nilai_proyek_1, $score->nilai_proyek_2, $score->nilai_proyek_3, $score->nilai_proyek_4,
+                $score->nilai_proyek_5, $score->nilai_proyek_6, $score->nilai_proyek_7, $score->nilai_proyek_8,
             ]), 2);
 
             // Compute overall weighted score
@@ -201,18 +183,17 @@ class StudentScore extends Model
     }
 
     /**
-     * Cek apakah semua ke-4 input nilai dari masing-masing kategori sudah lengkap.
+     * Cek apakah semua input nilai dari masing-masing kategori sudah lengkap.
+     * Jumlah input dinilai berdasarkan total pertemuan (kontrak), maksimal 8.
      */
     public function isComplete(): bool
     {
-        $inputs = [
-            $this->nilai_tugas_1, $this->nilai_tugas_2, $this->nilai_tugas_3, $this->nilai_tugas_4,
-            $this->nilai_sikap_1, $this->nilai_sikap_2, $this->nilai_sikap_3, $this->nilai_sikap_4,
-            $this->nilai_proyek_1, $this->nilai_proyek_2, $this->nilai_proyek_3, $this->nilai_proyek_4
-        ];
+        $limit = min(8, $this->ekstrakurikulerRombel->total_pertemuan ?? 4);
 
-        foreach ($inputs as $input) {
-            if (is_null($input)) {
+        for ($i = 1; $i <= $limit; $i++) {
+            if (is_null($this->{'nilai_tugas_' . $i}) || 
+                is_null($this->{'nilai_sikap_' . $i}) || 
+                is_null($this->{'nilai_proyek_' . $i})) {
                 return false;
             }
         }
