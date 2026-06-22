@@ -39,11 +39,20 @@ class DashboardController extends Controller
         });
 
         // Today's schedule — cached 1 minute
-        $data['todays_schedule'] = Cache::remember(
-            $cachePrefix . 'todays_schedule_' . Carbon::today()->format('Y-m-d'),
-            self::CACHE_TTL_SCHEDULE,
-            fn() => $this->getTodaysSchedule()
-        );
+        $todayStr = Carbon::today()->format('Y-m-d');
+        if ($user->role === 'instruktur') {
+            $data['todays_schedule'] = Cache::remember(
+                $cachePrefix . 'todays_schedule_instructor_' . $user->id . '_' . $todayStr,
+                self::CACHE_TTL_SCHEDULE,
+                fn() => $this->getTodaysSchedule($user)
+            );
+        } else {
+            $data['todays_schedule'] = Cache::remember(
+                $cachePrefix . 'todays_schedule_admin_' . $todayStr,
+                self::CACHE_TTL_SCHEDULE,
+                fn() => $this->getTodaysSchedule()
+            );
+        }
 
         // Recent activities — cached 2 minutes
         $data['recent_activities'] = Cache::remember(
@@ -79,13 +88,15 @@ class DashboardController extends Controller
     public static function clearCache(?int $userId = null): void
     {
         $prefix = 'dashboard_';
+        $todayStr = Carbon::today()->format('Y-m-d');
         Cache::forget($prefix . 'shared_stats');
         Cache::forget($prefix . 'recent_activities');
-        Cache::forget($prefix . 'todays_schedule_' . Carbon::today()->format('Y-m-d'));
+        Cache::forget($prefix . 'todays_schedule_admin_' . $todayStr);
         Cache::forget($prefix . 'admin_stats');
 
         if ($userId) {
             Cache::forget($prefix . 'instructor_' . $userId);
+            Cache::forget($prefix . 'todays_schedule_instructor_' . $userId . '_' . $todayStr);
         }
     }
 
@@ -159,16 +170,23 @@ class DashboardController extends Controller
             ->values();
     }
 
-    private function getTodaysSchedule()
+    private function getTodaysSchedule(?User $user = null)
     {
-        return \App\Models\EkstrakurikulerSession::with([
+        $query = \App\Models\EkstrakurikulerSession::with([
                 'rombel.ekstrakurikuler.sekolah:kodlan,namasekolah',
                 'instruktur:id,nama_lengkap',
                 'laporanMengajar:id,ekstrakurikuler_session_id'
             ])
-            ->whereDate('tanggal_terjadwal', Carbon::today())
-            ->orderBy('jam_mulai_terjadwal', 'asc')
-            ->get();
+            ->whereDate('tanggal_terjadwal', Carbon::today());
+
+        if ($user && !$user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id_instruktur', $user->id)
+                  ->orWhere('user_id_asisten', $user->id);
+            });
+        }
+
+        return $query->orderBy('jam_mulai_terjadwal', 'asc')->get();
     }
 
     private function getInstructorStats($user)

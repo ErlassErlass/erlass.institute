@@ -12,6 +12,10 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
   - Menyusun ulang letak kartu statistik bulanan instruktur (Total Jam, Laporan Terkirim, Kelas Berikutnya) ke bagian teratas di bawah judul dasbor agar langsung terlihat.
   - Mengubah tampilan baris agenda daftar laporan tertunda menjadi format kartu kompak yang serasi dengan sidebar.
 
+- **Perbaikan Kebocoran Jadwal Hari Ini di Dasbor Instruktur (Today's Schedule Access Fix)**:
+  - Menyaring daftar **Jadwal Hari Ini** di halaman dasbor (`/dashboard`) pada `DashboardController` khusus untuk peran instruktur agar hanya menampilkan sesi yang ditugaskan kepada mereka sendiri (sebagai instruktur utama atau asisten), mencegah instruktur melihat jadwal hari ini milik instruktur lain atau yang belum memiliki instruktur.
+  - Memisahkan cache list **Jadwal Hari Ini** per instruktur menggunakan prefix cache `todays_schedule_instructor_{userId}_{date}` agar data tidak tercampur antar pengguna di sisi production.
+
 - **Perbaikan Celah Keamanan: Kebocoran Data Sesi antar Instruktur (Data Leakage Fix)**:
   - **Kalender Sesi (`/ekstrakurikuler/sessions/calendar`)**: Method `calendar()` di [`EkstrakurikulerSessionController`](file:///root/webapperlass/app/Http/Controllers/EkstrakurikulerSessionController.php) tidak memiliki filter user — semua sesi dari semua instruktur ditampilkan ke siapapun yang membuka kalender. Sekarang instruktur hanya melihat sesi yang di-assign ke dirinya sendiri (sebagai instruktur utama atau asisten), sedangkan admin/admin_sistem/webmaster tetap melihat semua sesi.
   - **Jadwal Harian (`/jadwal/harian`)**: Method `index()` di [`JadwalHarianController`](file:///root/webapperlass/app/Http/Controllers/JadwalHarianController.php) memiliki masalah serupa — menampilkan semua jadwal tanpa filter. Sekarang instruktur hanya melihat jadwal harian miliknya.
