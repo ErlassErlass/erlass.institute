@@ -6,6 +6,12 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
 ### Diperbaiki & Dioptimalkan (Fixed & Optimized)
 
+- **Pembaruan Desain Dasbor Instruktur (Instructor Dashboard Redesign)**:
+  - Menyusun ulang tata letak dasbor agar menggunakan kisi dua kolom (`col-lg-8` dan `col-lg-4`) yang proporsional di layar desktop.
+  - Memindahkan daftar **WAJIB DILAPORKAN** (laporan sesi mengajar tertunda) ke kolom kanan (sidebar) sebagai widget kartu to-do list dengan tinggi maksimal `450px` dan scrollbar vertikal tipis (`overflow-y: auto`), mencegah halaman memanjang ke bawah saat instruktur memiliki banyak tugas (misal: 32 laporan).
+  - Menyusun ulang letak kartu statistik bulanan instruktur (Total Jam, Laporan Terkirim, Kelas Berikutnya) ke bagian teratas di bawah judul dasbor agar langsung terlihat.
+  - Mengubah tampilan baris agenda daftar laporan tertunda menjadi format kartu kompak yang serasi dengan sidebar.
+
 - **Perbaikan Celah Keamanan: Kebocoran Data Sesi antar Instruktur (Data Leakage Fix)**:
   - **Kalender Sesi (`/ekstrakurikuler/sessions/calendar`)**: Method `calendar()` di [`EkstrakurikulerSessionController`](file:///root/webapperlass/app/Http/Controllers/EkstrakurikulerSessionController.php) tidak memiliki filter user — semua sesi dari semua instruktur ditampilkan ke siapapun yang membuka kalender. Sekarang instruktur hanya melihat sesi yang di-assign ke dirinya sendiri (sebagai instruktur utama atau asisten), sedangkan admin/admin_sistem/webmaster tetap melihat semua sesi.
   - **Jadwal Harian (`/jadwal/harian`)**: Method `index()` di [`JadwalHarianController`](file:///root/webapperlass/app/Http/Controllers/JadwalHarianController.php) memiliki masalah serupa — menampilkan semua jadwal tanpa filter. Sekarang instruktur hanya melihat jadwal harian miliknya.
