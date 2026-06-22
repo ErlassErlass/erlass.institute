@@ -167,7 +167,7 @@
                                                             }
                                                             $waText = urlencode("Halo " . $session->rombel->ekstrakurikuler->penanggung_jawab . ", saya instruktur Erlass untuk ekstrakurikuler " . $session->rombel->ekstrakurikuler->kategori_program . ".");
                                                         @endphp
-                                                        <a href="whatsapp://send?phone={{ $cleanPhone }}&text={{ $waText }}" target="_blank" rel="noopener" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $session->rombel->ekstrakurikuler->penanggung_jawab }}">
+                                                        <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" rel="noopener" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $session->rombel->ekstrakurikuler->penanggung_jawab }}">
                                                             <i class="bi bi-whatsapp"></i>
                                                         </a>
                                                     @endif
@@ -263,7 +263,7 @@
                                                             }
                                                             $waText = urlencode("Halo " . $session->rombel->ekstrakurikuler->penanggung_jawab . ", saya instruktur Erlass untuk ekstrakurikuler " . $session->rombel->ekstrakurikuler->kategori_program . ".");
                                                         @endphp
-                                                        <a href="whatsapp://send?phone={{ $cleanPhone }}&text={{ $waText }}" target="_blank" rel="noopener" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $session->rombel->ekstrakurikuler->penanggung_jawab }}">
+                                                        <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" rel="noopener" class="text-success d-inline-flex align-items-center" title="WhatsApp PJ: {{ $session->rombel->ekstrakurikuler->penanggung_jawab }}">
                                                             <i class="bi bi-whatsapp"></i>
                                                         </a>
                                                     @endif
@@ -346,7 +346,7 @@
                                         }
                                         $waMsgText = urlencode("Halo " . ($report->instruktur->nama_lengkap ?? '') . ", mohon segera laporan sesi " . ($report->rombel->ekstrakurikuler->kategori_program ?? '') . " di " . ($report->rombel->ekstrakurikuler->sekolah->namasekolah ?? '') . " tanggal " . ($report->tanggal_terjadwal ? $report->tanggal_terjadwal->format('d/m') : '') . ".");
                                     @endphp
-                                    <a @if(!empty($cleanInstrukturPhone)) href="whatsapp://send?phone={{ $cleanInstrukturPhone }}&text={{ $waMsgText }}" target="_blank" rel="noopener" @else href="javascript:void(0)" style="pointer-events: none; opacity: 0.65;" @endif 
+                                    <a @if(!empty($cleanInstrukturPhone)) href="https://wa.me/{{ $cleanInstrukturPhone }}?text={{ $waMsgText }}" target="_blank" rel="noopener" @else href="javascript:void(0)" style="pointer-events: none; opacity: 0.65;" @endif 
                                        class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm w-100 w-sm-auto {{ empty($cleanInstrukturPhone) ? 'disabled' : '' }}">
                                         <i class="bi bi-whatsapp me-1"></i> Ingatkan
                                     </a>

@@ -274,7 +274,7 @@
 </div>
 
 <!-- WhatsApp Support Floating Button -->
-<a href="whatsapp://send?phone=6281234567890&text=Halo%20Admin,%20saya%20butuh%20bantuan%20login%20Erlass%20Ekskul" 
+<a href="https://wa.me/6281234567890?text=Halo%20Admin,%20saya%20butuh%20bantuan%20login%20Erlass%20Ekskul" 
    target="_blank" rel="noopener"
    class="wa-float" 
    title="Hubungi Admin via WhatsApp">

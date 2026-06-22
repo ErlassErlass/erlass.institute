@@ -6,6 +6,9 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
 ### Diperbaiki & Dioptimalkan (Fixed & Optimized)
 
+- **Transisi Tautan WhatsApp Universal (Universal WhatsApp Links)**:
+  - Mengubah seluruh format link manual WhatsApp (sebanyak 6 tautan di halaman Login, Dasbor Instruktur, Jadwal Harian, dan Detail Sesi) dari format protokol lokal `whatsapp://send` menjadi format link universal `https://wa.me/` agar dapat diklik dan berfungsi dengan baik di browser komputer/desktop (menggunakan WhatsApp Web) maupun di perangkat mobile.
+
 - **Pembaruan Desain Dasbor Instruktur (Instructor Dashboard Redesign)**:
   - Menyusun ulang tata letak dasbor agar menggunakan kisi dua kolom (`col-lg-8` dan `col-lg-4`) yang proporsional di layar desktop.
   - Memindahkan daftar **WAJIB DILAPORKAN** (laporan sesi mengajar tertunda) ke kolom kanan (sidebar) sebagai widget kartu to-do list dengan tinggi maksimal `450px` dan scrollbar vertikal tipis (`overflow-y: auto`), mencegah halaman memanjang ke bawah saat instruktur memiliki banyak tugas (misal: 32 laporan).
