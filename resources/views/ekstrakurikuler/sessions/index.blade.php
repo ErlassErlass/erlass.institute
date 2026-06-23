@@ -58,6 +58,7 @@
                     </div>
 
                     <!-- Instructor Filter -->
+                    @if(auth()->user()->hasRole(['admin', 'admin_sistem', 'webmaster']))
                     <div class="col-md-6 col-lg-3">
                         <label for="instruktur" class="form-label small fw-bold text-muted">Instruktur</label>
                         <select name="instruktur" id="instruktur" class="form-select select2">
@@ -72,6 +73,7 @@
                             @endforeach
                         </select>
                     </div>
+                    @endif
 
                     <!-- Date Range -->
                     <div class="col-md-6 col-lg-3">

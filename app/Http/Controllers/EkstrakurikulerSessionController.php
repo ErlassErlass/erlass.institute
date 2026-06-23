@@ -59,14 +59,16 @@ class EkstrakurikulerSessionController extends Controller
             ]);
         }
 
-        // Filter berdasarkan instructor
-        if ($request->filled('instruktur') && $request->instruktur !== 'none') {
-            $query->where('user_id_instruktur', $request->instruktur);
-        }
+        // Filter berdasarkan instructor (hanya untuk admin/webmaster)
+        if ($user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
+            if ($request->filled('instruktur') && $request->instruktur !== 'none') {
+                $query->where('user_id_instruktur', $request->instruktur);
+            }
 
-        // Filter missing instructor (from Dashboard or dropdown option)
-        if ($request->filled('filter_no_instructor') || $request->instruktur === 'none') {
-            $query->whereNull('user_id_instruktur');
+            // Filter missing instructor (from Dashboard or dropdown option)
+            if ($request->filled('filter_no_instructor') || $request->instruktur === 'none') {
+                $query->whereNull('user_id_instruktur');
+            }
         }
 
         // Filter berdasarkan rombel
@@ -112,11 +114,14 @@ class EkstrakurikulerSessionController extends Controller
 
         $sessions = $query->paginate(20)->withQueryString();
 
-        // Data untuk filter dropdown
-        $instructors = User::teachingStaff()
-            ->orderBy('nama_lengkap', 'asc')
-            ->select('id', 'nama_lengkap')
-            ->get();
+        // Data untuk filter dropdown (hanya untuk admin/webmaster)
+        $instructors = collect();
+        if ($user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
+            $instructors = User::teachingStaff()
+                ->orderBy('nama_lengkap', 'asc')
+                ->select('id', 'nama_lengkap')
+                ->get();
+        }
 
         $rombels = EkstrakurikulerRombel::with('ekstrakurikuler')
             ->where('status', '!=', 'dibatalkan')
