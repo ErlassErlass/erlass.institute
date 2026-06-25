@@ -81,6 +81,7 @@ Route::middleware(['auth'])->group(function () {
     // AOQCS Phase 1 - Master Data & SP Modules
     Route::middleware(['role:webmaster,admin_sistem,admin'])->group(function () {
         Route::resource('products', ProductController::class);
+        Route::patch('products/{product}/toggle-aktif', [ProductController::class, 'toggleAktif'])->name('products.toggle-aktif');
         Route::post('salesmen/import', [SalesmanController::class, 'import'])->name('salesmen.import');
         Route::resource('salesmen', SalesmanController::class);
     });

@@ -2,7 +2,34 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.7.5] - 2026-06-25
+
+### Ditambahkan (Added)
+
+- **Kolom Tanggal & Status Aktif pada Master Produk**:
+  - Menambahkan kolom `tanggal` (tipe `date`, nullable) dan `is_aktif` (tipe `boolean`, default `true`) ke tabel `products` melalui migration baru [`2026_06_24_150516_add_date_and_is_aktif_to_products_table.php`](file:///root/webapperlass/database/migrations/2026_06_24_150516_add_date_and_is_aktif_to_products_table.php).
+  - Memperbarui model [`Product.php`](file:///root/webapperlass/app/Models/Product.php) dengan menambahkan kedua kolom baru ke `$fillable` dan `$casts` (`'tanggal' => 'date'`, `'is_aktif' => 'boolean'`).
+
+- **Filter Status & Toggle Cepat di Halaman Master Produk**:
+  - Menambahkan filter dropdown **Semua Status / Aktif / Nonaktif** di halaman [`products/index.blade.php`](file:///root/webapperlass/resources/views/products/index.blade.php) beserta tombol Reset Filter.
+  - Menambahkan tombol **Toggle Aktif/Nonaktif** langsung di kolom Aksi tabel produk (ikon `bi-toggle-on` / `bi-toggle-off`) — tanpa masuk ke halaman edit penuh.
+  - Menambahkan method `toggleAktif()` di [`ProductController`](file:///root/webapperlass/app/Http/Controllers/ProductController.php) dan route PATCH baru `products/{product}/toggle-aktif`.
+  - Menambahkan input tanggal (`date picker`) dan switch status aktif pada form tambah ([`create.blade.php`](file:///root/webapperlass/resources/views/products/create.blade.php)) dan ubah ([`edit.blade.php`](file:///root/webapperlass/resources/views/products/edit.blade.php)) produk.
+
+- **Proteksi Import SP Excel terhadap Produk Nonaktif**:
+  - Memperbarui [`OrderSpImport.php`](file:///root/webapperlass/app/Imports/OrderSpImport.php) agar melempar `Exception` dengan pesan jelas jika produk yang direferensikan di file Excel sudah berstatus nonaktif.
+
+### Diperbaiki & Dioptimalkan (Fixed & Optimized)
+
+- **Filter Produk Aktif pada Dropdown SP**:
+  - Memperbarui [`OrderSpController`](file:///root/webapperlass/app/Http/Controllers/OrderSpController.php) method `create()` agar hanya memuat produk berstatus aktif.
+  - Pada method `edit()`, dropdown memuat produk aktif **ditambah** produk nonaktif yang sudah terlanjur digunakan pada SP tersebut agar data historis tidak rusak.
+
+- **Penanganan Graceful Jika Tidak Ada Produk Aktif**:
+  - Dropdown produk pada form SP dinonaktifkan (`disabled`) jika tidak ada produk aktif, dengan pesan peringatan merah yang mengarahkan admin ke halaman Master Produk.
+
 ## [1.7.4] - 2026-06-22
+
 
 ### Diperbaiki & Dioptimalkan (Fixed & Optimized)
 

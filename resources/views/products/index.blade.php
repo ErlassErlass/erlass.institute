@@ -22,14 +22,27 @@
     <!-- Filter & Search Section -->
     <div class="card shadow-sm mb-4 border-0">
         <div class="card-body">
-            <form method="GET" action="{{ route('products.index') }}" class="row g-3 align-items-center">
+            <form method="GET" action="{{ route('products.index') }}" class="row g-3 align-items-end">
                 <div class="col-md-6">
                     <label class="form-label small fw-bold text-muted">Cari Produk</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
                         <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Kode, nama produk, atau jenis..." value="{{ request('search') }}">
-                        <button type="submit" class="btn btn-primary">Cari</button>
                     </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">Filter Status</label>
+                    <select name="filter_status" class="form-select">
+                        <option value="" {{ !$filterStatus ? 'selected' : '' }}>Semua Status</option>
+                        <option value="aktif" {{ $filterStatus === 'aktif' ? 'selected' : '' }}>✅ Aktif</option>
+                        <option value="nonaktif" {{ $filterStatus === 'nonaktif' ? 'selected' : '' }}>🚫 Nonaktif</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-funnel me-1"></i>Terapkan</button>
+                    @if(request('search') || $filterStatus)
+                        <a href="{{ route('products.index') }}" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
+                    @endif
                 </div>
             </form>
         </div>
@@ -59,13 +72,15 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th width="15%" class="ps-4">Kode Produk</th>
-                            <th width="25%">Nama Produk</th>
-                            <th width="15%">Jenis</th>
+                            <th width="10%" class="ps-4">Kode Produk</th>
+                            <th width="20%">Nama Produk</th>
+                            <th width="10%">Jenis</th>
                             <th width="15%">Harga Standar</th>
                             <th width="10%">Durasi (Bulan)</th>
                             <th width="10%">Jenis Kegiatan</th>
-                            <th width="15%" class="text-center">Aksi</th>
+                            <th width="10%">Tanggal</th>
+                            <th width="10%">Status</th>
+                            <th width="10%" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -90,11 +105,38 @@
                                         <span class="badge bg-warning text-dark">Intrakurikuler</span>
                                     @endif
                                 </td>
+                                <td>
+                                    {{ $item->tanggal ? $item->tanggal->translatedFormat('d M Y') : '-' }}
+                                </td>
+                                <td>
+                                    @if($item->is_aktif)
+                                        <span class="badge bg-success">Aktif</span>
+                                    @else
+                                        <span class="badge bg-danger">Nonaktif</span>
+                                    @endif
+                                </td>
                                 <td class="text-center">
-                                    <div class="d-flex justify-content-center gap-2">
+                                    <div class="d-flex justify-content-center gap-1">
                                         <a href="{{ route('products.edit', $item) }}" class="btn btn-sm btn-outline-warning" title="Edit">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
+                                        {{-- Toggle Aktif/Nonaktif --}}
+                                        <form action="{{ route('products.toggle-aktif', $item) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('PATCH')
+                                            @if($item->is_aktif)
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Nonaktifkan"
+                                                    onclick="return confirm('Nonaktifkan produk {{ addslashes($item->nama_produk) }}?')">
+                                                    <i class="bi bi-toggle-on text-success"></i>
+                                                </button>
+                                            @else
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Aktifkan"
+                                                    onclick="return confirm('Aktifkan kembali produk {{ addslashes($item->nama_produk) }}?')">
+                                                    <i class="bi bi-toggle-off text-danger"></i>
+                                                </button>
+                                            @endif
+                                        </form>
+                                        {{-- Hapus --}}
                                         <form action="{{ route('products.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?')">
                                             @csrf
                                             @method('DELETE')
@@ -107,7 +149,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-5">
+                                <td colspan="9" class="text-center py-5">
                                     <div class="mb-3">
                                         <i class="bi bi-box-seam text-muted fs-1 opacity-25"></i>
                                     </div>

@@ -203,14 +203,23 @@
                                 <div class="row g-2 mb-3 align-items-end">
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold text-muted">Produk</label>
-                                        <select class="form-select" id="product-selector">
-                                            <option value="">-- Pilih Produk --</option>
-                                            @foreach($products as $p)
-                                                <option value="{{ $p->id }}" data-kode="{{ $p->kode_produk }}" data-nama="{{ $p->nama_produk }}" data-harga="{{ $p->harga }}">
-                                                    [{{ $p->kode_produk }}] {{ $p->nama_produk }} - Rp {{ number_format($p->harga, 2, ',', '.') }}
-                                                </option>
-                                            @endforeach
+                                        <select class="form-select @if($products->isEmpty()) is-invalid @endif" id="product-selector" @if($products->isEmpty()) disabled @endif>
+                                            @if($products->isEmpty())
+                                                <option value="">-- Tidak ada produk aktif --</option>
+                                            @else
+                                                <option value="">-- Pilih Produk --</option>
+                                                @foreach($products as $p)
+                                                    <option value="{{ $p->id }}" data-kode="{{ $p->kode_produk }}" data-nama="{{ $p->nama_produk }}" data-harga="{{ $p->harga }}">
+                                                        [{{ $p->kode_produk }}] {{ $p->nama_produk }} - Rp {{ number_format($p->harga, 2, ',', '.') }}
+                                                    </option>
+                                                @endforeach
+                                            @endif
                                         </select>
+                                        @if($products->isEmpty())
+                                            <div class="invalid-feedback">
+                                                Tidak ada produk aktif yang tersedia. Silakan aktifkan produk terlebih dahulu di menu Master Produk.
+                                            </div>
+                                        @endif
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small fw-bold text-muted">Tarif Kesepakatan (Harga Satuan)</label>

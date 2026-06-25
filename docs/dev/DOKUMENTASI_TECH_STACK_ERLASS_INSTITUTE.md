@@ -637,6 +637,8 @@ erDiagram
         int durasi_bulan
         enum jenis_kegiatan
         int standar_durasi_menit
+        date tanggal "nullable - tanggal produk"
+        boolean is_aktif "default true - status aktif"
     }
  
     SALESMEN {

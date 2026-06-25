@@ -270,6 +270,8 @@ class OrderSpDummySeeder extends Seeder
                 'durasi_bulan' => 12,
                 'jenis_kegiatan' => 'eskul',
                 'standar_durasi_menit' => 90,
+                'tanggal' => '2026-06-01',
+                'is_aktif' => true,
             ]);
             Product::create([
                 'id' => 2,
@@ -280,6 +282,8 @@ class OrderSpDummySeeder extends Seeder
                 'durasi_bulan' => 12,
                 'jenis_kegiatan' => 'eskul',
                 'standar_durasi_menit' => 90,
+                'tanggal' => '2026-06-01',
+                'is_aktif' => true,
             ]);
             Product::create([
                 'id' => 3,
@@ -290,6 +294,8 @@ class OrderSpDummySeeder extends Seeder
                 'durasi_bulan' => 12,
                 'jenis_kegiatan' => 'eskul',
                 'standar_durasi_menit' => 90,
+                'tanggal' => '2026-06-01',
+                'is_aktif' => true,
             ]);
             Product::create([
                 'id' => 4,
@@ -300,6 +306,8 @@ class OrderSpDummySeeder extends Seeder
                 'durasi_bulan' => 12,
                 'jenis_kegiatan' => 'eskul',
                 'standar_durasi_menit' => 90,
+                'tanggal' => '2026-06-01',
+                'is_aktif' => true,
             ]);
         }
 

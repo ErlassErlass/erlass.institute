@@ -20,14 +20,18 @@ class ProductController extends Controller
         }
 
         $search = $request->input('search');
+        $filterStatus = $request->input('filter_status'); // 'aktif', 'nonaktif', or null (all)
 
         $products = Product::when($search, function ($query) use ($search) {
-            return $query->where('nama_produk', 'like', "%$search%")
-                ->orWhere('kode_produk', 'like', "%$search%")
-                ->orWhere('jenis', 'like', "%$search%");
-        })->paginate(25);
+                return $query->where('nama_produk', 'like', "%$search%")
+                    ->orWhere('kode_produk', 'like', "%$search%")
+                    ->orWhere('jenis', 'like', "%$search%");
+            })
+            ->when($filterStatus === 'aktif', fn ($q) => $q->where('is_aktif', true))
+            ->when($filterStatus === 'nonaktif', fn ($q) => $q->where('is_aktif', false))
+            ->paginate(25);
 
-        return view('products.index', compact('products'));
+        return view('products.index', compact('products', 'filterStatus'));
     }
 
     /**
@@ -63,7 +67,11 @@ class ProductController extends Controller
             'durasi_bulan' => 'nullable|integer|min:1',
             'jenis_kegiatan' => 'required|in:eskul,inkul',
             'standar_durasi_menit' => 'required|integer|min:1',
+            'tanggal' => 'nullable|date',
+            'is_aktif' => 'sometimes|boolean',
         ]);
+
+        $validated['is_aktif'] = $request->boolean('is_aktif', true);
 
         Product::create($validated);
 
@@ -105,7 +113,11 @@ class ProductController extends Controller
             'durasi_bulan' => 'nullable|integer|min:1',
             'jenis_kegiatan' => 'required|in:eskul,inkul',
             'standar_durasi_menit' => 'required|integer|min:1',
+            'tanggal' => 'nullable|date',
+            'is_aktif' => 'sometimes|boolean',
         ]);
+
+        $validated['is_aktif'] = $request->boolean('is_aktif');
 
         $product->update($validated);
 
@@ -131,5 +143,23 @@ class ProductController extends Controller
         $product->delete();
 
         return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus!');
+    }
+
+    /**
+     * Toggle status aktif/nonaktif produk.
+     *
+     * @param Product $product
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function toggleAktif(Product $product)
+    {
+        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $product->update(['is_aktif' => !$product->is_aktif]);
+
+        $statusLabel = $product->is_aktif ? 'diaktifkan' : 'dinonaktifkan';
+        return redirect()->back()->with('success', "Produk '{$product->nama_produk}' berhasil {$statusLabel}.");
     }
 }

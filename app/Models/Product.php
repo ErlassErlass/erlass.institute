@@ -26,6 +26,8 @@ class Product extends Model
         'durasi_bulan',
         'jenis_kegiatan',
         'standar_durasi_menit',
+        'tanggal',
+        'is_aktif',
     ];
 
     /**
@@ -35,6 +37,8 @@ class Product extends Model
         'harga' => 'decimal:2',
         'durasi_bulan' => 'integer',
         'standar_durasi_menit' => 'integer',
+        'tanggal' => 'date',
+        'is_aktif' => 'boolean',
     ];
 
     /**

@@ -82,6 +82,9 @@ class OrderSpImport implements ToCollection, WithHeadingRow, WithValidation
                 if (!$product) {
                     throw new Exception("Produk dengan kode '{$kodeProduk}' tidak ditemukan.");
                 }
+                if (!$product->is_aktif) {
+                    throw new Exception("Produk '{$product->nama_produk}' (kode: {$kodeProduk}) sudah dinonaktifkan dan tidak dapat digunakan dalam SP baru. Harap aktifkan produk terlebih dahulu atau gunakan kode produk yang masih aktif.");
+                }
 
                 $hargaSatuan = floatval($row['harga_satuan'] ?? $product->harga);
 

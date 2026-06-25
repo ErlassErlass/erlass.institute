@@ -65,7 +65,7 @@ class OrderSpController extends Controller
     public function create()
     {
         $sekolah = Sekolah::orderBy('namasekolah')->get();
-        $products = Product::orderBy('nama_produk')->get();
+        $products = Product::where('is_aktif', true)->orderBy('nama_produk')->get();
         
         if (auth()->user()->role === 'sales') {
             $salesman = Salesman::where('user_id', auth()->id())->first();
@@ -109,6 +109,14 @@ class OrderSpController extends Controller
             }
         }
 
+        // Validasi status aktif produk
+        foreach ($validated['products'] as $item) {
+            $product = Product::find($item['product_id']);
+            if (!$product || !$product->is_aktif) {
+                return redirect()->back()->withInput()->with('error', "Produk '" . ($product ? $product->nama_produk : $item['product_id']) . "' sudah dinonaktifkan dan tidak dapat digunakan.");
+            }
+        }
+
         try {
             DB::transaction(function () use ($validated) {
                 $orderSp = OrderSp::create([
@@ -121,7 +129,7 @@ class OrderSpController extends Controller
                     'lokasi_pembelajaran' => $validated['lokasi_pembelajaran'],
                     'tanggal_mulai_rencana' => $validated['tanggal_mulai_rencana'],
                     'jumlah_pertemuan' => $validated['jumlah_pertemuan'],
-                    'catatan_khusus' => $validated['catatan_khusus'],
+                    'catatan_khusus' => $validated['catatan_khusus'] ?? null,
                     'status' => 'draft',
                     'created_by' => auth()->id(),
                     'updated_by' => auth()->id(),
@@ -183,8 +191,13 @@ class OrderSpController extends Controller
             }
         }
 
+        $ordersSp->load('items');
+
         $sekolah = Sekolah::orderBy('namasekolah')->get();
-        $products = Product::orderBy('nama_produk')->get();
+        $products = Product::where('is_aktif', true)
+            ->orWhereIn('id', $ordersSp->items->pluck('product_id')->toArray())
+            ->orderBy('nama_produk')
+            ->get();
         
         if (auth()->user()->role === 'sales') {
             $salesman = Salesman::where('user_id', auth()->id())->first();
@@ -192,8 +205,6 @@ class OrderSpController extends Controller
         } else {
             $salesmen = Salesman::orderBy('nama_salesman')->get();
         }
-
-        $ordersSp->load('items');
 
         return view('orders_sp.edit', compact('ordersSp', 'sekolah', 'products', 'salesmen'));
     }
@@ -235,6 +246,15 @@ class OrderSpController extends Controller
             'products.*.harga_satuan' => 'required|numeric|min:0',
         ]);
 
+        // Validasi status aktif produk (kecuali yang memang sudah ada sebelumnya di SP ini)
+        $existingProductIds = $ordersSp->items->pluck('product_id')->toArray();
+        foreach ($validated['products'] as $item) {
+            $product = Product::find($item['product_id']);
+            if (!$product || (!$product->is_aktif && !in_array($item['product_id'], $existingProductIds))) {
+                return redirect()->back()->withInput()->with('error', "Produk '" . ($product ? $product->nama_produk : $item['product_id']) . "' sudah dinonaktifkan dan tidak dapat ditambahkan ke SP.");
+            }
+        }
+
         try {
             DB::transaction(function () use ($ordersSp, $validated) {
                 $ordersSp->update([
@@ -247,7 +267,7 @@ class OrderSpController extends Controller
                     'lokasi_pembelajaran' => $validated['lokasi_pembelajaran'],
                     'tanggal_mulai_rencana' => $validated['tanggal_mulai_rencana'],
                     'jumlah_pertemuan' => $validated['jumlah_pertemuan'],
-                    'catatan_khusus' => $validated['catatan_khusus'],
+                    'catatan_khusus' => $validated['catatan_khusus'] ?? null,
                     'updated_by' => auth()->id(),
                 ]);
 

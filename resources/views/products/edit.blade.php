@@ -127,6 +127,30 @@
                             @enderror
                         </div>
 
+                        <div class="mb-3">
+                            <label for="tanggal" class="form-label fw-semibold text-muted small">Tanggal</label>
+                            <input 
+                                type="date" 
+                                class="form-control @error('tanggal') is-invalid @enderror" 
+                                id="tanggal" 
+                                name="tanggal" 
+                                value="{{ old('tanggal', $product->tanggal ? $product->tanggal->format('Y-m-d') : '') }}"
+                            >
+                            @error('tanggal')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="is_aktif" name="is_aktif" value="1" {{ old('is_aktif', $product->is_aktif) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-semibold text-muted small" for="is_aktif">Status Aktif</label>
+                            </div>
+                            @error('is_aktif')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <div class="d-grid mt-4">
                             <button type="submit" class="btn btn-primary py-2">
                                 <i class="bi bi-save me-1"></i> Perbarui Produk
