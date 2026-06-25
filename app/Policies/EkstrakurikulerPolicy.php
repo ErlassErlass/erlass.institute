@@ -41,12 +41,20 @@ class EkstrakurikulerPolicy
     public function view(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
         // Sales hanya boleh melihat program yang dia tangani
-        if ($user->role === 'instruktur' || $user->role === 'asisten') {
-            return $user->id === $ekstrakurikuler->user_id_sales ||
-                   $user->id === $ekstrakurikuler->user_id_sales;
+        if ($user->role === 'sales') {
+            return $user->id === $ekstrakurikuler->user_id_sales;
         }
 
-        // Admin ErLass dan webmaster sudah di-handle di before()
+        // Instruktur / Asisten yang ditugaskan ke rombel di program ini boleh melihat
+        if ($user->role === 'instruktur' || $user->role === 'asisten') {
+            return $ekstrakurikuler->rombels()
+                ->where(function ($query) use ($user) {
+                    $query->where('user_id_instruktur', $user->id)
+                        ->orWhere('user_id_asisten', $user->id);
+                })
+                ->exists();
+        }
+
         return false;
     }
 
@@ -64,12 +72,9 @@ class EkstrakurikulerPolicy
      */
     public function update(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Admin ErLass dan webmaster sudah di-handle di before()
-
-        // Instruktur/Asisten hanya boleh edit program yang dia tangani dan masih dalam status draft atau diajukan
-        if ($user->role === 'instruktur' || $user->role === 'asisten') {
-            return ($user->id === $ekstrakurikuler->user_id_sales ||
-                    $user->id === $ekstrakurikuler->user_id_sales) &&
+        // Sales hanya boleh edit program yang dia tangani dan masih dalam status draft, diajukan, atau ditolak
+        if ($user->role === 'sales') {
+            return $user->id === $ekstrakurikuler->user_id_sales &&
                    in_array($ekstrakurikuler->status, [
                        Ekstrakurikuler::STATUS_DRAFT,
                        Ekstrakurikuler::STATUS_DIAJUKAN,
@@ -85,12 +90,9 @@ class EkstrakurikulerPolicy
      */
     public function delete(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Admin ErLass dan webmaster sudah di-handle di before()
-
-        // Instruktur/Asisten hanya boleh hapus program yang belum aktif dan dia yang tangani
-        if ($user->role === 'instruktur' || $user->role === 'asisten') {
-            return ($user->id === $ekstrakurikuler->user_id_sales ||
-                    $user->id === $ekstrakurikuler->user_id_sales) &&
+        // Sales hanya boleh hapus program yang belum aktif dan dia yang tangani
+        if ($user->role === 'sales') {
+            return $user->id === $ekstrakurikuler->user_id_sales &&
                    ! $ekstrakurikuler->isActive() &&
                    in_array($ekstrakurikuler->status, [
                        Ekstrakurikuler::STATUS_DRAFT,
@@ -163,12 +165,9 @@ class EkstrakurikulerPolicy
      */
     public function cancel(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Admin ErLass dan webmaster sudah di-handle di before()
-
-        // Instruktur/Asisten bisa membatalkan program mereka sendiri jika belum selesai
-        if ($user->role === 'instruktur' || $user->role === 'asisten') {
-            return ($user->id === $ekstrakurikuler->user_id_sales ||
-                    $user->id === $ekstrakurikuler->user_id_sales) &&
+        // Sales bisa membatalkan program mereka sendiri jika belum selesai
+        if ($user->role === 'sales') {
+            return $user->id === $ekstrakurikuler->user_id_sales &&
                    ! in_array($ekstrakurikuler->status, [
                        Ekstrakurikuler::STATUS_SELESAI,
                        Ekstrakurikuler::STATUS_DIBATALKAN,
@@ -183,12 +182,9 @@ class EkstrakurikulerPolicy
      */
     public function manageRombel(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Admin ErLass dan webmaster sudah di-handle di before()
-
-        // Instruktur/Asisten bisa manage rombel untuk program mereka sendiri
-        if ($user->role === 'instruktur' || $user->role === 'asisten') {
-            return $user->id === $ekstrakurikuler->user_id_sales ||
-                   $user->id === $ekstrakurikuler->user_id_sales;
+        // Sales bisa manage rombel untuk program mereka sendiri
+        if ($user->role === 'sales') {
+            return $user->id === $ekstrakurikuler->user_id_sales;
         }
 
         return false;
@@ -199,10 +195,8 @@ class EkstrakurikulerPolicy
      */
     public function manageSessions(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Admin ErLass dan webmaster sudah di-handle di before()
-
-        // Instruktur dan asisten yang ditugaskan bisa manage sessions
-        if ($user->role === 'instruktur' || $user->role === 'asisten') {
+        // Instruktur, asisten, dan sales yang ditugaskan/terlibat bisa manage sessions
+        if (in_array($user->role, ['instruktur', 'asisten', 'sales'])) {
             // Check if user is assigned to any rombel in this program
             $isAssigned = $ekstrakurikuler->rombels()
                 ->where(function ($query) use ($user) {
@@ -211,9 +205,7 @@ class EkstrakurikulerPolicy
                 })
                 ->exists();
 
-            return $isAssigned ||
-                   $user->id === $ekstrakurikuler->user_id_sales ||
-                   $user->id === $ekstrakurikuler->user_id_sales;
+            return $isAssigned || $user->id === $ekstrakurikuler->user_id_sales;
         }
 
         return false;
@@ -224,10 +216,8 @@ class EkstrakurikulerPolicy
      */
     public function viewReports(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
-        // Admin ErLass dan webmaster sudah di-handle di before()
-
-        // Instruktur/Asisten yang terlibat bisa melihat laporan
-        if ($user->role === 'instruktur' || $user->role === 'asisten') {
+        // Instruktur, asisten, dan sales yang terlibat bisa melihat laporan
+        if (in_array($user->role, ['instruktur', 'asisten', 'sales'])) {
             // Check if user is involved in this program
             $isInvolved = $ekstrakurikuler->rombels()
                 ->where(function ($query) use ($user) {
@@ -236,9 +226,7 @@ class EkstrakurikulerPolicy
                 })
                 ->exists();
 
-            return $isInvolved ||
-                   $user->id === $ekstrakurikuler->user_id_sales ||
-                   $user->id === $ekstrakurikuler->user_id_sales;
+            return $isInvolved || $user->id === $ekstrakurikuler->user_id_sales;
         }
 
         return false;

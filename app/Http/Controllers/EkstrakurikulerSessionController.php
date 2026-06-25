@@ -45,10 +45,16 @@ class EkstrakurikulerSessionController extends Controller
         // Restrict to own sessions if not admin
         $user = auth()->user();
         if (! $user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
-            $query->where(function ($q) use ($user) {
-                $q->where('user_id_instruktur', $user->id)
-                  ->orWhere('user_id_asisten', $user->id);
-            });
+            if ($user->role === 'sales') {
+                $query->whereHas('rombel.ekstrakurikuler', function ($q) use ($user) {
+                    $q->where('user_id_sales', $user->id);
+                });
+            } else {
+                $query->where(function ($q) use ($user) {
+                    $q->where('user_id_instruktur', $user->id)
+                      ->orWhere('user_id_asisten', $user->id);
+                });
+            }
         }
 
         // Filter berdasarkan tanggal
@@ -149,10 +155,16 @@ class EkstrakurikulerSessionController extends Controller
 
         // Restrict to own sessions if not admin
         if (! $user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
-            $query->where(function ($q) use ($user) {
-                $q->where('user_id_instruktur', $user->id)
-                  ->orWhere('user_id_asisten', $user->id);
-            });
+            if ($user->role === 'sales') {
+                $query->whereHas('rombel.ekstrakurikuler', function ($q) use ($user) {
+                    $q->where('user_id_sales', $user->id);
+                });
+            } else {
+                $query->where(function ($q) use ($user) {
+                    $q->where('user_id_instruktur', $user->id)
+                      ->orWhere('user_id_asisten', $user->id);
+                });
+            }
         }
 
         $sessions = $query->get()

@@ -181,4 +181,29 @@ class EkstrakurikulerControllerTest extends TestCase
         $kotaOptions = $response->viewData('kotaOptions');
         $this->assertContains('Jakarta Selatan', $kotaOptions);
     }
+
+    public function test_sales_user_can_view_own_ekstrakurikuler_program()
+    {
+        $sales = User::factory()->create(['role' => 'sales']);
+        $ekskul = Ekstrakurikuler::factory()->create([
+            'user_id_sales' => $sales->id,
+            'sekolah_kodlan' => $this->sekolah->kodlan,
+        ]);
+
+        $response = $this->actingAs($sales)->get(route('ekstrakurikuler.show', $ekskul));
+        $response->assertStatus(200);
+    }
+
+    public function test_sales_user_cannot_view_others_ekstrakurikuler_program()
+    {
+        $sales1 = User::factory()->create(['role' => 'sales']);
+        $sales2 = User::factory()->create(['role' => 'sales']);
+        $ekskul = Ekstrakurikuler::factory()->create([
+            'user_id_sales' => $sales1->id,
+            'sekolah_kodlan' => $this->sekolah->kodlan,
+        ]);
+
+        $response = $this->actingAs($sales2)->get(route('ekstrakurikuler.show', $ekskul));
+        $response->assertStatus(403);
+    }
 }
