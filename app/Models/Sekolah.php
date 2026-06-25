@@ -10,6 +10,22 @@ class Sekolah extends Model
     use HasFactory;
 
     /**
+     * Boot the model.
+     */
+    protected static function booted()
+    {
+        static::saved(function () {
+            \Cache::forget('sekolah_available_regions');
+            \Cache::forget('sekolah_available_cities');
+        });
+
+        static::deleted(function () {
+            \Cache::forget('sekolah_available_regions');
+            \Cache::forget('sekolah_available_cities');
+        });
+    }
+
+    /**
      * Nama tabel yang terhubung dengan model.
      */
     protected $table = 'sekolah';

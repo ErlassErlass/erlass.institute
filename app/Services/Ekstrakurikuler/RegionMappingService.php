@@ -50,17 +50,17 @@ class RegionMappingService
      */
     public function getAvailableRegions(): array
     {
-        $allKota = Sekolah::select('kota')
-            ->distinct()
-            ->whereNotNull('kota')
-            ->orderBy('kota')
-            ->pluck('kota');
+        return \Cache::remember('sekolah_available_regions', 86400, function () {
+            $allKota = Sekolah::select('kota')
+                ->distinct()
+                ->whereNotNull('kota')
+                ->orderBy('kota')
+                ->pluck('kota');
 
-        $regions = $allKota->map(function ($kota) {
-            return $this->mapCityToRegion($kota);
-        })->unique()->sort()->values()->toArray();
-
-        return $regions;
+            return $allKota->map(function ($kota) {
+                return $this->mapCityToRegion($kota);
+            })->unique()->sort()->values()->toArray();
+        });
     }
 
     /**
@@ -68,12 +68,14 @@ class RegionMappingService
      */
     public function getAvailableCities(): array
     {
-        return Sekolah::select('kota')
-            ->distinct()
-            ->whereNotNull('kota')
-            ->orderBy('kota')
-            ->pluck('kota')
-            ->toArray();
+        return \Cache::remember('sekolah_available_cities', 86400, function () {
+            return Sekolah::select('kota')
+                ->distinct()
+                ->whereNotNull('kota')
+                ->orderBy('kota')
+                ->pluck('kota')
+                ->toArray();
+        });
     }
 
     /**

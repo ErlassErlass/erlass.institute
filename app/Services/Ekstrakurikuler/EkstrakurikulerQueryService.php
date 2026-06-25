@@ -145,9 +145,7 @@ class EkstrakurikulerQueryService
     public function getFormCreationData()
     {
         return [
-            'sekolahs' => Sekolah::select('kodlan', 'namasekolah', 'kotkab', 'kec', 'kota')
-                ->orderBy('namasekolah')
-                ->get(),
+            'sekolahs' => collect(), // Performance optimization: schools are loaded via AJAX/Select2
             'salesUsers' => User::with('division')
                 ->whereIn('role', ['sales', 'koordinator'])
                 ->orderBy('nama_lengkap')
@@ -156,6 +154,7 @@ class EkstrakurikulerQueryService
                 Ekstrakurikuler::STATUS_DRAFT => 'Draft',
                 Ekstrakurikuler::STATUS_DIAJUKAN => 'Diajukan',
             ],
+            'activeProducts' => \App\Models\Product::where('is_aktif', true)->orderBy('nama_produk')->get(),
         ];
     }
 

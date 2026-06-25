@@ -252,15 +252,20 @@ class EkstrakurikulerFormService
      */
     protected function getStep1ValidationRules(): array
     {
-        return [
-            'kategori_program' => 'required|string|in:' . implode(',', [
+        $activeProducts = \App\Models\Product::where('is_aktif', true)->pluck('nama_produk')->toArray();
+        if (empty($activeProducts)) {
+            $activeProducts = [
                 \App\Models\Ekstrakurikuler::KATEGORI_CODING_SCRATCH,
                 \App\Models\Ekstrakurikuler::KATEGORI_ENGLISH_COURSE,
                 \App\Models\Ekstrakurikuler::KATEGORI_MICROBIT_LEARNING,
                 \App\Models\Ekstrakurikuler::KATEGORI_PICTOBLOX_AI,
                 \App\Models\Ekstrakurikuler::KATEGORI_ROBOTIK_EXPLORER,
                 \App\Models\Ekstrakurikuler::KATEGORI_ROBOTIK_JIMU,
-            ]),
+            ];
+        }
+
+        return [
+            'kategori_program' => 'required|string|in:' . implode(',', $activeProducts),
             'user_id_sales' => 'required|exists:users,id',
             'region' => 'nullable|string',
             'city' => 'required|string',

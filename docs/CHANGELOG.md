@@ -2,6 +2,20 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.7.6] - 2026-06-25
+
+### Ditambahkan (Added)
+- **Database Index pada `sekolah.kota`**: Menambahkan index pada kolom `kota` di tabel `sekolah` via migration [`2026_06_25_140919_add_index_to_sekolah_kota.php`](file:///root/webapperlass/database/migrations/2026_06_25_140919_add_index_to_sekolah_kota.php) untuk mempercepat query geografis.
+
+### Diperbaiki & Dioptimalkan (Fixed & Optimized)
+- **Optimasi Performa Multi-step Wizard Pembuatan Ekstrakurikuler**: 
+  - Menerapkan cache 24 jam untuk kota dan wilayah sekolah (`getAvailableCities` dan `getAvailableRegions`) di [`RegionMappingService.php`](file:///root/webapperlass/app/Services/Ekstrakurikuler/RegionMappingService.php).
+  - Menambahkan event hook pada model [`Sekolah.php`](file:///root/webapperlass/app/Models/Sekolah.php) untuk otomatis membersihkan cache wilayah ketika data sekolah disimpan (`saved`) atau dihapus (`deleted`).
+  - Halaman `/ekstrakurikuler/create` kini termuat secara instan di setiap langkahnya.
+- **Daftar Kategori Program Dinamis dari Produk**:
+  - Menghubungkan pilihan dropdown `kategori_program` di [`step1.blade.php`](file:///root/webapperlass/resources/views/ekstrakurikuler/steps/step1.blade.php) langsung ke data produk aktif (`activeProducts`) dari database.
+  - Memperbarui logic validasi di [`EkstrakurikulerFormService.php`](file:///root/webapperlass/app/Services/Ekstrakurikuler/EkstrakurikulerFormService.php) agar memvalidasi kategori program yang dipilih secara dinamis menggunakan daftar produk aktif di database.
+
 ## [1.7.5] - 2026-06-25
 
 ### Ditambahkan (Added)

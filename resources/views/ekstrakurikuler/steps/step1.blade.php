@@ -14,18 +14,27 @@
                     id="kategori_program" 
                     name="kategori_program" 
                     required>
-                @foreach([
-                    \App\Models\Ekstrakurikuler::KATEGORI_CODING_SCRATCH,
-                    \App\Models\Ekstrakurikuler::KATEGORI_ENGLISH_COURSE,
-                    \App\Models\Ekstrakurikuler::KATEGORI_MICROBIT_LEARNING,
-                    \App\Models\Ekstrakurikuler::KATEGORI_PICTOBLOX_AI,
-                    \App\Models\Ekstrakurikuler::KATEGORI_ROBOTIK_EXPLORER,
-                    \App\Models\Ekstrakurikuler::KATEGORI_ROBOTIK_JIMU,
-                ] as $kat)
-                    <option value="{{ $kat }}" {{ old('kategori_program', $formData['kategori_program'] ?? '') == $kat ? 'selected' : '' }}>
-                        {{ $kat }}
-                    </option>
-                @endforeach
+                <option value="">Pilih Kategori Program</option>
+                @if(isset($activeProducts) && $activeProducts->isNotEmpty())
+                    @foreach($activeProducts as $product)
+                        <option value="{{ $product->nama_produk }}" {{ old('kategori_program', $formData['kategori_program'] ?? '') == $product->nama_produk ? 'selected' : '' }}>
+                            {{ $product->nama_produk }}
+                        </option>
+                    @endforeach
+                @else
+                    @foreach([
+                        \App\Models\Ekstrakurikuler::KATEGORI_CODING_SCRATCH,
+                        \App\Models\Ekstrakurikuler::KATEGORI_ENGLISH_COURSE,
+                        \App\Models\Ekstrakurikuler::KATEGORI_MICROBIT_LEARNING,
+                        \App\Models\Ekstrakurikuler::KATEGORI_PICTOBLOX_AI,
+                        \App\Models\Ekstrakurikuler::KATEGORI_ROBOTIK_EXPLORER,
+                        \App\Models\Ekstrakurikuler::KATEGORI_ROBOTIK_JIMU,
+                    ] as $kat)
+                        <option value="{{ $kat }}" {{ old('kategori_program', $formData['kategori_program'] ?? '') == $kat ? 'selected' : '' }}>
+                            {{ $kat }}
+                        </option>
+                    @endforeach
+                @endif
             </select>
             @error('kategori_program')
                 <div class="invalid-feedback">{{ $message }}</div>
