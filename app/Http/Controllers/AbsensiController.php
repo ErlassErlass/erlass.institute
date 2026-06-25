@@ -700,7 +700,7 @@ class AbsensiController extends Controller
             'monthlySessions' => $batchSessions,
             'instructorName' => auth()->user()->nama_lengkap ?? auth()->user()->name,
             'picName' => $ekstrakurikuler->penanggung_jawab ?? '-',
-            'salesName' => $ekstrakurikuler->sales->name ?? '-',
+            'salesName' => $ekstrakurikuler->sales->nama_lengkap ?? $ekstrakurikuler->sales->name ?? '-',
             'academicYear' => $academicYear,
             'city' => $sekolah->kota ?? 'Jakarta',
             'students' => $students,
