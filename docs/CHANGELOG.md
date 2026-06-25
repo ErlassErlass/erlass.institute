@@ -28,6 +28,14 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Penanganan Graceful Jika Tidak Ada Produk Aktif**:
   - Dropdown produk pada form SP dinonaktifkan (`disabled`) jika tidak ada produk aktif, dengan pesan peringatan merah yang mengarahkan admin ke halaman Master Produk.
 
+- **Hak Akses Role Sales pada Ekstrakurikuler & Sesi**:
+  - Memperbaiki [`EkstrakurikulerPolicy`](file:///root/webapperlass/app/Policies/EkstrakurikulerPolicy.php) yang membetulkan logika pengecekan role `'sales'` (sebelumnya salah tertulis `'instruktur'`/`'asisten'`). Role `sales` kini dapat mengelola (melihat, memperbarui, membatalkan, mengelola rombel/sesi) program yang mereka tangani.
+  - Memperbarui [`EkstrakurikulerSessionController`](file:///root/webapperlass/app/Http/Controllers/EkstrakurikulerSessionController.php) agar sales dapat melihat agenda/kalender sesi khusus program yang mereka buat.
+
+- **Pembersihan Syntax Blade & Uji Coba (Tests)**:
+  - Memperbaiki tag `@push('styles')` yang belum ditutup dengan `@endpush` di [`ekstrakurikuler/index.blade.php`](file:///root/webapperlass/resources/views/ekstrakurikuler/index.blade.php) yang menyelesaikan isu kebocoran output buffer saat testing.
+  - Menghapus anotasi `@test` kuno dan menstandarkan prefiks `test_` pada unit testing untuk kompatibilitas penuh dengan PHPUnit terbaru.
+
 ## [1.7.4] - 2026-06-22
 
 
