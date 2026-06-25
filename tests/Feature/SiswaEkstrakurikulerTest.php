@@ -68,8 +68,7 @@ class SiswaEkstrakurikulerTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function transfer_creates_pindah_record_and_new_aktif_record()
+    public function test_transfer_creates_pindah_record_and_new_aktif_record()
     {
         // 1. Daftarkan siswa ke Rombel A
         $enrollment = SiswaEkstrakurikuler::create([

@@ -38,15 +38,13 @@ class HolidayCalendarTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function libur_nasional_dihitung_sebagai_hari_libur()
+    public function test_libur_nasional_dihitung_sebagai_hari_libur()
     {
         $this->assertTrue($this->calendarService->isNationalHoliday('2026-08-17'));
         $this->assertTrue(Holiday::isHoliday('2026-08-17'));
     }
 
-    /** @test */
-    public function cuti_bersama_tidak_dihitung_sebagai_hari_libur()
+    public function test_cuti_bersama_tidak_dihitung_sebagai_hari_libur()
     {
         $this->assertFalse(
             $this->calendarService->isNationalHoliday('2026-03-18'),
@@ -58,20 +56,17 @@ class HolidayCalendarTest extends TestCase
         );
     }
 
-    /** @test */
-    public function idul_fitri_dihitung_sebagai_hari_libur()
+    public function test_idul_fitri_dihitung_sebagai_hari_libur()
     {
         $this->assertTrue($this->calendarService->isNationalHoliday('2026-03-20'));
     }
 
-    /** @test */
-    public function tanggal_biasa_bukan_hari_libur()
+    public function test_tanggal_biasa_bukan_hari_libur()
     {
         $this->assertFalse($this->calendarService->isNationalHoliday('2026-07-06'));
     }
 
-    /** @test */
-    public function get_holiday_on_date_mengembalikan_data_yang_benar()
+    public function test_get_holiday_on_date_mengembalikan_data_yang_benar()
     {
         $holiday = $this->calendarService->getHolidayOnDate('2026-08-17');
 
@@ -80,15 +75,13 @@ class HolidayCalendarTest extends TestCase
         $this->assertEquals('libur_nasional', $holiday->jenis);
     }
 
-    /** @test */
-    public function get_holiday_on_date_return_null_untuk_cuti_bersama()
+    public function test_get_holiday_on_date_return_null_untuk_cuti_bersama()
     {
         $holiday = $this->calendarService->getHolidayOnDate('2026-03-18');
         $this->assertNull($holiday, 'getHolidayOnDate seharusnya return null untuk cuti_bersama');
     }
 
-    /** @test */
-    public function get_holidays_in_range_includes_cuti_bersama_untuk_tampilan()
+    public function test_get_holidays_in_range_includes_cuti_bersama_untuk_tampilan()
     {
         $holidays = $this->calendarService->getHolidaysInRange('2026-03-01', '2026-03-31');
 
@@ -102,8 +95,7 @@ class HolidayCalendarTest extends TestCase
         );
     }
 
-    /** @test */
-    public function data_holiday_dua_tahun_tersedia()
+    public function test_data_holiday_dua_tahun_tersedia()
     {
         $count2026 = Holiday::byYear(2026)->count();
         $count2027 = Holiday::byYear(2027)->count();
@@ -112,8 +104,7 @@ class HolidayCalendarTest extends TestCase
         $this->assertGreaterThan(3, $count2027, '2027 harus punya minimal 4 entri');
     }
 
-    /** @test */
-    public function is_safe_to_schedule_false_pada_hari_libur_nasional()
+    public function test_is_safe_to_schedule_false_pada_hari_libur_nasional()
     {
         \App\Models\Sekolah::create([
             'kodlan'      => 'TEST01',
@@ -130,8 +121,7 @@ class HolidayCalendarTest extends TestCase
         $this->assertFalse($isSafe, 'Tidak aman menjadwalkan pada HUT RI');
     }
 
-    /** @test */
-    public function is_safe_to_schedule_true_pada_cuti_bersama()
+    public function test_is_safe_to_schedule_true_pada_cuti_bersama()
     {
         \App\Models\Sekolah::create([
             'kodlan'      => 'TEST02',

@@ -100,6 +100,7 @@
         transform: translateY(-1px);
     }
 </style>
+@endpush
 
 @section('content')
 <div class="container-fluid px-4">

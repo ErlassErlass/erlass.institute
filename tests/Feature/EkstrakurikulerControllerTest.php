@@ -33,8 +33,7 @@ class EkstrakurikulerControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function index_page_loads_without_undefined_variable_errors()
+    public function test_index_page_loads_without_undefined_variable_errors()
     {
         $response = $this->actingAs($this->user)->get(route('ekstrakurikuler.index'));
 
@@ -54,8 +53,7 @@ class EkstrakurikulerControllerTest extends TestCase
         $this->assertIsArray($kotaOptions);
     }
 
-    /** @test */
-    public function create_page_loads_without_undefined_variable_errors()
+    public function test_create_page_loads_without_undefined_variable_errors()
     {
         $response = $this->actingAs($this->user)->get(route('ekstrakurikuler.create'));
 
@@ -76,8 +74,7 @@ class EkstrakurikulerControllerTest extends TestCase
         $this->assertIsArray($kotaOptions);
     }
 
-    /** @test */
-    public function create_step_1_includes_kota_options_variable()
+    public function test_create_step_1_includes_kota_options_variable()
     {
         $response = $this->actingAs($this->user)->get(route('ekstrakurikuler.create.step', ['step' => 1]));
 
@@ -93,8 +90,7 @@ class EkstrakurikulerControllerTest extends TestCase
         $this->assertIsArray($viewData['kotaOptions']);
     }
 
-    /** @test */
-    public function edit_page_loads_without_undefined_variable_errors()
+    public function test_edit_page_loads_without_undefined_variable_errors()
     {
         // Create an ekstrakurikuler record
         $ekstrakurikuler = Ekstrakurikuler::factory()->create([
@@ -120,8 +116,7 @@ class EkstrakurikulerControllerTest extends TestCase
         $this->assertIsArray($kotaOptions);
     }
 
-    /** @test */
-    public function step1_blade_uses_kota_options_instead_of_cities()
+    public function test_step1_blade_uses_kota_options_instead_of_cities()
     {
         $response = $this->actingAs($this->user)->get(route('ekstrakurikuler.create'));
 
@@ -138,8 +133,7 @@ class EkstrakurikulerControllerTest extends TestCase
         $response->assertViewHas('kotaOptions');
     }
 
-    /** @test */
-    public function all_controller_methods_pass_kota_options_consistently()
+    public function test_all_controller_methods_pass_kota_options_consistently()
     {
         // Test index method
         $indexResponse = $this->actingAs($this->user)->get(route('ekstrakurikuler.index'));
@@ -168,8 +162,7 @@ class EkstrakurikulerControllerTest extends TestCase
         $this->assertIsArray($editKotaOptions);
     }
 
-    /** @test */
-    public function ekstrakurikuler_pages_load_with_seeded_data()
+    public function test_ekstrakurikuler_pages_load_with_seeded_data()
     {
         // Create some sample data
         $sekolah = Sekolah::factory()->create(['kota' => 'Jakarta Selatan']);
