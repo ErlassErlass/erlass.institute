@@ -2,6 +2,14 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.7.8] - 2026-06-26
+
+### Dihapus (Removed)
+- **Aplikasi Promo (alatpromosierlass)**:
+  - Menghapus database MySQL `alatpromosi_db` secara bersih.
+  - Menghapus seluruh folder proyek `/var/www/alatpromosierlass`.
+  - Menghapus konfigurasi Nginx `/etc/nginx/sites-available/promo.erlass.institute` dan `/etc/nginx/sites-enabled/promo.erlass.institute` untuk domain `promo.erlass.institute` dan `alat.erlass.institute`.
+
 ## [1.7.7] - 2026-06-26
 
 ### Diperbaiki & Dioptimalkan (Fixed & Optimized)
