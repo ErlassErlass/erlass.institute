@@ -106,18 +106,20 @@ Client (Browser)
 
 ## ⚙️ Infrastruktur & Konfigurasi
 
-| Komponen | Konfigurasi |
-|----------|-------------|
-| **Web Server** | Nginx (Reverse Proxy + SSL) |
-| **Database** | MySQL — `erlass_db` |
-| **Cache** | Redis (`webapperlass_cache`) |
-| **Session** | Redis (encrypted) |
-| **Queue** | Redis |
-| **Storage** | Public disk (local filesystem) |
-| **Error Monitoring** | Sentry (traces sample rate: 20%) |
-| **WA Notifikasi** | Fonnte WhatsApp Gateway |
-| **Timezone** | Asia/Jakarta |
-| **Containerization** | Docker (tersedia `docker-compose.yml`) |
+| Komponen | Konfigurasi | Keterangan |
+|----------|-------------|------------|
+| **Web Server** | Nginx (Reverse Proxy + SSL) | Melayani HTTPS dan static files secara langsung |
+| **Database** | MySQL — `erlass_db` | Database utama untuk aplikasi |
+| **Cache** | Redis (`webapperlass_cache`) | Cache data dan setting |
+| **Session** | Redis (encrypted) | Session storage user |
+| **Queue Driver** | Redis | Menggunakan daemon Systemd `webapperlass-worker.service` |
+| **Task Scheduler** | Crontab (`www-data`) | Menjalankan `php artisan schedule:run` setiap menit |
+| **Storage** | Public disk (local filesystem) | Menyimpan dokumen & foto laporan |
+| **Error Monitoring** | Sentry (traces sample rate: 20%) | Integrasi error tracking |
+| **WA Notifikasi** | Fonnte WhatsApp Gateway | API pengiriman pesan WhatsApp |
+| **Timezone** | Asia/Jakarta | WIB |
+| **Containerization** | Docker (tersedia `docker-compose.yml`) | Lingkungan pengembangan lokal |
+
 
 ---
 

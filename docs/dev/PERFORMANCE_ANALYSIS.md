@@ -52,7 +52,30 @@ Agar performa maksimal di Production (Server Asli), pastikan menjalankan perinta
 3.  **OPCache (PHP)**:
     Pastikan ekstensi `opcache` aktif di `php.ini` server baru. Ini menyimpan script PHP di memori RAM.
 
-## 5. Kesimpulan
+## 5. Optimasi Infrastruktur VPS & Stabilitas Sistem (v1.7.7)
+
+### A. Migrasi Aplikasi Promo (`alatpromosierlass`) ke PHP-FPM
+- **Masalah**: Aplikasi promo (`promo.erlass.institute`) sebelumnya berjalan menggunakan server internal PHP (`php artisan serve` pada port 8001) yang dikelola oleh Systemd service `alatpromosi.service` dan diproxy oleh Nginx. Hal ini single-threaded, berkinerja rendah, dan tidak aman.
+- **Optimasi**:
+  1. Memindahkan repositori proyek dari `/root/alatpromosierlass` ke `/var/www/alatpromosierlass` dengan permission user `www-data:www-data`.
+  2. Mengubah konfigurasi Nginx agar melayani file statis secara langsung dan mengalirkan request PHP langsung ke PHP-FPM socket (`php8.3-fpm.sock`).
+  3. Menghapus unit service `alatpromosi.service` dan mematikan port 8001.
+- **Hasil**: Kinerja pemuatan halaman meningkat dramatis, pemakaian resource CPU/Memory drop, dan kestabilan naik karena ditangani oleh process pooling PHP-FPM.
+
+### B. Aktivasi Background Queue Worker (`webapperlass`)
+- **Masalah**: Sistem menggunakan antrean Redis (`QUEUE_CONNECTION=redis`), tetapi tidak ada daemon worker yang memproses tugas antrean di background. Hal ini menyebabkan email laporan dan notifikasi WhatsApp Gateway Fonnte tertahan di Redis.
+- **Optimasi**:
+  1. Membuat berkas unit Systemd baru `/etc/systemd/system/webapperlass-worker.service` untuk mengelola queue worker secara otomatis dengan restart policy.
+  2. Mengaktifkan daemon worker: `php artisan queue:work --sleep=3 --tries=3`.
+- **Hasil**: Notifikasi WhatsApp dan email asinkron terkirim seketika tanpa menunda waktu respon halaman bagi pengguna browser.
+
+### C. Aktivasi Task Scheduler
+- **Masalah**: Tugas terjadwal penting di `routes/console.php` (Warning Engine QC, WhatsApp Reminders H-1) tidak berjalan karena `schedule:run` tidak didaftarkan pada cron sistem.
+- **Optimasi**:
+  1. Mendaftarkan scheduler ke crontab user `www-data`: `* * * * * /usr/bin/php /var/www/webapperlass/artisan schedule:run >> /dev/null 2>&1`.
+- **Hasil**: Seluruh rutinitas Warning Engine QC dan pengingat harian berjalan otomatis tepat waktu di server.
+
+## 6. Kesimpulan
 *   **Current State**: Sangat Aman untuk data < 10.000 record.
 *   **Future Proofing**: Jika data membesar, fokuslah pada pengubahan Dropdown Filter menjadi AJAX.
 
