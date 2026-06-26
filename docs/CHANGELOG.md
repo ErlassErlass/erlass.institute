@@ -2,6 +2,20 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.7.7] - 2026-06-26
+
+### Diperbaiki & Dioptimalkan (Fixed & Optimized)
+- **Migrasi Aplikasi Promo ke PHP-FPM**:
+  - Memindahkan kode program promo dari `/root/alatpromosierlass` ke `/var/www/alatpromosierlass` dengan permission user `www-data`.
+  - Mengubah konfigurasi server block Nginx [`promo.erlass.institute`](file:///etc/nginx/sites-available/promo.erlass.institute) untuk langsung menyajikan aplikasi via PHP-FPM socket, meningkatkan efisiensi dan kestabilan.
+  - Menghapus service systemd lama `alatpromosi.service` yang menjalankan `php artisan serve` pada port 8001.
+- **Aktivasi Laravel Queue Worker**:
+  - Membuat unit service Systemd [`webapperlass-worker.service`](file:///etc/systemd/system/webapperlass-worker.service) agar Laravel queue worker terus berjalan di background, sehingga antrean notifikasi (WhatsApp Fonnte, email laporan, dll.) diproses secara real-time.
+- **Aktivasi Laravel Task Scheduler**:
+  - Menambahkan pemicu `schedule:run` ke crontab user `www-data` agar Warning Engine QC dan pengingat harian berjalan otomatis setiap menit.
+- **Pengamanan Lingkungan Promo**:
+  - Memperbarui konfigurasi `.env` pada aplikasi promo ke `APP_ENV=production` dan `APP_DEBUG=false` untuk pengamanan sistem.
+
 ## [1.7.6] - 2026-06-25
 
 ### Ditambahkan (Added)
