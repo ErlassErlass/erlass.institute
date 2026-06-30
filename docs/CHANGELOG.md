@@ -2,6 +2,26 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.7.9] - 2026-06-30
+
+### Ditambahkan (Added)
+- **Unduhan Template CSV Impor**:
+  - Menyediakan berkas `.csv` template unduhan baru di `/public/templates/` untuk semua fitur impor guna menjamin kesuksesan data impor:
+    - [Template_Import_Siswa.csv](file:///var/www/webapperlass/public/templates/Template_Import_Siswa.csv)
+    - [Template_Import_Rombel_Siswa.csv](file:///var/www/webapperlass/public/templates/Template_Import_Rombel_Siswa.csv)
+    - [Template_Import_Salesman.csv](file:///var/www/webapperlass/public/templates/Template_Import_Salesman.csv)
+    - [Template_Import_Order_Sp.csv](file:///var/www/webapperlass/public/templates/Template_Import_Order_Sp.csv)
+  - Menyematkan tautan unduhan template CSV ke dalam masing-masing modal dan halaman impor pada tampilan blade:
+    - Halaman Impor Siswa Master ([import.blade.php](file:///var/www/webapperlass/resources/views/siswa/import.blade.php))
+    - Modal Impor Siswa ke Rombel ([show.blade.php](file:///var/www/webapperlass/resources/views/ekstrakurikuler/show.blade.php))
+    - Modal Impor Salesman ([index.blade.php (Salesmen)](file:///var/www/webapperlass/resources/views/salesmen/index.blade.php))
+    - Modal Impor Order SP ([index.blade.php (Orders SP)](file:///var/www/webapperlass/resources/views/orders_sp/index.blade.php))
+
+### Diperbaiki & Dioptimalkan (Fixed & Optimized)
+- **Pencegahan Zoom Otomatis PWA**:
+  - Memperbarui tag viewport di layout utama [`app.blade.php`](file:///var/www/webapperlass/resources/views/layouts/app.blade.php) and layout tamu [`guest.blade.php`](file:///var/www/webapperlass/resources/views/layouts/guest.blade.php) dengan menyematkan `maximum-scale=1.0, user-scalable=no, viewport-fit=cover`.
+  - Menambahkan aturan CSS global `touch-action: manipulation` pada seluruh elemen klik aktif untuk menonaktifkan pembesaran layar (*double-tap zoom*) di perangkat mobile serta `-webkit-tap-highlight-color: transparent` untuk membuang bayangan kotak kedipan biru.
+
 ## [1.7.8] - 2026-06-26
 
 ### Dihapus (Removed)

@@ -7,11 +7,19 @@
         #nprogress .bar { background: #3b82f6 !important; height: 3px !important; }
         @keyframes pageFadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         main, .main-content { animation: pageFadeIn 0.4s ease-out forwards; }
+        
+        /* Disable Double-Tap Zoom & Tap Highlight */
+        html, body, button, select, input, textarea, a, .btn, .card, .modal-content {
+            touch-action: manipulation;
+        }
+        button, .btn, a, [role="button"] {
+            -webkit-tap-highlight-color: transparent;
+        }
     </style>
     
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
     <!-- Favicon & App Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32.png') }}">

@@ -5,10 +5,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
     <style>
         #nprogress .bar { background: #3b82f6 !important; height: 3px !important; }
+        
+        /* Disable Double-Tap Zoom & Tap Highlight */
+        html, body, button, select, input, textarea, a, .btn, .card {
+            touch-action: manipulation;
+        }
+        button, .btn, a, [role="button"] {
+            -webkit-tap-highlight-color: transparent;
+        }
     </style>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
     <!-- PWA Meta Tags & Manifest -->
     <meta name="theme-color" content="#2563eb">

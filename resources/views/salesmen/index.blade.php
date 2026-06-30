@@ -142,6 +142,10 @@
                     <div class="mb-3">
                         <label for="file" class="form-label fw-semibold text-muted small">Pilih File Excel (.xlsx, .xls, .csv)</label>
                         <input type="file" name="file" class="form-control" id="file" accept=".xlsx,.xls,.csv" required>
+                        <div class="mt-2">
+                            <span class="fw-semibold text-dark small me-2">Unduh Template:</span>
+                            <a href="{{ asset('templates/Template_Import_Salesman.csv') }}" class="btn btn-xs btn-outline-info text-decoration-none py-0 px-2" style="font-size: 0.75rem;"><i class="bi bi-file-earmark-spreadsheet me-1"></i>Template CSV</a>
+                        </div>
                         <div class="form-text small mt-3">
                             <span class="fw-semibold text-dark d-block mb-1">Ketentuan kolom Excel:</span>
                             <ul class="ps-3 mb-0 text-muted" style="list-style-type: decimal;">

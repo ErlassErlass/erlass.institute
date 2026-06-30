@@ -179,6 +179,10 @@
                     <div class="mb-3">
                         <label for="file" class="form-label fw-semibold text-muted small">Pilih File Excel (.xlsx, .xls, .csv)</label>
                         <input type="file" name="file" class="form-control" id="file" accept=".xlsx,.xls,.csv" required>
+                        <div class="mt-2">
+                            <span class="fw-semibold text-dark small me-2">Unduh Template:</span>
+                            <a href="{{ asset('templates/Template_Import_Order_Sp.csv') }}" class="btn btn-xs btn-outline-info text-decoration-none py-0 px-2" style="font-size: 0.75rem;"><i class="bi bi-file-earmark-spreadsheet me-1"></i>Template CSV</a>
+                        </div>
                         <div class="form-text small mt-2">
                             Pastikan header Excel memiliki kolom berikut:<br>
                             <code>nomor_sp</code>, <code>tanggal_sp</code>, <code>kode_pelanggan</code>, <code>kode_salesman</code>, <code>jumlah_peserta_estimasi</code>, <code>jenis_kegiatan</code>, <code>lokasi_pembelajaran</code>, <code>tanggal_mulai_rencana</code>, <code>jumlah_pertemuan</code>, <code>kode_produk</code>, <code>harga_satuan</code>, <code>catatan_khusus</code>

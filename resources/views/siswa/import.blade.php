@@ -24,7 +24,11 @@
                             <hr>
                             <ul class="mb-0">
                                 <li>Format file yang didukung: <strong>.csv, .xlsx</strong></li>
-                                <li><strong>Unduh Template:</strong> <a href="{{ asset('templates/Template_Import_Siswa.xlsx') }}" class="btn btn-sm btn-outline-success ms-2"><i class="bi bi-file-earmark-excel me-1"></i>Template Excel Siswa</a></li>
+                                <li>
+                                    <strong>Unduh Template:</strong> 
+                                    <a href="{{ asset('templates/Template_Import_Siswa.xlsx') }}" class="btn btn-sm btn-outline-success ms-2"><i class="bi bi-file-earmark-excel me-1"></i>Template Excel</a>
+                                    <a href="{{ asset('templates/Template_Import_Siswa.csv') }}" class="btn btn-sm btn-outline-info ms-2"><i class="bi bi-file-earmark-spreadsheet me-1"></i>Template CSV</a>
+                                </li>
                                 <li>Kolom wajib ada (Header): <code>nama_lengkap</code>, <code>nisn</code>, <code>sekolah_kodlan</code>, <code>kelas</code></li>
                                 <li>Pastikan <code>sekolah_kodlan</code> sesuai dengan Kode Sekolah yang ada di sistem.</li>
                             </ul>

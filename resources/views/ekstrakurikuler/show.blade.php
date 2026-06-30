@@ -539,6 +539,10 @@
                                                         <div class="form-text mt-1">
                                                             <i class="fas fa-info-circle"></i> Format: .xlsx, .xls, .csv | Maksimal: 2MB
                                                         </div>
+                                                        <div class="mt-2">
+                                                            <span class="fw-semibold text-dark small me-2">Unduh Template:</span>
+                                                            <a href="{{ asset('templates/Template_Import_Rombel_Siswa.csv') }}" class="btn btn-xs btn-outline-info text-decoration-none py-0 px-2" style="font-size: 0.75rem;"><i class="fas fa-file-csv me-1"></i>Template CSV</a>
+                                                        </div>
                                                         <small class="text-muted d-block mt-1">Data: No, Nama Lengkap, NISN (optional), Kelas</small>
                                                     </div>
                                                     <div class="alert alert-info small">
