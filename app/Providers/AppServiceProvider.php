@@ -33,8 +33,10 @@ class AppServiceProvider extends ServiceProvider
 
         // FORCE HTTPS for Ngrok or Production
         // This fixes broken layout/mixed content issues when accessing via https://ngrok...
-        if($this->app->environment('production') || str_contains(config('app.url'), 'ngrok') || request()->header('X-Forwarded-Proto') == 'https') {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+        if (! $this->app->runningInConsole()) {
+            if ($this->app->environment('production') || str_contains(config('app.url'), 'ngrok') || request()->header('X-Forwarded-Proto') == 'https') {
+                \Illuminate\Support\Facades\URL::forceScheme('https');
+            }
         }
     }
 }
