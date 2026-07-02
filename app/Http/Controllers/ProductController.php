@@ -63,7 +63,6 @@ class ProductController extends Controller
             'kode_produk' => 'required|string|unique:products,kode_produk',
             'nama_produk' => 'required|string',
             'jenis' => 'required|string',
-            'harga' => 'required|numeric|min:0',
             'durasi_bulan' => 'nullable|integer|min:1',
             'jenis_kegiatan' => 'required|in:eskul,inkul',
             'standar_durasi_menit' => 'required|integer|min:1',
@@ -109,7 +108,6 @@ class ProductController extends Controller
             'kode_produk' => 'required|string|unique:products,kode_produk,' . $product->id,
             'nama_produk' => 'required|string',
             'jenis' => 'required|string',
-            'harga' => 'required|numeric|min:0',
             'durasi_bulan' => 'nullable|integer|min:1',
             'jenis_kegiatan' => 'required|in:eskul,inkul',
             'standar_durasi_menit' => 'required|integer|min:1',
@@ -134,10 +132,6 @@ class ProductController extends Controller
     {
         if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
             abort(403, 'Akses ditolak.');
-        }
-
-        if ($product->orderItems()->exists()) {
-            return redirect()->route('products.index')->with('error', 'Produk tidak dapat dihapus karena sudah digunakan dalam SP.');
         }
 
         $product->delete();

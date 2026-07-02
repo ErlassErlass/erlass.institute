@@ -72,10 +72,9 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th width="10%" class="ps-4">Kode Produk</th>
-                            <th width="20%">Nama Produk</th>
+                            <th width="15%" class="ps-4">Kode Produk</th>
+                            <th width="25%">Nama Produk</th>
                             <th width="10%">Jenis</th>
-                            <th width="15%">Harga Standar</th>
                             <th width="10%">Durasi (Bulan)</th>
                             <th width="10%">Jenis Kegiatan</th>
                             <th width="10%">Tanggal</th>
@@ -93,9 +92,6 @@
                                 </td>
                                 <td>
                                     <span class="badge bg-info text-dark">{{ $item->jenis }}</span>
-                                </td>
-                                <td>
-                                    <span class="fw-semibold text-dark">Rp {{ number_format($item->harga, 2, ',', '.') }}</span>
                                 </td>
                                 <td>{{ $item->durasi_bulan ?? '-' }}</td>
                                 <td>

@@ -57,7 +57,7 @@ class DatabaseSeeder extends Seeder
             // ManualSiswaSeeder::class, // Imports siswa_import.csv (Disabled per user request)
             EmployeeSeeder::class,    // Imports employees_import.csv
             RefMateriSeeder::class,   // Syllabus/Materi Dropdowns
-            OrderSpDummySeeder::class, // Imports dummy SP data (excluding Fauzi)
+            ProductSeeder::class,     // Seeds default active products
             HolidaySeeder::class,     // Hari libur nasional Indonesia 2026-2027
         ]);
     }

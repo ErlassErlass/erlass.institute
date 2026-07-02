@@ -86,12 +86,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('salesmen', SalesmanController::class);
     });
 
-    Route::middleware(['role:webmaster,admin_sistem,admin,sales'])->group(function () {
-        Route::patch('orders-sp/{orders_sp}/submit', [OrderSpController::class, 'submit'])->name('orders-sp.submit');
-        Route::patch('orders-sp/{orders_sp}/approve', [OrderSpController::class, 'approve'])->name('orders-sp.approve');
-        Route::post('orders-sp/import', [OrderSpController::class, 'import'])->name('orders-sp.import');
-        Route::resource('orders-sp', OrderSpController::class);
-    });
+
     
     // User Management (Admin Only)
     Route::middleware(['role:webmaster,admin_sistem,admin'])->group(function () {

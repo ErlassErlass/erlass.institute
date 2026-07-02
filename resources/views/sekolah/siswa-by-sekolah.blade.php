@@ -54,6 +54,26 @@
         font-weight: bold;
         font-size: 0.875rem;
     }
+
+    /* Gender badge custom color utilities */
+    .bg-blue-50 {
+        background-color: #eff6ff !important;
+    }
+    .text-blue-600 {
+        color: #2563eb !important;
+    }
+    .border-blue-100 {
+        border-color: #dbeafe !important;
+    }
+    .bg-pink-50 {
+        background-color: #fdf2f8 !important;
+    }
+    .text-pink-600 {
+        color: #db2777 !important;
+    }
+    .border-pink-100 {
+        border-color: #fce7f3 !important;
+    }
 </style>
 @endpush
 
@@ -84,8 +104,7 @@
     @if($sekolah->siswa->count() > 0)
         <div class="card glass-card border-0">
             <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-modern align-middle mb-0 datatable" id="siswa-sekolah-table">
+                <table class="table table-modern align-middle mb-0" id="siswa-sekolah-table">
                         <thead>
                             <tr>
                                 <th width="5%">No</th>
@@ -127,7 +146,6 @@
                             @endforeach
                         </tbody>
                     </table>
-                </div>
             </div>
         </div>
     @else
@@ -161,7 +179,9 @@
                     { orderable: false, targets: [0] }, // Disable sorting for No. column
                     { type: 'string', targets: [1, 2, 3, 4] } // String sorting for all other columns
                 ],
-                pageLength: 25
+                pageLength: 25,
+                responsive: false,
+                scrollX: true
             });
         }
     });

@@ -41,6 +41,12 @@ class UpdateUserRequest extends FormRequest
             'is_verified' => ['boolean'],
             'verification_status' => ['nullable', 'in:pending,approved,rejected'],
             'rejection_reason' => ['nullable', 'string', 'max:500'],
+
+            // Field baru untuk tanggal aktif/nonaktif dan domisili
+            'tanggal_aktif' => ['nullable', 'date'],
+            'tanggal_nonaktif' => ['nullable', 'date', 'after_or_equal:tanggal_aktif'],
+            'alamat_domisili' => ['nullable', 'string'],
+            'kota_domisili' => ['nullable', 'string', 'max:255'],
         ];
     }
 

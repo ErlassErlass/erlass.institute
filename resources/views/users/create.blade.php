@@ -141,6 +141,35 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <!-- Tanggal Aktif -->
+                                        <div class="mb-3">
+                                            <label for="tanggal_aktif" class="form-label">Tanggal Aktif</label>
+                                            <input type="date" class="form-control @error('tanggal_aktif') is-invalid @enderror" 
+                                                   id="tanggal_aktif" 
+                                                   name="tanggal_aktif" 
+                                                   value="{{ old('tanggal_aktif') }}">
+                                            @error('tanggal_aktif')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <!-- Tanggal Nonaktif -->
+                                        <div class="mb-3">
+                                            <label for="tanggal_nonaktif" class="form-label">Tanggal Nonaktif</label>
+                                            <input type="date" class="form-control @error('tanggal_nonaktif') is-invalid @enderror" 
+                                                   id="tanggal_nonaktif" 
+                                                   name="tanggal_nonaktif" 
+                                                   value="{{ old('tanggal_nonaktif') }}">
+                                            @error('tanggal_nonaktif')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -249,6 +278,40 @@
                                         </div>
                                     </div>
                                 </div>
+                        <!-- Domicile Information Card (Shown for Instructor role only) -->
+                        <div class="card shadow-sm mb-4 d-none" id="instructor-domicile-card">
+                            <div class="card-header bg-info bg-opacity-10 text-info">
+                                <h6 class="card-title mb-0">
+                                    <i class="bi bi-geo-alt-fill me-2"></i>Domisili Instruktur
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <!-- Kota Domisili -->
+                                        <div class="mb-3">
+                                            <label for="kota_domisili" class="form-label">Kota Domisili</label>
+                                            <input type="text" class="form-control @error('kota_domisili') is-invalid @enderror" 
+                                                   id="kota_domisili" name="kota_domisili" value="{{ old('kota_domisili') }}"
+                                                   placeholder="Contoh: Jakarta Selatan">
+                                            @error('kota_domisili')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <!-- Alamat Domisili -->
+                                        <div class="mb-3">
+                                            <label for="alamat_domisili" class="form-label">Alamat Domisili</label>
+                                            <textarea class="form-control @error('alamat_domisili') is-invalid @enderror" 
+                                                      id="alamat_domisili" name="alamat_domisili" rows="1"
+                                                      placeholder="Alamat lengkap...">{{ old('alamat_domisili') }}</textarea>
+                                            @error('alamat_domisili')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -326,6 +389,26 @@
                     confirmPasswordInput.setCustomValidity('');
                 }
             });
+        }
+
+        // Toggle instructor domicile fields based on role
+        const roleSelect = document.getElementById('role');
+        const domicileCard = document.getElementById('instructor-domicile-card');
+        
+        function toggleDomicileCard() {
+            if (roleSelect && domicileCard) {
+                if (roleSelect.value === 'instruktur') {
+                    domicileCard.classList.remove('d-none');
+                } else {
+                    domicileCard.classList.add('d-none');
+                }
+            }
+        }
+        
+        if (roleSelect) {
+            roleSelect.addEventListener('change', toggleDomicileCard);
+            // Run initially
+            toggleDomicileCard();
         }
     });
 </script>

@@ -65,25 +65,7 @@
                             @enderror
                         </div>
 
-                        <div class="mb-3">
-                            <label for="harga" class="form-label fw-semibold text-muted small">Harga Standar</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0">Rp</span>
-                                <input 
-                                    type="number" 
-                                    step="0.01"
-                                    class="form-control border-start-0 @error('harga') is-invalid @enderror" 
-                                    id="harga" 
-                                    name="harga" 
-                                    value="{{ old('harga') }}" 
-                                    placeholder="150000"
-                                    required
-                                >
-                            </div>
-                            @error('harga')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
+
 
                         <div class="mb-3">
                             <label for="durasi_bulan" class="form-label fw-semibold text-muted small">Estimasi Durasi (Bulan)</label>

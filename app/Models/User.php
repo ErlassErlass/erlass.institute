@@ -108,6 +108,8 @@ class User extends Authenticatable
         'application_date',
         'division_id',
         'instructor_id',
+        'tanggal_aktif',
+        'tanggal_nonaktif',
     ];
 
     protected $hidden = [
@@ -120,6 +122,8 @@ class User extends Authenticatable
         'application_date' => 'datetime',
         'verification_documents' => 'array',
         'tanggal_lahir' => 'date',
+        'tanggal_aktif' => 'date',
+        'tanggal_nonaktif' => 'date',
     ];
 
     // Define relationships

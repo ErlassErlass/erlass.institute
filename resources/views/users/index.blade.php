@@ -124,8 +124,9 @@
                             <th>Nama</th>
                             <th>Email</th>
                             <th>Role</th>
-                            <th>Status Verifikasi</th>
-                            <th>Tanggal Daftar</th>
+                            <th>Domisili</th>
+                            <th>Status & Verifikasi</th>
+                            <th>Masa Aktif</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -179,27 +180,46 @@
                                 @endif
                             </td>
                             <td>
-                                @if($user->role === 'instruktur')
-                                    @if($user->verification_status === 'approved')
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-patch-check me-1"></i>Terverifikasi
-                                        </span>
-                                    @elseif($user->verification_status === 'pending')
-                                        <span class="badge bg-warning">
-                                            <i class="bi bi-clock me-1"></i>Pending
-                                        </span>
-                                    @elseif($user->verification_status === 'rejected')
-                                        <span class="badge bg-danger">
-                                            <i class="bi bi-x-circle me-1"></i>Ditolak
-                                        </span>
+                                {{ $user->instructorProfile->kota_domisili ?? '-' }}
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column gap-1 align-items-start">
+                                    <span class="badge {{ $user->status === 'Aktif' ? 'bg-success' : 'bg-danger' }}">
+                                        <i class="bi {{ $user->status === 'Aktif' ? 'bi-check-circle' : 'bi-dash-circle' }} me-1"></i>{{ $user->status }}
+                                    </span>
+                                    @if($user->role === 'instruktur')
+                                        @if($user->verification_status === 'approved')
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success">
+                                                <i class="bi bi-patch-check me-1"></i>Terverifikasi
+                                            </span>
+                                        @elseif($user->verification_status === 'pending')
+                                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">
+                                                <i class="bi bi-clock me-1"></i>Pending
+                                            </span>
+                                        @elseif($user->verification_status === 'rejected')
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">
+                                                <i class="bi bi-x-circle me-1"></i>Ditolak
+                                            </span>
+                                        @else
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">
+                                                <i class="bi bi-question-circle me-1"></i>Belum Diverifikasi
+                                            </span>
+                                        @endif
+                                    @endif
+                                </div>
+                            </td>
+                            <td>
+                                @if($user->tanggal_aktif || $user->tanggal_nonaktif)
+                                    @if($user->tanggal_aktif)
+                                        <div class="small"><span class="text-muted">Mulai:</span> {{ $user->tanggal_aktif->format('d M Y') }}</div>
+                                    @endif
+                                    @if($user->tanggal_nonaktif)
+                                        <div class="small"><span class="text-muted">Akhir:</span> {{ $user->tanggal_nonaktif->format('d M Y') }}</div>
                                     @endif
                                 @else
-                                    <span class="badge bg-success">
-                                        <i class="bi bi-check-circle me-1"></i>Aktif
-                                    </span>
+                                    <div class="small"><span class="text-muted">Daftar:</span> {{ $user->created_at->format('d M Y') }}</div>
                                 @endif
                             </td>
-                            <td>{{ $user->created_at->format('d M Y') }}</td>
                             <td>
                                 <div class="btn-group" role="group">
                                     @can('view', $user)

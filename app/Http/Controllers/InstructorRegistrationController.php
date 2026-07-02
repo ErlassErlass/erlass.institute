@@ -46,7 +46,7 @@ class InstructorRegistrationController extends Controller
 
             // Documents
             'foto_ktp' => 'required|image|max:2048',
-            'foto_npwp' => 'nullable|image|max:2048', // Jika tidak ada KTP (should probably clarify logic)
+            'foto_npwp' => 'required|image|max:2048',
             'cv' => 'required|file|mimes:pdf,doc,docx|max:5120',
 
             // Professional
@@ -60,7 +60,7 @@ class InstructorRegistrationController extends Controller
             // Financial & Legal
             'nama_bank' => 'required|string',
             'no_rekening' => 'required|string',
-            'no_npwp' => 'nullable|string',
+            'no_npwp' => 'required|string|min:16|max:16',
             'nik' => 'required|string|min:16|max:16',
 
             // Health & Logistics

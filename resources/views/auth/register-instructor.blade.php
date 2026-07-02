@@ -371,8 +371,8 @@
                                 <input class="form-control font-monospace" type="text" name="no_rekening" value="{{ old('no_rekening') }}" required />
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label small text-muted">NPWP (16 Digit)</label>
-                                <input class="form-control font-monospace" type="text" name="no_npwp" value="{{ old('no_npwp') }}" maxlength="16" />
+                                <label class="form-label small text-muted">NPWP (16 Digit) <span class="text-danger">*</span></label>
+                                <input class="form-control font-monospace" type="text" name="no_npwp" value="{{ old('no_npwp') }}" maxlength="16" required />
                             </div>
                             
                             <div class="col-md-4">
@@ -381,8 +381,8 @@
                                 <div class="form-text small">Format Image (JPG/PNG)</div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label small text-muted">Upload NPWP</label>
-                                <input class="form-control" type="file" name="foto_npwp" accept="image/*" />
+                                <label class="form-label small text-muted">Upload NPWP <span class="text-danger">*</span></label>
+                                <input class="form-control" type="file" name="foto_npwp" accept="image/*" required />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label small text-muted">Upload CV <span class="text-danger">*</span></label>

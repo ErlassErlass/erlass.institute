@@ -21,7 +21,7 @@ class UserController extends Controller
         // Hanya webmaster/admin_sistem yang bisa mengakses halaman ini
         Gate::authorize('viewAny', User::class);
 
-        $query = User::query();
+        $query = User::with('instructorProfile');
 
         // Search functionality
         if ($request->filled('search')) {
@@ -103,6 +103,10 @@ class UserController extends Controller
             'kompetensi_1' => ['nullable', 'string', 'max:255'],
             'kompetensi_2' => ['nullable', 'string', 'max:255'],
             'role' => ['required', 'in:webmaster,admin_sistem,admin,instruktur,sales'],
+            'tanggal_aktif' => ['nullable', 'date'],
+            'tanggal_nonaktif' => ['nullable', 'date', 'after_or_equal:tanggal_aktif'],
+            'alamat_domisili' => ['nullable', 'string'],
+            'kota_domisili' => ['nullable', 'string', 'max:255'],
         ], [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
             'email.required' => 'Email wajib diisi.',
@@ -113,6 +117,7 @@ class UserController extends Controller
             'no_telephone.regex' => 'Format nomor telepon tidak valid.',
             'status.required' => 'Status wajib dipilih.',
             'role.required' => 'Role wajib dipilih.',
+            'tanggal_nonaktif.after_or_equal' => 'Tanggal nonaktif harus setelah atau sama dengan tanggal aktif.',
         ]);
 
         // Hash password
@@ -125,7 +130,14 @@ class UserController extends Controller
             $validated['application_date'] = now();
         }
 
-        User::create($validated);
+        $user = User::create($validated);
+
+        if ($validated['role'] === 'instruktur') {
+            $user->instructorProfile()->create([
+                'alamat_domisili' => $request->alamat_domisili,
+                'kota_domisili' => $request->kota_domisili,
+            ]);
+        }
 
         return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan!');
     }
@@ -189,6 +201,16 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+
+        if ($user->role === 'instruktur') {
+            $user->instructorProfile()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'alamat_domisili' => $request->alamat_domisili,
+                    'kota_domisili' => $request->kota_domisili,
+                ]
+            );
+        }
 
         return redirect()->route('users.index')->with('success', 'User berhasil diperbarui!');
     }

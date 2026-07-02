@@ -35,11 +35,4 @@ class Salesman extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    /**
-     * Relasi ke model OrderSp.
-     */
-    public function ordersSp(): HasMany
-    {
-        return $this->hasMany(OrderSp::class, 'salesman_id');
-    }
 }

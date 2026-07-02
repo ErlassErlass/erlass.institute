@@ -539,14 +539,7 @@
                                 </a>
                             </li>
                         @endif
-                        @if(in_array(Auth::user()?->role, ['webmaster', 'admin_sistem', 'admin', 'sales']))
-                            <li class="sidebar-item">
-                                <a class="sidebar-link {{ request()->routeIs('orders-sp.index') ? 'active' : '' }}" href="{{ route('orders-sp.index') }}">
-                                    <i class="bi bi-file-earmark-text"></i>
-                                    <span>Surat Pesanan (SP)</span>
-                                </a>
-                            </li>
-                        @endif
+
                     @endif
 
                     @if(Auth::user()?->hasAdminAccess())

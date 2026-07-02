@@ -22,7 +22,6 @@ class Product extends Model
         'kode_produk',
         'nama_produk',
         'jenis',
-        'harga',
         'durasi_bulan',
         'jenis_kegiatan',
         'standar_durasi_menit',
@@ -34,18 +33,9 @@ class Product extends Model
      * Casting tipe data kolom.
      */
     protected $casts = [
-        'harga' => 'decimal:2',
         'durasi_bulan' => 'integer',
         'standar_durasi_menit' => 'integer',
         'tanggal' => 'date',
         'is_aktif' => 'boolean',
     ];
-
-    /**
-     * Relasi ke model OrderItem.
-     */
-    public function orderItems(): HasMany
-    {
-        return $this->hasMany(OrderItem::class, 'product_id');
-    }
 }
