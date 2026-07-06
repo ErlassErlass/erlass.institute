@@ -147,7 +147,7 @@ class EkstrakurikulerQueryService
         return [
             'sekolahs' => collect(), // Performance optimization: schools are loaded via AJAX/Select2
             'salesUsers' => User::with('division')
-                ->whereIn('role', ['sales', 'koordinator'])
+                ->whereIn('id', \App\Models\Salesman::whereNotNull('user_id')->pluck('user_id'))
                 ->orderBy('nama_lengkap')
                 ->get(),
             'statuses' => [

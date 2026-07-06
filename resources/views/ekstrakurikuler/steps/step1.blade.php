@@ -73,7 +73,7 @@
 </div>
 
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-12">
         <div class="form-group mb-3">
             <label for="city" class="form-label">
                 Kota <span class="required-indicator">*</span>
@@ -100,32 +100,6 @@
         
         <!-- Hidden region field untuk backward compatibility -->
         <input type="hidden" id="region" name="region" value="{{ old('region', $formData['region'] ?? '') }}">
-    </div>
-
-    <div class="col-md-6">
-        <div class="form-group mb-3">
-            <label for="jenis_pembayaran" class="form-label">
-                Jenis Pembayaran <span class="required-indicator">*</span>
-            </label>
-            <select class="form-control @error('jenis_pembayaran') is-invalid @enderror" 
-                    id="jenis_pembayaran" 
-                    name="jenis_pembayaran" 
-                    required>
-                <option value="">Pilih Jenis Pembayaran</option>
-                @foreach(\App\Models\Ekstrakurikuler::JENIS_PEMBAYARAN_OPTIONS as $value => $label)
-                    <option value="{{ $value }}" 
-                            {{ old('jenis_pembayaran', $formData['jenis_pembayaran'] ?? '') == $value ? 'selected' : '' }}>
-                        {{ $label }}
-                    </option>
-                @endforeach
-            </select>
-            @error('jenis_pembayaran')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-            <small class="form-text text-muted">
-                Model pembayaran yang diterapkan untuk program ini
-            </small>
-        </div>
     </div>
 </div>
 

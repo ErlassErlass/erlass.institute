@@ -32,7 +32,6 @@ class CreateEkstrakurikulerStep1Request extends FormRequest
             'user_id_sales' => 'required|exists:users,id',
             'region' => 'nullable|string|in:JAKARTA,DEPOK,BOGOR,TANGERANG,BEKASI',
             'city' => 'nullable|string|max:255',
-            'jenis_pembayaran' => 'required|string|in:per_siswa_bulan,per_siswa_semester,per_siswa_tahun,per_pertemuan_instruktur',
             'deskripsi' => 'nullable|string|max:1000',
         ];
 
@@ -59,7 +58,6 @@ class CreateEkstrakurikulerStep1Request extends FormRequest
             'user_id_sales' => 'sales/koordinator',
             'region' => 'region',
             'city' => 'kota',
-            'jenis_pembayaran' => 'jenis pembayaran',
             'deskripsi' => 'deskripsi program',
             'jenis_alat' => 'jenis alat',
             'jumlah_siswa_per_alat' => 'jumlah siswa per alat',
@@ -77,8 +75,6 @@ class CreateEkstrakurikulerStep1Request extends FormRequest
             'user_id_sales.required' => 'Sales/koordinator wajib dipilih.',
             'user_id_sales.exists' => 'Sales/koordinator yang dipilih tidak valid.',
             'region.in' => 'Region harus salah satu dari: Jakarta, Depok, Bogor, Tangerang, atau Bekasi.',
-            'jenis_pembayaran.required' => 'Jenis pembayaran wajib dipilih.',
-            'jenis_pembayaran.in' => 'Jenis pembayaran yang dipilih tidak valid.',
             'deskripsi.max' => 'Deskripsi tidak boleh lebih dari 1000 karakter.',
             'jenis_alat.required' => 'Jenis alat wajib dipilih untuk program Microbit/Robotik.',
             'jenis_alat.in' => 'Jenis alat yang dipilih tidak valid.',

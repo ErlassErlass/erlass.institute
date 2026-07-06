@@ -120,4 +120,76 @@ class SiswaEkstrakurikulerTest extends TestCase
         $this->assertEquals(0, $this->rombelA->jumlah_siswa);
         $this->assertEquals(1, $this->rombelB->jumlah_siswa);
     }
+
+    public function test_import_siswa_program()
+    {
+        $csvContent = "nama_lengkap,nisn,kelas_akademik,no_hp_orangtua,target_rombel_ekskul\n";
+        $csvContent .= "Siswa Baru Import,88997766,XI-IPA-1,085712345678,Rombel A\n";
+        $csvContent .= "Siswa Baru Import Dua,88997767,XI-IPA-2,085712345679,Rombel B\n";
+
+        $tempFile = tempnam(sys_get_temp_dir(), 'import_test');
+        file_put_contents($tempFile, $csvContent);
+
+        $uploadedFile = new \Illuminate\Http\UploadedFile(
+            $tempFile,
+            'Template_Import_Siswa_Program.csv',
+            'text/csv',
+            null,
+            true
+        );
+
+        $response = $this->actingAs($this->user)
+            ->post(route('ekstrakurikuler.enrollment.import', $this->ekstrakurikuler), [
+                'file' => $uploadedFile,
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success');
+
+        // Check if student records exist
+        $this->assertDatabaseHas('siswa', [
+            'nisn' => '88997766',
+            'nama_lengkap' => 'Siswa Baru Import',
+            'kelas' => 'XI-IPA-1',
+            'sekolah_kodlan' => $this->sekolah->kodlan,
+        ]);
+
+        $this->assertDatabaseHas('siswa', [
+            'nisn' => '88997767',
+            'nama_lengkap' => 'Siswa Baru Import Dua',
+            'kelas' => 'XI-IPA-2',
+            'sekolah_kodlan' => $this->sekolah->kodlan,
+        ]);
+
+        // Check if enrollments are created
+        $this->assertDatabaseHas('siswa_ekstrakurikuler', [
+            'ekstrakurikuler_id' => $this->ekstrakurikuler->id,
+            'ekstrakurikuler_rombel_id' => $this->rombelA->id,
+            'status' => 'aktif',
+        ]);
+
+        $this->assertDatabaseHas('siswa_ekstrakurikuler', [
+            'ekstrakurikuler_id' => $this->ekstrakurikuler->id,
+            'ekstrakurikuler_rombel_id' => $this->rombelB->id,
+            'status' => 'aktif',
+        ]);
+
+        // Check rombel student counts
+        $this->rombelA->refresh();
+        $this->rombelB->refresh();
+        $this->assertEquals(1, $this->rombelA->jumlah_siswa);
+        $this->assertEquals(1, $this->rombelB->jumlah_siswa);
+
+        @unlink($tempFile);
+    }
+
+    public function test_get_available_rombels()
+    {
+        $response = $this->actingAs($this->user)
+            ->get(route('ekstrakurikuler.enrollment.available-rombels', $this->ekstrakurikuler));
+
+        $response->assertStatus(200);
+        $response->assertJson([$this->siswa->rombel]);
+    }
 }

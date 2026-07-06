@@ -206,65 +206,71 @@
 
 @push('scripts')
 <script>
-$(document).ready(function() {
-    // Check if Select2 is loaded
-    if (typeof $.fn.select2 === 'undefined') {
-        console.error('Select2 is not loaded!');
+function initSekolahSelect2() {
+    // Check if jQuery and Select2 plugin are loaded safely without ReferenceError
+    if (typeof window.$ === 'undefined' || typeof window.$.fn.select2 === 'undefined') {
+        console.warn('Select2 or jQuery not loaded yet, retrying in 50ms...');
+        setTimeout(initSekolahSelect2, 50);
         return;
     }
 
-    // Initialize Select2
-    $('#sekolah_kodlan').select2({
-        theme: 'bootstrap-5',
-        width: '100%',
-        placeholder: 'Ketik nama sekolah atau kode...',
-        allowClear: true,
-        dropdownParent: $('body'), // Ensure dropdown renders correctly
-        ajax: {
-            url: "{{ route('api.sekolah.search') }}",
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return {
-                    q: params.term
-                };
-            },
-            processResults: function (data) {
-                return {
-                    results: data.results
-                };
-            },
-            cache: true
-        }
-    });
-
-    // Auto-fill address based on school selection
-    $('#sekolah_kodlan').on('select2:select', function(e) {
-        const data = e.params.data;
-        if (data.id) {
-            const alamatField = $('#alamat_lengkap');
-            // Only auto-fill if empty to avoid overwriting user edits
-            if (!alamatField.val()) {
-                const kotkab = data.kotkab || '';
-                const kec = data.kec || '';
-                // Use empty string fallback if data attributes are missing
-                const location = (kec && kotkab) ? `\n${kec}, ${kotkab}` : '';
-                alamatField.val(`${data.text.trim()}${location}`);
+    $(document).ready(function() {
+        // Initialize Select2
+        $('#sekolah_kodlan').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: 'Ketik nama sekolah atau kode...',
+            allowClear: true,
+            dropdownParent: $('body'), // Ensure dropdown renders correctly
+            ajax: {
+                url: "{{ route('api.sekolah.search') }}",
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term,
+                        kota: "{{ $formData['city'] ?? '' }}"
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
             }
-        }
-    });
+        });
 
-    // Validate phone number format
-    $('#no_telepon').on('input', function() {
-        let value = $(this).val().replace(/\D/g, ''); // Remove non-digits
-        
-        // Add country code if not present
-        if (value.length > 0 && !value.startsWith('62') && !value.startsWith('0')) {
-            value = '0' + value;
-        }
-        
-        $(this).val(value);
+        // Auto-fill address based on school selection
+        $('#sekolah_kodlan').on('select2:select', function(e) {
+            const data = e.params.data;
+            if (data.id) {
+                const alamatField = $('#alamat_lengkap');
+                // Only auto-fill if empty to avoid overwriting user edits
+                if (!alamatField.val()) {
+                    const kotkab = data.kotkab || '';
+                    const kec = data.kec || '';
+                    // Use empty string fallback if data attributes are missing
+                    const location = (kec && kotkab) ? `\n${kec}, ${kotkab}` : '';
+                    alamatField.val(`${data.text.trim()}${location}`);
+                }
+            }
+        });
+
+        // Validate phone number format
+        $('#no_telepon').on('input', function() {
+            let value = $(this).val().replace(/\D/g, ''); // Remove non-digits
+            
+            // Add country code if not present
+            if (value.length > 0 && !value.startsWith('62') && !value.startsWith('0')) {
+                value = '0' + value;
+            }
+            
+            $(this).val(value);
+        });
     });
-});
+}
+
+initSekolahSelect2();
 </script>
 @endpush

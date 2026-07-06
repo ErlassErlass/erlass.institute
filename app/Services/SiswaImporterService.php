@@ -157,7 +157,7 @@ class SiswaImporterService
             'nisn' => 'required|string', // Removed unique check here to handle updates/duplicates gracefully
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
             'kelas' => 'required|string',
-            'no_hp_orangtua' => 'required|string|min:10|max:15',
+            'no_hp_orangtua' => 'nullable|string|min:10|max:15',
         ]);
     }
 
@@ -170,7 +170,7 @@ class SiswaImporterService
                 'sekolah_kodlan' => $data['sekolah_kodlan'],
                 'kelas' => $data['kelas'],
                 'rombel' => $data['kelas'], // Sync rombel with kelas
-                'no_hp_orangtua' => $data['no_hp_orangtua'],
+                'no_hp_orangtua' => $data['no_hp_orangtua'] ?? null,
             ]
         );
     }
@@ -195,6 +195,13 @@ class SiswaImporterService
                     $mapped[$standardKey] = $row[$alias];
                     break;
                 }
+            }
+        }
+
+        // Initialize unmapped keys to null
+        foreach ($mappings as $standardKey => $aliases) {
+            if (!isset($mapped[$standardKey])) {
+                $mapped[$standardKey] = null;
             }
         }
 
@@ -291,5 +298,174 @@ class SiswaImporterService
         $rombel->update(['jumlah_siswa' => $rombel->siswa()->count()]);
 
         return ['imported' => $importedIndex, 'updated' => $updatedIndex];
+    }
+
+    /**
+     * Import students directly to an Ekstrakurikuler program's rombels.
+     * CSV Columns: nama_lengkap, nisn, kelas_akademik, no_hp_orangtua, target_rombel_ekskul
+     *
+     * @param string $filePath
+     * @param string|null $extension
+     * @param \App\Models\Ekstrakurikuler $ekstrakurikuler
+     * @return array
+     */
+    public function importToProgram(string $filePath, ?string $extension, \App\Models\Ekstrakurikuler $ekstrakurikuler): array
+    {
+        $data = $this->parseFile($filePath, $extension);
+        
+        $results = [
+            'success' => 0,
+            'failed' => 0,
+            'errors' => [],
+        ];
+
+        if (empty($data)) {
+            $results['errors'][] = 'File kosong atau format tidak valid.';
+            return $results;
+        }
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($data as $rowIndex => $row) {
+                $row = array_change_key_case($row, CASE_LOWER);
+                
+                // Normalize keys (basic cleanup)
+                $cleanRow = [];
+                foreach ($row as $key => $value) {
+                    $cleanKey = str_replace(' ', '_', trim($key));
+                    $cleanRow[$cleanKey] = trim($value);
+                }
+
+                // Map Headers
+                $mappedRow = [];
+                $mappings = [
+                    'nama_lengkap' => ['nama', 'nama_siswa', 'nama_lengkap', 'name', 'student_name'],
+                    'nisn' => ['nisn', 'nis', 'nomor_induk_siswa_nasional'],
+                    'kelas_akademik' => ['kelas_akademik', 'kelas', 'rombel_sekolah', 'rombel_akademik', 'class', 'grade'],
+                    'no_hp_orangtua' => ['no_hp_orangtua', 'no_hp', 'hp', 'no_wa', 'whatsapp', 'no_telp_orangtua', 'no_hp_wali'],
+                    'target_rombel_ekskul' => ['target_rombel_ekskul', 'rombel_ekskul', 'rombel_ekskul_target', 'rombel_tujuan', 'rombel', 'group'],
+                ];
+
+                foreach ($mappings as $standardKey => $aliases) {
+                    foreach ($aliases as $alias) {
+                        if (isset($cleanRow[$alias]) && !isset($mappedRow[$standardKey])) {
+                            $mappedRow[$standardKey] = $cleanRow[$alias];
+                            break;
+                        }
+                    }
+                }
+
+                // Initialize unmapped keys to null
+                foreach ($mappings as $standardKey => $aliases) {
+                    if (!isset($mappedRow[$standardKey])) {
+                        $mappedRow[$standardKey] = null;
+                    }
+                }
+
+                // Keep other fields
+                foreach ($cleanRow as $key => $value) {
+                    if (!isset($mappedRow[$key]) && array_key_exists($key, $mappings)) {
+                        $mappedRow[$key] = $value;
+                    }
+                }
+
+                // Validate row
+                $validation = Validator::make($mappedRow, [
+                    'nama_lengkap' => 'required|string',
+                    'nisn' => 'required|string',
+                    'kelas_akademik' => 'required|string',
+                    'no_hp_orangtua' => 'nullable|string|min:10|max:15',
+                    'target_rombel_ekskul' => 'required|string',
+                ]);
+
+                if ($validation->fails()) {
+                    $results['failed']++;
+                    $results['errors'][] = "Baris " . ($rowIndex + 2) . ": " . implode(', ', $validation->errors()->all());
+                    continue;
+                }
+
+                // Find target rombel
+                $targetRombel = $mappedRow['target_rombel_ekskul'];
+                $rombel = $ekstrakurikuler->rombels()
+                    ->where(function ($q) use ($targetRombel) {
+                        $q->where('nama_rombel', $targetRombel)
+                          ->orWhere('nomor_rombel', $targetRombel)
+                          ->orWhere('nama_rombel', 'like', '%' . $targetRombel . '%');
+                    })
+                    ->first();
+
+                if (!$rombel) {
+                    $results['failed']++;
+                    $results['errors'][] = "Baris " . ($rowIndex + 2) . ": Rombel ekskul '" . $targetRombel . "' tidak ditemukan di program ini.";
+                    continue;
+                }
+
+                // Create or update Siswa
+                $siswa = Siswa::updateOrCreate(
+                    ['nisn' => $mappedRow['nisn']],
+                    [
+                        'nama_lengkap' => $mappedRow['nama_lengkap'],
+                        'sekolah_kodlan' => $ekstrakurikuler->sekolah_kodlan,
+                        'kelas' => $mappedRow['kelas_akademik'],
+                        'rombel' => $mappedRow['kelas_akademik'],
+                        'no_hp_orangtua' => $mappedRow['no_hp_orangtua'],
+                    ]
+                );
+
+                // Enroll student to the specific program rombel
+                $isEnrolled = \App\Models\SiswaEkstrakurikuler::where('siswa_id', $siswa->id)
+                    ->where('ekstrakurikuler_id', $ekstrakurikuler->id)
+                    ->where('status', '!=', 'keluar')
+                    ->exists();
+
+                if (!$isEnrolled) {
+                    \App\Models\SiswaEkstrakurikuler::create([
+                        'siswa_id' => $siswa->id,
+                        'ekstrakurikuler_id' => $ekstrakurikuler->id,
+                        'ekstrakurikuler_rombel_id' => $rombel->id,
+                        'status' => 'aktif',
+                        'tanggal_daftar' => now()->toDateString(),
+                        'catatan' => 'Daftar via import program',
+                    ]);
+
+                    // Trigger Welcome Message
+                    if ($siswa->no_hp_orangtua) {
+                        try {
+                            $siswa->notify(new \App\Notifications\WelcomeParentNotification($siswa, $rombel));
+                        } catch (\Exception $e) {
+                            \Log::error('Gagal mengirim WhatsApp Welcome Message ke siswa ID: ' . $siswa->id . '. Error: ' . $e->getMessage());
+                        }
+                    }
+
+                    $results['success']++;
+                } else {
+                    // Update current enrollment's rombel if already registered
+                    $enrollment = \App\Models\SiswaEkstrakurikuler::where('siswa_id', $siswa->id)
+                        ->where('ekstrakurikuler_id', $ekstrakurikuler->id)
+                        ->where('status', '!=', 'keluar')
+                        ->first();
+                    
+                    if ($enrollment) {
+                        $enrollment->update([
+                            'ekstrakurikuler_rombel_id' => $rombel->id
+                        ]);
+                    }
+                    $results['success']++;
+                }
+            }
+
+            // Update student count for all rombels of the program
+            foreach ($ekstrakurikuler->rombels as $r) {
+                $r->update(['jumlah_siswa' => $r->siswa()->count()]);
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+
+        return $results;
     }
 }

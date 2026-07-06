@@ -131,6 +131,8 @@ Route::middleware(['auth'])->group(function () {
             ->name('sessions.cancel');
         Route::post('sessions/{session}/reschedule', [EkstrakurikulerSessionController::class, 'reschedule'])
             ->name('sessions.reschedule');
+        Route::post('sessions/{session}/postpone', [EkstrakurikulerSessionController::class, 'postpone'])
+            ->name('sessions.postpone');
         Route::post('sessions/{session}/override-fee', [EkstrakurikulerSessionController::class, 'overrideFee'])
             ->name('sessions.override-fee');
 
@@ -209,6 +211,15 @@ Route::middleware(['auth'])->group(function () {
             ->name('enrollment.create');
         Route::post('enrollment', [SiswaEkstrakurikulerController::class, 'store'])
             ->name('enrollment.store');
+        Route::get('enrollment/available-rombels', [SiswaEkstrakurikulerController::class, 'getAvailableRombels'])
+            ->name('enrollment.available-rombels');
+        Route::post('enrollment/import', [SiswaEkstrakurikulerController::class, 'importSiswaProgram'])
+            ->name('enrollment.import');
+        Route::post('enrollment/bulk-import-rombel', [SiswaEkstrakurikulerController::class, 'bulkImportByRombel'])
+            ->name('enrollment.bulk-import-rombel');
+        Route::post('enrollment/bulk-action', [SiswaEkstrakurikulerController::class, 'bulkAction'])
+            ->name('enrollment.bulk-action');
+
         Route::get('enrollment/{enrollment}', [SiswaEkstrakurikulerController::class, 'show'])
             ->name('enrollment.show');
         Route::get('enrollment/{enrollment}/edit', [SiswaEkstrakurikulerController::class, 'edit'])
@@ -226,15 +237,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('enrollment/{enrollment}/graduate', [SiswaEkstrakurikulerController::class, 'graduate'])
             ->name('enrollment.graduate');
 
-        // Bulk actions
-        Route::post('enrollment/bulk-action', [SiswaEkstrakurikulerController::class, 'bulkAction'])
-            ->name('enrollment.bulk-action');
-
-        // Bulk import by rombel
-        Route::post('enrollment/bulk-import-rombel', [SiswaEkstrakurikulerController::class, 'bulkImportByRombel'])
-            ->name('enrollment.bulk-import-rombel');
-        Route::get('enrollment/available-rombels', [SiswaEkstrakurikulerController::class, 'getAvailableRombels'])
-            ->name('enrollment.available-rombels');
     });
 
 

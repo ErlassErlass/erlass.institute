@@ -11,7 +11,7 @@
             </h1>
             <p class="mb-0 text-muted">{{ $ekstrakurikuler->kategori_program }} - {{ $ekstrakurikuler->sekolah->namasekolah ?? 'N/A' }}</p>
         </div>
-        <div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
             <a href="{{ route('ekstrakurikuler.show', $ekstrakurikuler) }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Kembali ke Program
             </a>
@@ -21,7 +21,10 @@
                         <i class="bi bi-person-plus me-1"></i> Daftarkan Siswa
                     </a>
                     <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#bulkImportRombelModal">
-                        <i class="bi bi-people-fill me-1"></i> Import Rombel
+                        <i class="bi bi-people-fill me-1"></i> Daftarkan dari Kelas Sekolah
+                    </button>
+                    <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#importSiswaProgramModal">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Unggah Excel/CSV
                     </button>
                 </div>
             @endcan
@@ -91,6 +94,17 @@
             </div>
         </div>
     </div>
+
+    @if($errors->import_errors->any())
+        <div class="alert alert-danger mb-4">
+            <h6 class="alert-heading font-weight-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Beberapa baris gagal diimpor:</h6>
+            <ul class="mb-0 small" style="max-height: 150px; overflow-y: auto;">
+                @foreach($errors->import_errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
     <!-- Filter & Search -->
     <div class="card mb-4">
@@ -254,7 +268,7 @@
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title">
-                        <i class="bi bi-people-fill me-2"></i>Import Siswa dari Rombel
+                        <i class="bi bi-people-fill me-2"></i>Daftarkan Siswa dari Kelas Sekolah
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -379,6 +393,44 @@
                 </div>
             </form>
         </div>
+</div>
+</div>
+
+<!-- Bulk Import Siswa Program Modal -->
+<div class="modal fade" id="importSiswaProgramModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('ekstrakurikuler.enrollment.import', $ekstrakurikuler) }}" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-file-earmark-excel me-2"></i>Import Siswa ke Program (Bulk Rombel)
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="file_excel_program" class="form-label">File Excel/CSV (.xlsx, .csv)</label>
+                        <input type="file" class="form-control" id="file_excel_program" name="file" required accept=".xlsx,.xls,.csv" data-max-size="5242880">
+                        <div class="form-text mt-1">
+                            Format: .xlsx, .xls, .csv | Maksimal: 5MB
+                        </div>
+                        <div class="mt-2">
+                            <span class="fw-semibold text-dark small me-2">Unduh Template:</span>
+                            <a href="{{ asset('templates/Template_Import_Siswa_Program.csv') }}" class="btn btn-sm btn-outline-info text-decoration-none py-1 px-2" style="font-size: 0.75rem;"><i class="bi bi-file-earmark-spreadsheet me-1"></i>Template CSV</a>
+                        </div>
+                        <small class="text-muted d-block mt-1">Kolom: nama_lengkap, nisn, kelas_akademik, no_hp_orangtua, target_rombel_ekskul</small>
+                    </div>
+                    <div class="alert alert-info small mb-0">
+                        <i class="bi bi-info-circle me-1"></i> Sistem akan mencocokkan target rombel ekskul (misal: "Rombel 1"). Jika siswa belum ada di database, data siswa akan dibuat baru.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success">Import ke Program</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 @endpush
@@ -457,7 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load rombels from API
     function loadAvailableRombels() {
-        fetch('{{ route('ekstrakurikuler.enrollment.available-rombels', $ekstrakurikuler) }}')
+        fetch('{{ route('ekstrakurikuler.enrollment.available-rombels', $ekstrakurikuler, false) }}')
             .then(response => response.json())
             .then(rombels => {
                 rombelSelect.innerHTML = '<option value="">Pilih Rombel...</option>';

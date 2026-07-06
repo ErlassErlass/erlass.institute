@@ -164,7 +164,7 @@ class EkstrakurikulerFormService
     {
         return $request->only([
             'kategori_program', 'user_id_sales', 'region', 'city', 
-            'jenis_pembayaran', 'jenis_alat', 'jumlah_siswa_per_alat', 'deskripsi',
+            'jenis_alat', 'jumlah_siswa_per_alat', 'deskripsi',
         ]);
     }
 
@@ -269,7 +269,6 @@ class EkstrakurikulerFormService
             'user_id_sales' => 'required|exists:users,id',
             'region' => 'nullable|string',
             'city' => 'required|string',
-            'jenis_pembayaran' => 'required|string',
             'jenis_alat' => 'nullable|string',
             'jumlah_siswa_per_alat' => 'nullable|integer',
         ];
@@ -348,21 +347,39 @@ class EkstrakurikulerFormService
             throw new \Exception('Jumlah rombel harus minimal 1');
         }
 
-        if (empty($formData['rombels']) || count($formData['rombels']) < $formData['total_rombel']) {
-            throw new \Exception('Data rombel tidak lengkap');
+        // Count only rombels within the valid range
+        $totalRombel = (int)$formData['total_rombel'];
+        $configuredRombels = 0;
+        if (!empty($formData['rombels'])) {
+            for ($i = 1; $i <= $totalRombel; $i++) {
+                if (isset($formData['rombels'][$i])) {
+                    $configuredRombels++;
+                }
+            }
         }
 
-        // Check student count consistency
-        $totalSiswaTarget = $formData['total_siswa'] ?? 0;
+        if ($configuredRombels < $totalRombel) {
+            throw new \Exception("Data rombel tidak lengkap. Baru {$configuredRombels} dari {$totalRombel} rombel yang dikonfigurasi.");
+        }
+
+        // Check student count - auto-correct total_siswa to match rombel sum
         $totalSiswaActual = 0;
         foreach ($formData['rombels'] as $rombelNumber => $rombel) {
-            if ($rombelNumber <= $formData['total_rombel']) {
+            if ($rombelNumber <= $totalRombel) {
                 $totalSiswaActual += $rombel['jumlah_siswa'] ?? 0;
             }
         }
 
+        if ($totalSiswaActual < 1) {
+            throw new \Exception('Total siswa di semua rombel tidak boleh 0');
+        }
+
+        // Auto-correct total_siswa in session to match actual rombel data
+        $totalSiswaTarget = $formData['total_siswa'] ?? 0;
         if ($totalSiswaActual != $totalSiswaTarget) {
-            throw new \Exception("Total siswa di rombel ({$totalSiswaActual}) tidak sesuai dengan target ({$totalSiswaTarget})");
+            \Illuminate\Support\Facades\Log::info("Auto-correcting total_siswa from {$totalSiswaTarget} to {$totalSiswaActual}");
+            $formData['total_siswa'] = $totalSiswaActual;
+            Session::put('ekstrakurikuler_form_data', $formData);
         }
     }
 

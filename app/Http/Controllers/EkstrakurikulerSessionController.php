@@ -35,7 +35,7 @@ class EkstrakurikulerSessionController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah', 'instruktur', 'asisten', 'laporanMengajar']);
+        $query = EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah', 'rombel.ekstrakurikuler.sales', 'instruktur', 'asisten', 'laporanMengajar']);
 
         // Filter berdasarkan status
         if ($request->filled('status')) {
@@ -129,9 +129,7 @@ class EkstrakurikulerSessionController extends Controller
                 ->get();
         }
 
-        $rombels = EkstrakurikulerRombel::with('ekstrakurikuler')
-            ->where('status', '!=', 'dibatalkan')
-            ->get();
+        $rombels = collect();
 
         return view('ekstrakurikuler.sessions.index', compact(
             'sessions', 'instructors', 'rombels'
@@ -375,34 +373,10 @@ class EkstrakurikulerSessionController extends Controller
      */
     public function cancel(Request $request, EkstrakurikulerSession $session): JsonResponse
     {
-        $this->authorize('cancel', $session);
-
-        if (! $session->canCancel()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Session tidak dapat dibatalkan saat ini',
-            ], 400);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'alasan_pembatalan' => 'required|string|max:500',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Alasan pembatalan harus diisi',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $cancelled = $session->cancel($request->alasan_pembatalan);
-
         return response()->json([
-            'success' => $cancelled,
-            'message' => $cancelled ? 'Session berhasil dibatalkan' : 'Gagal membatalkan session',
-            'session' => $cancelled ? $session->fresh() : null,
-        ]);
+            'success' => false,
+            'message' => 'Fitur pembatalan sesi dinonaktifkan. Silakan gunakan fitur Reschedule untuk menggeser jadwal.',
+        ], 400);
     }
 
     /**
@@ -443,12 +417,47 @@ class EkstrakurikulerSessionController extends Controller
     }
 
     /**
+     * Tunda session (menggantung).
+     */
+    public function postpone(Request $request, EkstrakurikulerSession $session): JsonResponse
+    {
+        $this->authorize('postpone', $session);
+
+        if (! $session->canPostpone()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Session tidak dapat ditunda saat ini',
+            ], 400);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'alasan' => 'required|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Alasan penundaan harus diisi',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $postponed = $session->postpone($request->alasan);
+
+        return response()->json([
+            'success' => $postponed,
+            'message' => $postponed ? 'Session berhasil ditunda' : 'Gagal menunda session',
+            'session' => $postponed ? $session->fresh() : null,
+        ]);
+    }
+
+    /**
      * Bulk operations untuk multiple sessions.
      */
     public function bulk(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'action' => 'required|in:assign_instructor,reschedule,cancel,update_time',
+            'action' => 'required|in:assign_instructor,reschedule,update_time',
             'session_ids' => 'required|array|min:1',
             'session_ids.*' => 'exists:ekstrakurikuler_session,id',
         ]);
@@ -625,30 +634,13 @@ class EkstrakurikulerSessionController extends Controller
      */
     protected function bulkCancel(Request $request, $sessions): array
     {
-        $validator = Validator::make($request->all(), [
-            'alasan_pembatalan' => 'required|string|max:500',
-        ]);
-
-        if ($validator->fails()) {
-            return ['success' => false, 'message' => 'Alasan pembatalan harus diisi'];
-        }
-
-        $success = 0;
-        $failed = 0;
-
-        foreach ($sessions as $session) {
-            if ($session->cancel($request->alasan_pembatalan)) {
-                $success++;
-            } else {
-                $failed++;
-            }
-        }
-
         return [
-            'success' => $failed === 0,
-            'message' => "Berhasil cancel {$success} sessions, gagal {$failed} sessions",
+            'success' => false,
+            'message' => 'Pembatalan massal dinonaktifkan. Silakan gunakan reschedule massal.',
         ];
     }
+    
+
 
     /**
      * Helper method untuk bulk update time.

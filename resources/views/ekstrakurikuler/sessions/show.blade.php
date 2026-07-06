@@ -438,18 +438,20 @@
                         <h5 class="card-title mb-0 fw-bold text-secondary"><i class="bi bi-gear-fill me-2"></i>Aksi Cepat</h5>
                     </div>
                     <div class="card-body d-grid gap-2">
-                        @can('cancel', $session)
-                            @if($session->canCancel())
-                                <button type="button" class="btn btn-outline-danger text-start" data-bs-toggle="modal" data-bs-target="#cancelModal">
-                                    <i class="bi bi-x-circle me-2"></i> Batalkan Sesi
-                                </button>
-                            @endif
-                        @endcan
+
                         
                         @can('reschedule', $session)
                             @if($session->canReschedule())
                                 <button type="button" class="btn btn-outline-warning text-dark text-start" data-bs-toggle="modal" data-bs-target="#rescheduleModal">
                                     <i class="bi bi-calendar2-range me-2"></i> Reschedule
+                                </button>
+                            @endif
+                        @endcan
+
+                        @can('postpone', $session)
+                            @if($session->canPostpone())
+                                <button type="button" class="btn btn-outline-secondary text-start" data-bs-toggle="modal" data-bs-target="#postponeModal">
+                                    <i class="bi bi-pause-circle me-2"></i> Tunda Sesi
                                 </button>
                             @endif
                         @endcan
@@ -581,27 +583,29 @@
     }
 
     // Modal Form Formatting to JSON for consistent API handling
-    document.getElementById('cancelForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const reason = document.getElementById('cancel_reason').value;
-        
-        // Disable button
-        const btn = this.querySelector('button[type="submit"]');
-        const originalText = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = 'Memproses...';
+    if (document.getElementById('postponeForm')) {
+        document.getElementById('postponeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const reason = document.getElementById('postpone_reason').value;
+            
+            // Disable button
+            const btn = this.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = 'Memproses...';
 
-        sendRequest(`/ekstrakurikuler/sessions/${sessionId}/cancel`, 'POST', { alasan_pembatalan: reason })
-            .then(result => {
-                if (result.success) {
-                    location.reload();
-                } else {
-                    alert(result.message);
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }
-            });
-    });
+            sendRequest(`/ekstrakurikuler/sessions/${sessionId}/postpone`, 'POST', { alasan: reason })
+                .then(result => {
+                    if (result.success) {
+                        location.reload();
+                    } else {
+                        alert(result.message);
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    }
+                });
+        });
+    }
 
     document.getElementById('rescheduleForm').addEventListener('submit', function(e) {
         // ... (existing helper logic) ...
@@ -705,6 +709,34 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                     <button type="submit" class="btn btn-warning text-dark">Simpan Jadwal Baru</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="postponeModal" tabindex="-1" aria-labelledby="postponeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title" id="postponeModalLabel">Tunda Sesi</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="postponeForm">
+                <div class="modal-body">
+                    <div class="alert alert-warning d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
+                        <div>
+                            Sesi akan ditunda tanpa tanggal pelaksanaan baru. Anda dapat mengatur ulang jadwal kembali melalui fitur Reschedule.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="postpone_reason" class="form-label">Alasan Penundaan <span class="text-danger">*</span></label>
+                        <textarea name="alasan" id="postpone_reason" rows="3" required class="form-control" placeholder="Jelaskan alasan penundaan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-secondary text-white">Tunda Sesi</button>
                 </div>
             </form>
         </div>

@@ -121,6 +121,9 @@
                                 <a href="{{ route('ekstrakurikuler.sessions.index') }}" class="btn btn-light border">
                                     <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
                                 </a>
+                                <button type="button" class="btn btn-warning text-dark border" onclick="exportScheduleToImage()">
+                                    <i class="bi bi-image me-1"></i> Export Gambar
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -256,13 +259,14 @@
                                                     <li><button class="dropdown-item text-warning" onclick="rescheduleSession({{ $session->id }})"><i class="bi bi-calendar-range me-2"></i>Reschedule</button></li>
                                                 @endif
                                             @endcan
-
-                                            @can('cancel', $session)
-                                                @if($session->canCancel())
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li><button class="dropdown-item text-danger" onclick="cancelSession({{ $session->id }})"><i class="bi bi-x-circle me-2"></i>Batalkan</button></li>
+                                            
+                                            @can('postpone', $session)
+                                                @if($session->canPostpone())
+                                                    <li><button class="dropdown-item text-secondary" onclick="postponeSession({{ $session->id }})"><i class="bi bi-pause-circle me-2"></i>Tunda Sesi</button></li>
                                                 @endif
                                             @endcan
+
+
                                             
                                             <!-- Manual Reminder Button -->
                                             @if(auth()->user()->hasRole(['admin', 'admin_sistem', 'webmaster']) && $session->instruktur)
@@ -379,6 +383,18 @@
                                     @endif
                                 @endcan
                                 
+                                @can('reschedule', $session)
+                                    @if($session->canReschedule())
+                                        <li><button class="dropdown-item text-warning" onclick="rescheduleSession({{ $session->id }})"><i class="bi bi-calendar-range me-2"></i>Reschedule</button></li>
+                                    @endif
+                                @endcan
+                                
+                                @can('postpone', $session)
+                                    @if($session->canPostpone())
+                                        <li><button class="dropdown-item text-secondary" onclick="postponeSession({{ $session->id }})"><i class="bi bi-pause-circle me-2"></i>Tunda Sesi</button></li>
+                                    @endif
+                                @endcan
+                                
                                 <li><hr class="dropdown-divider"></li>
                                 
                                 @if($session->canStart())
@@ -423,6 +439,7 @@
 
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 // Manual Reminder Logic
 // Manual Reminder Logic (Event Delegation)
@@ -587,6 +604,10 @@ function rescheduleSession(sessionId) {
     window.location.href = `/ekstrakurikuler/sessions/${sessionId}`;
 }
 
+function postponeSession(sessionId) {
+    window.location.href = `/ekstrakurikuler/sessions/${sessionId}`;
+}
+
 // Bulk Actions placeholders
 function showBulkAssignForm() { 
     new bootstrap.Modal(document.getElementById('bulkActionModal')).show();
@@ -599,6 +620,77 @@ function showBulkCancelForm() {
 }
 function showBulkTimeUpdateForm() {
     new bootstrap.Modal(document.getElementById('bulkActionModal')).show();
+}
+
+function exportScheduleToImage() {
+    const element = document.getElementById('export-table-container');
+    if (!element) {
+        alert('Data tabel ekspor tidak ditemukan.');
+        return;
+    }
+    
+    const rows = element.querySelectorAll('tbody tr');
+    if (rows.length === 0) {
+        alert('Tidak ada data sesi untuk diekspor.');
+        return;
+    }
+    
+    const btn = document.querySelector('button[onclick="exportScheduleToImage()"]');
+    const originalBtnHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Generating...';
+    
+    const originalStyle = element.style.cssText;
+    
+    // Temporarily make it visible for rendering but off-screen
+    element.style.cssText = 'position: fixed; left: 0; top: 0; width: 1200px; z-index: -9999; background: white; padding: 20px;';
+    
+    html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+    }).then(canvas => {
+        element.style.cssText = originalStyle;
+        btn.disabled = false;
+        btn.innerHTML = originalBtnHTML;
+        
+        const dataUrl = canvas.toDataURL('image/png');
+        const previewImage = document.getElementById('exportPreviewImage');
+        previewImage.src = dataUrl;
+        
+        let filename = 'Jadwal_Sesi';
+        const urlParams = new URLSearchParams(window.location.search);
+        const dateFrom = urlParams.get('tanggal_dari');
+        if (dateFrom) {
+            filename += '_' + dateFrom;
+        } else {
+            const today = new Date();
+            const dd = String(today.getDate()).padStart(2, '0');
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const yyyy = today.getFullYear();
+            filename += '_' + dd + '-' + mm + '-' + yyyy;
+        }
+        
+        const downloadBtn = document.getElementById('btnDownloadExportedImage');
+        const newDownloadBtn = downloadBtn.cloneNode(true);
+        downloadBtn.parentNode.replaceChild(newDownloadBtn, downloadBtn);
+        
+        newDownloadBtn.addEventListener('click', function() {
+            const link = document.createElement('a');
+            link.download = filename + '.png';
+            link.href = dataUrl;
+            link.click();
+        });
+        
+        const previewModal = new bootstrap.Modal(document.getElementById('exportPreviewModal'));
+        previewModal.show();
+    }).catch(error => {
+        console.error('Error rendering image:', error);
+        alert('Gagal mengekspor gambar.');
+        element.style.cssText = originalStyle;
+        btn.disabled = false;
+        btn.innerHTML = originalBtnHTML;
+    });
 }
 </script>
 @endpush
@@ -644,6 +736,90 @@ function showBulkTimeUpdateForm() {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="export-table-container" style="position: absolute; left: -9999px; top: -9999px; width: 1200px; background-color: #ffffff; padding: 20px;">
+    <h3 style="font-family: Arial, sans-serif; font-weight: bold; margin-bottom: 5px; color: #333; text-align: center; text-transform: uppercase; font-size: 16px;">JADWAL EKSTRAKURIKULER ERLASS</h3>
+    @if(request('tanggal_dari'))
+        <p style="font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; text-align: center; margin-top: 0; margin-bottom: 20px; color: #555;">
+            TANGGAL: {{ request('tanggal_dari') }} {{ request('tanggal_sampai') && request('tanggal_sampai') !== request('tanggal_dari') ? ' s/d ' . request('tanggal_sampai') : '' }}
+        </p>
+    @else
+        <p style="font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; text-align: center; margin-top: 0; margin-bottom: 20px; color: #555;">
+            TANGGAL: {{ now()->format('d-m-Y') }}
+        </p>
+    @endif
+    <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10px; border: 1px solid #cbd5e1;">
+        <thead>
+            <tr style="background-color: #1e293b; color: #ffffff; font-weight: bold; border: 1px solid #1e293b; text-transform: uppercase;">
+                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: center; width: 30px;">No.</th>
+                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: left;">Nama Instruktur</th>
+                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: left;">Asst. Instruktur</th>
+                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: left;">Namasek</th>
+                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: center; width: 50px;">Rombel</th>
+                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: center; width: 60px;">Jml Siswa</th>
+                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: left;">Kec.</th>
+                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: left;">Ekskul</th>
+                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: left;">Nama sales</th>
+                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: center; width: 60px;">Jam Mulai</th>
+                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: left;">PIC Ekskul</th>
+                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: center; width: 80px;">Status Jadwal</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($sessions as $index => $session)
+            <tr style="background-color: {{ $index % 2 === 0 ? '#ffffff' : '#f8fafc' }}; color: #334155; border: 1px solid #cbd5e1;">
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center;">{{ $index + 1 }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left; font-weight: bold; color: #0f172a;">{{ $session->instruktur->nama_lengkap ?? '-' }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->asisten->nama_lengkap ?? '-' }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->sekolah->namasekolah ?? '-' }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center;">{{ $session->rombel->nomor_rombel ?? '-' }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center;">{{ $session->rombel->jumlah_siswa ?? '0' }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->sekolah->kec ?? '-' }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left; font-weight: bold; color: #0f172a;">{{ $session->ekstrakurikuler->kategori_program ?? '-' }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->sales->nama_lengkap ?? ($session->ekstrakurikuler->sales->name ?? '-') }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0f172a;">
+                    {{ $session->jam_mulai_terjadwal ? \Carbon\Carbon::parse($session->jam_mulai_terjadwal)->format('H:i') : ($session->rombel->jam_mulai ? \Carbon\Carbon::parse($session->rombel->jam_mulai)->format('H:i') : '-') }}
+                </td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->penanggung_jawab ?? '-' }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold;">
+                    @php
+                        $statusColors = match($session->status) {
+                            'seles' => 'color: #16a34a;',
+                            'selesai' => 'color: #16a34a;',
+                            'ditunda' => 'color: #ea580c;',
+                            'dibatalkan' => 'color: #dc2626;',
+                            'berlangsung' => 'color: #ca8a04;',
+                            default => 'color: #2563eb;'
+                        };
+                    @endphp
+                    <span style="{{ $statusColors }}">{{ $session->status_label }}</span>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+<div class="modal fade" id="exportPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-image me-2 text-primary"></i> Preview Gambar Jadwal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center bg-light">
+                <div class="p-3 bg-white rounded border d-inline-block shadow-sm" style="max-width: 100%; overflow-x: auto;">
+                    <img id="exportPreviewImage" src="" alt="Preview Jadwal" class="img-fluid" style="max-height: 60vh; width: auto;">
+                </div>
+                <p class="text-muted small mt-3 mb-0">Klik tombol <strong>Unduh Gambar</strong> di bawah ini untuk menyimpan gambar.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="btnDownloadExportedImage">
+                    <i class="bi bi-download me-1"></i> Unduh Gambar
+                </button>
             </div>
         </div>
     </div>

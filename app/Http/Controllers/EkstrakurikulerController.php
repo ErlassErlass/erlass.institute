@@ -172,7 +172,7 @@ class EkstrakurikulerController extends Controller
 
 
         // Jika ini final step, proses complete form
-        if ($request->has('submit_final')) {
+        if ($step == 10 && ($request->has('submit_final') || $request->has('final_confirmation'))) {
             return $this->store($request);
         }
 

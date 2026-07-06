@@ -110,14 +110,12 @@ class LaporanMengajarController extends Controller
         }
 
         // Get statistics
-        $statsQuery = clone $laporanQuery;
-
-        $totalLaporan = $statsQuery->count();
-        $laporanMingguIni = $statsQuery->whereBetween('jadwal_mengajar', [
+        $totalLaporan = (clone $laporanQuery)->count();
+        $laporanMingguIni = (clone $laporanQuery)->whereBetween('jadwal_mengajar', [
             now()->startOfWeek(),
             now()->endOfWeek(),
         ])->count();
-        $laporanBulanIni = $statsQuery->whereBetween('jadwal_mengajar', [
+        $laporanBulanIni = (clone $laporanQuery)->whereBetween('jadwal_mengajar', [
             now()->startOfMonth(),
             now()->endOfMonth(),
         ])->count();

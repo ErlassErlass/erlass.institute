@@ -54,6 +54,14 @@ class EkstrakurikulerSessionPolicy
     }
 
     /**
+     * Determine whether the user can postpone the session.
+     */
+    public function postpone(User $user, EkstrakurikulerSession $ekstrakurikulerSession): bool
+    {
+        return $user->hasRole(['admin', 'admin_sistem', 'webmaster']);
+    }
+
+    /**
      * Determine whether the user can cancel the session.
      */
     public function cancel(User $user, EkstrakurikulerSession $ekstrakurikulerSession): bool

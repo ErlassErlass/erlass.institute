@@ -2,6 +2,49 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.8.1] - 2026-07-06
+
+### Ditambahkan (Added)
+- **Fitur Export Gambar Jadwal Sesi**:
+  - Menambahkan tombol "Export Gambar" pada halaman indeks sesi ekstrakurikuler.
+  - Memanfaatkan library `html2canvas` via CDN untuk merender visual jadwal sesi harian ke dalam bentuk gambar PNG.
+  - Menambahkan pop-up modal preview sebelum unduhan untuk meninjau gambar secara real-time.
+  - Gambar didesain bersih dan premium dengan latar belakang putih, baris selang-seling abu-abu muda (`#f8fafc`), dan teks status berwarna.
+- **Penyelarasan Dropdown Sales/Koordinator**:
+  - Menyaring daftar pilihan `salesUsers` pada wizard pembuatan ekstrakurikuler langkah pertama agar hanya menampilkan pengguna yang terdaftar pada tabel master `salesmen`.
+
+### Diperbaiki & Dioptimalkan (Fixed & Optimized)
+- **Optimasi Performa Query Halaman Sesi**:
+  - Mengeliminasi query rombels yang berat dan tidak terpakai dari `EkstrakurikulerSessionController` untuk mengurangi waktu pemuatan halaman secara signifikan.
+  - Mengimplementasikan eager loading nested `'rombel.ekstrakurikuler.sales'` pada query utama sesi untuk menyelesaikan masalah N+1 query.
+- **Perbaikan Bug Aksi Bulk Siswa**:
+  - Menambahkan pre-processing `enrollment_ids` di `SiswaEkstrakurikulerController@bulkAction` untuk mengonversi string comma-separated dari JavaScript menjadi array sebelum divalidasi.
+- **Perbaikan Kloning Query Laporan Mengajar**:
+  - Memperbaiki penumpukan filter tanggal pada perhitungan statistik laporan mengajar di `LaporanMengajarController` dengan melakukan `clone` secara dinamis pada query builder.
+
+## [1.8.0] - 2026-07-03
+
+### Ditambahkan (Added)
+- **Fitur Impor Siswa Tingkat Program Ekskul**:
+  - Menyediakan berkas template CSV baru di [Template_Import_Siswa_Program.csv](file:///root/webapperlass/public/templates/Template_Import_Siswa_Program.csv) dengan kolom: `nama_lengkap,nisn,kelas_akademik,no_hp_orangtua,target_rombel_ekskul`.
+  - Menambahkan method `importToProgram()` di `SiswaImporterService.php` yang secara otomatis memetakan siswa ke Rombel Ekskul terkait serta mengirimkan `WelcomeParentNotification` jika data nomor WhatsApp orangtua terisi.
+  - Menambahkan tombol & modal unggah berkas impor pada halaman detail program ekskul (`show.blade.php`) dan halaman manajemen siswa (`ekstrakurikuler/enrollment/index.blade.php`).
+  - Menambahkan pengujian fitur impor otomatis dalam file `SiswaEkstrakurikulerTest.php`.
+- **Perapian UI/UX Alur Impor & Pendaftaran Siswa**:
+  - Mengubah label tombol di halaman Manajemen Siswa (`ekstrakurikuler/enrollment/index.blade.php`) dari `Import Rombel` menjadi `Daftarkan dari Kelas Sekolah` dan `Import Siswa` menjadi `Unggah Excel/CSV` untuk memperjelas alur kerja admin.
+  - Menambahkan tips panduan navigasi silang (*cross-link*) di halaman Impor Siswa Master (`siswa/import.blade.php`) agar pengguna mengetahui opsi impor program level yang lebih cepat.
+- **Parameter Kota pada Select2 Step 2**:
+  - Mengirim parameter `kota` dari data sesi Step 1 (`$formData['city']`) pada AJAX request Select2 pencarian sekolah di Step 2 (`step2.blade.php`).
+  - Hal ini membatasi pencarian sekolah hanya di dalam wilayah kota yang dipilih oleh pengguna di Step 1.
+
+### Dihapus (Removed)
+- **Aksi Impor Per-Rombel Individual**:
+  - Menghapus link dropdown "Import Siswa (Excel)" per rombel di detail ekskul (`show.blade.php`) serta perulangan modal `#importSiswaModal` untuk menyederhanakan tab rombel.
+- **Input Jenis Pembayaran pada Wizard Step 1**:
+  - Menghapus input select untuk `jenis_pembayaran` dari view Step 1 (`step1.blade.php`).
+  - Menyesuaikan kolom pilihan kota (`city`) menjadi `col-md-12` agar layout tetap rapi.
+  - Menghapus aturan validasi `'jenis_pembayaran' => 'required'` di `CreateEkstrakurikulerStep1Request.php` dan `EkstrakurikulerFormService.php`.
+
 ## [1.7.9] - 2026-06-30
 
 ### Ditambahkan (Added)

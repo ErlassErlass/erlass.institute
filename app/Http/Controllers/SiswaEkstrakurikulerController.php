@@ -319,6 +319,12 @@ class SiswaEkstrakurikulerController extends Controller
     {
         $this->authorize('update', $ekstrakurikuler);
 
+        if ($request->has('enrollment_ids') && is_string($request->enrollment_ids)) {
+            $request->merge([
+                'enrollment_ids' => explode(',', $request->enrollment_ids)
+            ]);
+        }
+
         $request->validate([
             'enrollment_ids' => 'required|array|min:1',
             'enrollment_ids.*' => 'exists:siswa_ekstrakurikuler,id',
@@ -454,5 +460,47 @@ class SiswaEkstrakurikulerController extends Controller
             ->values();
 
         return response()->json($rombels);
+    }
+
+    /**
+     * Import siswa ke program ekstrakurikuler (bulk import rombel-rombel)
+     */
+    public function importSiswaProgram(Request $request, Ekstrakurikuler $ekstrakurikuler)
+    {
+        $this->authorize('update', $ekstrakurikuler);
+
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120',
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $importer = new \App\Services\SiswaImporterService();
+            $results = $importer->importToProgram(
+                $file->getRealPath(),
+                $file->getClientOriginalExtension(),
+                $ekstrakurikuler
+            );
+
+            if ($results['failed'] > 0 && $results['success'] === 0) {
+                return redirect()->back()
+                    ->withErrors(['import_errors' => $results['errors']])
+                    ->with('error', 'Gagal mengimpor data siswa.');
+            }
+
+            $message = "Berhasil mengimpor {$results['success']} siswa.";
+            if ($results['failed'] > 0) {
+                $message .= " Namun {$results['failed']} baris gagal diproses.";
+                return redirect()->back()
+                    ->with('success', $message)
+                    ->withErrors(['import_errors' => $results['errors']]);
+            }
+
+            return redirect()->back()->with('success', $message);
+
+        } catch (\Exception $e) {
+            \Log::error('Error saat import siswa program: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal memproses berkas impor: ' . $e->getMessage());
+        }
     }
 }

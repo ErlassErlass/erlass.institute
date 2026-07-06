@@ -329,6 +329,23 @@
                 <form method="POST" action="{{ route('ekstrakurikuler.process-step') }}" id="stepForm">
                     @csrf
                     <input type="hidden" name="current_step" value="{{ $step }}">
+
+                    @if ($errors->any())
+                        <div class="alert alert-danger mx-3 mt-3">
+                            <h6><i class="fas fa-exclamation-triangle"></i> Terjadi Kesalahan</h6>
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @if (session('success'))
+                        <div class="alert alert-success mx-3 mt-3">
+                            <i class="fas fa-check-circle"></i> {{ session('success') }}
+                        </div>
+                    @endif
                     
                     <div class="form-section">
                         @if($step == 1)

@@ -128,9 +128,11 @@ Sebelum melakukan enrollment, pastikan:
 
 ### 2.5 Enrollment (Pendaftaran Siswa ke Rombel Ekskul)
 
-1. Buka **Detail Program** → tab **Peserta**.
-2. Gunakan tombol **Tambah Peserta** (manual) atau **Bulk Import per Kelas** (massal).
-   - Contoh: "Masukkan seluruh siswa **Kelas 1A** ke dalam **Rombel Ekskul Scratch A**".
+1. Buka halaman **Manajemen Siswa** pada program ekskul yang diinginkan (`ekstrakurikuler/{id}/enrollment`).
+2. Gunakan tombol aksi yang tersedia sesuai kebutuhan:
+   - **`Daftarkan Siswa`**: Untuk mendaftarkan siswa secara manual satu per satu.
+   - **`Daftarkan dari Kelas Sekolah`**: Untuk mendaftarkan seluruh siswa dari satu rombel sekolah (kelas akademik) ke rombel ekskul secara massal.
+   - **`Unggah Excel/CSV`**: Mengunggah file Excel/CSV siswa program baru langsung terpetakan ke rombel ekskul tujuan secara otomatis.
 3. Siswa yang berhasil didaftarkan akan muncul di daftar peserta dengan status `aktif`.
 
 > 🤖 **Otomatisasi WhatsApp — WelcomeParentNotification**:  

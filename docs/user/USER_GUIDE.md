@@ -71,7 +71,7 @@ Modul ini menggunakan **Wizard Multi-Step** untuk memastikan kelengkapan data se
 6.  **Review & Preview**: Tinjau simulasi jadwal (Preview) sebelum menekan tombol **Selesai & Simpan**.
 
 > [!TIP]
-> **Import & Registrasi Siswa**: Gunakan fitur Import Excel di halaman Detail Program setelah Rombel dibuat. Pastikan memiliki header `no_hp_orangtua` yang valid. Sistem akan **otomatis mengirim Welcome Message WhatsApp** kepada orang tua sesaat setelah pendaftaran berhasil. Fitur pesan otomatis ini juga berlaku untuk fitur *Quick Add* oleh Instruktur di halaman Absensi.
+> **Impor & Registrasi Siswa**: Gunakan fitur **Unggah Excel/CSV** di halaman **Manajemen Siswa** program ekskul (`ekstrakurikuler/{id}/enrollment`). Unduh template CSV baru yang disediakan di halaman tersebut (`Template_Import_Siswa_Program.csv`) dengan kolom `nama_lengkap, nisn, kelas_akademik, no_hp_orangtua, target_rombel_ekskul`. Sistem akan otomatis mencocokkan target rombel ekskul (misal: "Rombel 1") dan **otomatis mengirim Welcome Message WhatsApp** kepada orang tua jika nomor HP terisi. Fitur pesan otomatis ini juga berlaku untuk fitur *Quick Add* oleh Instruktur di halaman Absensi.
 
 ### 7. Kompensasi & Proses Payroll
 *   **Kelola Tarif**: Admin dan Webmaster dapat mengatur tarif dasar pengajaran per level instruktur (Junior, Madya, Senior, Expert, Master Trainer) dan bonus per kategori produk (Scratch, Microbit, Python, dll.).

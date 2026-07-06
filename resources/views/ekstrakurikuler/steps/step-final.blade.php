@@ -33,7 +33,12 @@
     
     <div class="summary-row">
         <span class="summary-label">Region:</span>
-        <span class="summary-value">{{ $formData['region'] ?? '-' }}</span>
+        <span class="summary-value">
+            {{ $formData['region'] ?? '-' }}
+            @if(isset($formData['city']) && $formData['city'])
+                ({{ ucwords(strtolower($formData['city'])) }})
+            @endif
+        </span>
     </div>
     
     <div class="summary-row">
@@ -359,7 +364,7 @@
 <div class="alert alert-warning mt-4">
     <h6><i class="fas fa-exclamation-triangle"></i> Konfirmasi Final</h6>
     <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="final_confirmation" required>
+        <input class="form-check-input" type="checkbox" id="final_confirmation" name="final_confirmation" value="1" required>
         <label class="form-check-label" for="final_confirmation">
             <strong>Saya telah memeriksa semua data dan siap untuk menyimpan program ekstrakurikuler ini.</strong>
         </label>
@@ -368,11 +373,7 @@
         Setelah disimpan, sistem akan otomatis menggenerate jadwal pertemuan untuk setiap rombel. 
         Data masih dapat diedit sebelum program diaktifkan.
     </small>
-<div class="mt-4 text-right">
-    <button type="submit" name="submit_final" value="1" class="btn btn-success btn-lg px-5">
-        <i class="fas fa-save"></i> Selesai & Simpan
-    </button>
-</div>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -454,7 +455,7 @@ function runValidationChecks() {
         }
         
         if (totalSiswaRombel != formData.total_siswa) {
-            checks.push({ status: 'error', message: `Total siswa rombel (${totalSiswaRombel}) tidak sesuai dengan total siswa (${formData.total_siswa})` });
+            checks.push({ status: 'warning', message: `Total siswa rombel (${totalSiswaRombel}) berbeda dengan total siswa awal (${formData.total_siswa}). Akan otomatis disesuaikan saat menyimpan.` });
         } else {
             checks.push({ status: 'success', message: 'Total siswa rombel sesuai dengan target' });
         }

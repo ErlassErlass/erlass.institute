@@ -415,18 +415,6 @@
                                                 <i class="fas fa-users"></i> {{ $rombel->nama_rombel }}
                                                 <span class="badge badge-light ml-2">{{ $rombel->status_label }}</span>
                                             </h6>
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="dropdownMenuButton{{ $rombel->id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="fas fa-cog"></i> Aksi
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ $rombel->id }}">
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#importSiswaModal{{ $rombel->id }}">
-                                                            <i class="fas fa-file-upload text-success me-2"></i> Import Siswa (Excel)
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
@@ -518,47 +506,7 @@
                                         <p>Belum ada rombel yang dikonfigurasi.</p>
                                     </div>
                                 </div>
-                                @endforelse
-                                
-                                @push('modals')
-                                {{-- Modals for Rombel Actions (Placed outside loop if IDs used, or inside if unique) --}}
-                                @foreach($ekstrakurikuler->rombels as $rombel)
-                                <div class="modal fade" id="importSiswaModal{{ $rombel->id }}" tabindex="-1" aria-labelledby="importSiswaModalLabel{{ $rombel->id }}" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <form action="{{ route('rombel.import-siswa', $rombel->id) }}" method="POST" enctype="multipart/form-data">
-                                                @csrf
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="importSiswaModalLabel{{ $rombel->id }}">Import Siswa ke {{ $rombel->nama_rombel }}</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <div class="mb-3">
-                                                        <label for="file_excel" class="form-label">File Excel/CSV (.xlsx, .csv)</label>
-                                                        <input type="file" class="form-control" id="file_excel" name="file" required accept=".xlsx,.xls,.csv" data-max-size="2097152">
-                                                        <div class="form-text mt-1">
-                                                            <i class="fas fa-info-circle"></i> Format: .xlsx, .xls, .csv | Maksimal: 2MB
-                                                        </div>
-                                                        <div class="mt-2">
-                                                            <span class="fw-semibold text-dark small me-2">Unduh Template:</span>
-                                                            <a href="{{ asset('templates/Template_Import_Rombel_Siswa.csv') }}" class="btn btn-xs btn-outline-info text-decoration-none py-0 px-2" style="font-size: 0.75rem;"><i class="fas fa-file-csv me-1"></i>Template CSV</a>
-                                                        </div>
-                                                        <small class="text-muted d-block mt-1">Data: No, Nama Lengkap, NISN (optional), Kelas</small>
-                                                    </div>
-                                                    <div class="alert alert-info small">
-                                                        <i class="fas fa-info-circle"></i> Sistem akan mencocokkan siswa berdasarkan NISN atau Nama + Sekolah. Jika tidak ditemukan, siswa baru akan dibuat otomatis.
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                                    <button type="submit" class="btn btn-primary">Import Data</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                @endforeach
-                                @endpush
+                                 @endforelse
                             </div>
                         </div>
                         

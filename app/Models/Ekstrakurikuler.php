@@ -41,6 +41,7 @@ class Ekstrakurikuler extends Model
         'keterangan_proyektor',
         'kabel_hdmi',
         'kabel_vga',
+        'kabel_roll',
         'keterangan_kabel',
         'total_siswa',
         'total_ruangan',

@@ -307,13 +307,26 @@ class EkstrakurikulerSession extends Model
      */
     public function canCancel(): bool
     {
-        return in_array($this->status, [self::STATUS_TERJADWAL, self::STATUS_BERLANGSUNG]);
+        return false; // Fitur batal sesi dinonaktifkan
     }
 
     /**
      * Cek apakah session dapat ditunda.
      */
     public function canReschedule(): bool
+    {
+        return in_array($this->status, [
+            self::STATUS_TERJADWAL,
+            self::STATUS_DITUNDA,
+            self::STATUS_DIBATALKAN,
+            self::STATUS_TIDAK_HADIR,
+        ]);
+    }
+
+    /**
+     * Cek apakah session dapat ditunda (menggantung).
+     */
+    public function canPostpone(): bool
     {
         return $this->status === self::STATUS_TERJADWAL;
     }
@@ -395,14 +408,7 @@ class EkstrakurikulerSession extends Model
      */
     public function cancel(?string $alasan = null): bool
     {
-        if (! $this->canCancel()) {
-            return false;
-        }
-
-        $this->status = self::STATUS_DIBATALKAN;
-        $this->alasan_pembatalan = $alasan;
-
-        return $this->save();
+        return false; // Pembatalan dinonaktifkan
     }
 
     /**
@@ -414,8 +420,29 @@ class EkstrakurikulerSession extends Model
             return false;
         }
 
+        // Pindahkan tanggal terjadwal langsung ke tanggal baru
+        $this->tanggal_terjadwal = $newDate->toDateString();
+        $this->status = self::STATUS_TERJADWAL;
+        $this->alasan_pembatalan = null;
+        $this->tanggal_pengganti = null;
+
+        if ($alasan) {
+            $this->catatan = trim(($this->catatan ? $this->catatan . "\n" : "") . "Rescheduled: " . $alasan);
+        }
+
+        return $this->save();
+    }
+
+    /**
+     * Method untuk menunda session (menggantung).
+     */
+    public function postpone(?string $alasan = null): bool
+    {
+        if (! $this->canPostpone()) {
+            return false;
+        }
+
         $this->status = self::STATUS_DITUNDA;
-        $this->tanggal_pengganti = $newDate->toDateString();
         $this->alasan_pembatalan = $alasan;
 
         return $this->save();

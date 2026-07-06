@@ -15,6 +15,11 @@
                         <div class="alert alert-danger">{{ session('error') }}</div>
                     @endif
 
+                    <div class="alert alert-warning mb-4">
+                        <h6 class="alert-heading fw-bold"><i class="bi bi-lightning-charge-fill me-1"></i> Pendaftaran Cepat Ekskul?</h6>
+                        <p class="mb-0">Jika tujuan Anda adalah mendaftarkan siswa baru langsung ke program/rombel **Ekstrakurikuler**, Anda tidak perlu melakukan impor master di sini. Silakan buka halaman **<a href="{{ route('ekstrakurikuler.index') }}" class="alert-link text-decoration-underline">Daftar Program Ekskul</a>**, pilih program terkait, dan gunakan fitur **Unggah Excel/CSV** tingkat program.</p>
+                    </div>
+
                     <form action="{{ route('siswa.process-import') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         
