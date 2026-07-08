@@ -26,7 +26,7 @@ class StoreEkstrakurikulerRequest extends FormRequest
             // Basic Information
             'kategori_program' => 'required|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',
-            'user_id_sales' => 'required|exists:users,id',
+            'user_id_sales' => 'required|exists:salesmen,id',
             'region' => 'nullable|string|in:JAKARTA,DEPOK,BOGOR,TANGERANG,BEKASI',
             'city' => 'nullable|string|max:255',
             'status' => 'required|string|in:'.implode(',', [

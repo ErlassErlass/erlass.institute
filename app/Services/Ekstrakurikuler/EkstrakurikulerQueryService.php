@@ -25,8 +25,6 @@ class EkstrakurikulerQueryService
                 $q->where('user_id_instruktur', $user->id)
                   ->orWhere('user_id_asisten', $user->id);
             });
-        } elseif (! $user->hasAdminAccess()) {
-            $query->where('user_id_sales', $user->id);
         }
 
         // Apply filters
@@ -146,10 +144,16 @@ class EkstrakurikulerQueryService
     {
         return [
             'sekolahs' => collect(), // Performance optimization: schools are loaded via AJAX/Select2
-            'salesUsers' => User::with('division')
-                ->whereIn('id', \App\Models\Salesman::whereNotNull('user_id')->pluck('user_id'))
-                ->orderBy('nama_lengkap')
-                ->get(),
+            'salesUsers' => \App\Models\Salesman::orderBy('nama_salesman')
+                ->get()
+                ->map(function ($salesman) {
+                    return (object) [
+                        'id' => $salesman->id,
+                        'nama_lengkap' => $salesman->nama_salesman,
+                        'role' => 'Salesman',
+                        'division' => (object) ['name' => $salesman->area ?? 'General']
+                    ];
+                }),
             'statuses' => [
                 Ekstrakurikuler::STATUS_DRAFT => 'Draft',
                 Ekstrakurikuler::STATUS_DIAJUKAN => 'Diajukan',

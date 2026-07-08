@@ -22,9 +22,9 @@
         <span class="summary-value">
             @if(isset($formData['user_id_sales']))
                 @php
-                    $sales = \App\Models\User::find($formData['user_id_sales']);
+                    $sales = \App\Models\Salesman::find($formData['user_id_sales']);
                 @endphp
-                {{ $sales ? $sales->nama_lengkap : '-' }}
+                {{ $sales ? $sales->nama_salesman : '-' }}
             @else
                 -
             @endif

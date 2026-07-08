@@ -53,7 +53,6 @@
                         <label for="role" class="form-label">Role <span class="text-danger">*</span></label>
                         <select class="form-select @error('role') is-invalid @enderror" id="role" name="role" required>
                             <option value="">Pilih Role</option>
-                            <option value="sales" {{ old('role', $employee->role) == 'sales' ? 'selected' : '' }}>Sales / Marketing</option>
                             <option value="admin_sistem" {{ old('role', $employee->role) == 'admin_sistem' ? 'selected' : '' }}>Admin Sistem (IT)</option>
                             <option value="admin" {{ old('role', $employee->role) == 'admin' ? 'selected' : '' }}>Admin Operasional</option>
                             <option value="instruktur" {{ old('role', $employee->role) == 'instruktur' ? 'selected' : '' }}>Instruktur</option>

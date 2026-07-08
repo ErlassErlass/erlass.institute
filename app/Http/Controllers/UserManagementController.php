@@ -50,7 +50,6 @@ class UserManagementController extends Controller
             'webmaster' => 'Webmaster',
             'admin_sistem' => 'Admin Sistem',
             'instruktur' => 'Instruktur',
-            'sales' => 'Sales',
         ];
 
         return view('admin.users.index', compact('users', 'statistics', 'roles'));

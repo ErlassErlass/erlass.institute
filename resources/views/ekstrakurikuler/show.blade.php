@@ -512,12 +512,20 @@
                         
                         <!-- Sessions Tab -->
                         <div class="tab-pane fade" id="sessions" role="tabpanel">
-                            @if($ekstrakurikuler->sessions->count() > 0)
+                            @if($ekstrakurikuler->rombels->count() > 0)
                                 <div class="row">
                                     @foreach($ekstrakurikuler->rombels as $rombel)
-                                        @if($rombel->sessions->count() > 0)
                                         <div class="col-12 mb-4">
-                                            <h6><i class="fas fa-users"></i> {{ $rombel->nama_rombel }}</h6>
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h6 class="mb-0"><i class="fas fa-users"></i> {{ $rombel->nama_rombel }}</h6>
+                                                @if(auth()->user()->hasRole(['admin', 'admin_sistem', 'webmaster']))
+                                                    <button type="button" class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addSessionModal{{ $rombel->id }}">
+                                                        <i class="fas fa-plus-circle me-1"></i> Tambah Sesi
+                                                    </button>
+                                                @endif
+                                            </div>
+                                            
+                                            @if($rombel->sessions->count() > 0)
                                             <div class="timeline">
                                                 @foreach($rombel->sessions->take(10) as $session)
                                                 <div class="timeline-item">
@@ -664,15 +672,17 @@
                                                 </div>
                                                 @endif
                                             </div>
+                                            @else
+                                            <div class="text-muted small ps-3"><em>Belum ada sesi di rombel ini.</em></div>
+                                            @endif
                                         </div>
-                                        @endif
                                     @endforeach
                                 </div>
                             @else
                                 <div class="text-center text-muted py-4">
                                     <i class="fas fa-calendar-alt fa-3x mb-3"></i>
-                                    <p>Belum ada jadwal yang digenerate.</p>
-                                    <small>Jadwal akan dibuat otomatis setelah rombel dikonfigurasi.</small>
+                                    <p>Belum ada Rombel yang dikonfigurasi.</p>
+                                    <small>Silakan buat Rombel terlebih dahulu di tab Rombel.</small>
                                 </div>
                             @endif
                         </div>
@@ -796,10 +806,64 @@
         </div>
     </div>
 </div>
+
+@push('modals')
+{{-- Modals for Adding Manual Session --}}
+@if(auth()->user()->hasRole(['admin', 'admin_sistem', 'webmaster']))
+    @foreach($ekstrakurikuler->rombels as $rombel)
+        <div class="modal fade text-dark" id="addSessionModal{{ $rombel->id }}" tabindex="-1" aria-labelledby="addSessionModalLabel{{ $rombel->id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content text-start">
+                    <form action="{{ route('ekstrakurikuler.rombel.add-session', $rombel) }}" method="POST">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title fw-bold" id="addSessionModalLabel{{ $rombel->id }}">
+                                <i class="fas fa-calendar-plus text-primary me-2"></i>Tambah Sesi Manual
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info py-2 small mb-3">
+                                Sesi baru akan ditambahkan sebagai <strong>Pertemuan {{ $rombel->sessions()->max('nomor_pertemuan') + 1 }}</strong> untuk <strong>{{ $rombel->nama_rombel }}</strong>.
+                            </div>
+                            <div class="mb-3">
+                                <label for="tanggal_terjadwal{{ $rombel->id }}" class="form-label small fw-bold text-muted">Tanggal Sesi <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="tanggal_terjadwal{{ $rombel->id }}" name="tanggal_terjadwal" required min="{{ $rombel->tanggal_mulai ? $rombel->tanggal_mulai->format('Y-m-d') : '' }}">
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <label for="jam_mulai_terjadwal{{ $rombel->id }}" class="form-label small fw-bold text-muted">Jam Mulai <span class="text-danger">*</span></label>
+                                    <input type="time" class="form-control" id="jam_mulai_terjadwal{{ $rombel->id }}" name="jam_mulai_terjadwal" value="{{ $rombel->jam_mulai ? $rombel->jam_mulai->format('H:i') : '' }}" required>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <label for="jam_selesai_terjadwal{{ $rombel->id }}" class="form-label small fw-bold text-muted">Jam Selesai <span class="text-danger">*</span></label>
+                                    <input type="time" class="form-control" id="jam_selesai_terjadwal{{ $rombel->id }}" name="jam_selesai_terjadwal" value="{{ $rombel->jam_selesai ? $rombel->jam_selesai->format('H:i') : '' }}" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="topik_materi{{ $rombel->id }}" class="form-label small fw-bold text-muted">Topik Materi (Opsional)</label>
+                                <input type="text" class="form-control" id="topik_materi{{ $rombel->id }}" name="topik_materi" placeholder="Contoh: Pengenalan Interface Scratch">
+                            </div>
+                            <div class="mb-3">
+                                <label for="catatan{{ $rombel->id }}" class="form-label small fw-bold text-muted">Catatan (Opsional)</label>
+                                <textarea class="form-control" id="catatan{{ $rombel->id }}" name="catatan" rows="3" placeholder="Tambahkan catatan jika diperlukan..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Simpan Sesi</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endforeach
+@endif
+@endpush
+
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize Bootstrap tabs

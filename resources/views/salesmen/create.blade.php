@@ -79,25 +79,7 @@
                             @enderror
                         </div>
 
-                        <div class="mb-3">
-                            <label for="user_id" class="form-label fw-semibold text-muted small">Hubungkan ke Akun Pengguna (Opsional)</label>
-                            <select 
-                                class="form-select @error('user_id') is-invalid @enderror" 
-                                id="user_id" 
-                                name="user_id"
-                            >
-                                <option value="">-- Pilih Akun User --</option>
-                                @foreach($users as $user)
-                                    <option value="{{ $user->id }}" {{ old('user_id') == $user->id ? 'selected' : '' }}>
-                                        {{ $user->name }} ({{ $user->email }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('user_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <div class="form-text small mt-1">Hanya menampilkan pengguna yang memiliki role <code>sales</code>.</div>
-                        </div>
+
 
                         <div class="d-grid mt-4">
                             <button type="submit" class="btn btn-primary py-2">

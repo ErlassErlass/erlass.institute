@@ -189,7 +189,7 @@ class Ekstrakurikuler extends Model
      */
     public function sales(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id_sales');
+        return $this->belongsTo(Salesman::class, 'user_id_sales');
     }
 
     /**

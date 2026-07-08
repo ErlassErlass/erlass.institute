@@ -13,7 +13,6 @@ Menggunakan `spatie/laravel-permission`.
 - `webmaster`: Super Admin, akses penuh ke log & user management.
 - `admin_sistem`: Admin operasional (Sekolah, Siswa, Program).
 - `instruktur`: Guru/Pengajar (Laporan Mengajar, Absensi).
-- `sales`: Tim Marketing/Sales (Akses terbatas dashboard sales - *On Progress*).
 
 ## Modul Utama
 
@@ -84,7 +83,6 @@ Proses registrasi instruktur melibatkan transaksi database (`DB::transaction`) u
 
 *   **Admin Sistem**: Diberikan hak akses setara "Webmaster" untuk verifikasi instruktur (approve/reject).
 *   **Webmaster**: Super Admin.
-*   **Sales/Marketing**: *Sedang dikembangkan*, akses terbatas ke modul sales.
 
 ### 5. Laporan Mengajar Logic
 **Controller**: `LaporanMengajarController`

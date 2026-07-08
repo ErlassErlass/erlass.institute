@@ -2,6 +2,29 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.8.2] - 2026-07-07
+
+### Ditambahkan (Added)
+- **Fitur Tambah Sesi Manual (Opsi 2)**:
+  - Menambahkan tombol "Tambah Sesi" di tab **Jadwal** pada halaman detail program (`show.blade.php`) di sebelah header masing-masing Rombel (hanya untuk Admin/Webmaster).
+  - Menyediakan modal popup formulir input untuk memasukkan tanggal, jam mulai, jam selesai, topik materi, dan catatan sesi tambahan.
+  - Menambahkan route POST `/rombel/{rombel}/add-session` dan method `addManualSession` di `EkstrakurikulerSessionController` untuk menyimpan sesi ad-hoc secara manual dengan nomor pertemuan dinamis (`max(nomor_pertemuan) + 1`).
+  - Menempatkan modal HTML di dalam blok `@push('modals')` agar dimuat di root stacking context (`@stack('modals')` pada layout `app.blade.php`), menghindari masalah modal terhalang oleh backdrop hitam karena animasi transisi `<main>`.
+
+### Diperbaiki & Dioptimalkan (Fixed & Optimized)
+- **Pembersihan Total Role Sales & Otorisasi**:
+  - Menghapus opsi pembuatan role `sales` dari form manajemen user dan menu navigasi sidebar.
+  - Mengubah foreign key penanggung jawab program `user_id_sales` pada tabel `ekstrakurikuler` agar merujuk langsung ke tabel `salesmen.id` (bukan `users.id`) dengan migrasi database.
+  - Menghapus logika pengecekan role `sales` dari `EkstrakurikulerPolicy` dan controller terkait.
+  - Menghapus filter dan relasi `ordersSp` yang sudah tidak ada di method `destroy` pada `SalesmanController` untuk memperbaiki error 500 saat menghapus salesman.
+- **Penyederhanaan Modul & Pembersihan Data Salesman**:
+  - Menghapus kolom "Akun Pengguna" pada tabel list salesman dan dropdown "Hubungkan ke Akun Pengguna" pada form tambah/edit salesman.
+  - Melakukan pembersihan data master salesman di database untuk mempertahankan hanya 16 salesman resmi yang terdaftar, sekaligus memperbarui format kodenya menjadi format `PXXXX`.
+- **Optimasi & Perbaikan Transparansi Logo**:
+  - Mengubah dimensi logo `logo-erlass.png` dari `3403x1238` piksel (resolusi raksasa) menjadi resolusi ideal `600x218` piksel untuk menghemat bandwidth browser klien.
+  - Memperbaiki hilangnya transparansi alpha pada logo (masalah latar belakang hitam yang muncul di browser Mozilla Firefox) akibat konversi palette warna sebelumnya, dengan mempertahankan mode *truecolor alpha transparency* penuh saat di-resize.
+  - Melakukan kompresi lossless berkas PNG hasil resize menggunakan utilitas `optipng` hingga mencapai ukuran sangat ringan **22 KiB** (menyusut **87%** dari ukuran asli 176 KiB).
+
 ## [1.8.1] - 2026-07-06
 
 ### Ditambahkan (Added)

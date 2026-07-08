@@ -29,7 +29,7 @@ class CreateEkstrakurikulerStep1Request extends FormRequest
                 'string',
                 'in:Coding Scratch,English Course,Micro:bit Learning Kit,Pictoblox AI,Robotik Explorer,Robotik Jimu'
             ],
-            'user_id_sales' => 'required|exists:users,id',
+            'user_id_sales' => 'required|exists:salesmen,id',
             'region' => 'nullable|string|in:JAKARTA,DEPOK,BOGOR,TANGERANG,BEKASI',
             'city' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',

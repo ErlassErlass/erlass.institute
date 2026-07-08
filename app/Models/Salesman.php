@@ -35,4 +35,12 @@ class Salesman extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    /**
+     * Accessor untuk nama_lengkap (backward compatibility).
+     */
+    public function getNamaLengkapAttribute(): string
+    {
+        return $this->nama_salesman;
+    }
+
 }

@@ -63,10 +63,9 @@
                     <thead class="table-light">
                         <tr>
                             <th width="15%" class="ps-4">Kode Sales</th>
-                            <th width="25%">Nama Salesman</th>
-                            <th width="20%">Akun Pengguna</th>
-                            <th width="15%">Group Leader</th>
-                            <th width="15%">Area / Wilayah</th>
+                            <th width="35%">Nama Salesman</th>
+                            <th width="20%">Group Leader</th>
+                            <th width="20%">Area / Wilayah</th>
                             <th width="10%" class="text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -76,14 +75,6 @@
                                 <td class="font-monospace text-muted ps-4 fw-bold">{{ $item->kode_salesman }}</td>
                                 <td>
                                     <div class="fw-bold text-dark">{{ $item->nama_salesman }}</div>
-                                </td>
-                                <td>
-                                    @if ($item->user)
-                                        <div class="fw-semibold text-primary"><i class="bi bi-person-circle me-1"></i>{{ $item->user->name }}</div>
-                                        <small class="text-muted">{{ $item->user->email }}</small>
-                                    @else
-                                        <span class="text-muted small"><em>Belum terhubung</em></span>
-                                    @endif
                                 </td>
                                 <td>{{ $item->group_leader ?? '-' }}</td>
                                 <td>
@@ -106,7 +97,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-5">
+                                <td colspan="5" class="text-center py-5">
                                     <div class="mb-3">
                                         <i class="bi bi-people text-muted fs-1 opacity-25"></i>
                                     </div>

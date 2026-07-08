@@ -34,7 +34,7 @@ class MarketingEmployeeSeeder extends Seeder
                 [
                     'nama_lengkap' => $person['nama'],
                     'password' => Hash::make('password'),
-                    'role' => 'sales',
+                    'role' => 'admin',
                     'division_id' => $marketingDivision->id,
                     'status' => 'active',
                     'no_telephone' => '08123456789',

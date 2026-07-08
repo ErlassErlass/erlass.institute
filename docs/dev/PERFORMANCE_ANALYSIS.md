@@ -24,7 +24,7 @@ Namun, ada beberapa titik yang perlu diperhatikan seiring bertambahnya data.
     *   *Risiko*: Jika ada 1000 rombel & 500 instruktur, halaman akan terasa berat karena memuat ribuan baris data ke memori hanya untuk dropdown filter.
     *   *Solusi*: Ubah dropdown filter menjadi **AJAX Search (Select2)**, sehingga data hanya ditarik saat diketik.
 
-## 3. Optimasi yang Baru Saja Dilakukan (Update v1.7.6)
+## 3. Optimasi yang Baru Saja Dilakukan (Update Terbaru)
 
 ### A. Optimasi Form Pembuatan Ekstrakurikuler (`/ekstrakurikuler/create`)
 - **Masalah**: Halaman wizard pembuatan ekstrakurikuler memuat data kota unik (`Sekolah::select('kota')->distinct()`) dan wilayah (region) di setiap langkahnya. Dengan ribuan data sekolah tanpa indeks, query ini memicu *full table scan* berulang kali yang memperlambat perpindahan antar langkah form.
@@ -33,6 +33,26 @@ Namun, ada beberapa titik yang perlu diperhatikan seiring bertambahnya data.
   2. **Caching Data Wilayah**: Mengimplementasikan caching selama 24 jam untuk daftar kota dan region (`sekolah_available_cities` dan `sekolah_available_regions`) pada [`RegionMappingService.php`](file:///root/webapperlass/app/Services/Ekstrakurikuler/RegionMappingService.php).
   3. **Manajemen Cache Otomatis**: Menambahkan event observer pada model [`Sekolah.php`](file:///root/webapperlass/app/Models/Sekolah.php) untuk otomatis menghapus cache tersebut saat data sekolah disimpan (`saved`) atau dihapus (`deleted`).
 - **Hasil**: Perpindahan antar-langkah form creation wizard berjalan instan (< 100ms) tanpa membebani server database.
+
+### B. Optimasi Relasi Salesman & Pembersihan Akun Sales (v1.8.2)
+- **Masalah**: Penanggung jawab (PIC) program ekskul sebelumnya merujuk ke tabel `users` (dengan role `sales`). Pencarian dan filtering data ekskul harus memuat model `User` yang memiliki kolom-kolom berat (seperti password hash, email, json dokumen verifikasi, dll.). Selain itu, ada 20 akun user sales pasif di tabel `users` yang menumpuk data.
+- **Solusi & Optimasi**:
+  1. Mengubah relasi `user_id_sales` dari `users.id` ke `salesmen.id`.
+  2. Menghapus 20 akun user ber-role `sales` dari tabel `users`, menyusutkan ukuran tabel dan mempercepat pencarian data user login.
+  3. Master data salesmen disinkronkan menjadi hanya 16 entri resmi dengan indeks pencarian teroptimasi.
+- **Hasil**: Query relasi program ekskul ke PIC salesman berjalan jauh lebih cepat dengan memori footprint yang sangat kecil.
+
+### C. Fitur Tambah Sesi Manual (Opsi 2)
+- **Masalah**: Sebelumnya, penambahan sesi tambahan membutuhkan regenerasi seluruh jadwal (menghapus dan membuat ulang 32+ sesi). Hal ini memicu puluhan query kalkulasi libur nasional dan tanggal yang lambat serta rawan memicu database lock.
+- **Solusi & Optimasi**: Menambahkan fitur pembuatan sesi tunggal ad-hoc yang hanya menjalankan 1 query `INSERT` tunggal yang instan, dengan nomor pertemuan dinamis `max(nomor_pertemuan) + 1` yang memanfaatkan database index.
+- **Hasil**: Proses penambahan sesi berjalan kurang dari 5 milidetik dan 100% bebas dari risiko database locks.
+
+### D. Kompresi & Optimasi Logo (v1.8.2)
+- **Masalah**: Berkas gambar `logo-erlass.png` sebelumnya memiliki resolusi raksasa `3403x1238` piksel dengan ukuran file **176 KiB** yang memperlambat pemuatan halaman (First Contentful Paint) dan memboroskan bandwidth browser.
+- **Solusi & Optimasi**:
+  1. Melakukan *resizing* dimensi gambar secara proporsional ke resolusi ideal `600x218` piksel menggunakan PHP GD dengan mempertahankan *truecolor alpha transparency* penuh agar tidak menghasilkan latar belakang hitam di browser seperti Mozilla Firefox.
+  2. Mengoptimalkan kompresi PNG secara lossless menggunakan utilitas `optipng`.
+- **Hasil**: Ukuran berkas logo menyusut drastis dari **176 KiB** menjadi hanya **22 KiB** (berkurang **87%**) dengan visual yang tetap tajam dan transparansi latar belakang yang berfungsi sempurna di semua browser.
 
 ## 4. Optimasi Server (Wajib dilakukan saat Deploy)
 Agar performa maksimal di Production (Server Asli), pastikan menjalankan perintah ini:

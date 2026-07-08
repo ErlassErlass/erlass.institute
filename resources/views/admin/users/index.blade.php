@@ -147,10 +147,6 @@
                                         <span class="badge bg-info me-2">
                                             <i class="bi bi-person-video2"></i>
                                         </span>
-                                    @elseif($user->role === 'sales')
-                                        <span class="badge bg-success me-2">
-                                            <i class="bi bi-graph-up-arrow"></i>
-                                        </span>
                                     @else
                                         <span class="badge bg-secondary me-2">
                                             <i class="bi bi-person"></i>
@@ -170,8 +166,6 @@
                                     <span class="badge bg-warning">Administrator</span>
                                 @elseif($user->role === 'instruktur')
                                     <span class="badge bg-info">Instruktur</span>
-                                @elseif($user->role === 'sales')
-                                    <span class="badge bg-success">Sales</span>
                                 @elseif($user->role === 'debug_user')
                                     <span class="badge bg-secondary">Debug User</span>
                                 @else
@@ -254,8 +248,6 @@
                                         <span class="badge bg-warning me-2"><i class="bi bi-shield-check"></i></span>
                                     @elseif($user->role === 'instruktur')
                                         <span class="badge bg-info me-2"><i class="bi bi-person-video2"></i></span>
-                                    @elseif($user->role === 'sales')
-                                        <span class="badge bg-success me-2"><i class="bi bi-graph-up-arrow"></i></span>
                                     @else
                                         <span class="badge bg-secondary me-2"><i class="bi bi-person"></i></span>
                                     @endif

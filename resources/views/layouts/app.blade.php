@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" media="print" onload="this.media='all'" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js" defer></script>
     <style>
         #nprogress .bar { background: #3b82f6 !important; height: 3px !important; }
         @keyframes pageFadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -39,11 +39,11 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
     
     <!-- Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     
     <!-- Additional plugin styles for complex forms -->
     {{-- Plugins (Select2, Flatpickr) now bundled in app.css --}}
@@ -523,23 +523,20 @@
                         </a>
                     </li>
 
-                    @if(Auth::user()?->hasAdminAccess() || in_array(Auth::user()?->role, ['sales']))
+                    @if(Auth::user()?->hasAdminAccess())
                         <li class="sidebar-section-title">Inisiasi & Kontrak</li>
-                        @if(Auth::user()?->hasAdminAccess())
-                            <li class="sidebar-item">
-                                <a class="sidebar-link {{ request()->routeIs('products.index') ? 'active' : '' }}" href="{{ route('products.index') }}">
-                                    <i class="bi bi-box-seam"></i>
-                                    <span>Produk</span>
-                                </a>
-                            </li>
-                            <li class="sidebar-item">
-                                <a class="sidebar-link {{ request()->routeIs('salesmen.index') ? 'active' : '' }}" href="{{ route('salesmen.index') }}">
-                                    <i class="bi bi-person-badge"></i>
-                                    <span>Salesman</span>
-                                </a>
-                            </li>
-                        @endif
-
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs('products.index') ? 'active' : '' }}" href="{{ route('products.index') }}">
+                                <i class="bi bi-box-seam"></i>
+                                <span>Produk</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs('salesmen.index') ? 'active' : '' }}" href="{{ route('salesmen.index') }}">
+                                <i class="bi bi-person-badge"></i>
+                                <span>Salesman</span>
+                            </a>
+                        </li>
                     @endif
 
                     @if(Auth::user()?->hasAdminAccess())

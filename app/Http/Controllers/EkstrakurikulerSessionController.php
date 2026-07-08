@@ -45,16 +45,10 @@ class EkstrakurikulerSessionController extends Controller
         // Restrict to own sessions if not admin
         $user = auth()->user();
         if (! $user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
-            if ($user->role === 'sales') {
-                $query->whereHas('rombel.ekstrakurikuler', function ($q) use ($user) {
-                    $q->where('user_id_sales', $user->id);
-                });
-            } else {
-                $query->where(function ($q) use ($user) {
-                    $q->where('user_id_instruktur', $user->id)
-                      ->orWhere('user_id_asisten', $user->id);
-                });
-            }
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id_instruktur', $user->id)
+                  ->orWhere('user_id_asisten', $user->id);
+            });
         }
 
         // Filter berdasarkan tanggal
@@ -153,16 +147,10 @@ class EkstrakurikulerSessionController extends Controller
 
         // Restrict to own sessions if not admin
         if (! $user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
-            if ($user->role === 'sales') {
-                $query->whereHas('rombel.ekstrakurikuler', function ($q) use ($user) {
-                    $q->where('user_id_sales', $user->id);
-                });
-            } else {
-                $query->where(function ($q) use ($user) {
-                    $q->where('user_id_instruktur', $user->id)
-                      ->orWhere('user_id_asisten', $user->id);
-                });
-            }
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id_instruktur', $user->id)
+                  ->orWhere('user_id_asisten', $user->id);
+            });
         }
 
         $sessions = $query->get()
@@ -803,5 +791,57 @@ class EkstrakurikulerSessionController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Fee sesi berhasil dikoreksi (override)!');
+    }
+
+    /**
+     * Tambah satu session secara manual ke rombel (Admin Only).
+     */
+    public function addManualSession(Request $request, EkstrakurikulerRombel $rombel): \Illuminate\Http\RedirectResponse
+    {
+        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $request->validate([
+            'tanggal_terjadwal' => 'required|date',
+            'jam_mulai_terjadwal' => 'required|string',
+            'jam_selesai_terjadwal' => 'required|string',
+            'topik_materi' => 'nullable|string|max:255',
+            'catatan' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Hitung nomor pertemuan berikutnya secara otomatis (max + 1)
+            $nextMeetingNumber = $rombel->sessions()->max('nomor_pertemuan') + 1;
+
+            $sessionData = [
+                'ekstrakurikuler_id' => $rombel->ekstrakurikuler_id,
+                'ekstrakurikuler_rombel_id' => $rombel->id,
+                'nomor_pertemuan' => $nextMeetingNumber,
+                'tanggal_terjadwal' => $request->input('tanggal_terjadwal'),
+                'jam_mulai_terjadwal' => $request->input('jam_mulai_terjadwal'),
+                'jam_selesai_terjadwal' => $request->input('jam_selesai_terjadwal'),
+                'user_id_instruktur' => $rombel->user_id_instruktur,
+                'user_id_asisten' => $rombel->user_id_asisten,
+                'status' => EkstrakurikulerSession::STATUS_TERJADWAL,
+                'topik_materi' => $request->input('topik_materi'),
+                'catatan' => $request->input('catatan'),
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
+            ];
+
+            EkstrakurikulerSession::create($sessionData);
+
+            DB::commit();
+
+            return redirect()->back()->with('success', "Berhasil menambahkan Pertemuan {$nextMeetingNumber} secara manual.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Illuminate\Support\Facades\Log::error("Error adding manual session: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menambahkan sesi baru: ' . $e->getMessage());
+        }
     }
 }

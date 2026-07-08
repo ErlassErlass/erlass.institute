@@ -9,18 +9,16 @@ Dokumen ini menjelaskan struktur database dan hubungan antar entitas (ERD) untuk
 erDiagram
     SEKOLAH ||--o{ SISWA : "has many"
     SEKOLAH ||--o{ EKSTRAKURIKULER : "hosts"
-    SEKOLAH ||--o{ ORDERS_SP : "has many"
     SEKOLAH ||--o{ SCHOOL_PICS : "has pics"
     SEKOLAH ||--o{ SCHOOL_CALENDARS : "has calendars"
     
     SISWA ||--o{ SISWA_EKSTRAKURIKULER : "enrolls in"
     SISWA ||--o{ ABSENSI : "has attendance"
     
-    USER ||--o{ EKSTRAKURIKULER : "sales/pic"
+    SALESMEN ||--o{ EKSTRAKURIKULER : "sales/pic"
     USER ||--o{ EKSTRAKURIKULER_SESSION : "instructs"
     USER ||--o{ LAPORAN_MENGAJAR : "submits"
     USER ||--|| INSTRUCTOR_PROFILE : "has"
-    USER ||--o{ SALESMEN : "references as user"
     USER ||--o{ SCHEDULE_CHANGES : "requests/approves"
     USER ||--o{ SESSION_CONFIRMATIONS : "confirm instructor"
     USER ||--o{ SCHOOL_CALENDARS : "creates"
@@ -31,16 +29,12 @@ erDiagram
     
     LAPORAN_MENGAJAR ||--|| EKSTRAKURIKULER_SESSION : "belongs to session"
     LAPORAN_MENGAJAR ||--|{ ABSENSI : "records"
-
-    SALESMEN ||--o{ ORDERS_SP : "issues"
-    ORDERS_SP ||--|{ ORDER_ITEMS : "contains"
-    PRODUCTS ||--o{ ORDER_ITEMS : "ordered as"
-
+    
     EKSTRAKURIKULER_SESSION ||--o{ SCHEDULE_CHANGES : "has schedule changes"
     SCHOOL_PICS ||--o{ SCHEDULE_CHANGES : "approves change request"
     EKSTRAKURIKULER_SESSION ||--o{ SESSION_CONFIRMATIONS : "tracked via H-1 confirmations"
     EKSTRAKURIKULER_SESSION ||--o{ WARNINGS : "triggers warnings (polymorphic)"
-
+    
     SISWA ||--o{ STUDENT_SCORES : "has scores"
     SISWA ||--o{ STUDENT_PORTFOLIOS : "has portfolios"
     SISWA ||--o{ REPORT_CARDS : "has report cards"
@@ -205,35 +199,10 @@ erDiagram
 
     SALESMEN {
         bigint id PK
-        bigint user_id FK
         string kode_salesman
         string nama_salesman
         string group_leader
         string area
-    }
-
-    ORDERS_SP {
-        bigint id PK
-        string nomor_sp
-        date tanggal_sp
-        string sekolah_kodlan FK
-        bigint salesman_id FK
-        int jumlah_peserta_estimasi
-        enum jenis_kegiatan
-        string lokasi_pembelajaran
-        date tanggal_mulai_rencana
-        int jumlah_pertemuan
-        text catatan_khusus
-        enum status
-        bigint created_by FK
-        bigint updated_by FK
-    }
-
-    ORDER_ITEMS {
-        bigint id PK
-        bigint order_sp_id FK
-        bigint product_id FK
-        decimal harga_satuan
     }
 
     SCHEDULE_CHANGES {

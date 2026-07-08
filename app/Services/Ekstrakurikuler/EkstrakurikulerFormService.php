@@ -266,7 +266,7 @@ class EkstrakurikulerFormService
 
         return [
             'kategori_program' => 'required|string|in:' . implode(',', $activeProducts),
-            'user_id_sales' => 'required|exists:users,id',
+            'user_id_sales' => 'required|exists:salesmen,id',
             'region' => 'nullable|string',
             'city' => 'required|string',
             'jenis_alat' => 'nullable|string',

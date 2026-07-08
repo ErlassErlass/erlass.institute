@@ -56,7 +56,6 @@ class UserController extends Controller
             'admin_sistem' => 'Admin Sistem',
             'admin' => 'Admin',
             'instruktur' => 'Instruktur',
-            'sales' => 'Sales',
         ];
 
         // Statistics
@@ -79,7 +78,7 @@ class UserController extends Controller
     {
         Gate::authorize('create', User::class);
 
-        $roles = ['webmaster', 'admin_sistem', 'admin', 'instruktur', 'sales'];
+        $roles = ['webmaster', 'admin_sistem', 'admin', 'instruktur'];
 
         return view('users.create', compact('roles'));
     }
@@ -102,7 +101,7 @@ class UserController extends Controller
             'pend_terakhir' => ['nullable', 'string', 'max:10'],
             'kompetensi_1' => ['nullable', 'string', 'max:255'],
             'kompetensi_2' => ['nullable', 'string', 'max:255'],
-            'role' => ['required', 'in:webmaster,admin_sistem,admin,instruktur,sales'],
+            'role' => ['required', 'in:webmaster,admin_sistem,admin,instruktur'],
             'tanggal_aktif' => ['nullable', 'date'],
             'tanggal_nonaktif' => ['nullable', 'date', 'after_or_equal:tanggal_aktif'],
             'alamat_domisili' => ['nullable', 'string'],
@@ -159,7 +158,7 @@ class UserController extends Controller
     {
         Gate::authorize('update', $user);
 
-        $roles = ['webmaster', 'admin_sistem', 'admin', 'instruktur', 'sales'];
+        $roles = ['webmaster', 'admin_sistem', 'admin', 'instruktur'];
 
         return view('users.edit', compact('user', 'roles'));
     }

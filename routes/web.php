@@ -15,7 +15,6 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SalesmanController;
-use App\Http\Controllers\OrderSpController;
 use App\Http\Controllers\ScheduleChangeController;
 use App\Http\Controllers\StudentScoreController;
 use App\Http\Controllers\StudentPortfolioController;
@@ -143,6 +142,8 @@ Route::middleware(['auth'])->group(function () {
         // Rombel Session Management
         Route::post('rombel/{rombel}/regenerate-sessions', [EkstrakurikulerSessionController::class, 'regenerateRombelSessions'])
             ->name('rombel.regenerate-sessions');
+        Route::post('rombel/{rombel}/add-session', [EkstrakurikulerSessionController::class, 'addManualSession'])
+            ->name('rombel.add-session');
 
         // Instructor Management
         Route::get('instructors/{instructor}/available-slots', [EkstrakurikulerSessionController::class, 'availableSlots'])

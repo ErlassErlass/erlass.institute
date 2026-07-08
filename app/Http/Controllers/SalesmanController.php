@@ -44,7 +44,7 @@ class SalesmanController extends Controller
         if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
             abort(403, 'Akses ditolak.');
         }
-        $users = User::where('role', 'sales')->get();
+        $users = collect();
         return view('salesmen.create', compact('users'));
     }
 
@@ -84,7 +84,7 @@ class SalesmanController extends Controller
         if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
             abort(403, 'Akses ditolak.');
         }
-        $users = User::where('role', 'sales')->get();
+        $users = collect();
         return view('salesmen.edit', compact('salesman', 'users'));
     }
 
@@ -124,10 +124,6 @@ class SalesmanController extends Controller
     {
         if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
             abort(403, 'Akses ditolak.');
-        }
-
-        if ($salesman->ordersSp()->exists()) {
-            return redirect()->route('salesmen.index')->with('error', 'Salesman tidak dapat dihapus karena memiliki Surat Pesanan (SP).');
         }
 
         $salesman->delete();
