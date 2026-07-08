@@ -2,6 +2,19 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.8.3] - 2026-07-08
+
+### Ditambahkan (Added)
+- **Penyatuan & Peningkatan Halaman Profil Instruktur**:
+  - Melebur formulir data profil instruktur `/instructor/complete-profile` ke halaman profil terpadu `/profile` (`profile.edit` dan `profile.update`). Rute lama dialihkan secara otomatis demi backward compatibility.
+  - Menyediakan layout 5 tab Bootstrap interaktif khusus instruktur pada view `profile/edit.blade.php` (Data Akun & Domisili, Bank & Berkas, Karir & Logistik, Jadwal Mengajar, Ganti Password).
+  - Menambahkan pratinjau thumbnail KTP/NPWP dan link CV terunggah di samping tombol input file.
+  - Membungkus penyimpanan data profil dalam database transaction (`DB::transaction`) di `UserController.php` demi integritas data.
+- **Peningkatan Fitur Portal Instruktur (AOQCS Integration)**:
+  - **Estimasi Honor Real-Time**: Menambahkan widget "Estimasi Honor" berjalan di dashboard instruktur yang dihitung dinamis menggunakan `PayrollCalculatorService` lengkap dengan deteksi denda keterlambatan.
+  - **Transparansi Check-in & Uang Transport**: Menampilkan status check-in (`Excellent/On Time/Warning/Penalty`) dan nominal uang transport berbasis jarak pada detail laporan mengajar instruktur.
+  - **Kontak Darurat Bantuan Cepat**: Menambahkan info kontak & tautan WhatsApp PIC Sekolah di detail sesi, serta widget bantuan "Admin Akademik" di sidebar kanan dashboard instruktur.
+
 ## [1.8.2] - 2026-07-07
 
 ### Ditambahkan (Added)
