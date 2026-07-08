@@ -250,9 +250,13 @@ class UserController extends Controller
      */
     public function profile(Request $request)
     {
-        return view('profile.edit', [
-            'user' => $request->user(),
-        ]);
+        $user = $request->user();
+        if ($user->role === 'instruktur') {
+            $user->load('instructorProfile');
+        }
+        $profile = $user->instructorProfile;
+
+        return view('profile.edit', compact('user', 'profile'));
     }
 
     /**
@@ -262,7 +266,7 @@ class UserController extends Controller
     {
         $user = $request->user();
 
-        $request->validate([
+        $rules = [
             'nama_lengkap' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'tanggal_lahir' => 'required|date',
@@ -271,13 +275,123 @@ class UserController extends Controller
             'pend_terakhir' => 'required|string|max:50',
             'kompetensi_1' => 'required|string|max:100',
             'kompetensi_2' => 'nullable|string|max:100',
-        ]);
+        ];
 
-        $user->update($request->only([
-            'nama_lengkap', 'email', 'tanggal_lahir', 'no_telephone',
-            'agama', 'pend_terakhir', 'kompetensi_1', 'kompetensi_2',
-        ]));
+        if ($user->role === 'instruktur') {
+            $rules = array_merge($rules, [
+                // Personal Info
+                'gelar_depan' => 'nullable|string|max:50',
+                'gelar_belakang' => 'nullable|string|max:50', 
+                'nama_panggilan' => 'required|string|max:100',
+                'no_hp_2' => 'required|string|max:20',
+                'alamat_domisili' => 'required|string',
+                'kota_domisili' => 'required|string|max:100',
+                'status_pernikahan' => 'required|string|max:50',
 
-        return redirect()->route('profile.edit')->with('success', 'Profile updated successfully!');
+                // Documents (nullable if already exists)
+                'foto_ktp' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+                'foto_npwp' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+                'cv' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+
+                // Professional
+                'pekerjaan_terakhir' => 'required|string',
+                'jenjang_mengajar' => 'required|string',
+                'universitas_jurusan' => 'required|string',
+                
+                // Financial & Legal
+                'nama_bank' => 'required|string',
+                'no_rekening' => 'required|string',
+                'no_npwp' => 'nullable|string',
+                'nik' => 'required|string|min:16|max:16',
+
+                // Health & Logistics
+                'tinggi_badan' => 'required|numeric|min:100|max:250',
+                'berat_badan' => 'required|numeric|min:30|max:200',
+                'riwayat_penyakit' => 'nullable|string',
+                'mata_minus' => 'required|string',
+                'alat_mengajar' => 'required|array',
+                'catatan_alat' => 'nullable|string',
+                'kendaraan' => 'required|string',
+                'jenis_kendaraan' => 'required|string',
+                
+                // Schedule
+                'waktu_mengajar' => 'required|array',
+            ]);
+        }
+
+        $validated = $request->validate($rules);
+
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            $user->update($request->only([
+                'nama_lengkap', 'email', 'tanggal_lahir', 'no_telephone',
+                'agama', 'pend_terakhir', 'kompetensi_1', 'kompetensi_2',
+            ]));
+
+            if ($user->role === 'instruktur') {
+                $fileUploadService = app(\App\Services\FileUploadService::class);
+                $docPaths = $user->verification_documents ?? [];
+                
+                if ($request->hasFile('foto_ktp')) {
+                    $docPaths['foto_ktp'] = $fileUploadService->upload($request->file('foto_ktp'), 'instructors', $user->id);
+                }
+                if ($request->hasFile('foto_npwp')) {
+                    $docPaths['foto_npwp'] = $fileUploadService->upload($request->file('foto_npwp'), 'instructors', $user->id);
+                }
+                if ($request->hasFile('cv')) {
+                    $docPaths['cv_link'] = $fileUploadService->upload($request->file('cv'), 'instructors', $user->id);
+                }
+
+                $user->update(['verification_documents' => $docPaths]);
+
+                $profileData = [
+                    'gelar_depan' => $request->gelar_depan,
+                    'gelar_belakang' => $request->gelar_belakang,
+                    'nama_panggilan' => $request->nama_panggilan,
+                    'no_hp_2' => $request->no_hp_2,
+                    'alamat_domisili' => $request->alamat_domisili,
+                    'kota_domisili' => $request->kota_domisili,
+                    'status_pernikahan' => $request->status_pernikahan,
+                    'foto_ktp' => $docPaths['foto_ktp'] ?? ($user->instructorProfile?->foto_ktp ?? null),
+                    'foto_npwp' => $docPaths['foto_npwp'] ?? ($user->instructorProfile?->foto_npwp ?? null),
+                    'cv_link' => $docPaths['cv_link'] ?? ($user->instructorProfile?->cv_link ?? null),
+                    'pekerjaan_terakhir' => $request->pekerjaan_terakhir,
+                    'jenjang_mengajar' => $request->jenjang_mengajar,
+                    'universitas_jurusan' => $request->universitas_jurusan,
+                    'nama_bank' => $request->nama_bank,
+                    'no_rekening' => $request->no_rekening,
+                    'no_npwp' => $request->no_npwp,
+                    'nik' => $request->nik,
+                    'tinggi_berat_badan' => $request->tinggi_badan . 'cm / ' . $request->berat_badan . 'kg',
+                    'riwayat_penyakit' => $request->riwayat_penyakit,
+                    'mata_minus' => $request->mata_minus,
+                    'alat_mengajar' => json_encode($request->alat_mengajar),
+                    'catatan_alat' => $request->catatan_alat,
+                    'kendaraan' => $request->kendaraan,
+                    'jenis_kendaraan' => $request->jenis_kendaraan,
+                    'waktu_mengajar' => $request->waktu_mengajar,
+                ];
+
+                \App\Models\InstructorProfile::updateOrCreate(
+                    ['user_id' => $user->id],
+                    $profileData
+                );
+
+                if (!$user->is_verified) {
+                    $user->update([
+                        'verification_status' => 'pending', 
+                        'application_date' => now()
+                    ]);
+                }
+            }
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            return redirect()->route('profile.edit')->with('success', 'Profile updated successfully!');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return back()->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()])->withInput();
+        }
     }
 }

@@ -39,10 +39,11 @@ Route::get('/', [WelcomeController::class, 'index'])->name('home');
 Route::get('/register/instructor', [App\Http\Controllers\InstructorRegistrationController::class, 'create'])->name('instructor.register');
 Route::post('/register/instructor', [App\Http\Controllers\InstructorRegistrationController::class, 'store'])->name('instructor.register.store');
 
-// Instructor Profile Completion (Authenticated)
+// Instructor Profile Completion (Redirected to Unified Profile)
 Route::middleware(['auth'])->group(function () {
-    Route::get('/instructor/complete-profile', [App\Http\Controllers\InstructorProfileController::class, 'edit'])->name('instructor.profile.complete');
-    Route::post('/instructor/complete-profile', [App\Http\Controllers\InstructorProfileController::class, 'update'])->name('instructor.profile.update');
+    Route::get('/instructor/complete-profile', function () {
+        return redirect()->route('profile.edit');
+    })->name('instructor.profile.complete');
 });
 
 // Protected Routes (all require authentication)
