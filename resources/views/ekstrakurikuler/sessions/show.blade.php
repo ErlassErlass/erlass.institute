@@ -248,6 +248,33 @@
                         </div>
 
                         <div class="col-6 col-md-6">
+                            <label class="small text-muted text-uppercase fw-bold">PIC Sekolah</label>
+                            @php
+                                $sekolah = $session->rombel->ekstrakurikuler->sekolah;
+                                $picName = $sekolah->pic_nama ?? '-';
+                                $picKontak = $sekolah->pic_kontak ?? '';
+                            @endphp
+                            <p class="mb-1 fw-medium text-dark">{{ $picName }}</p>
+                            @if($picKontak)
+                                @php
+                                    $cleanPicPhone = preg_replace('/[^0-9]/', '', $picKontak);
+                                    if (str_starts_with($cleanPicPhone, '0')) {
+                                        $cleanPicPhone = '62' . substr($cleanPicPhone, 1);
+                                    }
+                                    $waPicText = urlencode("Halo Bapak/Ibu " . $picName . " (PIC Sekolah " . $sekolah->namasekolah . "), saya instruktur Erlass untuk ekstrakurikuler " . $session->rombel->ekstrakurikuler->kategori_program . ".");
+                                @endphp
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <a href="tel:{{ $picKontak }}" class="btn btn-xs btn-outline-secondary py-1 px-2.5 rounded-pill" style="font-size: 0.75rem;">
+                                        <i class="bi bi-telephone me-1"></i> Hubungi
+                                    </a>
+                                    <a href="https://wa.me/{{ $cleanPicPhone }}?text={{ $waPicText }}" target="_blank" rel="noopener" class="btn btn-xs btn-outline-success py-1 px-2.5 rounded-pill" style="font-size: 0.75rem;">
+                                        <i class="bi bi-whatsapp me-1"></i> WhatsApp
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="col-6 col-md-6">
                             <label class="small text-muted text-uppercase fw-bold">Jumlah Siswa</label>
                             <p class="mb-0 fw-medium"><i class="bi bi-people me-1 text-primary"></i> {{ $session->rombel->jumlah_siswa }} siswa</p>
                         </div>

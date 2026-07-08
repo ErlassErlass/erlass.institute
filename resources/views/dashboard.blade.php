@@ -762,6 +762,25 @@
                     </div>
                 </div>
                 @endif
+
+                <!-- Emergency Helpdesk / Bantuan Darurat (AOQCS Pillar 1) -->
+                <div class="card shadow-sm border-0 mb-4 bg-light">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-dark mb-2 d-flex align-items-center">
+                            <i class="bi bi-chat-dots-fill text-success me-2"></i> Bantuan & Kontak Darurat
+                        </h6>
+                        <p class="text-muted small mb-3">
+                            Mengalami kendala saat mengajar atau butuh bantuan admin akademik Erlass? Hubungi kami langsung.
+                        </p>
+                        @php
+                            $waAdminPhone = '6282114631380'; // Nomor helpdesk Erlass
+                            $waAdminText = urlencode("Halo Admin Akademik Erlass, saya " . Auth::user()->nama_lengkap . " (Instruktur). Saya butuh bantuan terkait operasional mengajar.");
+                        @endphp
+                        <a href="https://wa.me/{{ $waAdminPhone }}?text={{ $waAdminText }}" target="_blank" rel="noopener" class="btn btn-success w-100 rounded-pill d-flex align-items-center justify-content-center gap-2 shadow-sm fw-bold">
+                            <i class="bi bi-whatsapp"></i> Chat Admin Akademik
+                        </a>
+                    </div>
+                </div>
             @else
                 <!-- Charts Partial (Admin Only) -->
                 @include('dashboard.partials.charts')

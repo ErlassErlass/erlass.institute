@@ -216,12 +216,37 @@ class DashboardController extends Controller
             ->selectRaw('COUNT(*) as total_count, SUM(TIMESTAMPDIFF(MINUTE, jam_mulai, jam_selesai)) as total_minutes')
             ->first();
 
+        // Calculate estimated monthly earnings (AOQCS Pillar 6 Integration)
+        $currentMonthSessions = \App\Models\EkstrakurikulerSession::where('user_id_instruktur', $user->id)
+            ->where('status', \App\Models\EkstrakurikulerSession::STATUS_SELESAI)
+            ->whereMonth('tanggal_pelaksanaan', now()->month)
+            ->whereYear('tanggal_pelaksanaan', now()->year)
+            ->whereHas('laporanMengajar') // Only completed sessions with reports count
+            ->get();
+
+        $calculator = app(\App\Services\PayrollCalculatorService::class);
+        $estimatedEarnings = 0.00;
+        $totalPenalties = 0.00;
+        $totalTransport = 0.00;
+
+        foreach ($currentMonthSessions as $session) {
+            $calc = $calculator->calculateSessionFee($session);
+            $base = $session->override_fee !== null ? (float)$session->override_fee : (float)$calc['calculated_fee'];
+            $sessionNet = max(0.00, $base + $calc['transport_fee'] - $calc['actual_checkin_penalty']);
+            $estimatedEarnings += $sessionNet;
+            $totalPenalties += $calc['actual_checkin_penalty'];
+            $totalTransport += $calc['transport_fee'];
+        }
+
         return [
             'total_laporan_instruktur' => \App\Models\LaporanMengajar::where('user_id_instruktur', $user->id)->count(),
             'incomplete_profile' => count($missing_fields) > 0,
             'missing_fields' => $missing_fields,
             'total_laporan_bulan_ini' => $monthlyStats->total_count ?? 0,
             'total_jam_mengajar' => round(($monthlyStats->total_minutes ?? 0) / 60, 1),
+            'estimated_earnings' => $estimatedEarnings,
+            'total_penalties' => $totalPenalties,
+            'total_transport' => $totalTransport,
             'next_class' => \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah:kodlan,namasekolah'])
                 ->where('user_id_instruktur', $user->id)
                 ->where('tanggal_terjadwal', '>=', now()->toDateString())

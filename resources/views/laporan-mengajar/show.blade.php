@@ -111,6 +111,43 @@
                                                     </a>
                                                 </p>
                                             </div>
+                                            <div class="col-md-6 mt-2">
+                                                <small class="text-muted">Status Check-in (Punctuality):</small>
+                                                <p class="mb-1">
+                                                    @php
+                                                        $checkinStatus = $ekstrakurikulerSession->actual_checkin_status ?? 'on_time';
+                                                        $badgeCheckin = match($checkinStatus) {
+                                                            'excellent' => 'success',
+                                                            'on_time' => 'primary',
+                                                            'warning' => 'warning',
+                                                            'penalty' => 'danger',
+                                                            default => 'secondary',
+                                                        };
+                                                        $checkinLabel = match($checkinStatus) {
+                                                            'excellent' => 'Excellent (Tepat Waktu & Cepat)',
+                                                            'on_time' => 'On Time (Tepat Waktu)',
+                                                            'warning' => 'Warning (Terlambat <15 Menit)',
+                                                            'penalty' => 'Penalty (Terlambat >15 Menit)',
+                                                            default => 'Belum Check-in / N/A',
+                                                        };
+                                                    @endphp
+                                                    <span class="badge bg-{{ $badgeCheckin }}">
+                                                        {{ $checkinLabel }}
+                                                    </span>
+                                                    @if($checkinStatus === 'penalty')
+                                                        <small class="text-danger d-block mt-1 fw-semibold"><i class="bi bi-exclamation-octagon me-1"></i>Denda Keterlambatan Terhitung</small>
+                                                    @endif
+                                                </p>
+                                            </div>
+                                            <div class="col-md-6 mt-2">
+                                                <small class="text-muted">Jarak & Transportasi:</small>
+                                                <p class="mb-1">
+                                                    <span class="badge bg-secondary">
+                                                        <i class="bi bi-geo-alt me-1"></i>{{ $ekstrakurikulerSession->ekstrakurikuler->jarak_km ?? '0' }} Km
+                                                    </span>
+                                                    <small class="text-muted d-block mt-1">Uang Transport: Rp {{ number_format($ekstrakurikulerSession->transport_fee ?? 30000, 0, ',', '.') }}</small>
+                                                </p>
+                                            </div>
                                             @if($ekstrakurikulerSession->topik_materi)
                                                 <div class="col-12">
                                                     <small class="text-muted">Topik Session:</small>
