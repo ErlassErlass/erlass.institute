@@ -41,7 +41,7 @@ Route::get('/', [WelcomeController::class, 'index'])->name('home');
 // =====================================================
 // AGENDA KEGIATAN — Public Routes (No Auth Required)
 // =====================================================
-Route::prefix('agenda-kegiatan')->name('agenda-kegiatan.')->group(function () {
+Route::prefix('rekap-pertemuan-ekskul')->name('agenda-kegiatan.')->group(function () {
     Route::get('/', [AgendaKegiatanController::class, 'index'])->name('index');
     Route::get('/filter', [AgendaKegiatanController::class, 'filter'])->name('filter');
     Route::get('/data', [AgendaKegiatanController::class, 'data'])->name('data');

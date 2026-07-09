@@ -588,7 +588,7 @@ function startExport() {
 function pollExportStatus() {
     clearInterval(pollInterval);
     pollInterval = setInterval(() => {
-        fetch(`{{ url('agenda-kegiatan/download') }}/${exportToken}`)
+        fetch(`{{ url('rekap-pertemuan-ekskul/download') }}/${exportToken}`)
             .then(r => {
                 if (r.status === 200 && r.headers.get('Content-Type')?.includes('zip')) {
                     clearInterval(pollInterval);
@@ -619,7 +619,7 @@ function showExportDone() {
     document.getElementById('exportError').style.display    = 'none';
     document.getElementById('exportDone').style.display     = '';
     document.getElementById('downloadLink').href =
-        `{{ url('agenda-kegiatan/download') }}/${exportToken}`;
+        `{{ url('rekap-pertemuan-ekskul/download') }}/${exportToken}`;
 }
 
 function showExportError() {
