@@ -34,6 +34,18 @@ if (app()->runningInConsole()) {
                   ->timezone('Asia/Jakarta')
                   ->withoutOverlapping()
                   ->appendOutputTo(storage_path('logs/warnings-detect.log'));
+
+         // Purge Temp Exports: bersihkan file ZIP ekspor yang berumur > 30 menit
+         $schedule->call(function () {
+             $dir = storage_path('app/temp-exports');
+             if (is_dir($dir)) {
+                 $files = glob($dir . '/*.zip');
+                 foreach ($files as $file) {
+                     if (filemtime($file) < now()->subMinutes(30)->timestamp) {
+                         @unlink($file);
+                     }
+                 }
+             }
+         })->everyFiveMinutes()->name('purge-temp-exports')->withoutOverlapping();
      });
 }
-

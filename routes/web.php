@@ -24,8 +24,10 @@ use App\Http\Controllers\SalaryRateController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\SchoolCalendarController;
+use App\Http\Controllers\AgendaKegiatanController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
 // Debug routes removed for security - use php artisan tinker for debugging
@@ -35,6 +37,19 @@ require __DIR__.'/auth.php';
 require __DIR__.'/health.php';
 
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
+
+// =====================================================
+// AGENDA KEGIATAN — Public Routes (No Auth Required)
+// =====================================================
+Route::prefix('agenda-kegiatan')->name('agenda-kegiatan.')->group(function () {
+    Route::get('/', [AgendaKegiatanController::class, 'index'])->name('index');
+    Route::get('/filter', [AgendaKegiatanController::class, 'filter'])->name('filter');
+    Route::get('/data', [AgendaKegiatanController::class, 'data'])->name('data');
+    Route::post('/export', [AgendaKegiatanController::class, 'export'])
+        ->name('export')
+        ->middleware('throttle:5,1');
+    Route::get('/download/{token}', [AgendaKegiatanController::class, 'download'])->name('download');
+});
 // User Registration (Instructor)
 Route::get('/register/instructor', [App\Http\Controllers\InstructorRegistrationController::class, 'create'])->name('instructor.register');
 Route::post('/register/instructor', [App\Http\Controllers\InstructorRegistrationController::class, 'store'])->name('instructor.register.store');

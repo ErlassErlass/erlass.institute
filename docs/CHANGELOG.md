@@ -2,6 +2,16 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.8.4] - 2026-07-09
+
+### Ditambahkan (Added)
+- **Halaman Agenda Kegiatan Publik**:
+  - Menyediakan halaman agenda kegiatan publik (tanpa login) di `/agenda-kegiatan` dengan layout visual Erlass yang premium dan bersih.
+  - Mengimplementasikan 3 dropdown filter cascading (Wilayah/Kota -> Sekolah -> Rombel) beserta filter rentang tanggal pengajaran.
+  - Menampilkan tabel sesi kegiatan yang telah selesai dengan pagination server-side (25 data/halaman), jumlah siswa hadir, dan tombol cetak/lihat presensi.
+  - Menambahkan fitur Export ZIP berbasis background queue (Redis) yang menghasilkan file Excel rekap, kompilasi foto presensi siswa yang di-rename secara sistematis (`Namsek_Rombel_Tanggal_Pertemuan`), dan file PDF kompilasi presensi kegiatan.
+  - Menambahkan tugas otomatis pembersihan file ZIP kedaluwarsa (> 30 menit) di `routes/console.php`.
+
 ## [1.8.3] - 2026-07-08
 
 ### Ditambahkan (Added)
