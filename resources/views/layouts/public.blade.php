@@ -98,9 +98,6 @@
         </a>
         <div class="d-flex align-items-center gap-2">
             <span class="badge-publik"><i class="bi bi-globe2 me-1"></i>Data Publik</span>
-            <a href="{{ route('login') }}" class="btn btn-sm btn-outline-light ms-2">
-                <i class="bi bi-box-arrow-in-right me-1"></i>Login
-            </a>
         </div>
     </div>
 </nav>
