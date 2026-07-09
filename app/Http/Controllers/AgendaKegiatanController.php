@@ -122,8 +122,8 @@ class AgendaKegiatanController extends Controller
             $laporan = $session->laporanMengajar;
             $fotoUrl = null;
 
-            if ($laporan?->foto_kegiatan) {
-                $fotoUrl = rtrim(request()->getSchemeAndHttpHost(), '/') . '/storage/' . ltrim($laporan->foto_kegiatan, '/');
+            if ($laporan?->foto_absensi_siswa) {
+                $fotoUrl = rtrim(request()->getSchemeAndHttpHost(), '/') . '/storage/' . ltrim($laporan->foto_absensi_siswa, '/');
             }
 
             $tanggal = $session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal;
