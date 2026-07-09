@@ -23,8 +23,8 @@ class AgendaKegiatanController extends Controller
             return Sekolah::query()
                 ->join('ekstrakurikuler', 'sekolah.kodlan', '=', 'ekstrakurikuler.sekolah_kodlan')
                 ->join('ekstrakurikuler_rombel', 'ekstrakurikuler.id', '=', 'ekstrakurikuler_rombel.ekstrakurikuler_id')
-                ->join('ekstrakurikuler_sessions', 'ekstrakurikuler_rombel.id', '=', 'ekstrakurikuler_sessions.ekstrakurikuler_rombel_id')
-                ->where('ekstrakurikuler_sessions.status', 'selesai')
+                ->join('ekstrakurikuler_session', 'ekstrakurikuler_rombel.id', '=', 'ekstrakurikuler_session.ekstrakurikuler_rombel_id')
+                ->where('ekstrakurikuler_session.status', 'selesai')
                 ->whereNotNull('sekolah.kota')
                 ->distinct()
                 ->orderBy('sekolah.kota')
@@ -47,8 +47,8 @@ class AgendaKegiatanController extends Controller
             $sekolahList = Sekolah::query()
                 ->join('ekstrakurikuler', 'sekolah.kodlan', '=', 'ekstrakurikuler.sekolah_kodlan')
                 ->join('ekstrakurikuler_rombel', 'ekstrakurikuler.id', '=', 'ekstrakurikuler_rombel.ekstrakurikuler_id')
-                ->join('ekstrakurikuler_sessions', 'ekstrakurikuler_rombel.id', '=', 'ekstrakurikuler_sessions.ekstrakurikuler_rombel_id')
-                ->where('ekstrakurikuler_sessions.status', 'selesai')
+                ->join('ekstrakurikuler_session', 'ekstrakurikuler_rombel.id', '=', 'ekstrakurikuler_session.ekstrakurikuler_rombel_id')
+                ->where('ekstrakurikuler_session.status', 'selesai')
                 ->where('sekolah.kota', $request->kota)
                 ->distinct()
                 ->orderBy('sekolah.namasekolah')
@@ -61,8 +61,8 @@ class AgendaKegiatanController extends Controller
         if ($request->filled('sekolah_kodlan')) {
             $rombelList = EkstrakurikulerRombel::query()
                 ->join('ekstrakurikuler', 'ekstrakurikuler_rombel.ekstrakurikuler_id', '=', 'ekstrakurikuler.id')
-                ->join('ekstrakurikuler_sessions', 'ekstrakurikuler_rombel.id', '=', 'ekstrakurikuler_sessions.ekstrakurikuler_rombel_id')
-                ->where('ekstrakurikuler_sessions.status', 'selesai')
+                ->join('ekstrakurikuler_session', 'ekstrakurikuler_rombel.id', '=', 'ekstrakurikuler_session.ekstrakurikuler_rombel_id')
+                ->where('ekstrakurikuler_session.status', 'selesai')
                 ->where('ekstrakurikuler.sekolah_kodlan', $request->sekolah_kodlan)
                 ->distinct()
                 ->orderBy('ekstrakurikuler_rombel.nama_rombel')
@@ -139,7 +139,7 @@ class AgendaKegiatanController extends Controller
                 'pertemuan_ke'        => $session->nomor_pertemuan ?? '—',
                 'jumlah_hadir'        => $laporan?->jumlah_siswa_hadir ?? 0,
                 'foto_url'            => $fotoUrl,
-                'print_url'           => route('print-session', ['session' => $session->id]),
+                'print_url'           => route('ekstrakurikuler-session.print-session', ['session' => $session->id]),
             ];
         });
 

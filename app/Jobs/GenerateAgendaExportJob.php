@@ -67,7 +67,7 @@ class GenerateAgendaExportJob implements ShouldQueue
                     'pertemuan_ke'        => $session->nomor_pertemuan ?? '—',
                     'jumlah_hadir'        => $laporan?->jumlah_siswa_hadir ?? 0,
                     'foto_storage'        => $laporan?->foto_kegiatan,
-                    'print_url'           => route('print-session', ['session' => $session->id]),
+                    'print_url'           => route('ekstrakurikuler-session.print-session', ['session' => $session->id]),
                 ];
             })->toArray();
 
