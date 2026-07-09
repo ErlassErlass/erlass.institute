@@ -123,7 +123,7 @@ class AgendaKegiatanController extends Controller
             $fotoUrl = null;
 
             if ($laporan?->foto_kegiatan) {
-                $fotoUrl = Storage::disk('public')->url($laporan->foto_kegiatan);
+                $fotoUrl = rtrim(request()->getSchemeAndHttpHost(), '/') . '/storage/' . ltrim($laporan->foto_kegiatan, '/');
             }
 
             $tanggal = $session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal;
