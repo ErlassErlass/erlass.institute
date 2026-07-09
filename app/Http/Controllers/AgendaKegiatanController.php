@@ -193,12 +193,12 @@ class AgendaKegiatanController extends Controller
 
         $filePath = "temp-exports/{$token}.zip";
 
-        if (!Storage::exists($filePath)) {
+        if (!Storage::disk('local')->exists($filePath)) {
             Cache::forget("agenda_export_{$token}");
             return response()->json(['status' => 'expired', 'message' => 'File tidak ditemukan.'], 404);
         }
 
-        return Storage::download($filePath, 'Agenda_Kegiatan_Erlass.zip', [
+        return Storage::disk('local')->download($filePath, 'Agenda_Kegiatan_Erlass.zip', [
             'Content-Type' => 'application/zip',
         ]);
     }

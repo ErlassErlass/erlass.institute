@@ -44,7 +44,7 @@ class GenerateAgendaExportJob implements ShouldQueue
             }
 
             // 2. Prepare temp directory
-            $tempDir = storage_path("app/temp-exports/{$this->token}");
+            $tempDir = Storage::disk('local')->path("temp-exports/{$this->token}");
             @mkdir($tempDir . '/foto',  0755, true);
             @mkdir($tempDir . '/excel', 0755, true);
             @mkdir($tempDir . '/pdf',   0755, true);
@@ -73,7 +73,7 @@ class GenerateAgendaExportJob implements ShouldQueue
 
             // 4. Generate Excel file
             $excelPath = $tempDir . '/excel/Agenda_Kegiatan.xlsx';
-            Excel::store(new AgendaExport($rows), "temp-exports/{$this->token}/excel/Agenda_Kegiatan.xlsx");
+            Excel::store(new AgendaExport($rows), "temp-exports/{$this->token}/excel/Agenda_Kegiatan.xlsx", 'local');
 
             // 5. Copy & rename PNG photos
             foreach ($rows as $row) {
@@ -102,7 +102,7 @@ class GenerateAgendaExportJob implements ShouldQueue
             }
 
             // 7. Build ZIP
-            $zipPath = storage_path("app/temp-exports/{$this->token}.zip");
+            $zipPath = Storage::disk('local')->path("temp-exports/{$this->token}.zip");
             $zip = new ZipArchive();
             $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 

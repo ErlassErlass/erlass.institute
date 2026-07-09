@@ -37,7 +37,7 @@ if (app()->runningInConsole()) {
 
          // Purge Temp Exports: bersihkan file ZIP ekspor yang berumur > 30 menit
          $schedule->call(function () {
-             $dir = storage_path('app/temp-exports');
+             $dir = \Illuminate\Support\Facades\Storage::disk('local')->path('temp-exports');
              if (is_dir($dir)) {
                  $files = glob($dir . '/*.zip');
                  foreach ($files as $file) {
