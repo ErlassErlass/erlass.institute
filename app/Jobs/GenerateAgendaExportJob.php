@@ -75,7 +75,7 @@ class GenerateAgendaExportJob implements ShouldQueue
             $excelPath = $tempDir . '/excel/Agenda_Kegiatan.xlsx';
             Excel::store(new AgendaExport($rows), "temp-exports/{$this->token}/excel/Agenda_Kegiatan.xlsx", 'local');
 
-            // 5. Copy & rename PNG photos
+            // 5. Compress & rename photos (Optimize file size for fast download)
             foreach ($rows as $row) {
                 if (empty($row['foto_storage'])) continue;
 
@@ -86,10 +86,12 @@ class GenerateAgendaExportJob implements ShouldQueue
                 $rombel    = preg_replace('/[^a-zA-Z0-9]/', '_', substr($row['rombel'], 0, 20));
                 $tanggal   = str_replace('-', '', $row['tanggal_raw']);
                 $pertemuan = is_numeric($row['pertemuan_ke']) ? str_pad($row['pertemuan_ke'], 2, '0', STR_PAD_LEFT) : $row['pertemuan_ke'];
-                $ext       = pathinfo($sourcePath, PATHINFO_EXTENSION) ?: 'jpg';
-                $fileName  = "{$namsek}_{$rombel}_{$tanggal}_Pertemuan{$pertemuan}.{$ext}";
+                
+                // Force output filename to .jpg as we compress to JPEG format
+                $fileName  = "{$namsek}_{$rombel}_{$tanggal}_Pertemuan{$pertemuan}.jpg";
+                $targetPath = $tempDir . '/foto/' . $fileName;
 
-                copy($sourcePath, $tempDir . '/foto/' . $fileName);
+                self::compressImage($sourcePath, $targetPath);
             }
 
             // 6. Generate combined PDF (one multi-page PDF for all sessions)
@@ -182,5 +184,84 @@ class GenerateAgendaExportJob implements ShouldQueue
             is_dir($path) ? $this->deleteDirectory($path) : unlink($path);
         }
         rmdir($dir);
+    }
+
+    /**
+     * Compress and resize image to optimized JPEG format (max width/height 1200px, 75% quality).
+     */
+    protected static function compressImage(string $source, string $target): void
+    {
+        $info = @getimagesize($source);
+        if (!$info) {
+            @copy($source, $target);
+            return;
+        }
+
+        $mime   = $info['mime'];
+        $width  = $info[0];
+        $height = $info[1];
+
+        // Max dimension: 1200px
+        $maxDim = 1200;
+        $newWidth  = $width;
+        $newHeight = $height;
+
+        if ($width > $maxDim || $height > $maxDim) {
+            if ($width > $height) {
+                $newWidth  = $maxDim;
+                $newHeight = (int)($height * ($maxDim / $width));
+            } else {
+                $newHeight = $maxDim;
+                $newWidth  = (int)($width * ($maxDim / $height));
+            }
+        }
+
+        switch ($mime) {
+            case 'image/jpeg':
+            case 'image/jpg':
+                $srcImg = @imagecreatefromjpeg($source);
+                break;
+            case 'image/png':
+                $srcImg = @imagecreatefrompng($source);
+                break;
+            case 'image/gif':
+                $srcImg = @imagecreatefromgif($source);
+                break;
+            case 'image/webp':
+                $srcImg = @imagecreatefromwebp($source);
+                break;
+            default:
+                $srcImg = false;
+        }
+
+        if (!$srcImg) {
+            @copy($source, $target);
+            return;
+        }
+
+        $dstImg = @imagecreatetruecolor($newWidth, $newHeight);
+        if (!$dstImg) {
+            @imagedestroy($srcImg);
+            @copy($source, $target);
+            return;
+        }
+
+        // Handle transparency (though we force JPEG output, blend transparent colors with white background)
+        if ($mime == 'image/png' || $mime == 'image/gif' || $mime == 'image/webp') {
+            $white = @imagecolorallocate($dstImg, 255, 255, 255);
+            @imagefill($dstImg, 0, 0, $white);
+        }
+
+        @imagecopyresampled($dstImg, $srcImg, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        // Save as optimized JPEG (75% quality)
+        $saved = @imagejpeg($dstImg, $target, 75);
+
+        if (!$saved) {
+            @copy($source, $target);
+        }
+
+        @imagedestroy($srcImg);
+        @imagedestroy($dstImg);
     }
 }
