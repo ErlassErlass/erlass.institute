@@ -587,7 +587,8 @@ function startExport() {
 
 function pollExportStatus() {
     clearInterval(pollInterval);
-    pollInterval = setInterval(() => {
+    
+    const checkStatus = () => {
         fetch(`{{ url('rekap-pertemuan-ekskul/download') }}/${exportToken}`)
             .then(r => {
                 if (r.status === 200 && r.headers.get('Content-Type')?.includes('zip')) {
@@ -611,7 +612,13 @@ function pollExportStatus() {
                 clearInterval(pollInterval);
                 showExportError();
             });
-    }, 3000);
+    };
+
+    // Check once after 500ms for fast exports
+    setTimeout(checkStatus, 500);
+
+    // Poll every 1.5 seconds thereafter
+    pollInterval = setInterval(checkStatus, 1500);
 }
 
 function showExportDone() {
