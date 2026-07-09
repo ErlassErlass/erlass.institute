@@ -6,11 +6,21 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
 ### Ditambahkan (Added)
 - **Halaman Agenda Kegiatan Publik**:
-  - Menyediakan halaman agenda kegiatan publik (tanpa login) di `/agenda-kegiatan` dengan layout visual Erlass yang premium dan bersih.
+  - Menyediakan halaman agenda kegiatan publik (tanpa login) di `/rekap-pertemuan-ekskul` dengan layout visual Erlass yang premium dan bersih.
   - Mengimplementasikan 3 dropdown filter cascading (Wilayah/Kota -> Sekolah -> Rombel) beserta filter rentang tanggal pengajaran.
   - Menampilkan tabel sesi kegiatan yang telah selesai dengan pagination server-side (25 data/halaman), jumlah siswa hadir, dan tombol cetak/lihat presensi.
-  - Menambahkan fitur Export ZIP berbasis background queue (Redis) yang menghasilkan file Excel rekap, kompilasi foto presensi siswa yang di-rename secara sistematis (`Namsek_Rombel_Tanggal_Pertemuan`), dan file PDF kompilasi presensi kegiatan.
+  - Menambahkan fitur Export ZIP berbasis background queue (Redis) yang menghasilkan file Excel rekap, kompilasi foto presensi siswa dari kolom `foto_absensi_siswa` yang di-rename secara sistematis (`Namsek_Rombel_Tanggal_Pertemuan`), dan file PDF kompilasi presensi kegiatan.
   - Menambahkan tugas otomatis pembersihan file ZIP kedaluwarsa (> 30 menit) di `routes/console.php`.
+
+### Diperbaiki & Dioptimalkan (Fixed & Optimized)
+- **Optimasi Ukuran & Kecepatan Unduhan ZIP**:
+  - Mengintegrasikan pemrosesan gambar otomatis (GD Library) untuk memperkecil resolusi foto absensi ke lebar maksimal 1200px dan mengompresnya ke format JPEG dengan kualitas 75%. Mengurangi ukuran file gambar hingga 96.5% (dari ~4 MB menjadi ~138 KB), menghemat bandwidth unduhan ZIP secara masif.
+  - Menyelaraskan penyimpanan berkas temporer Excel ke storage `local` untuk menghindari drift direktori private bawaan Laravel 11.
+  - Mempercepat polling status ekspor di antarmuka web (pengecekan pertama setelah 500ms, dilanjutkan setiap 1.5 detik) agar tombol download langsung muncul instan setelah file ZIP selesai dibuat.
+- **Pembersihan UI & Perbaikan Tautan**:
+  - Menghilangkan tombol login di kanan atas navbar layout publik.
+  - Memperbaiki kesalahan rute cetak absensi ekskul ke `ekstrakurikuler-session.print-session`.
+  - Mengubah `APP_URL` di file `.env` server menjadi `https://erlass.institute`, sehingga semua tautan media dan fungsi `asset()` (termasuk pada halaman `/laporan-mengajar/{id}`) menggunakan domain produksi yang benar dan menyelesaikan isu broken image.
 
 ## [1.8.3] - 2026-07-08
 
