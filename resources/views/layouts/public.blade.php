@@ -110,9 +110,7 @@
 <!-- ── Footer ── -->
 <footer class="public-footer">
     <div class="container-xl">
-        <span>&copy; {{ date('Y') }} Erlass Institute &mdash; Sistem Akademik Ekstrakurikuler</span>
-        <span class="mx-2">|</span>
-        <a href="{{ route('home') }}">Beranda</a>
+        <span>&copy; {{ date('Y') }} Erlass Institute</span>
     </div>
 </footer>
 
