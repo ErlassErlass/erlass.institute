@@ -291,8 +291,8 @@
                     <i class="bi bi-people-fill"></i>
                 </div>
                 <div>
-                    <div class="text-muted small fw-medium">Total Siswa</div>
-                    <div class="h4 fw-bold mb-0 text-dark">{{ $ekstrakurikuler->total_siswa }} <span class="fs-6 font-normal text-muted">Orang</span></div>
+                    <div class="text-muted small fw-medium">Siswa Terdaftar</div>
+                    <div class="h4 fw-bold mb-0 text-dark">{{ $ekstrakurikuler->siswaAktif()->count() ?: $ekstrakurikuler->total_siswa }} <span class="fs-6 font-normal text-muted">Orang</span></div>
                 </div>
             </div>
         </div>
@@ -515,8 +515,11 @@
                             <div class="p-3">
                                 <div class="row g-2 mb-3">
                                     <div class="col-6">
-                                        <small class="text-muted d-block">Jumlah Siswa</small>
-                                        <span class="fw-semibold text-dark"><i class="bi bi-person me-1"></i>{{ $rombel->jumlah_siswa }} Siswa</span>
+                                        <small class="text-muted d-block">Siswa Terdaftar</small>
+                                        <span class="fw-semibold text-dark"><i class="bi bi-person me-1"></i>{{ $rombel->siswaAktif()->count() }} Siswa</span>
+                                        @if($rombel->jumlah_siswa > 0)
+                                            <small class="text-muted d-block fs-8">(Kuota Target: {{ $rombel->jumlah_siswa }})</small>
+                                        @endif
                                     </div>
                                     <div class="col-6">
                                         <small class="text-muted d-block">Hari & Waktu</small>
