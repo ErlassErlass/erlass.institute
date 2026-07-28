@@ -44,6 +44,12 @@ class User extends Authenticatable
             }
         });
 
+        static::saving(function ($user) {
+            if (!empty($user->nama_lengkap)) {
+                $user->nama_lengkap = mb_convert_case(trim(preg_replace('/\s+/', ' ', $user->nama_lengkap)), MB_CASE_TITLE, 'UTF-8');
+            }
+        });
+
         static::updating(function ($user) {
             // Prevent tanggal_lahir from being set to null if it was previously set
             if ($user->isDirty('tanggal_lahir') && empty($user->tanggal_lahir)) {
