@@ -1,37 +1,81 @@
 @extends('layouts.app')
 
+@section('title', 'Data Siswa ' . $sekolah->namasekolah)
+
 @push('styles')
 <style>
-    .glass-card {
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(226, 232, 240, 0.8);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    .hero-banner-school {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        border-radius: 16px;
+        color: #ffffff;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
     }
     
-    .text-gradient-primary {
-        background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800;
+    .hero-banner-school::before {
+        content: '';
+        position: absolute;
+        top: -40%;
+        right: -10%;
+        width: 320px;
+        height: 320px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .hero-banner-school .breadcrumb-item, 
+    .hero-banner-school .breadcrumb-item a {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.85rem;
+        text-decoration: none;
+    }
+
+    .hero-banner-school .breadcrumb-item.active {
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .glass-stat-card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        color: #ffffff;
+        transition: all 0.25s ease;
+    }
+
+    .glass-stat-card:hover {
+        background: rgba(255, 255, 255, 0.14);
+        transform: translateY(-2px);
+    }
+
+    .premium-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
     }
 
     .table-modern thead th {
         background-color: #f8fafc;
-        color: #64748b;
-        font-weight: 600;
+        color: #475569;
+        font-weight: 700;
         text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.05em;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 1rem 1.5rem;
+        font-size: 0.725rem;
+        letter-spacing: 0.06em;
+        border-bottom: 2px solid #e2e8f0;
+        padding: 1rem 1.25rem;
     }
 
     .table-modern tbody td {
-        padding: 1rem 1.5rem;
+        padding: 1rem 1.25rem;
         border-bottom: 1px solid #f1f5f9;
         vertical-align: middle;
         color: #334155;
+        font-size: 0.9rem;
     }
 
     .table-modern tbody tr:last-child td {
@@ -41,127 +85,243 @@
     .table-modern tbody tr:hover {
         background-color: #f8fafc;
     }
-    
-    .avatar-circle {
-        width: 36px;
-        height: 36px;
-        background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+
+    .avatar-circle-male {
+        width: 38px;
+        height: 38px;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         color: white;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: bold;
-        font-size: 0.875rem;
+        font-weight: 700;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
     }
 
-    /* Gender badge custom color utilities */
-    .bg-blue-50 {
+    .avatar-circle-female {
+        width: 38px;
+        height: 38px;
+        background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 6px rgba(236, 72, 153, 0.3);
+    }
+
+    .avatar-circle-default {
+        width: 38px;
+        height: 38px;
+        background: linear-gradient(135deg, #64748b 0%, #334155 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    /* Custom Gender Badges */
+    .badge-gender-l {
         background-color: #eff6ff !important;
+        color: #1d4ed8 !important;
+        border: 1px solid #bfdbfe !important;
+        font-weight: 600;
     }
-    .text-blue-600 {
-        color: #2563eb !important;
-    }
-    .border-blue-100 {
-        border-color: #dbeafe !important;
-    }
-    .bg-pink-50 {
+    .badge-gender-p {
         background-color: #fdf2f8 !important;
-    }
-    .text-pink-600 {
-        color: #db2777 !important;
-    }
-    .border-pink-100 {
-        border-color: #fce7f3 !important;
+        color: #be185d !important;
+        border: 1px solid #fbcfe8 !important;
+        font-weight: 600;
     }
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div>
-            <a href="{{ route('sekolah.distribusi') }}" class="btn btn-link text-decoration-none p-0 mb-2 text-muted fw-bold small">
-                <i class="bi bi-arrow-left me-1"></i> Kembali ke Distribusi
-            </a>
-            <h1 class="h3 fw-bold text-gray-800 mb-1">
-                Data Siswa <span class="text-gradient-primary">{{ $sekolah->namasekolah }}</span>
-            </h1>
-            <p class="text-muted mb-0">
-                <i class="bi bi-geo-alt me-1"></i> {{ $sekolah->kotkab ?? 'Lokasi Sekolah' }} • 
-                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">{{ $sekolah->siswa->count() }} Siswa</span>
-            </p>
-        </div>
-        <div class="d-none d-md-block">
-            <div class="p-3 bg-white rounded-4 shadow-sm border border-light text-center" style="min-width: 120px;">
-                <span class="d-block text-muted small text-uppercase fw-bold ls-1">Total Valid</span>
-                <span class="h2 fw-bold text-dark mb-0 d-block lh-1">{{ $sekolah->siswa->count() }}</span>
+<div class="container-fluid px-4 py-3">
+    <!-- Hero Banner Header -->
+    <div class="hero-banner-school p-4 p-md-5 mb-4">
+        <div class="row align-items-center">
+            <div class="col-lg-7 mb-3 mb-lg-0">
+                <nav aria-label="breadcrumb" class="mb-2">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="bi bi-house-door-fill me-1"></i>Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('sekolah.distribusi') }}">Distribusi Sekolah</a></li>
+                        <li class="breadcrumb-item active">{{ Str::limit($sekolah->namasekolah, 30) }}</li>
+                    </ol>
+                </nav>
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                    <h1 class="h2 fw-bold mb-0 text-white me-2">{{ $sekolah->namasekolah }}</h1>
+                    <span class="badge bg-primary bg-opacity-25 text-white border border-light border-opacity-25 px-3 py-1.5 rounded-pill fs-7 fw-medium">
+                        Kodlan: {{ $sekolah->kodlan }}
+                    </span>
+                </div>
+                <p class="text-white-50 mb-0 d-flex align-items-center gap-2 flex-wrap small">
+                    <span><i class="bi bi-geo-alt-fill me-1 text-info"></i> {{ $sekolah->kotkab ?? 'Lokasi Sekolah' }}, {{ $sekolah->provinsi ?? '' }}</span>
+                    <span class="opacity-50">•</span>
+                    <span><i class="bi bi-award-fill me-1 text-warning"></i> Jenjang {{ $sekolah->jenjang ?? '-' }} ({{ $sekolah->status ?? 'Swasta' }})</span>
+                </p>
+            </div>
+            <div class="col-lg-5">
+                @php
+                    $allSiswa = $sekolah->siswa;
+                    $totalSiswa = $allSiswa->count();
+                    $totalLaki = $allSiswa->filter(fn($s) => in_array(strtolower($s->jenis_kelamin), ['l', 'laki-laki']))->count();
+                    $totalPerempuan = $allSiswa->filter(fn($s) => in_array(strtolower($s->jenis_kelamin), ['p', 'perempuan']))->count();
+                    $totalRombel = $allSiswa->pluck('rombel')->filter()->unique()->count();
+                @endphp
+                <div class="row g-2 justify-content-lg-end">
+                    <div class="col-6 col-sm-3 col-lg-4">
+                        <div class="glass-stat-card text-center">
+                            <span class="d-block text-white-50 fs-8 text-uppercase fw-semibold ls-1">Total Siswa</span>
+                            <span class="h3 fw-bold text-white mb-0 d-block lh-1 mt-1">{{ $totalSiswa }}</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3 col-lg-4">
+                        <div class="glass-stat-card text-center">
+                            <span class="d-block text-white-50 fs-8 text-uppercase fw-semibold ls-1"><i class="bi bi-gender-male me-1 text-info"></i>Laki-Laki</span>
+                            <span class="h3 fw-bold text-info mb-0 d-block lh-1 mt-1">{{ $totalLaki }}</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3 col-lg-4">
+                        <div class="glass-stat-card text-center">
+                            <span class="d-block text-white-50 fs-8 text-uppercase fw-semibold ls-1"><i class="bi bi-gender-female me-1 text-danger"></i>Perempuan</span>
+                            <span class="h3 fw-bold text-pink mb-0 d-block lh-1 mt-1" style="color: #f472b6;">{{ $totalPerempuan }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    @if($sekolah->siswa->count() > 0)
-        <div class="card glass-card border-0">
+    @if($totalSiswa > 0)
+        <!-- Action Toolbar -->
+        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ route('sekolah.distribusi') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Kembali ke Distribusi
+                </a>
+                <span class="text-muted small">Menampilkan <strong>{{ $totalSiswa }}</strong> Siswa terdaftar</span>
+            </div>
+            @if(auth()->user()->hasRole(['admin', 'admin_sistem', 'webmaster']))
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ route('siswa.create') }}?kodlan={{ $sekolah->kodlan }}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-xs">
+                    <i class="bi bi-person-plus-fill me-1"></i> Tambah Siswa Sekolah
+                </a>
+            </div>
+            @endif
+        </div>
+
+        <!-- Table Card Container -->
+        <div class="premium-card overflow-hidden">
             <div class="card-body p-0">
-                <table class="table table-modern align-middle mb-0" id="siswa-sekolah-table">
+                <div class="table-responsive">
+                    <table class="table table-modern align-middle mb-0" id="siswa-sekolah-table">
                         <thead>
                             <tr>
-                                <th width="20%">NISN</th>
-                                <th width="35%">Nama Siswa</th>
-                                <th width="15%">Rombel</th>
-                                <th width="15%">Kelas</th>
+                                <th width="15%">NIS/NISN</th>
+                                <th width="35%">Nama Lengkap Siswa</th>
+                                <th width="12%">Kelas Sekolah</th>
+                                <th width="13%">Rombel Ekskul</th>
                                 <th width="15%">Jenis Kelamin</th>
+                                <th width="10%" class="text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($sekolah->siswa as $siswa)
+                            @php
+                                $gender = strtolower($siswa->jenis_kelamin ?? '');
+                                $isMale = in_array($gender, ['l', 'laki-laki']);
+                                $isFemale = in_array($gender, ['p', 'perempuan']);
+                                $avatarClass = $isMale ? 'avatar-circle-male' : ($isFemale ? 'avatar-circle-female' : 'avatar-circle-default');
+                            @endphp
                             <tr>
-                                <td class="fw-bold font-monospace text-dark">{{ $siswa->nisn ?? '-' }}</td>
+                                <td>
+                                    <span class="font-monospace fw-bold text-dark small px-2 py-1 bg-light border rounded">
+                                        {{ $siswa->nisn ?? '-' }}
+                                    </span>
+                                </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-3">
-                                        <div class="avatar-circle shadow-sm">
+                                        <div class="{{ $avatarClass }} shadow-xs">
                                             {{ substr($siswa->nama_lengkap, 0, 1) }}
                                         </div>
                                         <div>
-                                            <div class="fw-bold text-dark">{{ $siswa->nama_lengkap }}</div>
+                                            <div class="fw-bold text-dark fs-6">{{ $siswa->nama_lengkap }}</div>
+                                            @if($siswa->no_hp_orangtua)
+                                                <small class="text-muted"><i class="bi bi-whatsapp me-1 text-success"></i>{{ $siswa->no_hp_orangtua }}</small>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>
-                                <td><span class="badge bg-light text-dark border">{{ $siswa->rombel }}</span></td>
-                                <td class="text-muted">{{ $siswa->kelas }}</td>
                                 <td>
-                                    @if(strtolower($siswa->jenis_kelamin) == 'l' || strtolower($siswa->jenis_kelamin) == 'laki-laki')
-                                        <span class="badge bg-blue-50 text-blue-600 rounded-pill px-3 py-2 border border-blue-100">
+                                    <span class="badge bg-secondary bg-opacity-10 text-dark border px-2.5 py-1 rounded fw-bold fs-8">
+                                        <i class="bi bi-door-open me-1 text-secondary"></i>{{ $siswa->kelas ?? '-' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    @if($siswa->rombel)
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2.5 py-1 rounded-pill fw-semibold fs-8">
+                                            <i class="bi bi-diagram-3 me-1"></i>Rombel {{ $siswa->rombel }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted small fs-8">-</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($isMale)
+                                        <span class="badge badge-gender-l rounded-pill px-3 py-1.5 fs-8">
                                             <i class="bi bi-gender-male me-1"></i> Laki-laki
                                         </span>
-                                    @elseif(strtolower($siswa->jenis_kelamin) == 'p' || strtolower($siswa->jenis_kelamin) == 'perempuan')
-                                        <span class="badge bg-pink-50 text-pink-600 rounded-pill px-3 py-2 border border-pink-100">
+                                    @elseif($isFemale)
+                                        <span class="badge badge-gender-p rounded-pill px-3 py-1.5 fs-8">
                                             <i class="bi bi-gender-female me-1"></i> Perempuan
                                         </span>
                                     @else
-                                        <span class="text-muted small">-</span>
+                                        <span class="text-muted small fs-8">-</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    @if(auth()->user()->hasRole(['admin', 'admin_sistem', 'webmaster']))
+                                    <a href="{{ route('siswa.edit', $siswa) }}" class="btn btn-sm btn-outline-warning rounded-circle p-1" style="width: 32px; height: 32px;" title="Edit Siswa">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    @else
+                                    <span class="text-muted fs-8">-</span>
                                     @endif
                                 </td>
                             </tr>
                             @endforeach
                         </tbody>
                     </table>
+                </div>
             </div>
         </div>
     @else
-        <div class="row min-vh-50 align-items-center justify-content-center">
-            <div class="col-md-6 text-center">
-                <div class="mb-4">
-                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
-                        <i class="bi bi-people text-muted" style="font-size: 3rem; opacity: 0.3"></i>
-                    </div>
+        <!-- Empty State Card -->
+        <div class="premium-card p-5 text-center my-4">
+            <div class="mb-3">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                    <i class="bi bi-people-fill" style="font-size: 2.5rem;"></i>
                 </div>
-                <h4 class="fw-bold text-gray-800">Belum Ada Siswa</h4>
-                <p class="text-muted">Sekolah ini belum memiliki data siswa yang terdaftar.</p>
-                <a href="{{ route('sekolah.distribusi') }}" class="btn btn-primary rounded-pill px-4 mt-3">
-                    <i class="bi bi-arrow-left me-2"></i> Kembali
+            </div>
+            <h4 class="fw-bold text-dark mb-1">Belum Ada Siswa Terdaftar</h4>
+            <p class="text-muted mb-4 max-w-md mx-auto">Sekolah {{ $sekolah->namasekolah }} saat ini belum memiliki data siswa yang terdaftar di dalam sistem.</p>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="{{ route('sekolah.distribusi') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-1"></i> Kembali ke Distribusi
                 </a>
+                @if(auth()->user()->hasRole(['admin', 'admin_sistem', 'webmaster']))
+                <a href="{{ route('siswa.create') }}?kodlan={{ $sekolah->kodlan }}" class="btn btn-primary rounded-pill px-4">
+                    <i class="bi bi-person-plus-fill me-1"></i> Tambah Siswa Pertama
+                </a>
+                @endif
             </div>
         </div>
     @endif
@@ -171,17 +331,30 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize DataTable for Students by School table
         if (typeof window.DataTableManager !== 'undefined') {
             const dataTableManager = new window.DataTableManager();
             dataTableManager.init('#siswa-sekolah-table', {
-                order: [[0, 'asc']], // Sort by NISN column
+                order: [[0, 'asc']], // Sort by NISN column by default
                 columnDefs: [
-                    { type: 'string', targets: [0, 1, 2, 3, 4] }
+                    { type: 'string', targets: [0, 1, 2, 3, 4] },
+                    { orderable: false, targets: [5] }
                 ],
                 pageLength: 25,
                 responsive: false,
-                scrollX: true
+                scrollX: true,
+                language: {
+                    search: "Cari Siswa:",
+                    lengthMenu: "Tampilkan _MENU_ siswa",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ siswa",
+                    infoEmpty: "Menampilkan 0 siswa",
+                    zeroRecords: "Tidak ada data siswa yang cocok",
+                    paginate: {
+                        first: "Pertama",
+                        last: "Terakhir",
+                        next: "Lanjut",
+                        previous: "Kembali"
+                    }
+                }
             });
         }
     });

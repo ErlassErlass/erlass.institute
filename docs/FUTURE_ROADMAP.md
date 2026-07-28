@@ -43,5 +43,21 @@ This document outlines potential features and enhancements for the **Erlass Eksk
   - **API Backend**: Pengembangan Laravel RESTful API atau GraphQL yang lebih komprehensif sebagai jalur komunikasi antara server dan aplikasi *mobile*.
   - **Developer Accounts**: Apple Developer Program ($99/tahun) dan Google Play Console ($25/lifetime) untuk publikasi aplikasi.
 
+### 7. 💬 Floating WhatsApp Contact Button & Admin Contact Info
+- **Concept**: Tombol melayang (floating button) di pojok kanan bawah seluruh halaman yang langsung membuka chat WhatsApp ke Admin.
+- **PIC Admin**: **Adinda Wardania Erlass** — `+62 821-1830-2927`
+- **Penempatan Prioritas**:
+  1. **Floating WhatsApp Button** (Global seluruh halaman) — `wa.me/6282118302927`
+  2. **Halaman Login** (`/login`) — Teks "Butuh bantuan? Hubungi Admin"
+  3. **Halaman Registrasi Instruktur** (`/register/instructor`) — Panduan jika kendala registrasi
+  4. **Footer Global** (`layouts/app.blade.php`) — Baris kontak di footer
+  5. **Halaman Error** (403, 404, 500) — Link "Hubungi Admin" saat error
+- **Benefit**: Instruktur, orang tua, dan pengguna baru dapat langsung menghubungi Admin tanpa harus mencari kontak terlebih dahulu.
+
+### 8. 📊 Kolom Program Ekskul pada Halaman Data Siswa per Sekolah
+- **Concept**: Menampilkan badge program ekstrakurikuler yang diikuti setiap siswa pada tabel `/sekolah/{kodlan}/siswa`.
+- **Benefit**: Admin dan koordinator sekolah dapat langsung melihat distribusi partisipasi siswa dalam program ekskul tanpa harus membuka halaman enrollment satu per satu.
+- **Detail**: Badge berisi nama program ekskul (misal: "Tari", "Seni Rupa") dengan link ke halaman enrollment terkait.
+
 ---
-*Last Updated: March 03, 2026*
+*Last Updated: July 28, 2026*

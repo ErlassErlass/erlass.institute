@@ -22,10 +22,8 @@ class Siswa extends Model
             if (!empty($siswa->nama_lengkap)) {
                 $siswa->nama_lengkap = mb_convert_case(trim(preg_replace('/\s+/', ' ', $siswa->nama_lengkap)), MB_CASE_TITLE, 'UTF-8');
             }
-            // Sinkronisasi rombel ke kelas (atau sebaliknya) jika salah satu kosong
-            if (empty($siswa->rombel) && !empty($siswa->kelas)) {
-                $siswa->rombel = $siswa->kelas;
-            } elseif (empty($siswa->kelas) && !empty($siswa->rombel)) {
+            // Jika kelas kosong tetapi rombel terisi nilai kelas (misal 2A, 1B), pindahkan ke kelas
+            if (empty($siswa->kelas) && !empty($siswa->rombel)) {
                 $siswa->kelas = $siswa->rombel;
             }
         });
