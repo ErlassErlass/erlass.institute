@@ -273,8 +273,49 @@
     </div>
 </div>
 
+<!-- Modal Registrasi Berhasil -->
+@if (session('registration_success') || session('instructor_code'))
+<div class="modal fade" id="registrationSuccessModal" tabindex="-1" aria-labelledby="registrationSuccessModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-body p-4 p-md-5 text-center">
+                <div class="mb-4">
+                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 85px; height: 85px;">
+                        <i class="bi bi-check-circle-fill display-4"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Pendaftaran Instruktur Berhasil! 🎉</h4>
+                <p class="text-muted small mb-4">
+                    Terima kasih <strong>{{ session('instructor_name', 'Instruktur') }}</strong> telah mendaftar di <strong>Erlass Institute</strong>. Data pendaftaran dan berkas kelengkapan Anda telah tersimpan dengan aman.
+                </p>
+                <div class="bg-light p-3 rounded-3 mb-4 text-start border">
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="bi bi-person-badge-fill text-primary me-2"></i>
+                        <span class="small text-muted text-uppercase fw-bold">Kode Referensi Instruktur:</span>
+                    </div>
+                    <div class="fs-5 fw-bold text-primary text-center bg-white p-2 rounded border border-primary border-opacity-25 my-1">
+                        {{ session('instructor_code', 'ICE2026') }}
+                    </div>
+                    <div class="small text-muted mt-2 text-center">
+                        <i class="bi bi-clock-history me-1 text-warning"></i> Status Akun: <span class="badge bg-warning text-dark fw-bold">Menunggu Verifikasi Admin</span>
+                    </div>
+                </div>
+                <p class="small text-muted mb-4">
+                    Tim Admin/Webmaster Erlass akan meninjau berkas Anda. Notifikasi konfirmasi akan dikirimkan begitu akun Anda disetujui.
+                </p>
+                <div class="d-grid">
+                    <button type="button" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm" data-bs-dismiss="modal">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> Mengerti & Lanjut Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- WhatsApp Support Floating Button -->
-<a href="https://wa.me/6281234567890?text=Halo%20Admin,%20saya%20butuh%20bantuan%20login%20Erlass%20Ekskul" 
+<a href="https://wa.me/6281298765432?text=Halo%20Admin%20Erlass,%20saya%20butuh%20bantuan%20login." 
    target="_blank" rel="noopener"
    class="wa-float" 
    title="Hubungi Admin via WhatsApp">
@@ -285,6 +326,13 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        @if (session('registration_success') || session('instructor_code'))
+            try {
+                var successModal = new bootstrap.Modal(document.getElementById('registrationSuccessModal'));
+                successModal.show();
+            } catch (err) {}
+        @endif
+
         // Toggle password visibility
         const togglePassword = document.getElementById('togglePassword');
         const passwordInput = document.getElementById('password');

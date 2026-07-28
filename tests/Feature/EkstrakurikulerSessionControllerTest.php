@@ -29,9 +29,10 @@ class EkstrakurikulerSessionControllerTest extends TestCase
         $this->instructor = User::factory()->create(['role' => 'instructor', 'is_verified' => true]);
         $this->sekolah = Sekolah::factory()->create(['kota' => 'Jakarta Pusat']);
 
+        $this->salesman = \App\Models\Salesman::factory()->create(['user_id' => $this->admin->id]);
         $this->ekstrakurikuler = Ekstrakurikuler::factory()->create([
             'sekolah_kodlan' => $this->sekolah->kodlan,
-            'user_id_sales' => $this->admin->id,
+            'user_id_sales' => $this->salesman->id,
             'status' => Ekstrakurikuler::STATUS_AKTIF,
         ]);
 

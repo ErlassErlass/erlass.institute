@@ -216,9 +216,9 @@
                                         <x-input-label for="pend_terakhir" value="Pendidikan Terakhir" class="fw-semibold" />
                                         <select id="pend_terakhir" name="pend_terakhir" class="form-select" required>
                                             <option value="">Pilih Pendidikan</option>
-                                            <option value="SMA/SMK" {{ old('pend_terakhir') == 'SMA/SMK' ? 'selected' : '' }}>SMA/SMK</option>
+                                            <option value="SMA/SMK Sederajat" {{ old('pend_terakhir') == 'SMA/SMK Sederajat' ? 'selected' : '' }}>SMA/SMK Sederajat</option>
                                             <option value="D3" {{ old('pend_terakhir') == 'D3' ? 'selected' : '' }}>D3</option>
-                                            <option value="S1" {{ old('pend_terakhir') == 'S1' ? 'selected' : '' }}>S1</option>
+                                            <option value="D4/S1" {{ old('pend_terakhir') == 'D4/S1' ? 'selected' : '' }}>D4/S1</option>
                                             <option value="S2" {{ old('pend_terakhir') == 'S2' ? 'selected' : '' }}>S2</option>
                                             <option value="S3" {{ old('pend_terakhir') == 'S3' ? 'selected' : '' }}>S3</option>
                                         </select>
@@ -226,42 +226,123 @@
                                     </div>
 
                                     <!-- Kompetensi 1 -->
-                                    <div class="col-12">
+                                    <div class="col-md-6">
                                         <x-input-label for="kompetensi_1" value="Kompetensi Utama" class="fw-semibold" />
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-light border-end-0">
-                                                <i class="bi bi-award text-muted"></i>
-                                            </span>
-                                            <x-text-input 
-                                                id="kompetensi_1" 
-                                                name="kompetensi_1" 
-                                                type="text" 
-                                                :value="old('kompetensi_1')" 
-                                                required
-                                                placeholder="Contoh: Matematika, Bahasa Indonesia, dll"
-                                                class="border-start-0 ps-0"
-                                            />
-                                        </div>
+                                        <select id="kompetensi_1" name="kompetensi_1" class="form-select" required>
+                                            <option value="">Pilih Kompetensi Utama</option>
+                                            <option value="Coding" {{ old('kompetensi_1') == 'Coding' ? 'selected' : '' }}>Coding</option>
+                                            <option value="Bahasa Inggris" {{ old('kompetensi_1') == 'Bahasa Inggris' ? 'selected' : '' }}>Bahasa Inggris</option>
+                                            <option value="Robotik" {{ old('kompetensi_1') == 'Robotik' ? 'selected' : '' }}>Robotik</option>
+                                            <option value="Desain" {{ old('kompetensi_1') == 'Desain' ? 'selected' : '' }}>Desain</option>
+                                            <option value="IoT" {{ old('kompetensi_1') == 'IoT' ? 'selected' : '' }}>IoT</option>
+                                            <option value="Data Science" {{ old('kompetensi_1') == 'Data Science' ? 'selected' : '' }}>Data Science</option>
+                                        </select>
                                         <x-input-error :messages="$errors->get('kompetensi_1')" class="mt-2" />
                                     </div>
 
                                     <!-- Kompetensi 2 (Optional) -->
                                     <div class="col-12">
                                         <x-input-label for="kompetensi_2" value="Kompetensi Tambahan (Opsional)" class="fw-semibold" />
+                                        <select id="kompetensi_2" name="kompetensi_2" class="form-select">
+                                            <option value="">Pilih Kompetensi Tambahan (Opsional)</option>
+                                            <option value="Coding" {{ old('kompetensi_2') == 'Coding' ? 'selected' : '' }}>Coding</option>
+                                            <option value="Bahasa Inggris" {{ old('kompetensi_2') == 'Bahasa Inggris' ? 'selected' : '' }}>Bahasa Inggris</option>
+                                            <option value="Robotik" {{ old('kompetensi_2') == 'Robotik' ? 'selected' : '' }}>Robotik</option>
+                                            <option value="Desain" {{ old('kompetensi_2') == 'Desain' ? 'selected' : '' }}>Desain</option>
+                                            <option value="IoT" {{ old('kompetensi_2') == 'IoT' ? 'selected' : '' }}>IoT</option>
+                                            <option value="Data Science" {{ old('kompetensi_2') == 'Data Science' ? 'selected' : '' }}>Data Science</option>
+                                        </select>
+                                        <x-input-error :messages="$errors->get('kompetensi_2')" class="mt-2" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Financial & Legal Section -->
+                            <div class="mb-4">
+                                <h5 class="text-dark mb-3 border-bottom pb-2">
+                                    <i class="bi bi-bank me-2 text-primary"></i>Informasi Rekening Bank & Identitas
+                                </h5>
+                                
+                                <div class="row g-3">
+                                    <!-- Nama Bank -->
+                                    <div class="col-md-6">
+                                        <x-input-label for="nama_bank" value="Nama Bank *" class="fw-semibold" />
                                         <div class="input-group">
                                             <span class="input-group-text bg-light border-end-0">
-                                                <i class="bi bi-star text-muted"></i>
+                                                <i class="bi bi-bank text-muted"></i>
                                             </span>
                                             <x-text-input 
-                                                id="kompetensi_2" 
-                                                name="kompetensi_2" 
+                                                id="nama_bank" 
+                                                name="nama_bank" 
                                                 type="text" 
-                                                :value="old('kompetensi_2')"
-                                                placeholder="Kompetensi kedua (opsional)"
+                                                :value="old('nama_bank')" 
+                                                required
+                                                placeholder="Contoh: BCA, Mandiri, BNI, BRI"
                                                 class="border-start-0 ps-0"
                                             />
                                         </div>
-                                        <x-input-error :messages="$errors->get('kompetensi_2')" class="mt-2" />
+                                        <x-input-error :messages="$errors->get('nama_bank')" class="mt-2" />
+                                    </div>
+
+                                    <!-- Nomor Rekening -->
+                                    <div class="col-md-6">
+                                        <x-input-label for="no_rekening" value="Nomor Rekening Bank *" class="fw-semibold" />
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-end-0">
+                                                <i class="bi bi-credit-card text-muted"></i>
+                                            </span>
+                                            <x-text-input 
+                                                id="no_rekening" 
+                                                name="no_rekening" 
+                                                type="text" 
+                                                :value="old('no_rekening')" 
+                                                required
+                                                placeholder="Nomor rekening bank"
+                                                class="border-start-0 ps-0"
+                                            />
+                                        </div>
+                                        <x-input-error :messages="$errors->get('no_rekening')" class="mt-2" />
+                                    </div>
+
+                                    <!-- NIK -->
+                                    <div class="col-md-6">
+                                        <x-input-label for="nik" value="NIK (KTP) *" class="fw-semibold" />
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-end-0">
+                                                <i class="bi bi-card-heading text-muted"></i>
+                                            </span>
+                                            <x-text-input 
+                                                id="nik" 
+                                                name="nik" 
+                                                type="text" 
+                                                :value="old('nik')" 
+                                                required
+                                                maxlength="16"
+                                                placeholder="16 digit NIK sesuai KTP"
+                                                class="border-start-0 ps-0"
+                                            />
+                                        </div>
+                                        <x-input-error :messages="$errors->get('nik')" class="mt-2" />
+                                    </div>
+
+                                    <!-- No NPWP (Opsional) -->
+                                    <div class="col-md-6">
+                                        <x-input-label for="no_npwp" value="Nomor NPWP (Opsional)" class="fw-semibold" />
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-end-0">
+                                                <i class="bi bi-file-earmark-text text-muted"></i>
+                                            </span>
+                                            <x-text-input 
+                                                id="no_npwp" 
+                                                name="no_npwp" 
+                                                type="text" 
+                                                :value="old('no_npwp')"
+                                                maxlength="16"
+                                                placeholder="16 digit NPWP (opsional)"
+                                                class="border-start-0 ps-0"
+                                            />
+                                        </div>
+                                        <x-input-error :messages="$errors->get('no_npwp')" class="mt-2" />
                                     </div>
                                 </div>
                             </div>

@@ -49,7 +49,7 @@ class EkstrakurikulerFactory extends Factory
         return [
             'kategori_program' => $kategoriProgram,
             'deskripsi' => $this->faker->optional()->paragraph(),
-            'user_id_sales' => User::factory(),
+            'user_id_sales' => \App\Models\Salesman::factory(),
             'region' => $region,
             'sekolah_kodlan' => Sekolah::factory(),
             'alamat_lengkap' => $this->faker->address(),

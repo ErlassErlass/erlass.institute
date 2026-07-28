@@ -32,11 +32,20 @@
                                     <small class="text-muted">{{ $req->created_at->format('d/m/Y H:i') }}</small>
                                 </td>
                                 <td>
-                                    <div class="small fw-bold">{{ $req->session->rombel->ekstrakurikuler->kategori_program }}</div>
-                                    <div class="small text-muted">Pertemuan {{ $req->session->nomor_pertemuan }} - {{ $req->session->rombel->ekstrakurikuler->sekolah->namasekolah }}</div>
-                                    <div class="badge bg-light text-dark border mt-1" style="font-size: 0.7rem;">
-                                        Jadwal: {{ $req->session->tanggal_terjadwal->format('d M Y') }}
-                                    </div>
+                                    @if($req->isAdhoc())
+                                        <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 fw-bold mb-1">
+                                            <i class="bi bi-pencil-square me-1"></i> Laporan Ad-Hoc (Luar Jadwal)
+                                        </span>
+                                        <div class="small text-dark">
+                                            Tanggal Kegiatan: <strong>{{ optional($req->adhoc_date)->format('d M Y') ?? $req->adhoc_date }}</strong>
+                                        </div>
+                                    @else
+                                        <div class="small fw-bold">{{ $req->session->rombel->ekstrakurikuler->kategori_program ?? 'Program' }}</div>
+                                        <div class="small text-muted">Pertemuan {{ $req->session->nomor_pertemuan ?? '-' }} - {{ $req->session->rombel->ekstrakurikuler->sekolah->namasekolah ?? '-' }}</div>
+                                        <div class="badge bg-light text-dark border mt-1" style="font-size: 0.7rem;">
+                                            Jadwal: {{ optional($req->session?->tanggal_terjadwal)->format('d M Y') }}
+                                        </div>
+                                    @endif
                                 </td>
                                 <td>
                                     <p class="small mb-0 text-wrap" style="max-width: 300px;">{{ $req->reason }}</p>

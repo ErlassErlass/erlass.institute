@@ -31,10 +31,26 @@ class BroadcastController extends Controller
             return back()->with('error', 'Tidak ada instruktur dengan nomor WhatsApp yang valid.');
         }
 
-        // Send Notification
-        Notification::send($instructors, new InstructorBroadcastNotification($request->subject, $request->message));
+        /**
+         * ANTI-BAN: Kirim satu per satu dengan jeda 5 detik antar pesan.
+         * Menghindari burst sending yang dapat memicu rate-limit atau ban Fonnte/WA.
+         *
+         * Jika QUEUE_CONNECTION=redis/database aktif, jeda ini berjalan di background
+         * sehingga request HTTP tidak tertahan.
+         */
+        $delaySeconds = 0;
+
+        foreach ($instructors as $instructor) {
+            $notification = (new InstructorBroadcastNotification($request->subject, $request->message))
+                ->delay(now()->addSeconds($delaySeconds));
+
+            $instructor->notify($notification);
+
+            // Jeda 5 detik per penerima
+            $delaySeconds += 5;
+        }
 
         return redirect()->route('admin.broadcast.create')
-            ->with('success', 'Pesan broadcast telah dikirim ke ' . $instructors->count() . ' instruktur.');
+            ->with('success', 'Pesan broadcast telah dijadwalkan ke ' . $instructors->count() . ' instruktur (dikirim bertahap).');
     }
 }

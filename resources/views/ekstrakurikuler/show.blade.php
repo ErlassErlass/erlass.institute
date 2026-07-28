@@ -1,166 +1,241 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Program Ekstrakurikuler')
+@section('title', 'Detail Program Ekstrakurikuler — ' . $ekstrakurikuler->kategori_program)
 
 @push('styles')
 <style>
-    .detail-card {
+    /* Modern Theme Tokens & Aesthetics */
+    .hero-banner {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #1e293b 100%);
+        border-radius: 16px;
+        color: #ffffff;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+    }
+    
+    .hero-banner::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, rgba(255, 255, 255, 0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .hero-banner .breadcrumb-item, 
+    .hero-banner .breadcrumb-item a {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.875rem;
+        text-decoration: none;
+    }
+
+    .hero-banner .breadcrumb-item.active {
+        color: #ffffff;
+        font-weight: 500;
+    }
+
+    .hero-banner .breadcrumb-item + .breadcrumb-item::before {
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    .btn-glass {
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        transition: all 0.25s ease;
         border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease;
     }
-    
-    .detail-card:hover {
-        /* Transform animation removed for cleaner interface */
+
+    .btn-glass:hover {
+        background: rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+        transform: translateY(-1px);
     }
-    
-    .status-badge {
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
+
+    .premium-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+        transition: all 0.25s ease;
     }
-    
-    .info-label {
+
+    .premium-card:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .stat-box {
+        border-radius: 12px;
+        padding: 1.25rem;
+        border: 1px solid #f1f5f9;
+        background: #f8fafc;
+    }
+
+    .stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    /* Custom Nav Pills */
+    .nav-pills-custom {
+        background: #f1f5f9;
+        padding: 6px;
+        border-radius: 12px;
+        gap: 4px;
+    }
+
+    .nav-pills-custom .nav-link {
+        border-radius: 8px;
+        color: #64748b;
+        font-weight: 500;
+        padding: 8px 18px;
+        transition: all 0.2s ease;
+    }
+
+    .nav-pills-custom .nav-link.active {
+        background: #ffffff;
+        color: #2563eb;
         font-weight: 600;
-        color: #6c757d;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .info-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .info-group .info-label {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #94a3b8;
         margin-bottom: 0.25rem;
     }
-    
-    .info-value {
-        color: #495057;
-        margin-bottom: 1rem;
+
+    .info-group .info-value {
+        font-size: 0.95rem;
+        color: #1e293b;
+        font-weight: 500;
     }
-    
-    .rombel-card {
-        border-left: 4px solid #007bff;
-        background: #f8f9fa;
+
+    .rombel-card-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-bottom: 1px solid #cbd5e1;
+        border-radius: 14px 14px 0 0;
     }
-    
-    .session-card {
-        border-radius: 6px;
-        border: 1px solid #e9ecef;
-        background: white;
-        transition: all 0.3s ease;
-    }
-    
-    .session-card:hover {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    
-    .progress-ring {
-        width: 60px;
-        height: 60px;
-        transform: rotate(-90deg);
-    }
-    
-    .progress-ring-circle {
-        fill: transparent;
-        stroke: #e9ecef;
-        stroke-width: 4;
-    }
-    
-    .progress-ring-progress {
-        fill: transparent;
-        stroke: #28a745;
-        stroke-width: 4;
-        stroke-linecap: round;
-        transition: stroke-dasharray 0.3s ease;
-    }
-    
-    .facility-icon {
-        width: 40px;
-        height: 40px;
+
+    .facility-card-icon {
+        width: 52px;
+        height: 52px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 0.5rem;
+        font-size: 1.5rem;
+        margin: 0 auto 0.75rem;
     }
-    
-    .facility-available {
-        background: #d4edda;
-        color: #155724;
-    }
-    
-    .facility-unavailable {
-        background: #f8d7da;
-        color: #721c24;
-    }
-    
-    .facility-unknown {
-        background: #fff3cd;
-        color: #856404;
-    }
-    
-    .timeline {
+
+    /* Timeline Session Improvements */
+    .timeline-v2 {
         position: relative;
-        padding-left: 3rem;
+        padding-left: 2.25rem;
     }
-    
-    .timeline::before {
+
+    .timeline-v2::before {
         content: '';
         position: absolute;
-        left: 15px;
-        top: 0;
-        bottom: 0;
+        left: 11px;
+        top: 8px;
+        bottom: 8px;
         width: 2px;
-        background: #dee2e6;
+        background: #e2e8f0;
     }
-    
-    .timeline-item {
+
+    .timeline-item-v2 {
         position: relative;
-        margin-bottom: 2rem;
+        margin-bottom: 1.25rem;
     }
-    
-    .timeline-marker {
+
+    .timeline-dot {
         position: absolute;
-        left: -23px;
-        top: 0;
-        width: 16px;
-        height: 16px;
+        left: -2.25rem;
+        top: 14px;
+        width: 12px;
+        height: 12px;
         border-radius: 50%;
-        background: #28a745;
-        border: 3px solid white;
-        box-shadow: 0 0 0 2px #28a745;
+        background: #94a3b8;
+        border: 2px solid #ffffff;
+        box-shadow: 0 0 0 2px #e2e8f0;
     }
-    
-    .timeline-marker.pending {
-        background: #6c757d;
-        box-shadow: 0 0 0 2px #6c757d;
+
+    .timeline-dot.completed {
+        background: #10b981;
+        box-shadow: 0 0 0 2px #d1fae5;
     }
-    
-    .timeline-marker.current {
-        background: #007bff;
-        box-shadow: 0 0 0 2px #007bff;
-        /* Pulse animation removed for cleaner interface */
+
+    .timeline-dot.current {
+        background: #3b82f6;
+        box-shadow: 0 0 0 3px #dbeafe;
     }
-    
-    /* Pulse keyframe animation removed for cleaner interface */
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid px-4">
-    <div class="row">
-        <div class="col-12">
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="h3 text-gray-800">{{ $ekstrakurikuler->kategori_program }}</h1>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                            <li class="breadcrumb-item"><a href="{{ route('ekstrakurikuler.index') }}">Ekstrakurikuler</a></li>
-                            <li class="breadcrumb-item active">{{ Str::limit($ekstrakurikuler->kategori_program, 30) }}</li>
-                        </ol>
-                    </nav>
+<div class="container-fluid px-4 py-3">
+    
+    <!-- Hero Banner Header -->
+    <div class="hero-banner p-4 p-md-5 mb-4">
+        <div class="row align-items-center">
+            <div class="col-lg-7 mb-3 mb-lg-0">
+                <nav aria-label="breadcrumb" class="mb-2">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="bi bi-house-door-fill me-1"></i>Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('ekstrakurikuler.index') }}">Ekstrakurikuler</a></li>
+                        <li class="breadcrumb-item active">{{ Str::limit($ekstrakurikuler->kategori_program, 25) }}</li>
+                    </ol>
+                </nav>
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                    <h1 class="h2 fw-bold mb-0 text-white me-2">{{ $ekstrakurikuler->kategori_program }}</h1>
+                    @php
+                        $statusBadgeClass = match($ekstrakurikuler->status) {
+                            'draft' => 'bg-secondary text-white',
+                            'diajukan' => 'bg-warning text-dark',
+                            'disetujui' => 'bg-info text-dark',
+                            'ditolak' => 'bg-danger text-white',
+                            'aktif' => 'bg-success text-white',
+                            'selesai' => 'bg-primary text-white',
+                            'dibatalkan' => 'bg-dark text-white',
+                            default => 'bg-secondary text-white'
+                        };
+                    @endphp
+                    <span class="badge {{ $statusBadgeClass }} px-3 py-2 rounded-pill fs-7 fw-semibold shadow-sm">
+                        <i class="bi bi-circle-fill me-1 small"></i> {{ $ekstrakurikuler->status_label }}
+                    </span>
                 </div>
-                <div class="d-flex gap-2">
+                <p class="text-white-50 mb-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-building me-1"></i> {{ $ekstrakurikuler->sekolah?->namasekolah ?? 'Sekolah Belum Ditetapkan' }}
+                    <span class="opacity-50">•</span>
+                    <i class="bi bi-geo-alt-fill me-1"></i> {{ $ekstrakurikuler->region ?? $ekstrakurikuler->sekolah?->kota ?? 'General' }}
+                </p>
+            </div>
+            <div class="col-lg-5 text-lg-end">
+                <div class="d-flex gap-2 justify-content-lg-end flex-wrap">
                     @can('update', $ekstrakurikuler)
-                    <a href="{{ route('ekstrakurikuler.enrollment.index', $ekstrakurikuler) }}" class="btn btn-info text-white">
-                        <i class="fas fa-users"></i> Siswa
+                    <a href="{{ route('ekstrakurikuler.enrollment.index', $ekstrakurikuler) }}" class="btn btn-glass">
+                        <i class="bi bi-people-fill me-1"></i> Kelola Siswa
                     </a>
-                    <a href="{{ route('ekstrakurikuler.edit', $ekstrakurikuler) }}" class="btn btn-warning">
-                        <i class="fas fa-edit"></i> Edit
+                    <a href="{{ route('ekstrakurikuler.edit', $ekstrakurikuler) }}" class="btn btn-glass">
+                        <i class="bi bi-pencil-square me-1"></i> Edit
                     </a>
                     @endcan
                     
@@ -169,8 +244,8 @@
                         <form action="{{ route('ekstrakurikuler.approve', $ekstrakurikuler) }}" method="POST" class="d-inline">
                             @csrf
                             @method('PATCH')
-                            <button type="submit" class="btn btn-success" onclick="return confirm('Apakah Anda yakin ingin menyetujui program ini?')">
-                                <i class="fas fa-check"></i> Setujui
+                            <button type="submit" class="btn btn-success shadow-sm" onclick="return confirm('Apakah Anda yakin ingin menyetujui program ini?')">
+                                <i class="bi bi-check-circle-fill me-1"></i> Setujui
                             </button>
                         </form>
                         @endif
@@ -181,8 +256,8 @@
                         <form action="{{ route('ekstrakurikuler.activate', $ekstrakurikuler) }}" method="POST" class="d-inline">
                             @csrf
                             @method('PATCH')
-                            <button type="submit" class="btn btn-primary" onclick="return confirm('Apakah Anda yakin ingin mengaktifkan program ini?')">
-                                <i class="fas fa-play"></i> Aktifkan
+                            <button type="submit" class="btn btn-primary shadow-sm" onclick="return confirm('Apakah Anda yakin ingin mengaktifkan program ini?')">
+                                <i class="bi bi-play-circle-fill me-1"></i> Aktifkan
                             </button>
                         </form>
                         @endif
@@ -193,616 +268,502 @@
                         <form action="{{ route('ekstrakurikuler.complete', $ekstrakurikuler) }}" method="POST" class="d-inline">
                             @csrf
                             @method('PATCH')
-                            <button type="submit" class="btn btn-success" onclick="return confirm('Tandai program Ekstrakurikuler ini telah selesai?')">
-                                <i class="fas fa-flag-checkered"></i> Selesaikan
+                            <button type="submit" class="btn btn-success shadow-sm" onclick="return confirm('Tandai program Ekstrakurikuler ini telah selesai?')">
+                                <i class="bi bi-flag-fill me-1"></i> Selesaikan
                             </button>
                         </form>
                         @endif
                     @endcan
                     
-                    <a href="{{ route('ekstrakurikuler.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Kembali
+                    <a href="{{ route('ekstrakurikuler.index') }}" class="btn btn-glass">
+                        <i class="bi bi-arrow-left me-1"></i> Kembali
                     </a>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Status and Progress -->
-            <div class="row mb-4">
-                <div class="col-md-8">
-                    <div class="card detail-card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5 class="mb-1">Status Program</h5>
-                                    @php
-                                        $statusClass = match($ekstrakurikuler->status) {
-                                            'draft' => 'badge-secondary',
-                                            'diajukan' => 'badge-warning',
-                                            'disetujui' => 'badge-info',
-                                            'ditolak' => 'badge-danger',
-                                            'aktif' => 'badge-success',
-                                            'selesai' => 'badge-primary',
-                                            'dibatalkan' => 'badge-dark',
-                                            default => 'badge-secondary'
-                                        };
-                                    @endphp
-                                    <span class="badge {{ $statusClass }} status-badge">
-                                        {{ $ekstrakurikuler->status_label }}
-                                    </span>
-                                    
-                                    @if($ekstrakurikuler->tanggal_disetujui)
-                                    <div class="mt-2">
-                                        <small class="text-muted">
-                                            Disetujui pada: {{ $ekstrakurikuler->tanggal_disetujui->format('d/m/Y H:i') }}
-                                            @if($ekstrakurikuler->disetujuiOleh)
-                                                oleh {{ $ekstrakurikuler->disetujuiOleh->nama_lengkap }}
-                                            @endif
-                                        </small>
-                                    </div>
-                                    @endif
-                                </div>
-                                
-                                <div class="text-center">
-                                    @php
-                                        $progress = $ekstrakurikuler->getProgressPertemuan();
-                                        $percentage = $progress['persentase'];
-                                        $circumference = 2 * pi() * 26;
-                                        $strokeDasharray = ($percentage / 100) * $circumference;
-                                    @endphp
-                                    <svg class="progress-ring" viewBox="0 0 60 60">
-                                        <circle class="progress-ring-circle" cx="30" cy="30" r="26"></circle>
-                                        <circle class="progress-ring-progress" cx="30" cy="30" r="26" 
-                                                style="stroke-dasharray: {{ $strokeDasharray }} {{ $circumference }}; stroke-dashoffset: 0"></circle>
-                                    </svg>
-                                    <div class="text-center mt-2">
-                                        <strong>{{ $percentage }}%</strong><br>
-                                        <small class="text-muted">Progress</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Quick Stats Grid -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="premium-card p-3 d-flex align-items-center">
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary me-3">
+                    <i class="bi bi-people-fill"></i>
                 </div>
-                
-                <div class="col-md-4">
-                    <div class="card detail-card">
-                        <div class="card-body">
-                            <h6><i class="fas fa-chart-bar"></i> Statistik</h6>
-                            <div class="row text-center">
-                                <div class="col-4">
-                                    <div class="h4 text-primary">{{ $ekstrakurikuler->total_siswa }}</div>
-                                    <small class="text-muted">Siswa</small>
-                                </div>
-                                <div class="col-4">
-                                    <div class="h4 text-success">{{ $ekstrakurikuler->total_rombel }}</div>
-                                    <small class="text-muted">Rombel</small>
-                                </div>
-                                <div class="col-4">
-                                    <div class="h4 text-info">{{ $progress['total'] }}</div>
-                                    <small class="text-muted">Sesi</small>
-                                </div>
-                            </div>
-                        </div>
+                <div>
+                    <div class="text-muted small fw-medium">Total Siswa</div>
+                    <div class="h4 fw-bold mb-0 text-dark">{{ $ekstrakurikuler->total_siswa }} <span class="fs-6 font-normal text-muted">Orang</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="premium-card p-3 d-flex align-items-center">
+                <div class="stat-icon bg-emerald bg-opacity-10 text-success me-3" style="background-color: rgba(16, 185, 129, 0.1);">
+                    <i class="bi bi-diagram-3-fill"></i>
+                </div>
+                <div>
+                    <div class="text-muted small fw-medium">Total Rombel</div>
+                    <div class="h4 fw-bold mb-0 text-dark">{{ $ekstrakurikuler->total_rombel }} <span class="fs-6 font-normal text-muted">Kelas</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            @php
+                $progress = $ekstrakurikuler->getProgressPertemuan();
+                $percentage = $progress['persentase'];
+            @endphp
+            <div class="premium-card p-3 d-flex align-items-center">
+                <div class="stat-icon bg-info bg-opacity-10 text-info me-3">
+                    <i class="bi bi-calendar-check-fill"></i>
+                </div>
+                <div>
+                    <div class="text-muted small fw-medium">Pertemuan Selesai</div>
+                    <div class="h4 fw-bold mb-0 text-dark">{{ $progress['selesai'] }} / {{ $progress['total'] }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="premium-card p-3 d-flex align-items-center">
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning me-3">
+                    <i class="bi bi-pie-chart-fill"></i>
+                </div>
+                <div class="w-100">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted small fw-medium">Progress</span>
+                        <span class="fw-bold text-dark small">{{ $percentage }}%</span>
+                    </div>
+                    <div class="progress" style="height: 6px; border-radius: 4px;">
+                        <div class="progress-bar bg-success rounded" style="width: {{ $percentage }}%"></div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Main Content Tabs -->
-            <div class="card detail-card">
-                <div class="card-header">
-                    <ul class="nav nav-tabs card-header-tabs" id="detailTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
-                                <i class="fas fa-info-circle"></i> Overview
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="rombel-tab" data-bs-toggle="tab" data-bs-target="#rombel" type="button" role="tab">
-                                <i class="fas fa-users"></i> Rombel ({{ $ekstrakurikuler->rombels->count() }})
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="sessions-tab" data-bs-toggle="tab" data-bs-target="#sessions" type="button" role="tab">
-                                <i class="fas fa-calendar-alt"></i> Jadwal ({{ $ekstrakurikuler->sessions->count() }})
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="facilities-tab" data-bs-toggle="tab" data-bs-target="#facilities" type="button" role="tab">
-                                <i class="fas fa-tools"></i> Fasilitas
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-                
-                <div class="card-body">
-                    <div class="tab-content" id="detailTabsContent">
-                        <!-- Overview Tab -->
-                        <div class="tab-pane fade show active" id="overview" role="tabpanel">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h6><i class="fas fa-info-circle text-primary"></i> Informasi Program</h6>
-                                    
-                                    <div class="info-label">Nama Program</div>
-                                    <div class="info-value">{{ $ekstrakurikuler->kategori_program }}</div>
-                                    
-                                    @if($ekstrakurikuler->deskripsi)
-                                    <div class="info-label">Deskripsi</div>
-                                    <div class="info-value">{{ $ekstrakurikuler->deskripsi }}</div>
-                                    @endif
-                                    
-                                    <div class="info-label">Region</div>
-                                    <div class="info-value">
-                                        <span class="badge badge-secondary">{{ $ekstrakurikuler->region }}</span>
-                                    </div>
-                                    
-                                    <div class="info-label">Sales/Koordinator</div>
-                                    <div class="info-value">{{ $ekstrakurikuler->sales?->nama_lengkap ?? '-' }}</div>
-                                    
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <h6><i class="fas fa-school text-primary"></i> Detail Sekolah</h6>
-                                    
-                                    <div class="info-label">Nama Sekolah</div>
-                                    <div class="info-value">{{ $ekstrakurikuler->sekolah?->namasekolah ?? '-' }}</div>
-                                    
-                                    <div class="info-label">Alamat</div>
-                                    <div class="info-value">{{ $ekstrakurikuler->alamat_lengkap }}</div>
-                                    
-                                    <div class="info-label">Jarak dari POP</div>
-                                    <div class="info-value">{{ $ekstrakurikuler->jarak_km }} KM</div>
-                                    
-                                    <div class="info-label">Kepala Sekolah</div>
-                                    <div class="info-value">{{ $ekstrakurikuler->kepala_sekolah }}</div>
-                                    
-                                    <div class="info-label">Penanggung Jawab</div>
-                                    <div class="info-value">{{ $ekstrakurikuler->penanggung_jawab }}</div>
-                                    
-                                    <div class="info-label">No. Telepon</div>
-                                    <div class="info-value">
-                                        <a href="tel:{{ $ekstrakurikuler->no_telepon }}">{{ $ekstrakurikuler->no_telepon }}</a>
-                                    </div>
-                                    
-                                    @if($ekstrakurikuler->email)
-                                    <div class="info-label">Email</div>
-                                    <div class="info-value">
-                                        <a href="mailto:{{ $ekstrakurikuler->email }}">{{ $ekstrakurikuler->email }}</a>
-                                    </div>
-                                    @endif
-                                    
-                                    @if($ekstrakurikuler->google_maps_link)
-                                    <div class="info-label">Google Maps</div>
-                                    <div class="info-value">
-                                        <a href="{{ $ekstrakurikuler->google_maps_link }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-map-marker-alt"></i> Buka Maps
-                                        </a>
-                                    </div>
-                                    @endif
+    <!-- Main Content Tabs -->
+    <div class="premium-card p-3 p-md-4 mb-4">
+        <ul class="nav nav-pills nav-pills-custom mb-4" id="detailTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                    <i class="bi bi-info-circle-fill me-1.5"></i> Overview Program
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="rombel-tab" data-bs-toggle="tab" data-bs-target="#rombel" type="button" role="tab">
+                    <i class="bi bi-diagram-3-fill me-1.5"></i> Rombongan Belajar ({{ $ekstrakurikuler->rombels->count() }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="sessions-tab" data-bs-toggle="tab" data-bs-target="#sessions" type="button" role="tab">
+                    <i class="bi bi-calendar3 me-1.5"></i> Jadwal Sesi ({{ $ekstrakurikuler->sessions->count() }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="facilities-tab" data-bs-toggle="tab" data-bs-target="#facilities" type="button" role="tab">
+                    <i class="bi bi-tools me-1.5"></i> Fasilitas & Peralatan
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="detailTabsContent">
+            
+            <!-- OVERVIEW TAB -->
+            <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                <div class="row g-4">
+                    <!-- Column 1: Basic Program Info -->
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 h-100 border border-slate-200">
+                            <h6 class="fw-bold text-primary mb-3 pb-2 border-bottom">
+                                <i class="bi bi-award-fill me-2"></i>Informasi Program
+                            </h6>
+                            
+                            <div class="info-group">
+                                <div class="info-label">Nama Kategori Program</div>
+                                <div class="info-value fw-bold text-dark fs-6">{{ $ekstrakurikuler->kategori_program }}</div>
+                            </div>
+                            
+                            @if($ekstrakurikuler->deskripsi)
+                            <div class="info-group">
+                                <div class="info-label">Deskripsi Program</div>
+                                <div class="info-value text-secondary">{{ $ekstrakurikuler->deskripsi }}</div>
+                            </div>
+                            @endif
+                            
+                            <div class="info-group">
+                                <div class="info-label">Region / Wilayah Operasional</div>
+                                <div class="info-value">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-1.5 rounded-pill fs-7 fw-bold">
+                                        <i class="bi bi-geo-alt-fill me-1"></i> {{ $ekstrakurikuler->region ?? $ekstrakurikuler->sekolah?->kota ?? 'JAKARTA' }}
+                                    </span>
                                 </div>
                             </div>
                             
-                            <div class="row mt-4">
-                                <div class="col-12">
-                                    <h6><i class="fas fa-calendar text-primary"></i> Periode Program</h6>
-                                    <div class="alert alert-info">
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <strong>Tanggal Mulai:</strong><br>
-                                                {{ $ekstrakurikuler->tanggal_mulai ? $ekstrakurikuler->tanggal_mulai->locale('id')->translatedFormat('l, d/m/Y') : '-' }}
-                                            </div>
-                                            <div class="col-md-4">
-                                                <strong>Tanggal Selesai:</strong><br>
-                                                {{ $ekstrakurikuler->tanggal_selesai ? $ekstrakurikuler->tanggal_selesai->locale('id')->translatedFormat('l, d/m/Y') : '-' }}
-                                            </div>
-                                            <div class="col-md-4">
-                                                <strong>Total Pertemuan:</strong><br>
-                                                {{ $ekstrakurikuler->total_pertemuan }} pertemuan
-                                            </div>
-                                        </div>
-                                    </div>
+                            <div class="info-group">
+                                <div class="info-label">Sales / Koordinator Lapangan</div>
+                                <div class="info-value text-dark font-medium">
+                                    <i class="bi bi-person-badge me-1.5 text-muted"></i>{{ $ekstrakurikuler->sales?->nama_lengkap ?? '-' }}
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Rombel Tab -->
-                        <div class="tab-pane fade" id="rombel" role="tabpanel">
+                    </div>
+                    
+                    <!-- Column 2: School Details -->
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 h-100 border border-slate-200">
+                            <h6 class="fw-bold text-primary mb-3 pb-2 border-bottom">
+                                <i class="bi bi-building me-2"></i>Detail Sekolah Mitra
+                            </h6>
+                            
+                            <div class="info-group">
+                                <div class="info-label">Nama Sekolah</div>
+                                <div class="info-value fw-bold text-dark">{{ $ekstrakurikuler->sekolah?->namasekolah ?? '-' }}</div>
+                            </div>
+                            
+                            <div class="info-group">
+                                <div class="info-label">Alamat Lengkap</div>
+                                <div class="info-value text-secondary">{{ $ekstrakurikuler->alamat_lengkap ?? '-' }}</div>
+                            </div>
+                            
                             <div class="row">
-                                @forelse($ekstrakurikuler->rombels as $rombel)
-                                <div class="col-md-6 mb-4">
-                                    <div class="card rombel-card">
-                                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                                            <h6 class="mb-0">
-                                                <i class="fas fa-users"></i> {{ $rombel->nama_rombel }}
-                                                <span class="badge badge-light ml-2">{{ $rombel->status_label }}</span>
-                                            </h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="info-label">Jumlah Siswa</div>
-                                                    <div class="info-value">{{ $rombel->jumlah_siswa }} orang</div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="info-label">Total Pertemuan</div>
-                                                    <div class="info-value">{{ $rombel->total_pertemuan }}x</div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="info-label">Hari</div>
-                                                    <div class="info-value">{{ $rombel->hari_label }}</div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="info-label">Waktu</div>
-                                                    <div class="info-value">{{ $rombel->jadwal_waktu }}</div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="row">
-                                                <div class="col-12">
-                                                    <div class="info-label">Periode</div>
-                                                    <div class="info-value">
-                                                        {{ $rombel->tanggal_mulai->format('d/m/Y') }} - 
-                                                        {{ $rombel->tanggal_selesai->format('d/m/Y') }}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            @if($rombel->ruangan)
-                                            <div class="row">
-                                                <div class="col-12">
-                                                    <div class="info-label">Ruangan</div>
-                                                    <div class="info-value">{{ $rombel->ruangan }}</div>
-                                                </div>
-                                            </div>
-                                            @endif
-                                            
-                                            <!-- Progress -->
-                                            <div class="mt-3">
-                                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                                    <small class="text-muted">Progress Pertemuan</small>
-                                                    <small class="text-muted">{{ $rombel->getProgressPersentase() }}%</small>
-                                                </div>
-                                                <div class="progress" style="height: 6px;">
-                                                    <div class="progress-bar bg-success" 
-                                                         style="width: {{ $rombel->getProgressPersentase() }}%"></div>
-                                                </div>
-                                                <small class="text-muted">
-                                                    {{ $rombel->pertemuan_selesai }} dari {{ $rombel->total_pertemuan }} pertemuan
-                                                </small>
-                                            </div>
-                                            
-                                            <!-- Instructors -->
-                                            @if($rombel->instruktur || $rombel->asisten)
-                                            <div class="mt-3">
-                                                <div class="info-label">Tim Pengajar</div>
-                                                <div class="info-value">
-                                                    @if($rombel->instruktur)
-                                                        <span class="badge badge-primary">{{ $rombel->instruktur->nama_lengkap }}</span>
-                                                    @endif
-                                                    @if($rombel->asisten)
-                                                        <span class="badge badge-secondary">{{ $rombel->asisten->nama_lengkap }}</span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            @endif
-
-                                            {{-- Soft warning: Rombel > 20 siswa tanpa asisten --}}
-                                            @if($rombel->jumlah_siswa > 20 && !$rombel->user_id_asisten)
-                                            <div class="alert alert-warning small mt-3 mb-0 py-2">
-                                                <i class="fas fa-exclamation-triangle me-1"></i>
-                                                <strong>Perhatian:</strong> Rombel ini memiliki {{ $rombel->jumlah_siswa }} siswa tanpa asisten.
-                                                Disarankan menambahkan asisten untuk rombel dengan &gt;20 siswa.
-                                            </div>
-                                            @endif
-                                        </div>
+                                <div class="col-6">
+                                    <div class="info-group">
+                                        <div class="info-label">Jarak dari POP</div>
+                                        <div class="info-value text-dark">{{ $ekstrakurikuler->jarak_km ?? 0 }} KM</div>
                                     </div>
                                 </div>
-                                @empty
-                                <div class="col-12">
-                                    <div class="text-center text-muted py-4">
-                                        <i class="fas fa-users fa-3x mb-3"></i>
-                                        <p>Belum ada rombel yang dikonfigurasi.</p>
+                                <div class="col-6">
+                                    <div class="info-group">
+                                        <div class="info-label">Kepala Sekolah</div>
+                                        <div class="info-value text-dark">{{ $ekstrakurikuler->kepala_sekolah ?? '-' }}</div>
                                     </div>
                                 </div>
-                                 @endforelse
                             </div>
-                        </div>
-                        
-                        <!-- Sessions Tab -->
-                        <div class="tab-pane fade" id="sessions" role="tabpanel">
-                            @if($ekstrakurikuler->rombels->count() > 0)
-                                <div class="row">
-                                    @foreach($ekstrakurikuler->rombels as $rombel)
-                                        <div class="col-12 mb-4">
-                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                <h6 class="mb-0"><i class="fas fa-users"></i> {{ $rombel->nama_rombel }}</h6>
-                                                @if(auth()->user()->hasRole(['admin', 'admin_sistem', 'webmaster']))
-                                                    <button type="button" class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addSessionModal{{ $rombel->id }}">
-                                                        <i class="fas fa-plus-circle me-1"></i> Tambah Sesi
-                                                    </button>
-                                                @endif
-                                            </div>
-                                            
-                                            @if($rombel->sessions->count() > 0)
-                                            <div class="timeline">
-                                                @foreach($rombel->sessions->take(10) as $session)
-                                                <div class="timeline-item">
-                                                    @php
-                                                        $markerClass = match($session->status) {
-                                                            'selesai' => 'completed',
-                                                            'berlangsung' => 'current',
-                                                            default => 'pending'
-                                                        };
-                                                        
-                                                        $statusClass = match($session->status) {
-                                                            'terjadwal' => 'badge-secondary',
-                                                            'berlangsung' => 'badge-primary',
-                                                            'selesai' => 'badge-success',
-                                                            'dibatalkan' => 'badge-danger',
-                                                            'ditunda' => 'badge-warning',
-                                                            'tidak_hadir' => 'badge-dark',
-                                                            default => 'badge-secondary'
-                                                        };
-                                                    @endphp
-                                                    <div class="timeline-marker {{ $markerClass }}"></div>
-                                                    <div class="session-card p-3">
-                                                        <div class="d-flex justify-content-between align-items-start">
-                                                            <div>
-                                                                <div class="d-flex align-items-center mb-1">
-                                                                    <h6 class="mb-0 mr-2">Pertemuan {{ $session->nomor_pertemuan }}</h6>
-                                                                    @can('update', $session)
-                                                                    <a href="{{ route('ekstrakurikuler.sessions.edit', $session) }}" class="btn btn-xs btn-outline-warning ms-2" title="Edit Jadwal">
-                                                                        <i class="fas fa-pencil-alt"></i>
-                                                                    </a>
-                                                                    @endcan
-                                                                </div>
-                                                                <div class="text-muted mb-2">
-                                                                    <i class="fas fa-calendar"></i> 
-                                                                    {{ $session->tanggal_terjadwal->format('d/m/Y') }}
-                                                                    <span class="mx-2">|</span>
-                                                                    <i class="fas fa-clock"></i> 
-                                                                    {{ $session->jadwal_waktu }}
-                                                                </div>
-                                                                
-                                                                @if($session->topik_materi)
-                                                                <div class="mb-2">
-                                                                    <strong>Topik:</strong> {{ $session->topik_materi }}
-                                                                </div>
-                                                                @endif
-                                                                
-                                                                @if($session->instruktur)
-                                                                <div class="mb-2">
-                                                                    <small class="text-muted">
-                                                                        <i class="fas fa-user"></i> {{ $session->instruktur->nama_lengkap }}
-                                                                        @if($session->asisten)
-                                                                            & {{ $session->asisten->nama_lengkap }}
-                                                                        @endif
-                                                                    </small>
-                                                                </div>
-                                                                @endif
-                                                            </div>
-                                                            
-                                                            <div class="text-right d-flex flex-column align-items-end">
-                                                                <span class="badge {{ $statusClass }} mb-1">
-                                                                    {{ $session->status_label }}
-                                                                </span>
-                                                                @if($session->status === 'selesai' && !$session->laporan_mengajar_id)
-                                                                <span class="badge badge-danger">
-                                                                    <i class="fas fa-exclamation-circle"></i> Belum Dilaporkan
-                                                                </span>
-                                                                @endif
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        @if($session->status === 'selesai' && $session->tanggal_pelaksanaan)
-                                                        <div class="mt-2 p-2 bg-light rounded">
-                                                            <small class="text-muted">
-                                                                <i class="fas fa-check"></i> 
-                                                                Dilaksanakan: {{ $session->tanggal_pelaksanaan->format('d/m/Y') }}
-                                                                @if($session->waktu_aktual)
-                                                                    ({{ $session->waktu_aktual }})
-                                                                @endif
-                                                            </small>
-                                                        </div>
-                                                        @endif
-                                                        
-                                                        @if($session->status === 'dibatalkan' && $session->alasan_pembatalan)
-                                                        <div class="mt-2 p-2 bg-light rounded">
-                                                            <small class="text-danger">
-                                                                <i class="fas fa-times"></i> 
-                                                                Dibatalkan: {{ $session->alasan_pembatalan }}
-                                                            </small>
-                                                        </div>
-                                                        @endif
-
-                                                        {{-- Instructor Actions --}}
-                                                        <div class="mt-3 pt-2 border-top">
-                                                            <div class="d-flex gap-2">
-                                                                @if($session->status == 'terjadwal')
-                                                                    @if(auth()->id() == $session->user_id_instruktur || auth()->user()->hasRole(['admin', 'admin_erlass', 'webmaster']))
-                                                                    <form action="{{ route('ekstrakurikuler.sessions.start', $session) }}" method="POST" class="d-inline" onsubmit="return confirm('Mulai sesi ini sekarang?');">
-                                                                        @csrf
-                                                                        <button type="submit" class="btn btn-sm btn-primary">
-                                                                            <i class="fas fa-play"></i> Mulai Mengajar
-                                                                        </button>
-                                                                    </form>
-                                                                    @endif
-                                                                @elseif($session->status == 'berlangsung')
-                                                                    @if(auth()->id() == $session->user_id_instruktur || auth()->user()->hasRole(['admin', 'admin_erlass', 'webmaster']))
-                                                                    <form action="{{ route('ekstrakurikuler.sessions.complete', $session) }}" method="POST" class="d-inline" onsubmit="return confirm('Selesaikan sesi ini?');">
-                                                                        @csrf
-                                                                        <button type="submit" class="btn btn-sm btn-success">
-                                                                            <i class="fas fa-check"></i> Selesai Mengajar
-                                                                        </button>
-                                                                    </form>
-                                                                    @endif
-                                                                @elseif($session->status == 'selesai')
-                                                                    @if(!$session->laporan_mengajar_id)
-                                                                         @can('create', App\Models\LaporanMengajar::class)
-                                                                         <form action="{{ route('laporan-mengajar.from-ekstrakurikuler', $session) }}" method="POST" class="d-inline">
-                                                                            @csrf
-                                                                            <button class="btn btn-sm btn-info text-white">
-                                                                                <i class="fas fa-file-alt"></i> Buat Laporan
-                                                                            </button>
-                                                                        </form>
-                                                                        @endcan
-                                                                    @else
-                                                                        <a href="{{ route('laporan-mengajar.show', $session->laporan_mengajar_id) }}" class="btn btn-sm btn-outline-info">
-                                                                            <i class="fas fa-eye"></i> Lihat Laporan
-                                                                        </a>
-                                                                        
-                                                                        <a href="{{ route('ekstrakurikuler-session.absensi.create', $session) }}" class="btn btn-sm btn-outline-success">
-                                                                            <i class="fas fa-user-check"></i> Absensi
-                                                                        </a>
-                                                                    @endif
-                                                                @endif
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                @endforeach
-                                                
-                                                @if($rombel->sessions->count() > 10)
-                                                <div class="text-center mt-3">
-                                                    <small class="text-muted">
-                                                        ... dan {{ $rombel->sessions->count() - 10 }} sesi lainnya
-                                                    </small>
-                                                </div>
-                                                @endif
-                                            </div>
+                            
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="info-group">
+                                        <div class="info-label">Penanggung Jawab</div>
+                                        <div class="info-value text-dark">{{ $ekstrakurikuler->penanggung_jawab ?? '-' }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="info-group">
+                                        <div class="info-label">No. Telepon Kontak</div>
+                                        <div class="info-value">
+                                            @if($ekstrakurikuler->no_telepon)
+                                            <a href="tel:{{ $ekstrakurikuler->no_telepon }}" class="text-decoration-none text-primary fw-medium">
+                                                <i class="bi bi-telephone-fill me-1"></i>{{ $ekstrakurikuler->no_telepon }}
+                                            </a>
                                             @else
-                                            <div class="text-muted small ps-3"><em>Belum ada sesi di rombel ini.</em></div>
+                                            <span class="text-muted">-</span>
                                             @endif
                                         </div>
-                                    @endforeach
-                                </div>
-                            @else
-                                <div class="text-center text-muted py-4">
-                                    <i class="fas fa-calendar-alt fa-3x mb-3"></i>
-                                    <p>Belum ada Rombel yang dikonfigurasi.</p>
-                                    <small>Silakan buat Rombel terlebih dahulu di tab Rombel.</small>
-                                </div>
-                            @endif
-                        </div>
-                        
-                        <!-- Facilities Tab -->
-                        <div class="tab-pane fade" id="facilities" role="tabpanel">
-                            <div class="row">
-                                <div class="col-md-3 text-center mb-4">
-                                    @php
-                                        $internetClass = match($ekstrakurikuler->koneksi_internet) {
-                                            'ada' => 'facility-available',
-                                            'tidak_ada' => 'facility-unavailable',
-                                            default => 'facility-unknown'
-                                        };
-                                        $internetIcon = match($ekstrakurikuler->koneksi_internet) {
-                                            'ada' => 'fa-wifi',
-                                            'tidak_ada' => 'fa-wifi-slash',
-                                            default => 'fa-question'
-                                        };
-                                    @endphp
-                                    <div class="facility-icon {{ $internetClass }}">
-                                        <i class="fas {{ $internetIcon }}"></i>
                                     </div>
-                                    <h6>Internet</h6>
-                                    <span class="badge badge-{{ $internetClass === 'facility-available' ? 'success' : ($internetClass === 'facility-unavailable' ? 'danger' : 'warning') }}">
-                                        {{ ucfirst(str_replace('_', ' ', $ekstrakurikuler->koneksi_internet)) }}
-                                    </span>
-                                    @if($ekstrakurikuler->keterangan_internet)
-                                    <div class="mt-2">
-                                        <small class="text-muted">{{ $ekstrakurikuler->keterangan_internet }}</small>
-                                    </div>
-                                    @endif
-                                </div>
-                                
-                                <div class="col-md-3 text-center mb-4">
-                                    @php
-                                        $proyektorClass = match($ekstrakurikuler->proyektor) {
-                                            'ada' => 'facility-available',
-                                            'tidak_ada' => 'facility-unavailable',
-                                            default => 'facility-unknown'
-                                        };
-                                        $proyektorIcon = match($ekstrakurikuler->proyektor) {
-                                            'ada' => 'fa-video',
-                                            'tidak_ada' => 'fa-video-slash',
-                                            default => 'fa-question'
-                                        };
-                                    @endphp
-                                    <div class="facility-icon {{ $proyektorClass }}">
-                                        <i class="fas {{ $proyektorIcon }}"></i>
-                                    </div>
-                                    <h6>Proyektor</h6>
-                                    <span class="badge badge-{{ $proyektorClass === 'facility-available' ? 'success' : ($proyektorClass === 'facility-unavailable' ? 'danger' : 'warning') }}">
-                                        {{ ucfirst(str_replace('_', ' ', $ekstrakurikuler->proyektor)) }}
-                                    </span>
-                                    @if($ekstrakurikuler->keterangan_proyektor)
-                                    <div class="mt-2">
-                                        <small class="text-muted">{{ $ekstrakurikuler->keterangan_proyektor }}</small>
-                                    </div>
-                                    @endif
-                                </div>
-                                
-                                <div class="col-md-3 text-center mb-4">
-                                    @php
-                                        $hdmiClass = match($ekstrakurikuler->kabel_hdmi) {
-                                            'ada' => 'facility-available',
-                                            'tidak_ada' => 'facility-unavailable',
-                                            default => 'facility-unknown'
-                                        };
-                                        $hdmiIcon = match($ekstrakurikuler->kabel_hdmi) {
-                                            'ada' => 'fa-plug',
-                                            'tidak_ada' => 'fa-ban',
-                                            default => 'fa-question'
-                                        };
-                                    @endphp
-                                    <div class="facility-icon {{ $hdmiClass }}">
-                                        <i class="fas {{ $hdmiIcon }}"></i>
-                                    </div>
-                                    <h6>Kabel HDMI</h6>
-                                    <span class="badge badge-{{ $hdmiClass === 'facility-available' ? 'success' : ($hdmiClass === 'facility-unavailable' ? 'danger' : 'warning') }}">
-                                        {{ ucfirst(str_replace('_', ' ', $ekstrakurikuler->kabel_hdmi)) }}
-                                    </span>
-                                </div>
-                                
-                                <div class="col-md-3 text-center mb-4">
-                                    @php
-                                        $vgaClass = match($ekstrakurikuler->kabel_vga) {
-                                            'ada' => 'facility-available',
-                                            'tidak_ada' => 'facility-unavailable',
-                                            default => 'facility-unknown'
-                                        };
-                                        $vgaIcon = match($ekstrakurikuler->kabel_vga) {
-                                            'ada' => 'fa-plug',
-                                            'tidak_ada' => 'fa-ban',
-                                            default => 'fa-question'
-                                        };
-                                    @endphp
-                                    <div class="facility-icon {{ $vgaClass }}">
-                                        <i class="fas {{ $vgaIcon }}"></i>
-                                    </div>
-                                    <h6>Kabel VGA</h6>
-                                    <span class="badge badge-{{ $vgaClass === 'facility-available' ? 'success' : ($vgaClass === 'facility-unavailable' ? 'danger' : 'warning') }}">
-                                        {{ ucfirst(str_replace('_', ' ', $ekstrakurikuler->kabel_vga)) }}
-                                    </span>
                                 </div>
                             </div>
                             
-                            @if($ekstrakurikuler->keterangan_kabel)
-                            <div class="row mt-4">
-                                <div class="col-12">
-                                    <h6><i class="fas fa-info-circle"></i> Keterangan Tambahan</h6>
-                                    <div class="alert alert-info">
-                                        {{ $ekstrakurikuler->keterangan_kabel }}
-                                    </div>
+                            @if($ekstrakurikuler->google_maps_link)
+                            <div class="info-group mb-0">
+                                <div class="info-label">Lokasi Google Maps</div>
+                                <div class="info-value">
+                                    <a href="{{ $ekstrakurikuler->google_maps_link }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
+                                        <i class="bi bi-map-fill me-1"></i> Buka Google Maps
+                                    </a>
                                 </div>
                             </div>
                             @endif
                         </div>
                     </div>
                 </div>
+                
+                <!-- Period Callout Banner -->
+                <div class="mt-4 p-3 rounded-3 border border-info border-opacity-25" style="background-color: #f0f9ff;">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 mb-2 mb-md-0">
+                            <span class="text-muted small d-block">Tanggal Mulai:</span>
+                            <span class="fw-bold text-dark"><i class="bi bi-calendar-event me-1 text-info"></i> {{ $ekstrakurikuler->tanggal_mulai ? $ekstrakurikuler->tanggal_mulai->locale('id')->translatedFormat('l, d F Y') : '-' }}</span>
+                        </div>
+                        <div class="col-md-4 mb-2 mb-md-0">
+                            <span class="text-muted small d-block">Tanggal Selesai:</span>
+                            <span class="fw-bold text-dark"><i class="bi bi-calendar-check me-1 text-info"></i> {{ $ekstrakurikuler->tanggal_selesai ? $ekstrakurikuler->tanggal_selesai->locale('id')->translatedFormat('l, d F Y') : '-' }}</span>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="text-muted small d-block">Total Alokasi Sesi:</span>
+                            <span class="fw-bold text-dark"><i class="bi bi-journal-check me-1 text-info"></i> {{ $ekstrakurikuler->total_pertemuan }} Pertemuan</span>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <!-- ROMBEL TAB -->
+            <div class="tab-pane fade" id="rombel" role="tabpanel">
+                <div class="row g-4">
+                    @forelse($ekstrakurikuler->rombels as $rombel)
+                    <div class="col-md-6">
+                        <div class="premium-card h-100 overflow-hidden">
+                            <div class="p-3 rombel-card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                                    <i class="bi bi-diagram-3-fill text-primary"></i> {{ $rombel->nama_rombel }}
+                                    <span class="badge bg-light text-dark border ms-1">{{ $rombel->status_label }}</span>
+                                </h6>
+                                @if(auth()->user()->hasRole(['admin', 'admin_sistem', 'webmaster']))
+                                <button type="button" class="btn btn-sm btn-primary rounded-pill shadow-xs" data-bs-toggle="modal" data-bs-target="#addSessionModal{{ $rombel->id }}">
+                                    <i class="bi bi-plus-lg me-1"></i> Tambah Sesi
+                                </button>
+                                @endif
+                            </div>
+                            <div class="p-3">
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Jumlah Siswa</small>
+                                        <span class="fw-semibold text-dark"><i class="bi bi-person me-1"></i>{{ $rombel->jumlah_siswa }} Siswa</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Hari & Waktu</small>
+                                        <span class="fw-semibold text-dark"><i class="bi bi-clock me-1"></i>{{ $rombel->hari_label }}, {{ $rombel->jadwal_waktu }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-1">Periode Pertemuan</small>
+                                    <span class="small text-secondary">
+                                        {{ $rombel->tanggal_mulai ? $rombel->tanggal_mulai->format('d/m/Y') : '-' }} s.d. {{ $rombel->tanggal_selesai ? $rombel->tanggal_selesai->format('d/m/Y') : '-' }}
+                                    </span>
+                                </div>
+
+                                <!-- Progress -->
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center small mb-1">
+                                        <span class="text-muted">Progress Pertemuan</span>
+                                        <span class="fw-bold text-dark">{{ $rombel->getProgressPersentase() }}%</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px; border-radius: 4px;">
+                                        <div class="progress-bar bg-success rounded" style="width: {{ $rombel->getProgressPersentase() }}%"></div>
+                                    </div>
+                                    <small class="text-muted fs-8">
+                                        {{ $rombel->pertemuan_selesai }} dari {{ $rombel->total_pertemuan }} pertemuan selesai
+                                    </small>
+                                </div>
+
+                                <!-- Instructors -->
+                                @if($rombel->instruktur || $rombel->asisten)
+                                <div class="pt-2 border-top">
+                                    <small class="text-muted d-block mb-1">Tim Pengajar assigned:</small>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        @if($rombel->instruktur)
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2.5 py-1">
+                                            <i class="bi bi-person-badge me-1"></i> {{ $rombel->instruktur->nama_lengkap }} (Utama)
+                                        </span>
+                                        @endif
+                                        @if($rombel->asisten)
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2.5 py-1">
+                                            <i class="bi bi-person me-1"></i> {{ $rombel->asisten->nama_lengkap }} (Asisten)
+                                        </span>
+                                        @endif
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="col-12 text-center py-5">
+                        <i class="bi bi-folder-x text-muted opacity-50 display-4"></i>
+                        <p class="text-muted mt-2">Belum ada rombongan belajar (rombel) yang didaftarkan.</p>
+                    </div>
+                    @endforelse
+                </div>
+            </div>
+
+            <!-- JADWAL SESI TAB -->
+            <div class="tab-pane fade" id="sessions" role="tabpanel">
+                @forelse($ekstrakurikuler->rombels as $rombel)
+                <div class="mb-4">
+                    <h6 class="fw-bold text-dark mb-3 d-flex align-items-center">
+                        <i class="bi bi-collection-fill text-primary me-2"></i> {{ $rombel->nama_rombel }}
+                        <span class="badge bg-light text-muted border ms-2 font-normal fs-8">{{ $rombel->sessions->count() }} Sesi Terjadwal</span>
+                    </h6>
+                    
+                    <div class="timeline-v2">
+                        @foreach($rombel->sessions as $session)
+                        @php
+                            $dotClass = match($session->status) {
+                                'selesai' => 'completed',
+                                'berlangsung' => 'current',
+                                default => 'pending'
+                            };
+                            
+                            $sessionBadge = match($session->status) {
+                                'terjadwal' => 'bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25',
+                                'berlangsung' => 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25',
+                                'selesai' => 'bg-success bg-opacity-10 text-success border border-success border-opacity-25',
+                                'dibatalkan' => 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25',
+                                'ditunda' => 'bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25',
+                                default => 'bg-secondary bg-opacity-10 text-secondary'
+                            };
+                        @endphp
+                        <div class="timeline-item-v2">
+                            <div class="timeline-dot {{ $dotClass }}"></div>
+                            <div class="p-3 border rounded-3 bg-white shadow-xs">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span class="fw-bold text-dark">Pertemuan {{ $session->nomor_pertemuan }}</span>
+                                            <span class="badge {{ $sessionBadge }} rounded-pill px-2.5 py-0.5 small fs-8">
+                                                {{ $session->status_label }}
+                                            </span>
+                                            @can('update', $session)
+                                            <a href="{{ route('ekstrakurikuler.sessions.edit', $session) }}" class="text-primary small text-decoration-none" title="Edit Jadwal">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            @endcan
+                                        </div>
+                                        <div class="small text-muted mb-2">
+                                            <i class="bi bi-calendar-event me-1"></i> {{ $session->tanggal_terjadwal ? $session->tanggal_terjadwal->format('d/m/Y') : '-' }}
+                                            <span class="mx-2">•</span>
+                                            <i class="bi bi-clock me-1"></i> {{ $session->jadwal_waktu }}
+                                        </div>
+                                        @if($session->topik_materi)
+                                        <div class="small text-dark mb-1">
+                                            <strong>Topik:</strong> {{ $session->topik_materi }}
+                                        </div>
+                                        @endif
+                                        @if($session->instruktur)
+                                        <div class="small text-muted">
+                                            <i class="bi bi-person me-1"></i> Instruktur: {{ $session->instruktur->nama_lengkap }}
+                                        </div>
+                                        @endif
+                                    </div>
+                                    
+                                    @if($session->status === 'selesai' && !$session->laporan_mengajar_id)
+                                    <div>
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2.5 py-1">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Belum Ada Laporan
+                                        </span>
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @empty
+                <div class="text-center py-5">
+                    <i class="bi bi-calendar-x text-muted opacity-50 display-4"></i>
+                    <p class="text-muted mt-2">Belum ada jadwal sesi yang dibuat.</p>
+                </div>
+                @endforelse
+            </div>
+
+            <!-- FASILITAS TAB -->
+            <div class="tab-pane fade" id="facilities" role="tabpanel">
+                <div class="row g-3">
+                    <!-- Internet -->
+                    @php
+                        $internetClass = match($ekstrakurikuler->koneksi_internet) {
+                            'ada' => 'bg-success bg-opacity-10 text-success',
+                            'tidak_ada' => 'bg-danger bg-opacity-10 text-danger',
+                            default => 'bg-warning bg-opacity-10 text-warning'
+                        };
+                        $internetIcon = match($ekstrakurikuler->koneksi_internet) {
+                            'ada' => 'bi-wifi',
+                            'tidak_ada' => 'bi-wifi-off',
+                            default => 'bi-question-circle'
+                        };
+                    @endphp
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 text-center border rounded-3 bg-white h-100">
+                            <div class="facility-card-icon {{ $internetClass }}">
+                                <i class="bi {{ $internetIcon }}"></i>
+                            </div>
+                            <h6 class="fw-bold mb-1 text-dark">Koneksi Internet</h6>
+                            <span class="badge {{ $internetClass }} px-3 py-1 rounded-pill">
+                                {{ ucfirst(str_replace('_', ' ', $ekstrakurikuler->koneksi_internet ?? 'Belum Diketahui')) }}
+                            </span>
+                            @if($ekstrakurikuler->keterangan_internet)
+                            <small class="text-muted d-block mt-2 fs-8">{{ $ekstrakurikuler->keterangan_internet }}</small>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Proyektor -->
+                    @php
+                        $proyektorClass = match($ekstrakurikuler->proyektor) {
+                            'ada' => 'bg-success bg-opacity-10 text-success',
+                            'tidak_ada' => 'bg-danger bg-opacity-10 text-danger',
+                            default => 'bg-warning bg-opacity-10 text-warning'
+                        };
+                        $proyektorIcon = match($ekstrakurikuler->proyektor) {
+                            'ada' => 'bi-projector-fill',
+                            'tidak_ada' => 'bi-camera-video-off',
+                            default => 'bi-question-circle'
+                        };
+                    @endphp
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 text-center border rounded-3 bg-white h-100">
+                            <div class="facility-card-icon {{ $proyektorClass }}">
+                                <i class="bi {{ $proyektorIcon }}"></i>
+                            </div>
+                            <h6 class="fw-bold mb-1 text-dark">LCD Proyektor</h6>
+                            <span class="badge {{ $proyektorClass }} px-3 py-1 rounded-pill">
+                                {{ ucfirst(str_replace('_', ' ', $ekstrakurikuler->proyektor ?? 'Belum Diketahui')) }}
+                            </span>
+                            @if($ekstrakurikuler->keterangan_proyektor)
+                            <small class="text-muted d-block mt-2 fs-8">{{ $ekstrakurikuler->keterangan_proyektor }}</small>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Kabel HDMI -->
+                    @php
+                        $hdmiClass = match($ekstrakurikuler->kabel_hdmi) {
+                            'ada' => 'bg-success bg-opacity-10 text-success',
+                            'tidak_ada' => 'bg-danger bg-opacity-10 text-danger',
+                            default => 'bg-warning bg-opacity-10 text-warning'
+                        };
+                    @endphp
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 text-center border rounded-3 bg-white h-100">
+                            <div class="facility-card-icon {{ $hdmiClass }}">
+                                <i class="bi bi-plugin"></i>
+                            </div>
+                            <h6 class="fw-bold mb-1 text-dark">Kabel HDMI</h6>
+                            <span class="badge {{ $hdmiClass }} px-3 py-1 rounded-pill">
+                                {{ ucfirst(str_replace('_', ' ', $ekstrakurikuler->kabel_hdmi ?? 'Belum Diketahui')) }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Kabel VGA -->
+                    @php
+                        $vgaClass = match($ekstrakurikuler->kabel_vga) {
+                            'ada' => 'bg-success bg-opacity-10 text-success',
+                            'tidak_ada' => 'bg-danger bg-opacity-10 text-danger',
+                            default => 'bg-warning bg-opacity-10 text-warning'
+                        };
+                    @endphp
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 text-center border rounded-3 bg-white h-100">
+                            <div class="facility-card-icon {{ $vgaClass }}">
+                                <i class="bi bi-display"></i>
+                            </div>
+                            <h6 class="fw-bold mb-1 text-dark">Kabel VGA</h6>
+                            <span class="badge {{ $vgaClass }} px-3 py-1 rounded-pill">
+                                {{ ucfirst(str_replace('_', ' ', $ekstrakurikuler->kabel_vga ?? 'Belum Diketahui')) }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                @if($ekstrakurikuler->keterangan_kabel)
+                <div class="mt-3 p-3 bg-light rounded-3 border">
+                    <h6 class="fw-bold text-dark mb-1"><i class="bi bi-info-circle me-1"></i> Catatan Peralatan Tambahan</h6>
+                    <p class="text-muted small mb-0">{{ $ekstrakurikuler->keterangan_kabel }}</p>
+                </div>
+                @endif
+            </div>
+
         </div>
     </div>
 </div>
@@ -813,18 +774,18 @@
     @foreach($ekstrakurikuler->rombels as $rombel)
         <div class="modal fade text-dark" id="addSessionModal{{ $rombel->id }}" tabindex="-1" aria-labelledby="addSessionModalLabel{{ $rombel->id }}" aria-hidden="true">
             <div class="modal-dialog">
-                <div class="modal-content text-start">
+                <div class="modal-content text-start rounded-4 border-0 shadow">
                     <form action="{{ route('ekstrakurikuler.rombel.add-session', $rombel) }}" method="POST">
                         @csrf
-                        <div class="modal-header">
+                        <div class="modal-header border-bottom-0 pb-0">
                             <h5 class="modal-title fw-bold" id="addSessionModalLabel{{ $rombel->id }}">
-                                <i class="fas fa-calendar-plus text-primary me-2"></i>Tambah Sesi Manual
+                                <i class="bi bi-calendar-plus text-primary me-2"></i>Tambah Sesi Manual
                             </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <div class="alert alert-info py-2 small mb-3">
-                                Sesi baru akan ditambahkan sebagai <strong>Pertemuan {{ $rombel->sessions()->max('nomor_pertemuan') + 1 }}</strong> untuk <strong>{{ $rombel->nama_rombel }}</strong>.
+                            <div class="alert alert-info py-2 small mb-3 border-0 bg-info bg-opacity-10 text-info">
+                                <i class="bi bi-info-circle me-1"></i> Sesi baru akan ditambahkan sebagai <strong>Pertemuan {{ $rombel->sessions()->max('nomor_pertemuan') + 1 }}</strong> untuk <strong>{{ $rombel->nama_rombel }}</strong>.
                             </div>
                             <div class="mb-3">
                                 <label for="tanggal_terjadwal{{ $rombel->id }}" class="form-label small fw-bold text-muted">Tanggal Sesi <span class="text-danger">*</span></label>
@@ -849,9 +810,9 @@
                                 <textarea class="form-control" id="catatan{{ $rombel->id }}" name="catatan" rows="3" placeholder="Tambahkan catatan jika diperlukan..."></textarea>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-primary">Simpan Sesi</button>
+                        <div class="modal-footer border-top-0 pt-0">
+                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4">Simpan Sesi</button>
                         </div>
                     </form>
                 </div>
@@ -866,7 +827,6 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Bootstrap tabs
     const triggerTabList = [].slice.call(document.querySelectorAll('#detailTabs button'));
     triggerTabList.forEach(function (triggerEl) {
         const tabTrigger = new bootstrap.Tab(triggerEl);
@@ -876,23 +836,6 @@ document.addEventListener('DOMContentLoaded', function() {
             tabTrigger.show();
         });
     });
-    
-    // Auto-refresh status for active programs
-    const programStatus = '{{ $ekstrakurikuler->status }}';
-    if (programStatus === 'aktif') {
-        // Optional: Add auto-refresh for active programs
-        setInterval(function() {
-            // Could implement auto-refresh for session status
-        }, 30000); // 30 seconds
-    }
 });
-
-// Function to handle session actions (if needed)
-function handleSessionAction(sessionId, action) {
-    if (confirm(`Are you sure you want to ${action} this session?`)) {
-        // Implementation for session actions
-        console.log(`${action} session ${sessionId}`);
-    }
-}
 </script>
 @endpush

@@ -107,17 +107,17 @@
                 <table class="table table-modern align-middle mb-0" id="siswa-sekolah-table">
                         <thead>
                             <tr>
-                                <th width="5%">No</th>
+                                <th width="20%">NISN</th>
                                 <th width="35%">Nama Siswa</th>
-                                <th width="20%">Rombel</th>
-                                <th width="20%">Kelas</th>
-                                <th width="20%">Jenis Kelamin</th>
+                                <th width="15%">Rombel</th>
+                                <th width="15%">Kelas</th>
+                                <th width="15%">Jenis Kelamin</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($sekolah->siswa as $index => $siswa)
+                            @foreach($sekolah->siswa as $siswa)
                             <tr>
-                                <td class="text-center text-muted">{{ $index + 1 }}</td>
+                                <td class="fw-bold font-monospace text-dark">{{ $siswa->nisn ?? '-' }}</td>
                                 <td>
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="avatar-circle shadow-sm">
@@ -125,7 +125,6 @@
                                         </div>
                                         <div>
                                             <div class="fw-bold text-dark">{{ $siswa->nama_lengkap }}</div>
-                                            <div class="small text-muted">ID: {{ $siswa->nisn ?? '-' }}</div>
                                         </div>
                                     </div>
                                 </td>
@@ -174,10 +173,9 @@
         if (typeof window.DataTableManager !== 'undefined') {
             const dataTableManager = new window.DataTableManager();
             dataTableManager.init('#siswa-sekolah-table', {
-                order: [[1, 'asc']], // Sort by Student Name column
+                order: [[0, 'asc']], // Sort by NISN column
                 columnDefs: [
-                    { orderable: false, targets: [0] }, // Disable sorting for No. column
-                    { type: 'string', targets: [1, 2, 3, 4] } // String sorting for all other columns
+                    { type: 'string', targets: [0, 1, 2, 3, 4] }
                 ],
                 pageLength: 25,
                 responsive: false,

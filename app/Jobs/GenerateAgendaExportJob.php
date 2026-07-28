@@ -254,6 +254,9 @@ class GenerateAgendaExportJob implements ShouldQueue
 
         @imagecopyresampled($dstImg, $srcImg, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 
+        // Enable progressive JPEG rendering (interlacing)
+        @imageinterlace($dstImg, 1);
+
         // Save as optimized JPEG (75% quality)
         $saved = @imagejpeg($dstImg, $target, 75);
 

@@ -6,7 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class LateReportRequest extends Model
 {
-    protected $fillable = ['user_id', 'session_id', 'reason', 'status', 'admin_id', 'admin_notes'];
+    protected $fillable = ['user_id', 'session_id', 'adhoc_date', 'reason', 'status', 'admin_id', 'admin_notes'];
+
+    protected $casts = [
+        'adhoc_date' => 'date',
+    ];
+
+    public function isAdhoc(): bool
+    {
+        return empty($this->session_id) && !empty($this->adhoc_date);
+    }
 
     public function user()
     {

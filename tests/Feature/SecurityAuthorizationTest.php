@@ -57,6 +57,7 @@ class SecurityAuthorizationTest extends TestCase
         ]);
 
         $this->sales = User::factory()->create(['role' => 'sales']);
+        $salesman = \App\Models\Salesman::factory()->create(['user_id' => $this->sales->id]);
 
         // Create School & Students
         $sekolah = Sekolah::factory()->create();
@@ -66,14 +67,14 @@ class SecurityAuthorizationTest extends TestCase
         // Create Extracurriculars
         $ekskul1 = Ekstrakurikuler::factory()->create([
             'sekolah_kodlan' => $sekolah->kodlan,
-            'user_id_sales' => $this->sales->id,
+            'user_id_sales' => $salesman->id,
             'created_by' => $this->sales->id,
             'updated_by' => $this->sales->id,
         ]);
         
         $ekskul2 = Ekstrakurikuler::factory()->create([
             'sekolah_kodlan' => $sekolah->kodlan,
-            'user_id_sales' => $this->sales->id,
+            'user_id_sales' => $salesman->id,
             'created_by' => $this->sales->id,
             'updated_by' => $this->sales->id,
         ]);

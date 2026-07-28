@@ -132,7 +132,7 @@ erDiagram
 
     EKSTRAKURIKULER {
         bigint id PK
-        string kategori_program
+        string kategori_program "VARCHAR(255) - Dinamis dari Products"
         string sekolah_kodlan FK
         enum status "draft, diajukan, disetujui, ditolak, aktif, selesai, dibatalkan"
     }
@@ -189,7 +189,6 @@ erDiagram
         string kode_produk
         string nama_produk
         string jenis
-        decimal harga
         int durasi_bulan
         enum jenis_kegiatan
         int standar_durasi_menit

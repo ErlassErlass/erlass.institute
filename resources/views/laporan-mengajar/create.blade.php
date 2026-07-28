@@ -3,9 +3,25 @@
 @section('title', 'Buat Laporan Mengajar')
 
 @push('styles')
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
+<style>
+    .select2-container--bootstrap-5 .select2-selection {
+        min-height: 44px !important;
+        padding-top: 6px !important;
+        border-color: #dee2e6 !important;
+        border-radius: 0.375rem !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+        color: #495057 !important;
+        line-height: 1.5 !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__placeholder {
+        color: #6c757d !important;
+    }
+</style>
 @endpush
 
 @section('content')
@@ -17,19 +33,43 @@
                     <h1 class="h4 mb-0 fw-bold text-gradient-primary"><i class="fas fa-plus-circle me-2"></i>Buat Laporan Mengajar</h1>
                 </div>
                 
-                <div class="alert alert-danger m-3 border-0 shadow-sm" role="alert">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-exclamation-triangle fa-2x me-3 text-danger"></i>
+                <div class="alert alert-warning m-3 border-0 shadow-sm" role="alert">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-info-circle fa-2x me-3 text-warning mt-1"></i>
                         <div>
-                            <h5 class="alert-heading fw-bold mb-1">DILARANG MENGISI UNTUK JADWAL RUTIN!</h5>
-                            <p class="mb-0">
-                                Halaman ini <strong>KHUSUS</strong> untuk membuat Laporan Mengajar <strong>DI LUAR JADWAL / TAMBAHAN</strong> (Ad-Hoc).
-                                <br>
-                                Jika Anda ingin mengisi laporan untuk kelas terjadwal, silakan buka menu <strong>Jadwal Mengajar</strong> atau <strong>Dashboard</strong>.
+                            <h5 class="alert-heading fw-bold mb-1">Laporan Mengajar Tambahan / Ad-Hoc</h5>
+                            <p class="mb-1">
+                                Halaman ini digunakan untuk mencatat kegiatan mengajar <strong>di luar jadwal rutin ekskul</strong>, seperti:
+                            </p>
+                            <ul class="mb-1">
+                                <li>Kegiatan <strong>Inkul</strong> (Inkul Coding Scratch, Inkul LMS, Inkul LKPD, dll.)</li>
+                                <li>Pameran, Trial Class, Pendampingan Lomba, Sosialisasi bersama Sales</li>
+                            </ul>
+                            <p class="mb-0 text-muted small">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                Untuk laporan <strong>kelas ekskul terjadwal</strong>, silakan buka menu <strong>Jadwal Mengajar</strong> dari Dashboard.
                             </p>
                         </div>
                     </div>
                 </div>
+
+                @if(Auth::user()->role === 'instruktur')
+                <div class="px-3 mb-2">
+                    <div class="card border-0 bg-light shadow-sm">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                <div>
+                                    <span class="fw-bold text-dark"><i class="bi bi-clock-history me-1 text-warning"></i> Tanggal Mengajar Lewat H+1?</span>
+                                    <p class="text-muted small mb-0">Ajukan permohonan buka akses Ad-Hoc tanggal lampau ke Admin (Kuota tersisa: <strong>{{ Auth::user()->monthly_late_report_quota }}x</strong> bulan ini).</p>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-warning fw-bold" data-bs-toggle="modal" data-bs-target="#adhocRequestModal">
+                                    <i class="bi bi-send me-1"></i> Minta Akses Ad-Hoc
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
 
 
 
@@ -77,18 +117,16 @@
 
                             <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom mt-4"><i class="fas fa-school me-2"></i>Lokasi Mengajar</h5>
                             <div class="mb-3">
-                                <label for="sekolah_kodlan" class="form-label">Cari & Pilih Sekolah</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                    <select name="sekolah_kodlan" id="sekolah-search" class="form-select @error('sekolah_kodlan') is-invalid @enderror" required>
-                                        @if($selectedSekolah)
-                                        <option value="{{ $selectedSekolah->kodlan }}" selected>
-                                            {{ $selectedSekolah->namasekolah }} ({{ $selectedSekolah->kodlan }})
-                                        </option>
-                                        @endif
-                                    </select>
-                                </div>
-                                <small class="text-muted">Ketik minimal 3 karakter untuk mencari sekolah</small>
+                                <label for="sekolah-search" class="form-label fw-bold">Cari & Pilih Sekolah <span class="text-danger">*</span></label>
+                                <select name="sekolah_kodlan" id="sekolah-search" class="form-select @error('sekolah_kodlan') is-invalid @enderror" required>
+                                    <option value=""></option>
+                                    @if($selectedSekolah)
+                                    <option value="{{ $selectedSekolah->kodlan }}" selected>
+                                        {{ $selectedSekolah->namasekolah }} ({{ $selectedSekolah->kodlan }})
+                                    </option>
+                                    @endif
+                                </select>
+                                <small class="text-muted">Pilih atau ketik nama sekolah untuk mencari</small>
                                 @error('sekolah_kodlan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
                         </div>
@@ -206,16 +244,66 @@
 </div>
 @endsection
 
+@push('modals')
+<!-- Modal Permohonan Akses Ad-Hoc -->
+@if(Auth::user()->role === 'instruktur')
+<div class="modal fade" id="adhocRequestModal" tabindex="-1" aria-labelledby="adhocRequestModalLabel" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <form action="{{ route('laporan-mengajar.adhoc-late-request.store') }}" method="POST">
+                @csrf
+                <div class="modal-header bg-warning text-dark border-0">
+                    <h5 class="modal-title fw-bold" id="adhocRequestModalLabel"><i class="bi bi-hourglass-split me-2"></i>Permohonan Buka Akses Ad-Hoc</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-3">Gunakan form ini untuk mengajukan permohonan ke Admin jika Anda perlu membuat <strong>Laporan Ad-Hoc (Luar Jadwal)</strong> untuk tanggal kegiatan yang telah melewati batas <strong>H+1</strong>.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Tanggal Kegiatan</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-calendar-date"></i></span>
+                            <input type="text" name="adhoc_date" class="form-control datepicker @error('adhoc_date') is-invalid @enderror" placeholder="dd/mm/yyyy" required value="{{ old('adhoc_date', date('d/m/Y', strtotime('-2 days'))) }}">
+                        </div>
+                        <div class="form-text">Pilih tanggal kegiatan Ad-Hoc yang telah lewat H+1.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Alasan Keterlambatan</label>
+                        <textarea name="reason" class="form-control" rows="3" required placeholder="Contoh: Terkendala jaringan saat di lapangan, urusan keluarga mendadak, dsb..."></textarea>
+                    </div>
+
+                    @if(Auth::user()->monthly_late_report_quota <= 0)
+                        <div class="alert alert-danger mb-0 small">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Kuota bantuan bulanan Anda telah habis. Silakan hubungi Admin secara langsung.
+                        </div>
+                    @endif
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning fw-bold" {{ Auth::user()->monthly_late_report_quota <= 0 ? 'disabled' : '' }}>
+                        <i class="bi bi-send me-1"></i> Kirim Permohonan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+@endpush
+
 <!-- Pending Sessions Modal (Keep existing) -->
 <!-- ... -->
 
 @push('scripts')
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
-        // Initialize Select2 with retry logic to handle potential race conditions with Vite-bundled scripts
+        // Initialize Select2 with retry logic to handle potential race conditions
         function initSekolahSelect2() {
             if (typeof $.fn.select2 === 'undefined') {
                 console.warn('Select2 not loaded, retrying in 100ms...');
@@ -226,11 +314,12 @@
             $('#sekolah-search').select2({
                 theme: "bootstrap-5",
                 width: '100%',
-                placeholder: 'Ketik nama sekolah atau kode...',
+                placeholder: 'Pilih atau ketik nama sekolah / kode...',
+                allowClear: true,
                 ajax: {
                     url: "{{ route('laporan-mengajar.search') }}",
                     dataType: 'json',
-                    delay: 300,
+                    delay: 250,
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
@@ -248,11 +337,8 @@
                         console.error('Search error:', xhr);
                     }
                 },
-                minimumInputLength: 3,
+                minimumInputLength: 0,
                 language: {
-                    inputTooShort: function() {
-                        return 'Ketik minimal 3 karakter';
-                    },
                     errorLoading: function() {
                         return "Gagal memuat hasil. Coba lagi.";
                     },
@@ -263,6 +349,16 @@
                         return "Mencari...";
                     }
                 }
+            });
+
+            // Automatically focus and search initial school list when dropdown is opened
+            $('#sekolah-search').on('select2:open', function() {
+                setTimeout(function() {
+                    let searchField = document.querySelector('.select2-container--open .select2-search__field') || document.querySelector('.select2-search__field');
+                    if (searchField) {
+                        searchField.focus();
+                    }
+                }, 50);
             });
         }
 

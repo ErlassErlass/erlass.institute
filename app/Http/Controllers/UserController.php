@@ -319,7 +319,39 @@ class UserController extends Controller
             ]);
         }
 
-        $validated = $request->validate($rules);
+        $messages = [
+            'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.email' => 'Format alamat email tidak valid.',
+            'email.unique' => 'Alamat email sudah terdaftar di sistem.',
+            'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',
+            'no_telephone.required' => 'Nomor HP WhatsApp utama wajib diisi.',
+            'agama.required' => 'Agama wajib dipilih.',
+            'pend_terakhir.required' => 'Pendidikan terakhir wajib dipilih.',
+            'kompetensi_1.required' => 'Kompetensi utama wajib diisi.',
+            'nama_panggilan.required' => 'Nama panggilan wajib diisi.',
+            'no_hp_2.required' => 'Nomor HP kontak darurat wajib diisi.',
+            'alamat_domisili.required' => 'Alamat domisili wajib diisi.',
+            'kota_domisili.required' => 'Kota domisili wajib diisi.',
+            'status_pernikahan.required' => 'Status pernikahan wajib dipilih.',
+            'pekerjaan_terakhir.required' => 'Pekerjaan terakhir wajib diisi.',
+            'jenjang_mengajar.required' => 'Jenjang mengajar wajib dipilih.',
+            'universitas_jurusan.required' => 'Universitas / Jurusan wajib diisi.',
+            'nama_bank.required' => 'Nama bank wajib diisi.',
+            'no_rekening.required' => 'Nomor rekening bank wajib diisi.',
+            'nik.required' => 'NIK KTP wajib diisi.',
+            'nik.min' => 'NIK KTP harus tepat 16 digit angka.',
+            'nik.max' => 'NIK KTP harus tepat 16 digit angka.',
+            'tinggi_badan.required' => 'Tinggi badan wajib diisi.',
+            'berat_badan.required' => 'Berat badan wajib diisi.',
+            'mata_minus.required' => 'Informasi mata minus wajib diisi.',
+            'alat_mengajar.required' => 'Pilih minimal 1 alat mengajar yang dimiliki.',
+            'kendaraan.required' => 'Opsi kendaraan wajib dipilih.',
+            'jenis_kendaraan.required' => 'Jenis kendaraan wajib diisi.',
+            'waktu_mengajar.required' => 'Pilih minimal 1 slot jam ketersediaan mengajar.',
+        ];
+
+        $validated = $request->validate($rules, $messages);
 
         try {
             \Illuminate\Support\Facades\DB::beginTransaction();

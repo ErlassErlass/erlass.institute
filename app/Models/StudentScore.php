@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\RombelInstructorHistory;
 
 class StudentScore extends Model
 {
@@ -39,6 +40,7 @@ class StudentScore extends Model
         'finalized_by',
         'created_by',
         'updated_by',
+        'instruktur_pengisi_id', // ID instruktur yang terakhir mengisi nilai ini
     ];
 
     protected $casts = [
@@ -147,6 +149,15 @@ class StudentScore extends Model
     public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /**
+     * Instruktur yang terakhir mengisi nilai record ini.
+     * Bisa berbeda dari instruktur aktif rombel saat ini (karena pergantian).
+     */
+    public function instrukturPengisi(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'instruktur_pengisi_id');
     }
 
     /**

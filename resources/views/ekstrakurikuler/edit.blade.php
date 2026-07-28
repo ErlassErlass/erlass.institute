@@ -166,24 +166,18 @@
                                             name="kategori_program" 
                                             required>
                                         <option value="">Pilih Kategori Program</option>
-                                        <option value="Coding Scratch" {{ old('kategori_program', $ekstrakurikuler->kategori_program) == 'Coding Scratch' ? 'selected' : '' }}>
-                                            Coding Scratch
-                                        </option>
-                                        <option value="English Course" {{ old('kategori_program', $ekstrakurikuler->kategori_program) == 'English Course' ? 'selected' : '' }}>
-                                            English Course
-                                        </option>
-                                        <option value="Micro:bit Learning Kit" {{ old('kategori_program', $ekstrakurikuler->kategori_program) == 'Micro:bit Learning Kit' ? 'selected' : '' }}>
-                                            Micro:bit Learning Kit
-                                        </option>
-                                        <option value="Pictoblox AI" {{ old('kategori_program', $ekstrakurikuler->kategori_program) == 'Pictoblox AI' ? 'selected' : '' }}>
-                                            Pictoblox AI
-                                        </option>
-                                        <option value="Robotik Explorer" {{ old('kategori_program', $ekstrakurikuler->kategori_program) == 'Robotik Explorer' ? 'selected' : '' }}>
-                                            Robotik Explorer
-                                        </option>
-                                        <option value="Robotik Jimu" {{ old('kategori_program', $ekstrakurikuler->kategori_program) == 'Robotik Jimu' ? 'selected' : '' }}>
-                                            Robotik Jimu
-                                        </option>
+                                        @if(isset($activeProducts) && count($activeProducts) > 0)
+                                            @foreach($activeProducts as $product)
+                                                <option value="{{ $product->nama_produk }}" {{ old('kategori_program', $ekstrakurikuler->kategori_program) == $product->nama_produk ? 'selected' : '' }}>
+                                                    {{ $product->nama_produk }}
+                                                </option>
+                                            @endforeach
+                                        @endif
+                                        @if($ekstrakurikuler->kategori_program && (!isset($activeProducts) || !$activeProducts->contains('nama_produk', $ekstrakurikuler->kategori_program)))
+                                            <option value="{{ $ekstrakurikuler->kategori_program }}" selected>
+                                                {{ $ekstrakurikuler->kategori_program }} (Lama)
+                                            </option>
+                                        @endif
                                     </select>
                                     @error('kategori_program')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -590,7 +584,7 @@
                         <div class="rombel-card">
                             <div class="rombel-header">
                                 <span><i class="fas fa-users"></i> {{ $rombel->nama_rombel }}</span>
-                                <span class="badge badge-light">{{ $rombel->status_label }}</span>
+                                <span class="badge bg-light text-dark">{{ $rombel->status_label }}</span>
                             </div>
 
                             <div class="row">

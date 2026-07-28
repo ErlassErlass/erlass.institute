@@ -26,6 +26,29 @@ class InstructorRegistrationController extends Controller
 
     public function store(Request $request)
     {
+        // Normalize tanggal_lahir format (supports DD-MM-YYYY, DD/MM/YYYY, DDMMYYYY, YYYY-MM-DD)
+        if ($request->filled('tanggal_lahir')) {
+            $rawDate = trim($request->tanggal_lahir);
+            try {
+                if (preg_match('/^\d{8}$/', $rawDate)) {
+                    // DDMMYYYY format
+                    $day = substr($rawDate, 0, 2);
+                    $month = substr($rawDate, 2, 2);
+                    $year = substr($rawDate, 4, 4);
+                    $parsed = \Carbon\Carbon::createFromDate((int)$year, (int)$month, (int)$day)->format('Y-m-d');
+                } elseif (preg_match('/^\d{1,2}[-\/]\d{1,2}[-\/]\d{4}$/', $rawDate)) {
+                    // DD-MM-YYYY or DD/MM/YYYY format
+                    $parts = preg_split('/[-\/]/', $rawDate);
+                    $parsed = \Carbon\Carbon::createFromDate((int)$parts[2], (int)$parts[1], (int)$parts[0])->format('Y-m-d');
+                } else {
+                    $parsed = \Carbon\Carbon::parse($rawDate)->format('Y-m-d');
+                }
+                $request->merge(['tanggal_lahir' => $parsed]);
+            } catch (\Exception $e) {
+                // If parsing fails, keep original so validation catches it
+            }
+        }
+
         $request->validate([
             // User Account Info
             'nama_lengkap' => 'required|string|max:255', // Nama di KTP
@@ -45,9 +68,9 @@ class InstructorRegistrationController extends Controller
             'status_pernikahan' => 'required|string|max:50',
 
             // Documents
-            'foto_ktp' => 'required|image|max:2048',
-            'foto_npwp' => 'required|image|max:2048',
-            'cv' => 'required|file|mimes:pdf,doc,docx|max:5120',
+            'foto_ktp' => 'required|image|mimes:jpeg,jpg,png,webp|max:3072',
+            'foto_npwp' => 'required|image|mimes:jpeg,jpg,png,webp|max:3072',
+            'cv' => 'required|file|mimes:pdf,doc,docx|max:10240',
 
             // Professional
             'pekerjaan_terakhir' => 'required|string',
@@ -60,7 +83,7 @@ class InstructorRegistrationController extends Controller
             // Financial & Legal
             'nama_bank' => 'required|string',
             'no_rekening' => 'required|string',
-            'no_npwp' => 'required|string|min:16|max:16',
+            'no_npwp' => 'required|string|min:15|max:16',
             'nik' => 'required|string|min:16|max:16',
 
             // Health & Logistics
@@ -75,6 +98,51 @@ class InstructorRegistrationController extends Controller
             
             // Schedule
             'waktu_mengajar' => 'required|array', // Structure checked in logic
+        ], [
+            'nama_lengkap.required' => 'Nama lengkap (sesuai KTP) wajib diisi.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email ini sudah terdaftar di sistem.',
+            'no_hp_1.required' => 'Nomor HP WhatsApp (No HP 1) wajib diisi.',
+            'password.required' => 'Password wajib diisi.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok dengan password.',
+            'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',
+            'tanggal_lahir.date' => 'Format tanggal lahir tidak valid.',
+            'nama_panggilan.required' => 'Nama panggilan wajib diisi.',
+            'no_hp_2.required' => 'Nomor HP 2 (Kontak Darurat) wajib diisi.',
+            'agama.required' => 'Pilihan agama wajib diisi.',
+            'alamat_domisili.required' => 'Alamat domisili wajib diisi.',
+            'kota_domisili.required' => 'Kota domisili wajib diisi.',
+            'status_pernikahan.required' => 'Status pernikahan wajib diisi.',
+            'foto_ktp.required' => 'Foto KTP wajib di-upload.',
+            'foto_ktp.image' => 'Foto KTP harus berupa format gambar (JPG, JPEG, PNG, WebP).',
+            'foto_ktp.max' => 'Ukuran Foto KTP maksimal 3 MB.',
+            'foto_npwp.required' => 'Foto NPWP wajib di-upload.',
+            'foto_npwp.image' => 'Foto NPWP harus berupa format gambar (JPG, JPEG, PNG, WebP).',
+            'foto_npwp.max' => 'Ukuran Foto NPWP maksimal 3 MB.',
+            'cv.required' => 'File CV / Resume wajib di-upload.',
+            'cv.mimes' => 'File CV harus berformat PDF, DOC, atau DOCX.',
+            'cv.max' => 'Ukuran file CV maksimal 10 MB.',
+            'pekerjaan_terakhir.required' => 'Pekerjaan terakhir wajib diisi.',
+            'jenjang_mengajar.required' => 'Jenjang mengajar wajib diisi.',
+            'pend_terakhir.required' => 'Pendidikan terakhir wajib diisi.',
+            'universitas_jurusan.required' => 'Universitas & Jurusan wajib diisi.',
+            'kompetensi_1.required' => 'Kompetensi utama (Kompetensi 1) wajib diisi.',
+            'nama_bank.required' => 'Nama bank wajib diisi.',
+            'no_rekening.required' => 'Nomor rekening bank wajib diisi.',
+            'no_npwp.required' => 'Nomor NPWP wajib diisi.',
+            'no_npwp.min' => 'Nomor NPWP harus 15 atau 16 digit angka.',
+            'no_npwp.max' => 'Nomor NPWP maksimal 16 digit angka.',
+            'nik.required' => 'Nomor NIK KTP wajib diisi.',
+            'nik.min' => 'Nomor NIK KTP harus 16 digit angka.',
+            'nik.max' => 'Nomor NIK KTP harus 16 digit angka.',
+            'tinggi_badan.required' => 'Tinggi badan wajib diisi.',
+            'berat_badan.required' => 'Berat badan wajib diisi.',
+            'mata_minus.required' => 'Status mata minus wajib diisi.',
+            'alat_mengajar.required' => 'Alat mengajar yang dimiliki wajib dipilih.',
+            'kendaraan.required' => 'Kepemilikan kendaraan wajib dipilih.',
+            'jenis_kendaraan.required' => 'Jenis kendaraan wajib diisi.',
+            'waktu_mengajar.required' => 'Jadwal mengajar wajib dipilih minimal 1 jam ketersediaan.',
         ]);
 
         try {
@@ -175,7 +243,10 @@ class InstructorRegistrationController extends Controller
 
             DB::commit();
 
-            return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan tunggu verifikasi admin.');
+            return redirect()->route('login')
+                ->with('registration_success', 'Registrasi berhasil! Silakan tunggu verifikasi admin.')
+                ->with('instructor_code', $user->instructor_id)
+                ->with('instructor_name', $user->nama_lengkap);
 
         } catch (\Exception $e) {
             DB::rollBack();

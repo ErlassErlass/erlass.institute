@@ -46,7 +46,7 @@
     <div class="brand-side">
         <div class="brand-content text-center">
             <div class="mb-4">
-                <img src="{{ asset('images/logo-erlass.png') }}" alt="Erlass Logo" class="img-fluid" style="max-height: 120px; filter: brightness(0) invert(1);">
+                <img src="{{ asset('images/logo-erlass.png') }}" alt="Erlass Logo" width="120" height="120" fetchpriority="high" decoding="async" class="img-fluid" style="max-height: 120px; filter: brightness(0) invert(1);">
             </div>
             <h1 class="display-5 fw-bold mb-3 text-white">Transformasi Digital<br>Ekstrakurikuler Sekolah</h1>
             <p class="lead text-white-50 mb-5">Solusi terintegrasi untuk manajemen jadwal, absensi real-time, dan pelaporan kegiatan ekstrakurikuler yang efisien dan transparan.</p>

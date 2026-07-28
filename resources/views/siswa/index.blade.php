@@ -91,18 +91,17 @@
                 <table class="table table-hover align-middle mb-0" id="siswa-table">
                     <thead class="table-light">
                         <tr>
-                            <th width="5%" class="ps-4">No</th>
-                            <th width="25%">Siswa</th>
-                            <th width="15%">NIS/NISN</th>
-                            <th width="20%">Sekolah</th>
+                            <th width="20%" class="ps-4">NIS/NISN</th>
+                            <th width="30%">Nama Siswa</th>
+                            <th width="25%">Sekolah</th>
                             <th width="15%">Kelas</th>
                             <th width="10%" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($siswa as $index => $item)
+                        @forelse ($siswa as $item)
                         <tr class="{{ Str::startsWith($item->nisn, 'TMP') ? 'table-warning' : '' }}">
-                            <td class="text-center text-muted ps-4">{{ $siswa->firstItem() + $index }}</td>
+                            <td class="text-dark fw-bold font-monospace small ps-4">{{ $item->nisn ?? '-' }}</td>
                             <td>
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px;">
@@ -113,7 +112,6 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="text-muted font-monospace small">{{ $item->nisn ?? '-' }}</td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                     <i class="bi bi-building text-muted small"></i>
@@ -138,7 +136,7 @@
                         </tr>
                         @empty
                         <tr class="empty-state">
-                            <td colspan="6" class="text-center py-5">
+                            <td colspan="5" class="text-center py-5">
                                 <div class="mb-3">
                                     <i class="bi bi-people text-muted fs-1 opacity-25"></i>
                                 </div>
@@ -222,12 +220,11 @@
             if (table && !isEmpty) {
                 const dataTableManager = new window.DataTableManager();
                 dataTableManager.init('#siswa-table', {
-                    order: [[1, 'asc']], // Sort by Student Name column
+                    order: [[0, 'asc']], // Sort by NISN by default
                     columnDefs: [
-                        { orderable: false, targets: [0, 5] }, // Disable sorting for No. and Actions columns
-                        { type: 'string', targets: [1, 3, 4] }, // String sorting
-                        { type: 'num-fmt', targets: [2] }, // Numeric sorting for NISN
-                        { searchable: false, targets: [0, 5] } // No. and Actions columns not searchable
+                        { orderable: false, targets: [4] }, // Disable sorting for Actions column
+                        { type: 'string', targets: [0, 1, 2, 3] }, // String sorting for NISN, Nama, Sekolah, Kelas
+                        { searchable: false, targets: [4] } // Actions column not searchable
                     ],
                     pageLength: 25,
                     paging: false,

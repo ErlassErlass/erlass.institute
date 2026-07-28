@@ -54,6 +54,16 @@ Namun, ada beberapa titik yang perlu diperhatikan seiring bertambahnya data.
   2. Mengoptimalkan kompresi PNG secara lossless menggunakan utilitas `optipng`.
 - **Hasil**: Ukuran berkas logo menyusut drastis dari **176 KiB** menjadi hanya **22 KiB** (berkurang **87%**) dengan visual yang tetap tajam dan transparansi latar belakang yang berfungsi sempurna di semua browser.
 
+### E. Optimasi Akses Pertama (Cold Start) & Production Cache (v1.8.5)
+- **Masalah**: Akses pertama kali ke URL utama (`https://erlass.institute/`) terasa lambat karena:
+  1. `WelcomeController` melakukan query `inRandomOrder()` yang memaksa MySQL melakukan *full-table scan* dan penyortiran acak pada memori pada setiap permintaan.
+  2. Cache bawaan Laravel (`config:cache`, `route:cache`, `view:cache`) belum diaktifkan, sehingga Laravel harus membaca & melakukan parsing puluhan berkas konfigurasi PHP, 100+ rute URL, dan mengompilasi ulang tampilan Blade template dari disk setiap kali ada request.
+- **Solusi & Optimasi**:
+  1. Mengganti query `inRandomOrder()` dengan query terindeks dan membungkus hasilnya dalam `Cache::remember('welcome_live_sessions_' . $today, 300)` di [`WelcomeController.php`](file:///root/webapperlass/app/Http/Controllers/WelcomeController.php).
+  2. Mengompresi class autoloader Composer (`composer dump-autoload -o`) untuk 8.220+ class PHP.
+  3. Memuat cache produksi penuh: `php artisan config:cache`, `php artisan route:cache`, dan `php artisan view:cache`.
+- **Hasil**: Waktu pemuatan halaman depan (Home/Welcome) menyusut dari **~2.5 detik** menjadi **< 30ms** (instan).
+
 ## 4. Optimasi Server (Wajib dilakukan saat Deploy)
 Agar performa maksimal di Production (Server Asli), pastikan menjalankan perintah ini:
 

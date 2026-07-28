@@ -287,7 +287,7 @@
                     @if($laporanMengajar->foto_kegiatan)
                     <p class="mb-2"><strong>Foto Kegiatan:</strong></p>
                     <a href="{{ asset('storage/' . $laporanMengajar->foto_kegiatan) }}" data-fancybox="gallery">
-                        <img src="{{ asset('storage/' . $laporanMengajar->foto_kegiatan) }}" class="img-fluid rounded" alt="Foto Kegiatan">
+                        <img src="{{ asset('storage/' . $laporanMengajar->foto_kegiatan) }}" class="img-fluid rounded" alt="Foto Kegiatan" loading="lazy">
                     </a>
                     <hr>
                     @endif
@@ -299,7 +299,7 @@
                         <small class="text-danger"><i class="bi bi-info-circle me-1"></i>Pastikan foto memuat TTD PIC Ekskul & Instruktur</small>
                     </p>
                     <a href="{{ asset('storage/' . $laporanMengajar->foto_absensi_siswa) }}" data-fancybox="gallery">
-                        <img src="{{ asset('storage/' . $laporanMengajar->foto_absensi_siswa) }}" class="img-fluid rounded" alt="Foto Absensi">
+                        <img src="{{ asset('storage/' . $laporanMengajar->foto_absensi_siswa) }}" class="img-fluid rounded" alt="Foto Absensi" loading="lazy">
                     </a>
                     @else
                     <p class="text-muted text-center">Tidak ada dokumentasi foto.</p>

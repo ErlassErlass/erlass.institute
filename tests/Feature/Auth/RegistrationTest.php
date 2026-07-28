@@ -28,6 +28,9 @@ class RegistrationTest extends TestCase
             'agama' => 'Islam',
             'pend_terakhir' => 'S1',
             'kompetensi_1' => 'Software Engineering',
+            'nama_bank' => 'BCA',
+            'no_rekening' => '1234567890',
+            'nik' => '1234567890123456',
         ]);
 
         $this->assertAuthenticated();

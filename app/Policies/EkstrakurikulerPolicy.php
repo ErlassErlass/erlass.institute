@@ -40,6 +40,12 @@ class EkstrakurikulerPolicy
      */
     public function view(User $user, Ekstrakurikuler $ekstrakurikuler): bool
     {
+        // Sales user can view if user_id_sales matches user's salesman ID
+        if ($user->role === 'sales') {
+            $salesmanId = $user->salesman?->id;
+            return $salesmanId && (int)$ekstrakurikuler->user_id_sales === (int)$salesmanId;
+        }
+
         // Instruktur / Asisten yang ditugaskan ke rombel di program ini boleh melihat
         if ($user->role === 'instruktur' || $user->role === 'asisten') {
             return $ekstrakurikuler->rombels()

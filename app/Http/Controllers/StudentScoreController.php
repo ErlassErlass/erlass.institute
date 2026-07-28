@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\EkstrakurikulerRombel;
+use App\Models\RombelInstructorHistory;
 use App\Models\StudentScore;
 use App\Services\ReportCardService;
 use App\Services\CertificateService;
@@ -79,7 +80,7 @@ class StudentScoreController extends Controller
      */
     public function bulkInputForm(EkstrakurikulerRombel $rombel)
     {
-        $this->authorizeRombelAccess($rombel);
+        $this->authorizeRombelWriteAccess($rombel); // Former instructors cannot input scores
 
         $siswaList = $rombel->siswaAktif()->orderBy('nama_lengkap', 'asc')->get();
         
@@ -112,7 +113,7 @@ class StudentScoreController extends Controller
      */
     public function storeBulk(Request $request, EkstrakurikulerRombel $rombel)
     {
-        $this->authorizeRombelAccess($rombel);
+        $this->authorizeRombelWriteAccess($rombel); // Former instructors cannot store scores
 
         $limit = min(8, $rombel->total_pertemuan ?? 4);
 
@@ -145,7 +146,8 @@ class StudentScoreController extends Controller
                 }
 
                 $score->update(array_merge($data, [
-                    'updated_by' => Auth::id(),
+                    'updated_by'            => Auth::id(),
+                    'instruktur_pengisi_id' => Auth::id(), // Level 1: track who filled this score
                 ]));
             }
         }
@@ -159,7 +161,7 @@ class StudentScoreController extends Controller
      */
     public function finalize(EkstrakurikulerRombel $rombel)
     {
-        $this->authorizeRombelAccess($rombel);
+        $this->authorizeRombelWriteAccess($rombel); // Former instructors cannot finalize
 
         $siswaList = $rombel->siswaAktif()->get();
         $scores = StudentScore::where('ekstrakurikuler_rombel_id', $rombel->id)
@@ -195,16 +197,49 @@ class StudentScoreController extends Controller
 
     /**
      * Helper to authorize Rombel access.
+     *
+     * Level 1: Active instructors → full access (read + write).
+     * Level 2: Former instructors (found in rombel_instructor_history) → READ-ONLY access.
+     *          They cannot use bulkInputForm() or storeBulk() or finalize().
      */
-    private function authorizeRombelAccess(EkstrakurikulerRombel $rombel)
+    private function authorizeRombelAccess(EkstrakurikulerRombel $rombel, bool $requireWriteAccess = false)
     {
         $user = Auth::user();
-        if ($user->role === 'instruktur') {
-            if ($rombel->user_id_instruktur !== $user->id && $rombel->user_id_asisten !== $user->id) {
-                abort(403, 'Akses ditolak: Anda bukan instruktur atau asisten di rombel ini.');
-            }
-        } elseif (!$user->hasAdminAccess()) {
-            abort(403, 'Akses ditolak: Anda tidak memiliki akses ke rombel ini.');
+
+        if ($user->hasAdminAccess()) {
+            return; // Admins always have full access
         }
+
+        if ($user->role === 'instruktur') {
+            $isActiveInstructor = $rombel->user_id_instruktur === $user->id
+                               || $rombel->user_id_asisten === $user->id;
+
+            if ($isActiveInstructor) {
+                return; // Active instructor: full access
+            }
+
+            // Level 2: Check if user was EVER an instructor in this rombel
+            $wasFormerInstructor = RombelInstructorHistory::wasEverInstructor($rombel->id, $user->id);
+
+            if ($wasFormerInstructor) {
+                if ($requireWriteAccess) {
+                    abort(403, 'Akses ditolak: Anda hanya memiliki akses baca (read-only) sebagai instruktur lama di rombel ini.');
+                }
+                return; // Former instructor: read-only access granted
+            }
+
+            abort(403, 'Akses ditolak: Anda bukan instruktur atau asisten di rombel ini.');
+        }
+
+        abort(403, 'Akses ditolak: Anda tidak memiliki akses ke rombel ini.');
+    }
+
+    /**
+     * Authorization specifically for write operations (bulk input, finalize).
+     * Former instructors (read-only) will be denied.
+     */
+    private function authorizeRombelWriteAccess(EkstrakurikulerRombel $rombel): void
+    {
+        $this->authorizeRombelAccess($rombel, requireWriteAccess: true);
     }
 }

@@ -1,19 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" media="print" onload="this.media='all'" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js" defer></script>
-    <style>
-        #nprogress .bar { background: #3b82f6 !important; height: 3px !important; }
-        
-        /* Disable Double-Tap Zoom & Tap Highlight */
-        html, body, button, select, input, textarea, a, .btn, .card {
-            touch-action: manipulation;
-        }
-        button, .btn, a, [role="button"] {
-            -webkit-tap-highlight-color: transparent;
-        }
-    </style>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -27,32 +14,43 @@
     <meta name="apple-mobile-web-app-title" content="Erlass Ekskul">
 
     <title>@yield('title', 'Erlass Ekskul')</title>
-    
-    <!-- Fonts -->
+
+    <!-- Fonts & Icons (Preconnected for instant rendering without FOUC delay) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
-    
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js" defer></script>
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
     
     <style>
+        #nprogress .bar { background: #3b82f6 !important; height: 3px !important; }
+
+        html, body, button, select, input, textarea, a, .btn, .card {
+            touch-action: manipulation;
+        }
+        button, .btn, a, [role="button"] {
+            -webkit-tap-highlight-color: transparent;
+        }
+
         :root {
             /* Palette: Modern Elegant (Shared with App) */
             --font-primary: 'Outfit', sans-serif;
             --primary-color: #3b82f6; 
             --primary-dark: #2563eb;
             --bg-body: #f1f5f9;
-    @keyframes pageFadeIn {
-        from { opacity: 0; transform: translateY(5px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    main, .main-content {
-        animation: pageFadeIn 0.4s ease-out forwards;
-    }
+        }
+
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        main, .main-content {
+            animation: pageFadeIn 0.3s ease-out forwards;
         }
 
         body {
@@ -115,15 +113,19 @@
     </main>
     
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
     @stack('scripts')
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            NProgress.configure({ showSpinner: false, trickleSpeed: 200 });
-            NProgress.done();
+            if (typeof NProgress !== 'undefined') {
+                NProgress.configure({ showSpinner: false, trickleSpeed: 200 });
+                NProgress.done();
+            }
         });
         window.addEventListener("beforeunload", function() {
-            NProgress.start();
+            if (typeof NProgress !== 'undefined') {
+                NProgress.start();
+            }
         });
 
         // PWA Service Worker Registration
@@ -143,7 +145,6 @@
             e.preventDefault();
             deferredPrompt = e;
             
-            // Show custom install elements if present
             document.getElementById('pwa-install-banner')?.classList.remove('d-none');
             document.getElementById('btn-pwa-install-guest')?.classList.remove('d-none');
         });

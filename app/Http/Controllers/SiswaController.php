@@ -35,7 +35,8 @@ class SiswaController extends Controller
             });
         }
 
-        $siswa = $query->latest()->paginate(10);
+        // Urutkan berdasarkan NISN (ASC) secara default
+        $siswa = $query->orderBy('nisn', 'asc')->paginate(25);
         $sekolahs = Sekolah::whereHas('siswa')->orderBy('namasekolah')->get();
 
         return view('siswa.index', compact('siswa', 'sekolahs'));

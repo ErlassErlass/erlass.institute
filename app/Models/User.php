@@ -235,6 +235,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the salesman profile associated with the user.
+     */
+    public function salesman()
+    {
+        return $this->hasOne(Salesman::class);
+    }
+
+    /**
      * Get the extracurricular sessions assigned to the instructor.
      */
     public function ekstrakurikulerSessions()
@@ -260,5 +268,25 @@ class User extends Authenticatable
     public function getLevelAttribute(): string
     {
         return $this->instructorProfile ? ($this->instructorProfile->level ?? 'junior') : 'junior';
+    }
+
+    /**
+     * Accessor for active status checking (handles both 'Aktif' and 'active').
+     */
+    public function getIsActiveAttribute(): bool
+    {
+        return in_array(strtolower($this->status ?? 'aktif'), ['aktif', 'active']);
+    }
+
+    /**
+     * Mutator to normalize status value to 'Aktif' or 'Nonaktif'.
+     */
+    public function setStatusAttribute($value): void
+    {
+        if (in_array(strtolower($value ?? ''), ['aktif', 'active'])) {
+            $this->attributes['status'] = 'Aktif';
+        } else {
+            $this->attributes['status'] = ucfirst($value ?? 'Nonaktif');
+        }
     }
 }

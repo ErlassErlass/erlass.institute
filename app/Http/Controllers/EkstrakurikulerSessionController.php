@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\EkstrakurikulerRombel;
 use App\Models\EkstrakurikulerSession;
+use App\Models\RombelInstructorHistory;
 use App\Models\User;
 use App\Services\CalendarService;
 use App\Services\SchedulingService;
@@ -11,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
@@ -284,7 +286,27 @@ class EkstrakurikulerSessionController extends Controller
              $softWarnings = $this->schedulingService->checkInstructorSoftConflicts($instructor, $tempSession);
         }
 
+        // Detect instructor change and record history (Level 2)
+        $oldInstruktorId = $session->user_id_instruktur;
+        $newInstruktorId = $data['user_id_instruktur'] ?? null;
+
         $session->update($data);
+
+        // If instructor has changed, record into rombel_instructor_history
+        if ($newInstruktorId && $oldInstruktorId !== $newInstruktorId) {
+            $rombel = $session->rombel;
+            if ($rombel) {
+                RombelInstructorHistory::recordChange(
+                    rombelId:         $rombel->id,
+                    newInstruktorId:  $newInstruktorId,
+                    newAsitenId:      $data['user_id_asisten'] ?? null,
+                    fromSesi:         $session->nomor_pertemuan,
+                    previousEndSesi:  max(1, $session->nomor_pertemuan - 1),
+                    alasan:           $request->input('alasan_pergantian'),
+                    digantiOleh:      Auth::id(),
+                );
+            }
+        }
 
         $redirect = redirect()->route('ekstrakurikuler.sessions.show', ['session' => $session->id])
             ->with('success', 'Session berhasil diupdate');

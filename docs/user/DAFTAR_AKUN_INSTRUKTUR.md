@@ -1,86 +1,63 @@
-# Daftar Akun Instruktur Erlass
+# 📋 Alur Registrasi & Akun Instruktur — Erlass Institute
 
-| Nama Lengkap | Email | Password |
-| :--- | :--- | :--- |
-| ACHMAD NURIL MUSTHOFA | achmad_nuril_musthofa@erlass.institute | password |
-| ADDINA HANIFA ZAHRAH | addina_hanifa_zahrah@erlass.institute | password |
-| ADIMAS NUGROHO | adimas_nugroho@erlass.institute | password |
-| AKMAL DARRYA FAWWAZ | akmal_darrya_fawwaz@erlass.institute | password |
-| ALFATH BAHYHAQQI AMRULLAH | alfath_bahyhaqqi_amrullah@erlass.institute | password |
-| ANNASWATUL MARDLIYYAH | annaswatul_mardliyyah@erlass.institute | password |
-| APRILISTIYANI | aprilistiyani@erlass.institute | password |
-| AQILLAH GHAITSA BARKAH | aqillah_ghaitsa_barkah@erlass.institute | password |
-| ARYA RAMANDA | arya_ramanda@erlass.institute | password |
-| ASEP JANUAR FAUZI | asep_januar_fauzi@erlass.institute | password |
-| ASTRI LESTARI | astri_lestari@erlass.institute | password |
-| BAYU INDRA PERMANA | bayu_indra_permana@erlass.institute | password |
-| BAYU TRI PRAKOSA WIBAWA | bayu_tri_prakosa_wibawa@erlass.institute | password |
-| BUNGA DECIANA AMELIA OLII | bunga_deciana_amelia_olii@erlass.institute | password |
-| Damu Utama | atmaja.tarihoran@example.com | password |
-| DELIMA RAMADHANI | delima_ramadhani@erlass.institute | password |
-| DIAN QURROTUL AINI | dian_qurrotul_aini@erlass.institute | password |
-| DIMAS DWI ANGGARA | dimas_dwi_anggara@erlass.institute | password |
-| DINDA PUTRI AYU PERTIWI | dinda_putri_ayu_pertiwi@erlass.institute | password |
-| DINI INTAN FEBRIANTI | dini_intan_febrianti@erlass.institute | password |
-| DZAKY IZULHAQ | dzaky_izulhaq@erlass.institute | password |
-| ELISABETH PUJA | elisabeth_puja@erlass.institute | password |
-| FAISAL HENDRO NUGROHO | faisal_hendro_nugroho@erlass.institute | password |
-| Faiz Arkan | faiz.arkan1061@gmail.com | password |
-| FANNY FIRMANSYAH | fanny_firmansyah@erlass.institute | password |
-| FARHAN ARIF INDIARTO | farhan_arif_indiarto@erlass.institute | password |
-| FARREL ANDANA | farrel_andana@erlass.institute | password |
-| FIKHIH ANANTATUR SYADAT | fikhih_anantatur_syadat@erlass.institute | password |
-| Furqon Irkhamni | furqonirkhamni@gmail.com | password |
-| GIFFARI JAKA WALI | giffari_jaka_wali@erlass.institute | password |
-| HASNA NATASHA KUSUMANINGTYAS | hasna_natasha_kusumaningtyas@erlass.institute | password |
-| ILAH WASILAH | ilah_wasilah@erlass.institute | password |
-| INDRI ESTI YUNIARTI | indri_esti_yuniarti@erlass.institute | password |
-| Instruktur Erlass | instruktur@erlass.institute | password |
-| Instruktur Pending | pending@erlass.institute | password |
-| JUAN PATRICK | juan_patrick@erlass.institute | password |
-| JURAIDAH | juraidah@erlass.institute | password |
-| KAMALUDIN AZHARI | kamaludin_azhari@erlass.institute | password |
-| KHOLBI ACHSANI | kholbi_achsani@erlass.institute | password |
-| LIDIA NATALIA AMUL | lidia_natalia_amul@erlass.institute | password |
-| LUKY | luky@erlass.institute | password |
-| LULU SAFITRI | lulu_safitri@erlass.institute | password |
-| LUTFI ANDI PRATAMA | lutfi_andi_pratama@erlass.institute | password |
-| Mahmud Hardiansyah | hasta.haryanti@example.org | password |
-| MANDANG SALE | mandang_sale@erlass.institute | password |
-| MAULANA AINUL YAQIN | maulana_ainul_yaqin@erlass.institute | password |
-| MIRSA SETIAWAN | mirsa_setiawan@erlass.institute | password |
-| MUHAMAD GILANG ALFAJAR | muhamad_gilang_alfajar@erlass.institute | password |
-| MUHAMAD JIDDAN AL-AVIV | muhamad_jiddan_alaviv@erlass.institute | password |
-| MUHAMAD RENAL | muhamad_renal@erlass.institute | password |
-| MUHAMAD RIZAL AKMAL | muhamad_rizal_akmal@erlass.institute | password |
-| MUHAMAD SATRIA MAHADHIKA | muhamad_satria_mahadhika@erlass.institute | password |
-| MUHAMMAD ABDUL AZIS MAKSUM MAHFUZH | muhammad_abdul_azis_maksum_mahfuzh@erlass.institute | password |
-| MUHAMMAD ASY'ARI ARIF YUSUF | muhammad_asyari_arif_yusuf@erlass.institute | password |
-| MUHAMMAD ILHAM FAUZI | muhammad_ilham_fauzi@erlass.institute | password |
-| MUHAMMAD RAFI HAFIZH | muhammad_rafi_hafizh@erlass.institute | password |
-| MUHAMMAD RIZALDY HAIKAL | muhammad_rizaldy_haikal@erlass.institute | password |
-| MUSH'AB ABDULLAH AHMAD | mushab_abdullah_ahmad@erlass.institute | password |
-| Najwa Mayasari M.Ak | xwasita@example.net | password |
-| Nasya Putri Restyarna | nrestyarna@gmail.com | password |
-| NAUFAL GHIFARI | naufal_ghifari@erlass.institute | password |
-| NICO | nico@erlass.institute | password |
-| NOVITA | novita@erlass.institute | password |
-| NUR ROKHMAD PAMUNGKAS | nur_rokhmad_pamungkas@erlass.institute | password |
-| NURUL IKHSAN JUSTICIA | nurul_ikhsan_justicia@erlass.institute | password |
-| Okta Budiman M.M. | raryani@example.org | password |
-| RADEN MUHAMMAD RAIHAN | raden_muhammad_raihan@erlass.institute | password |
-| RADITYA DWI EFFENDY | raditya_dwi_effendy@erlass.institute | password |
-| RAYYAN ASSADID | rayyan_assadid@erlass.institute | password |
-| RENDI ARDIAN | rendi_ardian@erlass.institute | password |
-| RIZQI ARDIANSAH | rizqi_ardiansah@erlass.institute | password |
-| SABINA BERLINA GULO | sabina_berlina_gulo@erlass.institute | password |
-| SAIFUL ARIF | saiful_arif@erlass.institute | password |
-| SEFITA HARTATI | sefita_hartati@erlass.institute | password |
-| SERDINAND SAPUTRA | serdinand_saputra@erlass.institute | password |
-| SESAR CHAIRUDIN SLAMET | sesar_chairudin_slamet@erlass.institute | password |
-| SITI AMELIA | siti_amelia@erlass.institute | password |
-| SYEKH MAULANA WIJAYA | syekh_maulana_wijaya@erlass.institute | password |
-| VELLA ROVIQOH | vella_roviqoh@erlass.institute | password |
-| Wani Padmasari | oyuniar@example.com | password |
-| WIDIA SUKMAWATI | widia_sukmawati@erlass.institute | password |
-| ZAHRA SADIDA | zahra_sadida@erlass.institute | password |
+Dokumen ini menjelaskan alur pendaftaran, strategi penyaringan, dan pengelolaan akun instruktur di sistem **erlass.institute**.
+
+> ℹ️ **Catatan Penting**: 
+> Seluruh akun instruktur lama/dummy telah dibersihkan. Sistem menerapkan registrasi mandiri lengkap sebagai penyaring awal keaktifan dan keseriusan instruktur.
+
+---
+
+## 🎯 1. Tujuan & Strategi: Filter Keaktifan & Keseriusan
+
+Kebijakan registrasi mandiri dengan kelengkapan data awal ini diterapkan dengan tujuan:
+1. **Filter Keseriusan (Quality Gate)**: Menghindari akun spam atau instruktur yang tidak aktif/setengah hati. Hanya instruktur yang serius yang akan melengkapi data hingga selesai.
+2. **Kesiapan Operasional & Payroll**: Data rekening bank (`nama_bank`, `no_rekening`) dan identitas (`nik`) yang sudah lengkap sejak registrasi membuat administrasi honorarium siap digunakan (*ready-to-pay*) tanpa hambatan penagihan ulang.
+3. **Validasi Kompetensi**: Pengisian kompetensi utama dan tambahan secara terstandar memastikan pemetaan jadwal mengajar yang akurat.
+
+---
+
+## 📝 2. Alur Pendaftaran Mandiri Instruktur (Wizard 6 Step)
+
+1. **Registrasi Mandiri Multi-Step**:
+   - Instruktur membuka URL: `https://erlass.institute/register/instructor`
+   - Formulir dibagi menjadi 6 langkah interaktif (*Step Wizard*):
+     - **Step 1: Informasi Akun & Kontak Dasar** (Email, No WhatsApp, Password & Konfirmasi).
+     - **Step 2: Identitas Lengkap** (Nama Lengkap, Gelar, Nama Panggilan, NIK 16 Digit, Tanggal Lahir, Agama, Status Pernikahan).
+     - **Step 3: Domisili & Pendidikan** (Alamat Domisili, Kota, No HP Kontak Darurat, Pendidikan Terakhir, Universitas/Jurusan, Pekerjaan Terakhir, Jenjang Mengajar, Kompetensi Utama & Tambahan).
+     - **Step 4: Kesehatan & Logistik** (Tinggi/Berat Badan, Mata Minus, Riwayat Penyakit, Alat Mengajar Checkbox, Jenis Kendaraan & SIM).
+     - **Step 5: Bank & Berkas Dokumen** (Nama Bank, No Rekening, NPWP, Upload Foto KTP, Upload Foto NPWP, Upload File CV PDF/DOCX).
+     - **Step 6: Jadwal Mengajar** (Grid Pemilihan Ketersediaan Hari & Jam Mengajar).
+   - Tombol **Lanjut** pada Step 1–5 berfungsi sebagai navigasi lokal (*client-side step change*) dengan validasi bertahap tanpa reload/submit halaman.
+   - Seluruh pesan validasi (sisi klien & server PHP) ditampilkan menggunakan Bahasa Indonesia yang ramah dan terstruktur.
+
+2. **Syarat Data Wajib Saat Registrasi**:
+   - **Personal & Akun**: Email aktif, No HP WhatsApp (min 10 digit), Password (min 8 karakter), Nama Lengkap, NIK KTP (tepat 16 digit), Tanggal Lahir, Agama, Status Pernikahan.
+   - **Pendidikan & Logistik**: Pendidikan Terakhir (`SMA/SMK`, `D3`, `D4/S1`, `S2`, `S3`), Universitas/Jurusan, Pekerjaan Terakhir, Minimal 1 Alat Mengajar, Jenis Kendaraan.
+   - **Finansial & Dokumen**: **Nama Bank** (Wajib), **Nomor Rekening Bank** (Wajib), **Upload Foto KTP** (Wajib), **Upload Foto NPWP** (Wajib), **Upload Berkas CV** (Wajib, Max 5MB).
+   - **Jadwal**: Minimal 1 slot ketersediaan waktu mengajar pada grid jadwal.
+
+3. **Modal Registrasi Berhasil & Kode Referensi**:
+   - Setelah menekan tombol **Daftar Sebagai Instruktur** di Step 6 dan data tersimpan, sistem menampilkan **Modal Registrasi Berhasil** (`#registrationSuccessModal`).
+   - Modal secara otomatis menampilkan **Kode Referensi Instruktur** unik (format: `ICE2026XX`), lencana status *"Menunggu Verifikasi Admin"*, serta tombol alur ke halaman login.
+
+4. **Status Verifikasi (Pending)**:
+   - Akun baru otomatis berstatus verifikasi **Pending**.
+   - Instruktur belum dapat mengakses fitur mengajar (laporan/absensi) sebelum disetujui.
+
+5. **Persetujuan Admin (Approval)**:
+   - Tim Admin/Webmaster meninjau kelengkapan data melalui dashboard admin di menu **Manajemen Instruktur / Verifikasi**.
+   - Setelah di-approve, instruktur dapat login dan mengakses seluruh fitur platform.
+
+---
+
+## 🛡️ 3. Fitur Keamanan Registrasi
+
+- 🔒 **Rate Limiting / Throttling**: Maksimal 5x percobaan registrasi per menit per IP untuk mencegah serangan bot/spamming.
+- 🛡️ **Verifikasi Bertingkat**: Akses mengajar dan laporan hanya terbuka untuk instruktur berstatus `approved`.
+- ⚡ **Submit Handler Terpadu & Responsive Layout**: Mencegah pengiriman prematur dan memastikan tombol submit Step 6 mengeksekusi validasi bertahap 1–6 dengan responsif di layar desktop maupun smartphone.
+- 🎉 **Modal Konfirmasi Registrasi**: Menampilkan konfirmasi selamat dan Kode Referensi Instruktur setelah penyimpanan sukses.
+- 📝 **Integritas Transactional**: Seluruh pembuatan User dan InstructorProfile dibungkus dalam `DB::transaction` demi mencegah data parsial.
+
+---
+
+_Dokumen diperbarui: 28 Juli 2026 | Sistem: erlass.institute_

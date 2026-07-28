@@ -26,6 +26,7 @@ class EkstrakurikulerControllerTest extends TestCase
             'role' => 'admin',
             'is_verified' => true,
         ]);
+        $this->salesman = \App\Models\Salesman::factory()->create(['user_id' => $this->user->id]);
 
         // Create a test sekolah
         $this->sekolah = Sekolah::factory()->create([
@@ -94,7 +95,7 @@ class EkstrakurikulerControllerTest extends TestCase
     {
         // Create an ekstrakurikuler record
         $ekstrakurikuler = Ekstrakurikuler::factory()->create([
-            'user_id_sales' => $this->user->id,
+            'user_id_sales' => $this->salesman->id,
             'sekolah_kodlan' => $this->sekolah->kodlan,
         ]);
 
@@ -145,7 +146,7 @@ class EkstrakurikulerControllerTest extends TestCase
 
         // Test edit method
         $ekstrakurikuler = Ekstrakurikuler::factory()->create([
-            'user_id_sales' => $this->user->id,
+            'user_id_sales' => $this->salesman->id,
             'sekolah_kodlan' => $this->sekolah->kodlan,
         ]);
 
@@ -169,7 +170,7 @@ class EkstrakurikulerControllerTest extends TestCase
         $user = User::factory()->create(['role' => 'instruktur']);
 
         Ekstrakurikuler::factory()->create([
-            'user_id_sales' => $user->id,
+            'user_id_sales' => $this->salesman->id,
             'sekolah_kodlan' => $sekolah->kodlan,
         ]);
 
@@ -185,8 +186,9 @@ class EkstrakurikulerControllerTest extends TestCase
     public function test_sales_user_can_view_own_ekstrakurikuler_program()
     {
         $sales = User::factory()->create(['role' => 'sales']);
+        $salesman = \App\Models\Salesman::factory()->create(['user_id' => $sales->id]);
         $ekskul = Ekstrakurikuler::factory()->create([
-            'user_id_sales' => $sales->id,
+            'user_id_sales' => $salesman->id,
             'sekolah_kodlan' => $this->sekolah->kodlan,
         ]);
 
@@ -197,9 +199,10 @@ class EkstrakurikulerControllerTest extends TestCase
     public function test_sales_user_cannot_view_others_ekstrakurikuler_program()
     {
         $sales1 = User::factory()->create(['role' => 'sales']);
+        $salesman1 = \App\Models\Salesman::factory()->create(['user_id' => $sales1->id]);
         $sales2 = User::factory()->create(['role' => 'sales']);
         $ekskul = Ekstrakurikuler::factory()->create([
-            'user_id_sales' => $sales1->id,
+            'user_id_sales' => $salesman1->id,
             'sekolah_kodlan' => $this->sekolah->kodlan,
         ]);
 

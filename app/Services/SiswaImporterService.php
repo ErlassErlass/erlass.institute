@@ -38,8 +38,10 @@ class SiswaImporterService
             // Normalize keys (basic cleanup)
             $cleanRow = [];
             foreach ($row as $key => $value) {
-                $cleanKey = str_replace(' ', '_', trim($key));
-                $cleanRow[$cleanKey] = trim($value);
+                $cleanKey = strtolower(trim($key));
+                $cleanKey = preg_replace('/[^a-z0-9]/', '_', $cleanKey);
+                $cleanKey = preg_replace('/_+/', '_', trim($cleanKey, '_'));
+                $cleanRow[$cleanKey] = is_string($value) ? trim($value) : $value;
             }
             
             // Smart Map Headers (Handle variations like 'Nama Siswa' -> 'nama_lengkap')
@@ -123,12 +125,9 @@ class SiswaImporterService
                         // Parse remaining rows
                         for ($i = 1; $i < count($rows); $i++) {
                             $row = $rows[$i];
-                            // Ensure row has same column count as header or pad/trim
-                            // Excel might return empty trailing columns or missing ones
                             if (count($row) < count($header)) {
                                 $row = array_pad($row, count($header), null);
                             }
-                            // Slice if row is longer than header
                             $row = array_slice($row, 0, count($header));
                             
                             // Filter out completely empty rows
@@ -150,30 +149,49 @@ class SiswaImporterService
         return $data;
     }
 
-    protected function validateRow(array $row)
+    protected function validateRow(array &$row)
     {
+        // Pre-resolve sekolah_kodlan if passed as school name or kodlan
+        if (!empty($row['sekolah_kodlan'])) {
+            $sekolah = Sekolah::where('kodlan', $row['sekolah_kodlan'])
+                ->orWhere('namasekolah', $row['sekolah_kodlan'])
+                ->first();
+            if ($sekolah) {
+                $row['sekolah_kodlan'] = $sekolah->kodlan;
+            }
+        }
+
         return Validator::make($row, [
             'nama_lengkap' => 'required|string',
-            'nisn' => 'required|string', // Removed unique check here to handle updates/duplicates gracefully
+            'nisn' => 'required|string',
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
             'kelas' => 'required|string',
-            'no_hp_orangtua' => 'nullable|string|min:10|max:15',
+            'no_hp_orangtua' => 'nullable',
         ]);
     }
 
     protected function createOrUpdateSiswa(array $data)
     {
+        $sekolahKodlan = $data['sekolah_kodlan'];
+        $sekolah = Sekolah::where('kodlan', $sekolahKodlan)
+            ->orWhere('namasekolah', $sekolahKodlan)
+            ->first();
+        if ($sekolah) {
+            $sekolahKodlan = $sekolah->kodlan;
+        }
+
         Siswa::updateOrCreate(
             ['nisn' => $data['nisn']],
             [
                 'nama_lengkap' => $data['nama_lengkap'],
-                'sekolah_kodlan' => $data['sekolah_kodlan'],
+                'sekolah_kodlan' => $sekolahKodlan,
                 'kelas' => $data['kelas'],
                 'rombel' => $data['kelas'], // Sync rombel with kelas
                 'no_hp_orangtua' => $data['no_hp_orangtua'] ?? null,
             ]
         );
     }
+
     /**
      * Map common header variations to standard keys
      */
@@ -181,41 +199,43 @@ class SiswaImporterService
     {
         $mapped = [];
         $mappings = [
-            'nama_lengkap' => ['nama', 'nama_siswa', 'nama_lengkap', 'name', 'student_name', 'nama_peserta_didik', 'nama_pd'],
-            'nisn' => ['nisn', 'nis', 'nomor_induk_siswa_nasional', 'nomor_induk'],
-            'sekolah_kodlan' => ['sekolah_kodlan', 'kode_sekolah', 'kodlan', 'kode', 'sekolah_id', 'id_sekolah', 'npsn'],
-            'kelas' => ['rombel', 'kelas', 'rombongan_belajar_saat_ini', 'rombongan_belajar', 'class', 'grade'],
-            'no_hp_orangtua' => ['no_hp_orangtua', 'no_hp', 'hp', 'no_wa', 'whatsapp', 'no_hp_ortu', 'no_telp_orangtua', 'no_hp_wali'],
+            'nama_lengkap' => [
+                'nama_lengkap', 'nama', 'nama_siswa', 'name', 'student_name', 
+                'nama_peserta_didik', 'nama_pd', 'nama_siswa_lengkap'
+            ],
+            'nisn' => [
+                'nisn', 'nis', 'nomor_induk_siswa_nasional', 'nomor_induk', 
+                'nis_nisn', 'no_nisn', 'id_siswa'
+            ],
+            'sekolah_kodlan' => [
+                'sekolah_kodlan', 'kode_sekolah', 'kodlan', 'kode', 'sekolah_id', 
+                'id_sekolah', 'npsn', 'sekolah', 'nama_sekolah'
+            ],
+            'kelas' => [
+                'kelas', 'rombel', 'rombongan_belajar_saat_ini', 'rombongan_belajar', 
+                'class', 'grade', 'kelas_akademik'
+            ],
+            'no_hp_orangtua' => [
+                'no_hp_orangtua', 'no_hp', 'hp', 'no_wa', 'whatsapp', 
+                'no_hp_ortu', 'no_telp_orangtua', 'no_hp_wali', 'no_hp_orang_tua', 
+                'telepon_orangtua', 'hp_orangtua', 'hp_ortu'
+            ],
         ];
 
         // Process standard keys first
         foreach ($mappings as $standardKey => $aliases) {
             foreach ($aliases as $alias) {
-                if (isset($row[$alias]) && !isset($mapped[$standardKey])) {
+                if (isset($row[$alias]) && $row[$alias] !== null && $row[$alias] !== '') {
                     $mapped[$standardKey] = $row[$alias];
                     break;
                 }
             }
         }
 
-        // Initialize unmapped keys to null
-        foreach ($mappings as $standardKey => $aliases) {
-            if (!isset($mapped[$standardKey])) {
-                $mapped[$standardKey] = null;
-            }
-        }
-
         // Keep other keys that might already be correct or extra
         foreach ($row as $key => $value) {
-            if (!in_array($key, array_keys($mapped))) {
-                // Check if this key is one of the standard keys already
-                if (array_key_exists($key, $mappings)) {
-                    if (!isset($mapped[$key])) {
-                        $mapped[$key] = $value;
-                    }
-                } else {
-                     $mapped[$key] = $value;
-                }
+            if (!array_key_exists($key, $mapped)) {
+                $mapped[$key] = $value;
             }
         }
         
@@ -230,60 +250,57 @@ class SiswaImporterService
      */
     public function importToRombel($file, \App\Models\EkstrakurikulerRombel $rombel)
     {
-        $data = \Maatwebsite\Excel\Facades\Excel::toArray([], $file);
+        $filePath = is_string($file) ? $file : $file->getRealPath();
+        $ext = is_object($file) && method_exists($file, 'getClientOriginalExtension') ? $file->getClientOriginalExtension() : null;
+
+        $rows = $this->parseFile($filePath, $ext);
         
-        if (empty($data) || empty($data[0])) {
+        if (empty($rows)) {
             throw new \Exception("File kosong atau format tidak dikenali.");
         }
 
-        $rows = $data[0]; // First sheet
         $importedIndex = 0;
         $updatedIndex = 0;
-        
-        // Remove header row if present
-        $header = $rows[0] ?? [];
-        if (isset($header[0]) && (stripos($header[0], 'no') !== false || stripos($header[1], 'nama') !== false)) {
-            array_shift($rows);
-        }
 
-        foreach ($rows as $row) {
-            // Assume format: No, Nama Lengkap, NISN, Kelas
-            $nama = $row[1] ?? null;
-            $nisn = $row[2] ?? null;
-            $kelas = $row[3] ?? null;
-
-            if (empty($nama)) continue;
-
-            // Logic to find or create siswa
-            // Linked to the school of the Ekstrakurikuler
-            $sekolahKodlan = $rombel->ekstrakurikuler->sekolah_kodlan;
-            
-            $searchCriteria = [];
-            if ($nisn) {
-                $searchCriteria['nisn'] = $nisn;
-            } else {
-                // If no NISN, check by Name + School
-                $searchCriteria['nama_lengkap'] = $nama;
-                // We need the school code for the student.
-                // Assuming $rombel->ekstrakurikuler->sekolah->kodlan exists.
+        foreach ($rows as $rawRow) {
+            $cleanRow = [];
+            foreach ($rawRow as $key => $value) {
+                $cleanKey = strtolower(trim($key));
+                $cleanKey = preg_replace('/[^a-z0-9]/', '_', $cleanKey);
+                $cleanKey = preg_replace('/_+/', '_', trim($cleanKey, '_'));
+                $cleanRow[$cleanKey] = is_string($value) ? trim($value) : $value;
             }
+
+            $mapped = $this->mapHeaders($cleanRow);
+            $nama = $mapped['nama_lengkap'];
+            $nisn = $mapped['nisn'];
+            $kelas = $mapped['kelas'];
+
+            if (empty($nama) && empty($nisn)) continue;
+
+            $sekolahKodlan = $rombel->ekstrakurikuler->sekolah_kodlan ?? null;
             
-            // For now, let's create based on available data
-            // We need to match with existing Siswa table structure
-            
-            // Simplification: Just create/find by Name
-             $siswa = Siswa::firstOrCreate(
-                [
-                    'nama_lengkap' => $nama,
-                    // 'sekolah_kodlan' => ... // Ideally filter by school too to avoid name collisions
-                ],
-                [
-                    'nisn' => $nisn, 
-                    'kelas' => $kelas,
-                    'rombel' => $kelas, // Sync rombel with kelas
-                    'sekolah_kodlan' => $rombel->ekstrakurikuler->sekolah_kodlan ?? null
-                ]
-            );
+            $siswa = null;
+            if (!empty($nisn)) {
+                $siswa = Siswa::where('nisn', $nisn)->first();
+            }
+            if (!$siswa && !empty($nama)) {
+                $query = Siswa::where('nama_lengkap', $nama);
+                if ($sekolahKodlan) {
+                    $query->where('sekolah_kodlan', $sekolahKodlan);
+                }
+                $siswa = $query->first();
+            }
+
+            if (!$siswa) {
+                $siswa = Siswa::create([
+                    'nama_lengkap' => $nama ?? 'Siswa Baru',
+                    'nisn' => $nisn ?? 'TMP'.rand(100000, 999999),
+                    'kelas' => $kelas ?? '-',
+                    'rombel' => $kelas ?? '-',
+                    'sekolah_kodlan' => $sekolahKodlan
+                ]);
+            }
 
             // Attach to Rombel (Many-to-Many)
             if (!$rombel->siswa()->where('siswa_id', $siswa->id)->exists()) {

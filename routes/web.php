@@ -383,6 +383,8 @@ Route::get('/verify/certificate/{certificate_code}', [CertificateController::cla
 Route::middleware(['auth'])->group(function () {
     Route::post('sessions/{session}/late-report-request', [App\Http\Controllers\LateReportRequestController::class, 'store'])
         ->name('sessions.late-report-request.store');
+    Route::post('laporan-mengajar/adhoc-late-request', [App\Http\Controllers\LateReportRequestController::class, 'storeAdhoc'])
+        ->name('laporan-mengajar.adhoc-late-request.store');
 
     Route::middleware(['role:admin,admin_sistem,webmaster'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('late-report-requests', [App\Http\Controllers\LateReportRequestController::class, 'index'])

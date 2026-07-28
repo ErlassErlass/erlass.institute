@@ -1,6 +1,11 @@
 # Integrasi Fonnte (WhatsApp Gateway)
 
-Aplikasi Erlass menggunakan **Fonnte** sebagai WhatsApp Gateway untuk mengirim notifikasi otomatis ke instruktur dan orang tua siswa.
+> **Last Updated:** 14 Juli 2026
+
+Aplikasi Erlass menggunakan **Fonnte** sebagai WhatsApp Gateway untuk mengirim notifikasi otomatis ke instruktur dan admin sistem.
+
+> [!NOTE]
+> **Status saat ini:** Notifikasi ke **orang tua siswa** sedang **ditunda** (belum diaktifkan). Hanya notifikasi untuk instruktur dan admin yang aktif berjalan.
 
 ---
 
@@ -52,7 +57,7 @@ WHATSAPP_FONNTE_TOKEN=your_fonnte_token_here
 
 ### Channel: `WhatsAppChannel`
 
-File: [WhatsAppChannel.php](file:///c:/laragon/www/webapperlass-fresh/app/Notifications/Channels/WhatsAppChannel.php)
+File: [WhatsAppChannel.php](file:///root/webapperlass/app/Notifications/Channels/WhatsAppChannel.php)
 
 ```
 Notification → WhatsAppChannel → [log | fonnte] → User/Siswa
@@ -81,13 +86,14 @@ Channel ini bersifat **provider-agnostic** — bisa diganti ke Twilio, WaBlas, d
 Model `User` dan `Siswa` memiliki method `routeNotificationForWhatsapp()`:
 
 ```php
-// User.php — instructor/admin phone
+// User.php — instructor/admin phone (field: no_telephone)
 public function routeNotificationForWhatsapp($notification)
 {
-    return $this->no_telephone ?? $this->phone_number;
+    return $this->no_telephone;
 }
 
-// Siswa.php — parent phone
+// Siswa.php — parent phone (field: no_hp_orangtua)
+// ⚠️ Belum diaktifkan — notifikasi ke orang tua siswa ditunda
 public function routeNotificationForWhatsapp($notification)
 {
     return $this->no_hp_orangtua;
@@ -98,14 +104,17 @@ public function routeNotificationForWhatsapp($notification)
 
 ## 4. Notifikasi yang Menggunakan Fonnte
 
-| # | Notification Class | Trigger | Penerima | Pesan |
-|---|--------------------|---------|----------|-------|
-| 1 | `WelcomeInstructorNotification` | Registrasi instruktur baru | Instruktur | ID login + password sementara |
-| 2 | `WelcomeParentNotification` | Siswa didaftarkan ke Rombel | Orang tua siswa | Ucapan selamat, jadwal, reminder cek ejaan nama |
-| 3 | `SessionReportNotification` | Absensi diisi (Reguler) | Orang tua siswa | Laporan sesi belajar anak |
-| 4 | `ProgressReminderNotification` | Kelipatan 4x hadir (Ekstrakurikuler) | Orang tua siswa | Rekap materi 4 sesi terakhir anak |
-| 5 | `ScheduleReminderNotification` | H-1 jam / Trigger Manual | Instruktur | Pengingat jadwal + detail lokasi + Pesan kustom |
-| 6 | `InstructorBroadcastNotification` | Admin kirim broadcast | Semua instruktur | Pengumuman / info penting |
+| # | Notification Class | Trigger | Penerima | Status |
+|---|--------------------|---------|----------|--------|
+| 1 | `WelcomeInstructorNotification` | Registrasi instruktur baru | Instruktur | ✅ **Aktif** |
+| 2 | `ScheduleReminderNotification` | H-1 / Trigger Manual | Instruktur | ✅ **Aktif** |
+| 3 | `InstructorBroadcastNotification` | Admin kirim broadcast | Semua instruktur | ✅ **Aktif** |
+| 4 | `WelcomeParentNotification` | Siswa didaftarkan ke Rombel | Orang tua siswa | ⏸️ **Ditunda** |
+| 5 | `SessionReportNotification` | Absensi diisi (Reguler) | Orang tua siswa | ⏸️ **Ditunda** |
+| 6 | `ProgressReminderNotification` | Kelipatan 4x hadir (Ekstrakurikuler) | Orang tua siswa | ⏸️ **Ditunda** |
+
+> [!NOTE]
+> **Notifikasi Ditunda (⏸️):** Notifikasi ke orang tua siswa belum diaktifkan. Kodenya sudah siap namun belum di-trigger dari controller. Akan diaktifkan pada fase berikutnya.
 
 > [!IMPORTANT]
 > **Queue Connection untuk Fonnte**: Dikarenakan Fonnte Notification dapat di-_trigger_ dari proses seperti Submit Laporan Mengajar yang berat, Laravel mencoba mengantrekan (Queue) pesan. Jika server Anda belum menginstall Redis, pastikan `QUEUE_CONNECTION=sync` di file `.env`. Jika diset ke `redis` namun Redis tidak ada, aplikasi akan menerima error `Class "Redis" not found` dan form tidak tersimpan.
@@ -181,10 +190,32 @@ Halo Budi, Selamat datang di Erlass! ...
 ```bash
 php artisan tinker
 
-# Kirim test message
-$user = App\Models\User::find(1);
+# Kirim test message ke instruktur/admin berdasarkan nama
+$user = App\Models\User::where('nama_lengkap', 'like', '%nama_user%')->first();
 $user->notify(new App\Notifications\InstructorBroadcastNotification('Test', 'Ini pesan test'));
 ```
+
+Atau langsung hit Fonnte API tanpa Notification class:
+
+```php
+use Illuminate\Support\Facades\Http;
+
+$response = Http::withHeaders([
+    'Authorization' => config('services.whatsapp.fonnte_token'),
+])->post('https://api.fonnte.com/send', [
+    'target'      => '08xxxxxxxxx',
+    'message'     => 'Pesan test dari Erlass Institute 🎉',
+    'countryCode' => '62',
+]);
+
+echo $response->body();
+```
+
+### Test yang Sudah Dilakukan
+
+| Tanggal | Target | Role | Nomor | Status |
+|---------|--------|------|-------|--------|
+| 14 Juli 2026 | Adinda Wardania | `admin_sistem` | `08260808476` | ✅ Terkirim |
 
 ---
 
@@ -228,3 +259,61 @@ grep -i "fonnte" storage/logs/laravel.log | tail -10
 - ✅ Validasi nomor telepon sebelum kirim
 - ⚠️ **Jangan share token** — siapapun yang punya token bisa mengirim pesan atas nama nomor Anda
 - ⚠️ **Monitor penggunaan** di dashboard Fonnte untuk deteksi penyalahgunaan
+
+---
+
+## 9. Anti-Ban Best Practices
+
+Risiko ban nomor WhatsApp dapat diminimalkan dengan langkah-langkah berikut. Semua item ✅ sudah diimplementasikan di kode.
+
+### Implementasi di Kode
+
+| Langkah | Lokasi | Status |
+|---------|--------|--------|
+| Normalisasi nomor `08xx` → `628xx` | `WhatsAppChannel::normalizePhone()` | ✅ |
+| Validasi panjang nomor (10–15 digit) | `WhatsAppChannel::normalizePhone()` | ✅ |
+| Batas panjang pesan 4000 karakter | `WhatsAppChannel::MAX_MESSAGE_LENGTH` | ✅ |
+| Micro-delay acak 1–3 detik per pesan | `WhatsAppChannel::sendFonnte()` | ✅ |
+| HTTP timeout 15 detik | `WhatsAppChannel::sendFonnte()` | ✅ |
+| Broadcast bertahap (+5 detik per penerima) | `BroadcastController::store()` | ✅ |
+| Pesan personal (sapaan nama per penerima) | Semua Notification class | ✅ |
+| Tidak menggunakan URL shortener | `WelcomeInstructorNotification` | ✅ |
+| Logging response detail dari Fonnte | `WhatsAppChannel::sendFonnte()` | ✅ |
+
+### Aturan Operasional (Manual)
+
+> [!IMPORTANT]
+> Aturan ini harus dipatuhi secara manual oleh tim operasional:
+
+- **Jangan broadcast > 100 pesan/jam** — meski Fonnte Starter izinkan 1000/hari, kirim serentak berisiko
+- **Jam pengiriman aman**: 07.00–21.00 WIB (hindari dini hari)
+- **Pesan harus relevan & kontekstual** — jangan kirim promo, iklan, atau kata-kata pemicu spam
+- **Hindari kata berisiko tinggi**: `GRATIS`, `MENANG`, `KLIK SEKARANG`, `PROMOSI`, dll
+- **Gunakan URL domain sendiri** (`erlass.institute/...`), bukan bit.ly atau shortener lain
+- **Pastikan nomor penerima valid** — nomor tidak aktif yang sering gagal bisa memicu flag
+
+### Tanda-tanda Akun Berisiko Ban
+
+> [!WARNING]
+> Segera cek dashboard Fonnte jika ada tanda-tanda berikut:
+> - Banyak pesan `failed` dalam waktu singkat
+> - Response API `{"status": false, "reason": "..."}`
+> - Penerima melaporkan pesan tidak diterima
+> - Status device di Fonnte berubah jadi `disconnected`
+
+---
+
+## 10. Status & Catatan Pengembangan
+
+### ✅ Fase Saat Ini (Aktif)
+- Notifikasi instruktur (welcome, reminder jadwal, broadcast)
+- Test manual via Tinker atau artisan command
+- Artisan command: `php artisan schedule:send-reminders` untuk reminder H-1
+
+### ⏸️ Ditunda (Belum Diaktifkan)
+- Notifikasi orang tua siswa (`WelcomeParentNotification`, `SessionReportNotification`, `ProgressReminderNotification`)
+- Alasan: Belum ada keputusan final mengenai format pesan dan consent dari orang tua
+
+### 🗓️ Rencana Berikutnya
+- Aktivasi notifikasi orang tua setelah proses onboarding siswa selesai didefinisikan
+- Pertimbangkan opt-in/opt-out untuk orang tua

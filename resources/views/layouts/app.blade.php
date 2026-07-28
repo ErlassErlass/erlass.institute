@@ -50,8 +50,8 @@
     
     <!-- Plugin styles bundled in app.css -->
     
-    <!-- App styles -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- App & Dashboard styles & scripts -->
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/dashboard.js'])
     
     <!-- Plugin scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -580,7 +580,7 @@
                     </li>
 
                     <li class="sidebar-section-title">Aktivitas & Kehadiran</li>
-                    @if(Auth::user()?->role === 'instruktur')
+                    @if(Auth::user()?->role === 'instruktur' || Auth::user()?->hasAdminAccess())
                         <li class="sidebar-item">
                             <a class="sidebar-link {{ request()->routeIs('laporan-mengajar.create') ? 'active' : '' }}" href="{{ route('laporan-mengajar.create') }}">
                                 <i class="bi bi-pencil-square"></i>
@@ -647,17 +647,23 @@
 
                     @if(Auth::user()?->hasAdminAccess())
                         <li class="sidebar-section-title">Sistem & Pengaturan</li>
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs('admin.late-reports.index') ? 'active' : '' }}" href="{{ route('admin.late-reports.index') }}">
+                                <i class="bi bi-hourglass-split"></i>
+                                <span>Request Laporan</span>
+                                @php
+                                    $pendingCount = \App\Models\LateReportRequest::where('status', 'pending')->count();
+                                @endphp
+                                @if($pendingCount > 0)
+                                    <span class="badge bg-warning text-dark rounded-pill ms-auto fw-bold" style="font-size: 0.7rem;">{{ $pendingCount }}</span>
+                                @endif
+                            </a>
+                        </li>
                         @if(Auth::user()?->canManageUsers())
                             <li class="sidebar-item">
                                 <a class="sidebar-link {{ request()->routeIs('admin.verification.index') ? 'active' : '' }}" href="{{ route('admin.verification.index') }}">
                                     <i class="bi bi-shield-check"></i>
                                     <span>Verifikasi Instruktur</span>
-                                </a>
-                            </li>
-                            <li class="sidebar-item">
-                                <a class="sidebar-link {{ request()->routeIs('admin.late-reports.index') ? 'active' : '' }}" href="{{ route('admin.late-reports.index') }}">
-                                    <i class="bi bi-hourglass-split"></i>
-                                    <span>Request Laporan</span>
                                 </a>
                             </li>
                             <li class="sidebar-item">

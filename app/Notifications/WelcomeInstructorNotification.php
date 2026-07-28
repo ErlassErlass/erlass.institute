@@ -63,7 +63,23 @@ class WelcomeInstructorNotification extends Notification
      */
     public function toWhatsApp($notifiable)
     {
-        return "Halo {$notifiable->nama_lengkap}, Selamat datang di Erlass!\n\nID Instruktur: *{$notifiable->instructor_id}*\nPassword: *{$this->otp}*\n\nSilakan login di: " . url('/login');
+        $nama  = $notifiable->nama_lengkap;
+        $id    = $notifiable->instructor_id;
+        $pass  = $this->otp ?? 'Sesuai Registrasi';
+        $url   = config('app.url') . '/login';
+
+        return "Halo *{$nama}*! 👋\r\n\r\n"
+             . "Selamat bergabung sebagai Instruktur di *Erlass Institute*. "
+             . "Kami senang memiliki Anda di tim kami! 🎉\r\n\r\n"
+             . "Berikut data akun Anda:\r\n"
+             . "🔑 ID Instruktur : *{$id}*\r\n"
+             . "🔒 Password      : *{$pass}*\r\n\r\n"
+             . "Silakan login melalui:\r\n"
+             . "{$url}\r\n\r\n"
+             . "Segera ganti password setelah login pertama.\r\n"
+             . "Jika ada pertanyaan, hubungi admin Erlass.\r\n\r\n"
+             . "_Salam hangat,_\r\n"
+             . "_Tim Manajemen Erlass_";
     }
 
     /**

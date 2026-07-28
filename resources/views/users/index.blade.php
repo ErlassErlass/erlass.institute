@@ -178,8 +178,8 @@
                             </td>
                             <td>
                                 <div class="d-flex flex-column gap-1 align-items-start">
-                                    <span class="badge {{ $user->status === 'Aktif' ? 'bg-success' : 'bg-danger' }}">
-                                        <i class="bi {{ $user->status === 'Aktif' ? 'bi-check-circle' : 'bi-dash-circle' }} me-1"></i>{{ $user->status }}
+                                    <span class="badge {{ $user->is_active ? 'bg-success' : 'bg-danger' }}">
+                                        <i class="bi {{ $user->is_active ? 'bi-check-circle' : 'bi-dash-circle' }} me-1"></i>{{ $user->is_active ? 'Aktif' : $user->status }}
                                     </span>
                                     @if($user->role === 'instruktur')
                                         @if($user->verification_status === 'approved')

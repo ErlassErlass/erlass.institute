@@ -37,8 +37,10 @@ return new class extends Migration
 
         // 3. Alter the foreign key constraint in ekstrakurikuler table
         Schema::table('ekstrakurikuler', function (Blueprint $table) {
-            // Drop old foreign key constraint
-            $table->dropForeign('ekstrakurikuler_user_id_sales_foreign');
+            // Drop old foreign key constraint if supported by driver
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->dropForeign('ekstrakurikuler_user_id_sales_foreign');
+            }
             
             // Add new foreign key constraint pointing to salesmen table
             $table->foreign('user_id_sales')
@@ -55,7 +57,9 @@ return new class extends Migration
     {
         Schema::table('ekstrakurikuler', function (Blueprint $table) {
             // Drop new foreign key constraint
-            $table->dropForeign(['user_id_sales']);
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->dropForeign(['user_id_sales']);
+            }
             
             // Re-add old foreign key constraint pointing to users table
             $table->foreign('user_id_sales')

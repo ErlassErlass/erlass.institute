@@ -31,9 +31,10 @@ class StudentGradingAndWarningTest extends TestCase
             'sekolah_kodlan' => $sekolah->kodlan
         ]);
         $sales = User::factory()->create(['role' => 'sales']);
+        $salesman = \App\Models\Salesman::factory()->create(['user_id' => $sales->id]);
         $ekskul = Ekstrakurikuler::factory()->create([
             'sekolah_kodlan' => $sekolah->kodlan,
-            'user_id_sales' => $sales->id,
+            'user_id_sales' => $salesman->id,
             'created_by' => $sales->id,
             'updated_by' => $sales->id,
         ]);
@@ -126,9 +127,10 @@ class StudentGradingAndWarningTest extends TestCase
         // Setup Database
         $sekolah = Sekolah::factory()->create();
         $sales = User::factory()->create(['role' => 'sales']);
+        $salesman = \App\Models\Salesman::factory()->create(['user_id' => $sales->id]);
         $ekskul = Ekstrakurikuler::factory()->create([
             'sekolah_kodlan' => $sekolah->kodlan,
-            'user_id_sales' => $sales->id,
+            'user_id_sales' => $salesman->id,
             'created_by' => $sales->id,
             'updated_by' => $sales->id,
         ]);

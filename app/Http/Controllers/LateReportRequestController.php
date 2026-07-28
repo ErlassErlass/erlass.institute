@@ -59,6 +59,53 @@ class LateReportRequestController extends Controller
     }
 
     /**
+     * Store a new late report request for Ad-Hoc activity from instructor.
+     */
+    public function storeAdhoc(Request $request)
+    {
+        $user = Auth::user();
+        
+        if ($user->role !== 'instruktur') {
+            return back()->with('error', 'Hanya instruktur yang dapat mengajukan permohonan.');
+        }
+
+        if ($user->monthly_late_report_quota <= 0) {
+            return back()->with('error', 'Kuota permohonan bulanan Anda sudah habis (Max 3).');
+        }
+
+        $request->validate([
+            'adhoc_date' => 'required|string',
+            'reason' => 'required|string|min:10|max:500',
+        ]);
+
+        try {
+            $adhocDate = \Carbon\Carbon::createFromFormat('d/m/Y', $request->adhoc_date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Format tanggal tidak valid. Gunakan format dd/mm/yyyy.');
+        }
+
+        $existing = LateReportRequest::where('user_id', $user->id)
+            ->whereNull('session_id')
+            ->where('adhoc_date', $adhocDate)
+            ->whereIn('status', ['pending', 'approved'])
+            ->first();
+
+        if ($existing) {
+            return back()->with('info', 'Permohonan Ad-Hoc untuk tanggal ini sudah diajukan atau disetujui.');
+        }
+
+        LateReportRequest::create([
+            'user_id' => $user->id,
+            'session_id' => null,
+            'adhoc_date' => $adhocDate,
+            'reason' => $request->reason,
+            'status' => 'pending',
+        ]);
+
+        return back()->with('success', 'Permohonan akses Ad-Hoc tanggal ' . $request->adhoc_date . ' berhasil dikirim. Silakan tunggu persetujuan Admin.');
+    }
+
+    /**
      * Admin Index - List all requests.
      */
     public function index()

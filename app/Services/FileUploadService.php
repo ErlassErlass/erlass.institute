@@ -33,8 +33,15 @@ class FileUploadService
         // Add date structure: uploads/category/subfolder/2025/02
         $path .= "/{$year}/{$month}";
         
-        // Generate secure filename
-        $filename = Str::random(40) . '.' . $file->getClientOriginalExtension();
+        // Generate secure filename with guessed extension to prevent extension spoofing
+        $extension = strtolower($file->guessExtension() ?: $file->getClientOriginalExtension());
+        $forbiddenExtensions = ['php', 'phtml', 'php3', 'php4', 'php5', 'phps', 'phar', 'exe', 'sh', 'pl', 'cgi', 'js', 'html', 'htm', 'bat', 'cmd'];
+        
+        if (in_array($extension, $forbiddenExtensions, true)) {
+            throw new \InvalidArgumentException('Tipe file tidak diizinkan demi keamanan.');
+        }
+
+        $filename = Str::random(40) . '.' . $extension;
         
         // Store
         return $file->storeAs($path, $filename, 'public');

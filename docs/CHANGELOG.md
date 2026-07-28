@@ -2,6 +2,68 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [1.8.7] - 2026-07-27
+
+### Ditambahkan (Added)
+- **Fitur Permohonan Laporan Mengajar Ad-Hoc Tanggal Lampau (Grace Period Request)**:
+  - Database migration `2026_07_27_100000_make_session_id_nullable_in_late_report_requests.php` yang mengubah `session_id` menjadi `nullable` dan menambah kolom `adhoc_date` pada tabel `late_report_requests`.
+  - Penambahan rute `POST /laporan-mengajar/adhoc-late-request` (`laporan-mengajar.adhoc-late-request.store`) dan metode `storeAdhoc()` pada `LateReportRequestController` untuk pengajuan permohonan pengisian laporan Ad-Hoc yang telah lewat dari batas toleransi H+1.
+  - Penambahan modal pengajuan `#adhocRequestModal` di halaman `laporan-mengajar/create.blade.php` (ditempatkan dalam stack `@push('modals')` untuk mencegah isu *backdrop shadow overlap*).
+  - Integrasi validasi Ad-Hoc pada `LaporanMengajarController::store()` yang memeriksa ketersediaan persetujuan Admin sebelum mengizinkan simpan laporan.
+  - Pembaruan antarmuka Admin di `admin/late-reports/index.blade.php` untuk menampilkan lencana dan detail permohonan Ad-Hoc.
+  - Pembukaan akses menu navigasi "Buat Laporan" dan "Request Laporan" pada `layouts/app.blade.php` untuk seluruh role Admin (`admin`, `admin_sistem`, `webmaster`) beserta indikator jumlah permohonan pending.
+
+### Diperbaiki & Dioptimalkan (Fixed & Optimized)
+- **Penyempurnaan Formulir Registrasi Mandiri Instruktur Multi-Step (`/register/instructor`)**:
+  - **Modal Registrasi Berhasil (`#registrationSuccessModal`)**: Penambahan popup modal selamat setelah pendaftaran berhasil disimpan, menampilkan Kode Referensi Instruktur (misal `ICE202645`), lencana status *"Menunggu Verifikasi Admin"*, dan tombol alur login.
+  - **Perbaikan Eksekusi Tombol Submit (`#submitInstructorBtn`)**: Mengubah tombol dari `type="submit"` menjadi `type="button"` yang mengeksekusi handler terpadu `submitInstructorForm(event)`. Menghilangkan bug event blocker yang sebelumnya membuat tombol submit terasa mati/tidak bisa diklik.
+  - **Peningkatan Visual & Interaktivitas Tabel Jadwal Step 6**:
+    - Menambahkan indikator ikon plus (`+`) abu-abu terang pada sel yang belum tercentang dan ikon centang putih (`✓`) pada sel yang dipilih dengan warna biru solid.
+    - Pemindahan fungsi `quickSelectSchedule` dan `toggleDaySchedule` ke *inline script* global untuk menjamin tombol "Senin–Jumat", "Pilih Semua", "Bersihkan", dan klik header hari merespon 100% di desktop & seluler.
+    - Standar area sentuh seluler minimal 48px untuk kemudahan navigasi jempol di layar smartphone.
+  - **Responsivitas Header Seluler (`< 992px`)**: Menambahkan *Mobile Progress Header* berisi badge langkah aktif (*Langkah 1 dari 6*), judul langkah, dan *progress bar* animasi visual.
+  - **Kamus Validasi Bahasa Indonesia**: Penambahan 30+ pesan kesalahan validasi kustom berbahasa Indonesia di `InstructorRegistrationController`.
+  - Pembaruan `hideJsAlert()` dan `showStep(n)` untuk otomatis menyembunyikan banner error global PHP (`#globalErrorAlert`) dan error JS (`#jsStepErrorAlert`) saat pengguna berpindah antar-langkah.
+  - Penghilangan efek auto-scroll ke puncak layar (`top: 0`) saat validasi lokal gagal, digantikan dengan scroll dan fokus kursor halus (*smooth scroll & focus*) langsung ke elemen input pertama yang invalid.
+- **Standardisasi Template Import Siswa & Sorting NISN Default**:
+  - Pengkinian berkas template `public/templates/Template_Import_Siswa.xlsx`, `public/templates/Template_Import_Siswa.csv`, dan `public/templates/Template_Import_Siswa_Program.csv` (kolom "No" sebagai indeks urutan tampilan, data siswa diidentifikasi penuh berbasis NISN).
+  - Penyelaraskan urutan default daftar siswa pada `SiswaController`, `EkstrakurikulerEnrollmentController`, `SekolahController`, dan `RombelController` menggunakan pengurutan `orderBy('nisn', 'asc')`.
+
+## [1.8.6] - 2026-07-23
+
+### Ditambahkan (Added)
+- **Audit Trail Pergantian Instruktur (Level 1 & Level 2)**:
+  - **Level 1 — Track Pengisi Nilai**: Menambahkan kolom `instruktur_pengisi_id` (FK → `users.id`) pada tabel `student_scores` via migration `2026_07_23_050900_add_instruktur_pengisi_to_student_scores.php`. Setiap kali nilai siswa disimpan melalui `storeBulk()`, ID instruktur yang mengisi otomatis tersimpan. Memastikan audit trail: siapa mengisi nilai siapa, kapan.
+  - **Level 2 — Histori Instruktur Rombel**: Membuat tabel baru `rombel_instructor_history` (model [`RombelInstructorHistory.php`](file:///root/webapperlass/app/Models/RombelInstructorHistory.php)) untuk menyimpan riwayat lengkap setiap perubahan instruktur per rombel, termasuk `berlaku_dari_sesi`, `berlaku_sampai_sesi`, `alasan`, dan `diganti_oleh`. Pencatatan terjadi otomatis di [`EkstrakurikulerSessionController::update()`](file:///root/webapperlass/app/Http/Controllers/EkstrakurikulerSessionController.php) ketika `user_id_instruktur` session berubah.
+  - **Akses Read-Only Instruktur Lama**: Metode `authorizeRombelAccess()` di [`StudentScoreController.php`](file:///root/webapperlass/app/Http/Controllers/StudentScoreController.php) diperluas — instruktur yang tercatat di `rombel_instructor_history` untuk sebuah rombel mendapatkan **akses baca (READ-ONLY)** ke halaman nilai (tidak dapat input/finalisasi nilai). Instruktur aktif tetap mendapat akses penuh.
+  - **Guard Write-Only**: Menambahkan metode `authorizeRombelWriteAccess()` yang dipakai oleh `bulkInputForm()`, `storeBulk()`, dan `finalize()` untuk memblokir instruktur lama dari operasi tulis.
+- **Pembaruan Tampilan Visual / UI Polish Detail Program (`/ekstrakurikuler/{id}`)**:
+  - Merombak halaman [`show.blade.php`](file:///root/webapperlass/resources/views/ekstrakurikuler/show.blade.php) dengan desain modern premium: Hero Header bergradien dengan tombol aksi *glassmorphism*, kartu ringkasan statistik berikon pastel, *custom pill navigation tabs*, lencana Region/Wilayah berkualitas tinggi, timeline sesi yang tajam, dan grid fasilitas ber-ikon terpadu.
+- **Penambahan Kategori Pengajaran Ad-Hoc (Inkul)**: Menambahkan 5 kategori baru ke `getKategoriList()` di `LaporanMengajarController`: `Inkul Coding Scratch`, `Inkul LMS Koding KA SD`, `Inkul LKPD Informatika SD`, `Inkul LKPD Informatika SMP`, `Inkul LKPD Informatika SMA`.
+- **Perbaikan Notifikasi Halaman Laporan Ad-Hoc**: Mengubah pesan alert di `/laporan-mengajar/create` dari larangan merah menjadi informasi deskriptif kuning yang menjelaskan cakupan penggunaan halaman (termasuk kegiatan Inkul).
+
+## [1.8.5] - 2026-07-21
+
+### Diperbaiki & Dioptimalkan (Fixed & Optimized)
+- **Pembersihan & Reset Database (Reset Data)**:
+  - Melakukan pembersihan data master dan transaksi dari awal (`TRUNCATE`) pada tabel: `ekstrakurikuler`, `ekstrakurikuler_rombel`, `ekstrakurikuler_session`, `siswa`, `siswa_ekstrakurikuler`, `laporan_mengajar`, `absensi`, `payroll_batches`, `payroll_items`, `warnings`, `certificates`, `student_scores`, `student_portfolios`, `report_cards`, `schedule_changes`, `session_confirmations`, `late_report_requests`.
+- **Optimasi Performa Akses Pertama & Production Caching**:
+  - Mengeliminasi query `inRandomOrder()` pada `WelcomeController` yang sebelumnya memicu *full-table scan* database setiap kali halaman depan diakses, serta membungkus hasilnya dengan `Cache::remember('welcome_live_sessions_' . $today, 300)`.
+  - Mengompresi class autoloader Composer (`composer dump-autoload -o`) mencakup 8.220 class PHP untuk mempercepat waktu eksekusi *bootstrapping* aplikasi.
+  - Mengaktifkan *production caching* Laravel penuh (`php artisan config:cache`, `php artisan route:cache`, `php artisan view:cache`), sehingga kompilasi Blade templates, parsing 50+ config file, dan perutean rute 100+ URL tidak perlu diproses ulang pada tiap permintaan HTTP.
+- **Pembersihan Akun Instruktur & Standardisasi Registrasi Mandiri**:
+  - Menghapus 77 akun instruktur bawaan/seeder dari database (`users` dengan role `instruktur` dan `instructor_profiles`) untuk menerapkan alur pendaftaran mandiri sebagai **Filter Keaktifan & Keseriusan Instruktur**.
+  - Mempertahankan seluruh akun `admin_sistem`, `admin`, dan `webmaster` (18 akun).
+  - Menyelaraskan opsi input pada formulir registrasi (`auth/register.blade.php`) dengan formulir profil (`profile/edit.blade.php`), serta mewajibkan pengisian **Informasi Rekening Bank** (`nama_bank`, `no_rekening`) & **Identitas NIK** (16 digit) saat pendaftaran.
+  - Menambahkan *Rate Limiting / Throttling* (`throttle:5,1`) pada rute `POST /register` di `routes/auth.php` untuk mencegah serangan spam/bot registrasi.
+  - Memperbarui dokumentasi strategi & alur registrasi di [DAFTAR_AKUN_INSTRUKTUR.md](file:///root/webapperlass/docs/user/DAFTAR_AKUN_INSTRUKTUR.md).
+- **Integrasi Dynamic Products & Skema Database**:
+  - Mengubah opsi `kategori_program` pada halaman edit ([edit.blade.php](file:///root/webapperlass/resources/views/ekstrakurikuler/edit.blade.php)) dari opsi *hardcoded* menjadi daftar dinamis dari tabel `products` (`$activeProducts`), sehingga selaras dengan halaman pendaftaran/wizard program baru.
+  - Mengubah tipe data kolom `kategori_program` pada tabel `ekstrakurikuler` dari `ENUM` menjadi `VARCHAR(255)` melalui file database migration baru: `2026_07_21_155409_change_kategori_program_in_ekstrakurikuler_to_varchar.php`.
+  - Hal ini dilakukan agar penambahan/pengeditan produk secara dinamis di menu `/products` tidak lagi dibatasi oleh batasan *hardcoded* tingkat database `ENUM`.
+  - Memasukkan data awal **11 produk aktif** kategori Ekskul (estimasi durasi 8 bulan, standar durasi 90 menit) tanpa sufiks "Rombel" dan kata "Sewa".
+  - Menyelaraskan sisa data ekstrakurikuler yang ada di sekolah `SDS Darul Athfal` (ID 1) ke nama produk terbaru: `Ekskul Robotik Microbit Learning Kit`.
+
 ## [1.8.4] - 2026-07-09
 
 ### Ditambahkan (Added)
