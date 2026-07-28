@@ -39,7 +39,11 @@ class SekolahController extends Controller
 
     public function siswaBySekolah($kodlan)
     {
-        $sekolah = \App\Models\Sekolah::with('siswa')->where('kodlan', $kodlan)->firstOrFail();
+        $sekolah = \App\Models\Sekolah::with(['siswa' => function ($q) {
+            $q->with(['ekstrakurikulersAktif:id,nama_ekstrakurikuler,kategori_program'])
+              ->orderBy('kelas', 'asc')
+              ->orderBy('nama_lengkap', 'asc');
+        }])->where('kodlan', $kodlan)->firstOrFail();
 
         return view('sekolah.siswa-by-sekolah', compact('sekolah'));
     }

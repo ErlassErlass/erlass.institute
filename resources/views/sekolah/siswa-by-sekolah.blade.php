@@ -140,6 +140,42 @@
         border: 1px solid #fbcfe8 !important;
         font-weight: 600;
     }
+
+    /* Ekskul Program Badges */
+    .badge-ekskul {
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-block;
+        margin: 1px 2px;
+        transition: all 0.2s ease;
+    }
+    .badge-ekskul:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+    .badge-ekskul-seni {
+        background-color: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fcd34d;
+    }
+    .badge-ekskul-olahraga {
+        background-color: #dcfce7;
+        color: #166534;
+        border: 1px solid #86efac;
+    }
+    .badge-ekskul-akademik {
+        background-color: #e0e7ff;
+        color: #3730a3;
+        border: 1px solid #a5b4fc;
+    }
+    .badge-ekskul-default {
+        background-color: #f1f5f9;
+        color: #334155;
+        border: 1px solid #cbd5e1;
+    }
 </style>
 @endpush
 
@@ -174,25 +210,31 @@
                     $totalSiswa = $allSiswa->count();
                     $totalLaki = $allSiswa->filter(fn($s) => in_array(strtolower($s->jenis_kelamin), ['l', 'laki-laki']))->count();
                     $totalPerempuan = $allSiswa->filter(fn($s) => in_array(strtolower($s->jenis_kelamin), ['p', 'perempuan']))->count();
-                    $totalRombel = $allSiswa->pluck('rombel')->filter()->unique()->count();
+                    $totalIkutEkskul = $allSiswa->filter(fn($s) => $s->ekstrakurikulersAktif->count() > 0)->count();
                 @endphp
                 <div class="row g-2 justify-content-lg-end">
-                    <div class="col-6 col-sm-3 col-lg-4">
+                    <div class="col-6 col-sm-3 col-lg-3">
                         <div class="glass-stat-card text-center">
                             <span class="d-block text-white-50 fs-8 text-uppercase fw-semibold ls-1">Total Siswa</span>
                             <span class="h3 fw-bold text-white mb-0 d-block lh-1 mt-1">{{ $totalSiswa }}</span>
                         </div>
                     </div>
-                    <div class="col-6 col-sm-3 col-lg-4">
+                    <div class="col-6 col-sm-3 col-lg-3">
                         <div class="glass-stat-card text-center">
                             <span class="d-block text-white-50 fs-8 text-uppercase fw-semibold ls-1"><i class="bi bi-gender-male me-1 text-info"></i>Laki-Laki</span>
                             <span class="h3 fw-bold text-info mb-0 d-block lh-1 mt-1">{{ $totalLaki }}</span>
                         </div>
                     </div>
-                    <div class="col-6 col-sm-3 col-lg-4">
+                    <div class="col-6 col-sm-3 col-lg-3">
                         <div class="glass-stat-card text-center">
                             <span class="d-block text-white-50 fs-8 text-uppercase fw-semibold ls-1"><i class="bi bi-gender-female me-1 text-danger"></i>Perempuan</span>
                             <span class="h3 fw-bold text-pink mb-0 d-block lh-1 mt-1" style="color: #f472b6;">{{ $totalPerempuan }}</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3 col-lg-3">
+                        <div class="glass-stat-card text-center">
+                            <span class="d-block text-white-50 fs-8 text-uppercase fw-semibold ls-1"><i class="bi bi-star-fill me-1 text-warning"></i>Ikut Ekskul</span>
+                            <span class="h3 fw-bold mb-0 d-block lh-1 mt-1" style="color: #fbbf24;">{{ $totalIkutEkskul }}</span>
                         </div>
                     </div>
                 </div>
@@ -225,12 +267,13 @@
                     <table class="table table-modern align-middle mb-0" id="siswa-sekolah-table">
                         <thead>
                             <tr>
-                                <th width="15%">NIS/NISN</th>
-                                <th width="35%">Nama Lengkap Siswa</th>
-                                <th width="12%">Kelas Sekolah</th>
-                                <th width="13%">Rombel Ekskul</th>
-                                <th width="15%">Jenis Kelamin</th>
-                                <th width="10%" class="text-center">Aksi</th>
+                                <th width="12%">NIS/NISN</th>
+                                <th width="25%">Nama Lengkap Siswa</th>
+                                <th width="10%">Kelas</th>
+                                <th width="23%">Program Ekskul</th>
+                                <th width="12%">Jenis Kelamin</th>
+                                <th width="10%">Rombel</th>
+                                <th width="8%" class="text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -266,12 +309,31 @@
                                     </span>
                                 </td>
                                 <td>
-                                    @if($siswa->rombel)
-                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2.5 py-1 rounded-pill fw-semibold fs-8">
-                                            <i class="bi bi-diagram-3 me-1"></i>Rombel {{ $siswa->rombel }}
-                                        </span>
+                                    @if($siswa->ekstrakurikulersAktif->count() > 0)
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach($siswa->ekstrakurikulersAktif as $ekskul)
+                                                @php
+                                                    $kat = strtolower($ekskul->kategori_program ?? '');
+                                                    $badgeClass = match(true) {
+                                                        str_contains($kat, 'seni') => 'badge-ekskul-seni',
+                                                        str_contains($kat, 'olahraga') || str_contains($kat, 'sport') => 'badge-ekskul-olahraga',
+                                                        str_contains($kat, 'akademik') || str_contains($kat, 'science') => 'badge-ekskul-akademik',
+                                                        default => 'badge-ekskul-default',
+                                                    };
+                                                    $icon = match(true) {
+                                                        str_contains($kat, 'seni') => 'bi-palette-fill',
+                                                        str_contains($kat, 'olahraga') || str_contains($kat, 'sport') => 'bi-trophy-fill',
+                                                        str_contains($kat, 'akademik') || str_contains($kat, 'science') => 'bi-book-fill',
+                                                        default => 'bi-star-fill',
+                                                    };
+                                                @endphp
+                                                <a href="{{ route('ekstrakurikuler.show', $ekskul) }}" class="badge-ekskul {{ $badgeClass }}" title="{{ $ekskul->nama_ekstrakurikuler }}">
+                                                    <i class="bi {{ $icon }} me-1"></i>{{ Str::limit($ekskul->nama_ekstrakurikuler, 18) }}
+                                                </a>
+                                            @endforeach
+                                        </div>
                                     @else
-                                        <span class="text-muted small fs-8">-</span>
+                                        <span class="text-muted small fs-8"><i class="bi bi-dash-circle me-1"></i>Belum terdaftar</span>
                                     @endif
                                 </td>
                                 <td>
@@ -282,6 +344,15 @@
                                     @elseif($isFemale)
                                         <span class="badge badge-gender-p rounded-pill px-3 py-1.5 fs-8">
                                             <i class="bi bi-gender-female me-1"></i> Perempuan
+                                        </span>
+                                    @else
+                                        <span class="text-muted small fs-8">-</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($siswa->rombel)
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1 rounded-pill fw-semibold fs-8">
+                                            <i class="bi bi-diagram-3 me-1"></i>{{ $siswa->rombel }}
                                         </span>
                                     @else
                                         <span class="text-muted small fs-8">-</span>
@@ -336,8 +407,8 @@
             dataTableManager.init('#siswa-sekolah-table', {
                 order: [[0, 'asc']], // Sort by NISN column by default
                 columnDefs: [
-                    { type: 'string', targets: [0, 1, 2, 3, 4] },
-                    { orderable: false, targets: [5] }
+                    { type: 'string', targets: [0, 1, 2, 3, 4, 5] },
+                    { orderable: false, targets: [6] }
                 ],
                 pageLength: 25,
                 responsive: false,
