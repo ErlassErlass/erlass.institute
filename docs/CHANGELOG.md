@@ -12,6 +12,15 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Manajemen & Tampilan Jenis Kelamin Siswa (`jenis_kelamin`)**:
   - Migrasi database `2026_07_28_095635_add_jenis_kelamin_to_siswa_table.php` yang menambahkan kolom `jenis_kelamin` pada tabel `siswa`.
   - Penambahan elemen input dropdown Jenis Kelamin (`Laki-laki` / `Perempuan`) pada formulir Edit Siswa (`siswa/edit.blade.php`) dan Tambah Siswa (`siswa/create.blade.php`).
+- **Penyelesaian Error HTTP 500 & Accessor Nama Ekskul (`Ekstrakurikuler.php` & `SekolahController.php`)**:
+  - Perbaikan error 1054 Unknown Column pada query eager loading `ekstrakurikulersAktif`.
+  - Penambahan accessor `getNamaEkstrakurikulerAttribute()` pada model `Ekstrakurikuler.php` sebagai alias aman ke atribut `kategori_program`.
+- **Penerapan 3 Optimasi Utama Performa & Scaling System**:
+  1. *Server-Side Pagination Siswa per Sekolah*: Mengubah query `SekolahController::siswaBySekolah()` menggunakan `paginate(25)` dan menghitung statistik hero banner secara terpisah dengan caching (60s).
+  2. *Pagination & Caching Laporan Mengajar*: Menyesuaikan panjang halaman `LaporanMengajarController::index()` menjadi 25 item/halaman dan memperpanjang durasi caching daftar instruktur & kategori (300s).
+  3. *Caching Query Data Statis*: Pembungkusan query daftar sekolah (`sekolah_distribusi_list`, `sekolahs_with_siswa`, `sekolah_pluck_list`) menggunakan `Cache::remember()` (300s) untuk mengeliminasi beban query ulang 18.605 record sekolah di setiap request.
+- **Penyelesaian Masalah Double Pagination pada Halaman Siswa Sekolah (`siswa-by-sekolah.blade.php`)**:
+  - Menonaktifkan kontrol pagination bawaan DataTables (`paging: false`, `info: false`) agar hanya menampilkan satu kontrol navigasi pagination resmi yang bersih di bagian bawah tabel.
 - **Fitur & Optimasi Kolom Program Ekskul Siswa Sekolah (`/sekolah/{kodlan}/siswa`)**:
   - Penambahan kolom **Program Ekskul** pada tabel daftar siswa per sekolah (`sekolah/siswa-by-sekolah.blade.php`) lengkap dengan badge visual kategori program (Seni = Amber, Olahraga = Green, Akademik = Indigo) yang mengarahkan langsung ke detail ekskul.
   - Penambahan kartu statistik **Ikut Ekskul** pada Hero Banner per sekolah untuk pemantauan cepat siswa aktif ekskul.
