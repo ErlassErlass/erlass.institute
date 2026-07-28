@@ -410,6 +410,8 @@
         if (typeof window.DataTableManager !== 'undefined') {
             const dataTableManager = new window.DataTableManager();
             dataTableManager.init('#siswa-sekolah-table', {
+                paging: false,
+                info: false,
                 order: [[0, 'asc']], // Sort by NISN column by default
                 columnDefs: [
                     { type: 'string', targets: [0, 1, 2, 3, 4, 5] },
