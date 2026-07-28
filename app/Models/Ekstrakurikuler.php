@@ -169,6 +169,14 @@ class Ekstrakurikuler extends Model
     const FASILITAS_TIDAK_DIKETAHUI = 'tidak_diketahui';
 
     /**
+     * Accessor untuk nama_ekstrakurikuler (alias kategori_program).
+     */
+    public function getNamaEkstrakurikulerAttribute(): string
+    {
+        return $this->kategori_program ?? '';
+    }
+
+    /**
      * Cek apakah kategori program membutuhkan konfigurasi alat.
      */
     public function butuhKonfigurasiAlat(): bool
