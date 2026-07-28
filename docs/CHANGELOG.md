@@ -12,6 +12,12 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Manajemen & Tampilan Jenis Kelamin Siswa (`jenis_kelamin`)**:
   - Migrasi database `2026_07_28_095635_add_jenis_kelamin_to_siswa_table.php` yang menambahkan kolom `jenis_kelamin` pada tabel `siswa`.
   - Penambahan elemen input dropdown Jenis Kelamin (`Laki-laki` / `Perempuan`) pada formulir Edit Siswa (`siswa/edit.blade.php`) dan Tambah Siswa (`siswa/create.blade.php`).
+- **Fitur & Optimasi Kolom Program Ekskul Siswa Sekolah (`/sekolah/{kodlan}/siswa`)**:
+  - Penambahan kolom **Program Ekskul** pada tabel daftar siswa per sekolah (`sekolah/siswa-by-sekolah.blade.php`) lengkap dengan badge visual kategori program (Seni = Amber, Olahraga = Green, Akademik = Indigo) yang mengarahkan langsung ke detail ekskul.
+  - Penambahan kartu statistik **Ikut Ekskul** pada Hero Banner per sekolah untuk pemantauan cepat siswa aktif ekskul.
+  - Optimasi *Eager Loading* `ekstrakurikulersAktif` pada `SekolahController::siswaBySekolah()` untuk mencegah problem query N+1.
+- **Dokumentasi Analisis Feasibility Scaling 5.000 Siswa & 10.000 Laporan (`docs/ops/ANALISIS_FEASIBILITY_SCALING.md`)**:
+  - Penulisan dokumen audit teknis kelayakan VPS Hostinger (AMD EPYC 4 vCPU, 16 GB RAM, MySQL 4 GB InnoDB Buffer Pool) yang membuktikan kesiapan infrastruktur menangani 5.000 siswa dan 10.000 laporan dengan pemakaian disk DB <0.1% dan zero disk I/O bottleneck.
 - **Pengurutan Default NISN & Filter Daftar Siswa Terdaftar (`SiswaEkstrakurikulerController.php`)**:
   - Penambahan fitur pengurutan default berdasarkan **NISN Ascending (`nisn_asc`)** pada halaman manajemen siswa terdaftar (`/ekstrakurikuler/{id}/enrollment`).
   - Penambahan kontrol dropdown pilihan urutan (*NISN Terkecil-Terbesar*, *NISN Terbesar-Terkecil*, *Nama A-Z*, *Nama Z-A*, *Tanggal Daftar Terbaru*) dan tombol reset filter pada formulir pencarian.
