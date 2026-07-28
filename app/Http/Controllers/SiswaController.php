@@ -58,6 +58,7 @@ class SiswaController extends Controller
         $validated = $request->validate([
             'nama_lengkap' => 'required|string',
             'nisn' => 'required|string|unique:siswa,nisn',
+            'jenis_kelamin' => 'nullable|string|max:20',
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
             'kelas' => 'required|string',
             'no_hp_orangtua' => 'required|string|min:10|max:15',
@@ -91,6 +92,7 @@ class SiswaController extends Controller
         $validated = $request->validate([
             'nama_lengkap' => 'required|string',
             'nisn' => 'required|string|unique:siswa,nisn,'.$siswa->id,
+            'jenis_kelamin' => 'nullable|string|max:20',
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
             'kelas' => 'required|string',
             'no_hp_orangtua' => 'required|string|min:10|max:15',

@@ -18,6 +18,18 @@
         </div>
 
         <div class="mb-3">
+            <label for="jenis_kelamin" class="form-label">Jenis Kelamin</label>
+            <select name="jenis_kelamin" id="jenis_kelamin" class="form-select @error('jenis_kelamin') is-invalid @enderror">
+                <option value="">-- Pilih Jenis Kelamin --</option>
+                <option value="Laki-laki" {{ old('jenis_kelamin') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                <option value="Perempuan" {{ old('jenis_kelamin') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+            </select>
+            @error('jenis_kelamin')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="mb-3">
             <label for="sekolah_kodlan" class="form-label">Sekolah</label>
             <select name="sekolah_kodlan" id="sekolah_kodlan" class="form-select @error('sekolah_kodlan') is-invalid @enderror" required>
                 <option value="">Ketik nama sekolah atau kode...</option>

@@ -135,10 +135,12 @@
                                         <span class="badge bg-blue-50 text-blue-600 rounded-pill px-3 py-2 border border-blue-100">
                                             <i class="bi bi-gender-male me-1"></i> Laki-laki
                                         </span>
-                                    @else
+                                    @elseif(strtolower($siswa->jenis_kelamin) == 'p' || strtolower($siswa->jenis_kelamin) == 'perempuan')
                                         <span class="badge bg-pink-50 text-pink-600 rounded-pill px-3 py-2 border border-pink-100">
                                             <i class="bi bi-gender-female me-1"></i> Perempuan
                                         </span>
+                                    @else
+                                        <span class="text-muted small">-</span>
                                     @endif
                                 </td>
                             </tr>

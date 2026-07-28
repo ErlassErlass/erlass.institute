@@ -91,10 +91,11 @@
                 <table class="table table-hover align-middle mb-0" id="siswa-table">
                     <thead class="table-light">
                         <tr>
-                            <th width="20%" class="ps-4">NIS/NISN</th>
-                            <th width="30%">Nama Siswa</th>
+                            <th width="15%" class="ps-4">NIS/NISN</th>
+                            <th width="25%">Nama Siswa</th>
+                            <th width="15%">Jenis Kelamin</th>
                             <th width="25%">Sekolah</th>
-                            <th width="15%">Kelas</th>
+                            <th width="10%">Kelas</th>
                             <th width="10%" class="text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -111,6 +112,19 @@
                                         <div class="fw-bold text-dark">{{ $item->nama_lengkap }}</div>
                                     </div>
                                 </div>
+                            </td>
+                            <td>
+                                @if(strtolower($item->jenis_kelamin) == 'l' || strtolower($item->jenis_kelamin) == 'laki-laki')
+                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-1 small">
+                                        <i class="bi bi-gender-male me-1"></i> Laki-laki
+                                    </span>
+                                @elseif(strtolower($item->jenis_kelamin) == 'p' || strtolower($item->jenis_kelamin) == 'perempuan')
+                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1 small">
+                                        <i class="bi bi-gender-female me-1"></i> Perempuan
+                                    </span>
+                                @else
+                                    <span class="text-muted small">-</span>
+                                @endif
                             </td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">

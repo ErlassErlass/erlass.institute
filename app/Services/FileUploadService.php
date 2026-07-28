@@ -17,7 +17,7 @@ class FileUploadService
      * @param string|null $subfolder Optional subfolder for ID or grouping
      * @return string The stored file path relative to public disk
      */
-    public function upload(UploadedFile $file, string $category, ?string $subfolder = null): string
+    public function upload(UploadedFile $file, string $category, ?string $subfolder = null, int $maxDimension = 1600, int $quality = 80): string
     {
         $year = date('Y');
         $month = date('m');
@@ -44,7 +44,71 @@ class FileUploadService
         $filename = Str::random(40) . '.' . $extension;
         
         // Store
-        return $file->storeAs($path, $filename, 'public');
+        $storedPath = $file->storeAs($path, $filename, 'public');
+
+        // Automatically compress & optimize image files (JPG/PNG/WEBP)
+        $fullPath = storage_path('app/public/' . $storedPath);
+        if (in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true) && extension_loaded('gd') && file_exists($fullPath)) {
+            $this->optimizeImage($fullPath, $extension, $maxDimension, $quality);
+        }
+
+        return $storedPath;
+    }
+
+    /**
+     * Compress and resize image file in-place using PHP GD.
+     */
+    public function optimizeImage(string $filePath, string $extension, int $maxDimension = 1600, int $quality = 80): bool
+    {
+        try {
+            list($width, $height) = @getimagesize($filePath);
+            if (!$width || !$height) return false;
+
+            // Compute scaled dimensions
+            if ($width > $maxDimension || $height > $maxDimension) {
+                $ratio = min($maxDimension / $width, $maxDimension / $height);
+                $newWidth = (int)round($width * $ratio);
+                $newHeight = (int)round($height * $ratio);
+            } else {
+                $newWidth = $width;
+                $newHeight = $height;
+            }
+
+            // Create GD image resource based on extension
+            $srcImg = match ($extension) {
+                'jpg', 'jpeg' => @imagecreatefromjpeg($filePath),
+                'png' => @imagecreatefrompng($filePath),
+                'webp' => @imagecreatefromwebp($filePath),
+                default => null
+            };
+
+            if (!$srcImg) return false;
+
+            $dstImg = imagecreatetruecolor($newWidth, $newHeight);
+
+            // Preserve alpha channel for PNG/WEBP
+            if (in_array($extension, ['png', 'webp'], true)) {
+                imagealphablending($dstImg, false);
+                imagesavealpha($dstImg, true);
+            }
+
+            imagecopyresampled($dstImg, $srcImg, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+            // Save back to file with compression
+            match ($extension) {
+                'jpg', 'jpeg' => imagejpeg($dstImg, $filePath, $quality),
+                'png' => imagepng($dstImg, $filePath, (int)round((100 - $quality) / 10)),
+                'webp' => imagewebp($dstImg, $filePath, $quality),
+                default => null
+            };
+
+            imagedestroy($srcImg);
+            imagedestroy($dstImg);
+            return true;
+        } catch (\Exception $e) {
+            \Log::error('Image optimization failed for ' . $filePath . ': ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**
