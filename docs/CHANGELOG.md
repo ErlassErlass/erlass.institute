@@ -12,7 +12,10 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Manajemen & Tampilan Jenis Kelamin Siswa (`jenis_kelamin`)**:
   - Migrasi database `2026_07_28_095635_add_jenis_kelamin_to_siswa_table.php` yang menambahkan kolom `jenis_kelamin` pada tabel `siswa`.
   - Penambahan elemen input dropdown Jenis Kelamin (`Laki-laki` / `Perempuan`) pada formulir Edit Siswa (`siswa/edit.blade.php`) dan Tambah Siswa (`siswa/create.blade.php`).
-  - Pembaruan `$fillable` pada model `App\Models\Siswa` dan aturan validasi pada `SiswaController` (`store` & `update`).
+- **Pengurutan Default NISN & Filter Daftar Siswa Terdaftar (`SiswaEkstrakurikulerController.php`)**:
+  - Penambahan fitur pengurutan default berdasarkan **NISN Ascending (`nisn_asc`)** pada halaman manajemen siswa terdaftar (`/ekstrakurikuler/{id}/enrollment`).
+  - Penambahan kontrol dropdown pilihan urutan (*NISN Terkecil-Terbesar*, *NISN Terbesar-Terkecil*, *Nama A-Z*, *Nama Z-A*, *Tanggal Daftar Terbaru*) dan tombol reset filter pada formulir pencarian.
+  - Penataan tampilan hitung siswa terdaftar aktif vs kuota target pada kartu program ekstrakurikuler.
   - Pembaruan tampilan badge Jenis Kelamin pada tabel daftar siswa (`siswa/index.blade.php` & `sekolah/siswa-by-sekolah.blade.php`) dengan badge warna khusus (**Laki-laki**: Biru, **Perempuan**: Pink, **-**: Strip jika kosong).
 
 ## [1.8.7] - 2026-07-27

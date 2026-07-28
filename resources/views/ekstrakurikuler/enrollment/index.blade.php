@@ -111,7 +111,7 @@
         <div class="card-body">
             <form method="GET" action="{{ route('ekstrakurikuler.enrollment.index', $ekstrakurikuler) }}">
                 <div class="row g-3">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label for="status" class="form-label">Status</label>
                         <select class="form-select" id="status" name="status">
                             <option value="">Semua Status</option>
@@ -122,7 +122,7 @@
                             <option value="nonaktif" {{ request('status') === 'nonaktif' ? 'selected' : '' }}>Non Aktif</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label for="rombel_id" class="form-label">Rombel</label>
                         <select class="form-select" id="rombel_id" name="rombel_id">
                             <option value="">Semua Rombel</option>
@@ -133,16 +133,30 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label for="search" class="form-label">Cari Siswa</label>
                         <input type="text" class="form-control" id="search" name="search" 
-                               value="{{ request('search') }}" placeholder="Nama atau NISN siswa">
+                               value="{{ request('search') }}" placeholder="Nama, NISN, atau Kelas">
                     </div>
-                    <div class="col-md-2">
-                        <label class="form-label d-block">&nbsp;</label>
-                        <button type="submit" class="btn btn-primary w-100">
+                    <div class="col-md-3">
+                        <label for="sort" class="form-label">Urutkan Berdasarkan</label>
+                        <select class="form-select" id="sort" name="sort">
+                            <option value="nisn_asc" {{ request('sort', 'nisn_asc') === 'nisn_asc' ? 'selected' : '' }}>NISN (Terkecil - Terbesar)</option>
+                            <option value="nisn_desc" {{ request('sort') === 'nisn_desc' ? 'selected' : '' }}>NISN (Terbesar - Terkecil)</option>
+                            <option value="name_asc" {{ request('sort') === 'name_asc' ? 'selected' : '' }}>Nama Siswa (A - Z)</option>
+                            <option value="name_desc" {{ request('sort') === 'name_desc' ? 'selected' : '' }}>Nama Siswa (Z - A)</option>
+                            <option value="date_desc" {{ request('sort') === 'date_desc' ? 'selected' : '' }}>Tanggal Daftar Terbaru</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end gap-1">
+                        <button type="submit" class="btn btn-primary flex-fill">
                             <i class="bi bi-search me-1"></i> Filter
                         </button>
+                        @if(request()->hasAny(['status', 'rombel_id', 'search', 'sort']))
+                        <a href="{{ route('ekstrakurikuler.enrollment.index', $ekstrakurikuler) }}" class="btn btn-outline-secondary" title="Reset Filter">
+                            <i class="bi bi-x-circle"></i>
+                        </a>
+                        @endif
                     </div>
                 </div>
             </form>

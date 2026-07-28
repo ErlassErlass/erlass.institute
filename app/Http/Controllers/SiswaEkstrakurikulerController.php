@@ -20,28 +20,53 @@ class SiswaEkstrakurikulerController extends Controller
     {
         $this->authorize('view', $ekstrakurikuler);
 
-        $query = SiswaEkstrakurikuler::with(['siswa', 'rombel'])
-            ->where('ekstrakurikuler_id', $ekstrakurikuler->id);
+        $query = SiswaEkstrakurikuler::select('siswa_ekstrakurikuler.*')
+            ->join('siswa', 'siswa_ekstrakurikuler.siswa_id', '=', 'siswa.id')
+            ->with(['siswa', 'rombel'])
+            ->where('siswa_ekstrakurikuler.ekstrakurikuler_id', $ekstrakurikuler->id);
 
         // Filter berdasarkan status
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('siswa_ekstrakurikuler.status', $request->status);
         }
 
         // Filter berdasarkan rombel
         if ($request->filled('rombel_id')) {
-            $query->where('ekstrakurikuler_rombel_id', $request->rombel_id);
+            $query->where('siswa_ekstrakurikuler.ekstrakurikuler_rombel_id', $request->rombel_id);
         }
 
-        // Search siswa
+        // Search siswa (Nama, NISN, Kelas)
         if ($request->filled('search')) {
-            $query->whereHas('siswa', function ($q) use ($request) {
-                $q->where('nama_lengkap', 'like', '%'.$request->search.'%')
-                    ->orWhere('nisn', 'like', '%'.$request->search.'%');
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('siswa.nama_lengkap', 'like', '%'.$search.'%')
+                    ->orWhere('siswa.nisn', 'like', '%'.$search.'%')
+                    ->orWhere('siswa.kelas', 'like', '%'.$search.'%');
             });
         }
 
-        $enrollments = $query->orderBy('tanggal_daftar', 'desc')->paginate(20);
+        // Filter & Sorting: Default NISN Ascending as requested
+        $sort = $request->get('sort', 'nisn_asc');
+        switch ($sort) {
+            case 'name_asc':
+                $query->orderBy('siswa.nama_lengkap', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('siswa.nama_lengkap', 'desc');
+                break;
+            case 'nisn_desc':
+                $query->orderBy('siswa.nisn', 'desc');
+                break;
+            case 'date_desc':
+                $query->orderBy('siswa_ekstrakurikuler.tanggal_daftar', 'desc');
+                break;
+            case 'nisn_asc':
+            default:
+                $query->orderBy('siswa.nisn', 'asc');
+                break;
+        }
+
+        $enrollments = $query->paginate(20)->withQueryString();
         $rombels = $ekstrakurikuler->rombels;
 
         return view('ekstrakurikuler.enrollment.index', compact('ekstrakurikuler', 'enrollments', 'rombels'));
