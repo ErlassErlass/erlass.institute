@@ -29,23 +29,39 @@ class SekolahController extends Controller
 
     public function distribusi()
     {
-        $sekolah_list = Sekolah::has('siswa') // Only schools with populated students
-            ->withCount('siswa')
-            ->orderByDesc('siswa_count')
-            ->get();
+        $sekolah_list = \Illuminate\Support\Facades\Cache::remember('sekolah_distribusi_list', 300, function () {
+            return Sekolah::has('siswa') // Only schools with populated students
+                ->withCount('siswa')
+                ->orderByDesc('siswa_count')
+                ->get();
+        });
 
         return view('sekolah.distribusi', compact('sekolah_list'));
     }
 
-    public function siswaBySekolah($kodlan)
+    public function siswaBySekolah(Request $request, $kodlan)
     {
-        $sekolah = \App\Models\Sekolah::with(['siswa' => function ($q) {
-            $q->with('ekstrakurikulersAktif')
-              ->orderBy('kelas', 'asc')
-              ->orderBy('nama_lengkap', 'asc');
-        }])->where('kodlan', $kodlan)->firstOrFail();
+        $sekolah = \App\Models\Sekolah::where('kodlan', $kodlan)->firstOrFail();
 
-        return view('sekolah.siswa-by-sekolah', compact('sekolah'));
+        // Cached stats for 60 seconds per school
+        $stats = \Illuminate\Support\Facades\Cache::remember("sekolah_stats_{$kodlan}", 60, function () use ($kodlan) {
+            $siswaQuery = \App\Models\Siswa::where('sekolah_kodlan', $kodlan);
+            return [
+                'totalSiswa' => (clone $siswaQuery)->count(),
+                'totalLaki' => (clone $siswaQuery)->whereIn('jenis_kelamin', ['l', 'laki-laki', 'Laki-laki', 'L'])->count(),
+                'totalPerempuan' => (clone $siswaQuery)->whereIn('jenis_kelamin', ['p', 'perempuan', 'Perempuan', 'P'])->count(),
+                'totalIkutEkskul' => (clone $siswaQuery)->whereHas('ekstrakurikulersAktif')->count(),
+            ];
+        });
+
+        // Server-side paginated students (25 per page for scalability)
+        $siswaList = \App\Models\Siswa::with('ekstrakurikulersAktif')
+            ->where('sekolah_kodlan', $kodlan)
+            ->orderBy('kelas', 'asc')
+            ->orderBy('nama_lengkap', 'asc')
+            ->paginate(25);
+
+        return view('sekolah.siswa-by-sekolah', compact('sekolah', 'siswaList', 'stats'));
     }
 
     public function show(Sekolah $sekolah)

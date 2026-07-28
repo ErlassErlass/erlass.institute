@@ -37,7 +37,9 @@ class SiswaController extends Controller
 
         // Urutkan berdasarkan NISN (ASC) secara default
         $siswa = $query->orderBy('nisn', 'asc')->paginate(25);
-        $sekolahs = Sekolah::whereHas('siswa')->orderBy('namasekolah')->get();
+        $sekolahs = \Illuminate\Support\Facades\Cache::remember('sekolahs_with_siswa', 300, function () {
+            return Sekolah::whereHas('siswa')->orderBy('namasekolah')->get();
+        });
 
         return view('siswa.index', compact('siswa', 'sekolahs'));
     }
@@ -46,8 +48,10 @@ class SiswaController extends Controller
     public function create()
     {
         if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
-        // Fetch schools as [kodlan => namasekolah] for the dropdown
-        $sekolah = Sekolah::pluck('namasekolah', 'kodlan'); // Correct pluck syntax (value, key)
+        // Fetch schools as [kodlan => namasekolah] for the dropdown (Cached)
+        $sekolah = \Illuminate\Support\Facades\Cache::remember('sekolah_pluck_list', 300, function () {
+            return Sekolah::pluck('namasekolah', 'kodlan');
+        });
         
         return view('siswa.create', compact('sekolah'));
     }

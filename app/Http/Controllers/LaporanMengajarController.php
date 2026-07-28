@@ -126,16 +126,16 @@ class LaporanMengajarController extends Controller
             })
             ->count();
 
-        // Get paginated results
-        $laporan = $laporanQuery->latest()->paginate(10);
+        // Get paginated results (25 items per page for optimal load balance)
+        $laporan = $laporanQuery->latest()->paginate(25);
         
         // Optimize: Cache expensive dropdown data
-        $instructors = \Illuminate\Support\Facades\Cache::remember('instructors_list', 60, function () {
+        $instructors = \Illuminate\Support\Facades\Cache::remember('instructors_list', 300, function () {
             return User::whereIn('role', ['instruktur', 'admin'])->orderBy('nama_lengkap')->get();
         });
 
         // Optimize: Cache categories
-        $kategoriList = \Illuminate\Support\Facades\Cache::remember('ekskul_categories', 60, function () {
+        $kategoriList = \Illuminate\Support\Facades\Cache::remember('ekskul_categories', 300, function () {
             return \App\Models\Ekstrakurikuler::distinct()
                 ->whereNotNull('kategori_program')
                 ->pluck('kategori_program')

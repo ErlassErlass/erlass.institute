@@ -206,11 +206,10 @@
             </div>
             <div class="col-lg-5">
                 @php
-                    $allSiswa = $sekolah->siswa;
-                    $totalSiswa = $allSiswa->count();
-                    $totalLaki = $allSiswa->filter(fn($s) => in_array(strtolower($s->jenis_kelamin), ['l', 'laki-laki']))->count();
-                    $totalPerempuan = $allSiswa->filter(fn($s) => in_array(strtolower($s->jenis_kelamin), ['p', 'perempuan']))->count();
-                    $totalIkutEkskul = $allSiswa->filter(fn($s) => $s->ekstrakurikulersAktif->count() > 0)->count();
+                    $totalSiswa = $stats['totalSiswa'] ?? 0;
+                    $totalLaki = $stats['totalLaki'] ?? 0;
+                    $totalPerempuan = $stats['totalPerempuan'] ?? 0;
+                    $totalIkutEkskul = $stats['totalIkutEkskul'] ?? 0;
                 @endphp
                 <div class="row g-2 justify-content-lg-end">
                     <div class="col-6 col-sm-3 col-lg-3">
@@ -277,7 +276,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($sekolah->siswa as $siswa)
+                            @foreach($siswaList as $siswa)
                             @php
                                 $gender = strtolower($siswa->jenis_kelamin ?? '');
                                 $isMale = in_array($gender, ['l', 'laki-laki']);
@@ -374,6 +373,12 @@
                 </div>
             </div>
         </div>
+
+        @if($siswaList->hasPages())
+        <div class="mt-3 d-flex justify-content-center">
+            {!! $siswaList->appends(request()->query())->links() !!}
+        </div>
+        @endif
     @else
         <!-- Empty State Card -->
         <div class="premium-card p-5 text-center my-4">
