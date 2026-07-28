@@ -12,6 +12,10 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Manajemen & Tampilan Jenis Kelamin Siswa (`jenis_kelamin`)**:
   - Migrasi database `2026_07_28_095635_add_jenis_kelamin_to_siswa_table.php` yang menambahkan kolom `jenis_kelamin` pada tabel `siswa`.
   - Penambahan elemen input dropdown Jenis Kelamin (`Laki-laki` / `Perempuan`) pada formulir Edit Siswa (`siswa/edit.blade.php`) dan Tambah Siswa (`siswa/create.blade.php`).
+- **Pembersihan Berkas & Dokumentasi Redundan**:
+  - Penghapusan folder tidak sengaja `var/`, berkas biner `assetsmanager_installation_guide.docx`, dan penggabungan dokumentasi `DEPLOYMENT_DOCKER.md`.
+- **Pembaruan Katalog & Jumlah Instruktur (`DAFTAR_AKUN_INSTRUKTUR.md`)**:
+  - Pembaruan total daftar instruktur terdaftar di database menjadi **59 Instruktur** (58 Approved, 1 Pending).
 - **Penyelesaian Error HTTP 500 & Accessor Nama Ekskul (`Ekstrakurikuler.php` & `SekolahController.php`)**:
   - Perbaikan error 1054 Unknown Column pada query eager loading `ekstrakurikulersAktif`.
   - Penambahan accessor `getNamaEkstrakurikulerAttribute()` pada model `Ekstrakurikuler.php` sebagai alias aman ke atribut `kategori_program`.
