@@ -120,22 +120,12 @@
                             <div class="row">
                                 {{-- Ganti blok kode jadwal mengajar Anda dengan ini --}}
                                 <div class="col-md-4 mb-3">
-                                    <label for="jadwal_mengajar" class="form-label">Jadwal Mengajar</label>
+                                    <label for="jadwal_mengajar" class="form-label">Tanggal Mengajar <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-calendar-day"></i></span>
-
-                                        {{-- ✅ KODE JAUH LEBIH BERSIH DAN SEDERHANA --}}
-                                        <input
-                                            type="text"
-                                            name="jadwal_mengajar"
-                                            id="jadwal_mengajar"
-                                            class="form-control @error('jadwal_mengajar') is-invalid @enderror"
-                                            value="{{ old('jadwal_mengajar', $laporanMengajar->jadwal_mengajar_formatted) }}"
-                                            required
-                                            placeholder="dd/mm/yyyy"
-                                            autocomplete="off"
-                                            {{ $laporanMengajar->ekstrakurikulerSession ? 'readonly' : '' }}>
+                                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="fas fa-calendar-day"></i></span>
+                                        <input type="date" name="jadwal_mengajar" id="jadwal_mengajar" class="form-control border-start-0 ps-0 @error('jadwal_mengajar') is-invalid @enderror" value="{{ old('jadwal_mengajar', $laporanMengajar->jadwal_mengajar ? \Carbon\Carbon::parse($laporanMengajar->jadwal_mengajar)->format('Y-m-d') : date('Y-m-d')) }}" required max="{{ date('Y-m-d') }}" />
                                     </div>
+                                    <div class="form-text small text-muted"><i class="fas fa-info-circle me-1"></i>Klik kolom di atas untuk memilih tanggal dari kalender</div>
                                     @error('jadwal_mengajar') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-4 mb-3">
@@ -224,14 +214,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(document).ready(function() {
-        // Date picker with proper format handling
-        $('#jadwal_mengajar').datepicker({
-            format: 'dd/mm/yyyy',
-            autoclose: true,
-            todayHighlight: true,
-            language: 'id',
-            weekStart: 1
-        });
+        // Native HTML5 date picker is used (matching registration wizard)
 
         // Time picker
         $('.time-picker').timepicker({
@@ -259,20 +242,6 @@
                         icon: 'error',
                         title: 'Jam Tidak Valid',
                         text: 'Jam selesai harus setelah jam mulai'
-                    });
-                    return false;
-                }
-            }
-
-            // Validate date format
-            var dateInput = $('#jadwal_mengajar').val();
-            if (dateInput) {
-                var dateParts = dateInput.split('/');
-                if (dateParts.length !== 3 || dateParts[0].length !== 2 || dateParts[1].length !== 2 || dateParts[2].length !== 4) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Format Tanggal Salah',
-                        text: 'Format tanggal harus dd/mm/yyyy'
                     });
                     return false;
                 }

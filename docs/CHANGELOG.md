@@ -12,6 +12,9 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Manajemen & Tampilan Jenis Kelamin Siswa (`jenis_kelamin`)**:
   - Migrasi database `2026_07_28_095635_add_jenis_kelamin_to_siswa_table.php` yang menambahkan kolom `jenis_kelamin` pada tabel `siswa`.
   - Penambahan elemen input dropdown Jenis Kelamin (`Laki-laki` / `Perempuan`) pada formulir Edit Siswa (`siswa/edit.blade.php`) dan Tambah Siswa (`siswa/create.blade.php`).
+- **Penyelarasan Date Picker Tanggal Mengajar (`laporan-mengajar/create` & `edit`)**:
+  - Penyelarasan komponen **Tanggal Mengajar** menggunakan HTML5 Date Picker (`type="date"`) yang seragam dengan formulir Wizard Registrasi Instruktur (`register-instructor.blade.php`).
+  - Pembaruan parsing tanggal pada `LaporanMengajarController.php` dan `StoreLaporanMengajarRequest.php` menggunakan `Carbon::parse()` sehingga mendukung format `YYYY-MM-DD` dan `DD/MM/YYYY` secara fleksibel.
 - **Pembersihan Berkas & Dokumentasi Redundan**:
   - Penghapusan folder tidak sengaja `var/`, berkas biner `assetsmanager_installation_guide.docx`, dan penggabungan dokumentasi `DEPLOYMENT_DOCKER.md`.
 - **Pembaruan Katalog & Jumlah Instruktur (`DAFTAR_AKUN_INSTRUKTUR.md`)**:

@@ -33,20 +33,15 @@ class StoreLaporanMengajarRequest extends FormRequest
                 'required',
                 function ($attribute, $value, $fail) {
                     try {
-                        \Carbon\Carbon::createFromFormat('d/m/Y', $value);
-                        $inputDate = \Carbon\Carbon::createFromFormat('d/m/Y', $value)->startOfDay();
-                        if ($inputDate->isBefore(now()->subDays(7)->startOfDay())) {
-                            $fail('Jadwal mengajar tidak boleh lebih dari 7 hari yang lalu.');
+                        $inputDate = \Carbon\Carbon::parse($value)->startOfDay();
+                        if ($inputDate->isBefore(now()->subDays(30)->startOfDay())) {
+                            $fail('Tanggal mengajar tidak boleh lebih dari 30 hari yang lalu.');
                         }
                         if ($inputDate->isAfter(now()->endOfDay())) {
-                            $fail('Jadwal mengajar tidak boleh di masa depan.');
+                            $fail('Tanggal mengajar tidak boleh di masa depan.');
                         }
                     } catch (\Exception $e) {
-                         try {
-                            \Carbon\Carbon::createFromFormat('Y-m-d', $value);
-                        } catch (\Exception $e2) {
-                            $fail('Format tanggal harus dd/mm/yyyy atau yyyy-mm-dd');
-                        }
+                        $fail('Format tanggal tidak valid');
                     }
                 },
             ],

@@ -170,11 +170,12 @@
 
                             <div class="row">
                                 <div class="col-md-4 mb-3">
-                                    <label for="jadwal_mengajar" class="form-label">Jadwal Mengajar</label>
+                                    <label for="jadwal_mengajar" class="form-label">Tanggal Mengajar <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-calendar-day"></i></span>
-                                        <input type="text" name="jadwal_mengajar" id="jadwal_mengajar" class="form-control @error('jadwal_mengajar') is-invalid @enderror" value="{{ old('jadwal_mengajar') }}" required placeholder="dd/mm/yyyy" autocomplete="off">
+                                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="fas fa-calendar-day"></i></span>
+                                        <input type="date" name="jadwal_mengajar" id="jadwal_mengajar" class="form-control border-start-0 ps-0 @error('jadwal_mengajar') is-invalid @enderror" value="{{ old('jadwal_mengajar', date('Y-m-d')) }}" required max="{{ date('Y-m-d') }}" />
                                     </div>
+                                    <div class="form-text small text-muted"><i class="fas fa-info-circle me-1"></i>Klik kolom di atas untuk memilih tanggal dari kalender</div>
                                     @error('jadwal_mengajar') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-4 mb-3">
@@ -364,14 +365,7 @@
 
         initSekolahSelect2();
 
-        // Date picker with Indonesian language
-        $('#jadwal_mengajar').datepicker({
-            format: 'dd/mm/yyyy',
-            autoclose: true,
-            todayHighlight: true,
-            language: 'id',
-            weekStart: 1
-        });
+        // Native HTML5 date picker is used (matching registration wizard)
 
         // Time picker
         $('.time-picker').timepicker({

@@ -327,7 +327,7 @@ class LaporanMengajarController extends Controller
         // Enforce H+1 Restriction for Instructors (Manual Input)
         if (Auth::user()->role === 'instruktur') {
              try {
-                $inputDate = \Carbon\Carbon::createFromFormat('d/m/Y', $validated['jadwal_mengajar'])->startOfDay();
+                $inputDate = \Carbon\Carbon::parse($validated['jadwal_mengajar'])->startOfDay();
                 
                 // Jika input date adalah masa lalu lebih dari 1 hari dari sekarang
                 if ($inputDate->copy()->addDay()->endOfDay()->isBefore(now())) {
@@ -343,7 +343,7 @@ class LaporanMengajarController extends Controller
                     if (!$hasApprovedRequest) {
                          return redirect()->back()
                             ->withInput()
-                            ->with('error', 'Tanggal kegiatan (' . $validated['jadwal_mengajar'] . ') telah melewati batas H+1. Silakan kirimkan permohonan buka akses Ad-Hoc.');
+                            ->with('error', 'Tanggal kegiatan (' . $inputDate->format('d/m/Y') . ') telah melewati batas H+1. Silakan kirimkan permohonan buka akses Ad-Hoc.');
                     }
                 }
              } catch (\Exception $e) {
@@ -356,7 +356,7 @@ class LaporanMengajarController extends Controller
         }
 
         // Format the date correctly for database storage
-        $validated['jadwal_mengajar'] = \Carbon\Carbon::createFromFormat('d/m/Y', $validated['jadwal_mengajar'])->format('Y-m-d');
+        $validated['jadwal_mengajar'] = \Carbon\Carbon::parse($validated['jadwal_mengajar'])->format('Y-m-d');
 
         // Add the instructor ID
         $validated['user_id_instruktur'] = Auth::id();
