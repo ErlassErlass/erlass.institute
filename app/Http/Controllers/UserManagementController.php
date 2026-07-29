@@ -87,8 +87,8 @@ class UserManagementController extends Controller
             'no_telephone' => 'required|string|max:20',
             'agama' => 'required|string|max:50',
             'pend_terakhir' => 'required|string|max:50',
-            'kompetensi_1' => 'required|string|max:100',
-            'kompetensi_2' => 'nullable|string|max:100',
+            'kompetensi_1' => 'required|string|in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris',
+            'kompetensi_2' => 'nullable|string|in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris',
             'role' => ['required', Rule::in(['webmaster', 'admin_sistem', 'instruktur', 'debug_user'])],
         ]);
 
@@ -155,8 +155,8 @@ class UserManagementController extends Controller
             'no_telephone' => 'required|string|max:20',
             'agama' => 'required|string|max:50',
             'pend_terakhir' => 'required|string|max:50',
-            'kompetensi_1' => 'required|string|max:100',
-            'kompetensi_2' => 'nullable|string|max:100',
+            'kompetensi_1' => 'required|string|in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris',
+            'kompetensi_2' => 'nullable|string|in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris',
         ];
 
         // Hanya webmaster yang bisa mengubah role

@@ -40,8 +40,8 @@ class RegisteredUserController extends Controller
             'no_telephone' => ['required', 'string'],
             'agama' => ['required', 'string'],
             'pend_terakhir' => ['required', 'string'],
-            'kompetensi_1' => ['required', 'string'],
-            'kompetensi_2' => ['nullable', 'string'],
+            'kompetensi_1' => ['required', 'string', 'in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris'],
+            'kompetensi_2' => ['nullable', 'string', 'in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris'],
             
             // Financial & Legal Info (Mandatory)
             'nama_bank' => ['required', 'string', 'max:100'],

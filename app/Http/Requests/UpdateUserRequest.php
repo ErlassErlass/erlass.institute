@@ -33,8 +33,8 @@ class UpdateUserRequest extends FormRequest
             'status' => ['required', 'in:Aktif,Nonaktif'],
             'agama' => ['nullable', 'string', 'max:50'],
             'pend_terakhir' => ['nullable', 'string', 'max:10'],
-            'kompetensi_1' => ['nullable', 'string', 'max:255'],
-            'kompetensi_2' => ['nullable', 'string', 'max:255'],
+            'kompetensi_1' => ['nullable', 'string', 'in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris'],
+            'kompetensi_2' => ['nullable', 'string', 'in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris'],
             'role' => ['required', 'in:webmaster,admin_sistem,admin,instruktur'],
 
             // Field untuk sistem verifikasi instruktur

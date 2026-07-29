@@ -99,8 +99,8 @@ class UserController extends Controller
             'status' => ['required', 'in:Aktif,Nonaktif'],
             'agama' => ['nullable', 'string', 'max:50'],
             'pend_terakhir' => ['nullable', 'string', 'max:10'],
-            'kompetensi_1' => ['nullable', 'string', 'max:255'],
-            'kompetensi_2' => ['nullable', 'string', 'max:255'],
+            'kompetensi_1' => ['nullable', 'string', 'in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris'],
+            'kompetensi_2' => ['nullable', 'string', 'in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris'],
             'role' => ['required', 'in:webmaster,admin_sistem,admin,instruktur'],
             'tanggal_aktif' => ['nullable', 'date'],
             'tanggal_nonaktif' => ['nullable', 'date', 'after_or_equal:tanggal_aktif'],
@@ -273,8 +273,8 @@ class UserController extends Controller
             'no_telephone' => 'required|string|max:20',
             'agama' => 'required|string|max:50',
             'pend_terakhir' => 'required|string|max:50',
-            'kompetensi_1' => 'required|string|max:100',
-            'kompetensi_2' => 'nullable|string|max:100',
+            'kompetensi_1' => 'required|string|in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris',
+            'kompetensi_2' => 'nullable|string|in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris',
         ];
 
         if ($user->role === 'instruktur') {

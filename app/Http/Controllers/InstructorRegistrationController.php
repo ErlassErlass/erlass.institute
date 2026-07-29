@@ -77,8 +77,8 @@ class InstructorRegistrationController extends Controller
             'jenjang_mengajar' => 'required|string',
             'pend_terakhir' => 'required|string',
             'universitas_jurusan' => 'required|string',
-            'kompetensi_1' => 'required|string|max:100',
-            'kompetensi_2' => 'nullable|string|max:100',
+            'kompetensi_1' => 'required|string|in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris',
+            'kompetensi_2' => 'nullable|string|in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris',
             
             // Financial & Legal
             'nama_bank' => 'required|string',
