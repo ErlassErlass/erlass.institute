@@ -436,6 +436,25 @@ class EkstrakurikulerApiController extends Controller
                 'no_hp_orangtua' => trim(strip_tags($request->no_hp_orangtua)),
             ]);
 
+            // Auto-enroll student to Rombel & Ekstrakurikuler Program if rombel ID provided
+            if ($request->filled('ekstrakurikuler_rombel_id')) {
+                $rombel = \App\Models\EkstrakurikulerRombel::find($request->ekstrakurikuler_rombel_id);
+                if ($rombel) {
+                    $isEnrolled = $rombel->siswa()->where('siswa_id', $student->id)->exists();
+                    if (!$isEnrolled) {
+                        $rombel->siswa()->syncWithoutDetaching([
+                            $student->id => [
+                                'ekstrakurikuler_id' => $rombel->ekstrakurikuler_id,
+                                'status' => 'aktif',
+                                'tanggal_daftar' => now(),
+                                'catatan' => 'Auto-enrolled via Quick Add Student',
+                            ]
+                        ]);
+                        $rombel->incrementJumlahSiswa();
+                    }
+                }
+            }
+
             // Log activity for mitigation/audit
             \App\Models\ActivityLog::create([
                 'user_id' => \Illuminate\Support\Facades\Auth::id(),

@@ -263,6 +263,7 @@
                                     <div class="form-text" style="font-size: 0.7rem;">Wajib untuk mengirim notifikasi report/absensi.</div>
                                 </div>
                                 <input type="hidden" id="schoolKodlan" value="{{ $session->rombel->ekstrakurikuler->sekolah_kodlan }}">
+                                <input type="hidden" id="rombelId" value="{{ $session->ekstrakurikuler_rombel_id }}">
                                 <button type="submit" class="btn btn-primary w-100">
                                     <i class="bi bi-person-plus me-1"></i> Simpan & Tambahkan
                                 </button>
@@ -427,7 +428,8 @@
                         jenis_kelamin: gender,
                         kelas: studentClass,
                         no_hp_orangtua: document.getElementById('newStudentPhone').value,
-                        sekolah_kodlan: kodlan
+                        sekolah_kodlan: kodlan,
+                        ekstrakurikuler_rombel_id: document.getElementById('rombelId') ? document.getElementById('rombelId').value : null
                     })
                 })
                 .then(response => response.json())
@@ -438,8 +440,7 @@
                         document.getElementById('newStudentName').value = '';
                         document.getElementById('newStudentClass').value = '';
                         document.getElementById('newStudentPhone').value = '';
-                        // Switch back to search tab maybe? Or just alert success
-                        alert('Siswa berhasil ditambahkan dan masuk daftar hadir.');
+                        alert('Siswa berhasil ditambahkan dan langsung terdaftar dalam Rombel & Program Ekstrakurikuler ini.');
                     } else {
                         alert('Gagal: ' + (res.message || 'Unknown error'));
                     }
