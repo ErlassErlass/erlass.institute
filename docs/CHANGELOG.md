@@ -12,7 +12,15 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Pengamanan Akses Langsung URL untuk Instruktur (Direct URL Manipulation Prevention)**:
   - Penambahan proteksi otorisasi pada `EkstrakurikulerSessionController@show` dan `AbsensiController@createForEkstrakurikuler` untuk memblokir instruktur yang mencoba membuka detail atau memicu laporan sesi milik instruktur lain via pengeditan URL browser (`403 Forbidden`).
   - Penambahan 3 lapis validasi guard pada `EkstrakurikulerReportController@store` (status sesi wajib `terjadwal`/`berlangsung`, cek laporan belum ada, dan tenggat H+1) untuk mencegah bypass pengiriman laporan via cURL/DevTools.
-  - Pembaruan `LaporanMengajarPolicy@update` untuk mengunci pengeditan laporan mengajar instruktur jika sudah melewati batas waktu H+1 tanpa persetujuan permohonan keterlambatan.
+  - Pembaruan `LaporanMengajarPolicy@update` mepertahankan proteksi edit H+1 instruktur.
+- **Penyelarasan Presisi Jam Mengajar Dashboard & Perhitungan Keterlambatan (`DashboardController.php` & `EkstrakurikulerSession.php`)**:
+  - Penambahan Accessor `waktu_selesai_full` yang mengombinasikan `tanggal_terjadwal` dengan `jam_selesai_terjadwal`.
+  - Pembaruan method `isPast()` sehingga sesi hari ini tidak lagi dianggap terlambat sebelum jam selesai mengajar benar-benar terlewati.
+  - Penambahan urutan jam mengajar `orderBy('jam_mulai_terjadwal', 'asc')` dan penayangan rentang waktu mengajar (`08:00 - 09:30`) pada kartu monitoring dashboard.
+- **Desain UI/UX Modern Light-Theme, Glassmorphic Modal & Akselerasi GPU (`layouts/app.blade.php` & `app.css`)**:
+  - Penyatuan tipografi aplikasi menggunakan font **Outfit, sans-serif** di seluruh komponen.
+  - Penerapan sistem modal popup modern dengan sudut melengkung `20px`, bayangan lembut melayang (`box-shadow: 0 20px 25px -5px rgba(0,0,0,0.08)`), dan latar buram *glassmorphism backdrop blur* (`backdrop-filter: blur(8px); background: rgba(15,23,42,0.35)`).
+  - Penambahan akselerasi perangkat keras GPU (`will-change: transform, opacity;` & `transform: translateZ(0);`) untuk memastikan animasi modal 60 FPS tanpa lag.
 
 ## [1.8.9] - 2026-07-29
 
