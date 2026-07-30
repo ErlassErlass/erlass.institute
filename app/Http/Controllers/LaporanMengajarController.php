@@ -120,7 +120,8 @@ class LaporanMengajarController extends Controller
             now()->endOfMonth(),
         ])->count();
 
-        $totalInstruktur = User::whereIn('role', ['instruktur', 'admin'])
+        $totalInstruktur = User::where('role', 'instruktur')
+            ->where('verification_status', 'approved')
             ->when(! in_array($user->role, ['admin', 'admin_sistem', 'webmaster']), function ($query) use ($user) {
                 $query->where('id', $user->id);
             })
@@ -129,9 +130,12 @@ class LaporanMengajarController extends Controller
         // Get paginated results (25 items per page for optimal load balance)
         $laporan = $laporanQuery->latest()->paginate(25);
         
-        // Optimize: Cache expensive dropdown data
-        $instructors = \Illuminate\Support\Facades\Cache::remember('instructors_list', 300, function () {
-            return User::whereIn('role', ['instruktur', 'admin'])->orderBy('nama_lengkap')->get();
+        // Optimize: Cache expensive dropdown data (only verified instructors)
+        $instructors = \Illuminate\Support\Facades\Cache::remember('instructors_list_approved', 300, function () {
+            return User::where('role', 'instruktur')
+                ->where('verification_status', 'approved')
+                ->orderBy('nama_lengkap')
+                ->get();
         });
 
         // Optimize: Cache categories
