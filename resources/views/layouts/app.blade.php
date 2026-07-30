@@ -86,6 +86,7 @@
             background-color: rgba(15, 23, 42, 0.35) !important;
             backdrop-filter: blur(8px) !important;
             -webkit-backdrop-filter: blur(8px) !important;
+            will-change: opacity;
         }
 
         .modal-content {
@@ -94,6 +95,8 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
             background: #ffffff !important;
             overflow: hidden;
+            will-change: transform, opacity;
+            transform: translateZ(0);
         }
 
         .modal-header {
