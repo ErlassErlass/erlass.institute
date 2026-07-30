@@ -77,8 +77,55 @@
             
             --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --shadow-soft: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.01);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+            --shadow-soft: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        }
+
+        /* Modern Glassmorphism Backdrop & Soft Elevation Modal System */
+        .modal-backdrop {
+            background-color: rgba(15, 23, 42, 0.35) !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+        }
+
+        .modal-content {
+            border: 1px solid rgba(226, 232, 240, 0.9) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+            background: #ffffff !important;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background-color: #f8fafc !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            padding: 1.25rem 1.5rem !important;
+        }
+
+        .modal-header .btn-close {
+            opacity: 0.6;
+            transition: all 0.2s ease;
+            border-radius: 50%;
+            padding: 0.5rem;
+        }
+
+        .modal-header .btn-close:hover {
+            opacity: 1;
+            background-color: rgba(148, 163, 184, 0.15);
+        }
+
+        .modal-footer {
+            background-color: #f8fafc !important;
+            border-top: 1px solid #f1f5f9 !important;
+            padding: 1rem 1.5rem !important;
+        }
+
+        .select2-container--bootstrap-5 {
+            z-index: 1060 !important;
+        }
+
+        .flatpickr-calendar {
+            z-index: 1065 !important;
         }
 
         /* Custom Placeholder */
