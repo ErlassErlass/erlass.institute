@@ -171,12 +171,7 @@
         });
 
         // Dynamic Rombel Filter based on Sekolah selection
-        var isInitialLoad = true;
         $('#sekolah_kodlan').on('change', function() {
-            if (isInitialLoad) {
-                isInitialLoad = false;
-                return;
-            }
             var sekolahKodlan = $(this).val();
             var $rombelSelect = $('#rombel');
 
