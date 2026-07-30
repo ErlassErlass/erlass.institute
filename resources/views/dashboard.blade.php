@@ -11,7 +11,7 @@
         <div class="col-md-6 text-md-end mt-3 mt-md-0">
             <div class="d-inline-flex align-items-center gap-2 bg-white px-4 py-2 rounded-pill shadow-sm border">
                 <i class="bi bi-calendar3 text-primary"></i>
-                <span class="fw-medium text-dark">{{ now()->translatedFormat('l, d F Y') }}</span>
+                <span class="fw-medium text-dark">{{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }}</span>
             </div>
         </div>
     </div>
@@ -126,7 +126,7 @@
                 <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold text-dark">
                         <i class="bi bi-calendar-day me-2 text-primary"></i>Jadwal Hari Ini 
-                        <span class="text-muted fs-6 ms-2">({{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }})</span>
+                        <span class="text-muted fs-6 ms-2">({{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM Y') }})</span>
                     </h5>
                     @if(isset($todays_schedule))
                         <span class="badge bg-primary rounded-pill">{{ $todays_schedule->count() }} Sesi</span>

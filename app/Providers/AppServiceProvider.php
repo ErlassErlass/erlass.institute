@@ -24,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Set Carbon locale to Indonesian
+        \Carbon\Carbon::setLocale('id');
+
         // Set custom pagination views
         Paginator::defaultView('custom.pagination');
         Paginator::defaultSimpleView('custom.simple-pagination');
