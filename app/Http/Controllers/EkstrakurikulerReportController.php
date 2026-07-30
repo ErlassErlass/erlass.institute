@@ -77,8 +77,8 @@ class EkstrakurikulerReportController extends Controller
         // Ambil daftar materi berdasarkan kategori program
         $kategori = $session->rombel->ekstrakurikuler->kategori_program;
         $materiList = \App\Models\RefMateri::where('kategori', $kategori)
-             ->orderByRaw("CASE WHEN materi = 'Lain - Lain' THEN 1 ELSE 0 END")
-            ->orderBy('materi', 'asc')
+            ->orderByRaw("CASE WHEN TRIM(materi) = 'Lain - Lain' THEN 1 ELSE 0 END")
+            ->orderBy('id', 'asc')
             ->pluck('materi');
 
         return view('ekstrakurikuler.reports.create', compact('session', 'siswaList', 'defaults', 'materiList'));
