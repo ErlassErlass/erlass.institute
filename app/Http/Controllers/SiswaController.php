@@ -124,6 +124,33 @@ class SiswaController extends Controller
 
         return redirect()->route('siswa.index')->with('success', 'Siswa deleted!');
     }
+
+    public function bulkDestroy(Request $request)
+    {
+        if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
+
+        $request->validate([
+            'siswa_ids' => 'required|array|min:1',
+            'siswa_ids.*' => 'exists:siswa,id',
+        ], [
+            'siswa_ids.required' => 'Pilih minimal satu siswa untuk dihapus.',
+            'siswa_ids.min' => 'Pilih minimal satu siswa untuk dihapus.',
+        ]);
+
+        $ids = $request->input('siswa_ids', []);
+        $count = count($ids);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($ids) {
+            // Hapus absensi terkait
+            \App\Models\Absensi::whereIn('siswa_id', $ids)->delete();
+            // Hapus pendaftaran ekstrakurikuler (pivot)
+            \Illuminate\Support\Facades\DB::table('ekstrakurikuler_siswa')->whereIn('siswa_id', $ids)->delete();
+            // Hapus siswa
+            Siswa::whereIn('id', $ids)->delete();
+        });
+
+        return redirect()->back()->with('success', "{$count} data siswa berhasil dihapus secara bersamaan.");
+    }
     public function import()
     {
         if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');

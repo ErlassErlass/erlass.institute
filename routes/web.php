@@ -90,6 +90,7 @@ Route::middleware(['auth'])->group(function () {
     // Siswa Import Routes
     Route::get('siswa/import', [SiswaController::class, 'import'])->name('siswa.import');
     Route::post('siswa/import', [SiswaController::class, 'processImport'])->name('siswa.process-import');
+    Route::post('siswa/bulk-destroy', [SiswaController::class, 'bulkDestroy'])->name('siswa.bulk-destroy');
     Route::post('/rombel/{rombel}/import-siswa', [App\Http\Controllers\RombelSiswaController::class, 'importToRombel'])->name('rombel.import-siswa');
     Route::resource('siswa', SiswaController::class);
 
