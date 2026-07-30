@@ -147,7 +147,7 @@
             @endif
 
             <div class="table-responsive d-none d-md-block">
-                <table class="table table-modern align-middle mb-0" id="laporan-mengajar-table">
+                <table class="table table-modern table-compact align-middle mb-0" id="laporan-mengajar-table">
                     <thead>
                         <tr>
                             <th width="15%">Tanggal</th>

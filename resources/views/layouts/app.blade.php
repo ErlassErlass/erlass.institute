@@ -362,14 +362,22 @@
             letter-spacing: 0.05em;
             background-color: #f8fafc;
             border-bottom: 1px solid var(--border-color);
-            padding: 1.25rem 1rem;
+            padding: 0.75rem 0.85rem;
         }
         
         .table tbody td {
-            padding: 1.25rem 1rem;
+            padding: 0.65rem 0.85rem;
             vertical-align: middle;
             color: #334155;
             border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-compact thead th {
+            padding: 0.65rem 0.75rem !important;
+        }
+
+        .table-compact tbody td {
+            padding: 0.55rem 0.75rem !important;
         }
         
         /* Dropdowns */
