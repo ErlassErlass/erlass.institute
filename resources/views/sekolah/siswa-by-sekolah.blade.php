@@ -199,7 +199,7 @@
                     </span>
                 </div>
                 <p class="text-white-50 mb-0 d-flex align-items-center gap-2 flex-wrap small">
-                    <span><i class="bi bi-geo-alt-fill me-1 text-info"></i> {{ $sekolah->kotkab ?? 'Lokasi Sekolah' }}, {{ $sekolah->provinsi ?? '' }}</span>
+                    <span><i class="bi bi-geo-alt-fill me-1 text-info"></i> {{ $sekolah->formatted_lokasi }}</span>
                     <span class="opacity-50">•</span>
                     <span><i class="bi bi-award-fill me-1 text-warning"></i> Jenjang {{ $sekolah->jenjang ?? '-' }} ({{ $sekolah->status ?? 'Swasta' }})</span>
                 </p>

@@ -71,7 +71,7 @@
                                     <h6 class="fw-bold text-dark mb-1" style="min-height: 2.5em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;" title="{{ $sekolah->namasekolah }}">
                                         {{ $sekolah->namasekolah }}
                                     </h6>
-                                    <small class="text-muted d-block">{{ $sekolah->kotkab ?? 'Kota/Kab' }}</small>
+                                    <small class="text-muted d-block"><i class="bi bi-geo-alt me-1 text-primary opacity-75"></i>{{ $sekolah->formatted_lokasi }}</small>
                                 </div>
                             </div>
 

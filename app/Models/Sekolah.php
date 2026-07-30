@@ -93,4 +93,32 @@ class Sekolah extends Model
         return $this->hasMany(Ekstrakurikuler::class, 'sekolah_kodlan', 'kodlan');
     }
 
+    /**
+     * Accessor untuk mengembalikan nama lokasi lengkap (Kecamatan & Kota/Kabupaten).
+     */
+    public function getFormattedLokasiAttribute(): string
+    {
+        $parts = [];
+
+        if (!empty($this->kec)) {
+            $parts[] = 'Kec. ' . $this->kec;
+        }
+
+        if (!empty($this->kota)) {
+            $kotaStr = \Illuminate\Support\Str::title($this->kota);
+            if (!\Illuminate\Support\Str::startsWith(strtolower($kotaStr), ['kota', 'kab'])) {
+                $prefix = (strtolower($this->kotkab ?? '') === 'kabupaten') ? 'Kab. ' : 'Kota ';
+                $kotaStr = $prefix . $kotaStr;
+            }
+            $parts[] = $kotaStr;
+        } elseif (!empty($this->kotkab) && !in_array(strtolower($this->kotkab), ['kota', 'kabupaten'])) {
+            $parts[] = $this->kotkab;
+        }
+
+        if (empty($parts) && !empty($this->provinsi)) {
+            $parts[] = $this->provinsi;
+        }
+
+        return !empty($parts) ? implode(', ', $parts) : ($this->kotkab ?? 'Lokasi N/A');
+    }
 }
