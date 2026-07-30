@@ -62,10 +62,11 @@ Kebijakan registrasi mandiri dengan kelengkapan data awal ini diterapkan dengan 
 
 ## 📊 4. Ringkasan Instruktur Terdaftar Saat Ini
 
-Per 28 Juli 2026, total instruktur terdaftar di database `erlass_db` adalah **60 Instruktur**:
-- **Disetujui (Approved)**: 59 Instruktur (Termasuk **Abu Anip** - `ICE20266` / `hanifabu0210@gmail.com`)
-- **Menunggu Verifikasi (Pending)**: 1 Instruktur (`Instruktur Pending`)
+Per 29 Juli 2026, total instruktur terdaftar di database `erlass_db` adalah **67 Instruktur**:
+- **Disetujui & Terverifikasi (Approved)**: 67 Instruktur
+- **Status Akun**: 67 Aktif
 
 ---
 
-_Dokumen diperbarui: 28 Juli 2026 | Sistem: erlass.institute_
+_Dokumen diperbarui: 29 Juli 2026 | Sistem: erlass.institute_
+

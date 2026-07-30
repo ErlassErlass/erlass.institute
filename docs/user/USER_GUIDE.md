@@ -73,6 +73,14 @@ Modul ini menggunakan **Wizard Multi-Step** untuk memastikan kelengkapan data se
 > [!TIP]
 > **Impor & Registrasi Siswa**: Gunakan fitur **Unggah Excel/CSV** di halaman **Manajemen Siswa** program ekskul (`ekstrakurikuler/{id}/enrollment`). Unduh template CSV baru yang disediakan di halaman tersebut (`Template_Import_Siswa_Program.csv`) dengan kolom `nama_lengkap, nisn, kelas_akademik, no_hp_orangtua, target_rombel_ekskul`. Sistem akan otomatis mencocokkan target rombel ekskul (misal: "Rombel 1") dan **otomatis mengirim Welcome Message WhatsApp** kepada orang tua jika nomor HP terisi. Fitur pesan otomatis ini juga berlaku untuk fitur *Quick Add* oleh Instruktur di halaman Absensi.
 
+#### 6.1 Menambah Rombel ke Program yang Sudah Ada
+Admin dan Webmaster dapat menambah Rombel (kelompok belajar) baru ke program ekskul yang sudah ada tanpa harus membuat ulang program dari awal:
+1. Buka halaman detail program ekskul (`/ekstrakurikuler/{id}`).
+2. Pilih tab **Rombel**.
+3. Klik tombol **"+ Tambah Rombel"** di kanan atas.
+4. Isi form konfigurasi (Hari, Jam, Tanggal Mulai/Selesai, Total Pertemuan, Kuota Siswa, dan Ruangan).
+5. Klik **Tambah Rombel**. Sistem akan otomatis menentukan nomor rombel selanjutnya (Rombel N+1) dan meng-generate seluruh jadwal pertemuannya.
+
 ### 7. Kompensasi & Proses Payroll
 *   **Kelola Tarif**: Admin dan Webmaster dapat mengatur tarif dasar pengajaran per level instruktur (Junior, Madya, Senior, Expert, Master Trainer) dan bonus per kategori produk (Scratch, Microbit, Python, dll.).
 *   **Proses Payroll Bulanan**: Admin keuangan dapat membuat Batch Payroll baru berstatus `Draft` untuk bulan tertentu.
@@ -223,6 +231,12 @@ Sistem mengelompokkan kehadiran per **4 Pertemuan (1 Periode)**.
 ### Hak Akses Data
 - **Data Master (Sekolah, Siswa)**: Menu ini **DISEMBUNYIKAN** dari Instruktur. Hanya Admin dan Webmaster yang dapat mengakses, menambah, atau mengedit data master.
 - **Validasi Server**: Sistem menolak akses paksa melalui URL jika user tidak memiliki hak akses yang sesuai.
+
+### Sterilisasi & Validasi Input Server-Side
+Sistem menerapkan pengamanan berlapis pada seluruh formulir pelaporan (`/laporan-mengajar/create` dan `/ekstrakurikuler/sessions/{id}/report/create`):
+* **Proteksi DevTools / Manipulasi Opsi**: Seluruh input pilihan (dropdown, radio button, dan enum status seperti Keaktifan, Pemahaman Materi, Jenis Kelamin, Kategori Pengajaran, dan Status Absensi) dikunci menggunakan aturan validasi ketat `Rule::in(...)`. Upaya manipulasi nilai HTML dari sisi peramban (DevTools F12) akan secara otomatis ditolak server dengan pesan error validasi.
+* **Sanitasi Anti-XSS**: Input teks bebas (seperti Topik Materi, Catatan, Refleksi, Rombel) secara otomatis dibersihkan dari tag HTML/Script (`strip_tags`) untuk memproteksi sistem dari serangan injeksi script berbahaya.
+* **Integritas Relasi Data**: ID siswa dan ID instruktur asisten divalidasi keaktifannya secara langsung ke basis data server sebelum disimpan.
 
 ### Bantuan
 *   Jika mengalami kendala teknis, hubungi **Admin Sistem**.

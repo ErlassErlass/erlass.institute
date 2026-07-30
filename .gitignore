@@ -27,3 +27,6 @@ yarn-error.log
 debug_*.php
 debug_*.json
 **/debug_temp.php
+
+# Agent skills
+.agents/

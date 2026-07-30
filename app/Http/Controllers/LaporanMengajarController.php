@@ -562,12 +562,40 @@ class LaporanMengajarController extends Controller
 
     protected function validationRules(): array
     {
+        $allowedKategori = array_unique(array_merge(
+            [
+                'Pameran',
+                'Pendampingan Lomba',
+                'Sosialisasi bersama Sales',
+                'Trial Class',
+                'Inkul Coding Scratch',
+                'Inkul LMS Koding KA SD',
+                'Inkul LKPD Informatika SD',
+                'Inkul LKPD Informatika SMP',
+                'Inkul LKPD Informatika SMA',
+                'ekstrakurikuler',
+            ],
+            \App\Models\RefMateri::distinct()->pluck('kategori')->toArray()
+        ));
+
         return [
             'total_pertemuan' => 'nullable|integer|min:1|max:200',
-            'user_id_assisten' => 'nullable|exists:users,id',
-            'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
-            'pertemuan_ke' => 'required|integer|min:1',
-            'rombel' => 'required|string|max:255',
+            'user_id_assisten' => [
+                'nullable',
+                'integer',
+                \Illuminate\Validation\Rule::exists('users', 'id')->where(function ($query) {
+                    $query->where('role', 'instruktur');
+                }),
+            ],
+            'sekolah_kodlan' => 'required|string|exists:sekolah,kodlan',
+            'pertemuan_ke' => 'required|integer|min:1|max:100',
+            'rombel' => 'required|string|max:50',
+            'kategori_pengajaran' => [
+                'sometimes',
+                'required',
+                'string',
+                \Illuminate\Validation\Rule::in($allowedKategori),
+            ],
             'jadwal_mengajar' => [
                 'required',
                 function ($attribute, $value, $fail) {
@@ -584,9 +612,8 @@ class LaporanMengajarController extends Controller
             ],
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
-            'materi_pengajaran' => 'required|string',
-            'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // Limit increased to 5MB
-            // Removed: foto_absensi_siswa, refleksi_siswa, refleksi_capaian, keaktifan, pemahaman_materi
+            'materi_pengajaran' => 'required|string|max:1000',
+            'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ];
     }
 }

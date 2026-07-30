@@ -95,19 +95,70 @@ class EkstrakurikulerReportController extends Controller
         $isAssigned = $user->id === $session->user_id_instruktur || $user->id === $session->user_id_asisten;
         
         if (!in_array($user->role, $allowedRoles) && !$isAssigned) {
-             abort(403, 'Akses Ditolak: Anda bukan instruktur yang ditugaskan.');
+             abort(403, 'Akses Ditolak: Anda bukan instruktur yang ditugaskan untuk sesi ini.');
+        }
+
+        // Guard Check 1: Session status must be scheduled or in progress
+        if (!in_array($session->status, ['terjadwal', 'berlangsung'])) {
+            return redirect()->route('ekstrakurikuler.sessions.show', $session)
+                ->with('error', 'Laporan tidak dapat dibuat untuk sesi dengan status ' . $session->status_label);
+        }
+
+        // Guard Check 2: Report must not already exist
+        if ($session->laporan_mengajar_id) {
+            return redirect()->route('laporan-mengajar.show', $session->laporan_mengajar_id)
+                ->with('info', 'Laporan sudah dibuat sebelumnya untuk sesi ini.');
+        }
+
+        // Guard Check 3: Enforce H+1 Restriction for Instructors
+        if ($user->role === 'instruktur') {
+            $scheduleDate = $session->tanggal_terjadwal;
+            if ($scheduleDate) {
+                $deadline = \Carbon\Carbon::parse($scheduleDate)->addDay()->endOfDay();
+                $hasApprovedRequest = $session->lateReportRequests()
+                    ->where("user_id", $user->id)
+                    ->where("status", "approved")
+                    ->exists();
+
+                if (now()->greaterThan($deadline) && !$hasApprovedRequest) {
+                    return redirect()->route('ekstrakurikuler.sessions.show', $session)
+                        ->with('error', 'Batas waktu pembuatan laporan (H+1) telah habis. Silakan hubungi Admin untuk bantuan.');
+                }
+            }
         }
 
         $request->validate([
-            'foto_kegiatan' => 'required|image|max:5120', // 5MB max
+            'foto_kegiatan' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB max
             'topik_materi' => 'required|string|max:255',
-            'foto_absensi_siswa' => 'required|image|max:5120', // Wajib TTD & Stempel
-            'absensi' => 'required|array',
-            'absensi.*' => 'in:0,1', // 0: Absent, 1: Present
-            'keaktifan' => 'required|in:sangat_pasif,pasif,aktif,sangat_aktif',
-            'pemahaman_materi' => 'required|in:belum_paham,sedikit_paham,paham,sangat_paham',
+            'foto_absensi_siswa' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // Wajib TTD & Stempel
+            'absensi' => 'required|array|min:1',
+            'absensi.*' => ['required', \Illuminate\Validation\Rule::in([0, 1, '0', '1', 'hadir', 'alpha'])], // Strict status validation
+            'keaktifan' => ['required', \Illuminate\Validation\Rule::in(['sangat_pasif', 'pasif', 'aktif', 'sangat_aktif'])],
+            'pemahaman_materi' => ['required', \Illuminate\Validation\Rule::in(['belum_paham', 'sedikit_paham', 'paham', 'sangat_paham'])],
             'file_project' => 'required|file|mimes:sb3,zip,rar|max:10240', // Max 10MB
+            'deskripsi' => 'nullable|string|max:2000',
+            'refleksi_siswa' => 'nullable|string|max:2000',
+            'refleksi_capaian' => 'nullable|string|max:2000',
+            'catatan' => 'nullable|string|max:2000',
+        ], [
+            'keaktifan.in' => 'Pilihan keaktifan kelas tidak valid.',
+            'pemahaman_materi.in' => 'Pilihan pemahaman materi tidak valid.',
+            'absensi.*.in' => 'Status kehadiran siswa tidak valid.',
         ]);
+
+        // Validate that all student IDs in absensi array are valid integers and exist in database
+        $studentIds = array_keys($request->absensi);
+        $validStudentCount = Siswa::whereIn('id', $studentIds)->count();
+        if ($validStudentCount !== count($studentIds)) {
+            return back()->withErrors(['absensi' => 'Daftar siswa pada absensi berisi data yang tidak valid.'])->withInput();
+        }
+
+        // Sanitize string inputs to prevent HTML/Script injection
+        $topikMateriClean = trim(strip_tags($request->topik_materi));
+        $deskripsiClean = $request->filled('deskripsi') ? trim(strip_tags($request->deskripsi)) : null;
+        $refleksiSiswaClean = $request->filled('refleksi_siswa') ? trim(strip_tags($request->refleksi_siswa)) : '-';
+        $refleksiCapaianClean = $request->filled('refleksi_capaian') ? trim(strip_tags($request->refleksi_capaian)) : '-';
+        $catatanClean = $request->filled('catatan') ? trim(strip_tags($request->catatan)) : null;
 
         DB::beginTransaction();
         try {
@@ -138,15 +189,15 @@ class EkstrakurikulerReportController extends Controller
                 'jam_mulai' => $session->jam_mulai_terjadwal, // Defaulting to scheduled if not tracked
                 'jam_selesai' => now()->format('H:i'), // Finished just now
                 'kategori_pengajaran' => 'ekstrakurikuler',
-                'materi_pengajaran' => $request->topik_materi,
+                'materi_pengajaran' => $topikMateriClean,
                 'jumlah_siswa_hadir' => $jumlahSiswaHadir,
                 'jumlah_siswa_keluar' => 0,
                 'jumlah_siswa_tidak_hadir' => $jumlahSiswaTidakHadir,
                 'foto_kegiatan' => $fotoKegiatanPath,
                 'foto_absensi_siswa' => $fotoAbsensiPath,
                 'file_project' => $fileProjectPath,
-                'refleksi_siswa' => $request->refleksi_siswa ?? '-',
-                'refleksi_capaian' => $request->refleksi_capaian ?? '-',
+                'refleksi_siswa' => $refleksiSiswaClean,
+                'refleksi_capaian' => $refleksiCapaianClean,
                 'keaktifan' => $request->keaktifan,
                 'pemahaman_materi' => $request->pemahaman_materi,
                 'metadata_json' => [
@@ -180,9 +231,9 @@ class EkstrakurikulerReportController extends Controller
                 }
 
                 $statusVal = $status;
-                if ($statusVal == 1 || $statusVal === 'hadir') {
+                if ($statusVal == 1 || $statusVal === 'hadir' || $statusVal === '1') {
                     $statusVal = 'hadir';
-                } elseif ($statusVal == 0 || $statusVal === 'alpha') {
+                } elseif ($statusVal == 0 || $statusVal === 'alpha' || $statusVal === '0') {
                     $statusVal = 'alpha';
                 }
 
@@ -196,7 +247,7 @@ class EkstrakurikulerReportController extends Controller
             // 4. Complete the Session
             $session->complete([
                 'laporan_mengajar_id' => $laporan->id,
-                'catatan' => $request->catatan,
+                'catatan' => $catatanClean,
                 'auto_create_laporan' => false // We just created it manually
             ]);
 

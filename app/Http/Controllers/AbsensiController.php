@@ -65,6 +65,15 @@ class AbsensiController extends Controller
      */
     public function createForEkstrakurikuler(EkstrakurikulerSession $session)
     {
+        // Otorisasi: Admin boleh semua, Instruktur hanya boleh sesi tugasnya
+        $user = auth()->user();
+        $allowedRoles = ['webmaster', 'admin_sistem', 'admin'];
+        if (!in_array($user->role, $allowedRoles)) {
+            if ($session->user_id_instruktur !== $user->id && $session->user_id_asisten !== $user->id) {
+                abort(403, 'Akses Ditolak. Anda bukan instruktur atau asisten untuk sesi ini.');
+            }
+        }
+
         // Cek apakah session sudah memiliki laporan mengajar
         if (! $session->laporanMengajar()->exists()) {
             // Auto-create laporan mengajar jika belum ada

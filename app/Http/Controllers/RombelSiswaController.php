@@ -35,7 +35,8 @@ class RombelSiswaController extends Controller
             
         } catch (\Exception $e) {
             Log::error("Error importing siswa for Rombel {$rombel->id}: " . $e->getMessage());
-            return back()->withErrors(['error' => 'Gagal mengimport data: ' . $e->getMessage()]);
+            return back()->with('error', 'Gagal mengimport data: ' . $e->getMessage());
         }
     }
 }
+

@@ -175,6 +175,14 @@ class EkstrakurikulerSessionController extends Controller
      */
     public function show(EkstrakurikulerSession $session): View
     {
+        // Authorization: Admin can view all, instructor can only view assigned sessions
+        $user = auth()->user();
+        if (!$user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
+            if ($session->user_id_instruktur !== $user->id && $session->user_id_asisten !== $user->id) {
+                abort(403, 'Akses Ditolak: Anda bukan instruktur atau asisten untuk sesi ini.');
+            }
+        }
+
         $session->load(['rombel.ekstrakurikuler.sekolah', 'instruktur', 'asisten', 'laporanMengajar.absensi.siswa']);
 
         return view('ekstrakurikuler.sessions.show', compact('session'));

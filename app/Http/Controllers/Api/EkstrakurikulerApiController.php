@@ -416,21 +416,24 @@ class EkstrakurikulerApiController extends Controller
     {
         try {
             $request->validate([
-                'nama_lengkap' => 'required|string|min:3',
+                'nama_lengkap' => 'required|string|min:3|max:255',
                 'sekolah_kodlan' => 'required|string|exists:sekolah,kodlan',
-                'jenis_kelamin' => 'required|in:L,P',
-                'kelas' => 'required|string|max:50', // Added validation
-                'no_hp_orangtua' => 'required|string|max:20', // Wajib untuk WA Notif
+                'jenis_kelamin' => ['required', 'string', \Illuminate\Validation\Rule::in(['L', 'P'])],
+                'kelas' => 'required|string|max:50',
+                'no_hp_orangtua' => ['required', 'string', 'max:25', 'regex:/^[0-9+\-\s()]+$/'],
+            ], [
+                'jenis_kelamin.in' => 'Pilihan jenis kelamin tidak valid.',
+                'no_hp_orangtua.regex' => 'Format nomor HP orang tua tidak valid.',
             ]);
 
             $student = \App\Models\Siswa::create([
-                'nama_lengkap' => $request->nama_lengkap,
+                'nama_lengkap' => trim(strip_tags($request->nama_lengkap)),
                 'sekolah_kodlan' => $request->sekolah_kodlan,
                 'jenis_kelamin' => $request->jenis_kelamin,
                 // Generate temporary NISN: TEMP + UNIX Seconds + Random 3 digit
                 'nisn' => 'TMP' . time() . rand(100, 999), 
-                'kelas' => $request->kelas, // Use input
-                'no_hp_orangtua' => $request->no_hp_orangtua,
+                'kelas' => trim(strip_tags($request->kelas)),
+                'no_hp_orangtua' => trim(strip_tags($request->no_hp_orangtua)),
             ]);
 
             // Log activity for mitigation/audit

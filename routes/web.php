@@ -217,6 +217,8 @@ Route::middleware(['auth'])->group(function () {
 
 
     // Session regeneration (preview moved to API)
+    Route::post('ekstrakurikuler/{ekstrakurikuler}/rombel', [EkstrakurikulerController::class, 'storeRombel'])
+        ->name('ekstrakurikuler.rombel.store');
     Route::post('ekstrakurikuler/{ekstrakurikuler}/regenerate-sessions', [EkstrakurikulerController::class, 'regenerateSessions'])
         ->name('ekstrakurikuler.regenerate-sessions');
 

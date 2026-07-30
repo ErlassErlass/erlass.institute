@@ -134,7 +134,7 @@ class SiswaController extends Controller
     {
         if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
         $request->validate([
-            'file' => 'required|file|mimes:csv,txt,xlsx,xls|max:2048',
+            'file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120',
         ]);
 
         $file = $request->file('file');
@@ -146,14 +146,18 @@ class SiswaController extends Controller
         try {
             $results = $importer->import($path, $file->getClientOriginalExtension());
             
-            $message = "Import selesai. Sukses: {$results['success']}, Gagal: {$results['failed']}.";
+            $message = "Import selesai! Sukses: {$results['success']} siswa, Gagal: {$results['failed']} siswa.";
+            
             if ($results['failed'] > 0) {
-                $message .= " Cek errors: " . implode('; ', array_slice($results['errors'], 0, 5));
+                return redirect()->route('siswa.index')
+                    ->with($results['success'] > 0 ? 'warning' : 'error', $message)
+                    ->with('import_errors', $results['errors']);
             }
 
-            return redirect()->route('siswa.index')->with($results['failed'] == 0 ? 'success' : 'warning', $message);
+            return redirect()->route('siswa.index')->with('success', $message);
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan saat import: ' . $e->getMessage());
         }
     }
 }
+

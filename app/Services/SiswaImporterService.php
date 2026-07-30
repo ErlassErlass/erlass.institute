@@ -12,6 +12,35 @@ use SimpleXLSX;
 class SiswaImporterService
 {
     /**
+     * Runtime cache for Sekolah lookup to avoid redundant DB queries in loops.
+     */
+    protected array $sekolahCache = [];
+
+    /**
+     * Resolve sekolah_kodlan by kodlan or namasekolah with in-memory caching.
+     */
+    protected function resolveSekolahKodlan(?string $input): ?string
+    {
+        if (empty($input)) {
+            return null;
+        }
+
+        $cacheKey = strtolower(trim($input));
+        if (array_key_exists($cacheKey, $this->sekolahCache)) {
+            return $this->sekolahCache[$cacheKey];
+        }
+
+        $sekolah = Sekolah::where('kodlan', $input)
+            ->orWhere('namasekolah', $input)
+            ->first();
+
+        $kodlan = $sekolah ? (string)$sekolah->kodlan : (string)$input;
+        $this->sekolahCache[$cacheKey] = $kodlan;
+
+        return $kodlan;
+    }
+
+    /**
      * Import siswa from CSV/Excel file.
      * 
      * @param string $filePath
@@ -32,42 +61,61 @@ class SiswaImporterService
             return $results;
         }
 
-        foreach ($data as $row) {
-            $row = array_change_key_case($row, CASE_LOWER);
-            
-            // Normalize keys (basic cleanup)
-            $cleanRow = [];
-            foreach ($row as $key => $value) {
-                $cleanKey = strtolower(trim($key));
-                $cleanKey = preg_replace('/[^a-z0-9]/', '_', $cleanKey);
-                $cleanKey = preg_replace('/_+/', '_', trim($cleanKey, '_'));
-                $cleanRow[$cleanKey] = is_string($value) ? trim($value) : $value;
-            }
-            
-            // Smart Map Headers (Handle variations like 'Nama Siswa' -> 'nama_lengkap')
-            $normalizedRow = $this->mapHeaders($cleanRow);
-            
-            $validation = $this->validateRow($normalizedRow);
+        DB::beginTransaction();
 
-            if ($validation->fails()) {
-                $results['failed']++;
-                // Detailed error info to help debug header issues
-                $debugHeaders = implode(', ', array_keys($normalizedRow));
-                $results['errors'][] = "Baris " . ($results['success'] + $results['failed'] + 1) . ": " . implode(', ', $validation->errors()->all()) . " (Terbaca: $debugHeaders)";
-                continue;
+        try {
+            foreach ($data as $row) {
+                $row = array_change_key_case($row, CASE_LOWER);
+                
+                // Normalize keys & values (auto-cast numbers like 1, 10, 1A to string)
+                $cleanRow = [];
+                foreach ($row as $key => $value) {
+                    $cleanKey = strtolower(trim($key));
+                    $cleanKey = preg_replace('/[^a-z0-9]/', '_', $cleanKey);
+                    $cleanKey = preg_replace('/_+/', '_', trim($cleanKey, '_'));
+                    
+                    if ($value !== null) {
+                        if (is_float($value) && floor($value) == $value) {
+                            $value = (string)(int)$value;
+                        } else {
+                            $value = (string)$value;
+                        }
+                        $value = trim($value);
+                    }
+                    $cleanRow[$cleanKey] = $value;
+                }
+                
+                // Smart Map Headers (Handle variations like 'Nama Siswa' -> 'nama_lengkap')
+                $normalizedRow = $this->mapHeaders($cleanRow);
+                
+                $validation = $this->validateRow($normalizedRow);
+
+                if ($validation->fails()) {
+                    $results['failed']++;
+                    // Detailed error info to help debug header issues
+                    $debugHeaders = implode(', ', array_keys($normalizedRow));
+                    $results['errors'][] = "Baris " . ($results['success'] + $results['failed'] + 1) . ": " . implode(', ', $validation->errors()->all()) . " (Terbaca: $debugHeaders)";
+                    continue;
+                }
+
+                try {
+                    $this->createOrUpdateSiswa($normalizedRow);
+                    $results['success']++;
+                } catch (\Exception $e) {
+                    $results['failed']++;
+                    $results['errors'][] = "Baris " . ($results['success'] + $results['failed'] + 1) . ": Error saving data - " . $e->getMessage();
+                }
             }
 
-            try {
-                $this->createOrUpdateSiswa($normalizedRow);
-                $results['success']++;
-            } catch (\Exception $e) {
-                $results['failed']++;
-                $results['errors'][] = "Baris " . ($results['success'] + $results['failed'] + 1) . ": Error saving data - " . $e->getMessage();
-            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
         }
 
         return $results;
     }
+
 
     protected function parseFile(string $filePath, ?string $clientExtension = null): array
     {
@@ -151,34 +199,34 @@ class SiswaImporterService
 
     protected function validateRow(array &$row)
     {
-        // Pre-resolve sekolah_kodlan if passed as school name or kodlan
+        // Pre-resolve sekolah_kodlan with in-memory cache
         if (!empty($row['sekolah_kodlan'])) {
-            $sekolah = Sekolah::where('kodlan', $row['sekolah_kodlan'])
-                ->orWhere('namasekolah', $row['sekolah_kodlan'])
-                ->first();
-            if ($sekolah) {
-                $row['sekolah_kodlan'] = $sekolah->kodlan;
+            $resolved = $this->resolveSekolahKodlan($row['sekolah_kodlan']);
+            if ($resolved) {
+                $row['sekolah_kodlan'] = $resolved;
+            }
+        }
+
+        // Ensure string conversion before validation
+        foreach (['nama_lengkap', 'nisn', 'sekolah_kodlan', 'kelas', 'no_hp_orangtua'] as $field) {
+            if (isset($row[$field]) && $row[$field] !== null) {
+                $row[$field] = (string)$row[$field];
             }
         }
 
         return Validator::make($row, [
-            'nama_lengkap' => 'required|string',
-            'nisn' => 'required|string',
+            'nama_lengkap' => 'required',
+            'nisn' => 'required',
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
-            'kelas' => 'required|string',
+            'kelas' => 'required',
             'no_hp_orangtua' => 'nullable',
         ]);
     }
 
+
     protected function createOrUpdateSiswa(array $data)
     {
-        $sekolahKodlan = $data['sekolah_kodlan'];
-        $sekolah = Sekolah::where('kodlan', $sekolahKodlan)
-            ->orWhere('namasekolah', $sekolahKodlan)
-            ->first();
-        if ($sekolah) {
-            $sekolahKodlan = $sekolah->kodlan;
-        }
+        $sekolahKodlan = $this->resolveSekolahKodlan($data['sekolah_kodlan'] ?? null) ?? $data['sekolah_kodlan'];
 
         Siswa::updateOrCreate(
             ['nisn' => $data['nisn']],
@@ -191,6 +239,7 @@ class SiswaImporterService
             ]
         );
     }
+
 
     /**
      * Map common header variations to standard keys
@@ -262,60 +311,77 @@ class SiswaImporterService
         $importedIndex = 0;
         $updatedIndex = 0;
 
-        foreach ($rows as $rawRow) {
-            $cleanRow = [];
-            foreach ($rawRow as $key => $value) {
-                $cleanKey = strtolower(trim($key));
-                $cleanKey = preg_replace('/[^a-z0-9]/', '_', $cleanKey);
-                $cleanKey = preg_replace('/_+/', '_', trim($cleanKey, '_'));
-                $cleanRow[$cleanKey] = is_string($value) ? trim($value) : $value;
-            }
+        DB::beginTransaction();
 
-            $mapped = $this->mapHeaders($cleanRow);
-            $nama = $mapped['nama_lengkap'];
-            $nisn = $mapped['nisn'];
-            $kelas = $mapped['kelas'];
-
-            if (empty($nama) && empty($nisn)) continue;
-
+        try {
+            // Preload existing attached student IDs into a hash set for O(1) checks
+            $attachedSiswaIds = array_flip($rombel->siswa()->pluck('siswa_id')->toArray());
             $sekolahKodlan = $rombel->ekstrakurikuler->sekolah_kodlan ?? null;
-            
-            $siswa = null;
-            if (!empty($nisn)) {
-                $siswa = Siswa::where('nisn', $nisn)->first();
-            }
-            if (!$siswa && !empty($nama)) {
-                $query = Siswa::where('nama_lengkap', $nama);
-                if ($sekolahKodlan) {
-                    $query->where('sekolah_kodlan', $sekolahKodlan);
+
+            foreach ($rows as $rawRow) {
+                $cleanRow = [];
+                foreach ($rawRow as $key => $value) {
+                    $cleanKey = strtolower(trim($key));
+                    $cleanKey = preg_replace('/[^a-z0-9]/', '_', $cleanKey);
+                    $cleanKey = preg_replace('/_+/', '_', trim($cleanKey, '_'));
+                    if ($value !== null) {
+                        $value = is_float($value) && floor($value) == $value ? (string)(int)$value : (string)$value;
+                        $value = trim($value);
+                    }
+                    $cleanRow[$cleanKey] = $value;
                 }
-                $siswa = $query->first();
+
+                $mapped = $this->mapHeaders($cleanRow);
+                $nama = $mapped['nama_lengkap'] ?? null;
+                $nisn = $mapped['nisn'] ?? null;
+                $kelas = $mapped['kelas'] ?? null;
+
+                if (empty($nama) && empty($nisn)) continue;
+
+                $siswa = null;
+                if (!empty($nisn)) {
+                    $siswa = Siswa::where('nisn', $nisn)->first();
+                }
+                if (!$siswa && !empty($nama)) {
+                    $query = Siswa::where('nama_lengkap', $nama);
+                    if ($sekolahKodlan) {
+                        $query->where('sekolah_kodlan', $sekolahKodlan);
+                    }
+                    $siswa = $query->first();
+                }
+
+                if (!$siswa) {
+                    $siswa = Siswa::create([
+                        'nama_lengkap' => $nama ?? 'Siswa Baru',
+                        'nisn' => $nisn ?? 'TMP'.rand(100000, 999999),
+                        'kelas' => $kelas ?? '-',
+                        'rombel' => $kelas ?? '-',
+                        'sekolah_kodlan' => $sekolahKodlan
+                    ]);
+                }
+
+                // Attach to Rombel (O(1) Hash Map check)
+                if (!isset($attachedSiswaIds[$siswa->id])) {
+                    $rombel->siswa()->attach($siswa->id);
+                    $attachedSiswaIds[$siswa->id] = true;
+                    $importedIndex++;
+                } else {
+                    $updatedIndex++;
+                }
             }
 
-            if (!$siswa) {
-                $siswa = Siswa::create([
-                    'nama_lengkap' => $nama ?? 'Siswa Baru',
-                    'nisn' => $nisn ?? 'TMP'.rand(100000, 999999),
-                    'kelas' => $kelas ?? '-',
-                    'rombel' => $kelas ?? '-',
-                    'sekolah_kodlan' => $sekolahKodlan
-                ]);
-            }
+            // Update rombel count once
+            $rombel->update(['jumlah_siswa' => count($attachedSiswaIds)]);
 
-            // Attach to Rombel (Many-to-Many)
-            if (!$rombel->siswa()->where('siswa_id', $siswa->id)->exists()) {
-                $rombel->siswa()->attach($siswa->id);
-                $importedIndex++;
-            } else {
-                $updatedIndex++;
-            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
         }
-
-        // Update rombel count
-        $rombel->update(['jumlah_siswa' => $rombel->siswa()->count()]);
 
         return ['imported' => $importedIndex, 'updated' => $updatedIndex];
     }
+
 
     /**
      * Import students directly to an Ekstrakurikuler program's rombels.
@@ -347,11 +413,19 @@ class SiswaImporterService
             foreach ($data as $rowIndex => $row) {
                 $row = array_change_key_case($row, CASE_LOWER);
                 
-                // Normalize keys (basic cleanup)
+                // Normalize keys & values (auto-cast numbers like 1, 10, 1A to string)
                 $cleanRow = [];
                 foreach ($row as $key => $value) {
                     $cleanKey = str_replace(' ', '_', trim($key));
-                    $cleanRow[$cleanKey] = trim($value);
+                    if ($value !== null) {
+                        if (is_float($value) && floor($value) == $value) {
+                            $value = (string)(int)$value;
+                        } else {
+                            $value = (string)$value;
+                        }
+                        $value = trim($value);
+                    }
+                    $cleanRow[$cleanKey] = $value;
                 }
 
                 // Map Headers
@@ -389,12 +463,13 @@ class SiswaImporterService
 
                 // Validate row
                 $validation = Validator::make($mappedRow, [
-                    'nama_lengkap' => 'required|string',
-                    'nisn' => 'required|string',
-                    'kelas_akademik' => 'required|string',
-                    'no_hp_orangtua' => 'nullable|string|min:10|max:15',
-                    'target_rombel_ekskul' => 'required|string',
+                    'nama_lengkap' => 'required',
+                    'nisn' => 'required',
+                    'kelas_akademik' => 'required',
+                    'no_hp_orangtua' => 'nullable|min:10|max:15',
+                    'target_rombel_ekskul' => 'required',
                 ]);
+
 
                 if ($validation->fails()) {
                     $results['failed']++;

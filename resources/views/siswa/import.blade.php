@@ -11,9 +11,39 @@
                     <h5 class="mb-0"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Import Data Siswa (Master)</h5>
                 </div>
                 <div class="card-body">
-                    @if(session('error'))
-                        <div class="alert alert-danger">{{ session('error') }}</div>
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
                     @endif
+
+                    @if(session('warning'))
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('warning') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-octagon-fill me-2"></i> {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    @if(session('import_errors') && count(session('import_errors')) > 0)
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <h6 class="alert-heading fw-bold mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Rincian Error Import Siswa:</h6>
+                            <ul class="mb-0 small ps-3" style="max-height: 200px; overflow-y: auto;">
+                                @foreach(session('import_errors') as $err)
+                                    <li>{{ $err }}</li>
+                                @endforeach
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
 
                     <div class="alert alert-warning mb-4">
                         <h6 class="alert-heading fw-bold"><i class="bi bi-lightning-charge-fill me-1"></i> Pendaftaran Cepat Ekskul?</h6>

@@ -451,4 +451,83 @@ class EkstrakurikulerController extends Controller
             return back()->withErrors(['error' => $result['message']]);
         }
     }
+
+    /**
+     * Store a new rombel for an existing ekstrakurikuler program.
+     */
+    public function storeRombel(Request $request, Ekstrakurikuler $ekstrakurikuler)
+    {
+        // Authorization: only admin roles
+        $user = auth()->user();
+        if (!$user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        $validated = $request->validate([
+            'hari' => 'required|string|in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
+            'jam_mulai' => 'required|date_format:H:i',
+            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'total_pertemuan' => 'required|integer|min:1|max:52',
+            'jumlah_siswa' => 'required|integer|min:1',
+            'ruangan' => 'nullable|string|max:255',
+            'keterangan_ruangan' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            \DB::beginTransaction();
+
+            // Determine next rombel number
+            $maxNomor = $ekstrakurikuler->rombels()->max('nomor_rombel') ?? 0;
+            $nomorRombelBaru = $maxNomor + 1;
+
+            $rombel = \App\Models\EkstrakurikulerRombel::create([
+                'ekstrakurikuler_id' => $ekstrakurikuler->id,
+                'nama_rombel' => "Rombel {$nomorRombelBaru}",
+                'nomor_rombel' => $nomorRombelBaru,
+                'hari' => $validated['hari'],
+                'jam_mulai' => $validated['jam_mulai'],
+                'jam_selesai' => $validated['jam_selesai'],
+                'tanggal_mulai' => $validated['tanggal_mulai'],
+                'tanggal_selesai' => $validated['tanggal_selesai'],
+                'total_pertemuan' => $validated['total_pertemuan'],
+                'jumlah_siswa' => $validated['jumlah_siswa'],
+                'ruangan' => $validated['ruangan'] ?? '',
+                'keterangan_ruangan' => $validated['keterangan_ruangan'] ?? '',
+                'status' => \App\Models\EkstrakurikulerRombel::STATUS_BERLANGSUNG,
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
+            ]);
+
+            // Update total_rombel on the parent program
+            $ekstrakurikuler->update([
+                'total_rombel' => $ekstrakurikuler->rombels()->count(),
+            ]);
+
+            // Auto-generate sessions using SchedulingService
+            try {
+                $schedulingService = app(\App\Services\SchedulingService::class);
+                $schedulingService->generateSessionsForRombel($rombel, ['replace_existing' => true]);
+            } catch (\Exception $e) {
+                Log::warning("Gagal generate session untuk rombel baru {$rombel->id}: " . $e->getMessage());
+            }
+
+            \DB::commit();
+
+            return redirect()->route('ekstrakurikuler.show', $ekstrakurikuler)
+                ->with('success', "Rombel {$nomorRombelBaru} berhasil ditambahkan dengan jadwal sesi otomatis!");
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            Log::error('Error creating new rombel', [
+                'ekstrakurikuler_id' => $ekstrakurikuler->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()
+                ->withErrors(['error' => 'Terjadi kesalahan saat menambahkan rombel: ' . $e->getMessage()])
+                ->withInput();
+        }
+    }
 }

@@ -62,10 +62,10 @@ class InstructorRegistrationController extends Controller
             'gelar_belakang' => 'nullable|string|max:50', 
             'nama_panggilan' => 'required|string|max:100',
             'no_hp_2' => 'required|string|max:20',
-            'agama' => 'required|string|max:50',
+            'agama' => 'required|string|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu,Lainnya',
             'alamat_domisili' => 'required|string',
             'kota_domisili' => 'required|string|max:100',
-            'status_pernikahan' => 'required|string|max:50',
+            'status_pernikahan' => 'required|string|in:Lajang,Menikah,Duda/Janda',
 
             // Documents
             'foto_ktp' => 'required|image|mimes:jpeg,jpg,png,webp|max:3072',
@@ -75,7 +75,7 @@ class InstructorRegistrationController extends Controller
             // Professional
             'pekerjaan_terakhir' => 'required|string',
             'jenjang_mengajar' => 'required|string',
-            'pend_terakhir' => 'required|string',
+            'pend_terakhir' => 'required|string|in:SMA/SMK Sederajat,D3,D4/S1,S2,S3',
             'universitas_jurusan' => 'required|string',
             'kompetensi_1' => 'required|string|in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris',
             'kompetensi_2' => 'nullable|string|in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris',
@@ -93,7 +93,7 @@ class InstructorRegistrationController extends Controller
             'mata_minus' => 'required|string',
             'alat_mengajar' => 'required|array',
             'catatan_alat' => 'nullable|string',
-            'kendaraan' => 'required|string',
+            'kendaraan' => 'required|string|in:Pribadi,Umum,Antar Jemput',
             'jenis_kendaraan' => 'required|string',
             
             // Schedule

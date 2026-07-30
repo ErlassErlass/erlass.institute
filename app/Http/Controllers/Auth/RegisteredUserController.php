@@ -38,8 +38,8 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'tanggal_lahir' => ['required', 'date'],
             'no_telephone' => ['required', 'string'],
-            'agama' => ['required', 'string'],
-            'pend_terakhir' => ['required', 'string'],
+            'agama' => ['required', 'string', 'in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu,Lainnya'],
+            'pend_terakhir' => ['required', 'string', 'in:SMA/SMK Sederajat,D3,D4/S1,S2,S3'],
             'kompetensi_1' => ['required', 'string', 'in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris'],
             'kompetensi_2' => ['nullable', 'string', 'in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris'],
             
