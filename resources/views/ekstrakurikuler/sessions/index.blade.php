@@ -108,10 +108,10 @@
                             <div class="col-md-3">
                                 <label for="sort" class="form-label small fw-bold text-muted">Urutkan</label>
                                 <select name="sort" id="sort" class="form-select">
-                                    <option value="meeting_asc" {{ !request('sort') || request('sort') === 'meeting_asc' ? 'selected' : '' }}>Pertemuan (1 -> ...)</option>
-                                    <option value="meeting_desc" {{ request('sort') === 'meeting_desc' ? 'selected' : '' }}>Pertemuan (... -> 1)</option>
+                                    <option value="date_asc" {{ !request('sort') || request('sort') === 'date_asc' ? 'selected' : '' }}>Jadwal Terdekat (Terlama ➔ Mendatang)</option>
                                     <option value="date_desc" {{ request('sort') === 'date_desc' ? 'selected' : '' }}>Tanggal Terbaru</option>
-                                    <option value="date_asc" {{ request('sort') === 'date_asc' ? 'selected' : '' }}>Tanggal Terlama</option>
+                                    <option value="meeting_asc" {{ request('sort') === 'meeting_asc' ? 'selected' : '' }}>Pertemuan (1 ➔ ...)</option>
+                                    <option value="meeting_desc" {{ request('sort') === 'meeting_desc' ? 'selected' : '' }}>Pertemuan (... ➔ 1)</option>
                                 </select>
                             </div>
                             <div class="col-md-auto d-flex gap-2">

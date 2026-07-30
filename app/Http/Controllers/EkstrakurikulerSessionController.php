@@ -94,23 +94,23 @@ class EkstrakurikulerSessionController extends Controller
         }
 
         // Sorting
-        $sort = $request->get('sort', 'meeting_asc'); // Default to meeting ascending
+        $sort = $request->get('sort', 'date_asc'); // Default to date_asc (Jadwal Terdekat)
         
         switch ($sort) {
-            case 'meeting_asc':
-                $query->orderBy('nomor_pertemuan', 'asc');
-                break;
-            case 'meeting_desc':
-                $query->orderBy('nomor_pertemuan', 'desc');
-                break;
             case 'date_asc':
                 $query->orderBy('tanggal_terjadwal', 'asc')->orderBy('jam_mulai_terjadwal', 'asc');
                 break;
             case 'date_desc':
                 $query->orderBy('tanggal_terjadwal', 'desc')->orderBy('jam_mulai_terjadwal', 'desc');
                 break;
-            default:
+            case 'meeting_asc':
                 $query->orderBy('nomor_pertemuan', 'asc');
+                break;
+            case 'meeting_desc':
+                $query->orderBy('nomor_pertemuan', 'desc');
+                break;
+            default:
+                $query->orderBy('tanggal_terjadwal', 'asc')->orderBy('jam_mulai_terjadwal', 'asc');
                 break;
         }
 
