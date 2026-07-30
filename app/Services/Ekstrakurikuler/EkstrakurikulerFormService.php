@@ -633,17 +633,27 @@ class EkstrakurikulerFormService
                 foreach ($rombelData as $rombelId => $data) {
                     $rombel = $ekstrakurikuler->rombels()->find($rombelId);
                     if ($rombel) {
+                        $jamSelesai = $data['jam_selesai'] ?? \Carbon\Carbon::parse($data['jam_mulai'])->addHours(2)->format('H:i');
+
                         $rombel->update([
                             'jumlah_siswa' => $data['jumlah_siswa'],
                             'total_pertemuan' => $data['total_pertemuan'],
-                            'ruangan' => $data['ruangan'],
-                            'keterangan_ruangan' => $data['keterangan_ruangan'],
+                            'ruangan' => $data['ruangan'] ?? '',
+                            'keterangan_ruangan' => $data['keterangan_ruangan'] ?? '',
                             'hari' => $data['hari'],
                             'jam_mulai' => $data['jam_mulai'],
+                            'jam_selesai' => $jamSelesai,
                             'tanggal_mulai' => $data['tanggal_mulai'],
                             'tanggal_selesai' => $data['tanggal_selesai'],
                             'updated_by' => auth()->id(),
                         ]);
+
+                        // AUTO-REGENERATE SESSIONS TO KEEP SCHEDULE IN SYNC
+                        try {
+                            $this->schedulingService->generateSessionsForRombel($rombel, ['replace_existing' => true]);
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::warning("Gagal auto-regenerate session saat update rombel {$rombel->id}: " . $e->getMessage());
+                        }
                         
                         // Recalculate totals
                         $totalSiswa += $data['jumlah_siswa'];

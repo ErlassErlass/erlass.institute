@@ -237,6 +237,12 @@
                     <a href="{{ route('ekstrakurikuler.edit', $ekstrakurikuler) }}" class="btn btn-glass">
                         <i class="bi bi-pencil-square me-1"></i> Edit
                     </a>
+                    <form action="{{ route('ekstrakurikuler.regenerate-sessions', $ekstrakurikuler) }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-glass" onclick="return confirm('Generate ulang seluruh jadwal sesi berdasarkan rombel saat ini? Sesi lama yang belum ada laporan akan diperbarui.')" title="Sinkronkan jadwal sesi sesuai rombel">
+                            <i class="bi bi-arrow-repeat me-1"></i> Sync Sesi
+                        </button>
+                    </form>
                     @endcan
                     
                     @can('approve', $ekstrakurikuler)
