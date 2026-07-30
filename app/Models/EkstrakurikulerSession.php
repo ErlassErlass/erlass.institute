@@ -267,11 +267,67 @@ class EkstrakurikulerSession extends Model
     }
 
     /**
-     * Cek apakah session sudah berlalu.
+     * Accessor untuk mendapatkan objek Carbon waktu mulai lengkap (tanggal + jam_mulai_terjadwal).
+     */
+    public function getWaktuMulaiFullAttribute(): ?Carbon
+    {
+        if (!$this->tanggal_terjadwal) {
+            return null;
+        }
+
+        $date = $this->tanggal_terjadwal->copy();
+        if ($this->jam_mulai_terjadwal) {
+            $date->setTimeFrom($this->jam_mulai_terjadwal);
+        } else {
+            $date->startOfDay();
+        }
+
+        return $date;
+    }
+
+    /**
+     * Accessor untuk mendapatkan objek Carbon waktu selesai lengkap (tanggal + jam_selesai_terjadwal).
+     */
+    public function getWaktuSelesaiFullAttribute(): ?Carbon
+    {
+        if (!$this->tanggal_terjadwal) {
+            return null;
+        }
+
+        $date = $this->tanggal_terjadwal->copy();
+        if ($this->jam_selesai_terjadwal) {
+            $date->setTimeFrom($this->jam_selesai_terjadwal);
+        } else {
+            $date->endOfDay();
+        }
+
+        return $date;
+    }
+
+    /**
+     * Cek apakah session sudah berlalu (lewat jam selesai atau tanggal sebelumnya).
      */
     public function isPast(): bool
     {
-        return $this->tanggal_terjadwal->isPast();
+        if (!$this->tanggal_terjadwal) {
+            return false;
+        }
+
+        // Jika tanggal sebelum hari ini (kemarin atau sebelumnya)
+        if ($this->tanggal_terjadwal->lt(now()->startOfDay())) {
+            return true;
+        }
+
+        // Jika tanggal adalah hari ini, hanya dianggap past/terlambat jika waktu selesai sudah lewat
+        if ($this->tanggal_terjadwal->isToday()) {
+            $waktuSelesai = $this->waktu_selesai_full;
+            if ($waktuSelesai) {
+                return now()->greaterThan($waktuSelesai);
+            }
+            return false;
+        }
+
+        return false;
     }
 
     /**

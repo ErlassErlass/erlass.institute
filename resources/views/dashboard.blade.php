@@ -322,7 +322,10 @@
                                         </h6>
                                         <span class="badge bg-secondary rounded-pill" style="font-size: 0.7rem;">P.{{ $report->nomor_pertemuan }}</span>
                                         @if($report->isPast())
-                                            <span class="badge bg-danger" style="font-size: 0.7rem;">Terlambat {{ $report->tanggal_terjadwal->diffForHumans() }}</span>
+                                            @php
+                                                $waktuRef = $report->waktu_selesai_full ?? $report->tanggal_terjadwal;
+                                            @endphp
+                                            <span class="badge bg-danger" style="font-size: 0.7rem;">Terlambat {{ $waktuRef->diffForHumans() }}</span>
                                         @else
                                             <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">Hari Ini</span>
                                         @endif
@@ -333,6 +336,10 @@
                                         {{ $report->rombel->ekstrakurikuler->sekolah->namasekolah }}
                                         <br>
                                         <i class="bi bi-calendar-event me-1"></i> {{ \Carbon\Carbon::parse($report->tanggal_terjadwal)->format('d M Y') }}
+                                        @if($report->jam_mulai_terjadwal && $report->jam_selesai_terjadwal)
+                                            <span class="mx-1">•</span>
+                                            <i class="bi bi-clock me-1"></i> {{ $report->jadwal_waktu }}
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="w-100 w-sm-auto text-end text-sm-start">
@@ -741,10 +748,17 @@
                                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
                                             <span>
                                                 <i class="bi bi-calendar-event me-1"></i> {{ \Carbon\Carbon::parse($todo->tanggal_terjadwal)->format('d M Y') }}
+                                                @if($todo->jam_mulai_terjadwal && $todo->jam_selesai_terjadwal)
+                                                    <span class="mx-1">•</span>
+                                                    <i class="bi bi-clock me-1"></i> {{ $todo->jadwal_waktu }}
+                                                @endif
                                             </span>
                                             @if($todo->isPast())
+                                                @php
+                                                    $waktuRefTodo = $todo->waktu_selesai_full ?? $todo->tanggal_terjadwal;
+                                                @endphp
                                                 <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle" style="font-size: 0.65rem;">
-                                                    Terlambat {{ $todo->tanggal_terjadwal->diffForHumans() }}
+                                                    Terlambat {{ $waktuRefTodo->diffForHumans() }}
                                                 </span>
                                             @else
                                                 <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning-subtle" style="font-size: 0.65rem;">

@@ -304,6 +304,7 @@ class DashboardController extends Controller
                     ->whereDate('tanggal_terjadwal', '<=', Carbon::today())
                     ->whereIn('status', ['terjadwal', 'berlangsung', 'selesai'])
                     ->orderBy('tanggal_terjadwal', 'asc')
+                    ->orderBy('jam_mulai_terjadwal', 'asc')
                     ->take(10)
                     ->get()
                 : collect(),
