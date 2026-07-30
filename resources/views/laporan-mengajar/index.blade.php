@@ -163,10 +163,15 @@
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
-                                    <i class="bi bi-calendar-event text-muted small"></i>
+                                    <i class="bi bi-calendar-event text-primary small"></i>
                                     <span class="fw-medium text-dark">{{ \Carbon\Carbon::parse($item->jadwal_mengajar)->isoFormat('D MMM YYYY') }}</span>
                                 </div>
-                                <small class="text-muted d-block mt-1">{{ $item->jam_mulai }} - {{ $item->jam_selesai }}</small>
+                                <small class="text-muted d-block mt-1"><i class="bi bi-clock me-1"></i>{{ $item->jam_mulai }} - {{ $item->jam_selesai }}</small>
+                                @if($item->created_at)
+                                    <small class="text-primary d-block mt-1 fw-semibold" style="font-size: 0.725rem;" title="Waktu data terinput ke sistem">
+                                        <i class="bi bi-cloud-arrow-up me-1"></i>Input: {{ $item->created_at->format('d/m/Y H:i') }}
+                                    </small>
+                                @endif
                             </td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
@@ -240,7 +245,12 @@
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
                                 <h6 class="fw-bold mb-1 text-primary">{{ \Carbon\Carbon::parse($item->jadwal_mengajar)->isoFormat('D MMM YYYY') }}</h6>
-                                <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ $item->jam_mulai }} - {{ $item->jam_selesai }}</small>
+                                <small class="text-muted d-block"><i class="bi bi-clock me-1"></i>{{ $item->jam_mulai }} - {{ $item->jam_selesai }}</small>
+                                @if($item->created_at)
+                                    <small class="text-primary d-block mt-1 fw-semibold" style="font-size: 0.725rem;" title="Waktu data terinput ke sistem">
+                                        <i class="bi bi-cloud-arrow-up me-1"></i>Input: {{ $item->created_at->format('d/m/Y H:i') }}
+                                    </small>
+                                @endif
                             </div>
                             @php
                             $badgeClass = match($item->kategori_pengajaran) {

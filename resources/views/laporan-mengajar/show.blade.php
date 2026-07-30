@@ -194,6 +194,12 @@
                                 @endif
                             </p>
                         </div>
+                        <div class="col-md-6">
+                            <strong>Waktu Input Sistem (Timestamp):</strong>
+                            <p class="text-primary fw-semibold mb-0">
+                                <i class="bi bi-cloud-arrow-up me-1"></i>{{ $laporanMengajar->created_at ? $laporanMengajar->created_at->isoFormat('dddd, D MMMM Y [jam] HH:mm:ss') : '-' }}
+                            </p>
+                        </div>
                     </div>
                     <hr>
                     <strong>Materi Pengajaran:</strong>
