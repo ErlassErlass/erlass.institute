@@ -2,6 +2,26 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.2.0] - 2026-07-31
+
+### Ditambahkan & Dioptimalkan (Added & Optimized)
+- **Perhitungan Cutoff Penggajian Bulanan Resmi (Tanggal 11 s.d. Tanggal 10)**:
+  - Pembaharuan `PayrollCalculatorService` menggunakan periode cutoff **Tanggal 11 Bulan Lalu s.d. Tanggal 10 Bulan Berjalan** (misal: Batch Juli = 11 Juni s/d 10 Juli; Batch Agustus = 11 Juli s/d 10 Agustus).
+  - Penambahan petunjuk visual rentang tanggal cutoff pada Form Generate Batch (`resources/views/payroll/index.blade.php`) dan Banner Informasi Instruktur (`resources/views/payroll/my_salaries.blade.php`).
+- **Integrasi Matriks Tarif Kegiatan Khusus (Memo No. 536/EPI/V/2025 Halaman 2)**:
+  - Honorarium Sosialisasi bersama Sales: **Rp 75.000**.
+  - Honorarium Free Trial / Trial Class: **Rp 100.000** (Siswa > 6) atau **Rp 75.000** (Siswa <= 6), dengan biaya transport Rp 0 jika di Kantor Erlass.
+  - Honorarium Pameran di Sekolah / Kegiatan Luar: **Rp 100.000**.
+  - Honorarium Pendampingan Lomba: **Rp 75.000**.
+  - Honorarium Sekolah Pembayaran Per-Pertemuan: **Rp 100.000**.
+- **Mekanisme Auto-Session & Payroll Link Engine (`LaporanMengajar@ensureSessionLinked`)**:
+  - Penambahan metode auto-linking sehingga setiap Laporan Mengajar mandiri (Pameran, Event, Sosialisasi, dsb.) secara otomatis membuatkan & menghubungkan Sesi Payroll di background.
+  - Menjamin 100% Laporan Mengajar yang terbit di `/laporan-mengajar` otomatis terekap saat Admin menekan tombol Generate Batch Payroll.
+- **Fitur Hapus Draf Batch Payroll (`PayrollController@destroyBatch`)**:
+  - Penambahan tombol Hapus Batch Draf di `/admin/payroll/batches` dan `/admin/payroll/batches/{id}` untuk membatalkan draf batch dan mengembalikan status sesi menjadi `unpaid`.
+- **Fitur Koreksi Honorarium Sesi (Override Fee Form)**:
+  - Form koreksi nominal per sesi khusus Admin pada detail slip gaji (`/payroll/slip/{id}`) selama batch berstatus DRAFT/PENDING.
+
 ## [2.1.0] - 2026-07-31
 
 ### Ditambahkan & Dioptimalkan (Added & Optimized)
