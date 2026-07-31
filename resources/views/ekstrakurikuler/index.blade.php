@@ -275,12 +275,15 @@
                                         <span class="pill-badge {{ $badgeClass }}">{{ $ekstrakurikuler->status_label }}</span>
                                     </td>
                                     <td>
-                                        @php $progress = $ekstrakurikuler->getProgressPertemuan(); @endphp
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="progress-bar-container"><div class="progress-bar bg-success" style="width: {{ $progress['persentase'] }}%"></div></div>
-                                            <small class="text-muted fw-semibold">{{ $progress['persentase'] }}%</small>
-                                        </div>
-                                    </td>
+                                         @php $progress = $ekstrakurikuler->getProgressPertemuan(); @endphp
+                                         <div class="d-flex flex-column gap-1" style="min-width: 130px;">
+                                             <div class="d-flex align-items-center justify-content-between">
+                                                 <small class="text-dark fw-bold" style="font-size: 0.775rem;">{{ $progress['selesai'] }}/{{ $progress['total'] }} Sesi</small>
+                                                 <small class="text-muted fw-semibold" style="font-size: 0.725rem;">{{ $progress['persentase'] }}%</small>
+                                             </div>
+                                             <div class="progress-bar-container w-100"><div class="progress-bar bg-success" style="width: {{ $progress['persentase'] }}%"></div></div>
+                                         </div>
+                                     </td>
                                     <td class="pe-3">
                                         <div class="d-flex gap-1">
                                             <a href="{{ route('ekstrakurikuler.show', $ekstrakurikuler) }}" class="btn-action view" title="Detail"><i class="bi bi-eye"></i></a>
@@ -333,6 +336,14 @@
                             <div class="card-body">
                                 <h6 class="fw-bold text-primary mb-1">{{ $ekstrakurikuler->kategori_program }}</h6>
                                 <p class="small mb-2 text-dark fw-semibold">{{ $ekstrakurikuler->sekolah?->namasekolah }}</p>
+                                @php $progress = $ekstrakurikuler->getProgressPertemuan(); @endphp
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <small class="text-muted fw-bold">{{ $progress['selesai'] }}/{{ $progress['total'] }} Sesi</small>
+                                        <small class="text-success fw-bold">{{ $progress['persentase'] }}%</small>
+                                    </div>
+                                    <div class="progress-bar-container w-100" style="height: 5px;"><div class="progress-bar bg-success" style="width: {{ $progress['persentase'] }}%"></div></div>
+                                </div>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="pill-badge {{ $badgeClass }}">{{ $ekstrakurikuler->status_label }}</span>
                                     <div class="btn-group">
