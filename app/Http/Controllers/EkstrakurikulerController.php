@@ -80,9 +80,9 @@ class EkstrakurikulerController extends Controller
             }
         }
 
-        // Build query dengan filtering menggunakan query service
+        // Build query dengan filtering & sorting menggunakan query service
         $ekstrakurikulerQuery = $this->queryService->buildFilteredQuery($request, auth()->user());
-        $ekstrakurikulers = $ekstrakurikulerQuery->latest()->paginate(25);
+        $ekstrakurikulers = $ekstrakurikulerQuery->paginate(25)->withQueryString();
 
         // Get dropdown data
         $dropdownData = $this->queryService->getFormCreationData();

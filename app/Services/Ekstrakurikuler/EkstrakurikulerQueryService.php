@@ -64,6 +64,41 @@ class EkstrakurikulerQueryService
 
         $this->applySearchFilter($query, $request);
         $this->applyDateFilter($query, $request);
+        $this->applySorting($query, $request);
+    }
+
+    /**
+     * Apply sorting filter
+     */
+    protected function applySorting($query, Request $request)
+    {
+        $sort = $request->input('sort', 'latest');
+
+        switch ($sort) {
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'school_asc':
+                $query->join('sekolah', 'ekstrakurikulers.sekolah_kodlan', '=', 'sekolah.kodlan')
+                      ->orderBy('sekolah.namasekolah', 'asc')
+                      ->select('ekstrakurikulers.*');
+                break;
+            case 'school_desc':
+                $query->join('sekolah', 'ekstrakurikulers.sekolah_kodlan', '=', 'sekolah.kodlan')
+                      ->orderBy('sekolah.namasekolah', 'desc')
+                      ->select('ekstrakurikulers.*');
+                break;
+            case 'program_asc':
+                $query->orderBy('kategori_program', 'asc');
+                break;
+            case 'status_asc':
+                $query->orderBy('status', 'asc');
+                break;
+            case 'latest':
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
     }
 
     /**

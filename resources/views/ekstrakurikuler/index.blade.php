@@ -213,9 +213,22 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-lg-2 col-md-12 mb-3 d-flex gap-2 justify-content-end">
-                                <button type="submit" class="btn btn-primary w-100 py-2" style="border-radius: 10px;"><i class="fas fa-search me-1"></i> Filter</button>
-                                <a href="{{ route('ekstrakurikuler.index') }}" class="btn btn-outline-secondary py-2" style="border-radius: 10px;" title="Reset Filter"><i class="fas fa-undo"></i></a>
+                            <div class="col-lg-2 col-md-6 mb-3">
+                                <label for="sort" class="filter-label">Urutkan</label>
+                                <select class="form-control form-control-premium" id="sort" name="sort">
+                                    <option value="latest" {{ !request('sort') || request('sort') === 'latest' ? 'selected' : '' }}>Terbaru ➔ Terlama</option>
+                                    <option value="oldest" {{ request('sort') === 'oldest' ? 'selected' : '' }}>Terlama ➔ Terbaru</option>
+                                    <option value="school_asc" {{ request('sort') === 'school_asc' ? 'selected' : '' }}>Sekolah (A ➔ Z)</option>
+                                    <option value="school_desc" {{ request('sort') === 'school_desc' ? 'selected' : '' }}>Sekolah (Z ➔ A)</option>
+                                    <option value="program_asc" {{ request('sort') === 'program_asc' ? 'selected' : '' }}>Program (A ➔ Z)</option>
+                                    <option value="status_asc" {{ request('sort') === 'status_asc' ? 'selected' : '' }}>Status Program</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 d-flex gap-2 justify-content-end align-items-center mt-1">
+                                <button type="submit" class="btn btn-primary px-4 py-2" style="border-radius: 10px;"><i class="fas fa-search me-1"></i> Terapkan Filter</button>
+                                <a href="{{ route('ekstrakurikuler.index') }}" class="btn btn-outline-secondary px-3 py-2" style="border-radius: 10px;" title="Reset Filter"><i class="fas fa-undo me-1"></i> Reset</a>
                             </div>
                         </div>
                     </form>
