@@ -310,7 +310,14 @@ class DashboardController extends Controller
                 : collect(),
             'warning_merah' => Warning::where('severity', 'red')->where('status', 'active')->count(),
             'warning_kuning' => Warning::where('severity', 'yellow')->where('status', 'active')->count(),
-            'warning_list' => Warning::with('sourceable')->where('status', 'active')->latest()->take(10)->get(),
+            'warning_list' => Warning::with([
+                'sourceable' => function ($morphTo) {
+                    $morphTo->morphWith([
+                        \App\Models\EkstrakurikulerSession::class => ['rombel.ekstrakurikuler.sekolah'],
+                        \App\Models\EkstrakurikulerRombel::class => ['ekstrakurikuler.sekolah'],
+                    ]);
+                }
+            ])->where('status', 'active')->latest()->take(10)->get(),
             'sertifikat_issued' => Certificate::where('status', 'issued')->count(),
             'sertifikat_pending' => Certificate::whereNull('file_path')->count(),
             'rapor_generated' => ReportCard::whereNotNull('file_path')->count(),

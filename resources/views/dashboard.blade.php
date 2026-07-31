@@ -499,8 +499,33 @@
                                                     'behind_target' => 'Tertinggal Target Kurikulum',
                                                     default => ucwords(str_replace('_', ' ', $warning->warning_type))
                                                 };
+
+                                                $sekolahNama = null;
+                                                $rombelNama = null;
+                                                $actionUrl = null;
+                                                $actionText = null;
+
+                                                if ($warning->sourceable instanceof \App\Models\EkstrakurikulerSession) {
+                                                    $session = $warning->sourceable;
+                                                    $sekolahNama = $session->rombel?->ekstrakurikuler?->sekolah?->namasekolah;
+                                                    $rombelNama = $session->rombel?->nama_rombel;
+                                                    
+                                                    if (in_array($warning->warning_type, ['not_confirmed', 'missing_report'])) {
+                                                        $actionUrl = route('ekstrakurikuler.sessions.report.create', $session->id);
+                                                        $actionText = 'Isi Laporan Mengajar';
+                                                    } elseif ($warning->warning_type === 'no_instructor') {
+                                                        $actionUrl = route('ekstrakurikuler.sessions.show', $session->id);
+                                                        $actionText = 'Tugaskan Instruktur';
+                                                    }
+                                                } elseif ($warning->sourceable instanceof \App\Models\EkstrakurikulerRombel) {
+                                                    $rombel = $warning->sourceable;
+                                                    $sekolahNama = $rombel->ekstrakurikuler?->sekolah?->namasekolah;
+                                                    $rombelNama = $rombel->nama_rombel;
+                                                    $actionUrl = route('ekstrakurikuler.sessions.index', ['rombel_id' => $rombel->id]);
+                                                    $actionText = 'Kelola Jadwal Rombel';
+                                                }
                                             @endphp
-                                            <div class="list-group-item p-3 border-bottom d-flex flex-column flex-sm-row justify-content-between align-items-start gap-3" style="border-left: 4px solid {{ $warning->severity === 'red' ? '#f43f5e' : '#f59e0b' }} !important; background-color: {{ $warning->severity === 'red' ? 'rgba(244, 63, 94, 0.05)' : 'rgba(245, 158, 11, 0.05)' }};">
+                                            <div class="list-group-item p-3 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-start gap-3" style="border-left: 4px solid {{ $warning->severity === 'red' ? '#f43f5e' : '#f59e0b' }} !important; background-color: {{ $warning->severity === 'red' ? 'rgba(244, 63, 94, 0.05)' : 'rgba(245, 158, 11, 0.05)' }};">
                                                 <div class="d-flex gap-3">
                                                     <div class="flex-shrink-0 mt-1">
                                                         @if($warning->severity === 'red')
@@ -516,14 +541,34 @@
                                                             </span>
                                                             <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ $warning->created_at->diffForHumans() }}</small>
                                                         </div>
-                                                        <p class="mb-0 text-dark small fw-medium">{{ $warning->notes }}</p>
+                                                        <p class="mb-2 text-dark small fw-medium">{{ $warning->notes }}</p>
+
+                                                        @if($sekolahNama || $rombelNama)
+                                                            <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
+                                                                @if($sekolahNama)
+                                                                    <span class="badge bg-white text-dark border shadow-sm" style="font-size: 0.75rem;">
+                                                                        <i class="bi bi-building text-primary me-1"></i> {{ $sekolahNama }}
+                                                                    </span>
+                                                                @endif
+                                                                @if($rombelNama)
+                                                                    <span class="badge bg-white text-dark border shadow-sm" style="font-size: 0.75rem;">
+                                                                        <i class="bi bi-people text-info me-1"></i> {{ $rombelNama }}
+                                                                    </span>
+                                                                @endif
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 </div>
-                                                <div class="w-100 w-sm-auto text-end text-sm-start flex-shrink-0 d-flex align-items-center gap-2">
-                                                    <form action="{{ route('admin.warnings.resolve', $warning->id) }}" method="POST" class="d-grid d-sm-inline">
+                                                <div class="w-100 w-md-auto text-end text-md-start flex-shrink-0 d-flex flex-wrap align-items-center gap-2 justify-content-end">
+                                                    @if($actionUrl)
+                                                        <a href="{{ $actionUrl }}" class="btn btn-xs btn-primary py-1 px-3 rounded-pill fw-bold" style="font-size: 0.75rem;">
+                                                            <i class="bi bi-box-arrow-up-right me-1"></i> {{ $actionText }}
+                                                        </a>
+                                                    @endif
+                                                    <form action="{{ route('admin.warnings.resolve', $warning->id) }}" method="POST" class="d-inline">
                                                         @csrf
                                                         <button type="submit" class="btn btn-xs btn-outline-success py-1 px-3 rounded-pill" style="font-size: 0.75rem;">
-                                                            <i class="bi bi-check2 me-1"></i> Selesaikan (Resolve)
+                                                            <i class="bi bi-check2 me-1"></i> Resolve
                                                         </button>
                                                     </form>
                                                 </div>
