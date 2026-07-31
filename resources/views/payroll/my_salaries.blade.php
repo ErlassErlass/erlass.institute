@@ -22,6 +22,20 @@
                 <h5 class="fw-bold mb-0 text-dark">Informasi Ketentuan Kompensasi & Transportasi Instruktur</h5>
             </div>
             
+            <div class="row g-3 text-dark mb-3" style="font-size: 0.88rem;">
+                <div class="col-12">
+                    <div class="p-3 bg-white rounded border border-primary border-opacity-25" style="background-color: #f0f7ff !important;">
+                        <div class="d-flex align-items-center gap-2 text-primary fw-bold mb-1">
+                            <i class="bi bi-calendar2-range-fill fs-5"></i>
+                            <span class="fs-6">Ketentuan Periode Cutoff Penggajian Bulanan</span>
+                        </div>
+                        <p class="mb-0 text-secondary">
+                            Perhitungan honorarium bulanan dihitung dari <strong>Tanggal 11 Bulan Sebelumnya s.d. Tanggal 10 Bulan Berjalan</strong> (Contoh: Gaji Periode Juli menghitung seluruh sesi &amp; laporan mengajar dari <em>11 Juni s/d 10 Juli</em>). Laporan mengajar yang baru diselesaikan setelah tanggal 10 akan otomatis ditarik pada periode bulan berikutnya (tidak hangus).
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             <div class="row g-3 text-dark" style="font-size: 0.88rem;">
                 <div class="col-md-6">
                     <div class="p-3 bg-white rounded border h-100">
