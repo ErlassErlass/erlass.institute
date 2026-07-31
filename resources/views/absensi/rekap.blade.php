@@ -26,9 +26,9 @@
         <div class="card-body p-4">
             <form action="{{ route('rekap-absensi') }}" method="GET" class="row g-3 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label fw-bold">Pilih Sekolah</label>
-                    <select name="sekolah_kodlan" id="sekolah_kodlan" class="form-select select2">
-                        <option value="">-- Semua Sekolah --</option>
+                    <label class="form-label fw-bold">Pilih Sekolah <span class="text-danger">*</span></label>
+                    <select name="sekolah_kodlan" id="sekolah_kodlan" class="form-select select2" required>
+                        <option value="">-- Pilih Sekolah --</option>
                         @foreach($sekolahs as $sekolah)
                             <option value="{{ $sekolah->kodlan }}" {{ $selectedSekolah == $sekolah->kodlan ? 'selected' : '' }}>
                                 {{ $sekolah->namasekolah }} ({{ $sekolah->kodlan }})
@@ -36,18 +36,22 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">Program Ekskul <span class="text-muted small fw-normal">(Opsional)</span></label>
-                    <select name="ekstrakurikuler_id" id="ekstrakurikuler_id" class="form-select select2" {{ !$selectedSekolah ? 'disabled' : '' }}>
-                        <option value="">-- Semua Program --</option>
-                        @foreach($ekstrakurikulers as $ekskul)
-                            <option value="{{ $ekskul->id }}" {{ $selectedEkskul == $ekskul->id ? 'selected' : '' }}>
-                                {{ $ekskul->kategori_program }}
-                            </option>
-                        @endforeach
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Program Ekskul <span class="text-danger">*</span></label>
+                    <select name="ekstrakurikuler_id" id="ekstrakurikuler_id" class="form-select select2" required {{ !$selectedSekolah ? 'disabled' : '' }}>
+                        @if(!$selectedSekolah)
+                            <option value="">-- Pilih Sekolah Terlebih Dahulu --</option>
+                        @else
+                            <option value="">-- Pilih Program Ekskul --</option>
+                            @foreach($ekstrakurikulers as $ekskul)
+                                <option value="{{ $ekskul->id }}" {{ $selectedEkskul == $ekskul->id ? 'selected' : '' }}>
+                                    {{ $ekskul->kategori_program }}
+                                </option>
+                            @endforeach
+                        @endif
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-bold">Pilih Rombel <span class="text-danger">*</span></label>
                     <select name="rombel" id="rombel" class="form-select select2" required {{ !$selectedSekolah ? 'disabled' : '' }}>
                         @if(!$selectedSekolah)
@@ -71,50 +75,38 @@
         </div>
     </div>
 
-    @if($selectedRombel)
-        @if(!$rombelExists)
-            <div class="alert alert-warning shadow-sm border-0 d-flex align-items-center gap-3 p-4">
-                <i class="bi bi-exclamation-triangle-fill text-warning fs-3"></i>
-                <div>
-                    <h5 class="alert-heading fw-bold mb-1">Rombel Tidak Ditemukan</h5>
-                    @if($selectedSchoolName)
-                        Sekolah <strong>{{ $selectedSchoolName }}</strong> tidak memiliki <strong>{{ $selectedRombel }}</strong>.
-                    @else
-                        Rombel <strong>{{ $selectedRombel }}</strong> tidak terdaftar di sistem.
-                    @endif
-                </div>
+    <!-- Data Section -->
+    @if($selectedRombel && $rombelExists)
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-file-earmark-text text-primary me-2"></i>
+                Rekap Absensi: {{ $selectedSchoolName }} — Rombel {{ $selectedRombel }}
+            </h5>
+            <a href="{{ route('rekap-absensi.export', ['sekolah_kodlan' => $selectedSekolah, 'ekstrakurikuler_id' => $selectedEkskul, 'rombel' => $selectedRombel]) }}" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+            </a>
+        </div>
+
+        @if(empty($rekapData))
+            <div class="alert alert-warning shadow-sm">
+                <i class="bi bi-exclamation-triangle me-2"></i> Belum ada data laporan mengajar yang ditemukan untuk rombel ini.
             </div>
         @else
+            <!-- Table Card -->
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-white py-3 border-bottom">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="card-title mb-0 fw-bold text-dark">Hasil Rekap: {{ $selectedRombel }}</h5>
-                            <p class="small text-muted mb-0 mt-1">
-                                <i class="bi bi-info-circle me-1"></i> Rule: Billable jika hadir >= 2x per periode (4 pertemuan)
-                            </p>
-                        </div>
-                        <a href="{{ route('rekap-absensi.export', ['rombel' => $selectedRombel, 'sekolah_kodlan' => $selectedSekolah]) }}" 
-                           class="btn btn-success btn-sm">
-                            <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
-                        </a>
-                    </div>
-                </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped align-middle mb-0">
-                            <thead class="table-light text-center align-middle">
+                        <table class="table table-bordered align-middle mb-0" style="font-size: 0.9rem;">
+                            <thead class="table-light">
                                 <tr>
-                                    <th rowspan="2" style="width: 50px;">No</th>
-                                    <th rowspan="2" class="text-start ps-3">Nama Siswa</th>
+                                    <th class="text-center" style="width: 50px;">No</th>
+                                    <th>Nama Siswa</th>
                                     @foreach($rekapData as $period)
-                                        <th colspan="1">Periode {{ $period['index'] }}</th>
-                                    @endforeach
-                                </tr>
-                                <tr>
-                                    @foreach($rekapData as $period)
-                                        <th class="small text-muted fw-normal">
-                                            {{ $period['dates'] }}
+                                        <th class="text-center" style="min-width: 140px;">
+                                            <div>Periode #{{ $period['index'] }}</div>
+                                            <small class="text-muted fw-normal" style="font-size: 0.75rem;">
+                                                {{ $period['dates'] }}
+                                            </small>
                                         </th>
                                     @endforeach
                                 </tr>
@@ -123,33 +115,24 @@
                                 @foreach($students as $index => $student)
                                     <tr>
                                         <td class="text-center">{{ $index + 1 }}</td>
-                                        <td class="fw-medium ps-3">{{ $student->nama_lengkap }}</td>
+                                        <td class="fw-bold">{{ $student->nama_lengkap }}</td>
                                         @foreach($rekapData as $period)
                                             @php
-                                                $stats = $period['student_stats'][$student->id] ?? ['count' => 0, 'is_billable' => false];
-                                                $bgClass = $stats['is_billable'] ? 'bg-success-subtle text-success' : 'text-muted';
-                                                $icon = $stats['is_billable'] ? 'bi-check-circle-fill' : 'bi-dash-circle';
+                                                $stat = $period['student_stats'][$student->id] ?? ['count' => 0, 'is_billable' => false];
                                             @endphp
-                                            <td class="text-center {{ $bgClass }}">
+                                            <td class="text-center">
                                                 <div class="d-flex flex-column align-items-center">
-                                                    <span class="fw-bold fs-5">{{ $stats['count'] }} / 4</span>
-                                                    <small class="d-flex align-items-center gap-1">
-                                                        <i class="bi {{ $icon }}"></i>
-                                                        {{ $stats['is_billable'] ? 'Billable' : 'Skip' }}
+                                                    <span class="badge {{ $stat['is_billable'] ? 'bg-success' : 'bg-danger' }} fs-6 mb-1">
+                                                        {{ $stat['count'] }} / 4 Sesi
+                                                    </span>
+                                                    <small class="{{ $stat['is_billable'] ? 'text-success fw-bold' : 'text-danger' }}" style="font-size: 0.75rem;">
+                                                        {{ $stat['is_billable'] ? '✓ Masuk Invoice' : '✗ Tidak Masuk' }}
                                                     </small>
                                                 </div>
                                             </td>
                                         @endforeach
                                     </tr>
                                 @endforeach
-                                
-                                @if($students->isEmpty())
-                                    <tr>
-                                        <td colspan="{{ count($rekapData) + 2 }}" class="text-center py-4 text-muted">
-                                            Tidak ada data siswa atau laporan ditemukan untuk filter ini.
-                                        </td>
-                                    </tr>
-                                @endif
                             </tbody>
                         </table>
                     </div>
@@ -158,7 +141,7 @@
         @endif
     @elseif(request()->has('rombel'))
         <div class="alert alert-info shadow-sm">
-            <i class="bi bi-info-circle me-2"></i> Silakan pilih Rombel untuk melihat rekap.
+            <i class="bi bi-info-circle me-2"></i> Silakan pilih Sekolah, Program Ekskul, dan Rombel untuk melihat rekap.
         </div>
     @endif
 </div>
@@ -174,38 +157,64 @@
             });
         }
 
-        $('#sekolah_kodlan').select2({
-            theme: 'bootstrap-5',
-            width: '100%',
-            placeholder: 'Pilih Sekolah...',
-            allowClear: true
-        });
-
-        // Dynamic Rombel Filter based on Sekolah selection
+        // Dynamic Program & Rombel Filter based on Sekolah selection
         $('#sekolah_kodlan').on('change', function() {
             var sekolahKodlan = $(this).val();
+            var $ekskulSelect = $('#ekstrakurikuler_id');
             var $rombelSelect = $('#rombel');
 
             if (!sekolahKodlan) {
-                $rombelSelect.empty().append('<option value="">-- Pilih Sekolah Terlebih Dahulu --</option>');
-                $rombelSelect.prop('disabled', true);
-                $rombelSelect.trigger('change');
+                $ekskulSelect.empty().append('<option value="">-- Pilih Sekolah Terlebih Dahulu --</option>').prop('disabled', true).trigger('change');
+                $rombelSelect.empty().append('<option value="">-- Pilih Sekolah Terlebih Dahulu --</option>').prop('disabled', true).trigger('change');
                 return;
             }
 
-            $rombelSelect.prop('disabled', false);
-            $rombelSelect.empty().append('<option value="">-- Mohon Tunggu... --</option>');
-            $rombelSelect.trigger('change');
+            $ekskulSelect.prop('disabled', false).empty().append('<option value="">-- Mohon Tunggu... --</option>').trigger('change');
+            $rombelSelect.prop('disabled', false).empty().append('<option value="">-- Mohon Tunggu... --</option>').trigger('change');
 
+            // Fetch Programs
             $.ajax({
-                url: "{{ route('rekap-absensi.rombels') }}",
+                url: "{{ route('rekap-absensi.programs') }}",
                 type: 'GET',
                 data: { sekolah_kodlan: sekolahKodlan },
                 dataType: 'json',
                 success: function(data) {
+                    $ekskulSelect.empty();
+                    if (data.length === 0) {
+                        $ekskulSelect.append('<option value="">-- Sekolah ini tidak memiliki Program Ekskul --</option>');
+                    } else {
+                        $ekskulSelect.append('<option value="">-- Pilih Program Ekskul --</option>');
+                        $.each(data, function(key, val) {
+                            $ekskulSelect.append('<option value="' + val.id + '">' + val.kategori_program + '</option>');
+                        });
+                    }
+                    $ekskulSelect.trigger('change');
+                }
+            });
+
+            // Fetch Rombels
+            fetchRombels(sekolahKodlan, null);
+        });
+
+        $('#ekstrakurikuler_id').on('change', function() {
+            var sekolahKodlan = $('#sekolah_kodlan').val();
+            var ekskulId = $(this).val();
+            if (sekolahKodlan) {
+                fetchRombels(sekolahKodlan, ekskulId);
+            }
+        });
+
+        function fetchRombels(sekolahKodlan, ekskulId) {
+            var $rombelSelect = $('#rombel');
+            $.ajax({
+                url: "{{ route('rekap-absensi.rombels') }}",
+                type: 'GET',
+                data: { sekolah_kodlan: sekolahKodlan, ekstrakurikuler_id: ekskulId },
+                dataType: 'json',
+                success: function(data) {
                     $rombelSelect.empty();
                     if (data.length === 0) {
-                        $rombelSelect.append('<option value="">-- Sekolah ini tidak memiliki Rombel --</option>');
+                        $rombelSelect.append('<option value="">-- Tidak ada Rombel --</option>');
                     } else {
                         $rombelSelect.append('<option value="">-- Pilih Rombel --</option>');
                         $.each(data, function(key, val) {
@@ -213,13 +222,9 @@
                         });
                     }
                     $rombelSelect.trigger('change');
-                },
-                error: function() {
-                    $rombelSelect.empty().append('<option value="">-- Gagal memuat Rombel --</option>');
-                    $rombelSelect.trigger('change');
                 }
             });
-        });
+        }
     });
 </script>
 @endpush

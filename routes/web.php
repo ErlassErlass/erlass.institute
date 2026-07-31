@@ -316,6 +316,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Absensi routes - consolidated and organized
     Route::get('/rekap-absensi/export', [AbsensiController::class, 'export'])->name('rekap-absensi.export');
+    Route::get('/rekap-absensi/programs', [AbsensiController::class, 'getProgramsBySekolah'])->name('rekap-absensi.programs');
     Route::get('/rekap-absensi/rombels', [AbsensiController::class, 'getRombelsBySekolah'])->name('rekap-absensi.rombels');
     Route::get('/rekap-absensi', [AbsensiController::class, 'rekap'])->name('rekap-absensi');
     Route::get('/absensi/rekap/{tanggal}', [AbsensiController::class, 'rekapByDate'])->name('absensi.rekap.date');

@@ -412,12 +412,33 @@ class AbsensiController extends Controller
     }
 
     /**
-     * AJAX endpoint to get distinct rombels filtered by school.
+     * AJAX endpoint to get programs filtered by school.
+     */
+    public function getProgramsBySekolah(Request $request)
+    {
+        $sekolahKodlan = $request->query('sekolah_kodlan');
+        $ekskuls = \App\Models\Ekstrakurikuler::where('sekolah_kodlan', $sekolahKodlan)
+            ->get(['id', 'kategori_program']);
+        return response()->json($ekskuls);
+    }
+
+    /**
+     * AJAX endpoint to get distinct rombels filtered by school & program.
      */
     public function getRombelsBySekolah(Request $request)
     {
         $sekolahKodlan = $request->query('sekolah_kodlan');
-        $rombels = $this->retrieveRombelsForSekolah($sekolahKodlan);
+        $ekstrakurikulerId = $request->query('ekstrakurikuler_id');
+
+        if ($ekstrakurikulerId) {
+            $rombels = \App\Models\EkstrakurikulerRombel::where('ekstrakurikuler_id', $ekstrakurikulerId)
+                ->pluck('nama_rombel')
+                ->unique()
+                ->sort()
+                ->values();
+        } else {
+            $rombels = $this->retrieveRombelsForSekolah($sekolahKodlan);
+        }
 
         $user = auth()->user();
         if ($user->role === 'instruktur') {

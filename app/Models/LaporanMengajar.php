@@ -157,6 +157,11 @@ class LaporanMengajar extends Model
         return $this->belongsTo(EkstrakurikulerSession::class, 'ekstrakurikuler_session_id');
     }
 
+    public function session()
+    {
+        return $this->ekstrakurikulerSession();
+    }
+
     /**
      * Accessor untuk mendapatkan jumlah siswa hadir.
      */
