@@ -40,6 +40,7 @@ class DetectWarnings extends Command
         $this->detectLowAttendance();
         $this->detectRescheduleLimit();
         $this->detectBehindTarget();
+        $this->detectHoldRombel();
 
         $this->info('Warning detection engine completed successfully.');
     }
@@ -386,6 +387,58 @@ class DetectWarnings extends Command
                         'status' => 'resolved',
                         'resolved_at' => now(),
                         'notes' => $activeWarning->notes . ' (Resolved otomatis oleh sistem)'
+                    ]);
+                }
+            }
+        }
+    }
+
+    /**
+     * 7. rombel_hold (⚠️ Kuning): Jumlah siswa rombel < 8 (Pembelajaran HOLD per Memo No. 536/EPI/V/2025)
+     */
+    private function detectHoldRombel()
+    {
+        $rombels = EkstrakurikulerRombel::with('ekstrakurikuler.sekolah')->get();
+
+        foreach ($rombels as $rombel) {
+            $studentCount = (int) ($rombel->jumlah_siswa ?? 0);
+            if ($studentCount === 0 && method_exists($rombel, 'siswa')) {
+                $studentCount = $rombel->siswa()->wherePivot('status', 'aktif')->count();
+            }
+
+            if ($studentCount < 8 && $studentCount > 0) {
+                $exists = Warning::where('warning_type', 'rombel_hold')
+                    ->where('sourceable_type', EkstrakurikulerRombel::class)
+                    ->where('sourceable_id', $rombel->id)
+                    ->where('status', 'active')
+                    ->exists();
+
+                if (!$exists) {
+                    $sekolah = $rombel->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah';
+                    $ekskul = $rombel->ekstrakurikuler?->kategori_program ?? 'Ekskul';
+
+                    Warning::create([
+                        'warning_type' => 'rombel_hold',
+                        'sourceable_type' => EkstrakurikulerRombel::class,
+                        'sourceable_id' => $rombel->id,
+                        'severity' => 'yellow',
+                        'status' => 'active',
+                        'notes' => "Rombel '{$rombel->nama_rombel}' di {$sekolah} ({$ekskul}) memiliki kurang dari 8 siswa (aktual: {$studentCount} siswa). Pembelajaran di-HOLD sesuai kebijakan Erlass TAB 2025/2026."
+                    ]);
+                    $this->warn("Created warning: rombel_hold for Rombel ID {$rombel->id}");
+                }
+            } elseif ($studentCount >= 8) {
+                $activeWarning = Warning::where('warning_type', 'rombel_hold')
+                    ->where('sourceable_type', EkstrakurikulerRombel::class)
+                    ->where('sourceable_id', $rombel->id)
+                    ->where('status', 'active')
+                    ->first();
+
+                if ($activeWarning) {
+                    $activeWarning->update([
+                        'status' => 'resolved',
+                        'resolved_at' => now(),
+                        'notes' => $activeWarning->notes . ' (Resolved otomatis - jumlah siswa sudah >= 8)'
                     ]);
                 }
             }

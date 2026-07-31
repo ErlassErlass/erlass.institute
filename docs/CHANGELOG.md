@@ -2,6 +2,27 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.1.0] - 2026-07-31
+
+### Ditambahkan & Dioptimalkan (Added & Optimized)
+- **Kalkulator Kompensasi & Formula Payroll Sesuai Memo Resmi Direksi (No: 536/EPI/V/2025 - TAB 2025/2026)**:
+  - Penyesuaian kalkulasi honorarium Instruktur Utama Eksternal berbasis jumlah orang siswa rombel:
+    - 15 orang siswa ke atas: Rp 150.000 / sesi
+    - 12 s.d 14 orang siswa: Rp 115.000 / sesi
+    - 10 s.d 11 orang siswa: Rp 100.000 / sesi
+    - 8 s.d 9 orang siswa: Rp 75.000 / sesi
+    - Kurang dari 8 orang siswa: Rp 0 (`[ HOLD ]` - Pembelajaran Tidak Dapat Berjalan)
+  - Penyesuaian syarat Honor Asisten Instruktur (Rp 100.000 jika jumlah siswa rombel > 24 orang).
+  - Penyesuaian formula biaya transportasi resmi:
+    - Instruktur Guru Internal Sekolah atau Kegiatan di Kantor Erlass: Transport = Rp 0.
+    - Jarak >= 10 KM dari Pejaten: `(Jarak KM * Rp 350) + Rp 7.500 (sewa kendaraan)`.
+- **Integrasi Warning Engine QC Rombel Hold (`DetectWarnings.php`)**:
+  - Penambahan tipe peringatan otomatis `rombel_hold` yang memicu Peringatan Kuning jika Rombel aktif memiliki jumlah siswa < 8 orang.
+- **Penyempurnaan Rekap Absensi Invoice (`/rekap-absensi`)**:
+  - Alur UX Cascading Dropdown cerdas (Sekolah -> Program -> Rombel) berbasis AJAX tanpa perlu klik submit berulang kali.
+  - Perbaikan 500 Internal Server Error dengan penambahan alias relasi `session()` pada model `LaporanMengajar`.
+  - Penataan ulang tampilan tabel rekap 2-baris (Header Periode 1 s.d 8 + tanggal pertemuan) & badge visual status `✓ Billable` / `✗ Skip`.
+
 ## [2.0.0] - 2026-07-31
 
 ### Ditambahkan & Dioptimalkan (Added & Optimized)

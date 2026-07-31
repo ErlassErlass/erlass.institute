@@ -17,36 +17,59 @@ class PayrollCalculatorService
     const LATE_PENALTY_AMOUNT = 25000.00;
 
     /**
-     * Calculate fee and punctuality for a single session.
+     * Calculate fee and punctuality for a single session according to Memo No. 536/EPI/V/2025 (TAB 2025/2026).
      */
     public function calculateSessionFee(EkstrakurikulerSession $session): array
     {
-        // 1. Determine base rate based on instructor level
-        $instructor = $session->instruktur;
-        $level = 'junior';
-        
-        if ($instructor && $instructor->instructorProfile) {
-            $level = $instructor->instructorProfile->level ?? 'junior';
+        // 1. Determine student count for the rombel/session
+        $rombel = $session->rombel;
+        $studentCount = 0;
+        if ($rombel) {
+            $studentCount = (int) ($rombel->jumlah_siswa ?? 0);
+            if ($studentCount === 0 && method_exists($rombel, 'siswa')) {
+                $studentCount = $rombel->siswa()->wherePivot('status', 'aktif')->count();
+            }
         }
-        
-        $level = strtolower($level);
-        
-        // Find base rate for the level
-        $rateSetting = SalaryRate::where('level', $level)
-            ->where(function ($query) {
-                $query->whereNull('product_category')
-                      ->orWhere('product_category', '');
-            })
-            ->first();
-            
-        $baseRate = $rateSetting ? (float) $rateSetting->base_rate : 100000.00;
+        if ($studentCount === 0 && $session->laporanMengajar) {
+            $studentCount = $session->laporanMengajar->absensi()->count();
+        }
 
-        // 2. Check product bonus if extracurricular exists
+        // 2. Base rate calculation based on Official Memo No. 536/EPI/V/2025 (TAB 2025/2026)
+        // - Siswa >= 15: Rp 150.000
+        // - Siswa 12 - 14: Rp 115.000
+        // - Siswa 10 - 11: Rp 100.000
+        // - Siswa 8 - 9: Rp 75.000
+        // - Siswa < 8: Rp 0 (Pembelajaran Hold)
+        $baseRate = 0.00;
+
+        if ($studentCount >= 15) {
+            $baseRate = 150000.00;
+        } elseif ($studentCount >= 12) {
+            $baseRate = 115000.00;
+        } elseif ($studentCount >= 10) {
+            $baseRate = 100000.00;
+        } elseif ($studentCount >= 8) {
+            $baseRate = 75000.00;
+        } else {
+            // < 8 students: Pembelajaran Hold (Rp 0)
+            $baseRate = 0.00;
+        }
+
+        // Fallback to salary_rates table if baseRate is 0 and student count >= 8 (e.g. general level rate)
+        if ($baseRate === 0.00 && $studentCount >= 8) {
+            $instructor = $session->instruktur;
+            $level = strtolower($instructor->instructorProfile->level ?? 'junior');
+            $rateSetting = SalaryRate::where('level', $level)
+                ->where(function ($query) {
+                    $query->whereNull('product_category')->orWhere('product_category', '');
+                })->first();
+            $baseRate = $rateSetting ? (float) $rateSetting->base_rate : 100000.00;
+        }
+
+        // 3. Product Bonus if applicable
         $productBonus = 0.00;
         if ($session->ekstrakurikuler && $session->ekstrakurikuler->kategori_program) {
             $program = $session->ekstrakurikuler->kategori_program;
-            
-            // Find a rate setting where product_category matches (substring or exact)
             $rateWithBonus = SalaryRate::whereNotNull('product_category')
                 ->where('product_category', '!=', '')
                 ->get()
@@ -59,23 +82,17 @@ class PayrollCalculatorService
             }
         }
 
-        // 3. Determine punctuality status & penalty
+        // 4. Punctuality Check & Penalty
         $checkinStatus = 'on_time';
         $penalty = 0.00;
 
         if ($session->jam_mulai_aktual && $session->jam_mulai_terjadwal) {
             $scheduled = Carbon::parse($session->jam_mulai_terjadwal);
             $actual = Carbon::parse($session->jam_mulai_aktual);
-            
-            // Difference in minutes (signed)
             $diffMinutes = $scheduled->diffInMinutes($actual, false);
 
             if ($diffMinutes <= 0) {
-                if ($diffMinutes <= -10) {
-                    $checkinStatus = 'excellent';
-                } else {
-                    $checkinStatus = 'on_time';
-                }
+                $checkinStatus = ($diffMinutes <= -10) ? 'excellent' : 'on_time';
             } elseif ($diffMinutes > 0 && $diffMinutes < 15) {
                 $checkinStatus = 'warning';
             } else {
@@ -84,30 +101,44 @@ class PayrollCalculatorService
             }
         }
 
-        // 4. Calculate total fee (base + bonus)
+        // 5. Total Fee (base + bonus)
         $calculatedFee = $baseRate + $productBonus;
 
-        // 5. Calculate transport fee
+        // 6. Transport Fee Calculation according to Memo No. 536/EPI/V/2025:
+        // - Guru Internal sekolah / Kegiatan di Kantor Erlass: Transport = Rp 0
+        // - Jarak >= 10 KM: (jarak_km * Rp 350) + Rp 7.500 (sewa kendaraan)
+        // - Jarak < 10 KM: minimal flat Rp 20.000 / custom fee
         $transportFee = 0.00;
         $ekskul = $session->ekstrakurikuler;
         $sekolah = $ekskul ? $ekskul->sekolah : null;
+        $instructor = $session->instruktur;
 
-        if ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km > 0) {
-            // Acuan utama: perhitungan berbasis jarak_km (jarak_km * Rp 3.000, minimal Rp 20.000)
-            $calculatedTransport = (float)$ekskul->jarak_km * 3000.00;
+        $isGuruInternal = false;
+        if ($instructor) {
+            $isGuruInternal = (bool) ($instructor->is_guru_internal ?? false);
+        }
+        $isKantorErlass = ($ekskul && stripos($ekskul->alamat_lengkap ?? '', 'Kantor Erlass') !== false);
+
+        if ($isGuruInternal || $isKantorErlass) {
+            $transportFee = 0.00;
+        } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km >= 10.0) {
+            $distKm = (float) $ekskul->jarak_km;
+            $transportFee = ($distKm * 350.00) + 7500.00; // Rp 350/KM + Rp 7.500 sewa kendaraan
+        } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km > 0) {
+            $distKm = (float) $ekskul->jarak_km;
+            $calculatedTransport = ($distKm * 350.00) + 7500.00;
             $transportFee = max($calculatedTransport, 20000.00);
         } elseif ($sekolah && $sekolah->kustom_transport_fee !== null) {
-            // Fallback 1: Custom transport fee per school
             $transportFee = (float)$sekolah->kustom_transport_fee;
         } else {
-            // Fallback 2: Default flat fee (Rp 30.000)
             $transportFee = 30000.00;
         }
 
-        // 6. Apply override if present
+        // 7. Override fee if present
         $finalFee = $session->override_fee !== null ? (float) $session->override_fee : $calculatedFee;
 
         return [
+            'student_count' => $studentCount,
             'base_rate' => $baseRate,
             'product_bonus' => $productBonus,
             'calculated_fee' => $calculatedFee,
