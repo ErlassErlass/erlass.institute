@@ -343,6 +343,7 @@ class AbsensiController extends Controller
         $user = auth()->user();
         $selectedRombel = $request->rombel;
         $selectedSekolah = $request->sekolah_kodlan;
+        $selectedEkskul = $request->ekstrakurikuler_id;
 
         $this->authorizeSekolahAccess($selectedSekolah);
         $this->authorizeRombelByNameAccess($selectedRombel);
@@ -363,6 +364,9 @@ class AbsensiController extends Controller
         }
 
         $rombels = $selectedSekolah ? $this->retrieveRombelsForSekolah($selectedSekolah) : collect();
+        $ekstrakurikulers = $selectedSekolah 
+            ? \App\Models\Ekstrakurikuler::where('sekolah_kodlan', $selectedSekolah)->get(['id', 'kategori_program']) 
+            : collect();
 
         // For instructors, filter the list of rombels to only theirs
         if ($user->role === 'instruktur') {
@@ -392,14 +396,16 @@ class AbsensiController extends Controller
                 'students' => collect()
             ];
         } else {
-            $data = $this->getRekapData($selectedRombel, $selectedSekolah);
+            $data = $this->getRekapData($selectedRombel, $selectedSekolah, $selectedEkskul);
         }
 
         return view('absensi.rekap', array_merge($data, compact(
             'sekolahs', 
             'rombels', 
+            'ekstrakurikulers',
             'selectedRombel', 
             'selectedSekolah', 
+            'selectedEkskul',
             'rombelExists', 
             'selectedSchoolName'
         )));
@@ -557,7 +563,7 @@ class AbsensiController extends Controller
     /**
      * Helper to retrieve and format rekap data.
      */
-    private function getRekapData($selectedRombel, $selectedSekolah)
+    private function getRekapData($selectedRombel, $selectedSekolah, $selectedEkskul = null)
     {
         $rekapData = [];
         $students = collect();
@@ -570,6 +576,12 @@ class AbsensiController extends Controller
 
             if ($selectedSekolah) {
                 $query->where('sekolah_kodlan', $selectedSekolah);
+            }
+
+            if ($selectedEkskul) {
+                $query->whereHas('session', function ($q) use ($selectedEkskul) {
+                    $q->where('ekstrakurikuler_id', $selectedEkskul);
+                });
             }
 
             $reports = $query->get();

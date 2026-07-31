@@ -25,13 +25,24 @@
     <div class="card shadow-sm mb-4 border-0">
         <div class="card-body p-4">
             <form action="{{ route('rekap-absensi') }}" method="GET" class="row g-3 align-items-end">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-bold">Pilih Sekolah</label>
                     <select name="sekolah_kodlan" id="sekolah_kodlan" class="form-select select2">
                         <option value="">-- Semua Sekolah --</option>
                         @foreach($sekolahs as $sekolah)
                             <option value="{{ $sekolah->kodlan }}" {{ $selectedSekolah == $sekolah->kodlan ? 'selected' : '' }}>
                                 {{ $sekolah->namasekolah }} ({{ $sekolah->kodlan }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Program Ekskul <span class="text-muted small fw-normal">(Opsional)</span></label>
+                    <select name="ekstrakurikuler_id" id="ekstrakurikuler_id" class="form-select select2" {{ !$selectedSekolah ? 'disabled' : '' }}>
+                        <option value="">-- Semua Program --</option>
+                        @foreach($ekstrakurikulers as $ekskul)
+                            <option value="{{ $ekskul->id }}" {{ $selectedEkskul == $ekskul->id ? 'selected' : '' }}>
+                                {{ $ekskul->kategori_program }}
                             </option>
                         @endforeach
                     </select>
