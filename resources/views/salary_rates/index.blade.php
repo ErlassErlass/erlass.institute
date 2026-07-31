@@ -59,11 +59,9 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th width="25%" class="ps-4">Level Instruktur</th>
-                            <th width="20%">Tarif Dasar per Sesi</th>
-                            <th width="25%">Kategori Produk (Tambahan)</th>
-                            <th width="20%">Bonus Produk per Sesi</th>
-                            <th width="10%" class="text-center">Aksi</th>
+                            <th width="40%" class="ps-4">Level Instruktur</th>
+                            <th width="40%">Tarif Dasar per Sesi</th>
+                            <th width="20%" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -74,16 +72,6 @@
                                 </td>
                                 <td>
                                     <span class="fw-semibold text-primary">Rp {{ number_format($item->base_rate, 2, ',', '.') }}</span>
-                                </td>
-                                <td>
-                                    @if ($item->product_category)
-                                        <span class="badge bg-info text-dark">{{ $item->product_category }}</span>
-                                    @else
-                                        <span class="text-muted italic">Umum (Semua Produk)</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <span class="fw-semibold text-success">Rp {{ number_format($item->product_bonus, 2, ',', '.') }}</span>
                                 </td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-2">
@@ -102,7 +90,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5">
+                                <td colspan="3" class="text-center py-5">
                                     <div class="mb-3">
                                         <i class="bi bi-cash-stack text-muted fs-1 opacity-25"></i>
                                     </div>

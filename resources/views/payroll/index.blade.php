@@ -118,9 +118,20 @@
                                             Rp {{ number_format($item->items->sum('net_salary'), 2, ',', '.') }}
                                         </td>
                                         <td class="text-center">
-                                            <a href="{{ route('admin.payroll.batches.show', $item->id) }}" class="btn btn-sm btn-outline-primary px-3">
-                                                <i class="bi bi-eye me-1"></i> Detail
-                                            </a>
+                                            <div class="d-flex justify-content-center gap-1">
+                                                <a href="{{ route('admin.payroll.batches.show', $item->id) }}" class="btn btn-sm btn-outline-primary px-2" title="Lihat Detail">
+                                                    <i class="bi bi-eye me-1"></i> Detail
+                                                </a>
+                                                @if ($item->status === 'draft')
+                                                    <form action="{{ route('admin.payroll.batches.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus Draft Batch {{ $item->code }} ini? Sesi mengajar akan dikembalikan ke status unpaid.')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger px-2" title="Hapus Draft Batch">
+                                                            <i class="bi bi-trash me-1"></i> Hapus
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty

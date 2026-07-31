@@ -76,10 +76,6 @@
                                 <span class="fw-semibold text-dark">Rp {{ number_format($item->total_base_fee, 2, ',', '.') }}</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Bonus Produk:</span>
-                                <span class="fw-semibold text-dark">Rp {{ number_format($item->total_product_bonus, 2, ',', '.') }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Uang Transport:</span>
                                 <span class="fw-semibold text-dark">Rp {{ number_format($item->total_transport_fee, 2, ',', '.') }}</span>
                             </div>

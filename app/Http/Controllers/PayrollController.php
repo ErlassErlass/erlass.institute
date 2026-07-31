@@ -172,6 +172,50 @@ class PayrollController extends Controller
     }
 
     /**
+     * Delete a payroll batch draft (Admin).
+     */
+    public function destroyBatch($id)
+    {
+        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $batch = PayrollBatch::findOrFail($id);
+
+        if ($batch->status !== 'draft') {
+            return redirect()->route('admin.payroll.batches.index')
+                ->with('error', 'Hanya batch berstatus Draft yang dapat dihapus.');
+        }
+
+        DB::transaction(function () use ($batch) {
+            // Find items
+            $itemIds = PayrollItem::where('payroll_batch_id', $batch->id)->pluck('id');
+
+            // Reset associated sessions to unpaid
+            EkstrakurikulerSession::whereIn('payroll_item_id', $itemIds)
+                ->orWhere(function ($q) use ($batch) {
+                    $period = Carbon::parse($batch->periode);
+                    $q->whereMonth('tanggal_pelaksanaan', $period->month)
+                      ->whereYear('tanggal_pelaksanaan', $period->year)
+                      ->where('payment_status', 'processing');
+                })
+                ->update([
+                    'payment_status' => 'unpaid',
+                    'payroll_item_id' => null,
+                ]);
+
+            // Delete payroll items
+            PayrollItem::where('payroll_batch_id', $batch->id)->delete();
+
+            // Delete batch
+            $batch->delete();
+        });
+
+        return redirect()->route('admin.payroll.batches.index')
+            ->with('success', "Batch payroll {$batch->code} berhasil dihapus.");
+    }
+
+    /**
      * Display slip salaries / kompensasi portal (Instructor).
      */
     public function mySalaries(Request $request)

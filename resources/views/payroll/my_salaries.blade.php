@@ -69,7 +69,6 @@
                             <th>Kode Batch</th>
                             <th>Total Sesi</th>
                             <th>Honor Dasar</th>
-                            <th>Bonus Produk</th>
                             <th>Uang Transport</th>
                             <th>Potongan Denda</th>
                             <th>Honor Bersih (Netto)</th>
@@ -86,7 +85,6 @@
                                 <td class="font-monospace text-muted">{{ $item->batch->code }}</td>
                                 <td>{{ $item->total_sessions }} Sesi</td>
                                 <td>Rp {{ number_format($item->total_base_fee, 2, ',', '.') }}</td>
-                                <td>Rp {{ number_format($item->total_product_bonus, 2, ',', '.') }}</td>
                                 <td>Rp {{ number_format($item->total_transport_fee, 2, ',', '.') }}</td>
                                 <td>
                                     @if ($item->total_penalty > 0)
@@ -115,7 +113,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center py-5">
+                                <td colspan="9" class="text-center py-5">
                                     <div class="mb-3">
                                         <i class="bi bi-file-earmark-x text-muted fs-1 opacity-25"></i>
                                     </div>

@@ -15,11 +15,30 @@
                         <p class="text-muted mb-0">Periode: {{ $batch->periode->format('F Y') }}</p>
                     </div>
                 </div>
-                <div>
+                <div class="d-flex align-items-center gap-2">
                     @if ($batch->status === 'draft')
                         <span class="badge bg-secondary p-2 px-3 fs-6">Draft</span>
+                        <form action="{{ route('admin.payroll.batches.process', $batch->id) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="bi bi-check-circle me-1"></i> Verifikasi Batch
+                            </button>
+                        </form>
+                        <form action="{{ route('admin.payroll.batches.destroy', $batch->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus Draft Batch {{ $batch->code }} ini? Sesi mengajar akan dikembalikan ke status unpaid.')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash me-1"></i> Hapus Batch
+                            </button>
+                        </form>
                     @elseif ($batch->status === 'processed')
                         <span class="badge bg-primary p-2 px-3 fs-6">Terverifikasi</span>
+                        <form action="{{ route('admin.payroll.batches.pay', $batch->id) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-success">
+                                <i class="bi bi-cash-stack me-1"></i> Tandai Lunas Dibayar
+                            </button>
+                        </form>
                     @elseif ($batch->status === 'paid')
                         <span class="badge bg-success p-2 px-3 fs-6">Lunas Dibayar</span>
                     @endif
@@ -131,7 +150,6 @@
                             <th class="ps-4">Instruktur</th>
                             <th>Total Sesi</th>
                             <th>Total Honor Dasar</th>
-                            <th>Bonus Produk</th>
                             <th>Uang Transport</th>
                             <th>Potongan Denda</th>
                             <th>Honor Netto</th>
@@ -147,7 +165,6 @@
                                 </td>
                                 <td>{{ $item->total_sessions }} Sesi</td>
                                 <td>Rp {{ number_format($item->total_base_fee, 2, ',', '.') }}</td>
-                                <td>Rp {{ number_format($item->total_product_bonus, 2, ',', '.') }}</td>
                                 <td>Rp {{ number_format($item->total_transport_fee, 2, ',', '.') }}</td>
                                 <td>
                                     @if ($item->total_penalty > 0)
