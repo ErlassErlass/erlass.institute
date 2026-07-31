@@ -9,19 +9,25 @@ use App\Models\SalaryRate;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Layanan Kalkulator Payroll & Kompensasi Instruktur
+ * Mengimplementasikan seluruh aturan perhitungan honorarium, transport,
+ * kedisiplinan, dan periode cutoff penggajian sesuai Surat Memo Direksi No. 536/EPI/V/2025.
+ */
 class PayrollCalculatorService
 {
     /**
-     * Constant for late penalty amount.
+     * Besaran nominal denda keterlambatan check-in (>= 15 menit).
      */
     const LATE_PENALTY_AMOUNT = 25000.00;
 
     /**
-     * Calculate fee and punctuality for a single session according to Memo No. 536/EPI/V/2025 (TAB 2025/2026).
+     * Menghitung honorarium, biaya transport, dan status kedisiplinan untuk satu sesi mengajar
+     * berdasarkan ketentuan Memo Resmi No. 536/EPI/V/2025 (TAB 2025/2026).
      */
     public function calculateSessionFee(EkstrakurikulerSession $session): array
     {
-        // 1. Determine student count for the rombel/session
+        // 1. Tentukan jumlah siswa aktif dalam rombel/sesi ini
         $rombel = $session->rombel;
         $studentCount = 0;
         if ($rombel) {
@@ -34,7 +40,7 @@ class PayrollCalculatorService
             $studentCount = $session->laporanMengajar->absensi()->count();
         }
 
-        // 2. Base rate calculation based on Official Memo No. 536/EPI/V/2025 (TAB 2025/2026)
+        // 2. Perhitungan Honorarium Dasar berdasarkan Memo Resmi No. 536/EPI/V/2025
         $category = '';
         if ($session->laporanMengajar && $session->laporanMengajar->kategori_pengajaran) {
             $category = strtolower($session->laporanMengajar->kategori_pengajaran);
@@ -47,27 +53,27 @@ class PayrollCalculatorService
         $baseRate = 0.00;
 
         if (str_contains($category, 'sosialisasi')) {
-            // No. 6: Honor Sosialisasi bersama Sales = Rp 75.000
+            // Poin No. 6: Honor Sosialisasi bersama Sales = Rp 75.000
             $baseRate = 75000.00;
         } elseif (str_contains($category, 'free trial') || str_contains($category, 'trial class') || str_contains($category, 'trial')) {
-            // No. 7: Honor Free Trial / Trial Class (Siswa > 6 => Rp 100.000, Siswa <= 6 => Rp 75.000)
+            // Poin No. 7: Honor Free Trial / Trial Class (Siswa > 6 => Rp 100.000, Siswa <= 6 => Rp 75.000)
             $baseRate = ($studentCount > 6) ? 100000.00 : 75000.00;
         } elseif (str_contains($category, 'pameran')) {
-            // No. 5: Honor Pameran di Sekolah / Kegiatan Luar = Rp 100.000
+            // Poin No. 5: Honor Pameran di Sekolah / Kegiatan Luar = Rp 100.000
             $baseRate = 100000.00;
         } elseif (str_contains($category, 'lomba') || str_contains($category, 'pendampingan')) {
-            // No. 4: Honor Pendampingan Lomba = Rp 75.000
+            // Poin No. 4: Honor Pendampingan Lomba = Rp 75.000
             $baseRate = 75000.00;
         } elseif (str_contains($category, 'per-pertemuan') || str_contains($category, 'per pertemuan')) {
-            // No. 3: Honor Sekolah Pembayaran Per-Pertemuan = Rp 100.000
+            // Poin No. 3: Honor Sekolah Pembayaran Per-Pertemuan = Rp 100.000
             $baseRate = 100000.00;
         } else {
-            // Standard Rate Tiering based on Student Count (No. 1)
-            // - Siswa >= 15: Rp 150.000
-            // - Siswa 12 - 14: Rp 115.000
-            // - Siswa 10 - 11: Rp 100.000
-            // - Siswa 8 - 9: Rp 75.000
-            // - Siswa < 8: Rp 0 (Pembelajaran Hold)
+            // Poin No. 1: Skala Honor Utama berdasarkan Kuota Jumlah Siswa Rombel
+            // - Siswa >= 15 orang: Rp 150.000 / sesi
+            // - Siswa 12 - 14 orang: Rp 115.000 / sesi
+            // - Siswa 10 - 11 orang: Rp 100.000 / sesi
+            // - Siswa 8 - 9 orang: Rp 75.000 / sesi
+            // - Siswa < 8 orang: Rp 0 (Pembelajaran Ditunda / Hold)
             if ($studentCount >= 15) {
                 $baseRate = 150000.00;
             } elseif ($studentCount >= 12) {
@@ -81,7 +87,7 @@ class PayrollCalculatorService
             }
         }
 
-        // Fallback to salary_rates table if baseRate is 0 and student count >= 8 (e.g. general level rate)
+        // Jalur Cadangan (Fallback): Ambil dari tabel master salary_rates jika baseRate bernilai 0 dan siswa >= 8
         if ($baseRate === 0.00 && $studentCount >= 8) {
             $instructor = $session->instruktur;
             $level = strtolower($instructor->instructorProfile->level ?? 'junior');
@@ -92,7 +98,7 @@ class PayrollCalculatorService
             $baseRate = $rateSetting ? (float) $rateSetting->base_rate : 100000.00;
         }
 
-        // 3. Product Bonus if applicable
+        // 3. Perhitungan Bonus Produk (jika ada skema bonus kategori produk)
         $productBonus = 0.00;
         if ($session->ekstrakurikuler && $session->ekstrakurikuler->kategori_program) {
             $program = $session->ekstrakurikuler->kategori_program;
@@ -108,7 +114,7 @@ class PayrollCalculatorService
             }
         }
 
-        // 4. Punctuality Check & Penalty
+        // 4. Pemeriksaan Kedisiplinan Check-in & Perhitungan Denda Keterlambatan
         $checkinStatus = 'on_time';
         $penalty = 0.00;
 
@@ -120,20 +126,20 @@ class PayrollCalculatorService
             if ($diffMinutes <= 0) {
                 $checkinStatus = ($diffMinutes <= -10) ? 'excellent' : 'on_time';
             } elseif ($diffMinutes > 0 && $diffMinutes < 15) {
-                $checkinStatus = 'warning';
+                $checkinStatus = 'warning'; // Toleransi 15 menit pertama (bebas denda)
             } else {
-                $checkinStatus = 'penalty';
+                $checkinStatus = 'penalty'; // Terlambat >= 15 menit (dikenakan denda Rp 25.000)
                 $penalty = self::LATE_PENALTY_AMOUNT;
             }
         }
 
-        // 5. Total Fee (base + bonus)
+        // 5. Total Honorarium (Honor Dasar + Bonus Produk)
         $calculatedFee = $baseRate + $productBonus;
 
-        // 6. Transport Fee Calculation according to Memo No. 536/EPI/V/2025:
-        // - Guru Internal sekolah / Kegiatan di Kantor Erlass: Transport = Rp 0
-        // - Jarak >= 10 KM: (jarak_km * Rp 350) + Rp 7.500 (sewa kendaraan)
-        // - Jarak < 10 KM: minimal flat Rp 20.000 / custom fee
+        // 6. Perhitungan Biaya Transportasi Operasional sesuai Memo No. 536/EPI/V/2025:
+        // - Instruktur Guru Internal Sekolah / Kegiatan di Kantor Erlass: Transport = Rp 0
+        // - Jarak >= 10 KM dari Pejaten: (Jarak KM * Rp 350) + Rp 7.500 (sewa kendaraan)
+        // - Jarak < 10 KM: Tarif minimal flat Rp 20.000 / Custom Transport Fee Sekolah
         $transportFee = 0.00;
         $ekskul = $session->ekstrakurikuler;
         $sekolah = $ekskul ? $ekskul->sekolah : null;
@@ -160,7 +166,7 @@ class PayrollCalculatorService
             $transportFee = 30000.00;
         }
 
-        // 7. Override fee if present
+        // 7. Penggunaan nilai koreksi manual (Override Fee) jika Admin mengisi nilai khusus
         $finalFee = $session->override_fee !== null ? (float) $session->override_fee : $calculatedFee;
 
         return [
@@ -176,20 +182,20 @@ class PayrollCalculatorService
     }
 
     /**
-     * Compile unpaid completed sessions for a month into a payroll batch.
+     * Mengompilasi seluruh sesi mengajar selesai yang belum dibayar dalam rentang Cutoff ke Batch Payroll.
      */
     public function generateMonthlyPayroll(PayrollBatch $batch): int
     {
         return DB::transaction(function () use ($batch) {
-            // Get batch period (e.g. 2026-07-01)
+            // Ambil tanggal periode batch (misal: 2026-07-01)
             $period = Carbon::parse($batch->periode);
 
-            // Cutoff Date Range: Tanggal 11 bulan M-1 s.d. Tanggal 10 bulan M
-            // Contoh Batch Juli 2026 => 11 Juni 2026 s.d. 10 Juli 2026
+            // Rentang Waktu Cutoff: Tanggal 11 Bulan Lalu s.d. Tanggal 10 Bulan Berjalan
+            // Contoh Batch Periode Juli 2026 => 11 Juni 2026 00:00:00 s.d. 10 Juli 2026 23:59:59
             $startDate = $period->copy()->subMonth()->day(11)->startOfDay();
             $endDate = $period->copy()->day(10)->endOfDay();
 
-            // Auto-link any standalone LaporanMengajar in this cutoff period to guarantee ALL reports are included
+            // Auto-Link seluruh Laporan Mengajar mandiri di rentang cutoff agar 100% terekap di payroll
             $standaloneReports = \App\Models\LaporanMengajar::whereNull('ekstrakurikuler_session_id')
                 ->whereBetween('jadwal_mengajar', [$startDate, $endDate])
                 ->whereNotNull('user_id_instruktur')
@@ -199,11 +205,11 @@ class PayrollCalculatorService
                 $report->ensureSessionLinked();
             }
 
-            // Find all unpaid completed sessions in the cutoff period that have reports
+            // Ambil seluruh sesi mengajar selesai yang berstatus unpaid dan memiliki laporan lengkap di rentang cutoff
             $sessions = EkstrakurikulerSession::where('payment_status', 'unpaid')
                 ->where('status', EkstrakurikulerSession::STATUS_SELESAI)
                 ->whereBetween('tanggal_pelaksanaan', [$startDate, $endDate])
-                ->whereHas('laporanMengajar') // Must have teaching report complete
+                ->whereHas('laporanMengajar') // Wajib memiliki bukti Laporan Mengajar
                 ->whereNotNull('user_id_instruktur')
                 ->get();
 
@@ -211,7 +217,7 @@ class PayrollCalculatorService
                 return 0;
             }
 
-            // Group sessions by instructor
+            // Kelompokkan sesi mengajar berdasarkan ID Instruktur
             $groupedSessions = $sessions->groupBy('user_id_instruktur');
             $itemsCount = 0;
 
@@ -223,11 +229,11 @@ class PayrollCalculatorService
                 $totalBonus = 0.00;
                 $totalTransportFee = 0.00;
 
-                // Process each session to store its details
+                // Proses setiap sesi untuk menyimpan rincian kalkulasinya
                 foreach ($instructorSessions as $session) {
                     $calc = $this->calculateSessionFee($session);
                     
-                    // Update session columns
+                    // Update kolom-kolom kalkulasi pada sesi
                     $session->update([
                         'actual_checkin_status' => $calc['actual_checkin_status'],
                         'actual_checkin_penalty' => $calc['actual_checkin_penalty'],
@@ -241,7 +247,7 @@ class PayrollCalculatorService
                     $totalPenalty += $calc['actual_checkin_penalty'];
                 }
 
-                // Check override fee and sum up transport fee for sessions
+                // Hitung total honor dasar (termasuk nilai override fee) dan total biaya transportasi
                 $actualTotalBase = 0.00;
                 $totalTransportFee = 0.00;
                 foreach ($instructorSessions as $session) {
@@ -253,10 +259,10 @@ class PayrollCalculatorService
                     $totalTransportFee += (float) $session->transport_fee;
                 }
 
-                // net_salary = base_fee_with_overrides + total_transport_fee + total_bonus - total_penalty
+                // Gaji Bersih (Net Salary) = Honor Dasar + Total Transport + Bonus - Total Denda
                 $netSalary = max(0.00, $actualTotalBase + $totalTransportFee + $totalBonus - $totalPenalty);
 
-                // Create payroll item
+                // Buat entri rincian Payroll Item per Instruktur
                 $payrollItem = PayrollItem::create([
                     'payroll_batch_id' => $batch->id,
                     'user_id_instruktur' => $instructorId,
@@ -272,7 +278,7 @@ class PayrollCalculatorService
                     'status' => 'pending',
                 ]);
 
-                // Link sessions to payroll item
+                // Hubungkan sesi-sesi mengajar ke Payroll Item ini
                 foreach ($instructorSessions as $session) {
                     $session->update([
                         'payroll_item_id' => $payrollItem->id
