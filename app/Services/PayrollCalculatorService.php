@@ -35,24 +35,50 @@ class PayrollCalculatorService
         }
 
         // 2. Base rate calculation based on Official Memo No. 536/EPI/V/2025 (TAB 2025/2026)
-        // - Siswa >= 15: Rp 150.000
-        // - Siswa 12 - 14: Rp 115.000
-        // - Siswa 10 - 11: Rp 100.000
-        // - Siswa 8 - 9: Rp 75.000
-        // - Siswa < 8: Rp 0 (Pembelajaran Hold)
+        $category = '';
+        if ($session->laporanMengajar && $session->laporanMengajar->kategori_pengajaran) {
+            $category = strtolower($session->laporanMengajar->kategori_pengajaran);
+        } elseif ($session->topik_materi) {
+            $category = strtolower($session->topik_materi);
+        } elseif ($session->ekstrakurikuler && $session->ekstrakurikuler->kategori_program) {
+            $category = strtolower($session->ekstrakurikuler->kategori_program);
+        }
+
         $baseRate = 0.00;
 
-        if ($studentCount >= 15) {
-            $baseRate = 150000.00;
-        } elseif ($studentCount >= 12) {
-            $baseRate = 115000.00;
-        } elseif ($studentCount >= 10) {
-            $baseRate = 100000.00;
-        } elseif ($studentCount >= 8) {
+        if (str_contains($category, 'sosialisasi')) {
+            // No. 6: Honor Sosialisasi bersama Sales = Rp 75.000
             $baseRate = 75000.00;
+        } elseif (str_contains($category, 'free trial') || str_contains($category, 'trial class') || str_contains($category, 'trial')) {
+            // No. 7: Honor Free Trial / Trial Class (Siswa > 6 => Rp 100.000, Siswa <= 6 => Rp 75.000)
+            $baseRate = ($studentCount > 6) ? 100000.00 : 75000.00;
+        } elseif (str_contains($category, 'pameran')) {
+            // No. 5: Honor Pameran di Sekolah / Kegiatan Luar = Rp 100.000
+            $baseRate = 100000.00;
+        } elseif (str_contains($category, 'lomba') || str_contains($category, 'pendampingan')) {
+            // No. 4: Honor Pendampingan Lomba = Rp 75.000
+            $baseRate = 75000.00;
+        } elseif (str_contains($category, 'per-pertemuan') || str_contains($category, 'per pertemuan')) {
+            // No. 3: Honor Sekolah Pembayaran Per-Pertemuan = Rp 100.000
+            $baseRate = 100000.00;
         } else {
-            // < 8 students: Pembelajaran Hold (Rp 0)
-            $baseRate = 0.00;
+            // Standard Rate Tiering based on Student Count (No. 1)
+            // - Siswa >= 15: Rp 150.000
+            // - Siswa 12 - 14: Rp 115.000
+            // - Siswa 10 - 11: Rp 100.000
+            // - Siswa 8 - 9: Rp 75.000
+            // - Siswa < 8: Rp 0 (Pembelajaran Hold)
+            if ($studentCount >= 15) {
+                $baseRate = 150000.00;
+            } elseif ($studentCount >= 12) {
+                $baseRate = 115000.00;
+            } elseif ($studentCount >= 10) {
+                $baseRate = 100000.00;
+            } elseif ($studentCount >= 8) {
+                $baseRate = 75000.00;
+            } else {
+                $baseRate = 0.00;
+            }
         }
 
         // Fallback to salary_rates table if baseRate is 0 and student count >= 8 (e.g. general level rate)
@@ -155,15 +181,17 @@ class PayrollCalculatorService
     public function generateMonthlyPayroll(PayrollBatch $batch): int
     {
         return DB::transaction(function () use ($batch) {
-            // Get batch period (month and year)
+            // Get batch period (e.g. 2026-07-01)
             $period = Carbon::parse($batch->periode);
-            $month = $period->month;
-            $year = $period->year;
 
-            // Auto-link any standalone LaporanMengajar in this period to guarantee ALL reports are included
+            // Cutoff Date Range: Tanggal 11 bulan M-1 s.d. Tanggal 10 bulan M
+            // Contoh Batch Juli 2026 => 11 Juni 2026 s.d. 10 Juli 2026
+            $startDate = $period->copy()->subMonth()->day(11)->startOfDay();
+            $endDate = $period->copy()->day(10)->endOfDay();
+
+            // Auto-link any standalone LaporanMengajar in this cutoff period to guarantee ALL reports are included
             $standaloneReports = \App\Models\LaporanMengajar::whereNull('ekstrakurikuler_session_id')
-                ->whereMonth('jadwal_mengajar', $month)
-                ->whereYear('jadwal_mengajar', $year)
+                ->whereBetween('jadwal_mengajar', [$startDate, $endDate])
                 ->whereNotNull('user_id_instruktur')
                 ->get();
 
@@ -171,11 +199,10 @@ class PayrollCalculatorService
                 $report->ensureSessionLinked();
             }
 
-            // Find all unpaid completed sessions for the period that have reports
+            // Find all unpaid completed sessions in the cutoff period that have reports
             $sessions = EkstrakurikulerSession::where('payment_status', 'unpaid')
                 ->where('status', EkstrakurikulerSession::STATUS_SELESAI)
-                ->whereMonth('tanggal_pelaksanaan', $month)
-                ->whereYear('tanggal_pelaksanaan', $year)
+                ->whereBetween('tanggal_pelaksanaan', [$startDate, $endDate])
                 ->whereHas('laporanMengajar') // Must have teaching report complete
                 ->whereNotNull('user_id_instruktur')
                 ->get();
