@@ -206,6 +206,16 @@
                             </td>
                             <td>
                                 <div class="fw-bold text-dark">Pertemuan {{ $session->nomor_pertemuan }}</div>
+                                @php
+                                    $topikLower = strtolower($session->topik_materi ?? $session->laporanMengajar->kategori_pengajaran ?? '');
+                                    $isAdHocSession = ($session->laporanMengajar && $session->laporanMengajar->ekstrakurikuler_session_id === null)
+                                        || in_array($topikLower, ['pameran', 'sosialisasi', 'trial', 'free trial', 'trial class', 'lomba', 'pendampingan', 'per-pertemuan', 'per pertemuan', 'event', 'kegiatan mandiri']);
+                                @endphp
+                                @if($isAdHocSession)
+                                    <span class="badge rounded-pill my-1" style="background-color: rgba(139, 92, 246, 0.12); color: #7c3aed; border: 1px solid rgba(139, 92, 246, 0.25); font-size: 0.7rem;">
+                                        <i class="bi bi-stars me-1"></i> Kegiatan Mandiri
+                                    </span>
+                                @endif
                                 @if($session->topik_materi)
                                     <small class="text-muted d-block text-truncate" style="max-width: 200px;">{{ $session->topik_materi }}</small>
                                 @endif

@@ -191,14 +191,22 @@
                             <td><span class="badge bg-light text-dark border">{{ $item->rombel }}</span></td>
                             <td>
                                 @php
-                                $badgeClass = match($item->kategori_pengajaran) {
-                                    'Reguler' => 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25',
-                                    'Remedial' => 'bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25',
-                                    'Pengayaan' => 'bg-info bg-opacity-10 text-info border border-info border-opacity-25',
-                                    default => 'bg-secondary bg-opacity-10 text-secondary',
-                                };
+                                $categoryName = $item->kategori_pengajaran ?? 'Kegiatan';
+                                $categoryLower = strtolower($categoryName);
+                                $isAdHoc = ($item->ekstrakurikuler_session_id === null)
+                                    || in_array($categoryLower, ['pameran', 'sosialisasi', 'trial', 'free trial', 'trial class', 'lomba', 'pendampingan', 'per-pertemuan', 'per pertemuan', 'event', 'kegiatan mandiri'])
+                                    || (isset($item->metadata_json['is_standalone']) && $item->metadata_json['is_standalone']);
                                 @endphp
-                                <span class="badge {{ $badgeClass }} rounded-pill px-2 py-1">{{ $item->kategori_pengajaran }}</span>
+
+                                @if($isAdHoc)
+                                    <span class="badge rounded-pill px-2.5 py-1" style="background-color: rgba(139, 92, 246, 0.12); color: #7c3aed; border: 1px solid rgba(139, 92, 246, 0.25);">
+                                        <i class="bi bi-stars me-1"></i> {{ $categoryName }}
+                                    </span>
+                                @else
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2.5 py-1">
+                                        <i class="bi bi-calendar-check me-1"></i> {{ $categoryName }}
+                                    </span>
+                                @endif
                             </td>
                             <td class="text-center">
                                 <div class="btn-group" role="group">
@@ -253,14 +261,21 @@
                                 @endif
                             </div>
                             @php
-                            $badgeClass = match($item->kategori_pengajaran) {
-                                'Reguler' => 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25',
-                                'Remedial' => 'bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25',
-                                'Pengayaan' => 'bg-info bg-opacity-10 text-info border border-info border-opacity-25',
-                                default => 'bg-secondary bg-opacity-10 text-secondary',
-                            };
+                            $categoryName = $item->kategori_pengajaran ?? 'Kegiatan';
+                            $categoryLower = strtolower($categoryName);
+                            $isAdHocMobile = ($item->ekstrakurikuler_session_id === null)
+                                || in_array($categoryLower, ['pameran', 'sosialisasi', 'trial', 'free trial', 'trial class', 'lomba', 'pendampingan', 'per-pertemuan', 'per pertemuan', 'event', 'kegiatan mandiri'])
+                                || (isset($item->metadata_json['is_standalone']) && $item->metadata_json['is_standalone']);
                             @endphp
-                            <span class="badge {{ $badgeClass }} rounded-pill">{{ $item->kategori_pengajaran }}</span>
+                            @if($isAdHocMobile)
+                                <span class="badge rounded-pill" style="background-color: rgba(139, 92, 246, 0.12); color: #7c3aed; border: 1px solid rgba(139, 92, 246, 0.25);">
+                                    <i class="bi bi-stars me-1"></i> {{ $categoryName }}
+                                </span>
+                            @else
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill">
+                                    <i class="bi bi-calendar-check me-1"></i> {{ $categoryName }}
+                                </span>
+                            @endif
                         </div>
 
                         <div class="mb-3">
