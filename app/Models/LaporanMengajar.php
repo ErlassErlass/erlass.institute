@@ -331,6 +331,8 @@ class LaporanMengajar extends Model
 
         $this->update(['ekstrakurikuler_session_id' => $session->id]);
 
+        $session->checkAndUpdateParentProgramCompletion();
+
         return $session;
     }
 }

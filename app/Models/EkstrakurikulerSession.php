@@ -450,6 +450,9 @@ class EkstrakurikulerSession extends Model
         if ($saved) {
             $this->rombel->incrementPertemuanSelesai();
 
+            // Otomatis ubah status program utama menjadi 'selesai' jika seluruh sesi sudah 100% selesai
+            $this->checkAndUpdateParentProgramCompletion();
+
             // Auto-create laporan mengajar jika belum ada
             if (! $this->laporanMengajar()->exists() && isset($data['auto_create_laporan']) && $data['auto_create_laporan']) {
                 $this->autoCreateLaporanMengajar();
@@ -457,6 +460,36 @@ class EkstrakurikulerSession extends Model
         }
 
         return $saved;
+    }
+
+    /**
+     * Otomatis memperbarui status Ekstrakurikuler induk menjadi 'selesai'
+     * jika seluruh sesi pertemuan pada program tersebut sudah selesai.
+     */
+    public function checkAndUpdateParentProgramCompletion(): void
+    {
+        $ekstrakurikuler = $this->ekstrakurikuler;
+        if (! $ekstrakurikuler || $ekstrakurikuler->status === Ekstrakurikuler::STATUS_SELESAI) {
+            return;
+        }
+
+        $totalSessions = self::where('ekstrakurikuler_id', $ekstrakurikuler->id)->count();
+        if ($totalSessions === 0) {
+            return;
+        }
+
+        $completedSessions = self::where('ekstrakurikuler_id', $ekstrakurikuler->id)
+            ->where('status', self::STATUS_SELESAI)
+            ->count();
+
+        if ($completedSessions >= $totalSessions) {
+            $ekstrakurikuler->update([
+                'status' => Ekstrakurikuler::STATUS_SELESAI,
+                'updated_by' => auth()->id() ?? $ekstrakurikuler->updated_by,
+            ]);
+
+            \Illuminate\Support\Facades\Log::info("Program Ekstrakurikuler #{$ekstrakurikuler->id} ({$ekstrakurikuler->kategori_program}) otomatis diselesaikan karena 100% sesi telah selesai.");
+        }
     }
 
     /**
