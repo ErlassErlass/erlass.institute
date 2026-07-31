@@ -1,8 +1,8 @@
 # 🧪 Panduan & Skenario UAT (User Acceptance Testing) - Role Instruktur
-## Alur Lengkap: Dari Login Akun, Absensi, hingga Pembuatan Laporan Mengajar
+## Alur Lengkap: Dari Login, Check-in Awal Kelas, Upload Project, Cutoff, hingga Slip Gaji
 
 > [!NOTE]
-> Dokumen ini dirancang sebagai panduan pengujian lapangan bagi **Instruktur** dan tim QA untuk menguji seluruh alur kerja operasional pengajaran pada aplikasi **erlass.institute** (baik via Mobile Browser/PWA maupun Desktop).
+> Dokumen ini dirancang sebagai panduan operasional lapangan resmi bagi **Instruktur** dan tim QA untuk menguji seluruh alur kerja pengajaran pada aplikasi **erlass.institute** (baik via Mobile Browser/PWA maupun Desktop).
 
 ---
 
@@ -12,12 +12,12 @@
 3. [Panduan Langkah demi Langkah UAT](#3-panduan-langkah-demi-langkah-uat)
    - [Tahap 1: Login & Aktivasi Akun Instruktur](#tahap-1-login--aktivasi-akun-instruktur)
    - [Tahap 2: Pemasangan Aplikasi PWA di Smartphone](#tahap-2-pemasangan-aplikasi-pwa-di-smartphone)
-   - [Tahap 3: Meninjau Dashboard & Agenda Sesi Mengajar](#tahap-3-meninjau-dashboard--agenda-sesi-mengajar)
-   - [Tahap 4: Pengisian & Manajemen Absensi Siswa](#tahap-4-pengisian--manajemen-absensi-siswa)
-   - [Tahap 5: Penambahan Siswa Baru Cepat (Quick Add)](#tahap-5-penambahan-siswa-baru-cepat-quick-add)
-   - [Tahap 6: Pembuatan Laporan Mengajar & Upload Bukti Foto](#tahap-6-pembuatan-laporan-mengajar--upload-bukti-foto)
-   - [Tahap 7: Deteksi Status Laporan & Warning QC](#tahap-7-deteksi-status-laporan--warning-qc)
-   - [Tahap 8: Peninjauan Rekap Honor & Slip Gaji](#tahap-8-peninjauan-rekap-honor--slip-gaji)
+   - [Tahap 3: Check-in Kedatangan / Mulai Sesi (Awal Kelas / 15 Menit Pertama)](#tahap-3-check-in-kedatangan--mulai-sesi-awal-kelas--15-menit-pertama)
+   - [Tahap 4: Pengisian Absensi & Quick Add Siswa Baru](#tahap-4-pengisian-absensi--quick-add-siswa-baru)
+   - [Tahap 5: Upload File Project Karya Siswa & Bukti Foto (Akhir Kelas)](#tahap-5-upload-file-project-karya-siswa--bukti-foto-akhir-kelas)
+   - [Tahap 6: Verifikasi QC Warning & Status Sesi Selesai](#tahap-6-verifikasi-qc-warning--status-sesi-selesai)
+   - [Tahap 7: Pemahaman Periode Cutoff Penggajian (Tanggal 11 s.d. 10)](#tahap-7-pemahaman-periode-cutoff-penggajian-tanggal-11-sd-10)
+   - [Tahap 8: Peninjauan Slip Gaji & Rekap Honorarium Bulanan](#tahap-8-peninjauan-slip-gaji--rekap-honorarium-bulanan)
 4. [Lembar Checklist Test Case UAT Instruktur](#4-lembar-checklist-test-case-uat-instruktur)
 
 ---
@@ -29,7 +29,7 @@
     *   Smartphone Android (Google Chrome) / iOS (Safari)
     *   Laptop / Desktop Browser (Chrome/Edge/Firefox)
 *   **Kredensial Uji Coba**:
-    *   **Email**: `instruktur@erlass.institute` (atau akun instruktur yang didaftarkan Admin)
+    *   **Email**: `instruktur@erlass.institute` (atau akun instruktur terdaftar)
     *   **Password**: `password` (atau password default sistem)
 
 ---
@@ -38,15 +38,15 @@
 
 ```mermaid
 graph TD
-    A[1. Terima Akun / Login] --> B[2. Install PWA ke Homescreen]
-    B --> C[3. Cek Agenda Sesi Mengajar]
-    C --> D[4. Buka Sesi Hari Ini]
-    D --> E[5. Isi Absensi Siswa]
-    E -->|Ada Siswa Baru| F[5b. Quick Add Siswa Baru]
-    F --> E
-    E --> G[6. Isi Laporan Mengajar & Upload Foto]
-    G --> H[7. Verifikasi Laporan Selesai & QC Warning Hilang]
-    H --> I[8. Cek Slip Gaji & Rekap Honor Bulanan]
+    A[1. Login Akun Instruktur] --> B[2. Install PWA & App Shortcuts]
+    B --> C[3. Tiba di Sekolah: Tekan 'Mulai Sesi' / Check-In]
+    C -->|Jam Hadir Dikunci di 15 Menit Pertama| D[4. Isi Absensi Siswa & Proses KBM]
+    D -->|Ada Siswa Baru| E[4b. Quick Add Siswa Baru]
+    E --> D
+    D --> F[5. Akhir Kelas: Upload File Project .sb3 & Bukti Foto]
+    F --> G[6. Sesi Selesai & QC Warning Hilang]
+    G --> H[7. Sesi Masuk Cutoff Tgl 11 s/d 10]
+    H --> I[8. Cek Slip Gaji & Unduh PDF di /payroll/my-salaries]
 ```
 
 ---
@@ -57,105 +57,117 @@ graph TD
 1. Buka browser pada HP/Laptop dan ketik `https://erlass.institute/login`.
 2. Masukkan **Email** dan **Password** Instruktur.
 3. Klik tombol **Login**.
-4. **Hasil yang Diharapkan**: Pengguna berhasil masuk ke **Dashboard Instruktur** dan melihat ucapan selamat datang beserta ringkasan sesi.
+4. **Hasil yang Diharapkan**: Pengguna berhasil masuk ke **Dashboard Instruktur** dan melihat ucapan selamat datang beserta ringkasan agenda mengajar.
 
 ---
 
 ### Tahap 2: Pemasangan Aplikasi PWA di Smartphone
-1. Di layar HP (Chrome/Safari), perhatikan banner atau tombol **"Install App"** di bagian atas/bawah layar.
+1. Di layar HP (Chrome/Safari), perhatikan banner atau tombol **"Install App"**.
 2. Klik **Install / Tambahkan ke Layar Utama (Add to Home Screen)**.
-3. Buka aplikasi Erlass dari ikon aplikasi di layar utama HP.
+3. Buka aplikasi Erlass dari ikon di layar utama HP.
 4. Tekan lama ikon aplikasi di HP untuk menguji **App Shortcuts**:
    *   `Buat Laporan`
    *   `Agenda Kegiatan`
    *   `Kelola Absensi`
-5. Matikan sebentar WiFi/Data Seluler untuk menguji **Offline Toast Notification** (Muncul notifikasi melayang warna merah: *"Koneksi terputus (Offline)"*). Hidupkan kembali koneksi untuk melihat notifikasi hijau *"Koneksi kembali terhubung (Online)"*.
+5. Matikan sebentar WiFi/Data Seluler untuk menguji **Offline Toast Notification** (Notifikasi melayang merah: *"Koneksi terputus (Offline)"*). Hidupkan kembali untuk melihat notifikasi hijau *"Koneksi kembali terhubung (Online)"*.
 6. **Hasil yang Diharapkan**: Aplikasi PWA terpasang seperti aplikasi native HP dan indikator sinyal berfungsi real-time.
 
 ---
 
-### Tahap 3: Meninjau Dashboard & Agenda Sesi Mengajar
-1. Dari halaman utama Dashboard, lihat kartu **Agenda Mengajar Hari Ini** atau **Sesi Mendatang**.
-2. Periksa detail informasi: Nama Sekolah, Nama Program (misal: *Robotika / Coding*), Rombel, Hari, Jam Mulai/Selesai, dan Status Sesi (`Terjadwal` / `Belum Dilaporkan`).
-3. Klik tombol **Isi Laporan / Kelola Sesi**.
-4. **Hasil yang Diharapkan**: Sistem menampilkan halaman detail sesi mengajar dengan status yang tepat.
+### Tahap 3: Check-in Kedatangan / Mulai Sesi (Awal Kelas / 15 Menit Pertama)
+> [!IMPORTANT]
+> **PENTING UNTUK KEDISIPLINAN PAYROLL:**
+> Saat tiba di sekolah (di 15 menit pertama), instruktur WAJIB menekan tombol Check-in agar tidak terkena denda keterlambatan!
+
+1. Buka detail sesi mengajar hari ini pada Dashboard atau menu Agenda (`/ekstrakurikuler/sessions`).
+2. Begitu tiba di lokasi sekolah sebelum/saat kelas dimulai, klik tombol **"Mulai Sesi" / Check-In**.
+3. **Penjelasan Sistem Payroll**:
+   - Sistem secara otomatis mengunci timestamp detik itu sebagai `jam_mulai_aktual`.
+   - Selama ditekan dalam toleransi 15 menit pertama dari jam jadwal, instruktur **100% Bebas Denda Keterlambatan (Denda Rp 0)**.
+4. **Hasil yang Diharapkan**: Status sesi berubah menjadi `Berlangsung` dan jam hadir terkunci secara permanen.
 
 ---
 
-### Tahap 4: Pengisian & Manajemen Absensi Siswa
-1. Pada halaman Sesi / Laporan Mengajar, pilih opsi presensi tiap siswa:
-   *   🟢 **Hadir**
-   *   🟡 **Izin**
-   *   🔵 **Sakit**
-   *   🔴 **Alpha**
-2. Gunakan tombol **"Mark All Hadir"** jika seluruh siswa hadir untuk mempercepat pengisian.
-3. Ubah salah satu status siswa (misal dari *Alpha* menjadi *Hadir*) untuk menguji fitur **Audit Trail Absensi Anti-Manipulasi**.
-4. **Hasil yang Diharapkan**: Status kehadiran tersimpan secara real-time dan setiap perubahan terekam otomatis di Activity Log sistem.
+### Tahap 4: Pengisian Absensi & Quick Add Siswa Baru
+1. Pada halaman Sesi, pilih status presensi tiap siswa:
+   *   🟢 **Hadir** | 🟡 **Izin** | 🔵 **Sakit** | 🔴 **Alpha**
+2. Gunakan tombol **"Mark All Hadir"** jika seluruh siswa hadir.
+3. **Jika ada siswa baru yang belum terdaftar di Rombel**:
+   - Klik tombol **"+ Tambah Siswa Baru (Quick Add)"**.
+   - Masukkan **Nama Lengkap**, **Kelas**, dan **Jenis Kelamin** (WA Orang Tua opsional).
+   - Klik **Auto** pada NISN jika belum ada NISN kementerian.
+   - Klik **Simpan & Daftarkan ke Rombel Ini**. Siswa baru otomatis terdaftar (*auto-enrolled*).
+4. **Hasil yang Diharapkan**: Presensi tersimpan real-time dan siswa baru dapat langsung diabsen.
 
 ---
 
-### Tahap 5: Penambahan Siswa Baru Cepat (Quick Add)
-Jika di lapangan terdapat siswa baru yang belum terdaftar di Rombel:
-1. Klik tombol **"+ Tambah Siswa Baru (Quick Add)"**.
-2. Masukkan **Nama Lengkap Siswa**, **Kelas**, dan **Jenis Kelamin**.
-3. Kolom **No. WA Orang Tua** bersifat **Opsional** (boleh dikosongkan).
-4. Klik **Auto** pada kolom NISN jika belum ada NISN resmi kementerian.
-5. Klik **Simpan & Daftarkan ke Rombel Ini**.
-6. **Hasil yang Diharapkan**: Siswa baru otomatis dibuat dan langsung terdaftar (*auto-enrolled*) pada Rombel & Program Ekstrakurikuler yang sedang berjalan tanpa perlu keluar dari formulir laporan.
+### Tahap 5: Upload File Project Karya Siswa & Bukti Foto (Akhir Kelas)
+> [!TIP]
+> **PENJELASAN UNTUK INSTRUKTUR:**
+> Mengunggah file project karya siswa (`.sb3`) dan foto di akhir kelas (menit ke-60/90) **TIDAK AKAN MERUSAK KEDISIPLINAN ATAU MENYEBABKAN DENDA**, karena jam kedatangan Anda sudah aman terkunci pada **Tahap 3** saat menekan *Mulai Sesi* di awal kelas.
 
----
-
-### Tahap 6: Pembuatan Laporan Mengajar & Upload Bukti Foto
-1. Isi formulir Laporan Mengajar:
-   *   **Topik / Materi Pengajaran**: Pilih dari dropdown materi dinamis.
-   *   **Target Capaian & Realisasi**: Tuliskan ringkasan hasil pembelajaran.
-   *   **Catatan Instruktur**: Tuliskan progres atau kendala kelas (jika ada).
-2. **Upload Foto Kegiatan Mengajar**:
-   *   Klik area upload foto kegiatan, pilih foto kelas dari Galeri atau Kamera HP.
-3. **Upload Foto Presensi Fisik Tanda Tangan Sekolah**:
-   *   Unggah foto lembar absensi kertas yang sudah ditandatangani oleh PIC/Humas Sekolah.
+1. Setelah pembelajaran selesai dan siswa menghasilkan karya/coding, buka formulir Laporan Mengajar (`/sessions/{id}/report/create`).
+2. Unggah file karya project siswa:
+   *   **File Project**: Unggah file karya siswa (format `.sb3`, `.zip`, `.rar` maks. 10MB).
+   *   **Foto Kegiatan**: Unggah foto aktivitas suasana kelas.
+   *   **Foto Presensi Fisik**: Unggah foto absensi kertas yang ditandatangani/stempel sekolah.
+3. Isi topik materi, keaktifan kelas, pemahaman materi, dan catatan refleksi.
 4. Klik tombol **"Kirim Laporan Mengajar"**.
-5. **Hasil yang Diharapkan**: Laporan tersimpan, status sesi berubah menjadi `Selesai`, dan notifikasi sukses ditampilkan.
+5. **Hasil yang Diharapkan**: Laporan tersimpan, status sesi berubah dari `Berlangsung` menjadi `Selesai`, dan notifikasi sukses ditampilkan.
 
 ---
 
-### Tahap 7: Deteksi Status Laporan & Warning QC
+### Tahap 6: Verifikasi QC Warning & Status Sesi Selesai
 1. Kembali ke Dashboard utama.
 2. Perhatikan kartu **Log Warning Quality Control**:
-   *   Sebelum laporan dibuat: Muncul peringatan QC dengan rincian **Nama Sekolah 🏫** & **Nama Rombel 👥** (misal: *"Sesi pertemuan ke-1 hari ini belum diselesaikan..."*).
-   *   Setelah laporan berhasil dikirim: Peringatan QC pada sesi tersebut otomatis **hilang/selesai**.
-3. **Hasil yang Diharapkan**: QC Engine mendeteksi penyelesaian laporan secara otomatis dan menghilangkan log peringatan.
+   - Sebelum laporan dikirim: Tampil peringatan QC dengan rincian nama sekolah & rombel.
+   - Setelah laporan dikirim: Peringatan QC pada sesi tersebut **otomatis hilang/bersih**.
+3. **Hasil yang Diharapkan**: QC Engine mendeteksi penyelesaian laporan secara otomatis.
 
 ---
 
-### Tahap 8: Peninjauan Rekap Honor & Slip Gaji
+### Tahap 7: Pemahaman Periode Cutoff Penggajian (Tanggal 11 s.d. 10)
+> [!NOTE]
+> **ATURAN CUTOFF PENGGAJIAN BULANAN:**
+> Penggajian dihitung berdasarkan rentang **Tanggal 11 Bulan Sebelumnya s.d. Tanggal 10 Bulan Berjalan**.
+
+1. **Aturan Penarikan Laporan**:
+   - Laporan mengajar yang diisi dari tanggal 11 bulan lalu s/d tanggal 10 bulan ini akan masuk pada pencairan **Batch Bulan Berjalan**.
+   - Contoh: Batch Periode **Juli** menghitung laporan dari **11 Juni s/d 10 Juli**.
+   - Laporan yang diisi setelah tanggal 10 (misal tanggal 11–31 Juli) akan **otomatis ditarik pada Batch Periode AGUSTUS** (tidak akan pernah hangus).
+2. **Hasil yang Diharapkan**: Instruktur memahami dengan jelas jadwal penarikan honorarium bulanan.
+
+---
+
+### Tahap 8: Peninjauan Slip Gaji & Rekap Honorarium Bulanan
 1. Akses menu **Payroll / Slip Gaji Saya** (`/payroll/my-salaries`).
-2. Periksa rekapitulasi sesi mengajar bulan berjalan:
-   *   Jumlah Sesi Selesai & Tervalidasi.
-   *   Kedisiplinan Check-in (Punctuality Status: *On Time* / *Penalty*).
-   *   Rincian Honorarium Dasar & Uang Transport.
-3. Klik tombol **Unduh Slip Gaji (PDF)**.
-4. **Hasil yang Diharapkan**: Instruktur dapat melihat transparansi honor dan mengunduh slip gaji resmi berformat PDF.
+2. Periksa rincian pendapatan pada Batch Payroll yang telah diterbitkan:
+   - Banner transparansi ketentuan honorarium & periode cutoff.
+   - Jumlah Sesi Mengajar & Honorarium Dasar (Rp 150rb / Rp 115rb / Rp 100rb / Rp 75rb per sesi).
+   - Biaya Transportasi Operasional (Rp 350/KM + Rp 7.500 sewa kendaraan untuk jarak $\ge 10\text{ KM}$).
+   - Status Kedisiplinan (*Excellent* / *On Time* / *Penalty*).
+   - Honorarium Bersih (*Net Salary*).
+3. Klik tombol **Detail Slip** (`/payroll/slip/{id}`) untuk melihat rincian per pertemuan.
+4. Klik tombol **Unduh Slip Gaji (PDF)** untuk menyimpan dokumen resmi slip gaji.
+5. **Hasil yang Diharapkan**: Instruktur dapat melihat transparansi honorarium secara 100% dan mengunduh slip gaji PDF.
 
 ---
 
 ## 4. Lembar Checklist Test Case UAT Instruktur
-
-Beri tanda centang (✔️) pada kolom **Hasil** setelah pengujian dilakukan:
 
 | No | Kode UAT | Skenario Pengujian | Langkah Pengujian | Hasil yang Diharapkan | Status (Pass/Fail) |
 | :-: | :--- | :--- | :--- | :--- | :-: |
 | 1 | `UAT-INS-01` | Login Akun Instruktur | Masukkan email & password di `/login` | Masuk ke Dashboard tanpa error | [ ] Pass / [ ] Fail |
 | 2 | `UAT-INS-02` | Instalasi PWA & Shortcuts | Klik Install PWA & tekan lama ikon di HP | App Shortcut & mode standalone berfungsi | [ ] Pass / [ ] Fail |
 | 3 | `UAT-INS-03` | Indikator Network Toast | Matikan & hidupkan koneksi internet HP | Notifikasi melayang Offline/Online muncul | [ ] Pass / [ ] Fail |
-| 4 | `UAT-INS-04` | Cek Agenda Sesi | Buka Dashboard & klik detail sesi | Informasi Sekolah & Rombel akurat | [ ] Pass / [ ] Fail |
+| 4 | `UAT-INS-04` | Check-in Awal Kelas | Klik "Mulai Sesi" saat tiba di sekolah | Jam hadir terkunci & status `Berlangsung` | [ ] Pass / [ ] Fail |
 | 5 | `UAT-INS-05` | Presensi Siswa | Pilih status Hadir/Izin/Sakit/Alpha | Presensi tersimpan & log tercatat | [ ] Pass / [ ] Fail |
-| 6 | `UAT-INS-06` | Quick Add Siswa | Klik "+ Tambah Siswa", isi data, klik Simpan | Siswa otomatis masuk ke Rombel | [ ] Pass / [ ] Fail |
-| 7 | `UAT-INS-07` | Auto Generator NISN | Klik tombol "Auto" di form siswa | Terisi kode NISN sementara (`TMP...`) | [ ] Pass / [ ] Fail |
-| 8 | `UAT-INS-08` | Form Sekolah Redesign | Buka form `/siswa/create` | Dropdown sekolah preloaded & searchable | [ ] Pass / [ ] Fail |
-| 9 | `UAT-INS-09` | Upload Foto & Submit Laporan | Unggah foto kegiatan + TTD sekolah, submit | Status sesi berubah menjadi `Selesai` | [ ] Pass / [ ] Fail |
-| 10 | `UAT-INS-10` | Auto Resolve Warning QC | Cek kartu Warning QC di Dashboard | Peringatan sesi terkait otomatis bersih | [ ] Pass / [ ] Fail |
-| 11 | `UAT-INS-11` | Cek Slip Gaji | Buka menu `/payroll/my-salaries` | Transparansi honor & download PDF lancar | [ ] Pass / [ ] Fail |
+| 6 | `UAT-INS-06` | Quick Add Siswa Baru | Klik "+ Tambah Siswa", isi data, klik Simpan | Siswa otomatis masuk ke Rombel | [ ] Pass / [ ] Fail |
+| 7 | `UAT-INS-07` | Upload File Project & Laporan | Unggah file `.sb3` + foto kegiatan di akhir kelas | Status sesi berubah menjadi `Selesai` tanpa denda | [ ] Pass / [ ] Fail |
+| 8 | `UAT-INS-08` | Verification Kedisiplinan | Cek status kedisiplinan pada detail laporan | Punctuality tercatat *On Time* meski upload di akhir kelas | [ ] Pass / [ ] Fail |
+| 9 | `UAT-INS-09` | Auto Resolve Warning QC | Cek kartu Warning QC di Dashboard | Peringatan sesi terkait otomatis bersih | [ ] Pass / [ ] Fail |
+| 10 | `UAT-INS-10` | Cek Banner Cutoff Tgl 11-10 | Buka menu `/payroll/my-salaries` | Banner informasi cutoff tgl 11–10 tampil jelas | [ ] Pass / [ ] Fail |
+| 11 | `UAT-INS-11` | Cek Slip Gaji & Download PDF | Klik detail slip & unduh file PDF | Transparansi honor & download PDF lancar | [ ] Pass / [ ] Fail |
 
 ---
 
