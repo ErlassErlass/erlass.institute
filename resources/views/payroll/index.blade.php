@@ -173,7 +173,10 @@
                                 value="{{ old('month', date('Y-m')) }}" 
                                 required
                             >
-                            <div class="form-text small text-muted">Sistem akan secara otomatis menyaring seluruh sesi mengajar selesai dan laporan lengkap yang belum dibayarkan pada bulan terpilih.</div>
+                            <div class="form-text small text-primary mt-2 p-2 bg-light rounded border border-primary border-opacity-25">
+                                <i class="bi bi-calendar-range me-1"></i> <strong>Rentang Cutoff:</strong> Tanggal 11 bulan sebelumnya s.d. Tanggal 10 bulan terpilih.
+                                <br><small class="text-muted">Contoh: Memilih <strong>Agustus 2026</strong> akan menyaring sesi/laporan dari <em>11 Juli s/d 10 Agustus 2026</em>.</small>
+                            </div>
                             @error('month')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
