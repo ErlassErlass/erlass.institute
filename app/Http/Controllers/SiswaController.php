@@ -48,31 +48,32 @@ class SiswaController extends Controller
     public function create()
     {
         if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
-        // Fetch schools as [kodlan => namasekolah] for the dropdown (Cached)
-        $sekolah = \Illuminate\Support\Facades\Cache::remember('sekolah_pluck_list', 300, function () {
-            return Sekolah::pluck('namasekolah', 'kodlan');
-        });
         
-        return view('siswa.create', compact('sekolah'));
+        // Fetch all schools sorted by name with kodlan, namasekolah, and kota
+        $sekolahs = \App\Models\Sekolah::orderBy('namasekolah', 'asc')->get(['kodlan', 'namasekolah', 'kota']);
+        
+        return view('siswa.create', compact('sekolahs'));
     }
 
     public function store(Request $request)
     {
         if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
+        
         $validated = $request->validate([
-            'nama_lengkap' => 'required|string',
+            'nama_lengkap' => 'required|string|min:3|max:255',
             'nisn' => 'required|string|unique:siswa,nisn',
-            'jenis_kelamin' => 'nullable|string|max:20',
+            'jenis_kelamin' => 'required|string|max:20',
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
-            'kelas' => 'required|string',
-            'no_hp_orangtua' => 'required|string|min:10|max:15',
+            'kelas' => 'required|string|max:50',
+            'no_hp_orangtua' => 'nullable|string|max:25',
         ]);
 
+        $validated['no_hp_orangtua'] = $request->filled('no_hp_orangtua') ? trim(strip_tags($request->no_hp_orangtua)) : '-';
         $validated['rombel'] = $validated['kelas'];
 
         Siswa::create($validated);
 
-        return redirect()->route('siswa.index')->with('success', 'Siswa added!');
+        return redirect()->route('siswa.index')->with('success', 'Siswa baru berhasil ditambahkan!');
     }
 
     public function show(Siswa $siswa)
