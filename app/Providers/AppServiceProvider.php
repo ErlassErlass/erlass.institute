@@ -34,6 +34,9 @@ class AppServiceProvider extends ServiceProvider
         // Prevent N+1 queries in development
         Model::preventLazyLoading(! app()->isProduction());
 
+        // Register AbsensiObserver for audit logging attendance changes by instructors
+        \App\Models\Absensi::observe(\App\Observers\AbsensiObserver::class);
+
         // FORCE HTTPS for Ngrok or Production
         // This fixes broken layout/mixed content issues when accessing via https://ngrok...
         if (! $this->app->runningInConsole()) {

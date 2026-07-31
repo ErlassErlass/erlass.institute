@@ -206,9 +206,9 @@
         </div>
         
         <div class="mb-2">
-            <label class="form-label small">No. HP/WA Orang Tua <span class="text-danger">*</span></label>
-            <input type="text" class="form-control form-control-sm" name="no_hp_orangtua" placeholder="08xxxx" required maxlength="20">
-            <div class="form-text" style="font-size: 0.7rem;">Wajib untuk mengirim notifikasi absensi dan laporan.</div>
+            <label class="form-label small">No. HP/WA Orang Tua <span class="text-muted small">(Opsional)</span></label>
+            <input type="text" class="form-control form-control-sm" name="no_hp_orangtua" placeholder="08xxxx (opsional)" maxlength="20">
+            <div class="form-text" style="font-size: 0.7rem;">Opsional - Digunakan untuk pengiriman notifikasi jika ada.</div>
         </div>
 
         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">

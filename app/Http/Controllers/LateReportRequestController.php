@@ -65,7 +65,7 @@ class LateReportRequestController extends Controller
     {
         $user = Auth::user();
         
-        if ($user->role !== 'instruktur') {
+        if (!in_array($user->role, ['instruktur', 'webmaster', 'admin_sistem', 'admin'])) {
             return back()->with('error', 'Hanya instruktur yang dapat mengajukan permohonan.');
         }
 
@@ -75,13 +75,24 @@ class LateReportRequestController extends Controller
 
         $request->validate([
             'adhoc_date' => 'required|string',
-            'reason' => 'required|string|min:10|max:500',
+            'reason' => 'required|string|min:5|max:500',
         ]);
 
+        $rawDate = trim($request->adhoc_date);
+        $adhocDate = null;
+
         try {
-            $adhocDate = \Carbon\Carbon::createFromFormat('d/m/Y', $request->adhoc_date)->format('Y-m-d');
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $rawDate)) {
+                $adhocDate = \Carbon\Carbon::createFromFormat('Y-m-d', $rawDate)->format('Y-m-d');
+            } elseif (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $rawDate)) {
+                $adhocDate = \Carbon\Carbon::createFromFormat('d/m/Y', $rawDate)->format('Y-m-d');
+            } elseif (preg_match('/^\d{2}-\d{2}-\d{4}$/', $rawDate)) {
+                $adhocDate = \Carbon\Carbon::createFromFormat('d-m-Y', $rawDate)->format('Y-m-d');
+            } else {
+                $adhocDate = \Carbon\Carbon::parse($rawDate)->format('Y-m-d');
+            }
         } catch (\Exception $e) {
-            return back()->with('error', 'Format tanggal tidak valid. Gunakan format dd/mm/yyyy.');
+            return back()->with('error', 'Format tanggal tidak valid. Silakan tentukan tanggal kegiatan.');
         }
 
         $existing = LateReportRequest::where('user_id', $user->id)
@@ -102,7 +113,7 @@ class LateReportRequestController extends Controller
             'status' => 'pending',
         ]);
 
-        return back()->with('success', 'Permohonan akses Ad-Hoc tanggal ' . $request->adhoc_date . ' berhasil dikirim. Silakan tunggu persetujuan Admin.');
+        return back()->with('success', 'Permohonan akses Ad-Hoc tanggal ' . \Carbon\Carbon::parse($adhocDate)->format('d/m/Y') . ' berhasil dikirim. Silakan tunggu persetujuan Admin.');
     }
 
     /**

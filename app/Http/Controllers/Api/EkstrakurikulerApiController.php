@@ -420,10 +420,9 @@ class EkstrakurikulerApiController extends Controller
                 'sekolah_kodlan' => 'required|string|exists:sekolah,kodlan',
                 'jenis_kelamin' => ['required', 'string', \Illuminate\Validation\Rule::in(['L', 'P'])],
                 'kelas' => 'required|string|max:50',
-                'no_hp_orangtua' => ['required', 'string', 'max:25', 'regex:/^[0-9+\-\s()]+$/'],
+                'no_hp_orangtua' => ['nullable', 'string', 'max:25'],
             ], [
                 'jenis_kelamin.in' => 'Pilihan jenis kelamin tidak valid.',
-                'no_hp_orangtua.regex' => 'Format nomor HP orang tua tidak valid.',
             ]);
 
             $student = \App\Models\Siswa::create([
@@ -433,7 +432,7 @@ class EkstrakurikulerApiController extends Controller
                 // Generate temporary NISN: TEMP + UNIX Seconds + Random 3 digit
                 'nisn' => 'TMP' . time() . rand(100, 999), 
                 'kelas' => trim(strip_tags($request->kelas)),
-                'no_hp_orangtua' => trim(strip_tags($request->no_hp_orangtua)),
+                'no_hp_orangtua' => $request->filled('no_hp_orangtua') ? trim(strip_tags($request->no_hp_orangtua)) : '-',
             ]);
 
             // Auto-enroll student to Rombel & Ekstrakurikuler Program if rombel ID provided

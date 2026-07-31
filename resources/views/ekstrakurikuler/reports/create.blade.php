@@ -258,9 +258,9 @@
                                     <input type="text" class="form-control" id="newStudentClass" placeholder="Contoh: 7A, 8B, X-1" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">No. WA Orang Tua <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="newStudentPhone" placeholder="08xxxx" required maxlength="20">
-                                    <div class="form-text" style="font-size: 0.7rem;">Wajib untuk mengirim notifikasi report/absensi.</div>
+                                    <label class="form-label">No. WA Orang Tua <span class="text-muted small">(Opsional)</span></label>
+                                    <input type="text" class="form-control" id="newStudentPhone" placeholder="08xxxx (opsional)" maxlength="20">
+                                    <div class="form-text" style="font-size: 0.7rem;">Opsional - Digunakan untuk pengiriman notifikasi jika ada.</div>
                                 </div>
                                 <input type="hidden" id="schoolKodlan" value="{{ $session->rombel->ekstrakurikuler->sekolah_kodlan }}">
                                 <input type="hidden" id="rombelId" value="{{ $session->ekstrakurikuler_rombel_id }}">
