@@ -160,6 +160,17 @@ class PayrollCalculatorService
             $month = $period->month;
             $year = $period->year;
 
+            // Auto-link any standalone LaporanMengajar in this period to guarantee ALL reports are included
+            $standaloneReports = \App\Models\LaporanMengajar::whereNull('ekstrakurikuler_session_id')
+                ->whereMonth('jadwal_mengajar', $month)
+                ->whereYear('jadwal_mengajar', $year)
+                ->whereNotNull('user_id_instruktur')
+                ->get();
+
+            foreach ($standaloneReports as $report) {
+                $report->ensureSessionLinked();
+            }
+
             // Find all unpaid completed sessions for the period that have reports
             $sessions = EkstrakurikulerSession::where('payment_status', 'unpaid')
                 ->where('status', EkstrakurikulerSession::STATUS_SELESAI)
