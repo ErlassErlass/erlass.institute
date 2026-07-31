@@ -620,8 +620,19 @@ class EkstrakurikulerFormService
             unset($validatedData['rombel']);
             unset($validatedData['city']); // City is not in DB table, strictly for UI/Form
 
+            $oldKodlan = $ekstrakurikuler->sekolah_kodlan;
+
             // Update main record
             $ekstrakurikuler->update($validatedData);
+
+            // Cascade sekolah_kodlan update to related LaporanMengajar if school was changed
+            if (isset($validatedData['sekolah_kodlan']) && $validatedData['sekolah_kodlan'] !== $oldKodlan) {
+                $sessionIds = $ekstrakurikuler->sessions()->pluck('id');
+                if ($sessionIds->isNotEmpty()) {
+                    \App\Models\LaporanMengajar::whereIn('ekstrakurikuler_session_id', $sessionIds)
+                        ->update(['sekolah_kodlan' => $validatedData['sekolah_kodlan']]);
+                }
+            }
 
             // Update rombels if present
             if (!empty($rombelData)) {

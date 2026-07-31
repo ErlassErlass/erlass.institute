@@ -267,7 +267,14 @@ class UpdateEkstrakurikulerRequest extends FormRequest
      */
     private function validateActiveProgram($validator, $ekstrakurikuler): void
     {
-        // Check if critical fields are being changed for an active program
+        $user = auth()->user();
+
+        // Admin, admin_sistem, and webmaster are allowed to change school/critical fields for active programs
+        if ($user && in_array($user->role, ['admin', 'admin_sistem', 'webmaster'])) {
+            return;
+        }
+
+        // Check if critical fields are being changed for an active program by regular users
         $criticalFields = ['sekolah_kodlan', 'total_rombel'];
 
         foreach ($criticalFields as $field) {
