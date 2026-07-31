@@ -10,7 +10,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h1 class="h3 fw-bold text-dark mb-1">Rekap Absensi (Invoice)</h1>
-                    <p class="text-muted mb-0">Rekap kehadiran siswa untuk keperluan invoice/tagihan.</p>
+                    <p class="text-muted mb-0">Rekap kehadiran siswa per periode (4 pertemuan) untuk keperluan invoice/tagihan.</p>
                 </div>
                 <div>
                     <a href="{{ route('absensi.index') }}" class="btn btn-outline-secondary">
@@ -76,37 +76,50 @@
     </div>
 
     <!-- Data Section -->
-    @if($selectedRombel && $rombelExists)
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0">
-                <i class="bi bi-file-earmark-text text-primary me-2"></i>
-                Rekap Absensi: {{ $selectedSchoolName }} — Rombel {{ $selectedRombel }}
-            </h5>
-            <a href="{{ route('rekap-absensi.export', ['sekolah_kodlan' => $selectedSekolah, 'ekstrakurikuler_id' => $selectedEkskul, 'rombel' => $selectedRombel]) }}" class="btn btn-success">
-                <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
-            </a>
-        </div>
-
-        @if(empty($rekapData))
-            <div class="alert alert-warning shadow-sm">
-                <i class="bi bi-exclamation-triangle me-2"></i> Belum ada data laporan mengajar yang ditemukan untuk rombel ini.
+    @if($selectedRombel)
+        @if(!$rombelExists)
+            <div class="alert alert-warning shadow-sm border-0 d-flex align-items-center gap-3 p-4">
+                <i class="bi bi-exclamation-triangle-fill text-warning fs-3"></i>
+                <div>
+                    <h5 class="alert-heading fw-bold mb-1">Rombel Tidak Ditemukan</h5>
+                    @if($selectedSchoolName)
+                        Sekolah <strong>{{ $selectedSchoolName }}</strong> tidak memiliki <strong>{{ $selectedRombel }}</strong>.
+                    @else
+                        Rombel <strong>{{ $selectedRombel }}</strong> tidak terdaftar di sistem.
+                    @endif
+                </div>
             </div>
         @else
-            <!-- Table Card -->
             <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-0 fw-bold text-dark">Hasil Rekap: {{ $selectedRombel }}</h5>
+                            <p class="small text-muted mb-0 mt-1">
+                                <i class="bi bi-info-circle me-1"></i> Rule: Billable jika hadir >= 2x per periode (4 pertemuan)
+                            </p>
+                        </div>
+                        <a href="{{ route('rekap-absensi.export', ['sekolah_kodlan' => $selectedSekolah, 'ekstrakurikuler_id' => $selectedEkskul, 'rombel' => $selectedRombel]) }}" 
+                           class="btn btn-success btn-sm">
+                            <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                        </a>
+                    </div>
+                </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-bordered align-middle mb-0" style="font-size: 0.9rem;">
-                            <thead class="table-light">
+                        <table class="table table-bordered table-striped align-middle mb-0">
+                            <thead class="table-light text-center align-middle">
                                 <tr>
-                                    <th class="text-center" style="width: 50px;">No</th>
-                                    <th>Nama Siswa</th>
+                                    <th rowspan="2" style="width: 50px;">No</th>
+                                    <th rowspan="2" class="text-start ps-3">Nama Siswa</th>
                                     @foreach($rekapData as $period)
-                                        <th class="text-center" style="min-width: 140px;">
-                                            <div>Periode #{{ $period['index'] }}</div>
-                                            <small class="text-muted fw-normal" style="font-size: 0.75rem;">
-                                                {{ $period['dates'] }}
-                                            </small>
+                                        <th colspan="1">Periode {{ $period['index'] }}</th>
+                                    @endforeach
+                                </tr>
+                                <tr>
+                                    @foreach($rekapData as $period)
+                                        <th class="small text-muted fw-normal">
+                                            {{ $period['dates'] }}
                                         </th>
                                     @endforeach
                                 </tr>
@@ -115,24 +128,33 @@
                                 @foreach($students as $index => $student)
                                     <tr>
                                         <td class="text-center">{{ $index + 1 }}</td>
-                                        <td class="fw-bold">{{ $student->nama_lengkap }}</td>
+                                        <td class="fw-medium ps-3">{{ $student->nama_lengkap }}</td>
                                         @foreach($rekapData as $period)
                                             @php
-                                                $stat = $period['student_stats'][$student->id] ?? ['count' => 0, 'is_billable' => false];
+                                                $stats = $period['student_stats'][$student->id] ?? ['count' => 0, 'is_billable' => false];
+                                                $bgClass = $stats['is_billable'] ? 'bg-success-subtle text-success' : 'text-muted';
+                                                $icon = $stats['is_billable'] ? 'bi-check-circle-fill' : 'bi-dash-circle';
                                             @endphp
-                                            <td class="text-center">
+                                            <td class="text-center {{ $bgClass }}">
                                                 <div class="d-flex flex-column align-items-center">
-                                                    <span class="badge {{ $stat['is_billable'] ? 'bg-success' : 'bg-danger' }} fs-6 mb-1">
-                                                        {{ $stat['count'] }} / 4 Sesi
-                                                    </span>
-                                                    <small class="{{ $stat['is_billable'] ? 'text-success fw-bold' : 'text-danger' }}" style="font-size: 0.75rem;">
-                                                        {{ $stat['is_billable'] ? '✓ Masuk Invoice' : '✗ Tidak Masuk' }}
+                                                    <span class="fw-bold fs-5">{{ $stats['count'] }} / 4</span>
+                                                    <small class="d-flex align-items-center gap-1">
+                                                        <i class="bi {{ $icon }}"></i>
+                                                        {{ $stats['is_billable'] ? 'Billable' : 'Skip' }}
                                                     </small>
                                                 </div>
                                             </td>
                                         @endforeach
                                     </tr>
                                 @endforeach
+                                
+                                @if($students->isEmpty())
+                                    <tr>
+                                        <td colspan="{{ count($rekapData) + 2 }}" class="text-center py-4 text-muted">
+                                            Tidak ada data siswa atau laporan ditemukan untuk filter ini.
+                                        </td>
+                                    </tr>
+                                @endif
                             </tbody>
                         </table>
                     </div>
