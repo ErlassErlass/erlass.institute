@@ -50,7 +50,8 @@ class DetectWarnings extends Command
     private function detectNoInstructor()
     {
         $tomorrow = Carbon::tomorrow()->toDateString();
-        $sessions = EkstrakurikulerSession::whereDate('tanggal_terjadwal', $tomorrow)
+        $sessions = EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah'])
+            ->whereDate('tanggal_terjadwal', $tomorrow)
             ->whereNull('user_id_instruktur')
             ->get();
 
@@ -62,13 +63,17 @@ class DetectWarnings extends Command
                 ->exists();
 
             if (!$exists) {
+                $sekolah = $session->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah';
+                $ekskul = $session->rombel?->ekstrakurikuler?->kategori_program ?? 'Ekskul';
+                $rombel = $session->rombel?->nama_rombel ?? 'Rombel';
+
                 Warning::create([
                     'warning_type' => 'no_instructor',
                     'sourceable_type' => EkstrakurikulerSession::class,
                     'sourceable_id' => $session->id,
                     'severity' => 'red',
                     'status' => 'active',
-                    'notes' => "Sesi pertemuan ke-{$session->nomor_pertemuan} besok ({$tomorrow}) belum memiliki Instruktur Utama."
+                    'notes' => "Sesi pertemuan ke-{$session->nomor_pertemuan} di {$sekolah} ({$ekskul} - {$rombel}) untuk besok ({$tomorrow}) belum memiliki Instruktur Utama."
                 ]);
                 $this->warn("Created warning: no_instructor for Session ID {$session->id}");
             }
@@ -86,7 +91,7 @@ class DetectWarnings extends Command
                 $warning->update([
                     'status' => 'resolved',
                     'resolved_at' => now(),
-                    'notes' => $warning->notes . ' (Resolved otomatis oleh sistem karena instruktur telah ditugaskan atau tanggal terlewati)'
+                    'notes' => $warning->notes . ' (Resolved otomatis oleh sistem)'
                 ]);
             }
         }
@@ -97,9 +102,9 @@ class DetectWarnings extends Command
      */
     private function detectNotConfirmed()
     {
-        // Typically run around 21:00, check today's sessions that are not completed or don't have reports
         $today = Carbon::today()->toDateString();
-        $sessions = EkstrakurikulerSession::whereDate('tanggal_terjadwal', $today)
+        $sessions = EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah'])
+            ->whereDate('tanggal_terjadwal', $today)
             ->where(function ($query) {
                 $query->where('status', '!=', 'selesai')
                     ->orWhereDoesntHave('laporanMengajar');
@@ -114,13 +119,17 @@ class DetectWarnings extends Command
                 ->exists();
 
             if (!$exists) {
+                $sekolah = $session->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah';
+                $ekskul = $session->rombel?->ekstrakurikuler?->kategori_program ?? 'Ekskul';
+                $rombel = $session->rombel?->nama_rombel ?? 'Rombel';
+
                 Warning::create([
                     'warning_type' => 'not_confirmed',
                     'sourceable_type' => EkstrakurikulerSession::class,
                     'sourceable_id' => $session->id,
                     'severity' => 'red',
                     'status' => 'active',
-                    'notes' => "Sesi pertemuan ke-{$session->nomor_pertemuan} hari ini belum diselesaikan atau belum dikonfirmasi laporan mengajarnya."
+                    'notes' => "Sesi pertemuan ke-{$session->nomor_pertemuan} di {$sekolah} ({$ekskul} - {$rombel}) hari ini belum diselesaikan atau belum dikonfirmasi laporan mengajarnya."
                 ]);
                 $this->warn("Created warning: not_confirmed for Session ID {$session->id}");
             }
@@ -138,7 +147,7 @@ class DetectWarnings extends Command
                 $warning->update([
                     'status' => 'resolved',
                     'resolved_at' => now(),
-                    'notes' => $warning->notes . ' (Resolved otomatis oleh sistem karena sesi telah diselesaikan dan laporan mengajar diunggah)'
+                    'notes' => $warning->notes . ' (Resolved otomatis oleh sistem)'
                 ]);
             }
         }
@@ -150,7 +159,8 @@ class DetectWarnings extends Command
     private function detectMissingReport()
     {
         $oneDayAgo = Carbon::now()->subHours(24);
-        $sessions = EkstrakurikulerSession::where('status', 'selesai')
+        $sessions = EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah'])
+            ->where('status', 'selesai')
             ->where('updated_at', '<=', $oneDayAgo)
             ->whereDoesntHave('laporanMengajar')
             ->get();
@@ -163,13 +173,17 @@ class DetectWarnings extends Command
                 ->exists();
 
             if (!$exists) {
+                $sekolah = $session->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah';
+                $ekskul = $session->rombel?->ekstrakurikuler?->kategori_program ?? 'Ekskul';
+                $rombel = $session->rombel?->nama_rombel ?? 'Rombel';
+
                 Warning::create([
                     'warning_type' => 'missing_report',
                     'sourceable_type' => EkstrakurikulerSession::class,
                     'sourceable_id' => $session->id,
                     'severity' => 'red',
                     'status' => 'active',
-                    'notes' => "Sesi pertemuan ke-{$session->nomor_pertemuan} telah selesai lebih dari 24 jam yang lalu tetapi belum mengunggah Laporan Mengajar."
+                    'notes' => "Sesi pertemuan ke-{$session->nomor_pertemuan} di {$sekolah} ({$ekskul} - {$rombel}) telah selesai > 24 jam lalu tetapi belum diisi Laporan Mengajarnya."
                 ]);
                 $this->warn("Created warning: missing_report for Session ID {$session->id}");
             }
@@ -187,7 +201,7 @@ class DetectWarnings extends Command
                 $warning->update([
                     'status' => 'resolved',
                     'resolved_at' => now(),
-                    'notes' => $warning->notes . ' (Resolved otomatis oleh sistem karena Laporan Mengajar telah diunggah)'
+                    'notes' => $warning->notes . ' (Resolved otomatis oleh sistem)'
                 ]);
             }
         }
@@ -199,7 +213,7 @@ class DetectWarnings extends Command
     private function detectLowAttendance()
     {
         $thirtyDaysAgo = Carbon::now()->subDays(30)->toDateString();
-        $rombels = EkstrakurikulerRombel::all();
+        $rombels = EkstrakurikulerRombel::with('ekstrakurikuler.sekolah')->get();
 
         foreach ($rombels as $rombel) {
             // Get completed sessions in last 30 days
@@ -238,13 +252,16 @@ class DetectWarnings extends Command
 
                 if (!$exists) {
                     $rateFormatted = round($attendanceRate, 1);
+                    $sekolah = $rombel->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah';
+                    $ekskul = $rombel->ekstrakurikuler?->kategori_program ?? 'Ekskul';
+                    
                     Warning::create([
                         'warning_type' => 'low_attendance',
                         'sourceable_type' => EkstrakurikulerRombel::class,
                         'sourceable_id' => $rombel->id,
                         'severity' => 'yellow',
                         'status' => 'active',
-                        'notes' => "Rata-rata kehadiran siswa di rombel {$rombel->nama_rombel} dalam 30 hari terakhir sangat rendah ({$rateFormatted}%)."
+                        'notes' => "Rata-rata kehadiran siswa di {$rombel->nama_rombel} ({$sekolah} - {$ekskul}) dalam 30 hari terakhir sangat rendah ({$rateFormatted}%)."
                     ]);
                     $this->warn("Created warning: low_attendance for Rombel ID {$rombel->id}");
                 }
@@ -257,11 +274,10 @@ class DetectWarnings extends Command
                     ->first();
 
                 if ($activeWarning) {
-                    $rateFormatted = round($attendanceRate, 1);
                     $activeWarning->update([
                         'status' => 'resolved',
                         'resolved_at' => now(),
-                        'notes' => $activeWarning->notes . " (Resolved otomatis karena rata-rata kehadiran telah membaik menjadi {$rateFormatted}%)"
+                        'notes' => $activeWarning->notes . ' (Resolved otomatis oleh sistem)'
                     ]);
                 }
             }
@@ -273,16 +289,20 @@ class DetectWarnings extends Command
      */
     private function detectRescheduleLimit()
     {
-        $rombels = EkstrakurikulerRombel::all();
+        $thirtyDaysAgo = Carbon::now()->subDays(30)->toDateString();
+        $rombels = EkstrakurikulerRombel::with('ekstrakurikuler.sekolah')->get();
 
         foreach ($rombels as $rombel) {
-            $changeCount = ScheduleChange::whereHas('session', function ($q) use ($rombel) {
-                $q->where('ekstrakurikuler_rombel_id', $rombel->id);
-            })
-            ->whereIn('status', ['pending', 'approved_academic', 'approved_pic', 'applied'])
-            ->count();
+            $sessionIds = $rombel->sessions()->pluck('id');
+            if ($sessionIds->isEmpty()) {
+                continue;
+            }
 
-            if ($changeCount >= 3) {
+            $changesCount = ScheduleChange::whereIn('ekstrakurikuler_session_id', $sessionIds)
+                ->whereDate('created_at', '>=', $thirtyDaysAgo)
+                ->count();
+
+            if ($changesCount >= 3) {
                 $exists = Warning::where('warning_type', 'reschedule_limit')
                     ->where('sourceable_type', EkstrakurikulerRombel::class)
                     ->where('sourceable_id', $rombel->id)
@@ -290,13 +310,16 @@ class DetectWarnings extends Command
                     ->exists();
 
                 if (!$exists) {
+                    $sekolah = $rombel->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah';
+                    $ekskul = $rombel->ekstrakurikuler?->kategori_program ?? 'Ekskul';
+
                     Warning::create([
                         'warning_type' => 'reschedule_limit',
                         'sourceable_type' => EkstrakurikulerRombel::class,
                         'sourceable_id' => $rombel->id,
                         'severity' => 'yellow',
                         'status' => 'active',
-                        'notes' => "Jumlah perubahan jadwal pada rombel {$rombel->nama_rombel} sudah mencapai batas limit ({$changeCount} kali)."
+                        'notes' => "Rombel {$rombel->nama_rombel} di {$sekolah} ({$ekskul}) telah mengalami perubahan jadwal sebanyak {$changesCount} kali dalam 30 hari."
                     ]);
                     $this->warn("Created warning: reschedule_limit for Rombel ID {$rombel->id}");
                 }
@@ -309,7 +332,7 @@ class DetectWarnings extends Command
      */
     private function detectBehindTarget()
     {
-        $rombels = EkstrakurikulerRombel::all();
+        $rombels = EkstrakurikulerRombel::with('ekstrakurikuler.sekolah')->get();
 
         foreach ($rombels as $rombel) {
             // Expected meetings that should have happened by today
@@ -337,13 +360,16 @@ class DetectWarnings extends Command
 
                 if (!$exists) {
                     $percent = round($progressRatio * 100, 1);
+                    $sekolah = $rombel->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah';
+                    $ekskul = $rombel->ekstrakurikuler?->kategori_program ?? 'Ekskul';
+
                     Warning::create([
                         'warning_type' => 'behind_target',
                         'sourceable_type' => EkstrakurikulerRombel::class,
                         'sourceable_id' => $rombel->id,
                         'severity' => 'yellow',
                         'status' => 'active',
-                        'notes' => "Realisasi pertemuan rombel {$rombel->nama_rombel} tertinggal jauh dari target terjadwal ({$actualCount} dari {$expectedCount} sesi selesai, atau sekitar {$percent}%)."
+                        'notes' => "Realisasi pertemuan '{$rombel->nama_rombel}' di {$sekolah} ({$ekskul}) tertinggal dari target terjadwal ({$actualCount} dari {$expectedCount} sesi selesai, atau {$percent}%)."
                     ]);
                     $this->warn("Created warning: behind_target for Rombel ID {$rombel->id}");
                 }
@@ -359,7 +385,7 @@ class DetectWarnings extends Command
                     $activeWarning->update([
                         'status' => 'resolved',
                         'resolved_at' => now(),
-                        'notes' => $activeWarning->notes . " (Resolved otomatis karena realisasi pertemuan telah mengejar target, {$actualCount}/{$expectedCount} selesai)"
+                        'notes' => $activeWarning->notes . ' (Resolved otomatis oleh sistem)'
                     ]);
                 }
             }
