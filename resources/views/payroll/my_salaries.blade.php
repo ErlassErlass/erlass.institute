@@ -14,6 +14,47 @@
         </div>
     </div>
 
+    <!-- Policy Information Banner (Non-Confidential TAB 2025/2026 Rules) -->
+    <div class="card shadow-sm border-0 mb-4 bg-light">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-info-circle-fill text-primary fs-5"></i>
+                <h5 class="fw-bold mb-0 text-dark">Informasi Ketentuan Kompensasi & Transportasi Instruktur (TAB 2025/2026)</h5>
+            </div>
+            
+            <div class="row g-3 text-dark" style="font-size: 0.88rem;">
+                <div class="col-md-6">
+                    <div class="p-3 bg-white rounded border h-100">
+                        <div class="fw-bold text-primary mb-2">
+                            <i class="bi bi-people-fill me-1"></i> Skala Rombel & Honor Mengajar Utama
+                        </div>
+                        <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                            <li><span class="badge bg-success me-1">≥ 15 Siswa</span> <strong>Rp 150.000</strong> / sesi (Honorarium Standar Penuh)</li>
+                            <li><span class="badge bg-info text-dark me-1">12 - 14 Siswa</span> <strong>Rp 115.000</strong> / sesi</li>
+                            <li><span class="badge bg-secondary me-1">10 - 11 Siswa</span> <strong>Rp 100.000</strong> / sesi</li>
+                            <li><span class="badge bg-warning text-dark me-1">8 - 9 Siswa</span> <strong>Rp 75.000</strong> / sesi</li>
+                            <li><span class="badge bg-danger me-1">&lt; 8 Siswa</span> <strong>HOLD</strong> (Pembelajaran Ditunda sampai kuota terpenuhi)</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="p-3 bg-white rounded border h-100">
+                        <div class="fw-bold text-primary mb-2">
+                            <i class="bi bi-truck me-1"></i> Transportasi & Ketentuan Operasional
+                        </div>
+                        <ul class="list-unstyled mb-0 d-flex flex-column gap-2 text-muted">
+                            <li><i class="bi bi-check-circle-fill text-success me-1"></i> <strong>Transport Min. 10 KM</strong>: Rp 350 / KM + Rp 7.500 (sewa kendaraan).</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-1"></i> <strong>Guru Internal &amp; Sesi Erlass</strong>: Biaya transport Rp 0 (Hanya honor mengajar).</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-1"></i> <strong>Asisten Instruktur</strong>: Honor Rp 100.000 berlaku untuk Rombel &gt; 24 siswa.</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-1"></i> <strong>Kedisiplinan Check-in</strong>: Keterlambatan ≥ 15 menit dikenakan penyesuaian Rp 25.000.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Table List -->
     <div class="card shadow-sm border-0">
         <div class="card-header bg-white py-3 border-bottom">
