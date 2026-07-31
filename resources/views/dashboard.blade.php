@@ -525,52 +525,46 @@
                                                     $actionText = 'Kelola Jadwal Rombel';
                                                 }
                                             @endphp
-                                            <div class="list-group-item p-3 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-start gap-3" style="border-left: 4px solid {{ $warning->severity === 'red' ? '#f43f5e' : '#f59e0b' }} !important; background-color: {{ $warning->severity === 'red' ? 'rgba(244, 63, 94, 0.05)' : 'rgba(245, 158, 11, 0.05)' }};">
-                                                <div class="d-flex gap-3">
-                                                    <div class="flex-shrink-0 mt-1">
+                                            <div class="list-group-item p-3 border-bottom" style="border-left: 4px solid {{ $warning->severity === 'red' ? '#f43f5e' : '#f59e0b' }} !important; background-color: {{ $warning->severity === 'red' ? 'rgba(244, 63, 94, 0.03)' : 'rgba(245, 158, 11, 0.03)' }};">
+                                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-2">
+                                                    <div class="d-flex align-items-center gap-2 flex-wrap">
                                                         @if($warning->severity === 'red')
-                                                            <i class="bi bi-x-circle-fill text-danger fs-5"></i>
+                                                            <i class="bi bi-x-circle-fill text-danger fs-6"></i>
                                                         @else
-                                                            <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+                                                            <i class="bi bi-exclamation-triangle-fill text-warning fs-6"></i>
                                                         @endif
-                                                    </div>
-                                                    <div>
-                                                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                                            <span class="badge bg-{{ $warning->severity === 'red' ? 'danger' : 'warning text-dark' }} text-uppercase fw-bold" style="font-size: 0.7rem;">
-                                                                {{ $typeLabel }}
+                                                        <span class="badge bg-{{ $warning->severity === 'red' ? 'danger' : 'warning text-dark' }} text-uppercase fw-bold" style="font-size: 0.7rem;">
+                                                            {{ $typeLabel }}
+                                                        </span>
+                                                        @if($sekolahNama)
+                                                            <span class="badge bg-white text-dark border shadow-sm" style="font-size: 0.725rem;">
+                                                                <i class="bi bi-building text-primary me-1"></i> {{ $sekolahNama }}
                                                             </span>
-                                                            <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ $warning->created_at->diffForHumans() }}</small>
-                                                        </div>
-                                                        <p class="mb-2 text-dark small fw-medium">{{ $warning->notes }}</p>
-
-                                                        @if($sekolahNama || $rombelNama)
-                                                            <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
-                                                                @if($sekolahNama)
-                                                                    <span class="badge bg-white text-dark border shadow-sm" style="font-size: 0.75rem;">
-                                                                        <i class="bi bi-building text-primary me-1"></i> {{ $sekolahNama }}
-                                                                    </span>
-                                                                @endif
-                                                                @if($rombelNama)
-                                                                    <span class="badge bg-white text-dark border shadow-sm" style="font-size: 0.75rem;">
-                                                                        <i class="bi bi-people text-info me-1"></i> {{ $rombelNama }}
-                                                                    </span>
-                                                                @endif
-                                                            </div>
+                                                        @endif
+                                                        @if($rombelNama)
+                                                            <span class="badge bg-white text-dark border shadow-sm" style="font-size: 0.725rem;">
+                                                                <i class="bi bi-people text-info me-1"></i> {{ $rombelNama }}
+                                                            </span>
                                                         @endif
                                                     </div>
+                                                    <small class="text-muted flex-shrink-0"><i class="bi bi-clock me-1"></i>{{ $warning->created_at->diffForHumans() }}</small>
                                                 </div>
-                                                <div class="w-100 w-md-auto text-end text-md-start flex-shrink-0 d-flex flex-wrap align-items-center gap-2 justify-content-end">
-                                                    @if($actionUrl)
-                                                        <a href="{{ $actionUrl }}" class="btn btn-xs btn-primary py-1 px-3 rounded-pill fw-bold" style="font-size: 0.75rem;">
-                                                            <i class="bi bi-box-arrow-up-right me-1"></i> {{ $actionText }}
-                                                        </a>
-                                                    @endif
-                                                    <form action="{{ route('admin.warnings.resolve', $warning->id) }}" method="POST" class="d-inline">
-                                                        @csrf
-                                                        <button type="submit" class="btn btn-xs btn-outline-success py-1 px-3 rounded-pill" style="font-size: 0.75rem;">
-                                                            <i class="bi bi-check2 me-1"></i> Resolve
-                                                        </button>
-                                                    </form>
+
+                                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                                                    <p class="mb-0 text-dark small fw-medium text-break" style="line-height: 1.5;">{{ $warning->notes }}</p>
+                                                    <div class="flex-shrink-0 d-flex align-items-center gap-2 flex-wrap justify-content-start justify-content-md-end">
+                                                        @if($actionUrl)
+                                                            <a href="{{ $actionUrl }}" class="btn btn-xs btn-primary py-1 px-3 rounded-pill fw-bold" style="font-size: 0.75rem; whitespace: nowrap;">
+                                                                <i class="bi bi-box-arrow-up-right me-1"></i> {{ $actionText }}
+                                                            </a>
+                                                        @endif
+                                                        <form action="{{ route('admin.warnings.resolve', $warning->id) }}" method="POST" class="d-inline">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-xs btn-outline-success py-1 px-3 rounded-pill" style="font-size: 0.75rem; whitespace: nowrap;">
+                                                                <i class="bi bi-check2 me-1"></i> Resolve
+                                                            </button>
+                                                        </form>
+                                                    </div>
                                                 </div>
                                             </div>
                                         @endforeach
