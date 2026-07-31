@@ -179,7 +179,7 @@
                                 <label for="search" class="filter-label">Pencarian</label>
                                 <input type="text" class="form-control form-control-premium" id="search" name="search" value="{{ request('search') }}" placeholder="Nama program atau sekolah...">
                             </div>
-                            <div class="col-lg-2 col-md-6 mb-3">
+                            <div class="col-lg-3 col-md-6 mb-3">
                                 <label for="status" class="filter-label">Status</label>
                                 <select class="form-control form-control-premium" id="status" name="status">
                                     <option value="">Semua Status</option>
@@ -193,15 +193,6 @@
                                 </select>
                             </div>
                             <div class="col-lg-2 col-md-6 mb-3">
-                                <label for="region" class="filter-label">Region</label>
-                                <select class="form-control form-control-premium" id="region" name="region">
-                                    <option value="">Semua Region</option>
-                                    @foreach($regions as $region)
-                                    <option value="{{ $region }}" {{ request('region') == $region ? 'selected' : '' }}>{{ $region }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-lg-2 col-md-6 mb-3">
                                 <label for="kota" class="filter-label">Kota</label>
                                 <select class="form-control form-control-premium" id="kota" name="kota">
                                     <option value="">Semua Kota</option>
@@ -210,7 +201,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-lg-2 col-md-6 mb-3">
+                            <div class="col-lg-3 col-md-6 mb-3">
                                 <label for="date_range" class="filter-label">Rentang Tanggal</label>
                                 <div class="input-group">
                                     <input type="text" class="form-control form-control-premium" id="date_range" name="date_range" value="{{ request('date_range') }}" placeholder="Pilih tanggal...">
