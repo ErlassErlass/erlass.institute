@@ -157,7 +157,7 @@
             });
         }
 
-        // Dynamic Program & Rombel Filter based on Sekolah selection
+        // 1. Dynamic Program Filter based on Sekolah selection
         $('#sekolah_kodlan').on('change', function() {
             var sekolahKodlan = $(this).val();
             var $ekskulSelect = $('#ekstrakurikuler_id');
@@ -165,14 +165,14 @@
 
             if (!sekolahKodlan) {
                 $ekskulSelect.empty().append('<option value="">-- Pilih Sekolah Terlebih Dahulu --</option>').prop('disabled', true).trigger('change');
-                $rombelSelect.empty().append('<option value="">-- Pilih Sekolah Terlebih Dahulu --</option>').prop('disabled', true).trigger('change');
+                $rombelSelect.empty().append('<option value="">-- Pilih Program Ekskul Terlebih Dahulu --</option>').prop('disabled', true).trigger('change');
                 return;
             }
 
             $ekskulSelect.prop('disabled', false).empty().append('<option value="">-- Mohon Tunggu... --</option>').trigger('change');
-            $rombelSelect.prop('disabled', false).empty().append('<option value="">-- Mohon Tunggu... --</option>').trigger('change');
+            $rombelSelect.empty().append('<option value="">-- Pilih Program Ekskul Terlebih Dahulu --</option>').prop('disabled', true).trigger('change');
 
-            // Fetch Programs
+            // Fetch Programs for selected school
             $.ajax({
                 url: "{{ route('rekap-absensi.programs') }}",
                 type: 'GET',
@@ -191,21 +191,21 @@
                     $ekskulSelect.trigger('change');
                 }
             });
-
-            // Fetch Rombels
-            fetchRombels(sekolahKodlan, null);
         });
 
+        // 2. Dynamic Rombel Filter based on Program selection
         $('#ekstrakurikuler_id').on('change', function() {
             var sekolahKodlan = $('#sekolah_kodlan').val();
             var ekskulId = $(this).val();
-            if (sekolahKodlan) {
-                fetchRombels(sekolahKodlan, ekskulId);
-            }
-        });
-
-        function fetchRombels(sekolahKodlan, ekskulId) {
             var $rombelSelect = $('#rombel');
+
+            if (!ekskulId) {
+                $rombelSelect.empty().append('<option value="">-- Pilih Program Ekskul Terlebih Dahulu --</option>').prop('disabled', true).trigger('change');
+                return;
+            }
+
+            $rombelSelect.prop('disabled', false).empty().append('<option value="">-- Mohon Tunggu... --</option>').trigger('change');
+
             $.ajax({
                 url: "{{ route('rekap-absensi.rombels') }}",
                 type: 'GET',
@@ -214,7 +214,7 @@
                 success: function(data) {
                     $rombelSelect.empty();
                     if (data.length === 0) {
-                        $rombelSelect.append('<option value="">-- Tidak ada Rombel --</option>');
+                        $rombelSelect.append('<option value="">-- Program ini tidak memiliki Rombel --</option>');
                     } else {
                         $rombelSelect.append('<option value="">-- Pilih Rombel --</option>');
                         $.each(data, function(key, val) {
@@ -224,7 +224,7 @@
                     $rombelSelect.trigger('change');
                 }
             });
-        }
+        });
     });
 </script>
 @endpush
