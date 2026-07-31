@@ -2,6 +2,25 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.0.0] - 2026-07-31
+
+### Ditambahkan & Dioptimalkan (Added & Optimized)
+- **Deteksi & Spesifikasi Tampilan Quality Control Warning (`DetectWarnings.php` & `dashboard.blade.php`)**:
+  - Penambahan rincian otomatis Nama Sekolah, Nama Program Ekskul, dan Nama Rombel pada seluruh catatan peringatan Quality Control (QC Engine).
+  - Penambahan badge visual Nama Sekolah 🏫 dan Rombel 👥 serta tombol aksi langsung 1-Click (*Isi Laporan Mengajar*, *Tugaskan Instruktur*, *Kelola Jadwal*) pada kartu `Log Warning Quality Control` di Dashboard.
+  - Perbaikan struktur flexbox UI agar tidak terjadi pemotongan teks (*text truncation*) atau luapan horizontal (*horizontal scroll overflow*).
+- **Infrastruktur PWA Modern & Indikator Status Koneksi Real-time (`manifest.json` & `layouts/app.blade.php`)**:
+  - Penambahan *App Shortcuts* pada `manifest.json` sehingga pengguna dapat menekan lama ikon aplikasi di layar HP (Android/iOS) untuk langsung membuka menu *Buat Laporan*, *Agenda Kegiatan*, dan *Kelola Absensi*.
+  - Penambahan *Real-time Network Toast Notification* yang mendeteksi penurunan koneksi internet (*offline*) dan konfirmasi saat koneksi terhubung kembali (*online*).
+- **Pengawasan & Audit Trail Absensi Anti-Manipulasi Instruktur (`AbsensiObserver.php` & `AppServiceProvider.php`)**:
+  - Pembuatan observer Eloquent `AbsensiObserver` yang memantau dan mencatat setiap aktivitas pendaftaran, perubahan status (`alpha` ➔ `hadir`), maupun penghapusan data absensi siswa.
+  - Setiap perubahan absensi oleh instruktur dicatat secara otomatis di `ActivityLog` (meliputi nama instruktur, status lama, status baru, ID laporan, IP address, & user agent) untuk transparansi dan audit trail.
+- **Pendaftaran Otomatis Siswa ke Program & Rombel (`EkstrakurikulerApiController.php` & Views)**:
+  - Otomatisasi pendaftaran (*auto-enrollment*) siswa baru yang dibuat melalui modal cepat di halaman laporan mengajar langsung masuk ke Rombel dan Program Ekstrakurikuler terkait.
+  - Penyesuaian input No. WA Orang Tua menjadi opsional (nullable) pada modal pembuatan siswa baru cepat agar proses pengisian daftar hadir di lapangan lebih fleksibel.
+- **Perbaikan Permohonan Buka Akses Ad-Hoc (`LateReportRequestController.php`)**:
+  - Penyesuaian parser tanggal permohonan Ad-Hoc menggunakan `Carbon::parse()` yang fleksibel mendukung berbagai format tanggal (`YYYY-MM-DD`, `DD-MM-YYYY`, `DD/MM/YYYY`).
+
 ## [1.9.0] - 2026-07-30
 
 ### Ditambahkan & Dioptimalkan (Added & Optimized)
