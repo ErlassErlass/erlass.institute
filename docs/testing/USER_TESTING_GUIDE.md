@@ -11,6 +11,9 @@ Sebelum memulai pengujian, silakan gunakan akun pengujian berikut (lihat detail 
 - **Role Instruktur**: `instruktur@erlass.institute` / `password` atau `luky@erlass.institute` / `password`
 - **Siswa (Guest/Umum)**: Tidak memerlukan log masuk.
 
+> 🎓 **Panduan Khusus UAT Instruktur**:
+> Untuk alur pengujian komprehensif khusus role **Instruktur** (mulai dari login, PWA, absensi, quick add siswa, hingga laporan mengajar & slip gaji), gunakan dokumen [**`UAT_INSTRUKTUR_GUIDE.md`**](./UAT_INSTRUKTUR_GUIDE.md).
+
 ---
 
 ## 2. Skenario Pengujian UI/UX: Redesain Layout Sidebar Kiri (Light Theme)

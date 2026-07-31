@@ -72,6 +72,7 @@ Logika bisnis spesifik berskala besar yang ditambahkan untuk mendukung operasion
 ---
 
 ### 🧪 6. Pengujian & QA (`docs/testing/`)
+*   [**`UAT_INSTRUKTUR_GUIDE.md`**](testing/UAT_INSTRUKTUR_GUIDE.md) — Panduan & skenario UAT lengkap khusus Instruktur (dari login, PWA, absensi, hingga laporan mengajar & slip gaji).
 *   [**`TESTING_ACCOUNTS.md`**](testing/TESTING_ACCOUNTS.md) — Kumpulan kredensial akun uji coba per role.
 *   [**`USER_TESTING_GUIDE.md`**](testing/USER_TESTING_GUIDE.md) — Petunjuk skenario pengetesan UAT sebelum rilis ke production.
 
