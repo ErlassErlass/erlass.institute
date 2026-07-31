@@ -305,10 +305,17 @@ class LaporanMengajar extends Model
             $rombelId = $rombel->id;
         }
 
+        $nomorPertemuan = $this->pertemuan_ke ?? 1;
+        if ($rombelId) {
+            while (\App\Models\EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombelId)->where('nomor_pertemuan', $nomorPertemuan)->exists()) {
+                $nomorPertemuan++;
+            }
+        }
+
         $session = \App\Models\EkstrakurikulerSession::create([
             'ekstrakurikuler_id' => $ekstrakurikulerId,
             'ekstrakurikuler_rombel_id' => $rombelId,
-            'nomor_pertemuan' => $this->pertemuan_ke ?? 1,
+            'nomor_pertemuan' => $nomorPertemuan,
             'tanggal_terjadwal' => $this->jadwal_mengajar,
             'tanggal_pelaksanaan' => $this->jadwal_mengajar,
             'jam_mulai_terjadwal' => $this->jam_mulai ?? '08:00:00',
