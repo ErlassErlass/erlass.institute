@@ -318,61 +318,14 @@
             </div>
         </div>
 
-        <x-pagination-wrapper :paginator="$laporan->appends(request()->query())" class="bg-transparent border-top border-light py-3" />
+        <x-pagination-wrapper :paginator="$laporan->appends(request()->query())" class="bg-white border-top border-light-subtle px-4 py-3" />
     </div>
 </div>
 @endsection
 
 @push('scripts')
-{{-- External JS libraries --}}
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const table = document.getElementById('laporan-mengajar-table');
-        const isEmpty = table.querySelector('.empty-state');
-
-        // Only initialize DataTables if the table is NOT empty.
-        // This preserves the custom empty state message.
-        if (table && !isEmpty) {
-            try {
-                $('#laporan-mengajar-table').DataTable({
-                    order: [[0, 'desc']], // Default sort by the first column (Date) descending
-                    pageLength: 25,
-                    responsive: true,
-                    autoWidth: false,
-                    columnDefs: [
-                        {
-                            // This single definition targets the last column ('Aksi')
-                            targets: 5,
-                            orderable: false,       // Disable sorting
-                            className: "text-center", // Center-align content
-                            responsivePriority: 2,  // Set its priority for responsive display
-                        },
-                        {
-                            // This targets the first column ('Tanggal')
-                            targets: 0,
-                            responsivePriority: 1, // Make it the highest priority on small screens
-                        }
-                    ],
-                    language: {
-                        search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_ data",
-                        info: "Menampilkan _START_-_END_ dari _TOTAL_ data",
-                        infoEmpty: "Tidak ada data",
-                        infoFiltered: "(difilter dari _MAX_ total data)",
-                        zeroRecords: "Tidak ditemukan data yang sesuai",
-                        paginate: {
-                            first: "Awal",
-                            last: "Akhir",
-                            next: "›",
-                            previous: "‹"
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error('Error initializing DataTable:', error);
-            }
-        }
 
         // Initialize Flatpickr date range picker
         flatpickr("#date_range", {
