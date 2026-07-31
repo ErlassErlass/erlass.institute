@@ -206,22 +206,34 @@
                             </td>
                             <td>
                                 <div class="fw-bold text-dark">Pertemuan {{ $session->nomor_pertemuan }}</div>
-                                @php
-                                    $topikLower = strtolower($session->topik_materi ?? $session->laporanMengajar->kategori_pengajaran ?? '');
-                                    $isAdHocSession = ($session->laporanMengajar && $session->laporanMengajar->ekstrakurikuler_session_id === null)
-                                        || in_array($topikLower, ['pameran', 'sosialisasi', 'trial', 'free trial', 'trial class', 'lomba', 'pendampingan', 'per-pertemuan', 'per pertemuan', 'event', 'kegiatan mandiri']);
-                                @endphp
-                                @if($isAdHocSession)
-                                    <span class="badge rounded-pill my-1" style="background-color: rgba(139, 92, 246, 0.12); color: #7c3aed; border: 1px solid rgba(139, 92, 246, 0.25); font-size: 0.7rem;">
-                                        <i class="bi bi-stars me-1"></i> Kegiatan Mandiri
-                                    </span>
-                                @endif
                                 @if($session->topik_materi)
-                                    <small class="text-muted d-block text-truncate" style="max-width: 200px;">{{ $session->topik_materi }}</small>
+                                    <small class="text-muted d-block text-truncate" style="max-width: 220px;">{{ $session->topik_materi }}</small>
                                 @endif
                             </td>
                             <td>
-                                <div class="fw-bold">{{ $session->rombel->ekstrakurikuler->kategori_program }}</div>
+                                @php
+                                    $programCat = strtolower($session->rombel->ekstrakurikuler->kategori_program ?? '');
+                                    $topikCat = strtolower($session->topik_materi ?? '');
+                                    $laporanCat = strtolower($session->laporanMengajar->kategori_pengajaran ?? '');
+                                    
+                                    $isAdHocSession = ($session->laporanMengajar && $session->laporanMengajar->ekstrakurikuler_session_id === null)
+                                        || str_contains($programCat, 'sosialisasi') || str_contains($programCat, 'trial') || str_contains($programCat, 'pameran') || str_contains($programCat, 'lomba') || str_contains($programCat, 'pendampingan') || str_contains($programCat, 'per-pertemuan') || str_contains($programCat, 'per pertemuan') || str_contains($programCat, 'event')
+                                        || str_contains($topikCat, 'sosialisasi') || str_contains($topikCat, 'trial') || str_contains($topikCat, 'pameran') || str_contains($topikCat, 'lomba')
+                                        || str_contains($laporanCat, 'sosialisasi') || str_contains($laporanCat, 'trial') || str_contains($laporanCat, 'pameran') || str_contains($laporanCat, 'lomba');
+                                @endphp
+
+                                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                    <span class="fw-bold text-dark">{{ $session->rombel->ekstrakurikuler->kategori_program }}</span>
+                                    @if($isAdHocSession)
+                                        <span class="badge rounded-pill px-2 py-1" style="background-color: rgba(139, 92, 246, 0.15); color: #6d28d9; border: 1px solid rgba(139, 92, 246, 0.3); font-size: 0.725rem;">
+                                            <i class="bi bi-stars me-1"></i> Kegiatan Mandiri / Special
+                                        </span>
+                                    @else
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1" style="font-size: 0.725rem;">
+                                            <i class="bi bi-calendar-check me-1"></i> Sesi Rutin
+                                        </span>
+                                    @endif
+                                </div>
                                 <div class="small text-primary mb-1"><i class="bi bi-building me-1"></i>{{ $session->rombel->ekstrakurikuler->sekolah->namasekolah }}</div>
                                 <small class="text-muted">{{ $session->rombel->nama_rombel }}</small>
                             </td>

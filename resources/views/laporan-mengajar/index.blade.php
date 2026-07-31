@@ -194,7 +194,7 @@
                                 $categoryName = $item->kategori_pengajaran ?? 'Kegiatan';
                                 $categoryLower = strtolower($categoryName);
                                 $isAdHoc = ($item->ekstrakurikuler_session_id === null)
-                                    || in_array($categoryLower, ['pameran', 'sosialisasi', 'trial', 'free trial', 'trial class', 'lomba', 'pendampingan', 'per-pertemuan', 'per pertemuan', 'event', 'kegiatan mandiri'])
+                                    || str_contains($categoryLower, 'sosialisasi') || str_contains($categoryLower, 'trial') || str_contains($categoryLower, 'pameran') || str_contains($categoryLower, 'lomba') || str_contains($categoryLower, 'pendampingan') || str_contains($categoryLower, 'per-pertemuan') || str_contains($categoryLower, 'per pertemuan') || str_contains($categoryLower, 'event') || str_contains($categoryLower, 'mandiri')
                                     || (isset($item->metadata_json['is_standalone']) && $item->metadata_json['is_standalone']);
                                 @endphp
 
