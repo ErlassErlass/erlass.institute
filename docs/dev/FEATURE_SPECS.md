@@ -150,6 +150,24 @@ Menghubungkan data operasional mengajar dengan penghitungan honorarium instruktu
 
 ---
 
+## 8. Pembaruan Terbaru v2.0 (Terbaru 2026-07-31) [COMPLETED]
+
+### A. Quality Control Warning Engine Enhancement:
+- **Deteksi Lokasi Spesifik**: Setiap peringatan QC kini otomatis mencantumkan rincian Nama Sekolah 🏫, Nama Program Ekskul, dan Rombel 👥 secara eksplisit.
+- **1-Click Direct Action Buttons**: Kartu QC di Dashboard dilengkapi tombol navigasi langsung (*Isi Laporan Mengajar*, *Tugaskan Instruktur*, *Kelola Jadwal*) untuk menyelesaikan masalah dengan 1 klik.
+- **UI/UX Responsive Flexbox**: Penataan ulang elemen visual agar tidak ada teks terpotong (*text truncation*) atau batang gulir horizontal (*overflow*).
+
+### B. Progressive Web App (PWA) Enhancements:
+- **App Shortcuts**: Dukungan *shortcuts* pada `manifest.json` untuk Android & iOS (Akses cepat *Buat Laporan*, *Agenda Kegiatan*, dan *Kelola Absensi*).
+- **Real-Time Network Status Toast**: Indikator melayang yang memberi tahu instruktur secara langsung ketika koneksi internet terputus (*offline*) atau terhubung kembali (*online*).
+
+### C. Audit Trail Absensi & Quick Student Auto-Enrollment:
+- **AbsensiObserver**: Observer Eloquent yang memantau setiap aktivitas pendaftaran, perubahan status (`alpha` ➔ `hadir`), dan penghapusan data absensi siswa ke `ActivityLog`.
+- **Auto-Enrollment Modal Siswa**: Siswa baru yang ditambahkan dari modal laporan mengajar langsung terdaftar (*auto-enrolled*) ke Rombel & Program Ekskul terkait.
+- **Form Tambah Siswa Redesign (`siswa/create`)**: Card layout modern, preloaded dropdown sekolah + Select2 live search, NISN Auto Generator (`TMP...`), dan No WA Orang Tua opsional (nullable).
+
+---
+
 ## Kesimpulan
 
 Sistem saat ini telah bertransformasi penuh menjadi **AOQCS Terpadu** yang stabil, mencakup seluruh siklus operasional: inisiasi pesanan (SP), manajemen rombel & asisten, kontrol kehadiran H-1 & presensi detail, penilaian & portofolio digital, warning engine quality control, hingga otomatisasi payroll keuangan instruktur.
