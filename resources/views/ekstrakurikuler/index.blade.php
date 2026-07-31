@@ -174,12 +174,24 @@
                 <div class="card-header bg-transparent py-3 border-0"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-filter me-2"></i>Filter & Pencarian</h6></div>
                 <div class="card-body">
                     <form method="GET" action="{{ route('ekstrakurikuler.index') }}" id="filterForm">
-                        <div class="row">
-                            <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="row align-items-end">
+                            <div class="col-lg-3 col-md-6 mb-3">
                                 <label for="search" class="filter-label">Pencarian</label>
-                                <input type="text" class="form-control form-control-premium" id="search" name="search" value="{{ request('search') }}" placeholder="Nama program atau sekolah...">
+                                <input type="text" class="form-control form-control-premium" id="search" name="search" value="{{ request('search') }}" placeholder="Nama program...">
                             </div>
                             <div class="col-lg-3 col-md-6 mb-3">
+                                <label for="sekolah_kodlan" class="filter-label">Sekolah</label>
+                                <select class="form-control form-control-premium" id="sekolah_kodlan" name="sekolah_kodlan">
+                                    <option value="">Semua Sekolah</option>
+                                    @if(request('sekolah_kodlan'))
+                                        @php $reqSekolah = \App\Models\Sekolah::where('kodlan', request('sekolah_kodlan'))->first(); @endphp
+                                        @if($reqSekolah)
+                                            <option value="{{ request('sekolah_kodlan') }}" selected>{{ $reqSekolah->namasekolah }} ({{ request('sekolah_kodlan') }})</option>
+                                        @endif
+                                    @endif
+                                </select>
+                            </div>
+                            <div class="col-lg-2 col-md-6 mb-3">
                                 <label for="status" class="filter-label">Status</label>
                                 <select class="form-control form-control-premium" id="status" name="status">
                                     <option value="">Semua Status</option>
@@ -201,30 +213,9 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-lg-3 col-md-6 mb-3">
-                                <label for="date_range" class="filter-label">Rentang Tanggal</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control form-control-premium" id="date_range" name="date_range" value="{{ request('date_range') }}" placeholder="Pilih tanggal...">
-                                    <button type="button" class="btn btn-outline-secondary clear-date" onclick="clearDateRange()" style="display: none;"><i class="fas fa-times"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row align-items-end">
-                            <div class="col-md-9 mb-3">
-                                <label for="sekolah_kodlan" class="filter-label">Sekolah</label>
-                                <select class="form-control form-control-premium" id="sekolah_kodlan" name="sekolah_kodlan">
-                                    <option value="">Semua Sekolah</option>
-                                    @if(request('sekolah_kodlan'))
-                                        @php $reqSekolah = \App\Models\Sekolah::where('kodlan', request('sekolah_kodlan'))->first(); @endphp
-                                        @if($reqSekolah)
-                                            <option value="{{ request('sekolah_kodlan') }}" selected>{{ $reqSekolah->namasekolah }} ({{ request('sekolah_kodlan') }})</option>
-                                        @endif
-                                    @endif
-                                </select>
-                            </div>
-                            <div class="col-md-3 mb-3 d-flex gap-2 justify-content-end">
-                                <button type="submit" class="btn btn-primary px-4 py-2" style="border-radius: 10px;"><i class="fas fa-search me-1"></i> Filter</button>
-                                <a href="{{ route('ekstrakurikuler.index') }}" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px;">Reset</a>
+                            <div class="col-lg-2 col-md-12 mb-3 d-flex gap-2 justify-content-end">
+                                <button type="submit" class="btn btn-primary w-100 py-2" style="border-radius: 10px;"><i class="fas fa-search me-1"></i> Filter</button>
+                                <a href="{{ route('ekstrakurikuler.index') }}" class="btn btn-outline-secondary py-2" style="border-radius: 10px;" title="Reset Filter"><i class="fas fa-undo"></i></a>
                             </div>
                         </div>
                     </form>
