@@ -19,7 +19,7 @@
         <div class="card-body p-4">
             <div class="d-flex align-items-center gap-2 mb-3">
                 <i class="bi bi-info-circle-fill text-primary fs-5"></i>
-                <h5 class="fw-bold mb-0 text-dark">Informasi Ketentuan Kompensasi & Transportasi Instruktur (TAB 2025/2026)</h5>
+                <h5 class="fw-bold mb-0 text-dark">Informasi Ketentuan Kompensasi & Transportasi Instruktur</h5>
             </div>
             
             <div class="row g-3 text-dark" style="font-size: 0.88rem;">
