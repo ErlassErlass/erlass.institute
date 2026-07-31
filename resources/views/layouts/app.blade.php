@@ -959,6 +959,42 @@
                 console.log('PWA was installed successfully!');
                 document.getElementById('pwa-install-item')?.classList.add('d-none');
             });
+
+            // PWA Network Status (Offline/Online Toast)
+            function updateNetworkStatus(e) {
+                if (!navigator.onLine) {
+                    showNetworkToast('Koneksi internet terputus. Sistem beralih ke mode offline.', 'danger');
+                } else if (e && e.type === 'online') {
+                    showNetworkToast('Koneksi internet Anda telah kembali terhubung!', 'success');
+                }
+            }
+            window.addEventListener('offline', updateNetworkStatus);
+            window.addEventListener('online', updateNetworkStatus);
+
+            function showNetworkToast(msg, type) {
+                let toastEl = document.getElementById('pwa-network-toast');
+                if (!toastEl) {
+                    toastEl = document.createElement('div');
+                    toastEl.id = 'pwa-network-toast';
+                    toastEl.className = 'position-fixed bottom-0 end-0 p-3';
+                    toastEl.style.zIndex = '9999';
+                    document.body.appendChild(toastEl);
+                }
+                toastEl.innerHTML = `
+                    <div class="toast align-items-center text-white bg-${type} border-0 show shadow-lg" role="alert">
+                        <div class="d-flex">
+                            <div class="toast-body fw-bold">
+                                <i class="bi bi-${type === 'danger' ? 'wifi-off' : 'wifi'} me-2 fs-6"></i> ${msg}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button>
+                        </div>
+                    </div>
+                `;
+                setTimeout(() => {
+                    const t = toastEl.querySelector('.toast');
+                    if (t) t.remove();
+                }, 4000);
+            }
         });
         window.addEventListener("beforeunload", function() {
             NProgress.start();

@@ -1,12 +1,15 @@
 {
-  "name": "Erlass Ekskul",
+  "name": "Erlass Ekskul - Erlass Institute",
   "short_name": "ErlassEkskul",
   "description": "Academic Operations & Quality Control System (AOQCS) - Erlass Institute",
+  "id": "/dashboard",
   "start_url": "/dashboard",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#f1f5f9",
   "theme_color": "#2563eb",
-  "orientation": "portrait-primary",
+  "categories": ["education", "productivity"],
   "icons": [
     {
       "src": "/images/logo-erlass.png",
@@ -19,6 +22,29 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Buat Laporan Mengajar",
+      "short_name": "Buat Laporan",
+      "description": "Isi Laporan Mengajar Hari Ini",
+      "url": "/laporan-mengajar/create",
+      "icons": [{ "src": "/images/logo-erlass.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Agenda Kegiatan",
+      "short_name": "Agenda",
+      "description": "Lihat Jadwal Mengajar & Kegiatan",
+      "url": "/agenda-kegiatan",
+      "icons": [{ "src": "/images/logo-erlass.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Kelola Absensi",
+      "short_name": "Absensi",
+      "description": "Kelola Data Kehadiran Siswa",
+      "url": "/absensi",
+      "icons": [{ "src": "/images/logo-erlass.png", "sizes": "192x192" }]
     }
   ]
 }
