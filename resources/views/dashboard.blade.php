@@ -489,6 +489,17 @@
                                 @if(isset($warning_list) && $warning_list->count() > 0)
                                     <div class="list-group list-group-flush">
                                         @foreach($warning_list as $warning)
+                                            @php
+                                                $typeLabel = match($warning->warning_type) {
+                                                    'no_instructor' => 'Tanpa Instruktur (H-1)',
+                                                    'not_confirmed' => 'Belum Ada Konfirmasi Sesi',
+                                                    'missing_report' => 'Laporan Mengajar Belum Diisi (>24h)',
+                                                    'low_attendance' => 'Kehadiran Siswa Rendah (<70%)',
+                                                    'reschedule_limit' => 'Frekuensi Reschedule Tinggi',
+                                                    'behind_target' => 'Tertinggal Target Kurikulum',
+                                                    default => ucwords(str_replace('_', ' ', $warning->warning_type))
+                                                };
+                                            @endphp
                                             <div class="list-group-item p-3 border-bottom d-flex flex-column flex-sm-row justify-content-between align-items-start gap-3" style="border-left: 4px solid {{ $warning->severity === 'red' ? '#f43f5e' : '#f59e0b' }} !important; background-color: {{ $warning->severity === 'red' ? 'rgba(244, 63, 94, 0.05)' : 'rgba(245, 158, 11, 0.05)' }};">
                                                 <div class="d-flex gap-3">
                                                     <div class="flex-shrink-0 mt-1">
@@ -500,19 +511,19 @@
                                                     </div>
                                                     <div>
                                                         <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                                            <span class="badge bg-{{ $warning->severity === 'red' ? 'danger' : 'warning text-dark' }} text-uppercase font-monospace" style="font-size: 0.65rem;">
-                                                                {{ str_replace('_', ' ', $warning->warning_type) }}
+                                                            <span class="badge bg-{{ $warning->severity === 'red' ? 'danger' : 'warning text-dark' }} text-uppercase fw-bold" style="font-size: 0.7rem;">
+                                                                {{ $typeLabel }}
                                                             </span>
-                                                            <small class="text-muted">{{ $warning->created_at->diffForHumans() }}</small>
+                                                            <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ $warning->created_at->diffForHumans() }}</small>
                                                         </div>
                                                         <p class="mb-0 text-dark small fw-medium">{{ $warning->notes }}</p>
                                                     </div>
                                                 </div>
-                                                <div class="w-100 w-sm-auto text-end text-sm-start flex-shrink-0">
+                                                <div class="w-100 w-sm-auto text-end text-sm-start flex-shrink-0 d-flex align-items-center gap-2">
                                                     <form action="{{ route('admin.warnings.resolve', $warning->id) }}" method="POST" class="d-grid d-sm-inline">
                                                         @csrf
-                                                        <button type="submit" class="btn btn-xs btn-outline-success py-1 px-2 rounded w-100 w-sm-auto" style="font-size: 0.75rem;">
-                                                            <i class="bi bi-check2"></i> Resolve
+                                                        <button type="submit" class="btn btn-xs btn-outline-success py-1 px-3 rounded-pill" style="font-size: 0.75rem;">
+                                                            <i class="bi bi-check2 me-1"></i> Selesaikan (Resolve)
                                                         </button>
                                                     </form>
                                                 </div>
