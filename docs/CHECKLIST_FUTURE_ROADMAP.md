@@ -56,6 +56,8 @@
 - [x] Mekanisme deteksi koneksi offline dan penyajian halaman fallback.
 - [x] Instalasi PWA prompt di mobile/desktop browser.
 - [x] Optimalisasi link eksternal deep link WhatsApp (`whatsapp://`) di PWA standalone menggunakan `target="_blank" rel="noopener"` agar terhindar dari pemblokiran sandbox webview.
+- [x] Penambahan PWA App Shortcuts (Buat Laporan, Agenda Kegiatan, Kelola Absensi) untuk akses cepat dari homescreen Android/iOS.
+- [x] Indikator status koneksi internet real-time (Offline/Online Toast Notification) untuk memberi tahu instruktur di lapangan.
 
 ### 🤖 5. Smart AI Agent Integration (Assistant & Chatbot)
 - [ ] Integrasi LLM API (Gemini / OpenAI) di backend Laravel.

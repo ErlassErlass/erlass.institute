@@ -183,4 +183,10 @@ Hasil build akan masuk ke folder `public/build/`.
     *   **Paid**: Menandai seluruh sesi di dalamnya sebagai `paid` dan payroll batch sebagai lunas/terbayar.
 *   **Override & Manual Adjustment**: Admin dapat meng-override nominal honor per sesi atau menambahkan bonus/notes kustom per item payroll sebelum memproses batch tersebut.
 
+### 12. Audit Trail Absensi & Quick Student Auto-Enrollment (Terbaru 2026-07-31)
+*   **Observer**: `App\Observers\AbsensiObserver` (Terdaftar di `AppServiceProvider`).
+*   **Audit Trail Absensi**: Otomatis mencatat setiap `created`, `updated` (perubahan status misal `alpha` ➔ `hadir`), dan `deleted` pada tabel `absensi` ke dalam `ActivityLog` (termasuk nama instruktur, status lama/baru, ID laporan, IP, & User Agent) untuk mencegah manipulasi data kehadiran oleh instruktur.
+*   **Quick Add Student Auto-Enrollment**: Siswa baru yang ditambahkan secara cepat melalui modal laporan mengajar di-enroll otomatis ke Rombel & Program Ekstrakurikuler terkait (`EkstrakurikulerApiController@storeQuickStudent`).
+*   **Form Tambah Siswa Redesign**: Modal & Halaman `siswa/create` menggunakan Card Layout modern, dropdown sekolah preloaded + Select2 AJAX live search, NISN Auto Generator (`TMP...`), dan No WA Orang Tua opsional (nullable).
+
 
