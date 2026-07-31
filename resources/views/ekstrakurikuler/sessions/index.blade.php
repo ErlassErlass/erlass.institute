@@ -2,6 +2,44 @@
 
 @section('title', 'Kelola Sesi Ekstrakurikuler')
 
+@push('styles')
+<style>
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.35rem 0.65rem;
+        font-size: 0.85rem;
+        border-radius: 0.375rem;
+        border: 1px solid #cbd5e1;
+        background-color: #ffffff;
+        color: #334155;
+        transition: all 0.15s ease-in-out;
+        text-decoration: none;
+    }
+    .btn-action:hover {
+        background-color: #f8fafc;
+        color: #0f172a;
+        border-color: #94a3b8;
+    }
+    .btn-action.view:hover {
+        background-color: #eff6ff;
+        color: #2563eb;
+        border-color: #93c5fd;
+    }
+    .btn-action.edit:hover {
+        background-color: #fefce8;
+        color: #ca8a04;
+        border-color: #fde047;
+    }
+    .btn-action.delete:hover {
+        background-color: #fef2f2;
+        color: #dc2626;
+        border-color: #fca5a5;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="container py-4">
     <!-- Header Section -->
@@ -753,19 +791,19 @@ function exportScheduleToImage() {
     @endif
     <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10px; border: 1px solid #cbd5e1;">
         <thead>
-            <tr style="background-color: #1e293b; color: #ffffff; font-weight: bold; border: 1px solid #1e293b; text-transform: uppercase;">
-                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: center; width: 30px;">No.</th>
-                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: left;">Nama Instruktur</th>
-                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: left;">Asst. Instruktur</th>
-                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: left;">Namasek</th>
-                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: center; width: 50px;">Rombel</th>
-                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: center; width: 60px;">Jml Siswa</th>
-                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: left;">Kec.</th>
-                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: left;">Ekskul</th>
-                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: left;">Nama sales</th>
-                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: center; width: 60px;">Jam Mulai</th>
-                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: left;">PIC Ekskul</th>
-                <th style="padding: 8px 6px; border: 1px solid #334155; text-align: center; width: 80px;">Status Jadwal</th>
+            <tr style="background-color: #f1f5f9; color: #1e293b; font-weight: bold; border: 1px solid #cbd5e1; text-transform: uppercase;">
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 30px;">No.</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Nama Instruktur</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Asst. Instruktur</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Sekolah</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 50px;">Rombel</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 60px;">Jml Siswa</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Kecamatan</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Ekskul</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Sales</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 60px;">Jam Mulai</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">PIC Ekskul</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 80px;">Status Jadwal</th>
             </tr>
         </thead>
         <tbody>
