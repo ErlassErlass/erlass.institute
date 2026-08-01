@@ -69,30 +69,7 @@ class WhatsAppChannel
      */
     protected function normalizePhone(string $phone): ?string
     {
-        // Hapus semua karakter selain digit
-        $digits = preg_replace('/\D/', '', $phone);
-
-        if (empty($digits)) {
-            return null;
-        }
-
-        // +62 / 62 → pastikan prefix 62
-        if (str_starts_with($digits, '62')) {
-            $normalized = $digits;
-        } elseif (str_starts_with($digits, '0')) {
-            // 08xx → 628xx
-            $normalized = '62' . substr($digits, 1);
-        } else {
-            // Sudah angka tanpa prefix, asumsikan Indonesia
-            $normalized = '62' . $digits;
-        }
-
-        // Panjang nomor WA Indonesia: 62 + 8-12 digit = 10-14 digit total
-        if (strlen($normalized) < 10 || strlen($normalized) > 15) {
-            return null;
-        }
-
-        return $normalized;
+        return \App\Services\PhoneNumberService::normalize($phone);
     }
 
     /**

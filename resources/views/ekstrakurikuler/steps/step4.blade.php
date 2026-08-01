@@ -65,7 +65,7 @@
                     name="total_rombel" 
                     required>
                 <option value="">Pilih Jumlah Rombel</option>
-                @for($i = 1; $i <= 5; $i++)
+                @for($i = 1; $i <= 10; $i++)
                     <option value="{{ $i }}" 
                             {{ old('total_rombel', $formData['total_rombel'] ?? '') == $i ? 'selected' : '' }}>
                         {{ $i }} Rombel
@@ -76,7 +76,7 @@
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
             <small class="form-text text-muted">
-                Maksimal 5 rombel per program
+                Maksimal 10 rombel per program
             </small>
         </div>
     </div>

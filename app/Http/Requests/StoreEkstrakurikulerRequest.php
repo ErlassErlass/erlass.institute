@@ -56,7 +56,7 @@ class StoreEkstrakurikulerRequest extends FormRequest
             // Class Structure
             'total_siswa' => 'required|integer|min:1|max:500',
             'total_ruangan' => 'required|integer|min:1|max:50',
-            'total_rombel' => 'required|integer|min:1|max:5',
+            'total_rombel' => 'required|integer|min:1|max:10',
             'tanggal_mulai' => 'nullable|date|after_or_equal:today',
             'tanggal_selesai' => 'nullable|date|after:tanggal_mulai',
             'total_pertemuan' => 'nullable|integer|min:1|max:200',
@@ -155,7 +155,7 @@ class StoreEkstrakurikulerRequest extends FormRequest
             'total_rombel.required' => 'Total rombongan belajar wajib diisi.',
             'total_rombel.integer' => 'Total rombel harus berupa angka.',
             'total_rombel.min' => 'Total rombel minimal 1.',
-            'total_rombel.max' => 'Total rombel maksimal 5.',
+            'total_rombel.max' => 'Total rombel maksimal 10.',
 
             'tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
             'tanggal_selesai.after' => 'Tanggal selesai harus setelah tanggal mulai.',

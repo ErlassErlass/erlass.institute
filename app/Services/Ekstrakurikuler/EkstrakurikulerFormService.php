@@ -314,7 +314,7 @@ class EkstrakurikulerFormService
         return [
             'total_siswa' => 'required|integer|min:1',
             'total_ruangan' => 'required|integer|min:1',
-            'total_rombel' => 'required|integer|min:1|max:5',
+            'total_rombel' => 'required|integer|min:1|max:10',
         ];
     }
 
