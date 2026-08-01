@@ -74,7 +74,22 @@ class StoreLaporanMengajarRequest extends FormRequest
                 'string',
                 Rule::in($allowedKategori),
             ],
-            'materi_pengajaran' => 'required|string|max:1000',
+            'materi_pengajaran' => [
+                'required',
+                'string',
+                'max:1000',
+                function ($attribute, $value, $fail) {
+                    $kategori = $this->input('kategori_pengajaran');
+                    if ($kategori && \App\Models\RefMateri::where('kategori', $kategori)->exists()) {
+                        $exists = \App\Models\RefMateri::where('kategori', $kategori)
+                            ->where('materi', $value)
+                            ->exists();
+                        if (! $exists) {
+                            $fail('Materi pengajaran yang dipilih tidak valid.');
+                        }
+                    }
+                },
+            ],
             'sekolah_nama' => 'nullable|string|max:255',
             'sekolah_kota' => 'nullable|string|max:100',
             'sekolah_kecamatan' => 'nullable|string|max:100',

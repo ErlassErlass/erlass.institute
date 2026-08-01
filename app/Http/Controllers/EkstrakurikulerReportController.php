@@ -129,7 +129,22 @@ class EkstrakurikulerReportController extends Controller
 
         $request->validate([
             'foto_kegiatan' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB max
-            'topik_materi' => 'required|string|max:255',
+            'topik_materi' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($session) {
+                    $kategori = $session->rombel->ekstrakurikuler->kategori_program ?? null;
+                    if ($kategori && \App\Models\RefMateri::where('kategori', $kategori)->exists()) {
+                        $exists = \App\Models\RefMateri::where('kategori', $kategori)
+                            ->where('materi', $value)
+                            ->exists();
+                        if (! $exists) {
+                            $fail('Topik/materi yang dipilih tidak valid.');
+                        }
+                    }
+                },
+            ],
             'foto_absensi_siswa' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // Wajib TTD & Stempel
             'absensi' => 'required|array|min:1',
             'absensi.*' => ['required', \Illuminate\Validation\Rule::in([0, 1, '0', '1', 'hadir', 'alpha'])], // Strict status validation

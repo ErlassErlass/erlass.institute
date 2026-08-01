@@ -21,6 +21,7 @@ Dokumentasi non-teknis mengenai alur kerja dan operasional harian organisasi.
 Untuk pengembang baru yang akan memodifikasi backend atau frontend aplikasi.
 
 *   [**`TECHNICAL_GUIDE.md`**](dev/TECHNICAL_GUIDE.md) — Panduan teknis arsitektur Laravel 12, service penjadwalan cerdas, standard upload file, dan otorisasi.
+*   [**`API_DOCUMENTATION.md`**](dev/API_DOCUMENTATION.md) — Spesifikasi API (Public vs Protected), arsitektur REST/AJAX, dan pengamanan server-side anti-DevTools.
 *   [**`DOKUMENTASI_TECH_STACK_ERLASS_INSTITUTE.md`**](dev/DOKUMENTASI_TECH_STACK_ERLASS_INSTITUTE.md) — Penjelasan detail tumpukan teknologi, spesifikasi environment, dan daftar database schema core.
 *   [**`DOKUMENTASI_TECH_STACK_WEBAPPERLASS.md`**](dev/DOKUMENTASI_TECH_STACK_WEBAPPERLASS.md) — Dokumentasi tech stack untuk aplikasi pendukung (Alat Promosi).
 *   [**`DATABASE_SCHEMA.md`**](dev/DATABASE_SCHEMA.md) — Skema database relasional `erlass_db`.

@@ -616,7 +616,22 @@ class LaporanMengajarController extends Controller
             ],
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
-            'materi_pengajaran' => 'required|string|max:1000',
+            'materi_pengajaran' => [
+                'required',
+                'string',
+                'max:1000',
+                function ($attribute, $value, $fail) use ($request) {
+                    $kategori = $request->input('kategori_pengajaran');
+                    if ($kategori && \App\Models\RefMateri::where('kategori', $kategori)->exists()) {
+                        $exists = \App\Models\RefMateri::where('kategori', $kategori)
+                            ->where('materi', $value)
+                            ->exists();
+                        if (! $exists) {
+                            $fail('Materi pengajaran yang dipilih tidak valid.');
+                        }
+                    }
+                },
+            ],
             'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ];
     }

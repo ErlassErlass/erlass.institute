@@ -2,6 +2,17 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.3.0] - 2026-08-01
+
+### Ditambahkan & Dioptimalkan (Added & Optimized)
+- **Kurikulum Materi Ekskul Erboblox**:
+  - Penambahan 20 materi kurikulum baru Erboblox (Pengantar Erboblox, Level 1, Level 2, dan Level 3) + 1 opsi `Lain - Lain` ke dalam `database/seeders/RefMateriSeeder.php`.
+  - Penambahan mapping alias kategori `Erboblox` (`Robotik Erboblox`, `Ekskul Erboblox`, `Ekskul Robotik Erboblox`, `Robotika Erboblox`, `Ekskul Robotika Erboblox`) di `RefMateriSeeder` sehingga materi Erboblox dapat dimuat secara dinamis untuk berbagai variasi nama kategori ekskul.
+  - Penyelarasan database via `php artisan db:seed --class=RefMateriSeeder --force` yang menghasilkan 126 record materi terdaftar di tabel `ref_materi`.
+- **Pengamanan Anti-Manipulasi DevTools pada Materi Pengajaran & Topik Sesi**:
+  - Penambahan validasi server-side pada `StoreLaporanMengajarRequest`, `EkstrakurikulerReportController`, dan `LaporanMengajarController` untuk memastikan nilai `materi_pengajaran` / `topik_materi` yang dikirim pengguna wajib terdaftar pada tabel `ref_materi`.
+  - Mengamankan sistem dari upaya manipulasi data `<option value="...">` melalui Inspect Element / Browser DevTools atau payload API mentah.
+
 ## [2.2.0] - 2026-07-31
 
 ### Ditambahkan & Dioptimalkan (Added & Optimized)

@@ -39,9 +39,30 @@ php artisan migrate:fresh --seed
 ```
 *Command ini akan me-load `UserSeeder`, `SekolahSeeder`, `ManualSiswaSeeder`, `EmployeeSeeder`, dan `RefMateriSeeder`.*
 
-### Menambahkan Materi Baru
-1. Edit table `ref_materi` atau `RefMateriSeeder`.
-2. Jika via seeder, jalankan `php artisan db:seed --class=RefMateriSeeder`.
+### Menambahkan & Mengelola Materi Baru (Kurikulum)
+
+Materi pengajaran disimpan di tabel database `ref_materi` (`App\Models\RefMateri`) dan di-seed melalui `Database\Seeders\RefMateriSeeder`.
+
+#### Langkah-langkah Menambahkan Materi Ekskul Baru (Contoh: Erboblox):
+1. **Tambahkan daftar materi ke Seeder (`database/seeders/RefMateriSeeder.php`)**:
+   - Masukkan array materi ke `$baseData` dengan kunci `'kategori' => 'NamaKategori'` dan `'materi' => 'Judul Materi'`.
+2. **Daftarkan Alias Kategori di `$categoryAliases` (Opsional tapi Direkomendasikan)**:
+   - Tambahkan variasi penamaan kategori di `$categoryAliases` (misal: `'Erboblox' => ['Ekskul Erboblox', 'Robotik Erboblox', 'Ekskul Robotik Erboblox']`). Ini menjamin dropdown dinamis muncul untuk berbagai variasi nama kategori ekskul di database.
+3. **Jalankan Seeder ke Database**:
+   - Pada lingkungan lokal/dev:
+     ```bash
+     php artisan db:seed --class=RefMateriSeeder
+     ```
+   - Pada lingkungan produksi:
+     ```bash
+     php artisan db:seed --class=RefMateriSeeder --force
+     ```
+
+#### 🛡️ Pengamanan Anti-Manipulasi DevTools (Backend Validation)
+Setiap pengiriman materi/topik pada Form Laporan Mengajar (`StoreLaporanMengajarRequest` & `LaporanMengajarController`) dan Sesi Ekstrakurikuler (`EkstrakurikulerReportController`) divalidasi ketat di backend:
+- Server mengecek apakah materi yang dikirim ada di tabel `ref_materi` untuk kategori terkait.
+- Jika pengguna mencoba mengubah nilai `<option value="...">` via Inspect Element (DevTools) ke string sembarangan, Laravel backend akan otomatis menolak request tersebut dengan error *"Materi pengajaran yang dipilih tidak valid."* / *"Topik/materi yang dipilih tidak valid."*.
+- *Rincian spesifikasi API & skema pengamanan lengkap dapat dilihat pada [**`API_DOCUMENTATION.md`**](API_DOCUMENTATION.md).*
 
 ## Crucial Business Logic & Services
 

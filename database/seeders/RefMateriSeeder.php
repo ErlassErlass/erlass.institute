@@ -198,6 +198,29 @@ class RefMateriSeeder extends Seeder
             ['kategori' => 'Robotika Robotic Explorer', 'materi' => 'Membuat Indoor-Outdoor Thermometer dan proyek tantangan.'],
             ['kategori' => 'Robotika Robotic Explorer', 'materi' => 'Membuat smart trash bin mulai dari perancangan hingga pemrograman.'],
             ['kategori' => 'Robotika Robotic Explorer', 'materi' => 'Lain - Lain'],
+
+            // Erboblox
+            ['kategori' => 'Erboblox', 'materi' => 'Pengantar Erboblox - LED Bergantian (Blink Dua LED)'],
+            ['kategori' => 'Erboblox', 'materi' => 'Pengantar Erboblox - LED Berkedip 10 kali'],
+            ['kategori' => 'Erboblox', 'materi' => 'Pengantar Erboblox - Buzzer Berkedip 10 kali'],
+            ['kategori' => 'Erboblox', 'materi' => 'Pengantar Erboblox - LED Berkedip bersama Buzzer'],
+            ['kategori' => 'Erboblox', 'materi' => 'Perakitan Erboblox'],
+            ['kategori' => 'Erboblox', 'materi' => 'Level 1 - Tes Klakson'],
+            ['kategori' => 'Erboblox', 'materi' => 'Level 1 - Tes Lampu'],
+            ['kategori' => 'Erboblox', 'materi' => 'Level 1 - SOS Morse'],
+            ['kategori' => 'Erboblox', 'materi' => 'Level 1 - Gerakan Dasar'],
+            ['kategori' => 'Erboblox', 'materi' => 'Level 1 - Pola Kotak'],
+            ['kategori' => 'Erboblox', 'materi' => 'Level 2 - Pola Segitiga'],
+            ['kategori' => 'Erboblox', 'materi' => 'Level 2 - Pola Zig-Zag'],
+            ['kategori' => 'Erboblox', 'materi' => 'Level 2 - Pola Spiral'],
+            ['kategori' => 'Erboblox', 'materi' => 'Level 2 - Maju dengan Isyarat'],
+            ['kategori' => 'Erboblox', 'materi' => 'Level 2 - Dance Robot 1'],
+            ['kategori' => 'Erboblox', 'materi' => 'Level 3 - Zig-Zag 7 Segmen'],
+            ['kategori' => 'Erboblox', 'materi' => 'Level 3 - Pola Angka 8'],
+            ['kategori' => 'Erboblox', 'materi' => 'Level 3 - Lingkaran ke Lingkaran'],
+            ['kategori' => 'Erboblox', 'materi' => 'Level 3 - Tes Sensor IR'],
+            ['kategori' => 'Erboblox', 'materi' => 'Level 3 - IR Alarm'],
+            ['kategori' => 'Erboblox', 'materi' => 'Lain - Lain'],
         ];
 
         // Category aliases mapping to ensure matching under any variation
@@ -210,6 +233,7 @@ class RefMateriSeeder extends Seeder
             'Robotika Jimu' => ['Robotik Jimu', 'Ekskul Robotik Jimu', 'Ekskul Robotika Jimu'],
             'Robotika micro:bit' => ['Micro:bit Learning Kit', 'Robotik Microbit Learning Kit', 'Ekskul Robotik Microbit Learning Kit', 'Robotik micro:bit', 'Ekskul Robotika micro:bit'],
             'Robotika Robotic Explorer' => ['Robotik Explorer', 'Robotik Robotic Explorer', 'Ekskul Robotik Explorer', 'Ekskul Robotika Robotic Explorer'],
+            'Erboblox' => ['Robotik Erboblox', 'Ekskul Erboblox', 'Ekskul Robotik Erboblox', 'Robotika Erboblox', 'Ekskul Robotika Erboblox'],
         ];
 
         $finalData = [];
