@@ -12,6 +12,9 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Pengamanan Anti-Manipulasi DevTools pada Materi Pengajaran & Topik Sesi**:
   - Penambahan validasi server-side pada `StoreLaporanMengajarRequest`, `EkstrakurikulerReportController`, dan `LaporanMengajarController` untuk memastikan nilai `materi_pengajaran` / `topik_materi` yang dikirim pengguna wajib terdaftar pada tabel `ref_materi`.
   - Mengamankan sistem dari upaya manipulasi data `<option value="...">` melalui Inspect Element / Browser DevTools atau payload API mentah.
+- **Kerangka Kerja Quality Assurance & Security Audit**:
+  - Integrasi 4 keahlian QA (`systematic-debugging`, `code-reviewer`, `security-auditor`, `tdd-workflow`).
+  - Verifikasi otomatis suite pengujian (`tests/Feature/SecurityAuthorizationTest`, `ValidationSecurityTest`, `PayrollTest`, dll.), penataan dokumentasi API publik/terproteksi di `docs/dev/API_DOCUMENTATION.md`, dan audit log empiris tanpa uncaught exception.
 
 ## [2.2.0] - 2026-07-31
 

@@ -210,4 +210,10 @@ Hasil build akan masuk ke folder `public/build/`.
 *   **Quick Add Student Auto-Enrollment**: Siswa baru yang ditambahkan secara cepat melalui modal laporan mengajar di-enroll otomatis ke Rombel & Program Ekstrakurikuler terkait (`EkstrakurikulerApiController@storeQuickStudent`).
 *   **Form Tambah Siswa Redesign**: Modal & Halaman `siswa/create` menggunakan Card Layout modern, dropdown sekolah preloaded + Select2 AJAX live search, NISN Auto Generator (`TMP...`), dan No WA Orang Tua opsional (nullable).
 
+### 13. Quality Assurance & Security Audit (QA & Security Framework)
+*   **Automated Testing Suite**: Rangkaian pengujian unit & fitur otomatis (`php artisan test`) di direktori `tests/Feature/` (mencakup `SecurityAuthorizationTest`, `ValidationSecurityTest`, `PayrollTest`, `LaporanMengajarControllerTest`, dll.).
+*   **Standar Keamanan OWASP**: Validasi server-side anti-manipulasi DevTools pada input materi/topik, pengescapan XSS Blade (`nl2br(e())`), rate-limiting (`throttle:60,1`) pada API publik, PDO Parameter Binding native, dan otorisasi berbasis middleware (`auth`, `role`).
+*   **Systematic Debugging**: Kebijakan investigasi berbasis bukti log empiris (`storage/logs/laravel.log`) dan penanganan *graceful fallback* pada integrasi pihak ketiga (Fonnte WA Gateway).
+*   **Rujukan Spesifikasi API**: Dokumentasi lengkap arsitektur API dan pengamanan dapat diakses pada [**`API_DOCUMENTATION.md`**](API_DOCUMENTATION.md).
+
 
