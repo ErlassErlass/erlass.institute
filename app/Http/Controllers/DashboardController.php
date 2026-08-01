@@ -15,18 +15,18 @@ use Illuminate\Support\Facades\DB;
 class DashboardController extends Controller
 {
     /**
-     * Cache TTL constants (in seconds)
+     * Konstanta Waktu Simpan Cache (dalam detik)
      */
-    private const CACHE_TTL_STATS = 300;      // 5 minutes for dashboard stats
-    private const CACHE_TTL_SCHEDULE = 60;     // 1 minute for today's schedule
-    private const CACHE_TTL_CHART = 600;       // 10 minutes for chart data
+    private const CACHE_TTL_STATS = 300;      // 5 menit untuk statistik dasbor
+    private const CACHE_TTL_SCHEDULE = 60;     // 1 menit untuk jadwal hari ini
+    private const CACHE_TTL_CHART = 600;       // 10 menit untuk data grafik
 
     public function index()
     {
         $user = auth()->user();
         $cachePrefix = 'dashboard_';
 
-        // Shared stats — cached 5 minutes
+        // Statistik bersama — disimpan di cache 5 menit
         $data = Cache::remember($cachePrefix . 'shared_stats', self::CACHE_TTL_STATS, function () {
             return [
                 'total_sekolah' => Sekolah::has('ekstrakurikuler')->count(),
@@ -38,7 +38,7 @@ class DashboardController extends Controller
             ];
         });
 
-        // Today's schedule — cached 1 minute
+        // Jadwal hari ini — disimpan di cache 1 menit
         $todayStr = Carbon::today()->format('Y-m-d');
         if ($user->role === 'instruktur') {
             $data['todays_schedule'] = Cache::remember(
@@ -54,7 +54,7 @@ class DashboardController extends Controller
             );
         }
 
-        // Recent activities — cached 2 minutes
+        // Aktivitas terbaru — disimpan di cache 2 menit
         $data['recent_activities'] = Cache::remember(
             $cachePrefix . 'recent_activities',
             120,
@@ -62,7 +62,7 @@ class DashboardController extends Controller
         );
 
         if ($user->role === 'instruktur') {
-            // Instructor stats — cached per user, 2 minutes
+            // Statistik instruktur — disimpan di cache per pengguna, 2 menit
             $instructorData = Cache::remember(
                 $cachePrefix . 'instructor_' . $user->id,
                 120,
@@ -70,7 +70,7 @@ class DashboardController extends Controller
             );
             $data = array_merge($data, $instructorData);
         } else {
-            // Admin stats — cached 5 minutes
+            // Statistik admin — disimpan di cache 5 menit
             $adminData = Cache::remember(
                 $cachePrefix . 'admin_stats',
                 self::CACHE_TTL_STATS,
@@ -83,7 +83,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Clear dashboard cache (call after data changes)
+     * Bersihkan cache dasbor (dipanggil setelah terjadi perubahan data)
      */
     public static function clearCache(?int $userId = null): void
     {
@@ -104,7 +104,7 @@ class DashboardController extends Controller
     {
         $activities = collect();
 
-        // 1. Recent Reports - single query with eager load
+        // 1. Laporan Terbaru - query tunggal dengan eager loading
         $recent_reports = \App\Models\LaporanMengajar::with(['sekolah:kodlan,namasekolah', 'instruktur:id,nama_lengkap'])
             ->select('id', 'user_id_instruktur', 'sekolah_kodlan', 'created_at')
             ->latest()
@@ -121,7 +121,7 @@ class DashboardController extends Controller
                 'link' => route('laporan-mengajar.show', $item->id)
             ]);
 
-        // 2. Recent Sessions - select only needed columns
+        // 2. Sesi Pertemuan Terbaru - pilih hanya kolom yang dibutuhkan
         $recent_sessions = \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler:id,kategori_program'])
             ->select('id', 'ekstrakurikuler_rombel_id', 'status', 'topik_materi', 'updated_at')
             ->whereIn('status', ['berjalan', 'selesai'])
@@ -145,7 +145,7 @@ class DashboardController extends Controller
                 ];
             });
 
-        // 3. New Programs - select only needed columns
+        // 3. Program Baru - pilih hanya kolom yang dibutuhkan
         $new_programs = \App\Models\Ekstrakurikuler::with('sekolah:kodlan,namasekolah')
             ->select('id', 'sekolah_kodlan', 'kategori_program', 'created_at')
             ->latest()
@@ -209,19 +209,19 @@ class DashboardController extends Controller
             if (empty($profile->alamat_domisili)) $missing_fields[] = 'Alamat Domisili';
         }
 
-        // Optimized: use DB aggregation instead of loading all records
+        // Dioptimalkan: gunakan agregasi DB daripada memuat seluruh record
         $monthlyStats = \App\Models\LaporanMengajar::where('user_id_instruktur', $user->id)
             ->whereMonth('jadwal_mengajar', now()->month)
             ->whereYear('jadwal_mengajar', now()->year)
             ->selectRaw('COUNT(*) as total_count, SUM(TIMESTAMPDIFF(MINUTE, jam_mulai, jam_selesai)) as total_minutes')
             ->first();
 
-        // Calculate estimated monthly earnings (AOQCS Pillar 6 Integration)
+        // Hitung estimasi pendapatan bulanan (Integrasi Pilar 6 AOQCS)
         $currentMonthSessions = \App\Models\EkstrakurikulerSession::where('user_id_instruktur', $user->id)
             ->where('status', \App\Models\EkstrakurikulerSession::STATUS_SELESAI)
             ->whereMonth('tanggal_pelaksanaan', now()->month)
             ->whereYear('tanggal_pelaksanaan', now()->year)
-            ->whereHas('laporanMengajar') // Only completed sessions with reports count
+            ->whereHas('laporanMengajar') // Hanya sesi selesai yang memiliki laporan mengajar yang dihitung
             ->get();
 
         $calculator = app(\App\Services\PayrollCalculatorService::class);
@@ -329,7 +329,7 @@ class DashboardController extends Controller
     private function getChartData()
     {
         return Cache::remember('dashboard_chart_data', self::CACHE_TTL_CHART, function () {
-            // 1. Monthly Activity Trend (Last 30 Days) — single optimized query
+            // 1. Tren Aktivitas Bulanan (30 Hari Terakhir) — query tunggal teroptimasi
             $endDate = now();
             $startDate = now()->subDays(29);
             
@@ -354,7 +354,7 @@ class DashboardController extends Controller
                 $values[] = $chartData[$dateStr] ?? 0;
             }
 
-            // 2. Attendance Trend (Last 6 Months) — OPTIMIZED: pure DB aggregation
+            // 2. Tren Kehadiran Siswa (6 Bulan Terakhir) — Dioptimalkan: agregasi DB murni
             $attendanceStart = now()->subMonths(5)->startOfMonth();
             $attendanceEnd = now()->endOfMonth();
 
@@ -397,7 +397,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Resolve warning manually.
+     * Selesaikan peringatan warning secara manual.
      */
     public function resolveWarning(Warning $warning)
     {
