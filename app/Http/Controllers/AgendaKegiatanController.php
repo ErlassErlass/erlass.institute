@@ -17,6 +17,9 @@ class AgendaKegiatanController extends Controller
     /**
      * Tampilkan halaman utama Agenda Kegiatan (publik).
      */
+    /**
+     * Tampilkan halaman utama Agenda Kegiatan (publik).
+     */
     public function index()
     {
         $wilayahList = Cache::remember('agenda_wilayah_list', 3600, function () {
@@ -31,9 +34,25 @@ class AgendaKegiatanController extends Controller
                 ->pluck('sekolah.kota');
         });
 
+        $programList = Cache::remember('agenda_program_list', 3600, function () {
+            return \App\Models\Ekstrakurikuler::query()
+                ->distinct()
+                ->orderBy('kategori_program')
+                ->pluck('kategori_program');
+        });
+
+        $instrukturList = Cache::remember('agenda_instruktur_list', 3600, function () {
+            return \App\Models\User::query()
+                ->where('role', 'instruktur')
+                ->where('verification_status', 'approved')
+                ->orderBy('nama_lengkap')
+                ->select('id', 'nama_lengkap')
+                ->get();
+        });
+
         $totalSesi = EkstrakurikulerSession::where('status', 'selesai')->count();
 
-        return view('agenda-kegiatan.index', compact('wilayahList', 'totalSesi'));
+        return view('agenda-kegiatan.index', compact('wilayahList', 'programList', 'instrukturList', 'totalSesi'));
     }
 
     /**
@@ -83,6 +102,7 @@ class AgendaKegiatanController extends Controller
         $query = EkstrakurikulerSession::query()
             ->with([
                 'rombel.ekstrakurikuler.sekolah',
+                'instruktur',
                 'laporanMengajar',
             ])
             ->where('status', 'selesai');
@@ -103,6 +123,25 @@ class AgendaKegiatanController extends Controller
             $query->where('ekstrakurikuler_rombel_id', $request->rombel_id);
         }
 
+        if ($request->filled('program')) {
+            $query->whereHas('rombel.ekstrakurikuler', function ($q) use ($request) {
+                $q->where('kategori_program', $request->program);
+            });
+        }
+
+        if ($request->filled('instruktur_id')) {
+            $query->where('instruktur_id', $request->instruktur_id);
+        }
+
+        if ($request->filled('keyword')) {
+            $kw = $request->keyword;
+            $query->where(function ($q) use ($kw) {
+                $q->whereHas('rombel.ekstrakurikuler.sekolah', fn($sq) => $sq->where('namasekolah', 'LIKE', "%{$kw}%"))
+                  ->orWhereHas('laporanMengajar', fn($lq) => $lq->where('topik_materi', 'LIKE', "%{$kw}%")->orWhere('rangkuman_aktivitas', 'LIKE', "%{$kw}%"))
+                  ->orWhereHas('instruktur', fn($iq) => $iq->where('nama_lengkap', 'LIKE', "%{$kw}%"));
+            });
+        }
+
         if ($request->filled('tanggal_dari')) {
             $query->whereDate('tanggal_pelaksanaan', '>=', $request->tanggal_dari);
         }
@@ -116,14 +155,20 @@ class AgendaKegiatanController extends Controller
         $sessions = $query->paginate(25);
 
         $rows = $sessions->map(function (EkstrakurikulerSession $session) {
-            $rombel  = $session->rombel;
-            $ekskul  = $rombel?->ekstrakurikuler;
-            $sekolah = $ekskul?->sekolah;
-            $laporan = $session->laporanMengajar;
-            $fotoUrl = null;
+            $rombel     = $session->rombel;
+            $ekskul     = $rombel?->ekstrakurikuler;
+            $sekolah    = $ekskul?->sekolah;
+            $laporan    = $session->laporanMengajar;
+            $instruktur = $session->instruktur;
 
+            $fotoUrl = null;
             if ($laporan?->foto_absensi_siswa) {
                 $fotoUrl = rtrim(request()->getSchemeAndHttpHost(), '/') . '/storage/' . ltrim($laporan->foto_absensi_siswa, '/');
+            }
+
+            $projectUrl = null;
+            if ($laporan?->file_project) {
+                $projectUrl = rtrim(request()->getSchemeAndHttpHost(), '/') . '/storage/' . ltrim($laporan->file_project, '/');
             }
 
             $tanggal = $session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal;
@@ -134,11 +179,14 @@ class AgendaKegiatanController extends Controller
                 'kota'                => $sekolah?->kota ?? '—',
                 'kategori_pengajaran' => $ekskul?->kategori_program ?? '—',
                 'rombel'              => $rombel?->nama_rombel ?? '—',
+                'instruktur_nama'     => $instruktur?->nama_lengkap ?? '—',
+                'topik_materi'        => $laporan?->topik_materi ?? '—',
                 'tanggal_mengajar'    => $tanggal ? $tanggal->translatedFormat('d M Y') : '—',
                 'tanggal_raw'         => $tanggal ? $tanggal->format('Y-m-d') : null,
                 'pertemuan_ke'        => $session->nomor_pertemuan ?? '—',
                 'jumlah_hadir'        => $laporan?->jumlah_siswa_hadir ?? 0,
                 'foto_url'            => $fotoUrl,
+                'project_url'         => $projectUrl,
                 'print_url'           => route('ekstrakurikuler-session.print-session', ['session' => $session->id]),
             ];
         });

@@ -253,26 +253,62 @@
                             <option value="">— Semua Rombel —</option>
                         </select>
                     </div>
-                    <!-- Tanggal -->
+
+                    <!-- Program / Ekskul (BARU) -->
                     <div class="col-lg-2 col-md-4">
+                        <label class="form-label text-uppercase">
+                            <i class="bi bi-journal-bookmark me-1"></i>Program Ekskul
+                        </label>
+                        <select class="form-select" id="filterProgram">
+                            <option value="">— Semua Program —</option>
+                            @foreach($programList as $prog)
+                                <option value="{{ $prog }}">{{ $prog }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Instruktur (BARU) -->
+                    <div class="col-lg-2 col-md-4">
+                        <label class="form-label text-uppercase">
+                            <i class="bi bi-person-badge me-1"></i>Instruktur
+                        </label>
+                        <select class="form-select" id="filterInstruktur">
+                            <option value="">— Semua Instruktur —</option>
+                            @foreach($instrukturList as $inst)
+                                <option value="{{ $inst->id }}">{{ $inst->nama_lengkap }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Keyword Search (BARU) -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label text-uppercase">
+                            <i class="bi bi-search me-1"></i>Cari Kata Kunci (Sekolah / Materi)
+                        </label>
+                        <input type="text" class="form-control" id="filterKeyword" placeholder="Ketik nama sekolah, materi, atau kata kunci..." style="border-radius:10px; font-size:.875rem;">
+                    </div>
+
+                    <!-- Tanggal Dari & Sampai -->
+                    <div class="col-lg-3 col-md-3">
                         <label class="form-label text-uppercase">
                             <i class="bi bi-calendar-range me-1"></i>Dari Tanggal
                         </label>
                         <input type="date" class="form-control" id="filterTanggalDari" style="border-radius:10px; font-size:.875rem;">
                     </div>
-                    <div class="col-lg-2 col-md-4">
+                    <div class="col-lg-3 col-md-3">
                         <label class="form-label text-uppercase">
-                            &nbsp;
+                            <i class="bi bi-calendar-check me-1"></i>Sampai Tanggal
                         </label>
-                        <input type="date" class="form-control" id="filterTanggalSampai" style="border-radius:10px; font-size:.875rem;" placeholder="Sampai Tanggal">
+                        <input type="date" class="form-control" id="filterTanggalSampai" style="border-radius:10px; font-size:.875rem;">
                     </div>
+
                     <!-- Buttons -->
-                    <div class="col-12 d-flex gap-2">
-                        <button class="btn btn-filter" id="btnFilter" onclick="loadTableData()">
-                            <i class="bi bi-search me-1"></i>Terapkan Filter
+                    <div class="col-lg-2 col-md-12 d-flex gap-2">
+                        <button class="btn btn-filter w-100" id="btnFilter" onclick="loadTableData()">
+                            <i class="bi bi-search me-1"></i>Terapkan
                         </button>
-                        <button class="btn btn-reset btn-outline-secondary" id="btnReset" onclick="resetFilter()">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                        <button class="btn btn-reset btn-outline-secondary" id="btnReset" onclick="resetFilter()" title="Reset Filter">
+                            <i class="bi bi-arrow-counterclockwise"></i>
                         </button>
                     </div>
                 </div>
@@ -314,13 +350,13 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Nama Sekolah</th>
-                                <th>Kategori Pengajaran</th>
-                                <th>Rombel</th>
-                                <th>Tanggal Mengajar</th>
-                                <th style="text-align:center;">Pertemuan</th>
-                                <th>Form Absensi</th>
+                                <th>Sekolah & Wilayah</th>
+                                <th>Program & Rombel</th>
+                                <th>Instruktur</th>
+                                <th>Materi / Topik</th>
+                                <th>Tanggal & Ke-</th>
                                 <th style="text-align:center;">Hadir</th>
+                                <th style="text-align:center;">Dokumentasi & File</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody"></tbody>
@@ -340,13 +376,13 @@
         <!-- Sidebar: Export Panel -->
         <div class="col-lg-3">
             <div class="export-panel">
-                <h6><i class="bi bi-box-arrow-down me-1"></i>Export Data</h6>
+                <h6><i class="bi bi-box-arrow-down me-1"></i>Ekspor Dokumentasi</h6>
                 <p class="text-muted mb-3" style="font-size:.78rem;">
-                    Export ZIP berisi Excel, foto presensi, dan PDF rekap sesuai filter aktif.
+                    Ekspor berkas ZIP berisi PDF Laporan Rekap, Foto Presensi Kegiatan, dan Berkas Proyek sesuai filter aktif.
                 </p>
                 <div class="d-grid mb-2">
                     <button class="btn btn-export" id="btnExport" disabled onclick="startExport()">
-                        <i class="bi bi-file-earmark-zip me-1"></i>Export ZIP
+                        <i class="bi bi-file-earmark-zip me-1"></i>Ekspor Dokumentasi (ZIP)
                     </button>
                 </div>
 
@@ -354,7 +390,7 @@
                 <div id="exportProgress" style="display:none;">
                     <div class="d-flex align-items-center gap-2 text-muted mb-2" style="font-size:.8rem;">
                         <div class="spinner-border spinner-border-sm text-warning"></div>
-                        <span>Sedang membuat file...</span>
+                        <span>Sedang mengompres berkas...</span>
                     </div>
                     <div class="progress" style="height:4px; border-radius:4px;">
                         <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" style="width:100%"></div>
@@ -364,7 +400,7 @@
                 <!-- Download Button -->
                 <div id="exportDone" style="display:none;" class="d-grid">
                     <a id="downloadLink" href="#" class="btn btn-download text-center">
-                        <i class="bi bi-cloud-download me-1"></i>Unduh ZIP Sekarang
+                        <i class="bi bi-cloud-download me-1"></i>Unduh Dokumentasi (ZIP)
                     </a>
                 </div>
 
@@ -377,7 +413,7 @@
                 <hr class="my-3">
                 <p class="text-muted" style="font-size:.73rem; line-height:1.5;">
                     <i class="bi bi-shield-check me-1 text-success"></i>
-                    Data yang ditampilkan bersifat <strong>read-only</strong>. Tidak ada data siswa, instruktur, atau informasi sensitif yang diekspos.
+                    Data yang ditampilkan bersifat <strong>read-only</strong>. Seluruh dokumentasi tersimpan aman di server Erlass Institute.
                 </p>
             </div>
         </div>
@@ -389,13 +425,22 @@
 
 @push('scripts')
 <script>
-// ── State ────────────────────────────────────────────────
-let currentPage     = 1;
-let currentFilters  = {};
-let exportToken     = null;
-let pollInterval    = null;
+let currentFilters = {};
+let currentPage    = 1;
+let exportToken    = null;
+let pollInterval   = null;
 
-// ── Filter cascading ─────────────────────────────────────
+function escHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// ── Cascading Dropdowns ──────────────────────────────────
 document.getElementById('filterKota').addEventListener('change', function () {
     const kota = this.value;
     const sekolahSel = document.getElementById('filterSekolah');
@@ -448,13 +493,24 @@ function loadTableData(page = 1) {
     const kota          = document.getElementById('filterKota').value;
     const sekolahKodlan = document.getElementById('filterSekolah').value;
     const rombelId      = document.getElementById('filterRombel').value;
+    const program       = document.getElementById('filterProgram').value;
+    const instrukturId  = document.getElementById('filterInstruktur').value;
+    const keyword       = document.getElementById('filterKeyword').value;
     const tanggalDari   = document.getElementById('filterTanggalDari').value;
     const tanggalSampai = document.getElementById('filterTanggalSampai').value;
 
-    currentFilters = { kota, sekolah_kodlan: sekolahKodlan, rombel_id: rombelId, tanggal_dari: tanggalDari, tanggal_sampai: tanggalSampai };
+    currentFilters = { 
+        kota, 
+        sekolah_kodlan: sekolahKodlan, 
+        rombel_id: rombelId, 
+        program,
+        instruktur_id: instrukturId,
+        keyword,
+        tanggal_dari: tanggalDari, 
+        tanggal_sampai: tanggalSampai 
+    };
 
     const params = new URLSearchParams({ ...currentFilters, page });
-    // Remove empty params
     for (const [k, v] of [...params.entries()]) { if (!v) params.delete(k); }
 
     showLoading();
@@ -484,21 +540,37 @@ function renderTable(resp) {
         <tr>
             <td class="text-muted" style="font-size:.75rem;">${offset + i + 1}</td>
             <td>
-                <div class="fw-semibold" style="font-size:.85rem;">${escHtml(row.namsek)}</div>
-                <div class="text-muted" style="font-size:.72rem;">${escHtml(row.kota)}</div>
+                <div class="fw-bold text-dark" style="font-size:.85rem;">${escHtml(row.namsek)}</div>
+                <div class="text-muted" style="font-size:.72rem;"><i class="bi bi-geo-alt me-1"></i>${escHtml(row.kota)}</div>
             </td>
-            <td><span class="badge-kategori">${escHtml(row.kategori_pengajaran)}</span></td>
-            <td style="font-size:.82rem;">${escHtml(row.rombel)}</td>
-            <td style="font-size:.82rem;">${escHtml(row.tanggal_mengajar)}</td>
-            <td style="text-align:center; font-size:.82rem;">${escHtml(String(row.pertemuan_ke))}</td>
             <td>
-                ${row.foto_url
-                    ? `<a href="${escHtml(row.foto_url)}" target="_blank" class="btn btn-foto btn-sm me-1" title="Lihat foto presensi"><i class="bi bi-image me-1"></i>Lihat</a>`
-                    : `<span class="text-muted" style="font-size:.75rem;">—</span>`
-                }
-                <a href="${escHtml(row.print_url)}" target="_blank" class="btn btn-foto btn-sm" title="Cetak form absensi"><i class="bi bi-printer me-1"></i>Cetak</a>
+                <span class="badge-kategori">${escHtml(row.kategori_pengajaran)}</span>
+                <div class="text-secondary mt-1" style="font-size:.78rem;">${escHtml(row.rombel)}</div>
+            </td>
+            <td style="font-size:.82rem;">
+                <div class="fw-semibold text-primary"><i class="bi bi-person-fill me-1"></i>${escHtml(row.instruktur_nama)}</div>
+            </td>
+            <td style="font-size:.82rem; max-width: 200px;" title="${escHtml(row.topik_materi)}">
+                <div class="text-truncate">${escHtml(row.topik_materi)}</div>
+            </td>
+            <td style="font-size:.82rem;">
+                <div>${escHtml(row.tanggal_mengajar)}</div>
+                <span class="badge bg-secondary" style="font-size:.68rem;">Sesi Ke-${escHtml(String(row.pertemuan_ke))}</span>
             </td>
             <td style="text-align:center;"><span class="badge-hadir">${row.jumlah_hadir}</span></td>
+            <td style="text-align:center;">
+                <div class="d-flex flex-wrap gap-1 justify-content-center">
+                    ${row.foto_url
+                        ? `<a href="${escHtml(row.foto_url)}" target="_blank" class="btn btn-foto btn-sm me-1" title="Lihat Foto Absensi & Kegiatan"><i class="bi bi-image me-1"></i>Foto</a>`
+                        : ``
+                    }
+                    ${row.project_url
+                        ? `<a href="${escHtml(row.project_url)}" download class="btn btn-outline-success btn-sm" title="Download File Project"><i class="bi bi-download me-1"></i>Project</a>`
+                        : ``
+                    }
+                    <a href="${escHtml(row.print_url)}" target="_blank" class="btn btn-outline-primary btn-sm" title="Cetak Laporan PDF"><i class="bi bi-printer me-1"></i>PDF</a>
+                </div>
+            </td>
         </tr>
     `).join('');
 
@@ -599,11 +671,8 @@ function pollExportStatus() {
                 return r.json();
             })
             .then(data => {
-                if (!data) return;
-                if (data.status === 'done') {
-                    clearInterval(pollInterval);
-                    showExportDone();
-                } else if (data.status === 'error') {
+                if (!data) return; // downloaded
+                if (data.status === 'expired' || data.status === 'error') {
                     clearInterval(pollInterval);
                     showExportError();
                 }
@@ -614,26 +683,7 @@ function pollExportStatus() {
             });
     };
 
-    // Check once after 500ms for fast exports
-    setTimeout(checkStatus, 500);
-
-    // Poll every 1.5 seconds thereafter
-    pollInterval = setInterval(checkStatus, 1500);
-}
-
-function showExportDone() {
-    document.getElementById('exportProgress').style.display = 'none';
-    document.getElementById('exportError').style.display    = 'none';
-    document.getElementById('exportDone').style.display     = '';
-    document.getElementById('downloadLink').href =
-        `{{ url('rekap-pertemuan-ekskul/download') }}/${exportToken}`;
-}
-
-function showExportError() {
-    document.getElementById('exportProgress').style.display = 'none';
-    document.getElementById('exportDone').style.display     = 'none';
-    document.getElementById('exportError').style.display    = '';
-    document.getElementById('btnExport').disabled = false;
+    pollInterval = setInterval(checkStatus, 3000);
 }
 
 function resetExportUI() {
@@ -642,6 +692,20 @@ function resetExportUI() {
     document.getElementById('exportProgress').style.display = 'none';
     document.getElementById('exportDone').style.display     = 'none';
     document.getElementById('exportError').style.display    = 'none';
+}
+
+function showExportDone() {
+    document.getElementById('exportProgress').style.display = 'none';
+    document.getElementById('exportDone').style.display     = '';
+    document.getElementById('downloadLink').href = `{{ url('rekap-pertemuan-ekskul/download') }}/${exportToken}`;
+}
+
+function showExportError() {
+    document.getElementById('exportProgress').style.display = 'none';
+    document.getElementById('exportError').style.display    = '';
+    document.getElementById('btnExport').disabled = false;
+}
+
 }
 
 // ── Reset Filter ─────────────────────────────────────────
