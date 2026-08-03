@@ -74,6 +74,13 @@ class EkstrakurikulerReportController extends Controller
             'deskripsi' => $session->deskripsi_kegiatan,
         ];
 
+        // Ambil daftar materi berdasarkan kategori program
+        $kategori = $session->rombel->ekstrakurikuler->kategori_program ?? null;
+        $materiList = \App\Models\RefMateri::where('kategori', $kategori)
+            ->orderByRaw("CASE WHEN TRIM(materi) = 'Lain - Lain' THEN 1 ELSE 0 END")
+            ->orderBy('id', 'asc')
+            ->pluck('materi');
+
         // Ambil Laporan Sebelumnya dari Rombel ini (Catch-up materi untuk instruktur pengganti)
         $previousReport = null;
         if ($session->ekstrakurikuler_rombel_id) {
