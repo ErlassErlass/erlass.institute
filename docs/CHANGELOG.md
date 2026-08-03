@@ -2,6 +2,32 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.5.0] - 2026-08-03
+
+### Ditambahkan & Dioptimalkan (Added & Optimized)
+- **Notifikasi Khusus Rombel & Verifikasi Nama Siswa (`/dashboard`)**:
+  - Penambahan Banner Notifikasi Emas/Kuning khusus Instruktur di bagian atas Dashboard jika terdapat sesi Rombel yang diajar yang belum dibuatkan laporan.
+  - Penekanan khusus instruksi: *"Mohon periksa dan verifikasi kehadiran seluruh nama siswa pada Rombel yang Anda ajar sebelum menyelesaikan Laporan Mengajar."*
+  - Tombol 1-klik `Cek Nama Siswa & Buat Laporan` menuju form pembuatan laporan & absensi.
+- **Penyempurnaan & Upgrade Filter Laporan Mengajar (`/laporan-mengajar`)**:
+  - Perbaikan dan penggabungan kategori dinamis (`combined_kategori_list`) dari laporan mengajar & program ekskul.
+  - Penambahan kolom input **Kata Kunci** (sekolah, materi, instruktur, rombel, dan refleksi).
+  - Penambahan dropdown **Tampilkan per Halaman** (`25`, `50`, `100`, `⚡ Semua Data`) dan preservasi parameter query `withQueryString()`.
+  - Perbaikan bug layout kontainer akibat tag `</div>` penutup ekstra.
+- **Audit Log Pergerakan Admin Khusus Webmaster (`/admin/activity-logs`)**:
+  - Pembatasan kebijakan keamanan (`ActivityLogPolicy`) sehingga log pergerakan admin **hanya dapat diakses oleh Webmaster & Admin Sistem** (Admin biasa diblokir 403 Forbidden).
+  - Penambahan filter `Khusus Pergerakan Admin & Webmaster` (Default), filter per role, pencarian kata kunci, alamat IP, user agent, dan tanggal log.
+  - Penambahan menu sidebar `🛡️ Log Pergerakan Admin` yang hanya tampil untuk role Webmaster & Admin Sistem.
+- **Perbaikan & Optimalisasi Batch Payroll (`/admin/payroll/batches`)**:
+  - Menambahkan middleware `auth` ke grup rute admin dan fallback guard `$errors` (`ViewErrorBag`) pada view payroll.
+  - Memperbaiki error `Data truncated for column 'nomor_rombel'` pada `LaporanMengajar@ensureSessionLinked` dengan menyaring angka integer secara aman dari teks nama rombel (seperti `"13 murid"` -> `13`).
+  - Memperbaiki error `Undefined array key ""` pada `EkstrakurikulerRombel` dengan null-coalescing fallback `$targetHari = $hariMapping[$this->hari] ?? $currentDate->dayOfWeekIso`.
+  - Menambahkan pembersihan otomatis sesi terkunci (`processing`) tanpa item payroll agar sesi kembali `unpaid` dan siap ter-compile ke dalam batch payroll.
+- **Perbaikan Antarmuka Form Laporan Mengajar (`/laporan-mengajar/create` & `edit`)**:
+  - Penyederhanaan label menjadi **`Nama Rombel (Bukan Jumlah Siswa)`** dengan penanda warna merah tegas.
+  - Penggantian ikon menjadi `<i class="fas fa-layer-group text-primary"></i>` (ikon grup kelas/rombel).
+  - Penyederhanaan helper text penjelas: `💡 Isi dengan Nama Rombel (bukan jumlah siswa).`
+
 ## [2.4.0] - 2026-08-03
 
 ### Ditambahkan & Dioptimalkan (Added & Optimized)
