@@ -240,8 +240,8 @@
                         <label class="form-label text-uppercase">
                             <i class="bi bi-building me-1"></i>Sekolah
                         </label>
-                        <select class="form-select" id="filterSekolah" disabled>
-                            <option value="">— Pilih Wilayah dulu —</option>
+                        <select class="form-select" id="filterSekolah">
+                            <option value="">— Semua Sekolah —</option>
                         </select>
                     </div>
                     <!-- Rombel -->
@@ -249,7 +249,7 @@
                         <label class="form-label text-uppercase">
                             <i class="bi bi-people me-1"></i>Rombel
                         </label>
-                        <select class="form-select" id="filterRombel" disabled>
+                        <select class="form-select" id="filterRombel">
                             <option value="">— Semua Rombel —</option>
                         </select>
                     </div>
@@ -441,22 +441,18 @@ function escHtml(str) {
 }
 
 // ── Cascading Dropdowns ──────────────────────────────────
-document.getElementById('filterKota').addEventListener('change', function () {
-    const kota = this.value;
+function loadSekolahList(kota = '') {
     const sekolahSel = document.getElementById('filterSekolah');
     const rombelSel  = document.getElementById('filterRombel');
 
     sekolahSel.innerHTML = '<option value="">Memuat...</option>';
-    sekolahSel.disabled = true;
-    rombelSel.innerHTML  = '<option value="">— Semua Rombel —</option>';
-    rombelSel.disabled   = true;
+    sekolahSel.disabled  = true;
 
-    if (!kota) {
-        sekolahSel.innerHTML = '<option value="">— Pilih Wilayah dulu —</option>';
-        return;
-    }
+    const url = kota 
+        ? `{{ route('agenda-kegiatan.filter') }}?kota=${encodeURIComponent(kota)}`
+        : `{{ route('agenda-kegiatan.filter') }}?type=sekolah`;
 
-    fetch(`{{ route('agenda-kegiatan.filter') }}?kota=${encodeURIComponent(kota)}`)
+    fetch(url)
         .then(r => r.json())
         .then(data => {
             sekolahSel.innerHTML = '<option value="">— Semua Sekolah —</option>';
@@ -465,25 +461,57 @@ document.getElementById('filterKota').addEventListener('change', function () {
             });
             sekolahSel.disabled = false;
         });
-});
+}
 
-document.getElementById('filterSekolah').addEventListener('change', function () {
-    const kodlan   = this.value;
+function loadRombelList(kodlan = '') {
     const rombelSel = document.getElementById('filterRombel');
-
-    rombelSel.innerHTML = '<option value="">— Semua Rombel —</option>';
+    rombelSel.innerHTML = '<option value="">Memuat...</option>';
     rombelSel.disabled  = true;
 
-    if (!kodlan) return;
+    const url = kodlan 
+        ? `{{ route('agenda-kegiatan.filter') }}?sekolah_kodlan=${encodeURIComponent(kodlan)}`
+        : `{{ route('agenda-kegiatan.filter') }}?type=rombel`;
 
-    fetch(`{{ route('agenda-kegiatan.filter') }}?sekolah_kodlan=${encodeURIComponent(kodlan)}`)
+    fetch(url)
         .then(r => r.json())
         .then(data => {
+            rombelSel.innerHTML = '<option value="">— Semua Rombel —</option>';
             data.forEach(r => {
                 rombelSel.innerHTML += `<option value="${r.id}">${r.nama_rombel}</option>`;
             });
             rombelSel.disabled = false;
         });
+}
+
+document.getElementById('filterKota').addEventListener('change', function () {
+    loadSekolahList(this.value);
+    loadRombelList('');
+});
+
+document.getElementById('filterSekolah').addEventListener('change', function () {
+    loadRombelList(this.value);
+});
+
+function resetFilter() {
+    document.getElementById('filterKota').value          = '';
+    document.getElementById('filterSekolah').value       = '';
+    document.getElementById('filterRombel').value        = '';
+    document.getElementById('filterProgram').value        = '';
+    document.getElementById('filterInstruktur').value     = '';
+    document.getElementById('filterKeyword').value        = '';
+    document.getElementById('filterTanggalDari').value   = '';
+    document.getElementById('filterTanggalSampai').value = '';
+
+    loadSekolahList('');
+    loadRombelList('');
+    loadTableData(1);
+}
+
+// Auto load data and populate dropdowns on DOM ready
+document.addEventListener('DOMContentLoaded', function () {
+    loadSekolahList('');
+    loadRombelList('');
+    loadTableData(1);
 });
 
 // ── Load table data ──────────────────────────────────────

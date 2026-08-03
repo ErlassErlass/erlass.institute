@@ -57,33 +57,25 @@ class AgendaKegiatanController extends Controller
 
     /**
      * AJAX: Cascading dropdown filter.
-     * - Jika ada ?kota=X  => return list sekolah di kota X yang punya sesi selesai
-     * - Jika ada ?sekolah_kodlan=X => return list rombel di sekolah X yang punya sesi selesai
+     * - Jika ada ?kota=X  => return list sekolah di kota X
+     * - Jika kota kosong => return seluruh sekolah yang memiliki sesi selesai
+     * - Jika ada ?sekolah_kodlan=X => return list rombel di sekolah X
      */
     public function filter(Request $request): JsonResponse
     {
-        if ($request->filled('kota')) {
-            $sekolahList = Sekolah::query()
-                ->join('ekstrakurikuler', 'sekolah.kodlan', '=', 'ekstrakurikuler.sekolah_kodlan')
-                ->join('ekstrakurikuler_rombel', 'ekstrakurikuler.id', '=', 'ekstrakurikuler_rombel.ekstrakurikuler_id')
-                ->join('ekstrakurikuler_session', 'ekstrakurikuler_rombel.id', '=', 'ekstrakurikuler_session.ekstrakurikuler_rombel_id')
-                ->where('ekstrakurikuler_session.status', 'selesai')
-                ->where('sekolah.kota', $request->kota)
-                ->distinct()
-                ->orderBy('sekolah.namasekolah')
-                ->select('sekolah.kodlan', 'sekolah.namasekolah')
-                ->get();
+        $type = $request->input('type', $request->has('sekolah_kodlan') ? 'rombel' : 'sekolah');
 
-            return response()->json($sekolahList);
-        }
-
-        if ($request->filled('sekolah_kodlan')) {
-            $rombelList = EkstrakurikulerRombel::query()
+        if ($type === 'rombel' || $request->has('sekolah_kodlan')) {
+            $query = EkstrakurikulerRombel::query()
                 ->join('ekstrakurikuler', 'ekstrakurikuler_rombel.ekstrakurikuler_id', '=', 'ekstrakurikuler.id')
                 ->join('ekstrakurikuler_session', 'ekstrakurikuler_rombel.id', '=', 'ekstrakurikuler_session.ekstrakurikuler_rombel_id')
-                ->where('ekstrakurikuler_session.status', 'selesai')
-                ->where('ekstrakurikuler.sekolah_kodlan', $request->sekolah_kodlan)
-                ->distinct()
+                ->where('ekstrakurikuler_session.status', 'selesai');
+
+            if ($request->filled('sekolah_kodlan')) {
+                $query->where('ekstrakurikuler.sekolah_kodlan', $request->sekolah_kodlan);
+            }
+
+            $rombelList = $query->distinct()
                 ->orderBy('ekstrakurikuler_rombel.nama_rombel')
                 ->select('ekstrakurikuler_rombel.id', 'ekstrakurikuler_rombel.nama_rombel')
                 ->get();
@@ -91,7 +83,23 @@ class AgendaKegiatanController extends Controller
             return response()->json($rombelList);
         }
 
-        return response()->json([]);
+        // Default: fetch sekolah
+        $query = Sekolah::query()
+            ->join('ekstrakurikuler', 'sekolah.kodlan', '=', 'ekstrakurikuler.sekolah_kodlan')
+            ->join('ekstrakurikuler_rombel', 'ekstrakurikuler.id', '=', 'ekstrakurikuler_rombel.ekstrakurikuler_id')
+            ->join('ekstrakurikuler_session', 'ekstrakurikuler_rombel.id', '=', 'ekstrakurikuler_session.ekstrakurikuler_rombel_id')
+            ->where('ekstrakurikuler_session.status', 'selesai');
+
+        if ($request->filled('kota')) {
+            $query->where('sekolah.kota', $request->kota);
+        }
+
+        $sekolahList = $query->distinct()
+            ->orderBy('sekolah.namasekolah')
+            ->select('sekolah.kodlan', 'sekolah.namasekolah')
+            ->get();
+
+        return response()->json($sekolahList);
     }
 
     /**
