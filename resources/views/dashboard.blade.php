@@ -115,6 +115,65 @@
             </div>
         </div>
     </div>
+
+    <!-- Special Rombel & Student Attendance Check Notification (Instructor Only) -->
+    @if(isset($instructor_todo_list) && $instructor_todo_list->count() > 0)
+    <div class="card border-0 shadow-sm mb-4 overflow-hidden" style="border-radius: 15px; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 6px solid #f59e0b !important;">
+        <div class="card-body p-4">
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3 pb-3 border-bottom border-warning-subtle">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; min-width: 48px;">
+                        <i class="bi bi-person-check-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-1">
+                            📢 NOTIFIKASI KHUSUS ROMBEL ANDA ({{ $instructor_todo_list->count() }} Sesi Wajib Dilaporkan)
+                        </h5>
+                        <p class="text-muted small mb-0">
+                            Mohon periksa dan verifikasi <strong class="text-dark">kehadiran seluruh nama siswa</strong> pada Rombel yang Anda ajar sebelum menyelesaikan Laporan Mengajar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                @foreach($instructor_todo_list->take(2) as $todo)
+                <div class="col-md-6">
+                    <div class="bg-white rounded-3 p-3 border shadow-xs h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-primary text-white fw-bold" style="font-size: 0.75rem;">
+                                    {{ $todo->rombel->nama_rombel ?? 'Rombel ' . $todo->rombel->nomor_rombel }}
+                                </span>
+                                <span class="badge bg-secondary rounded-pill">Pertemuan ke-{{ $todo->nomor_pertemuan }}</span>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-1">{{ $todo->rombel->ekstrakurikuler->kategori_program }}</h6>
+                            <div class="text-muted small mb-2">
+                                <i class="bi bi-building me-1"></i> {{ $todo->rombel->ekstrakurikuler->sekolah->namasekolah }}
+                            </div>
+                            <div class="d-flex align-items-center gap-3 text-secondary small mb-3">
+                                <span><i class="bi bi-calendar-event me-1"></i>{{ \Carbon\Carbon::parse($todo->tanggal_terjadwal)->format('d M Y') }}</span>
+                                <span><i class="bi bi-people-fill text-info me-1"></i><strong>{{ $todo->rombel->jumlah_siswa ?? 0 }} Siswa Terdaftar</strong></span>
+                            </div>
+                        </div>
+                        <a href="{{ route('ekstrakurikuler.sessions.report.create', $todo->id) }}" class="btn btn-warning text-dark fw-bold btn-sm rounded-pill w-100 shadow-sm">
+                            <i class="bi bi-check2-square me-1"></i> Cek Nama Siswa & Buat Laporan
+                        </a>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
+            @if($instructor_todo_list->count() > 2)
+            <div class="text-end mt-3">
+                <a href="{{ route('ekstrakurikuler.sessions.index') }}" class="text-warning-emphasis fw-bold small text-decoration-none">
+                    Lihat Seluruh {{ $instructor_todo_list->count() }} Sesi Rombel Anda <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            @endif
+        </div>
+    </div>
+    @endif
     @endif
 
     <!-- Main Content Grid -->
