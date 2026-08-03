@@ -351,12 +351,12 @@
                                                 $cleanInstrukturPhone = '62' . substr($cleanInstrukturPhone, 1);
                                             }
                                         }
-                                        $waMsgText = urlencode("Halo " . ($report->instruktur->nama_lengkap ?? '') . ", mohon segera laporan sesi " . ($report->rombel->ekstrakurikuler->kategori_program ?? '') . " di " . ($report->rombel->ekstrakurikuler->sekolah->namasekolah ?? '') . " tanggal " . ($report->tanggal_terjadwal ? $report->tanggal_terjadwal->format('d/m') : '') . ".");
                                     @endphp
-                                    <a @if(!empty($cleanInstrukturPhone)) href="https://wa.me/{{ $cleanInstrukturPhone }}?text={{ $waMsgText }}" target="_blank" rel="noopener" @else href="javascript:void(0)" style="pointer-events: none; opacity: 0.65;" @endif 
-                                       class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm w-100 w-sm-auto {{ empty($cleanInstrukturPhone) ? 'disabled' : '' }}">
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm w-100 w-sm-auto"
+                                            onclick="openDashboardFonnteModal({{ $report->id }}, '{{ addslashes($report->instruktur->nama_lengkap ?? 'Instruktur') }}', '{{ $cleanInstrukturPhone }}', '{{ addslashes($report->rombel->ekstrakurikuler->kategori_program ?? '') }}', '{{ addslashes($report->rombel->ekstrakurikuler->sekolah->namasekolah ?? '') }}', '{{ $report->tanggal_terjadwal ? $report->tanggal_terjadwal->format('d/m/Y') : '' }}')">
                                         <i class="bi bi-whatsapp me-1"></i> Ingatkan
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                         @endforeach
@@ -1271,5 +1271,116 @@
         }
         setInterval(updateTime, 1000);
     });
+</script>
+
+<!-- Fonnte WhatsApp Reminder Modal (Dashboard Monitoring) -->
+<div class="modal fade" id="dashboardReminderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-whatsapp me-2"></i>Kirim Pengingat Laporan via Fonnte</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="dashSessionId">
+                <input type="hidden" id="dashCleanPhone">
+
+                <div class="alert alert-light border shadow-sm mb-3">
+                    <div class="fw-bold text-dark mb-1" id="dashInstrukturName">Nama Instruktur</div>
+                    <div class="text-muted small" id="dashSessionInfo">Program & Sekolah</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="dashCustomMessage" class="form-label small fw-bold">Pesan Tambahan (Opsional)</label>
+                    <textarea class="form-control" id="dashCustomMessage" rows="3" placeholder="Contoh: Harap segera mengunggah laporan mengajar dan foto absensi hari ini."></textarea>
+                </div>
+
+                <div class="alert alert-info border-0 p-2 small mb-0">
+                    <i class="bi bi-info-circle-fill me-1"></i> Notifikasi otomatis terkirim langsung ke nomor WhatsApp instruktur via <strong>Fonnte WA Gateway API</strong>.
+                </div>
+            </div>
+            <div class="modal-footer d-flex flex-wrap justify-content-between gap-2">
+                <button type="button" class="btn btn-outline-success btn-sm fw-bold" id="btnDashTestAdmin" onclick="sendDashboardFonnteReminder('admin')">
+                    <i class="bi bi-whatsapp me-1"></i> 🧪 Tes WA Admin (+62 821-1830-2927)
+                </button>
+                <div class="d-flex gap-2">
+                    <a href="#" id="btnDashManualWA" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm" title="Buka Web WhatsApp Manual">
+                        <i class="bi bi-box-arrow-up-right me-1"></i> Web WA
+                    </a>
+                    <button type="button" class="btn btn-primary btn-sm fw-bold" id="btnDashSendFonnte" onclick="sendDashboardFonnteReminder('instructor')">
+                        <span class="spinner-border spinner-border-sm d-none me-1" id="dashSpinFonnte" role="status"></span>
+                        <i class="bi bi-send me-1"></i> Kirim via Fonnte
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openDashboardFonnteModal(sessionId, instrukturName, phone, programName, sekolahName, tanggalText) {
+    document.getElementById('dashSessionId').value = sessionId;
+    document.getElementById('dashCleanPhone').value = phone;
+    document.getElementById('dashInstrukturName').textContent = 'Instruktur: ' + instrukturName;
+    document.getElementById('dashSessionInfo').textContent = programName + ' • ' + sekolahName + ' (' + tanggalText + ')';
+    document.getElementById('dashCustomMessage').value = '';
+
+    const waMsgText = encodeURIComponent(`Halo ${instrukturName}, mohon segera mengunggah laporan sesi ${programName} di ${sekolahName} tanggal ${tanggalText}.`);
+    const btnManual = document.getElementById('btnDashManualWA');
+    if (phone) {
+        btnManual.href = `https://wa.me/${phone}?text=${waMsgText}`;
+        btnManual.classList.remove('disabled');
+    } else {
+        btnManual.href = 'javascript:void(0)';
+        btnManual.classList.add('disabled');
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('dashboardReminderModal'));
+    modal.show();
+}
+
+function sendDashboardFonnteReminder(target) {
+    const sessionId = document.getElementById('dashSessionId').value;
+    const customMessage = document.getElementById('dashCustomMessage').value;
+    const btnSend = document.getElementById('btnDashSendFonnte');
+    const btnAdmin = document.getElementById('btnDashTestAdmin');
+    const spinner = document.getElementById('dashSpinFonnte');
+
+    btnSend.disabled = true;
+    btnAdmin.disabled = true;
+    spinner.classList.remove('d-none');
+
+    fetch(`/ekstrakurikuler/sessions/${sessionId}/remind`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            target: target,
+            custom_message: customMessage
+        })
+    })
+    .then(r => r.json())
+    .then(res => {
+        btnSend.disabled = false;
+        btnAdmin.disabled = false;
+        spinner.classList.add('d-none');
+
+        if (res.success) {
+            alert('✅ ' + res.message);
+            bootstrap.Modal.getInstance(document.getElementById('dashboardReminderModal')).hide();
+        } else {
+            alert('⚠️ Gagal: ' + (res.message || 'Terjadi kesalahan sistem'));
+        }
+    })
+    .catch(err => {
+        btnSend.disabled = false;
+        btnAdmin.disabled = false;
+        spinner.classList.add('d-none');
+        alert('❌ Error: ' + err.message);
+    });
+}
 </script>
 @endpush
