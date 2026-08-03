@@ -735,11 +735,13 @@ class EkstrakurikulerSessionController extends Controller
                 $testNotification = new \App\Notifications\ScheduleReminderNotification($session, $customMsg);
                 
                 $notifiable = new class($adminPhone) {
+                    use \Illuminate\Notifications\Notifiable;
                     public $phone;
                     public $id = 'admin_test';
                     public $nama_lengkap = 'Admin Testing (+6282118302927)';
                     public function __construct($phone) { $this->phone = $phone; }
                     public function routeNotificationForWhatsapp() { return $this->phone; }
+                    public function routeNotificationFor($driver, $notification = null) { return $this->phone; }
                 };
 
                 $channel = new \App\Notifications\Channels\WhatsAppChannel();
