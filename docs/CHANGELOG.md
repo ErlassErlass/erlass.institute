@@ -2,6 +2,26 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.4.0] - 2026-08-03
+
+### Ditambahkan & Dioptimalkan (Added & Optimized)
+- **Fitur Pengingat WhatsApp Fonnte (Manual & Admin Testing)**:
+  - Integrasi pengingat manual WhatsApp via Fonnte Gateway pada halaman detail sesi (`/ekstrakurikuler/sessions/{id}`) dan agenda kegiatan (`/ekstrakurikuler/sessions`).
+  - Penambahan **Tombol Uji Coba WA Khusus Admin (`+62 821-1830-2927`)** pada modal pengingat manual untuk menguji konektivitas gateway Fonnte secara langsung ke HP Admin.
+  - Perbaikan antarmuka notifikasi `WhatsAppChannel` & `EkstrakurikulerSessionController@sendReminder` untuk mendukung testing dan pengiriman instant.
+- **Fitur Widget "Laporan Sebelumnya" & Download Project**:
+  - Penambahan widget card *"Laporan Sebelumnya"* pada halaman pembuat laporan (`/sessions/{id}/report/create`) dan detail sesi (`/sessions/{id}`) agar instruktur pengganti/aktif dapat melihat topik, ringkasan, dan catatan pertemuan sebelumnya.
+  - Integrasi tombol download berkas proyek (`.sb3` / `.zip`) pada widget laporan sebelumnya.
+- **Wizard Multi-Step Dinamis Program Ekskul (1 s.d. 10 Rombel)**:
+  - Pembaharuan `EkstrakurikulerFormService`, `EkstrakurikulerController`, dan `create.blade.php` agar pembuatan program mendukung hingga 10 rombel secara dinamis tanpa terhenti pada Rombel 5 (`$calculatedFinalStep = 4 + $totalRombel + 1`).
+- **Peningkatan 6 Multi-Filter Manajemen Pengguna (`/users`)**:
+  - Penambahan 6 filter toolbar pada `UserController` & `index.blade.php`: Pencarian Nama/Email/ID, Role, Status Verifikasi & Akun, Kota Domisili, Status Penugasan Mengajar, dan Sorting.
+- **Peningkatan Halaman Publik Rekap Pertemuan Ekskul (`/rekap-pertemuan-ekskul`)**:
+  - Penambahan **3 Filter Baru**: Dropdown Program Ekskul, Dropdown Instruktur Terverifikasi, dan Input Pencarian Kata Kunci (Sekolah / Materi).
+  - Pengaktifan opsi **"Semua Wilayah"** secara penuh yang otomatis memuat seluruh sekolah & rombel dari semua kota saat halaman dibuka.
+  - Penambahan **Opsi Tampilan per Halaman** (`25`, `50`, `100`, dan `⚡ Tampilkan Semua Data`).
+  - Pembaharuan kolom tabel: Menampilkan nama instruktur pengajar, topik materi pengajaran, foto absensi, dan tombol cetak PDF Laporan.
+
 ## [2.3.0] - 2026-08-01
 
 ### Ditambahkan & Dioptimalkan (Added & Optimized)
