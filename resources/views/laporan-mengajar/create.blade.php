@@ -144,12 +144,12 @@
                                     @error('pertemuan_ke') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <label for="rombel" class="form-label fw-bold">Nama Rombel / Kelas <span class="text-danger small fw-semibold">(Bukan Jumlah Siswa)</span></label>
+                                    <label for="rombel" class="form-label fw-bold">Nama Rombel <span class="text-danger small fw-semibold">(Bukan Jumlah Siswa)</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-white border-light-subtle"><i class="fas fa-layer-group text-primary"></i></span>
                                         <input type="text" name="rombel" id="rombel" class="form-control @error('rombel') is-invalid @enderror" value="{{ old('rombel') }}" placeholder="Contoh: 1A, 2B, Rombel A" required>
                                     </div>
-                                    <small class="form-text text-muted"><i class="bi bi-info-circle text-primary me-1"></i>Isi dengan <strong>Nama Rombel / Kelas</strong> (Contoh: 1A, 2B), bukan angka jumlah siswa.</small>
+                                    <small class="form-text text-muted"><i class="bi bi-info-circle text-primary me-1"></i>Isi dengan <strong>Nama Rombel</strong> (bukan jumlah siswa).</small>
                                     @error('rombel') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-4 mb-3">
