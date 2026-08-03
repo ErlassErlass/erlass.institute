@@ -147,12 +147,15 @@ class EkstrakurikulerFormService
      */
     protected function extractStepData(Request $request, int $step): array
     {
+        if ($step >= 5 && $step <= 14) {
+            return $this->extractRombelData($request, $step);
+        }
+
         return match($step) {
             1 => $this->extractStep1Data($request),
             2 => $this->extractStep2Data($request),
             3 => $this->extractStep3Data($request),
             4 => $this->extractStep4Data($request),
-            5, 6, 7, 8, 9 => $this->extractRombelData($request, $step),
             default => [],
         };
     }
@@ -237,12 +240,15 @@ class EkstrakurikulerFormService
      */
     public function getStepValidationRules(int $step): array
     {
+        if ($step >= 5 && $step <= 14) {
+            return $this->getRombelValidationRules($step);
+        }
+
         return match($step) {
             1 => $this->getStep1ValidationRules(),
             2 => $this->getStep2ValidationRules(),
             3 => $this->getStep3ValidationRules(),
             4 => $this->getStep4ValidationRules(),
-            5, 6, 7, 8, 9 => $this->getRombelValidationRules($step),
             default => [],
         };
     }
@@ -392,19 +398,30 @@ class EkstrakurikulerFormService
     }
 
     /**
+     * Get final step number based on total_rombel
+     */
+    public function getFinalStep(array $formData = []): int
+    {
+        $data = !empty($formData) ? $formData : $this->getFormData();
+        $totalRombel = max(1, min(10, (int)($data['total_rombel'] ?? 1)));
+        return 4 + $totalRombel + 1;
+    }
+
+    /**
      * Check if step is valid
      */
-    public function isValidStep(int $step): bool
+    public function isValidStep(int $step, array $formData = []): bool
     {
-        return $step >= 1 && $step <= 10;
+        $finalStep = $this->getFinalStep($formData);
+        return $step >= 1 && $step <= $finalStep;
     }
 
     /**
      * Check if step is final
      */
-    public function isFinalStep(int $step): bool
+    public function isFinalStep(int $step, array $formData = []): bool
     {
-        return $step === 10;
+        return $step === $this->getFinalStep($formData);
     }
 
     /**
@@ -412,26 +429,18 @@ class EkstrakurikulerFormService
      */
     public function calculateNextStep(int $currentStep, array $formData): int
     {
-        $totalRombel = $formData['total_rombel'] ?? 2;
-        
-        switch ($currentStep) {
-            case 4:
-                return 5;
-            case 5:
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-                $rombelNumber = $currentStep - 4;
-                if ($rombelNumber >= $totalRombel) {
-                    return 10;
-                }
-                return $currentStep + 1;
-            case 10:
-                return 10;
-            default:
-                return $currentStep + 1;
+        $totalRombel = max(1, min(10, (int)($formData['total_rombel'] ?? 1)));
+        $finalStep = 4 + $totalRombel + 1;
+
+        if ($currentStep < 4) {
+            return $currentStep + 1;
         }
+
+        if ($currentStep >= 4 && $currentStep < (4 + $totalRombel)) {
+            return $currentStep + 1;
+        }
+
+        return $finalStep;
     }
 
     /**
@@ -439,16 +448,18 @@ class EkstrakurikulerFormService
      */
     public function calculatePreviousStep(int $currentStep, array $formData): int
     {
-        $totalRombel = $formData['total_rombel'] ?? 2;
-        
-        switch ($currentStep) {
-            case 5:
-                return 4;
-            case 10:
-                return 4 + $totalRombel;
-            default:
-                return max(1, $currentStep - 1);
+        $totalRombel = max(1, min(10, (int)($formData['total_rombel'] ?? 1)));
+        $finalStep = 4 + $totalRombel + 1;
+
+        if ($currentStep === 5) {
+            return 4;
         }
+
+        if ($currentStep === $finalStep) {
+            return 4 + $totalRombel;
+        }
+
+        return max(1, $currentStep - 1);
     }
 
     /**

@@ -124,13 +124,13 @@ class EkstrakurikulerController extends Controller
      */
     public function showStep($step = 1)
     {
-        $step = (int) $step;
-        if ($step < 1 || $step > 10) {
-            $step = 1;
-        }
-
         // Get form data from service
         $formData = $this->formService->getFormData();
+        $finalStep = $this->formService->getFinalStep($formData);
+
+        if ($step < 1 || $step > $finalStep) {
+            $step = 1;
+        }
 
         // Get dropdown data
         $dropdownData = $this->queryService->getFormCreationData();
@@ -150,6 +150,7 @@ class EkstrakurikulerController extends Controller
             'kotaOptions' => $kotaOptions,
             'nextStep' => $nextStep,
             'prevStep' => $prevStep,
+            'finalStep' => $finalStep,
         ]));
     }
 
@@ -170,18 +171,20 @@ class EkstrakurikulerController extends Controller
         $stepData = $this->formService->getStepData($request, $step);
         $this->formService->saveStepData($stepData);
 
+        $updatedFormData = $this->formService->getFormData();
+        $finalStep = $this->formService->getFinalStep($updatedFormData);
+        $isFinal = $this->formService->isFinalStep($step, $updatedFormData);
 
         // Jika ini final step, proses complete form
-        if ($step == 10 && ($request->has('submit_final') || $request->has('final_confirmation'))) {
+        if ($isFinal && ($request->has('submit_final') || $request->has('final_confirmation'))) {
             return $this->store($request);
         }
 
         // Redirect ke next step
-        $updatedFormData = $this->formService->getFormData();
         $nextStep = $this->formService->calculateNextStep($step, $updatedFormData);
 
-        if ($nextStep > 10) {
-            $nextStep = 10;
+        if ($nextStep > $finalStep) {
+            $nextStep = $finalStep;
         }
 
         return redirect()->route('ekstrakurikuler.create.step', ['step' => $nextStep])

@@ -257,28 +257,27 @@
 
             <!-- Multi-Step Form Container -->
             <div class="step-container">
+                @php
+                    $totalRombelCount = max(1, min(10, (int)($formData['total_rombel'] ?? 1)));
+                    $calculatedFinalStep = 4 + $totalRombelCount + 1;
+                @endphp
+
                 <!-- Header with Progress -->
                 <div class="step-header">
                     <h4 class="mb-0">
-                        @switch($step)
-                            @case(1) Informasi Dasar Program @break
-                            @case(2) Detail Sekolah @break
-                            @case(3) Kebutuhan Teknis @break
-                            @case(4) Struktur Kelas @break
-                            @case(5) Detail Rombel 1 @break
-                            @case(6) Detail Rombel 2 @break
-                            @case(7) Detail Rombel 3 @break
-                            @case(8) Detail Rombel 4 @break
-                            @case(9) Detail Rombel 5 @break
-                            @case(10) Ringkasan & Validasi @break
-                        @endswitch
+                        @if($step == 1) Informasi Dasar Program
+                        @elseif($step == 2) Detail Sekolah
+                        @elseif($step == 3) Kebutuhan Teknis
+                        @elseif($step == 4) Struktur Kelas
+                        @elseif($step >= 5 && $step < $calculatedFinalStep) Detail Rombel {{ $step - 4 }}
+                        @elseif($step == $calculatedFinalStep) Ringkasan & Validasi
+                        @endif
                     </h4>
-                    <p class="mb-0 opacity-75">Langkah {{ $step }} dari {{ max($step, (isset($formData['total_rombel']) ? $formData['total_rombel'] + 5 : 9)) }}</p>
+                    <p class="mb-0 opacity-75">Langkah {{ $step }} dari {{ $calculatedFinalStep }}</p>
                     
                     <div class="progress-container">
                         @php
-                            $totalSteps = max($step, (isset($formData['total_rombel']) ? $formData['total_rombel'] + 5 : 9));
-                            $progressPercentage = ($step / $totalSteps) * 100;
+                            $progressPercentage = ($step / $calculatedFinalStep) * 100;
                         @endphp
                         <div class="progress-bar" style="width: {{ $progressPercentage }}%"></div>
                     </div>
@@ -287,16 +286,12 @@
                 <!-- Step Indicator -->
                 <div class="p-3">
                     <div class="step-indicator">
-                        @for($i = 1; $i <= 10; $i++)
+                        @for($i = 1; $i <= $calculatedFinalStep; $i++)
                             @php
                                 $isActive = $i == $step;
                                 $isCompleted = $i < $step;
-                                $shouldShow = $i <= 4 || 
-                                             ($i == 10) || 
-                                             (isset($formData['total_rombel']) && $i <= (4 + $formData['total_rombel']));
                             @endphp
                             
-                            @if($shouldShow)
                             <div class="step-item {{ $isActive ? 'active' : '' }} {{ $isCompleted ? 'completed' : '' }}">
                                 <div class="step-number">
                                     @if($isCompleted)
@@ -306,21 +301,15 @@
                                     @endif
                                 </div>
                                 <div class="step-label">
-                                    @switch($i)
-                                        @case(1) Info Dasar @break
-                                        @case(2) Sekolah @break
-                                        @case(3) Teknis @break
-                                        @case(4) Struktur @break
-                                        @case(5) Rombel 1 @break
-                                        @case(6) Rombel 2 @break
-                                        @case(7) Rombel 3 @break
-                                        @case(8) Rombel 4 @break
-                                        @case(9) Rombel 5 @break
-                                        @case(10) Ringkasan @break
-                                    @endswitch
+                                    @if($i == 1) Info Dasar
+                                    @elseif($i == 2) Sekolah
+                                    @elseif($i == 3) Teknis
+                                    @elseif($i == 4) Struktur
+                                    @elseif($i >= 5 && $i < $calculatedFinalStep) Rombel {{ $i - 4 }}
+                                    @elseif($i == $calculatedFinalStep) Ringkasan
+                                    @endif
                                 </div>
                             </div>
-                            @endif
                         @endfor
                     </div>
                 </div>
@@ -356,13 +345,13 @@
                             @include('ekstrakurikuler.steps.step3', ['formData' => $formData])
                         @elseif($step == 4)
                             @include('ekstrakurikuler.steps.step4', ['formData' => $formData])
-                        @elseif($step >= 5 && $step <= 9)
+                        @elseif($step >= 5 && $step < $calculatedFinalStep)
                             @include('ekstrakurikuler.steps.step-rombel', [
                                 'formData' => $formData, 
                                 'rombelNumber' => $step - 4,
                                 'currentStep' => $step
                             ])
-                        @elseif($step == 10)
+                        @elseif($step == $calculatedFinalStep)
                             @include('ekstrakurikuler.steps.step-final', ['formData' => $formData])
                         @endif
                     </div>
@@ -386,7 +375,7 @@
                         </div>
 
                         <div>
-                            @if($step == 10)
+                            @if($step == $calculatedFinalStep)
                                 <button type="submit" name="submit_final" value="1" class="btn btn-success btn-step">
                                     <i class="fas fa-check"></i> Selesai & Simpan
                                 </button>
