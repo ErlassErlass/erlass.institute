@@ -35,13 +35,13 @@ class SiswaController extends Controller
             });
         }
 
-        // Urutkan berdasarkan NISN (ASC) secara default
+        // Urutkan berdasarkan NISN secara Numerik (001 s.d. 1080)
         $perPage = $request->input('per_page', 25);
         if ($perPage === 'all' || $perPage == -1) {
             $totalCount = (clone $query)->count();
-            $siswa = $query->orderBy('nisn', 'asc')->paginate(max($totalCount, 1000))->withQueryString();
+            $siswa = $query->orderByRaw('CAST(nisn AS UNSIGNED) ASC, nisn ASC')->paginate(max($totalCount, 1000))->withQueryString();
         } else {
-            $siswa = $query->orderBy('nisn', 'asc')->paginate((int) $perPage)->withQueryString();
+            $siswa = $query->orderByRaw('CAST(nisn AS UNSIGNED) ASC, nisn ASC')->paginate((int) $perPage)->withQueryString();
         }
 
         $sekolahs = \Illuminate\Support\Facades\Cache::remember('sekolahs_with_siswa', 300, function () {
