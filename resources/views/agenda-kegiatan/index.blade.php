@@ -304,10 +304,10 @@
 
                     <!-- Buttons -->
                     <div class="col-lg-2 col-md-12 d-flex gap-2">
-                        <button class="btn btn-filter w-100" id="btnFilter" onclick="loadTableData()">
+                        <button class="btn btn-filter w-100" id="btnFilter" type="button" onclick="loadTableData(1)">
                             <i class="bi bi-search me-1"></i>Terapkan
                         </button>
-                        <button class="btn btn-reset btn-outline-secondary" id="btnReset" onclick="resetFilter()" title="Reset Filter">
+                        <button class="btn btn-reset btn-outline-secondary" id="btnReset" type="button" onclick="resetFilter()" title="Reset Filter">
                             <i class="bi bi-arrow-counterclockwise"></i>
                         </button>
                     </div>
@@ -527,6 +527,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // ── Load table data ──────────────────────────────────────
 function loadTableData(page = 1) {
+    if (typeof page !== 'number' || isNaN(page) || page < 1) {
+        page = 1;
+    }
     currentPage = page;
 
     const kota          = document.getElementById('filterKota').value;
