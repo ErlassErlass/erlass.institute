@@ -86,10 +86,17 @@
             </h6>
             <form method="GET" action="{{ route('laporan-mengajar.index') }}" id="filterForm">
                 <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="search" class="form-label small text-muted text-uppercase fw-bold">Kata Kunci</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-light-subtle"><i class="bi bi-search text-primary"></i></span>
+                            <input type="text" name="search" id="search" class="form-control border-light-subtle bg-white" placeholder="Sekolah / Materi / Instruktur..." value="{{ request('search') }}">
+                        </div>
+                    </div>
                     @if(in_array(Auth::user()->role, ['admin', 'admin_sistem', 'webmaster']))
                     <div class="col-md-3">
                         <label for="instruktur_id" class="form-label small text-muted text-uppercase fw-bold">Instruktur</label>
-                        <select name="instruktur_id" id="instruktur_id" class="form-select border-light-subtle bg-white">
+                        <select name="instruktur_id" id="instruktur_id" class="form-select border-light-subtle bg-white" onchange="this.form.submit()">
                             <option value="">Semua Instruktur</option>
                             @foreach($instructors as $instructor)
                             <option value="{{ $instructor->id }}" @selected(request('instruktur_id') == $instructor->id)>
@@ -106,31 +113,42 @@
                             <input type="text" name="date_range" id="date_range" class="form-control border-light-subtle bg-white" placeholder="Pilih rentang" value="{{ request('date_range') }}">
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <label for="kategori" class="form-label small text-muted text-uppercase fw-bold">Kategori</label>
-                        <select name="kategori" id="kategori" class="form-select border-light-subtle bg-white">
-                            <option value="">Semua</option>
+                    <div class="col-md-3">
+                        <label for="kategori" class="form-label small text-muted text-uppercase fw-bold">Kategori / Program</label>
+                        <select name="kategori" id="kategori" class="form-select border-light-subtle bg-white" onchange="this.form.submit()">
+                            <option value="">Semua Kategori</option>
                             @foreach($kategoriList as $cat)
                                 <option value="{{ $cat }}" @selected(request('kategori') == $cat)>{{ $cat }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <div class="d-flex w-100 gap-2">
-                            <button type="submit" class="btn btn-primary flex-grow-1"><i class="bi bi-search me-1"></i> Terapkan</button>
-                            <a href="{{ route('laporan-mengajar.index') }}" class="btn btn-light text-muted border border-light-subtle" title="Reset Filter"><i class="bi bi-arrow-counterclockwise"></i></a>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-download"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                    <li><h6 class="dropdown-header">Export Data</h6></li>
-                                    <li><a class="dropdown-item export-link" href="#" data-format="excel"><i class="bi bi-file-earmark-excel me-2 text-success"></i> Excel</a></li>
-                                    <li><a class="dropdown-item export-link" href="#" data-format="pdf"><i class="bi bi-file-earmark-pdf me-2 text-danger"></i> PDF</a></li>
-                                </ul>
-                            </div>
+                </div>
+
+                <div class="row g-3 mt-1 align-items-center">
+                    <div class="col-md-2">
+                        <label for="per_page" class="form-label small text-muted text-uppercase fw-bold">Tampilkan</label>
+                        <select name="per_page" id="per_page" class="form-select border-light-subtle bg-white" onchange="this.form.submit()">
+                            <option value="25" @selected(request('per_page', 25) == 25)>25 Baris</option>
+                            <option value="50" @selected(request('per_page') == 50)>50 Baris</option>
+                            <option value="100" @selected(request('per_page') == 100)>100 Baris</option>
+                            <option value="all" @selected(request('per_page') == 'all')>⚡ Semua Data</option>
+                        </select>
+                    </div>
+                    <div class="col-md-10 d-flex justify-content-end align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-funnel me-1"></i> Terapkan Filter</button>
+                        <a href="{{ route('laporan-mengajar.index') }}" class="btn btn-light text-muted border border-light-subtle" title="Reset Filter"><i class="bi bi-arrow-counterclockwise me-1"></i> Reset</a>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-download me-1"></i> Ekspor
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                <li><h6 class="dropdown-header">Export Data</h6></li>
+                                <li><a class="dropdown-item export-link" href="#" data-format="excel"><i class="bi bi-file-earmark-excel me-2 text-success"></i> Excel</a></li>
+                                <li><a class="dropdown-item export-link" href="#" data-format="pdf"><i class="bi bi-file-earmark-pdf me-2 text-danger"></i> PDF</a></li>
+                            </ul>
                         </div>
                     </div>
+                </div>
                 </div>
             </form>
         </div>

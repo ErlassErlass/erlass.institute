@@ -41,7 +41,7 @@ class LaporanMengajarController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $laporanQuery = LaporanMengajar::with('instruktur', 'sekolah', 'asisten');
+        $laporanQuery = LaporanMengajar::with('instruktur', 'sekolah', 'asisten', 'ekstrakurikulerSession.rombel.ekstrakurikuler');
 
         // Filter by user role
         if (! in_array($user->role, ['admin', 'admin_sistem', 'webmaster'])) {
@@ -53,12 +53,20 @@ class LaporanMengajarController extends Controller
             $laporanQuery->where('user_id_instruktur', $request->instruktur_id);
         }
 
-        // Filter by category (ekstrakurikuler vs regular)
+        // Filter by category (support both exact kategori_pengajaran and ekskul category)
         if ($request->filled('kategori')) {
-            if ($request->kategori === 'ekstrakurikuler') {
+            $kat = $request->kategori;
+            if ($kat === 'ekstrakurikuler') {
                 $laporanQuery->ekstrakurikuler();
-            } elseif ($request->kategori === 'regular') {
+            } elseif ($kat === 'regular') {
                 $laporanQuery->regular();
+            } else {
+                $laporanQuery->where(function ($query) use ($kat) {
+                    $query->where('kategori_pengajaran', 'LIKE', "%{$kat}%")
+                        ->orWhereHas('ekstrakurikulerSession.rombel.ekstrakurikuler', function ($q) use ($kat) {
+                            $q->where('kategori_program', 'LIKE', "%{$kat}%");
+                        });
+                });
             }
         }
 
@@ -69,21 +77,16 @@ class LaporanMengajarController extends Controller
                 $dates = array_map('trim', explode(' to ', $dateRange));
 
                 $parseDate = function ($dateString) {
-                    // Try to parse from d/m/Y format first
                     if (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $dateString)) {
                         return \Carbon\Carbon::createFromFormat('d/m/Y', $dateString);
                     }
-
-                    // Fallback to other formats if needed
                     return \Carbon\Carbon::parse($dateString);
                 };
 
                 if (count($dates) === 1) {
-                    // Single date filter
                     $date = $parseDate($dates[0]);
                     $laporanQuery->whereDate('jadwal_mengajar', $date);
                 } elseif (count($dates) === 2) {
-                    // Date range filter
                     $startDate = $parseDate($dates[0])->startOfDay();
                     $endDate = $parseDate($dates[1])->endOfDay();
                     $laporanQuery->whereBetween('jadwal_mengajar', [$startDate, $endDate]);
@@ -94,18 +97,21 @@ class LaporanMengajarController extends Controller
             }
         }
 
-        // Category filter
-        if ($request->filled('kategori')) {
-            $laporanQuery->where('kategori_pengajaran', $request->kategori);
-        }
-
-        // Search by school name or rombel
+        // Search by school name, manual school, instructor name, topic, or rombel
         if ($request->filled('search')) {
-            $searchTerm = '%'.$request->search.'%';
+            $searchTerm = '%' . $request->search . '%';
             $laporanQuery->where(function ($query) use ($searchTerm) {
                 $query->whereHas('sekolah', function ($q) use ($searchTerm) {
                     $q->where('namasekolah', 'LIKE', $searchTerm);
-                })->orWhere('rombel', 'LIKE', $searchTerm);
+                })
+                ->orWhere('sekolah_nama', 'LIKE', $searchTerm)
+                ->orWhere('rombel', 'LIKE', $searchTerm)
+                ->orWhere('materi_pengajaran', 'LIKE', $searchTerm)
+                ->orWhere('refleksi_siswa', 'LIKE', $searchTerm)
+                ->orWhere('refleksi_capaian', 'LIKE', $searchTerm)
+                ->orWhereHas('instruktur', function ($q) use ($searchTerm) {
+                    $q->where('nama_lengkap', 'LIKE', $searchTerm);
+                });
             });
         }
 
@@ -127,10 +133,16 @@ class LaporanMengajarController extends Controller
             })
             ->count();
 
-        // Get paginated results (25 items per page for optimal load balance)
-        $laporan = $laporanQuery->latest()->paginate(25);
+        // Support per_page (25, 50, 100, all) and preserve query string
+        $perPage = $request->input('per_page', 25);
+        if ($perPage === 'all' || $perPage == -1) {
+            $totalCount = (clone $laporanQuery)->count();
+            $laporan = $laporanQuery->latest()->paginate(max($totalCount, 1000))->withQueryString();
+        } else {
+            $laporan = $laporanQuery->latest()->paginate((int) $perPage)->withQueryString();
+        }
         
-        // Optimize: Cache expensive dropdown data (only verified instructors)
+        // Cache dropdown list of instructors
         $instructors = \Illuminate\Support\Facades\Cache::remember('instructors_list_approved', 300, function () {
             return User::where('role', 'instruktur')
                 ->where('verification_status', 'approved')
@@ -138,14 +150,11 @@ class LaporanMengajarController extends Controller
                 ->get();
         });
 
-        // Optimize: Cache categories
-        $kategoriList = \Illuminate\Support\Facades\Cache::remember('ekskul_categories', 300, function () {
-            return \App\Models\Ekstrakurikuler::distinct()
-                ->whereNotNull('kategori_program')
-                ->pluck('kategori_program')
-                ->sort()
-                ->values()
-                ->toArray();
+        // Cache category list (combine LaporanMengajar and Ekstrakurikuler categories)
+        $kategoriList = \Illuminate\Support\Facades\Cache::remember('combined_kategori_list', 300, function () {
+            $laporanCats = LaporanMengajar::distinct()->whereNotNull('kategori_pengajaran')->pluck('kategori_pengajaran')->toArray();
+            $ekskulCats = \App\Models\Ekstrakurikuler::distinct()->whereNotNull('kategori_program')->pluck('kategori_program')->toArray();
+            return collect(array_merge($laporanCats, $ekskulCats))->unique()->filter()->sort()->values()->toArray();
         });
         
         return view('laporan-mengajar.index', compact(
