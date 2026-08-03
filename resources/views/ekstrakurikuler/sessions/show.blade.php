@@ -99,6 +99,14 @@
                     <div class="small text-dark-50 fst-italic">{{ $previousReport->catatan }}</div>
                 </div>
                 @endif
+                @if(!empty($previousReport->file_project))
+                <div class="col-12 mt-2 pt-2 border-top border-primary border-opacity-10 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div class="small fw-semibold text-dark"><i class="bi bi-file-earmark-code me-1 text-primary"></i> File Project Sebelumnya:</div>
+                    <a href="{{ asset('storage/' . $previousReport->file_project) }}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm fw-bold" download target="_blank">
+                        <i class="bi bi-download me-1"></i> Download File Project
+                    </a>
+                </div>
+                @endif
             </div>
         </div>
     </div>
