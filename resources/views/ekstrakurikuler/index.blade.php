@@ -216,7 +216,8 @@
                             <div class="col-lg-2 col-md-6 mb-3">
                                 <label for="sort" class="filter-label">Urutkan</label>
                                 <select class="form-control form-control-premium" id="sort" name="sort">
-                                    <option value="latest" {{ !request('sort') || request('sort') === 'latest' ? 'selected' : '' }}>Terbaru ➔ Terlama</option>
+                                    <option value="priority" {{ !request('sort') || request('sort') === 'priority' || request('sort') === 'latest' ? 'selected' : '' }}>⭐ Status Aktif ➔ Sekolah (A-Z)</option>
+                                    <option value="latest_created" {{ request('sort') === 'latest_created' ? 'selected' : '' }}>Terbaru Dibuat ➔ Terlama</option>
                                     <option value="oldest" {{ request('sort') === 'oldest' ? 'selected' : '' }}>Terlama ➔ Terbaru</option>
                                     <option value="school_asc" {{ request('sort') === 'school_asc' ? 'selected' : '' }}>Sekolah (A ➔ Z)</option>
                                     <option value="school_desc" {{ request('sort') === 'school_desc' ? 'selected' : '' }}>Sekolah (Z ➔ A)</option>

@@ -72,21 +72,21 @@ class EkstrakurikulerQueryService
      */
     protected function applySorting($query, Request $request)
     {
-        $sort = $request->input('sort', 'latest');
+        $sort = $request->input('sort', 'priority');
 
         switch ($sort) {
             case 'oldest':
                 $query->orderBy('created_at', 'asc');
                 break;
             case 'school_asc':
-                $query->join('sekolah', 'ekstrakurikulers.sekolah_kodlan', '=', 'sekolah.kodlan')
+                $query->join('sekolah', 'ekstrakurikuler.sekolah_kodlan', '=', 'sekolah.kodlan')
                       ->orderBy('sekolah.namasekolah', 'asc')
-                      ->select('ekstrakurikulers.*');
+                      ->select('ekstrakurikuler.*');
                 break;
             case 'school_desc':
-                $query->join('sekolah', 'ekstrakurikulers.sekolah_kodlan', '=', 'sekolah.kodlan')
+                $query->join('sekolah', 'ekstrakurikuler.sekolah_kodlan', '=', 'sekolah.kodlan')
                       ->orderBy('sekolah.namasekolah', 'desc')
-                      ->select('ekstrakurikulers.*');
+                      ->select('ekstrakurikuler.*');
                 break;
             case 'program_asc':
                 $query->orderBy('kategori_program', 'asc');
@@ -94,9 +94,23 @@ class EkstrakurikulerQueryService
             case 'status_asc':
                 $query->orderBy('status', 'asc');
                 break;
+            case 'latest_created':
+                $query->orderBy('created_at', 'desc');
+                break;
+            case 'priority':
             case 'latest':
             default:
-                $query->orderBy('created_at', 'desc');
+                // Opsi A: Prioritas Status (Aktif -> Draf -> Selesai -> Dibatalkan) -> Nama Sekolah A-Z -> Terbaru
+                $query->leftJoin('sekolah', 'ekstrakurikuler.sekolah_kodlan', '=', 'sekolah.kodlan')
+                      ->orderByRaw("CASE 
+                            WHEN ekstrakurikuler.status = 'aktif' THEN 1 
+                            WHEN ekstrakurikuler.status = 'draf' THEN 2 
+                            WHEN ekstrakurikuler.status = 'selesai' THEN 3 
+                            ELSE 4 
+                        END ASC")
+                      ->orderBy('sekolah.namasekolah', 'asc')
+                      ->orderBy('ekstrakurikuler.created_at', 'desc')
+                      ->select('ekstrakurikuler.*');
                 break;
         }
     }
