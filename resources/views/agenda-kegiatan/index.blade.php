@@ -317,10 +317,21 @@
 
         <!-- Table Area -->
         <div class="col-lg-9">
-            <!-- Info bar -->
-            <div class="info-bar mb-3" id="infoBar" style="display:none!important;">
-                <i class="bi bi-info-circle-fill"></i>
-                <span id="infoBarText">Menampilkan data...</span>
+            <!-- Table Header Controls & Info bar -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                <div class="info-bar border-0 bg-transparent p-0 m-0" id="infoBar" style="display:none!important;">
+                    <i class="bi bi-info-circle-fill me-1 text-primary"></i>
+                    <span id="infoBarText" class="fw-semibold text-dark" style="font-size:.85rem;">Menampilkan data...</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 ms-auto">
+                    <label for="filterPerPage" class="form-label mb-0 small text-muted text-nowrap fw-semibold">Tampilkan:</label>
+                    <select class="form-select form-select-sm" id="filterPerPage" onchange="loadTableData(1)" style="border-radius:8px; font-size:.8rem; width: auto;">
+                        <option value="25" selected>25 Baris</option>
+                        <option value="50">50 Baris</option>
+                        <option value="100">100 Baris</option>
+                        <option value="all">⚡ Tampilkan Semua Data</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Loading -->
@@ -526,6 +537,7 @@ function loadTableData(page = 1) {
     const keyword       = document.getElementById('filterKeyword').value;
     const tanggalDari   = document.getElementById('filterTanggalDari').value;
     const tanggalSampai = document.getElementById('filterTanggalSampai').value;
+    const perPage       = document.getElementById('filterPerPage') ? document.getElementById('filterPerPage').value : 25;
 
     currentFilters = { 
         kota, 
@@ -535,7 +547,8 @@ function loadTableData(page = 1) {
         instruktur_id: instrukturId,
         keyword,
         tanggal_dari: tanggalDari, 
-        tanggal_sampai: tanggalSampai 
+        tanggal_sampai: tanggalSampai,
+        per_page: perPage
     };
 
     const params = new URLSearchParams({ ...currentFilters, page });
