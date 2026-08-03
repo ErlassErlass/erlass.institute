@@ -147,7 +147,11 @@ class EkstrakurikulerFormService
      */
     protected function extractStepData(Request $request, int $step): array
     {
-        if ($step >= 5 && $step <= 14) {
+        $formData = $this->getFormData();
+        $totalRombel = (int)($formData['total_rombel'] ?? 1);
+        $maxRombelStep = 4 + $totalRombel;
+
+        if ($step >= 5 && $step <= $maxRombelStep) {
             return $this->extractRombelData($request, $step);
         }
 
@@ -240,7 +244,11 @@ class EkstrakurikulerFormService
      */
     public function getStepValidationRules(int $step): array
     {
-        if ($step >= 5 && $step <= 14) {
+        $formData = $this->getFormData();
+        $totalRombel = (int)($formData['total_rombel'] ?? 1);
+        $maxRombelStep = 4 + $totalRombel;
+
+        if ($step >= 5 && $step <= $maxRombelStep) {
             return $this->getRombelValidationRules($step);
         }
 
@@ -488,6 +496,16 @@ class EkstrakurikulerFormService
         
         // Use recursive replacement to preserve rombels array structure
         $formData = array_replace_recursive($formData, $stepData);
+        
+        // If total_rombel is present, trim any excess rombel entries exceeding total_rombel
+        if (isset($formData['total_rombel']) && isset($formData['rombels']) && is_array($formData['rombels'])) {
+            $totalRombel = (int)$formData['total_rombel'];
+            foreach ($formData['rombels'] as $rNum => $rData) {
+                if ((int)$rNum > $totalRombel) {
+                    unset($formData['rombels'][$rNum]);
+                }
+            }
+        }
         
         \Illuminate\Support\Facades\Session::put('ekstrakurikuler_form_data', $formData);
     }
