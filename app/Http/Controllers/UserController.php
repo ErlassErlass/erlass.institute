@@ -21,14 +21,15 @@ class UserController extends Controller
         // Hanya webmaster/admin_sistem yang bisa mengakses halaman ini
         Gate::authorize('viewAny', User::class);
 
-        $query = User::with('instructorProfile');
+        $query = User::with(['instructorProfile', 'ekstrakurikulerSessions']);
 
         // Search functionality
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nama_lengkap', 'LIKE', "%{$search}%")
-                    ->orWhere('email', 'LIKE', "%{$search}%");
+                    ->orWhere('email', 'LIKE', "%{$search}%")
+                    ->orWhere('instructor_id', 'LIKE', "%{$search}%");
             });
         }
 
@@ -37,26 +38,74 @@ class UserController extends Controller
             $query->where('role', $request->role);
         }
 
-        // Status filter
+        // Status filter (Verifikasi & Status Akun)
         if ($request->filled('status')) {
-            if ($request->status === 'pending') {
+            $status = $request->status;
+            if ($status === 'pending') {
                 $query->where('verification_status', 'pending');
-            } elseif ($request->status === 'approved') {
+            } elseif ($status === 'approved') {
                 $query->where('verification_status', 'approved');
-            } elseif ($request->status === 'rejected') {
+            } elseif ($status === 'rejected') {
                 $query->where('verification_status', 'rejected');
+            } elseif ($status === 'aktif') {
+                $query->where('status', 'Aktif');
+            } elseif ($status === 'nonaktif') {
+                $query->where('status', 'Nonaktif');
             }
         }
 
-        $users = $query->orderBy('created_at', 'desc')->paginate(25)->withQueryString();
+        // Filter Kota / Domisili Instruktur
+        if ($request->filled('kota')) {
+            $kota = $request->kota;
+            $query->whereHas('instructorProfile', function ($q) use ($kota) {
+                $q->where('kota_domisili', $kota);
+            });
+        }
 
-        // Role options for filter dropdown (sesuai data di database)
+        // Filter Status Penugasan Rombel (Mengajar / Belum Ada Jadwal)
+        if ($request->filled('penugasan')) {
+            if ($request->penugasan === 'assigned') {
+                $query->whereHas('ekstrakurikulerSessions');
+            } elseif ($request->penugasan === 'unassigned') {
+                $query->where('role', 'instruktur')->whereDoesntHave('ekstrakurikulerSessions');
+            }
+        }
+
+        // Sorting
+        $sort = $request->get('sort', 'latest');
+        match ($sort) {
+            'name_asc' => $query->orderBy('nama_lengkap', 'asc'),
+            'name_desc' => $query->orderBy('nama_lengkap', 'desc'),
+            'oldest' => $query->orderBy('created_at', 'asc'),
+            default => $query->orderBy('created_at', 'desc'),
+        };
+
+        $users = $query->paginate(25)->withQueryString();
+
+        // Role options
         $roles = [
             'webmaster' => 'Webmaster',
             'admin_sistem' => 'Admin Sistem',
             'admin' => 'Admin',
             'instruktur' => 'Instruktur',
         ];
+
+        // Status options
+        $statuses = [
+            'pending' => '⏳ Menunggu Verifikasi',
+            'approved' => '✅ Terverifikasi',
+            'rejected' => '❌ Ditolak',
+            'aktif' => '🟢 Status Aktif',
+            'nonaktif' => '🔴 Status Nonaktif',
+        ];
+
+        // Kota / Domisili options
+        $kotas = \App\Models\InstructorProfile::whereNotNull('kota_domisili')
+            ->where('kota_domisili', '!=', '')
+            ->distinct()
+            ->pluck('kota_domisili')
+            ->sort()
+            ->values();
 
         // Statistics
         $statistics = [
@@ -66,7 +115,7 @@ class UserController extends Controller
             'rejected_instructors' => User::where('role', 'instruktur')->where('verification_status', 'rejected')->count(),
         ];
 
-        return view('users.index', compact('users', 'roles', 'statistics'));
+        return view('users.index', compact('users', 'roles', 'statuses', 'kotas', 'statistics'));
     }
 
     // Other methods (create, store, edit, update, destroy)

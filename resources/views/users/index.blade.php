@@ -21,16 +21,18 @@
     </div>
 
     <!-- Filter Section -->
-    <div class="card mb-4 border-0 shadow-sm">
-        <div class="card-body py-3">
-            <form action="{{ route('users.index') }}" method="GET" class="row g-3 align-items-center">
+    <div class="card mb-4 border-0 shadow-sm rounded-4">
+        <div class="card-body p-3 p-md-4">
+            <form action="{{ route('users.index') }}" method="GET" class="row g-3">
                 <div class="col-md-4">
+                    <label class="form-label small fw-bold text-secondary mb-1"><i class="bi bi-search me-1"></i> Pencarian</label>
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Cari Nama, Email, atau ID..." value="{{ request('search') }}">
+                        <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Cari Nama, Email, atau ID Instruktur..." value="{{ request('search') }}">
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2 col-6">
+                    <label class="form-label small fw-bold text-secondary mb-1"><i class="bi bi-shield-lock me-1"></i> Role</label>
                     <select name="role" class="form-select">
                         <option value="">Semua Role</option>
                         @foreach($roles as $key => $label)
@@ -38,18 +40,53 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-filter me-1"></i> Filter
-                    </button>
+                <div class="col-md-3 col-6">
+                    <label class="form-label small fw-bold text-secondary mb-1"><i class="bi bi-patch-check me-1"></i> Status / Verifikasi</label>
+                    <select name="status" class="form-select">
+                        <option value="">Semua Status</option>
+                        @foreach($statuses as $key => $label)
+                            <option value="{{ $key }}" {{ request('status') == $key ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
                 </div>
-                @if(request()->hasAny(['search', 'role']))
-                <div class="col-md-2">
-                    <a href="{{ route('users.index') }}" class="btn btn-outline-secondary w-100">
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-secondary mb-1"><i class="bi bi-geo-alt me-1"></i> Kota / Domisili</label>
+                    <select name="kota" class="form-select">
+                        <option value="">Semua Kota Domisili</option>
+                        @foreach($kotas as $kota)
+                            <option value="{{ $kota }}" {{ request('kota') == $kota ? 'selected' : '' }}>{{ $kota }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-secondary mb-1"><i class="bi bi-calendar-event me-1"></i> Penugasan Mengajar</label>
+                    <select name="penugasan" class="form-select">
+                        <option value="">Semua Status Penugasan</option>
+                        <option value="assigned" {{ request('penugasan') == 'assigned' ? 'selected' : '' }}>🟢 Punya Jadwal Mengajar</option>
+                        <option value="unassigned" {{ request('penugasan') == 'unassigned' ? 'selected' : '' }}>⚪ Belum Ada Jadwal</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-secondary mb-1"><i class="bi bi-sort-down me-1"></i> Urutkan Data</label>
+                    <select name="sort" class="form-select">
+                        <option value="latest" {{ request('sort', 'latest') == 'latest' ? 'selected' : '' }}>🕒 Terbaru Mendaftar</option>
+                        <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>⌛ Terlama</option>
+                        <option value="name_asc" {{ request('sort') == 'name_asc' ? 'selected' : '' }}>🔤 Nama (A - Z)</option>
+                        <option value="name_desc" {{ request('sort') == 'name_desc' ? 'selected' : '' }}>🔤 Nama (Z - A)</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-6 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary fw-bold px-4 flex-grow-1">
+                        <i class="bi bi-filter me-1"></i> Terapkan Filter
+                    </button>
+                    @if(request()->hasAny(['search', 'role', 'status', 'kota', 'penugasan', 'sort']))
+                    <a href="{{ route('users.index') }}" class="btn btn-outline-secondary px-3">
                         <i class="bi bi-x-circle me-1"></i> Reset
                     </a>
+                    @endif
                 </div>
-                @endif
             </form>
         </div>
     </div>
