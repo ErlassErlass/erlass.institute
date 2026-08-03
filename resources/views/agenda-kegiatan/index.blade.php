@@ -367,7 +367,7 @@
                                 <th>Materi / Topik</th>
                                 <th>Tanggal & Ke-</th>
                                 <th style="text-align:center;">Hadir</th>
-                                <th style="text-align:center;">Dokumentasi & File</th>
+                                <th style="text-align:center;">Dokumentasi</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody"></tbody>
@@ -606,10 +606,6 @@ function renderTable(resp) {
                 <div class="d-flex flex-wrap gap-1 justify-content-center">
                     ${row.foto_url
                         ? `<a href="${escHtml(row.foto_url)}" target="_blank" class="btn btn-foto btn-sm me-1" title="Lihat Foto Absensi & Kegiatan"><i class="bi bi-image me-1"></i>Foto</a>`
-                        : ``
-                    }
-                    ${row.project_url
-                        ? `<a href="${escHtml(row.project_url)}" download class="btn btn-outline-success btn-sm" title="Download File Project"><i class="bi bi-download me-1"></i>Project</a>`
                         : ``
                     }
                     <a href="${escHtml(row.print_url)}" target="_blank" class="btn btn-outline-primary btn-sm" title="Cetak Laporan PDF"><i class="bi bi-printer me-1"></i>PDF</a>
