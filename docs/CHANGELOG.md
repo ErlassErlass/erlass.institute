@@ -21,6 +21,9 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
   - Pengaktifan opsi **"Semua Wilayah"** secara penuh yang otomatis memuat seluruh sekolah & rombel dari semua kota saat halaman dibuka.
   - Penambahan **Opsi Tampilan per Halaman** (`25`, `50`, `100`, dan `⚡ Tampilkan Semua Data`).
   - Pembaharuan kolom tabel: Menampilkan nama instruktur pengajar, topik materi pengajaran, foto absensi, dan tombol cetak PDF Laporan.
+- **Pengurutan Prioritas Operasional Daftar Program (`/ekstrakurikuler`)**:
+  - Pembaharuan `EkstrakurikulerQueryService@applySorting` dan `index.blade.php` untuk menetapkan pengurutan default Opsi A (Prioritas Status: `Aktif` ➔ `Draf` ➔ `Selesai` ➔ `Dibatalkan`).
+  - Di dalam kelompok status yang sama, program diurutkan secara rapi berdasarkan **Nama Sekolah Mitra (A ➔ Z)** lalu tanggal pembuatan terbaru (`created_at` DESC).
 
 ## [2.3.0] - 2026-08-01
 
