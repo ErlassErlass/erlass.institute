@@ -137,7 +137,7 @@ class AgendaKegiatanController extends Controller
             $kw = $request->keyword;
             $query->where(function ($q) use ($kw) {
                 $q->whereHas('rombel.ekstrakurikuler.sekolah', fn($sq) => $sq->where('namasekolah', 'LIKE', "%{$kw}%"))
-                  ->orWhereHas('laporanMengajar', fn($lq) => $lq->where('topik_materi', 'LIKE', "%{$kw}%")->orWhere('rangkuman_aktivitas', 'LIKE', "%{$kw}%"))
+                  ->orWhereHas('laporanMengajar', fn($lq) => $lq->where('materi_pengajaran', 'LIKE', "%{$kw}%"))
                   ->orWhereHas('instruktur', fn($iq) => $iq->where('nama_lengkap', 'LIKE', "%{$kw}%"));
             });
         }
@@ -180,7 +180,7 @@ class AgendaKegiatanController extends Controller
                 'kategori_pengajaran' => $ekskul?->kategori_program ?? '—',
                 'rombel'              => $rombel?->nama_rombel ?? '—',
                 'instruktur_nama'     => $instruktur?->nama_lengkap ?? '—',
-                'topik_materi'        => $laporan?->topik_materi ?? '—',
+                'topik_materi'        => $laporan?->materi_pengajaran ?? '—',
                 'tanggal_mengajar'    => $tanggal ? $tanggal->translatedFormat('d M Y') : '—',
                 'tanggal_raw'         => $tanggal ? $tanggal->format('Y-m-d') : null,
                 'pertemuan_ke'        => $session->nomor_pertemuan ?? '—',
