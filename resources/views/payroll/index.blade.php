@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@php
+    $errors = $errors ?? new \Illuminate\Support\ViewErrorBag;
+@endphp
+
 @section('content')
 <div class="container-fluid py-4">
     <!-- Header Section -->

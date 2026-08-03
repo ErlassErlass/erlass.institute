@@ -573,8 +573,9 @@ class LaporanMengajarController extends Controller
             ->with('success', 'Laporan berhasil dihapus.');
     }    // Ideally I should update validationRules method as well.
 
-    protected function validationRules(): array
+    protected function validationRules($request = null): array
     {
+        $request = $request ?? request();
         $allowedKategori = array_unique(array_merge(
             [
                 'Pameran',

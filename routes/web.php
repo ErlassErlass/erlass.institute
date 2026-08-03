@@ -262,7 +262,7 @@ Route::middleware(['auth'])->group(function () {
 
 
     // Admin Panel Routes
-    Route::prefix('admin')->name('admin.')->middleware(['role:webmaster,admin_sistem,admin'])->group(function () {
+    Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:webmaster,admin_sistem,admin'])->group(function () {
         Route::resource('activity-logs', ActivityLogController::class)->only(['index']); // Logging route
 
         // Redirect old admin/users and admin/employees to /users (consolidated)
