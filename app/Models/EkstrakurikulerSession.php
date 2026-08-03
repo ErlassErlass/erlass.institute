@@ -47,6 +47,8 @@ class EkstrakurikulerSession extends Model
         'calculated_fee',
         'override_fee',
         'transport_fee',
+        'reminder_h1_sent_at',
+        'reminder_h0_sent_at',
     ];
 
     /**
@@ -62,6 +64,8 @@ class EkstrakurikulerSession extends Model
         'jam_selesai_aktual' => 'datetime:H:i',
         'nomor_pertemuan' => 'integer',
         'transport_fee' => 'decimal:2',
+        'reminder_h1_sent_at' => 'datetime',
+        'reminder_h0_sent_at' => 'datetime',
     ];
 
     /**

@@ -38,6 +38,7 @@ class SendScheduleReminders extends Command
 
         $sessions = EkstrakurikulerSession::with(['instruktur', 'rombel.ekstrakurikuler.sekolah'])
             ->where('status', EkstrakurikulerSession::STATUS_TERJADWAL)
+            ->whereNull('reminder_h0_sent_at')
             ->whereDate('tanggal_terjadwal', Carbon::today())
             ->whereTime('jam_mulai_terjadwal', '>=', $startTime->format('H:i'))
             ->whereTime('jam_mulai_terjadwal', '<=', $endTime->format('H:i'))
@@ -51,8 +52,9 @@ class SendScheduleReminders extends Command
             if ($instructor) {
                 try {
                     $instructor->notify(new ScheduleReminderNotification($session));
+                    $session->update(['reminder_h0_sent_at' => now()]);
                     $this->info("Reminder sent to {$instructor->nama_lengkap} for session ID {$session->id}");
-                    Log::info("Schedule Reminder: Sent to {$instructor->nama_lengkap} (ID: {$instructor->id}) for Session ID {$session->id}");
+                    Log::info("Schedule Reminder H-0: Sent to {$instructor->nama_lengkap} (ID: {$instructor->id}) for Session ID {$session->id}");
                     $count++;
                 } catch (\Exception $e) {
                     $this->error("Failed to send reminder for session {$session->id}: " . $e->getMessage());

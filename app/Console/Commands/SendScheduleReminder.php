@@ -41,6 +41,7 @@ class SendScheduleReminder extends Command
             'ekstrakurikuler.sekolah',
         ])
             ->where('status', EkstrakurikulerSession::STATUS_TERJADWAL)
+            ->whereNull('reminder_h1_sent_at')
             ->whereDate('tanggal_terjadwal', $tomorrow)
             ->get();
 
@@ -64,6 +65,8 @@ class SendScheduleReminder extends Command
             $waktu = $session->jam_mulai_terjadwal->format('H:i') . ' - ' . $session->jam_selesai_terjadwal->format('H:i');
             $tanggal = $session->tanggal_terjadwal->format('d/m/Y');
 
+            $sessionSent = false;
+
             // 1. Reminder ke Instruktur
             if ($instruktur && ($instruktur->no_wa || $instruktur->phone_number)) {
                 $nomor = $instruktur->no_wa ?? $instruktur->phone_number;
@@ -78,11 +81,16 @@ class SendScheduleReminder extends Command
 
                 if ($this->sendMessage($nomor, $pesan)) {
                     $sentCount++;
+                    $sessionSent = true;
                     $this->line("  ✓ Instruktur: {$instruktur->name} ({$nomor})");
                 } else {
                     $failCount++;
                     $this->error("  ✗ Gagal kirim ke instruktur: {$instruktur->name}");
                 }
+            }
+
+            if ($sessionSent) {
+                $session->update(['reminder_h1_sent_at' => now()]);
             }
 
             // 2. Reminder ke PIC Sekolah
