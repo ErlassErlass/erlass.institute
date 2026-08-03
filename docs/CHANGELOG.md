@@ -24,6 +24,12 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Pengurutan Prioritas Operasional Daftar Program (`/ekstrakurikuler`)**:
   - Pembaharuan `EkstrakurikulerQueryService@applySorting` dan `index.blade.php` untuk menetapkan pengurutan default Opsi A (Prioritas Status: `Aktif` ➔ `Draf` ➔ `Selesai` ➔ `Dibatalkan`).
   - Di dalam kelompok status yang sama, program diurutkan secara rapi berdasarkan **Nama Sekolah Mitra (A ➔ Z)** lalu tanggal pembuatan terbaru (`created_at` DESC).
+- **Perbaikan Pengurutan Numerik NISN Siswa (`/siswa`)**:
+  - Pembaharuan `SiswaController` agar pengurutan NISN menggunakan `CAST(nisn AS UNSIGNED)` secara numerik (sehingga NISN `1000` s.d. `1080` tersusun secara benar setelah NISN `999`).
+  - Penambahan dropdown **Tampilkan per Halaman** (`25`, `50`, `100`, `⚡ Semua Data`) dan preservasi parameter filter `withQueryString()`.
+- **Perbaikan Wizard Pembuatan Program Ekstrakurikuler (`/ekstrakurikuler/create`)**:
+  - Mengoreksi ekstraksi data Rombel pada `EkstrakurikulerFormService@extractStepData` dan `getStepValidationRules` agar dibatasi secara tepat pada `$maxRombelStep` (`4 + $totalRombel`).
+  - Menghilangkan bug terbuatnya 1 rombel siluman ekstra (misal filling 3 rombel tetapi tergenerate 4 rombel) yang sebelumnya dipicu saat menekan tombol simpan akhir di Step Ringkasan Konfirmasi.
 
 ## [2.3.0] - 2026-08-01
 
