@@ -162,7 +162,8 @@ class AgendaKegiatanController extends Controller
 
         $perPage = $request->input('per_page', 25);
         if ($perPage === 'all' || $perPage == -1) {
-            $sessions = $query->paginate(1000);
+            $totalCount = (clone $query)->count();
+            $sessions = $query->paginate(max($totalCount, 1000));
         } else {
             $sessions = $query->paginate((int) $perPage);
         }

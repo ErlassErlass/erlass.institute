@@ -37,7 +37,7 @@
                         <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Nama siswa..." value="{{ request('search') }}">
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label small fw-bold text-muted">Filter Sekolah</label>
                     <select name="kodlan" class="form-select" onchange="this.form.submit()">
                         <option value="">Semua Sekolah</option>
@@ -48,10 +48,19 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4 text-md-end mt-4">
-                    <button type="submit" class="btn btn-primary px-4">Filter</button>
-                    @if(request()->has('search') || request()->has('kodlan'))
-                        <a href="{{ route('siswa.index') }}" class="btn btn-light border ms-2">Reset</a>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted">Tampilkan</label>
+                    <select name="per_page" class="form-select" onchange="this.form.submit()">
+                        <option value="25" {{ request('per_page', 25) == '25' ? 'selected' : '' }}>25 Baris</option>
+                        <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50 Baris</option>
+                        <option value="100" {{ request('per_page') == '100' ? 'selected' : '' }}>100 Baris</option>
+                        <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>⚡ Semua Data</option>
+                    </select>
+                </div>
+                <div class="col-md-3 text-md-end mt-4">
+                    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-funnel me-1"></i>Filter</button>
+                    @if(request()->has('search') || request()->has('kodlan') || request()->has('per_page'))
+                        <a href="{{ route('siswa.index') }}" class="btn btn-light border ms-1" title="Reset Filter"><i class="bi bi-arrow-counterclockwise"></i></a>
                     @endif
                 </div>
             </form>
