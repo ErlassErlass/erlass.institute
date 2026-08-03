@@ -713,13 +713,14 @@
     document.getElementById('reminderForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const message = document.getElementById('customMessage').value;
+        const target = document.getElementById('reminderTarget').value || 'instructor';
         const btn = document.getElementById('btnSendReminder');
         const spinner = btn.querySelector('.spinner-border');
         
         btn.disabled = true;
         spinner.classList.remove('d-none');
         
-        sendRequest(`/ekstrakurikuler/sessions/${sessionId}/remind`, 'POST', { custom_message: message })
+        sendRequest(`/ekstrakurikuler/sessions/${sessionId}/remind`, 'POST', { custom_message: message, target: target })
             .then(result => {
                 if (result.success) {
                     alert('Sukses: ' + result.data.message);
@@ -823,29 +824,46 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Kirim Reminder Manual</h5>
+                <h5 class="modal-title"><i class="bi bi-whatsapp text-success me-2"></i>Kirim Reminder Manual</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="reminderForm">
+                <input type="hidden" id="reminderTarget" value="instructor">
                 <div class="modal-body">
-                    <p>Kirim notifikasi WhatsApp ke instruktur: <strong>{{ $session->instruktur->nama_lengkap ?? 'Instruktur' }}</strong></p>
+                    <p class="mb-2">Kirim notifikasi WhatsApp ke instruktur: <strong>{{ $session->instruktur->nama_lengkap ?? 'Instruktur' }}</strong></p>
                     
                     <div class="mb-3">
-                        <label for="customMessage" class="form-label">Pesan Tambahan (Opsional)</label>
+                        <label for="customMessage" class="form-label small fw-bold">Pesan Tambahan (Opsional)</label>
                         <textarea class="form-control" id="customMessage" rows="3" placeholder="Contoh: Harap datang 15 menit lebih awal."></textarea>
                     </div>
+
+                    <div class="alert alert-info border-0 p-2 small mb-0">
+                        <i class="bi bi-info-circle-fill me-1"></i> Gunakan tombol <strong>"Tes WA Admin"</strong> untuk menguji apakah koneksi Fonnte Gateway berfungsi ke HP Admin.
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary" id="btnSendReminder">
-                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                        Kirim Sekarang
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-success btn-sm fw-bold" id="btnTestAdminReminder" onclick="sendReminderTarget('admin')">
+                        <i class="bi bi-whatsapp me-1"></i> 🧪 Tes WA Admin (+62 821-1830-2927)
                     </button>
+                    <div>
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm fw-bold" id="btnSendReminder" onclick="document.getElementById('reminderTarget').value='instructor'">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            <i class="bi bi-send me-1"></i> Kirim ke Instruktur
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+function sendReminderTarget(target) {
+    document.getElementById('reminderTarget').value = target;
+    document.getElementById('reminderForm').requestSubmit();
+}
+</script>
 @endpush
 
 @push('styles')

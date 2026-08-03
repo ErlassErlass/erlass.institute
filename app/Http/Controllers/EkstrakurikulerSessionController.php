@@ -712,6 +712,7 @@ class EkstrakurikulerSessionController extends Controller
         // Validasi input
         $validator = Validator::make($request->all(), [
             'custom_message' => 'nullable|string|max:500',
+            'target' => 'nullable|string|in:instructor,admin',
         ]);
 
         if ($validator->fails()) {
@@ -720,6 +721,41 @@ class EkstrakurikulerSessionController extends Controller
                 'message' => 'Pesan tidak valid',
                 'errors' => $validator->errors(),
             ], 422);
+        }
+
+        $target = $request->input('target', 'instructor');
+
+        // Fitur Pengujian Khusus Admin ke Nomor +62 821-1830-2927
+        if ($target === 'admin' || $request->boolean('test_admin')) {
+            try {
+                $adminPhone = '6282118302927';
+                $prefixNote = "🧪 *[PESAN UJI COBA GATEWAY WA ADMIN (+62 821-1830-2927)]*\n";
+                $customMsg = $prefixNote . ($request->custom_message ?? 'Tes koneksi Fonnte WhatsApp Gateway Erlass Institute.');
+
+                $testNotification = new \App\Notifications\ScheduleReminderNotification($session, $customMsg);
+                
+                $notifiable = new class($adminPhone) {
+                    public $phone;
+                    public $id = 'admin_test';
+                    public $nama_lengkap = 'Admin Testing (+6282118302927)';
+                    public function __construct($phone) { $this->phone = $phone; }
+                    public function routeNotificationForWhatsapp() { return $this->phone; }
+                };
+
+                $channel = new \App\Notifications\Channels\WhatsAppChannel();
+                $channel->send($notifiable, $testNotification);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pesan uji coba WhatsApp berhasil dikirim ke Nomor Admin (+62 821-1830-2927)',
+                ]);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Manual Reminder Admin Test Error: " . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengirim pesan uji coba ke Admin: ' . $e->getMessage(),
+                ], 500);
+            }
         }
 
         $instructor = $session->instruktur;

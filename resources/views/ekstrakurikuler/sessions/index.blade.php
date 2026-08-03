@@ -556,11 +556,17 @@ function openReminderModal(sessionId, instructorName) {
     modal.show();
 }
 
+function sendIndexReminderTarget(target) {
+    document.getElementById('reminderTarget').value = target;
+    document.getElementById('reminderForm').requestSubmit();
+}
+
 document.getElementById('reminderForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const sessionId = document.getElementById('reminderSessionId').value;
     const message = document.getElementById('customMessage').value;
+    const target = document.getElementById('reminderTarget').value || 'instructor';
     const btn = document.getElementById('btnSendReminder');
     const spinner = btn.querySelector('.spinner-border');
     
@@ -574,7 +580,7 @@ document.getElementById('reminderForm').addEventListener('submit', function(e) {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({ custom_message: message })
+        body: JSON.stringify({ custom_message: message, target: target })
     })
     .then(response => response.json())
     .then(data => {
@@ -760,25 +766,35 @@ function exportScheduleToImage() {
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Kirim Reminder Manual</h5>
+                <h5 class="modal-title"><i class="bi bi-whatsapp text-success me-2"></i>Kirim Reminder Manual</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="reminderForm">
+                <input type="hidden" id="reminderSessionId">
+                <input type="hidden" id="reminderTarget" value="instructor">
                 <div class="modal-body">
-                    <input type="hidden" id="reminderSessionId">
-                    <p>Kirim notifikasi WhatsApp ke instruktur: <strong id="reminderInstructorName"></strong></p>
+                    <p class="mb-2">Kirim notifikasi WhatsApp ke instruktur: <strong id="reminderInstructorName"></strong></p>
                     
                     <div class="mb-3">
-                        <label for="customMessage" class="form-label">Pesan Tambahan (Opsional)</label>
+                        <label for="customMessage" class="form-label small fw-bold">Pesan Tambahan (Opsional)</label>
                         <textarea class="form-control" id="customMessage" rows="3" placeholder="Contoh: Harap datang 15 menit lebih awal."></textarea>
                     </div>
+
+                    <div class="alert alert-info border-0 p-2 small mb-0">
+                        <i class="bi bi-info-circle-fill me-1"></i> Gunakan tombol <strong>"Tes WA Admin"</strong> untuk menguji apakah koneksi Fonnte Gateway berfungsi ke HP Admin.
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary" id="btnSendReminder">
-                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                        Kirim Sekarang
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-success btn-sm fw-bold" id="btnTestAdminReminder" onclick="sendIndexReminderTarget('admin')">
+                        <i class="bi bi-whatsapp me-1"></i> 🧪 Tes WA Admin (+62 821-1830-2927)
                     </button>
+                    <div>
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm fw-bold" id="btnSendReminder" onclick="document.getElementById('reminderTarget').value='instructor'">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            <i class="bi bi-send me-1"></i> Kirim ke Instruktur
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
