@@ -292,7 +292,7 @@ class LaporanMengajar extends Model
                 $rombel = \App\Models\EkstrakurikulerRombel::create([
                     'ekstrakurikuler_id' => $ekskul->id,
                     'nama_rombel' => 'Rombel ' . ($this->rombel ?? '1'),
-                    'nomor_rombel' => $this->rombel ?? '1',
+                    'nomor_rombel' => (int) preg_replace('/[^0-9]/', '', $this->rombel ?? '1') ?: 1,
                     'jumlah_siswa' => max(15, $totalSiswa),
                     'tanggal_mulai' => $this->jadwal_mengajar ?? now(),
                     'tanggal_selesai' => ($this->jadwal_mengajar ? $this->jadwal_mengajar->copy()->addMonths(6) : now()->addMonths(6)),

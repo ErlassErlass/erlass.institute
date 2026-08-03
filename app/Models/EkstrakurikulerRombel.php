@@ -413,7 +413,7 @@ class EkstrakurikulerRombel extends Model
             self::HARI_MINGGU => 7,
         ];
 
-        $targetHari = $hariMapping[$this->hari];
+        $targetHari = $hariMapping[$this->hari] ?? $currentDate->dayOfWeekIso;
 
         // Interval berdasarkan frekuensi
         $intervalDays = match ($this->frekuensi) {
