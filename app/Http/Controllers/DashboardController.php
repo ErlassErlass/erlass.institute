@@ -189,6 +189,25 @@ class DashboardController extends Controller
         return $query->orderBy('jam_mulai_terjadwal', 'asc')->get();
     }
 
+    /**
+     * Hitung rentang tanggal cutoff resmi penggajian (Memo Direksi No. 536/EPI/V/2025).
+     * Rentang: Tanggal 11 Bulan Lalu s.d. Tanggal 10 Bulan Berjalan.
+     */
+    private function getCutoffRange(?Carbon $date = null): array
+    {
+        $now = $date ? $date->copy() : Carbon::now();
+
+        if ($now->day > 10) {
+            $startDate = $now->copy()->day(11)->startOfDay();
+            $endDate = $now->copy()->addMonth()->day(10)->endOfDay();
+        } else {
+            $startDate = $now->copy()->subMonth()->day(11)->startOfDay();
+            $endDate = $now->copy()->day(10)->endOfDay();
+        }
+
+        return [$startDate, $endDate];
+    }
+
     private function getInstructorStats($user)
     {
         $missing_fields = [];
@@ -209,18 +228,19 @@ class DashboardController extends Controller
             if (empty($profile->alamat_domisili)) $missing_fields[] = 'Alamat Domisili';
         }
 
-        // Dioptimalkan: gunakan agregasi DB daripada memuat seluruh record
+        // Rentang Cutoff Penggajian Resmi (Memo 536/EPI/V/2025): Tanggal 11 s.d. Tanggal 10
+        [$cutoffStart, $cutoffEnd] = $this->getCutoffRange();
+
+        // Dioptimalkan: gunakan agregasi DB dalam rentang cutoff
         $monthlyStats = \App\Models\LaporanMengajar::where('user_id_instruktur', $user->id)
-            ->whereMonth('jadwal_mengajar', now()->month)
-            ->whereYear('jadwal_mengajar', now()->year)
+            ->whereBetween('jadwal_mengajar', [$cutoffStart, $cutoffEnd])
             ->selectRaw('COUNT(*) as total_count, SUM(TIMESTAMPDIFF(MINUTE, jam_mulai, jam_selesai)) as total_minutes')
             ->first();
 
-        // Hitung estimasi pendapatan bulanan (Integrasi Pilar 6 AOQCS)
+        // Hitung estimasi pendapatan periode cutoff (Integrasi Pilar 6 AOQCS)
         $currentMonthSessions = \App\Models\EkstrakurikulerSession::where('user_id_instruktur', $user->id)
             ->where('status', \App\Models\EkstrakurikulerSession::STATUS_SELESAI)
-            ->whereMonth('tanggal_pelaksanaan', now()->month)
-            ->whereYear('tanggal_pelaksanaan', now()->year)
+            ->whereBetween('tanggal_pelaksanaan', [$cutoffStart, $cutoffEnd])
             ->whereHas('laporanMengajar') // Hanya sesi selesai yang memiliki laporan mengajar yang dihitung
             ->get();
 
@@ -247,6 +267,7 @@ class DashboardController extends Controller
             'estimated_earnings' => $estimatedEarnings,
             'total_penalties' => $totalPenalties,
             'total_transport' => $totalTransport,
+            'cutoff_label' => $cutoffStart->format('d M') . ' - ' . $cutoffEnd->format('d M Y'),
             'next_class' => \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah:kodlan,namasekolah'])
                 ->where('user_id_instruktur', $user->id)
                 ->where('tanggal_terjadwal', '>=', now()->toDateString())

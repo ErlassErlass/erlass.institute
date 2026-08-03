@@ -6,7 +6,7 @@
             'icon' => 'bi bi-clock-history',
             'title' => 'Total Jam Mengajar',
             'value' => $total_jam_mengajar . ' Jam',
-            'subtitle' => 'Bulan Ini'
+            'subtitle' => 'Cutoff: ' . ($cutoff_label ?? 'Bulan Ini')
         ])
     </div>
     
@@ -17,7 +17,7 @@
             'icon' => 'bi bi-file-earmark-check',
             'title' => 'Laporan Terkirim',
             'value' => $total_laporan_bulan_ini . ' Laporan',
-            'subtitle' => 'Bulan Ini'
+            'subtitle' => 'Cutoff: ' . ($cutoff_label ?? 'Bulan Ini')
         ])
     </div>
 
@@ -35,7 +35,7 @@
                     <h5 class="card-title fw-bold mb-1">Rp {{ number_format($estimated_earnings, 0, ',', '.') }}</h5>
                 </div>
                 <div class="mt-2 pt-2 border-top border-dark border-opacity-10 d-flex justify-content-between align-items-center">
-                    <span class="small text-dark-50">Bulan Ini</span>
+                    <span class="small text-dark-50">Cutoff: {{ $cutoff_label ?? 'Bulan Ini' }}</span>
                     @if($total_penalties > 0)
                         <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25 small" data-bs-toggle="tooltip" title="Potongan keterlambatan">
                             -Rp {{ number_format($total_penalties, 0, ',', '.') }}
