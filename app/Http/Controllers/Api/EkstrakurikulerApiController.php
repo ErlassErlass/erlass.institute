@@ -425,13 +425,15 @@ class EkstrakurikulerApiController extends Controller
                 'jenis_kelamin.in' => 'Pilihan jenis kelamin tidak valid.',
             ]);
 
+            $kelasValue = trim(strip_tags($request->kelas));
             $student = \App\Models\Siswa::create([
                 'nama_lengkap' => trim(strip_tags($request->nama_lengkap)),
                 'sekolah_kodlan' => $request->sekolah_kodlan,
                 'jenis_kelamin' => $request->jenis_kelamin,
                 // Generate temporary NISN: TEMP + UNIX Seconds + Random 3 digit
                 'nisn' => 'TMP' . time() . rand(100, 999), 
-                'kelas' => trim(strip_tags($request->kelas)),
+                'kelas' => $kelasValue,
+                'rombel' => $kelasValue,
                 'no_hp_orangtua' => $request->filled('no_hp_orangtua') ? trim(strip_tags($request->no_hp_orangtua)) : '-',
             ]);
 
