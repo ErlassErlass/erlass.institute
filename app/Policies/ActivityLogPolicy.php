@@ -12,7 +12,7 @@ class ActivityLogPolicy
      */
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['webmaster', 'admin_sistem', 'admin']);
+        return in_array($user->role, ['webmaster', 'admin_sistem']);
     }
 
     /**
@@ -20,6 +20,6 @@ class ActivityLogPolicy
      */
     public function view(User $user, ActivityLog $activityLog): bool
     {
-        return in_array($user->role, ['webmaster', 'admin_sistem', 'admin']);
+        return in_array($user->role, ['webmaster', 'admin_sistem']);
     }
 }

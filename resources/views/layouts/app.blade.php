@@ -743,11 +743,11 @@
                                 <span>Distribusi Jadwal</span>
                             </a>
                         </li>
-                        @if(Auth::user()?->canManageUsers())
+                        @if(in_array(Auth::user()?->role, ['webmaster', 'admin_sistem']))
                             <li class="sidebar-item">
                                 <a class="sidebar-link {{ request()->routeIs('admin.activity-logs.index') ? 'active' : '' }}" href="{{ route('admin.activity-logs.index') }}">
-                                    <i class="bi bi-activity"></i>
-                                    <span>Log Aktivitas</span>
+                                    <i class="bi bi-shield-lock text-danger"></i>
+                                    <span>Log Pergerakan Admin</span>
                                 </a>
                             </li>
                         @endif
