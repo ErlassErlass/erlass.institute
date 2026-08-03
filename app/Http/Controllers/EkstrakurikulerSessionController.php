@@ -185,7 +185,21 @@ class EkstrakurikulerSessionController extends Controller
 
         $session->load(['rombel.ekstrakurikuler.sekolah', 'instruktur', 'asisten', 'laporanMengajar.absensi.siswa']);
 
-        return view('ekstrakurikuler.sessions.show', compact('session'));
+        $previousReport = null;
+        if ($session->ekstrakurikuler_rombel_id) {
+            $previousReport = \App\Models\LaporanMengajar::whereIn('ekstrakurikuler_session_id', function ($query) use ($session) {
+                $query->select('id')
+                    ->from('ekstrakurikuler_session')
+                    ->where('ekstrakurikuler_rombel_id', $session->ekstrakurikuler_rombel_id)
+                    ->where('id', '!=', $session->id);
+            })
+            ->with(['instruktur:id,nama_lengkap'])
+            ->latest('jadwal_mengajar')
+            ->latest('id')
+            ->first();
+        }
+
+        return view('ekstrakurikuler.sessions.show', compact('session', 'previousReport'));
     }
 
     /**

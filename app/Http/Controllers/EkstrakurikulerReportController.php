@@ -74,14 +74,22 @@ class EkstrakurikulerReportController extends Controller
             'deskripsi' => $session->deskripsi_kegiatan,
         ];
 
-        // Ambil daftar materi berdasarkan kategori program
-        $kategori = $session->rombel->ekstrakurikuler->kategori_program;
-        $materiList = \App\Models\RefMateri::where('kategori', $kategori)
-            ->orderByRaw("CASE WHEN TRIM(materi) = 'Lain - Lain' THEN 1 ELSE 0 END")
-            ->orderBy('id', 'asc')
-            ->pluck('materi');
+        // Ambil Laporan Sebelumnya dari Rombel ini (Catch-up materi untuk instruktur pengganti)
+        $previousReport = null;
+        if ($session->ekstrakurikuler_rombel_id) {
+            $previousReport = LaporanMengajar::whereIn('ekstrakurikuler_session_id', function ($query) use ($session) {
+                $query->select('id')
+                    ->from('ekstrakurikuler_session')
+                    ->where('ekstrakurikuler_rombel_id', $session->ekstrakurikuler_rombel_id)
+                    ->where('id', '!=', $session->id);
+            })
+            ->with(['instruktur:id,nama_lengkap'])
+            ->latest('jadwal_mengajar')
+            ->latest('id')
+            ->first();
+        }
 
-        return view('ekstrakurikuler.reports.create', compact('session', 'siswaList', 'defaults', 'materiList'));
+        return view('ekstrakurikuler.reports.create', compact('session', 'siswaList', 'defaults', 'materiList', 'previousReport'));
     }
 
     /**

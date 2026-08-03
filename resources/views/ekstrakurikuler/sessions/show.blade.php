@@ -62,6 +62,48 @@
         </div>
     </div>
 
+    <!-- Widget Laporan Sebelumnya (Catch-Up Materi Instruktur Pengganti) -->
+    @if(isset($previousReport) && $previousReport)
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-primary bg-opacity-10 border-start border-4 border-primary">
+        <div class="card-body p-3 p-md-4">
+            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="badge bg-primary px-3 py-2 rounded-pill fs-7 fw-bold">
+                        <i class="bi bi-journal-bookmark-fill me-1"></i> Laporan Sebelumnya
+                    </span>
+                    <span class="small text-dark fw-semibold">
+                        Pertemuan Ke-{{ $previousReport->pertemuan_ke ?? '-' }} &bull; {{ \Carbon\Carbon::parse($previousReport->jadwal_mengajar)->translatedFormat('d F Y') }}
+                    </span>
+                </div>
+                @if($previousReport->instruktur)
+                    <small class="text-secondary fw-semibold">
+                        <i class="bi bi-person-badge me-1"></i> {{ $previousReport->instruktur->nama_lengkap }}
+                    </small>
+                @endif
+            </div>
+            
+            <div class="row g-2 mt-1">
+                <div class="col-md-6">
+                    <div class="small fw-semibold text-dark"><i class="bi bi-book me-1 text-primary"></i> Materi / Topik Sebelumnya:</div>
+                    <div class="small text-secondary fw-medium">{{ $previousReport->materi_pengajaran ?? $previousReport->topik_materi ?? '-' }}</div>
+                </div>
+                @if(!empty($previousReport->deskripsi_kegiatan))
+                <div class="col-md-6">
+                    <div class="small fw-semibold text-dark"><i class="bi bi-card-text me-1 text-primary"></i> Ringkasan Kegiatan:</div>
+                    <div class="small text-secondary">{{ $previousReport->deskripsi_kegiatan }}</div>
+                </div>
+                @endif
+                @if(!empty($previousReport->catatan))
+                <div class="col-12 mt-2 pt-2 border-top border-primary border-opacity-10">
+                    <div class="small fw-semibold text-dark"><i class="bi bi-chat-left-text me-1 text-primary"></i> Catatan Instruktur Sebelumnya:</div>
+                    <div class="small text-dark-50 fst-italic">{{ $previousReport->catatan }}</div>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+    @endif
+
     
     @if(Auth::user()->role === "instruktur" && $session->canComplete())
         @php
