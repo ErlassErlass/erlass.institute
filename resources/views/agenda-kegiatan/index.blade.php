@@ -750,29 +750,6 @@ function showExportError() {
     document.getElementById('btnExport').disabled = false;
 }
 
-}
-
-// ── Reset Filter ─────────────────────────────────────────
-function resetFilter() {
-    document.getElementById('filterKota').value         = '';
-    document.getElementById('filterSekolah').value      = '';
-    document.getElementById('filterSekolah').disabled   = true;
-    document.getElementById('filterSekolah').innerHTML  = '<option value="">— Pilih Wilayah dulu —</option>';
-    document.getElementById('filterRombel').value       = '';
-    document.getElementById('filterRombel').disabled    = true;
-    document.getElementById('filterRombel').innerHTML   = '<option value="">— Semua Rombel —</option>';
-    document.getElementById('filterTanggalDari').value  = '';
-    document.getElementById('filterTanggalSampai').value = '';
-
-    currentFilters = {};
-    document.getElementById('tableWrapper').style.display  = 'none';
-    document.getElementById('emptyInitial').style.display  = '';
-    document.getElementById('emptyResults').style.display  = 'none';
-    document.getElementById('infoBar').style.setProperty('display', 'none', 'important');
-    document.getElementById('btnExport').disabled = true;
-    resetExportUI();
-}
-
 // ── UI helpers ───────────────────────────────────────────
 function showLoading() {
     document.getElementById('tableLoading').style.display  = '';
@@ -790,12 +767,6 @@ function showEmpty() {
     document.getElementById('tableWrapper').style.display = 'none';
     document.getElementById('infoBar').style.setProperty('display', 'none', 'important');
     document.getElementById('btnExport').disabled = true;
-}
-
-function escHtml(str) {
-    const d = document.createElement('div');
-    d.textContent = str ?? '';
-    return d.innerHTML;
 }
 </script>
 @endpush
