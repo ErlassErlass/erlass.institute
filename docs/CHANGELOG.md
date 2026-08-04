@@ -29,8 +29,9 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Audit Form & Pembersihan Notifikasi Ganda Seluruh Modul System**:
   - Pemeriksaan komprehensif 4 Jalur Form & Tombol Submit (Akademik, Payroll, Data Master, Sales/System).
   - Pembersihan blok alert manual ganda pada `absensi/index`, `laporan-mengajar/index`, `sekolah/index`, `siswa/index`, `salesmen/index`, `products/index`, `salary_rates/index`, `schedule_changes/index`.
-- **Pembaruan Foto Utama pada Halaman Rekap Pertemuan Ekskul (`/rekap-pertemuan-ekskul`)**:
-  - Penyesuaian `AgendaKegiatanController@data` & `GenerateAgendaExportJob`: Mengutamakan **Foto Kegiatan Mengajar (`foto_kegiatan`)** sebagai gambar utama yang ditampilkan pada tabel dan paket ZIP ekspor (dengan *fallback* ke `foto_absensi_siswa` jika foto kegiatan kosong).
+- **Validasi Wajib Foto Kegiatan (`/laporan-mengajar/create`)**:
+  - Pengubahan aturan validasi `foto_kegiatan` dari `nullable` menjadi **`required`** pada `StoreLaporanMengajarRequest`, `LaporanMengajarController`, dan formulir pembuatan laporan mengajar.
+  - Penambahan indikator bintang merah (`*`) dan atribut HTML5 `required` untuk memastikan seluruh laporan mengajar baru wajib menyertakan foto dokumentasi kegiatan mengajar.
 
 ## [2.5.0] - 2026-08-03
 

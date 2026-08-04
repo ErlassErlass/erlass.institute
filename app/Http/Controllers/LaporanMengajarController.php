@@ -642,7 +642,7 @@ class LaporanMengajarController extends Controller
                     }
                 },
             ],
-            'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'foto_kegiatan' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ];
     }
 }

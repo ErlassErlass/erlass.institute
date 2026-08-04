@@ -214,10 +214,10 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="foto_kegiatan" class="form-label">Foto Kegiatan</label>
-                                <input type="file" name="foto_kegiatan" id="foto_kegiatan" class="form-control @error('foto_kegiatan') is-invalid @enderror" accept="image/jpeg,image/png,image/jpg,image/gif" data-max-size="5242880">
+                                <label for="foto_kegiatan" class="form-label fw-bold">Foto Kegiatan <span class="text-danger">*</span></label>
+                                <input type="file" name="foto_kegiatan" id="foto_kegiatan" class="form-control @error('foto_kegiatan') is-invalid @enderror" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" data-max-size="5242880" required>
                                 <div class="form-text mt-1">
-                                    <i class="bi bi-info-circle me-1"></i> Format: JPEG, PNG, JPG, GIF | Maksimal: 5MB
+                                    <i class="bi bi-info-circle me-1"></i> Wajib diisi. Format: JPEG, PNG, JPG, GIF, WEBP | Maksimal: 5MB
                                 </div>
                                 @error('foto_kegiatan') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
