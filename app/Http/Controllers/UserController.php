@@ -191,13 +191,51 @@ class UserController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified resource with role-aware data.
      */
     public function show(User $user)
     {
         Gate::authorize('view', $user);
 
-        return view('users.show', compact('user'));
+        $user->load(['instructorProfile', 'verifiedBy']);
+
+        $data = compact('user');
+
+        if ($user->role === 'instruktur') {
+            // Instructor: load teaching sessions, payroll, and reports
+            $recentSessions = \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah', 'laporanMengajar'])
+                ->where('user_id_instruktur', $user->id)
+                ->orderByDesc('tanggal_terjadwal')
+                ->limit(10)
+                ->get();
+
+            $payrollItems = \App\Models\PayrollItem::with('batch')
+                ->where('user_id_instruktur', $user->id)
+                ->orderByDesc('created_at')
+                ->limit(10)
+                ->get();
+
+            $instructorStats = [
+                'total_sessions' => \App\Models\EkstrakurikulerSession::where('user_id_instruktur', $user->id)->count(),
+                'completed_sessions' => \App\Models\EkstrakurikulerSession::where('user_id_instruktur', $user->id)->where('status', 'completed')->count(),
+                'total_reports' => $user->laporanMengajar()->count(),
+                'reports_this_month' => $user->laporanMengajar()->where('created_at', '>=', now()->startOfMonth())->count(),
+                'total_schools' => $user->laporanMengajar()->distinct('sekolah_kodlan')->count('sekolah_kodlan'),
+                'total_payroll_net' => \App\Models\PayrollItem::where('user_id_instruktur', $user->id)->sum('net_salary'),
+            ];
+
+            $data = array_merge($data, compact('recentSessions', 'payrollItems', 'instructorStats'));
+        }
+
+        // Activity log for all roles (admin sees their own ops, instructor sees their actions)
+        $activityLogs = \App\Models\ActivityLog::where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->limit(15)
+            ->get();
+
+        $data['activityLogs'] = $activityLogs;
+
+        return view('users.show', $data);
     }
 
     /**

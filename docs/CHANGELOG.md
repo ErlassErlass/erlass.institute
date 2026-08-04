@@ -18,6 +18,12 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
   - **Export CSV Mass Transfer (`.csv`)**: Format CSV ringan untuk pengunggahan massal ke portal internet banking (BCA, Mandiri, BRI, BNI).
   - **Print / Export PDF (`.pdf`)**: Tampilan halaman cetak resmi (`resources/views/payroll/export_pdf.blade.php`) lengkap dengan kop surat resmi Erlass Institute, summary batch, dan tempat tanda tangan verifikasi.
   - Penambahan dropdown tombol **`📊 Ekspor Akuntansi`** pada halaman detail batch payroll (`resources/views/payroll/show.blade.php`).
+- **Pusat Kendali Profil User Terpadu (*User Command Center*) (`/users/{id}`)**:
+  - Redesain total halaman detail user (`resources/views/users/show.blade.php`) dengan **sistem navigasi tab** yang membedakan tampilan berdasarkan role:
+  - **Untuk Admin/Webmaster**: Kartu Level Otoritas & Deskripsi Hak Akses, Panel Statistik Aksi Admin (total/bulan ini/hari ini), dan Panel Tindakan Cepat (Edit/Hapus).
+  - **Untuk Instruktur**: Profil Lengkap + Dokumen Lampiran (KTP/NPWP/CV), Tab Riwayat 10 Sesi Mengajar Terakhir, Tab Riwayat Payroll & Slip Honor, Sidebar Ringkasan Performa (Total Sesi/Laporan/Sekolah/Honor Netto).
+  - **Tab Log Aktivitas**: Menampilkan 15 aktivitas terbaru (semua role) dengan badge warna otomatis berdasarkan jenis aksi.
+  - Peningkatan `UserController@show` untuk memuat data role-specific (`EkstrakurikulerSession`, `PayrollItem`, `ActivityLog`).
 
 ## [2.5.0] - 2026-08-03
 
