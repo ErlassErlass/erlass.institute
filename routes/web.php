@@ -304,6 +304,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('payroll/batches', [PayrollController::class, 'index'])->name('payroll.batches.index');
         Route::post('payroll/batches', [PayrollController::class, 'storeBatch'])->name('payroll.batches.store');
         Route::get('payroll/batches/{batch}', [PayrollController::class, 'showBatch'])->name('payroll.batches.show');
+        Route::get('payroll/batches/{batch}/export-excel', [PayrollController::class, 'exportExcel'])->name('payroll.batches.export-excel');
+        Route::get('payroll/batches/{batch}/export-csv', [PayrollController::class, 'exportCsv'])->name('payroll.batches.export-csv');
+        Route::get('payroll/batches/{batch}/export-pdf', [PayrollController::class, 'exportPdf'])->name('payroll.batches.export-pdf');
         Route::post('payroll/batches/{batch}/process', [PayrollController::class, 'processBatch'])->name('payroll.batches.process');
         Route::post('payroll/batches/{batch}/pay', [PayrollController::class, 'payBatch'])->name('payroll.batches.pay');
         Route::delete('payroll/batches/{batch}', [PayrollController::class, 'destroyBatch'])->name('payroll.batches.destroy');

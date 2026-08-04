@@ -15,7 +15,32 @@
                         <p class="text-muted mb-0">Periode: {{ $batch->periode->format('F Y') }}</p>
                     </div>
                 </div>
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2 wrap">
+                    <!-- Export Dropdown -->
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-success dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-download me-1"></i> Ekspor Akuntansi
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                            <li>
+                                <a class="dropdown-item py-2 fw-semibold text-success" href="{{ route('admin.payroll.batches.export-excel', $batch->id) }}">
+                                    <i class="bi bi-file-earmark-excel-fill me-2 fs-5"></i> Export Excel Multisheet (.xlsx)
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-2 fw-semibold text-primary" href="{{ route('admin.payroll.batches.export-csv', $batch->id) }}">
+                                    <i class="bi bi-filetype-csv me-2 fs-5"></i> Export CSV Bank Mass Transfer (.csv)
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item py-2 fw-semibold text-dark" href="{{ route('admin.payroll.batches.export-pdf', $batch->id) }}" target="_blank">
+                                    <i class="bi bi-printer-fill me-2 fs-5 text-secondary"></i> Cetak / Simpan Laporan PDF
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
                     @if ($batch->status === 'draft')
                         <span class="badge bg-secondary p-2 px-3 fs-6">Draft</span>
                         <form action="{{ route('admin.payroll.batches.process', $batch->id) }}" method="POST" class="d-inline">

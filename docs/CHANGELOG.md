@@ -12,9 +12,12 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Dukungan IPv6 Native & Dual-Stack Nginx Web Server**:
   - Pengaktifan listener IPv6 (`listen [::]:80;` dan `listen [::]:443 ssl http2;`) di `/etc/nginx/sites-available/webapperlass.conf`.
   - Memastikan aksesibilitas website lancar bagi pengguna dari seluruh ISP Indonesia, terutama ISP seluler 4G/5G (Telkomsel, XL, Tri, Indosat) dan ISP serat optik bersistem CGNAT & IPv6 Native seperti **MyRepublic**.
-- **Perbaikan Data & Manajemen Rombel Ekskul (SDIT CITRA SAHABAT)**:
-  - Koreksi nilai kapasitas `jumlah_siswa` Rombel 1 SDIT Citra Sahabat dari `52` menjadi `10` siswa.
-  - Pemecahan Rombel menjadi 2 kelompok (Rombel 1: 10 siswa, Rombel 2: 16 siswa) dan pembentukan 32 sesi pengajaran Rombel 2 secara otomatis.
+- **Ekspor Rincian Payroll untuk Akuntansi & Transfer Bank (`/admin/payroll/batches/{id}`)**:
+  - Integrasi 3 metode ekspor pada `PayrollController` (`exportExcel`, `exportCsv`, `exportPdf`).
+  - **Export Excel Multisheet (`.xlsx`)**: Berisi 3 worksheet (Sheet 1: Rekap Transfer Bank & No Rekening, Sheet 2: Jurnal Akuntansi & Komposisi Potongan, Sheet 3: Audit Rincian Per Sesi Mengajar).
+  - **Export CSV Mass Transfer (`.csv`)**: Format CSV ringan untuk pengunggahan massal ke portal internet banking (BCA, Mandiri, BRI, BNI).
+  - **Print / Export PDF (`.pdf`)**: Tampilan halaman cetak resmi (`resources/views/payroll/export_pdf.blade.php`) lengkap dengan kop surat resmi Erlass Institute, summary batch, dan tempat tanda tangan verifikasi.
+  - Penambahan dropdown tombol **`📊 Ekspor Akuntansi`** pada halaman detail batch payroll (`resources/views/payroll/show.blade.php`).
 
 ## [2.5.0] - 2026-08-03
 
