@@ -2,6 +2,20 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.6.0] - 2026-08-04
+
+### Ditambahkan & Dioptimalkan (Added & Optimized)
+- **Banner Notifikasi Permohonan Akses Ad-Hoc / Susulan (`/dashboard`)**:
+  - Penambahan query `approved_adhoc_requests` pada `DashboardController@getInstructorStats` yang memfilter permohonan akses Ad-Hoc / laporan susulan yang telah di-ACC Admin namun belum diisi laporan.
+  - Penambahan pencatatan `ActivityLog` (`approve_adhoc_request` & `reject_adhoc_request`) di `LateReportRequestController` saat Admin menyetujui / menolak permohonan.
+  - Penambahan Banner Notifikasi Emas-Hijau Spesial (`🎉 PERMOHONAN AD-HOC DI-ACC ADMIN`) pada Dashboard Instruktur (`resources/views/dashboard.blade.php`) dengan tombol 1-klik `Buat Laporan Ad-Hoc`.
+- **Dukungan IPv6 Native & Dual-Stack Nginx Web Server**:
+  - Pengaktifan listener IPv6 (`listen [::]:80;` dan `listen [::]:443 ssl http2;`) di `/etc/nginx/sites-available/webapperlass.conf`.
+  - Memastikan aksesibilitas website lancar bagi pengguna dari seluruh ISP Indonesia, terutama ISP seluler 4G/5G (Telkomsel, XL, Tri, Indosat) dan ISP serat optik bersistem CGNAT & IPv6 Native seperti **MyRepublic**.
+- **Perbaikan Data & Manajemen Rombel Ekskul (SDIT CITRA SAHABAT)**:
+  - Koreksi nilai kapasitas `jumlah_siswa` Rombel 1 SDIT Citra Sahabat dari `52` menjadi `10` siswa.
+  - Pemecahan Rombel menjadi 2 kelompok (Rombel 1: 10 siswa, Rombel 2: 16 siswa) dan pembentukan 32 sesi pengajaran Rombel 2 secara otomatis.
+
 ## [2.5.0] - 2026-08-03
 
 ### Ditambahkan & Dioptimalkan (Added & Optimized)
