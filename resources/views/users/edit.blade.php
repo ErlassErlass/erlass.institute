@@ -467,7 +467,7 @@
             });
         }
 
-        // Note: Domicile card visibility is now handled server-side via Blade @if
+        // Domicile card visibility is handled server-side
     });
 </script>
 @endpush
