@@ -224,6 +224,7 @@
                                     </div>
                                 </div>
 
+                                @if($user->role === 'instruktur')
                                 <div class="row">
                                     <div class="col-md-6">
                                         <!-- Agama -->
@@ -287,8 +288,13 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        @if($user->role === 'instruktur')
                         <!-- Domicile Information Card (Shown for Instructor role only) -->
-                        <div class="card shadow-sm mb-4 d-none" id="instructor-domicile-card">
+                        <div class="card shadow-sm mb-4" id="instructor-domicile-card">
                             <div class="card-header bg-info bg-opacity-10 text-info">
                                 <h6 class="card-title mb-0">
                                     <i class="bi bi-geo-alt-fill me-2"></i>Domisili Instruktur
@@ -324,6 +330,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                     </div>
                     
                     <div class="col-lg-4">
@@ -460,25 +467,7 @@
             });
         }
 
-        // Toggle instructor domicile fields based on role
-        const roleSelect = document.getElementById('role');
-        const domicileCard = document.getElementById('instructor-domicile-card');
-        
-        function toggleDomicileCard() {
-            if (roleSelect && domicileCard) {
-                if (roleSelect.value === 'instruktur') {
-                    domicileCard.classList.remove('d-none');
-                } else {
-                    domicileCard.classList.add('d-none');
-                }
-            }
-        }
-        
-        if (roleSelect) {
-            roleSelect.addEventListener('change', toggleDomicileCard);
-            // Run initially
-            toggleDomicileCard();
-        }
+        // Note: Domicile card visibility is now handled server-side via Blade @if
     });
 </script>
 @endpush
