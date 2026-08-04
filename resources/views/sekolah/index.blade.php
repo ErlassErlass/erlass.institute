@@ -41,12 +41,7 @@
             <h5 class="card-title mb-0 fw-bold text-dark">Data Sekolah</h5>
         </div>
         <div class="card-body p-0">
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show m-4" role="alert">
-                    <i class="bi bi-check-circle me-1"></i> {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
+
 
             <div class="table-responsive d-none d-md-block">
                 <table class="table table-hover align-middle mb-0" id="sekolah-table">

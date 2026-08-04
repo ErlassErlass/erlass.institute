@@ -156,12 +156,7 @@
     {{-- Main Data Table --}}
     <div class="card glass-card border-0">
         <div class="card-body p-0">
-            @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show m-4" role="alert">
-                <i class="bi bi-check-circle me-2"></i> {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            @endif
+
 
             <div class="table-responsive d-none d-md-block">
                 <table class="table table-modern table-compact align-middle mb-0" id="laporan-mengajar-table">

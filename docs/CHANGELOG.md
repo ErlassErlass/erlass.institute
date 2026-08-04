@@ -26,9 +26,10 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
   - Peningkatan `UserController@show` untuk memuat data role-specific (`EkstrakurikulerSession`, `PayrollItem`, `ActivityLog`).
 - **Pengurutan Sesi Ekstrakurikuler Berorientasi Status & Hari Ini (`/ekstrakurikuler/sessions`)**:
   - Penyesuaian `EkstrakurikulerSessionController@index`: Sesi berstatus `selesai` / `completed` otomatis dipindahkan ke **urutan paling belakang** di bawah sesi aktif.
-- **Pengeliminasian Notifikasi Ganda (*Duplicate Alert Cleanup*) pada Halaman Payroll (`/admin/payroll/batches`)**:
-  - Menghapus blok komponen alert manual yang ganda pada `resources/views/payroll/index.blade.php`, `show.blade.php`, dan `slip_detail.blade.php`.
-  - Notifikasi kilat (*flash messages*) kini tampil 1x secara bersih & konsisten melalui komponen global `<x-session-status />` pada `layouts/app.blade.php`.
+- **Audit Form & Pembersihan Notifikasi Ganda Seluruh Modul System**:
+  - Pemeriksaan komprehensif 4 Jalur Form & Tombol Submit (Akademik, Payroll, Data Master, Sales/System).
+  - Pembersihan blok alert manual ganda pada `absensi/index`, `laporan-mengajar/index`, `sekolah/index`, `siswa/index`, `salesmen/index`, `products/index`, `salary_rates/index`, `schedule_changes/index`.
+  - Memastikan seluruh form submit bekerja presisi, aman CSRF, dan menampilkan notifikasi 1x secara konsisten lewat `<x-session-status />`.
 
 ## [2.5.0] - 2026-08-03
 

@@ -97,27 +97,6 @@
                 </div>
                 @endif
             </div>
-            <div class="card-body p-0">
-                @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show m-4" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                @endif
-
-                @if (session('warning'))
-                <div class="alert alert-warning alert-dismissible fade show m-4" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('warning') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                @endif
-
-                @if (session('error'))
-                <div class="alert alert-danger alert-dismissible fade show m-4" role="alert">
-                    <i class="bi bi-exclamation-octagon-fill me-2"></i> {{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                @endif
 
                 @if (session('import_errors') && count(session('import_errors')) > 0)
                 <div class="alert alert-danger alert-dismissible fade show m-4" role="alert">
