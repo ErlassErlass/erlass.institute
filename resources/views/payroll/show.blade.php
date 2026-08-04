@@ -3,7 +3,7 @@
 @section('content')
 <div class="container-fluid py-4">
     <!-- Header Section -->
-    <div class="card shadow-sm mb-4 border-0">
+    <div class="card shadow-sm mb-4 border-0" style="position: relative; z-index: 1050;">
         <div class="card-body p-4">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <div class="d-flex align-items-center gap-2">
@@ -18,10 +18,10 @@
                 <div class="d-flex align-items-center gap-2 wrap">
                     <!-- Export Dropdown -->
                     <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-success dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button class="btn btn-sm btn-success text-white dropdown-toggle fw-bold px-3 py-2 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-download me-1"></i> Ekspor Akuntansi
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="z-index: 1060; font-size: 0.9rem; min-width: 280px;">
                             <li>
                                 <a class="dropdown-item py-2 fw-semibold text-success" href="{{ route('admin.payroll.batches.export-excel', $batch->id) }}">
                                     <i class="bi bi-file-earmark-excel-fill me-2 fs-5"></i> Export Excel Multisheet (.xlsx)
