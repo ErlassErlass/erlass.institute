@@ -24,6 +24,9 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
   - **Untuk Instruktur**: Profil Lengkap + Dokumen Lampiran (KTP/NPWP/CV), Tab Riwayat 10 Sesi Mengajar Terakhir, Tab Riwayat Payroll & Slip Honor, Sidebar Ringkasan Performa (Total Sesi/Laporan/Sekolah/Honor Netto).
   - **Tab Log Aktivitas**: Menampilkan 15 aktivitas terbaru (semua role) dengan badge warna otomatis berdasarkan jenis aksi.
   - Peningkatan `UserController@show` untuk memuat data role-specific (`EkstrakurikulerSession`, `PayrollItem`, `ActivityLog`).
+- **Pengurutan Sesi Ekstrakurikuler Berorientasi Status & Hari Ini (`/ekstrakurikuler/sessions`)**:
+  - Penyesuaian `EkstrakurikulerSessionController@index`: Sesi berstatus `selesai` / `completed` otomatis dipindahkan ke **urutan paling belakang** di bawah sesi aktif.
+  - Pengurutan default (*Jadwal Terdekat*) mengutamakan sesi mulai dari **Hari Ini ke depan** terlebih dahulu, disusul tanggal lampau, lalu sesi selesai di urutan akhir.
 
 ## [2.5.0] - 2026-08-03
 

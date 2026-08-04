@@ -93,15 +93,23 @@ class EkstrakurikulerSessionController extends Controller
             });
         }
 
-        // Sorting
+        // Sorting: Sesi berstatus 'selesai' ditaruh di paling belakang, dan urutan tanggal dimulai dari hari ini
         $sort = $request->get('sort', 'date_asc'); // Default to date_asc (Jadwal Terdekat)
+        $today = now()->format('Y-m-d');
         
+        // Sesi berstatus selesai/completed selalu ditaruh di paling belakang
+        $query->orderByRaw("CASE WHEN status IN ('selesai', 'completed') THEN 1 ELSE 0 END ASC");
+
         switch ($sort) {
             case 'date_asc':
-                $query->orderBy('tanggal_terjadwal', 'asc')->orderBy('jam_mulai_terjadwal', 'asc');
+                $query->orderByRaw("CASE WHEN tanggal_terjadwal >= '{$today}' THEN 0 ELSE 1 END ASC")
+                      ->orderByRaw("CASE WHEN tanggal_terjadwal >= '{$today}' THEN tanggal_terjadwal END ASC")
+                      ->orderByRaw("CASE WHEN tanggal_terjadwal < '{$today}' THEN tanggal_terjadwal END DESC")
+                      ->orderBy('jam_mulai_terjadwal', 'asc');
                 break;
             case 'date_desc':
-                $query->orderBy('tanggal_terjadwal', 'desc')->orderBy('jam_mulai_terjadwal', 'desc');
+                $query->orderBy('tanggal_terjadwal', 'desc')
+                      ->orderBy('jam_mulai_terjadwal', 'desc');
                 break;
             case 'meeting_asc':
                 $query->orderBy('nomor_pertemuan', 'asc');
@@ -110,7 +118,10 @@ class EkstrakurikulerSessionController extends Controller
                 $query->orderBy('nomor_pertemuan', 'desc');
                 break;
             default:
-                $query->orderBy('tanggal_terjadwal', 'asc')->orderBy('jam_mulai_terjadwal', 'asc');
+                $query->orderByRaw("CASE WHEN tanggal_terjadwal >= '{$today}' THEN 0 ELSE 1 END ASC")
+                      ->orderByRaw("CASE WHEN tanggal_terjadwal >= '{$today}' THEN tanggal_terjadwal END ASC")
+                      ->orderByRaw("CASE WHEN tanggal_terjadwal < '{$today}' THEN tanggal_terjadwal END DESC")
+                      ->orderBy('jam_mulai_terjadwal', 'asc');
                 break;
         }
 
