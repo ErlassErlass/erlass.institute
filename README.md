@@ -10,6 +10,23 @@
 
 ---
 
+## 🏛️ 6 Pilar Utama AOQCS & Status Kesiapan Sistem (Blueprint 2026)
+
+Erlass Portal dibangun berdasarkan **Blueprint AOQCS (Academic Operations, Quality Control & Compensation System)**. Seluruh **6 Pilar Utama** telah **100% Selesai & Ready (🟢)** di lingkungan produksi:
+
+| Pilar AOQCS | Deskripsi & Ruang Lingkup Fitur | Status Kesiapan |
+| :--- | :--- | :---: |
+| **1. Master Data Core** | Data Master Sekolah, Salesman, Produk, Instruktur, Asisten, & Rombel. Dilengkapi pencarian Select2 AJAX & Impor Massal Excel. | 🟢 **100% Ready** |
+| **2. Surat Pesanan (SP) & Validasi Akademik** | Workflow pengelolaan SP (Draft ➔ Menunggu Validasi ➔ Disetujui ➔ Berjalan), Impor SP Excel, & Auto-generate Program Ekskul dari SP. | 🟢 **100% Ready** |
+| **3. Rombel & Penjadwalan Sesi Cerdas** | Manajemen Rombel & Sesi, bypass otomatis tanggal libur nasional, soft alert kapasitas >20 siswa, & pengurutan sesi berorientasi Hari Ini ke depan + Selesai di urutan paling belakang. | 🟢 **100% Ready** |
+| **4. Perubahan Jadwal (Rescheduling Engine)** | Audit log jadwal lama/baru, workflow persetujuan (Akademik & PIC Sekolah), serta H-1 WhatsApp Reminder otomatis via Fonnte API (`schedule:send-reminders`). | 🟢 **100% Ready** |
+| **5. Kehadiran, Evaluasi & Laporan Mengajar** | Presensi detail (Hadir, Izin, Sakit, Alpha), Grace System Akses Ad-Hoc/Susulan (H+1 kuota 3x), Penilaian Siswa Dinamis (s.d 8 Periode), & Upload Portofolio Siswa (.sb3, .hex, .py). | 🟢 **100% Ready** |
+| **6. Kompensasi, Quality Control & Payroll** | Warning System Engine QC (6 aturan deteksi Merah/Kuning), Master Leveling & Tarif Kepakaran, Deteksi Punctuality Check-in, Batch Payroll Bulanan (Cutoff Tgl 11-10), Pelunasan, & Ekspor Akuntansi Multisheet (.xlsx, .csv, .pdf). | 🟢 **100% Ready** |
+
+> Rincian matriks audit kesiapan lengkap dapat dilihat di [docs/CHECKLIST_AOQCS_BLUEPRINT.md](docs/CHECKLIST_AOQCS_BLUEPRINT.md).
+
+---
+
 ## 📚 Dokumentasi Terpadu
 
 Lihat indeks dokumen lengkap di **[docs/README.md](docs/README.md)**.
