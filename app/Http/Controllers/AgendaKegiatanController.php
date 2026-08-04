@@ -176,8 +176,9 @@ class AgendaKegiatanController extends Controller
             $instruktur = $session->instruktur;
 
             $fotoUrl = null;
-            if ($laporan?->foto_absensi_siswa) {
-                $fotoUrl = rtrim(request()->getSchemeAndHttpHost(), '/') . '/storage/' . ltrim($laporan->foto_absensi_siswa, '/');
+            $fotoPath = $laporan?->foto_kegiatan ?? $laporan?->foto_absensi_siswa;
+            if ($fotoPath) {
+                $fotoUrl = rtrim(request()->getSchemeAndHttpHost(), '/') . '/storage/' . ltrim($fotoPath, '/');
             }
 
             $projectUrl = null;
