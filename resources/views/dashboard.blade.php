@@ -116,6 +116,58 @@
         </div>
     </div>
 
+    <!-- Approved Ad-Hoc / Late Access Request Notification (Instructor Only) -->
+    @if(isset($approved_adhoc_requests) && $approved_adhoc_requests->count() > 0)
+    @foreach($approved_adhoc_requests as $approvedReq)
+    <div class="card border-0 shadow-sm mb-4 overflow-hidden" style="border-radius: 15px; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-left: 6px solid #10b981 !important;">
+        <div class="card-body p-4">
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; min-width: 48px;">
+                        <i class="bi bi-check-circle-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge bg-success text-white fw-bold px-2 py-1" style="font-size: 0.75rem;">
+                                <i class="bi bi-shield-check me-1"></i>PERMOHONAN AD-HOC DI-ACC ADMIN
+                            </span>
+                            <small class="text-muted fw-semibold">
+                                {{ $approvedReq->updated_at ? $approvedReq->updated_at->diffForHumans() : 'Baru saja' }}
+                            </small>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1">
+                            Permohonan Akses Laporan {{ $approvedReq->isAdhoc() ? 'Ad-Hoc Tanggal ' . ($approvedReq->adhoc_date ? $approvedReq->adhoc_date->format('d/m/Y') : '-') : 'Sesi ' . optional(optional(optional($approvedReq->session)->rombel)->ekstrakurikuler)->kategori_program }} Telah Disetujui!
+                        </h5>
+                        <p class="text-muted small mb-0">
+                            <strong class="text-dark">Alasan Permohonan:</strong> "{{ $approvedReq->reason }}"
+                            @if($approvedReq->admin_notes)
+                                <span class="ms-2 text-dark">• <strong>Catatan Admin:</strong> {{ $approvedReq->admin_notes }}</span>
+                            @endif
+                            <span class="ms-2 text-muted">(Di-ACC oleh: <strong>{{ $approvedReq->admin->nama_lengkap ?? 'Admin Sistem' }}</strong>)</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="text-nowrap">
+                    @if($approvedReq->isAdhoc())
+                        <a href="{{ route('laporan-mengajar.create') }}?tanggal={{ $approvedReq->adhoc_date ? $approvedReq->adhoc_date->format('Y-m-d') : '' }}" class="btn btn-success text-white fw-bold px-3 py-2 rounded-3 shadow-sm">
+                            <i class="bi bi-pencil-square me-1"></i> Buat Laporan Ad-Hoc
+                        </a>
+                    @elseif($approvedReq->session)
+                        <a href="{{ route('sessions.report.create', $approvedReq->session->id) }}" class="btn btn-success text-white fw-bold px-3 py-2 rounded-3 shadow-sm">
+                            <i class="bi bi-pencil-square me-1"></i> Isi Laporan Sesi Ini
+                        </a>
+                    @else
+                        <a href="{{ route('laporan-mengajar.create') }}" class="btn btn-success text-white fw-bold px-3 py-2 rounded-3 shadow-sm">
+                            <i class="bi bi-pencil-square me-1"></i> Buat Laporan Sekarang
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+    @endforeach
+    @endif
+
     <!-- Special Rombel & Student Attendance Check Notification (Instructor Only) -->
     @if(isset($instructor_todo_list) && $instructor_todo_list->count() > 0)
     <div class="card border-0 shadow-sm mb-4 overflow-hidden" style="border-radius: 15px; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 6px solid #f59e0b !important;">

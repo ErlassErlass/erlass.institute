@@ -138,13 +138,25 @@ class LateReportRequestController extends Controller
     {
         $this->authorizeAdmin();
 
+        $admin = Auth::user();
         $lateReportRequest->update([
             'status' => 'approved',
-            'admin_id' => Auth::id(),
-            'admin_notes' => 'Disetujui oleh sistem.',
+            'admin_id' => $admin->id,
+            'admin_notes' => 'Disetujui oleh Admin ' . $admin->nama_lengkap . '.',
         ]);
 
-        return back()->with('success', 'Permohonan disetujui. Instruktur sekarang bisa mengisi laporan.');
+        $instructor = $lateReportRequest->user;
+
+        // Log Activity
+        \App\Models\ActivityLog::create([
+            'user_id' => $admin->id,
+            'action' => 'approve_adhoc_request',
+            'description' => 'Admin ' . $admin->nama_lengkap . ' menyetujui (ACC) permohonan akses laporan Ad-Hoc/Susulan ID #' . $lateReportRequest->id . ' untuk instruktur ' . optional($instructor)->nama_lengkap,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
+        return back()->with('success', 'Permohonan disetujui. Notifikasi permohonan Ad-Hoc kini tampil di Dashboard Instruktur ' . optional($instructor)->nama_lengkap . '.');
     }
 
     /**
@@ -158,13 +170,25 @@ class LateReportRequestController extends Controller
             'admin_notes' => 'required|string|max:500',
         ]);
 
+        $admin = Auth::user();
         $lateReportRequest->update([
             'status' => 'rejected',
-            'admin_id' => Auth::id(),
+            'admin_id' => $admin->id,
             'admin_notes' => $request->admin_notes,
         ]);
 
-        return back()->with('success', 'Permohonan ditolak.');
+        $instructor = $lateReportRequest->user;
+
+        // Log Activity
+        \App\Models\ActivityLog::create([
+            'user_id' => $admin->id,
+            'action' => 'reject_adhoc_request',
+            'description' => 'Admin ' . $admin->nama_lengkap . ' menolak permohonan akses laporan Ad-Hoc/Susulan ID #' . $lateReportRequest->id . ' untuk instruktur ' . optional($instructor)->nama_lengkap . ' (Alasan: ' . $request->admin_notes . ')',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
+        return back()->with('success', 'Permohonan akses Ad-Hoc berhasil ditolak.');
     }
 
     private function authorizeAdmin()
