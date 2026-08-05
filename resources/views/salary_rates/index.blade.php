@@ -113,6 +113,97 @@
         </div>
     </div>
 
+    <!-- Kebijakan Operasional Honor (New Policy Info Card) -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-megaphone text-warning fs-5"></i>
+                <h5 class="card-title mb-0 fw-bold text-dark">Kebijakan Operasional Honor & Transportasi</h5>
+            </div>
+            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-2">
+                <i class="bi bi-lightning-fill me-1"></i> Active Policy
+            </span>
+        </div>
+        <div class="card-body p-4">
+            <p class="text-muted small mb-3">
+                <i class="bi bi-info-circle me-1"></i>
+                Ketentuan operasional berikut <strong>aktif dan berlaku otomatis</strong> pada engine perhitungan payroll saat ini. Perubahan terakhir disetujui oleh Manajemen.
+            </p>
+
+            <div class="row g-3">
+                <!-- Policy 1: Transport 2x PP -->
+                <div class="col-md-4">
+                    <div class="p-3 bg-light rounded border h-100" style="font-size: 0.88rem;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-arrow-left-right text-white"></i></span>
+                            <span class="fw-bold text-dark">Transport 2x PP</span>
+                        </div>
+                        <p class="text-muted mb-2">Biaya transportasi dihitung <strong>2 kali (Pulang-Pergi)</strong>.</p>
+                        <div class="bg-white p-2 rounded border small">
+                            <div class="text-muted mb-1">Contoh Jarak 15 KM:</div>
+                            <code class="text-dark d-block">1 Arah = (15 × Rp 350) + Rp 7.500</code>
+                            <code class="text-dark d-block">= Rp 12.750</code>
+                            <hr class="my-1">
+                            <code class="text-success fw-bold d-block">2x PP = Rp 25.500</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Policy 2: Transport 1x Per Sekolah Per Hari -->
+                <div class="col-md-4">
+                    <div class="p-3 bg-light rounded border h-100" style="font-size: 0.88rem;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-info rounded-circle p-2"><i class="bi bi-building text-white"></i></span>
+                            <span class="fw-bold text-dark">Transport 1x / Sekolah / Hari</span>
+                        </div>
+                        <p class="text-muted mb-2">Jika instruktur mengajar <strong>lebih dari 1 sesi di sekolah yang sama pada hari yang sama</strong>, transport hanya dibayar <strong>1 kali</strong>.</p>
+                        <div class="bg-white p-2 rounded border small">
+                            <div class="text-muted mb-1">Contoh:</div>
+                            <div class="d-flex align-items-center gap-1 mb-1">
+                                <i class="bi bi-check-circle-fill text-success small"></i>
+                                <span>Sesi 1 di SD ABC → <strong class="text-success">Transport ✓</strong></span>
+                            </div>
+                            <div class="d-flex align-items-center gap-1 mb-1">
+                                <i class="bi bi-x-circle-fill text-danger small"></i>
+                                <span>Sesi 2 di SD ABC → <strong class="text-danger">Transport Rp 0</strong></span>
+                            </div>
+                            <hr class="my-1">
+                            <div class="d-flex align-items-center gap-1">
+                                <i class="bi bi-check-circle-fill text-success small"></i>
+                                <span>Sesi 3 di SMP XYZ → <strong class="text-success">Transport ✓</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Policy 3: Jumlah Hadir -->
+                <div class="col-md-4">
+                    <div class="p-3 bg-light rounded border h-100" style="font-size: 0.88rem;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-success rounded-circle p-2"><i class="bi bi-people text-white"></i></span>
+                            <span class="fw-bold text-dark">Basis Hitung = Jumlah Hadir</span>
+                        </div>
+                        <p class="text-muted mb-2">Honorarium dihitung berdasarkan <strong>jumlah siswa yang HADIR</strong> pada sesi tersebut, bukan total siswa terdaftar di rombel.</p>
+                        <div class="bg-white p-2 rounded border small">
+                            <div class="text-muted mb-1">Contoh:</div>
+                            <div class="mb-1">Rombel terdaftar: <strong>20 siswa</strong></div>
+                            <div class="mb-1">Hadir hari ini: <strong>12 siswa</strong></div>
+                            <hr class="my-1">
+                            <div class="d-flex align-items-center gap-1">
+                                <i class="bi bi-arrow-right text-primary"></i>
+                                <span>Honor = <strong class="text-primary">Rp 115.000</strong> <span class="text-muted">(skala 12-14)</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3 p-2 bg-white rounded border-start border-warning border-3 text-muted small">
+                <strong><i class="bi bi-exclamation-triangle me-1"></i>Catatan Penting:</strong> Jika data absensi belum tersedia pada suatu sesi, engine akan menggunakan jumlah siswa terdaftar rombel sebagai <em>fallback</em>.
+            </div>
+        </div>
+    </div>
+
     <!-- Filter & Search Section -->
     <div class="card shadow-sm mb-4 border-0">
         <div class="card-body">

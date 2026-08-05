@@ -27,15 +27,32 @@ class PayrollCalculatorService
      */
     public function calculateSessionFee(EkstrakurikulerSession $session): array
     {
-        // 1. Tentukan jumlah siswa aktif dalam rombel/sesi ini
-        $rombel = $session->rombel;
+        // 1. Tentukan jumlah siswa HADIR (bukan jumlah siswa terdaftar/rombel).
+        //    Kebijakan: Honor dihitung berdasarkan jumlah siswa yang HADIR pada sesi tersebut,
+        //    diambil dari data absensi laporan mengajar (status = 'hadir').
+        //    Fallback ke jumlah_siswa rombel jika data absensi belum tersedia.
         $studentCount = 0;
-        if ($rombel) {
-            $studentCount = (int) ($rombel->jumlah_siswa ?? 0);
-            if ($studentCount === 0 && method_exists($rombel, 'siswa')) {
-                $studentCount = $rombel->siswa()->wherePivot('status', 'aktif')->count();
+
+        // Prioritas 1: Jumlah siswa HADIR dari absensi laporan mengajar
+        if ($session->laporanMengajar) {
+            $attendanceCount = $session->laporanMengajar->absensi()->where('status', 'hadir')->count();
+            if ($attendanceCount > 0) {
+                $studentCount = $attendanceCount;
             }
         }
+
+        // Prioritas 2 (Fallback): Jika data absensi belum ada, gunakan jumlah siswa rombel
+        if ($studentCount === 0) {
+            $rombel = $session->rombel;
+            if ($rombel) {
+                $studentCount = (int) ($rombel->jumlah_siswa ?? 0);
+                if ($studentCount === 0 && method_exists($rombel, 'siswa')) {
+                    $studentCount = $rombel->siswa()->wherePivot('status', 'aktif')->count();
+                }
+            }
+        }
+
+        // Prioritas 3 (Fallback terakhir): Total absensi (hadir + tidak hadir) jika rombel juga kosong
         if ($studentCount === 0 && $session->laporanMengajar) {
             $studentCount = $session->laporanMengajar->absensi()->count();
         }
@@ -140,6 +157,10 @@ class PayrollCalculatorService
         // - Instruktur Guru Internal Sekolah / Kegiatan di Kantor Erlass: Transport = Rp 0
         // - Jarak >= 10 KM dari Pejaten: (Jarak KM * Rp 350) + Rp 7.500 (sewa kendaraan)
         // - Jarak < 10 KM: Tarif minimal flat Rp 20.000 / Custom Transport Fee Sekolah
+        //
+        // KEBIJAKAN BARU: Transport dihitung 2x Pulang-Pergi (PP).
+        //   Tarif transport satu arah dikalikan 2.
+        //   Deduplikasi per sekolah per hari dilakukan di generateMonthlyPayroll().
         $transportFee = 0.00;
         $ekskul = $session->ekstrakurikuler;
         $sekolah = $ekskul ? $ekskul->sekolah : null;
@@ -155,15 +176,17 @@ class PayrollCalculatorService
             $transportFee = 0.00;
         } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km >= 10.0) {
             $distKm = (float) $ekskul->jarak_km;
-            $transportFee = ($distKm * 350.00) + 7500.00; // Rp 350/KM + Rp 7.500 sewa kendaraan
+            $oneWay = ($distKm * 350.00) + 7500.00; // Rp 350/KM + Rp 7.500 sewa kendaraan
+            $transportFee = $oneWay * 2; // 2x PP (Pulang-Pergi)
         } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km > 0) {
             $distKm = (float) $ekskul->jarak_km;
-            $calculatedTransport = ($distKm * 350.00) + 7500.00;
-            $transportFee = max($calculatedTransport, 20000.00);
+            $oneWay = ($distKm * 350.00) + 7500.00;
+            $oneWay = max($oneWay, 20000.00);
+            $transportFee = $oneWay * 2; // 2x PP (Pulang-Pergi)
         } elseif ($sekolah && $sekolah->kustom_transport_fee !== null) {
-            $transportFee = (float)$sekolah->kustom_transport_fee;
+            $transportFee = (float)$sekolah->kustom_transport_fee * 2; // 2x PP
         } else {
-            $transportFee = 30000.00;
+            $transportFee = 30000.00 * 2; // 2x PP
         }
 
         // 7. Penggunaan nilai koreksi manual (Override Fee) jika Admin mengisi nilai khusus
@@ -259,15 +282,42 @@ class PayrollCalculatorService
                 }
 
                 // Hitung total honor dasar (termasuk nilai override fee) dan total biaya transportasi
+                // KEBIJAKAN BARU: Transport hanya dibayar 1x per sekolah per hari.
+                //   Jika instruktur mengajar >1 sesi di sekolah yang sama pada hari yang sama,
+                //   hanya sesi pertama yang mendapatkan transport, sesi berikutnya = Rp 0.
                 $actualTotalBase = 0.00;
                 $totalTransportFee = 0.00;
+                $transportPaidKeys = []; // Track: "sekolah_kodlan|tanggal" => true
+
                 foreach ($instructorSessions as $session) {
                     if ($session->override_fee !== null) {
                         $actualTotalBase += (float) $session->override_fee;
                     } else {
                         $actualTotalBase += (float) $session->calculated_fee;
                     }
-                    $totalTransportFee += (float) $session->transport_fee;
+
+                    // Deduplikasi transport per sekolah per hari
+                    $sessionDate = $session->tanggal_pelaksanaan
+                        ? Carbon::parse($session->tanggal_pelaksanaan)->toDateString()
+                        : ($session->tanggal_terjadwal
+                            ? Carbon::parse($session->tanggal_terjadwal)->toDateString()
+                            : 'unknown');
+
+                    $sekolahKey = 'default';
+                    if ($session->ekstrakurikuler && $session->ekstrakurikuler->sekolah_kodlan) {
+                        $sekolahKey = $session->ekstrakurikuler->sekolah_kodlan;
+                    }
+
+                    $transportKey = $sekolahKey . '|' . $sessionDate;
+
+                    if (!isset($transportPaidKeys[$transportKey])) {
+                        // Pertama kali di sekolah ini pada tanggal ini → bayar transport
+                        $totalTransportFee += (float) $session->transport_fee;
+                        $transportPaidKeys[$transportKey] = true;
+                    } else {
+                        // Sudah dibayar transport di sekolah ini hari ini → set transport sesi ini = 0
+                        $session->update(['transport_fee' => 0.00]);
+                    }
                 }
 
                 // Gaji Bersih (Net Salary) = Honor Dasar + Total Transport + Bonus - Total Denda

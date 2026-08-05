@@ -1,7 +1,7 @@
 # Dokumentasi Spesifikasi & Panduan Perhitungan Payroll (Spesifikasi Teknis Sistem Penggajian)
 
-**Versi Dokumen:** 2.2.0  
-**Tanggal Diperbarui:** 31 Juli 2026  
+**Versi Dokumen:** 2.3.0  
+**Tanggal Diperbarui:** 5 Agustus 2026  
 **Landasan Hukum & Acuan Resmi:** Surat Memo Direksi No. 536/EPI/V/2025 (*Pengajuan Honor Instruktur Erlass TAB 2025/2026*)  
 **Repositori:** `erlass.institute`  
 
@@ -15,10 +15,10 @@ Sistem penggajian pada `erlass.institute` adalah mesin otomatis (*Automated Payr
 
 ## 2. Matriks Ketentuan Honorarium Instruktur
 
-Perhitungan honorarium per sesi mengajar diatur secara otomatis berdasarkan kategori kegiatan dan kuota jumlah siswa dalam rombel.
+Perhitungan honorarium per sesi mengajar diatur secara otomatis berdasarkan kategori kegiatan dan **jumlah siswa yang HADIR** pada sesi tersebut (bukan jumlah siswa terdaftar di rombel). Data kehadiran diambil dari absensi laporan mengajar (`status = 'hadir'`). Jika data absensi belum tersedia, engine menggunakan jumlah siswa terdaftar rombel sebagai *fallback*.
 
 ### A. Honorarium Utama Eksternal (Sesi Reguler Sekolah)
-Ditentukan berdasarkan akumulasi jumlah siswa aktif dalam Rombongan Belajar (Rombel):
+Ditentukan berdasarkan akumulasi jumlah siswa **HADIR** dalam sesi:
 
 | Kuota Jumlah Siswa | Tarif Honorarium per Sesi | Status Operasional |
 | :--- | :---: | :--- |
@@ -52,12 +52,17 @@ Ditentukan berdasarkan akumulasi jumlah siswa aktif dalam Rombongan Belajar (Rom
 
 ## 3. Ketentuan Biaya Transportasi Operasional
 
+> **Kebijakan Baru (Aktif):** Transport dihitung **2x Pulang-Pergi (PP)** dan hanya dibayar **1x per sekolah per hari**.
+
 1. **Guru Internal Sekolah & Sesi di Kantor Erlass**:
    - Biaya Transportasi: **Rp 0** (Hanya membayarkan honorarium mengajar).
 2. **Sekolah Berjarak $\ge 10\text{ KM}$ dari Pejaten**:
-   $$\text{Biaya Transport} = (\text{Jarak KM} \times \text{Rp 350}) + \text{Rp 7.500 (Sewa Kendaraan)}$$
+   $$\text{Biaya Transport 1 Arah} = (\text{Jarak KM} \times \text{Rp 350}) + \text{Rp 7.500 (Sewa Kendaraan)}$$
+   $$\text{Biaya Transport 2x PP} = \text{Biaya Transport 1 Arah} \times 2$$
 3. **Sekolah Berjarak $< 10\text{ KM}$**:
-   - Diberikan tarif flat minimal **Rp 20.000** atau *Custom Transport Fee* yang telah ditetapkan pada profil sekolah.
+   - Diberikan tarif flat minimal **Rp 20.000** (1 arah) × 2 = **Rp 40.000** (PP) atau *Custom Transport Fee* × 2.
+4. **Deduplikasi Per Sekolah Per Hari**:
+   - Jika instruktur mengajar **lebih dari 1 sesi di sekolah yang sama pada hari yang sama**, transport hanya dibayar **1 kali** (sesi pertama). Sesi berikutnya di sekolah tersebut mendapat transport = Rp 0.
 
 ---
 
