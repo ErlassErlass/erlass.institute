@@ -172,7 +172,6 @@ class LaporanMengajarController extends Controller
     {
         return [
             'Free Trial Class',
-            'Trial Class',
             'Pameran',
             'Pendampingan Lomba',
             'Sosialisasi bersama Sales',
