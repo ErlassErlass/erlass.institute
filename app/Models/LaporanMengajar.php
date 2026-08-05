@@ -330,7 +330,7 @@ class LaporanMengajar extends Model
                     'tanggal_selesai' => ($this->jadwal_mengajar ? $this->jadwal_mengajar->copy()->addMonths(6) : now()->addMonths(6)),
                     'jam_mulai' => $this->jam_mulai ?? '08:00:00',
                     'jam_selesai' => $this->jam_selesai ?? '09:30:00',
-                    'total_pertemuan' => 12,
+                    'total_pertemuan' => $isAdHocCategory ? 1 : 12,
                     'status' => 'berlangsung',
                 ]);
             }

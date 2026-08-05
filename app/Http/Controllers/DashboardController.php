@@ -177,6 +177,9 @@ class DashboardController extends Controller
                 'instruktur:id,nama_lengkap',
                 'laporanMengajar:id,ekstrakurikuler_session_id'
             ])
+            ->whereHas('rombel.ekstrakurikuler', function ($q) {
+                $q->where('status', 'aktif');
+            })
             ->whereDate('tanggal_terjadwal', Carbon::today());
 
         if ($user && !$user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
