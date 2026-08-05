@@ -261,11 +261,11 @@
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             Siswa Hadir
-                            <span class="badge bg-success rounded-pill">{{ $laporanMengajar->jumlah_siswa_hadir }}</span>
+                            <span class="badge bg-success rounded-pill">{{ $laporanMengajar->jumlah_hadir }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             Tidak Hadir
-                            <span class="badge bg-danger rounded-pill">{{ $laporanMengajar->jumlah_siswa_tidak_hadir ?? 0 }}</span>
+                            <span class="badge bg-danger rounded-pill">{{ $laporanMengajar->jumlah_tidak_hadir }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             Siswa Keluar

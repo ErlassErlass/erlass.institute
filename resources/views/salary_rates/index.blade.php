@@ -136,9 +136,9 @@
                     <div class="p-3 bg-light rounded border h-100" style="font-size: 0.88rem;">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-arrow-left-right text-white"></i></span>
-                            <span class="fw-bold text-dark">Transport 2x PP</span>
+                            <span class="fw-bold text-dark">Transport 2x PP (Jarak ≥ 10 KM)</span>
                         </div>
-                        <p class="text-muted mb-2">Biaya transportasi dihitung <strong>2 kali (Pulang-Pergi)</strong>.</p>
+                        <p class="text-muted mb-2">Biaya transportasi dihitung <strong>2x PP</strong> untuk sekolah berjarak <strong>≥ 10 KM</strong> dari Pejaten. Sekolah berjarak <strong>&lt; 10 KM</strong> transport = <strong>Rp 0</strong>.</p>
                         <div class="bg-white p-2 rounded border small">
                             <div class="text-muted mb-1">Contoh Jarak 15 KM:</div>
                             <code class="text-dark d-block">1 Arah = (15 × Rp 350) + Rp 7.500</code>

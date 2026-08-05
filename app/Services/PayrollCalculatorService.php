@@ -174,19 +174,18 @@ class PayrollCalculatorService
 
         if ($isGuruInternal || $isKantorErlass) {
             $transportFee = 0.00;
+        } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km < 10.0 && (float)$ekskul->jarak_km > 0) {
+            // Sekolah berjarak < 10 KM dari Pejaten: Uang Transport = Rp 0
+            $transportFee = 0.00;
         } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km >= 10.0) {
-            $distKm = (float) $ekskul->jarak_km;
-            $oneWay = ($distKm * 350.00) + 7500.00; // Rp 350/KM + Rp 7.500 sewa kendaraan
-            $transportFee = $oneWay * 2; // 2x PP (Pulang-Pergi)
-        } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km > 0) {
+            // Sekolah berjarak >= 10 KM dari Pejaten: (Jarak KM x Rp 350 + Rp 7.500 sewa kendaraan) x 2 PP
             $distKm = (float) $ekskul->jarak_km;
             $oneWay = ($distKm * 350.00) + 7500.00;
-            $oneWay = max($oneWay, 20000.00);
             $transportFee = $oneWay * 2; // 2x PP (Pulang-Pergi)
         } elseif ($sekolah && $sekolah->kustom_transport_fee !== null) {
             $transportFee = (float)$sekolah->kustom_transport_fee * 2; // 2x PP
         } else {
-            $transportFee = 30000.00 * 2; // 2x PP
+            $transportFee = 0.00;
         }
 
         // 7. Penggunaan nilai koreksi manual (Override Fee) jika Admin mengisi nilai khusus

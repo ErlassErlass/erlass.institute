@@ -60,7 +60,7 @@ Ditentukan berdasarkan akumulasi jumlah siswa **HADIR** dalam sesi:
    $$\text{Biaya Transport 1 Arah} = (\text{Jarak KM} \times \text{Rp 350}) + \text{Rp 7.500 (Sewa Kendaraan)}$$
    $$\text{Biaya Transport 2x PP} = \text{Biaya Transport 1 Arah} \times 2$$
 3. **Sekolah Berjarak $< 10\text{ KM}$**:
-   - Diberikan tarif flat minimal **Rp 20.000** (1 arah) × 2 = **Rp 40.000** (PP) atau *Custom Transport Fee* × 2.
+   - Biaya Transportasi: **Rp 0** (Sekolah berjarak di bawah 10 KM dari Pejaten tidak mendapatkan kompensasi transport).
 4. **Deduplikasi Per Sekolah Per Hari**:
    - Jika instruktur mengajar **lebih dari 1 sesi di sekolah yang sama pada hari yang sama**, transport hanya dibayar **1 kali** (sesi pertama). Sesi berikutnya di sekolah tersebut mendapat transport = Rp 0.
 
