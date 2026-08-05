@@ -48,7 +48,11 @@ class SiswaController extends Controller
             return Sekolah::whereHas('siswa')->orderBy('namasekolah')->get();
         });
 
-        return view('siswa.index', compact('siswa', 'sekolahs'));
+        $totalSiswaCount = \Illuminate\Support\Facades\Cache::remember('siswa_total_count', 300, fn() => Siswa::count());
+        $tempNisnCount = \Illuminate\Support\Facades\Cache::remember('siswa_temp_nisn_count', 300, fn() => Siswa::where('nisn', 'like', 'TMP%')->count());
+        $totalSekolahCount = count($sekolahs);
+
+        return view('siswa.index', compact('siswa', 'sekolahs', 'totalSiswaCount', 'tempNisnCount', 'totalSekolahCount'));
     }
 
     // app/Http/Controllers/SiswaController.php

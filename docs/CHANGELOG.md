@@ -29,6 +29,9 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Audit Form & Pembersihan Notifikasi Ganda Seluruh Modul System**:
   - Pemeriksaan komprehensif 4 Jalur Form & Tombol Submit (Akademik, Payroll, Data Master, Sales/System).
   - Pembersihan blok alert manual ganda pada `absensi/index`, `laporan-mengajar/index`, `sekolah/index`, `siswa/index`, `salesmen/index`, `products/index`, `salary_rates/index`, `schedule_changes/index`.
+- **Redesain UI/UX Premium Direktori Data Master Siswa (`/siswa`)**:
+  - Implementasi Hero Banner Modern (`linear-gradient(135deg, #0F172A, #2563EB)`) lengkap dengan 3 Kartu Statistik KPI Ringkas (Total Siswa, NISN Sementara, Total Sekolah Terjangkau).
+  - Pembaharuan Panel Filter Glassmorphism, Tab Navigasi Pintas ("Semua Siswa" & "⚠️ Perlu Verifikasi NISN (TMP)"), Avatar Lingkaran Berwarna berbasis Gender, Badge NISN & Kelas yang presisi, serta Tampilan Kartu Responsif Mobile.
 - **Pembersihan Total Program Non-Reguler / Data Uji Coba (`/ekstrakurikuler`)**:
   - Penghapusan permanen (*force delete*) seluruh data program non-reguler/insidental (Sosialisasi bersama Sales, Trial Class, Pameran) beserta seluruh rombel, sesi, dan laporan mengajar terkait dari database agar tidak mengotori daftar jadwal operasional.
   - Memastikan otorisasi pengeleloaan penuh CRUD Data Master, Kompensasi & Payroll, serta Akademik & Penjadwalan dipegang oleh Admin Utama **Adinda Wardania** (`adinda.wardania@erlass.institute` - `admin_sistem`).
