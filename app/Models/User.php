@@ -315,4 +315,26 @@ class User extends Authenticatable
             $this->attributes['status'] = ucfirst($value ?? 'Nonaktif');
         }
     }
+
+    /**
+     * Accessor for WhatsApp wa.me direct link.
+     */
+    public function getWaLinkAttribute(): ?string
+    {
+        $phone = $this->no_telephone ?? ($this->instructorProfile->no_hp_2 ?? null);
+        if (!$phone) {
+            return null;
+        }
+
+        $cleaned = preg_replace('/[^0-9]/', '', $phone);
+        if (empty($cleaned)) {
+            return null;
+        }
+
+        if (str_starts_with($cleaned, '0')) {
+            $cleaned = '62' . substr($cleaned, 1);
+        }
+
+        return 'https://wa.me/' . $cleaned;
+    }
 }

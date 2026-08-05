@@ -114,7 +114,7 @@ class DashboardAnalyticsController extends Controller
         $data['period_end'] = $periodEnd;
 
         $instructors = User::teachingStaff() // Use new scope (ID >= 48)
-            ->with(['instructorProfile:user_id,kota_domisili'])
+            ->with(['instructorProfile'])
             ->withCount(['ekstrakurikulerSessions' => function ($query) use ($periodStart, $periodEnd) {
                 // Count ALL sessions (except cancelled) in the period
                 $query->where('status', '!=', 'dibatalkan')

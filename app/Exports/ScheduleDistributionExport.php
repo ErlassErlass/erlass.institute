@@ -42,6 +42,9 @@ class ScheduleDistributionExport implements FromCollection, WithHeadings, WithMa
         return [
             'ID Instruktur',
             'Nama Lengkap',
+            'No. Telepon / WA',
+            'Kompetensi 1',
+            'Kompetensi 2',
             'Kota Domisili',
             'Jumlah Sesi',
             'Status',
@@ -51,12 +54,12 @@ class ScheduleDistributionExport implements FromCollection, WithHeadings, WithMa
 
     public function map($instructor): array
     {
-        // Calculate average inside here if needed or pass it in constructor. 
-        // For simplicity, just Raw Data first.
-        
         return [
             $instructor->instructor_id ?? '-',
             $instructor->nama_lengkap,
+            $instructor->no_telephone ?? ($instructor->instructorProfile->no_hp_2 ?? '-'),
+            $instructor->kompetensi_1 ?? '-',
+            $instructor->kompetensi_2 ?? '-',
             $instructor->instructorProfile->kota_domisili ?? '-',
             $instructor->ekstrakurikuler_sessions_count,
             ucfirst($instructor->status),

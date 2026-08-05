@@ -103,9 +103,16 @@
                                                 @endif
                                             </div>
                                         </div>
-                                        <div class="text-end">
-                                             <span class="d-block fw-bold fs-6 {{ $isZero ? 'text-danger' : 'text-dark' }}">{{ $rec->ekstrakurikuler_sessions_count }}</span>
-                                             <small class="text-muted" style="font-size: 0.7rem;">Sesi</small>
+                                        <div class="d-flex align-items-center gap-2">
+                                            @if($rec->wa_link)
+                                                <a href="{{ $rec->wa_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-light text-success border rounded-circle d-flex align-items-center justify-content-center p-0 shadow-sm" style="width: 32px; height: 32px;" title="Hubungi via WhatsApp">
+                                                    <i class="bi bi-whatsapp fs-6"></i>
+                                                </a>
+                                            @endif
+                                            <div class="text-end">
+                                                 <span class="d-block fw-bold fs-6 {{ $isZero ? 'text-danger' : 'text-dark' }}">{{ $rec->ekstrakurikuler_sessions_count }}</span>
+                                                 <small class="text-muted" style="font-size: 0.7rem;">Sesi</small>
+                                            </div>
                                         </div>
                                     </div>
                                 @empty
@@ -141,9 +148,12 @@
                                 <table class="table table-hover align-middle mb-0">
                                     <thead class="bg-light">
                                         <tr>
-                                            <th class="ps-4">Instruktur</th>
-                                            <th>Domisili</th>
-                                            <th class="text-center pe-4">Total Sesi</th>
+                                            <th class="ps-4" style="min-width: 180px;">Instruktur</th>
+                                            <th style="min-width: 150px;">Kontak (WA)</th>
+                                            <th style="min-width: 140px;">Kompetensi 1</th>
+                                            <th style="min-width: 140px;">Kompetensi 2</th>
+                                            <th style="min-width: 130px;">Domisili</th>
+                                            <th class="text-center pe-4" style="min-width: 150px;">Total Sesi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -155,7 +165,7 @@
                                             <tr>
                                                 <td class="ps-4">
                                                     <div class="d-flex align-items-center">
-                                                        <div class="avatar-circle me-3 bg-primary text-white d-flex align-items-center justify-content-center fw-bold rounded-circle" style="width: 32px; height: 32px; font-size: 14px;">
+                                                        <div class="avatar-circle me-3 bg-primary text-white d-flex align-items-center justify-content-center fw-bold rounded-circle shadow-sm" style="width: 34px; height: 34px; font-size: 14px;">
                                                             {{ substr($instr->nama_lengkap, 0, 1) }}
                                                         </div>
                                                         <div>
@@ -165,8 +175,36 @@
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <small class="text-muted">
-                                                        {{ $instr->instructorProfile->kota_domisili ?? '-' }}
+                                                    @if($instr->wa_link)
+                                                        <a href="{{ $instr->wa_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 text-nowrap fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm" style="font-size: 0.8rem;">
+                                                            <i class="bi bi-whatsapp text-success fs-6"></i>
+                                                            <span>{{ $instr->no_telephone ?? ($instr->instructorProfile->no_hp_2 ?? '-') }}</span>
+                                                        </a>
+                                                    @else
+                                                        <span class="text-muted small">-</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if($instr->kompetensi_1)
+                                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 text-uppercase" style="font-size: 0.75rem;">
+                                                            <i class="bi bi-award-fill me-1 opacity-75"></i>{{ $instr->kompetensi_1 }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-muted small">-</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if($instr->kompetensi_2)
+                                                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1 text-uppercase" style="font-size: 0.75rem;">
+                                                            <i class="bi bi-star-fill me-1 opacity-75"></i>{{ $instr->kompetensi_2 }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-muted small">-</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <small class="fw-semibold text-secondary">
+                                                        <i class="bi bi-geo-alt me-1 text-danger opacity-75"></i>{{ $instr->instructorProfile->kota_domisili ?? '-' }}
                                                     </small>
                                                 </td>
                                                 <td class="pe-4">
@@ -179,13 +217,13 @@
                                                                  aria-valuenow="{{ $instr->ekstrakurikuler_sessions_count }}" aria-valuemin="0" aria-valuemax="{{ $max_sessions }}">
                                                             </div>
                                                         </div>
-                                                        <span class="badge bg-primary rounded-pill">{{ $instr->ekstrakurikuler_sessions_count }}</span>
+                                                        <span class="badge bg-primary rounded-pill px-2.5 py-1">{{ $instr->ekstrakurikuler_sessions_count }}</span>
                                                     </div>
                                                 </td>
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="3" class="text-center py-4 text-muted">
+                                                <td colspan="6" class="text-center py-4 text-muted">
                                                     <i class="bi bi-info-circle fs-4 mb-2 d-block"></i>
                                                     Belum ada data instruktur yang ditemukan.<br>
                                                     <small>Filter: Teaching Staff (ID >= 48), Status: Active/Aktif</small>
