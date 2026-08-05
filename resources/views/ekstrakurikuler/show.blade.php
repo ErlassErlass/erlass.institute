@@ -222,7 +222,7 @@
                         <i class="bi bi-circle-fill me-1 small"></i> {{ $ekstrakurikuler->status_label }}
                     </span>
                 </div>
-                <p class="text-white-50 mb-0 d-flex align-items-center gap-2">
+                <p class="mb-0 d-flex align-items-center gap-2" style="color: rgba(255, 255, 255, 0.92);">
                     <i class="bi bi-building me-1"></i> {{ $ekstrakurikuler->sekolah?->namasekolah ?? 'Sekolah Belum Ditetapkan' }}
                     <span class="opacity-50">•</span>
                     <i class="bi bi-geo-alt-fill me-1"></i> {{ $ekstrakurikuler->region ?? $ekstrakurikuler->sekolah?->kota ?? 'General' }}

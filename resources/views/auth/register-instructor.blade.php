@@ -88,7 +88,7 @@
         </div>
         
         <h2 class="fw-bold mb-4">Pendaftaran Instruktur</h2>
-        <p class="mb-5 text-white-50">Bergabunglah bersama kami sebagai pengajar profesional dan bagikan keahlian Anda.</p>
+        <p class="mb-5" style="color: rgba(255, 255, 255, 0.90);">Bergabunglah bersama kami sebagai pengajar profesional dan bagikan keahlian Anda.</p>
 
         <div class="registration-progress">
             <div class="progress-step active" id="prog-1" onclick="goToStep(1)" style="cursor: pointer;">
@@ -117,7 +117,7 @@
             </div>
         </div>
 
-        <div class="mt-auto small text-white-50">
+        <div class="mt-auto small" style="color: rgba(255, 255, 255, 0.85);">
             &copy; {{ date('Y') }} Erlass. All rights reserved.
         </div>
     </div>

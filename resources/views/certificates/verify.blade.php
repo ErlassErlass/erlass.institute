@@ -83,7 +83,7 @@
         <div class="verify-header">
             <img src="{{ asset('images/logo-erlass.png') }}" alt="Logo Erlass" class="mb-3 bg-white p-2 rounded-circle border" style="height: 60px; width: auto;">
             <h4 class="mb-1 fw-bold">Erlass Institute</h4>
-            <p class="mb-0 text-white-50 small">Sistem Verifikasi Sertifikat Kelulusan Publik</p>
+            <p class="mb-0 small" style="color: rgba(255, 255, 255, 0.90);">Sistem Verifikasi Sertifikat Kelulusan Publik</p>
         </div>
         
         <!-- Body -->

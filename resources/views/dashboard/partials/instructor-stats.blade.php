@@ -58,14 +58,14 @@
                     <div class="bg-white bg-opacity-25 p-2 rounded-3 text-white me-3">
                         <i class="bi bi-calendar-event fs-4"></i>
                     </div>
-                    <h6 class="card-subtitle text-white-50 mb-0">Kelas Berikutnya</h6>
+                    <h6 class="card-subtitle mb-0" style="color: rgba(255, 255, 255, 0.88);">Kelas Berikutnya</h6>
                 </div>
                 @if($next_class)
                     <h5 class="card-title fw-bold mb-0 text-truncate">{{ \Carbon\Carbon::parse($next_class->tanggal_terjadwal)->translatedFormat('d M') }}, {{ \Carbon\Carbon::parse($next_class->jam_mulai_terjadwal)->format('H:i') }}</h5>
-                    <small class="text-white-50 text-truncate d-block">{{ $next_class->rombel->ekstrakurikuler->sekolah->namasekolah }}</small>
+                    <small class="text-truncate d-block" style="color: rgba(255, 255, 255, 0.88);">{{ $next_class->rombel->ekstrakurikuler->sekolah->namasekolah }}</small>
                 @else
                      <h5 class="card-title fw-bold mb-0">-</h5>
-                     <small class="text-white-50">Belum ada jadwal</small>
+                     <small style="color: rgba(255, 255, 255, 0.88);">Belum ada jadwal</small>
                 @endif
             </div>
         </div>
