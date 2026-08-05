@@ -313,7 +313,7 @@ class LaporanMengajar extends Model
                     'total_pertemuan' => 12,
                     'tanggal_mulai' => $this->jadwal_mengajar ?? now(),
                     'tanggal_selesai' => ($this->jadwal_mengajar ? $this->jadwal_mengajar->copy()->addMonths(6) : now()->addMonths(6)),
-                    'status' => 'aktif',
+                    'status' => $isAdHocCategory ? 'dibatalkan' : 'aktif',
                 ]);
             }
             $ekstrakurikulerId = $ekskul->id;
