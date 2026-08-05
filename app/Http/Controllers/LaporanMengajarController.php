@@ -171,10 +171,11 @@ class LaporanMengajarController extends Controller
     private function getKategoriList(): array
     {
         return [
+            'Free Trial Class',
+            'Trial Class',
             'Pameran',
             'Pendampingan Lomba',
             'Sosialisasi bersama Sales',
-            'Trial Class',
             'Inkul Coding Scratch',
             'Inkul LMS Koding KA SD',
             'Inkul LKPD Informatika SD',

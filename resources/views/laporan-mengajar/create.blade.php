@@ -493,24 +493,32 @@
 
                     if (hours > 0) durationText += hours + ' jam ';
                     if (minutes > 0) durationText += minutes + ' menit';
-                    
-                    // console.log('Durasi: ' + durationText.trim());
                 }
             }
+        });
+
         // Toggle input jumlah siswa khusus untuk Kategori Free Trial Class
         function toggleFreeTrialFields() {
             var kat = ($('#kategori_pengajaran').val() || '').toLowerCase();
-            if (kat.indexOf('trial') !== -1 || kat.indexOf('free trial') !== -1) {
-                $('#freeTrialStudentCountWrapper').slideDown();
-                $('#jumlah_siswa_hadir').attr('required', true);
+            var isTrial = kat.indexOf('trial') !== -1 || kat.indexOf('free trial') !== -1 || kat.indexOf('free') !== -1;
+            
+            if (isTrial) {
+                $('#freeTrialStudentCountWrapper').removeClass('d-none').show();
+                $('#jumlah_siswa_hadir').attr('required', 'required');
             } else {
-                $('#freeTrialStudentCountWrapper').slideUp();
+                $('#freeTrialStudentCountWrapper').hide();
                 $('#jumlah_siswa_hadir').removeAttr('required');
             }
         }
 
-        $('#kategori_pengajaran').on('change', toggleFreeTrialFields);
-        toggleFreeTrialFields();
+        $(document).on('change', '#kategori_pengajaran', function() {
+            toggleFreeTrialFields();
+        });
+
+        // Run on page load
+        setTimeout(function() {
+            toggleFreeTrialFields();
+        }, 100);
     });
 </script>
 <script>
