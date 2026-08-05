@@ -225,10 +225,17 @@ class PayrollController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        // Fetch payroll items for this instructor
-        $items = PayrollItem::with(['batch'])
-            ->where('user_id_instruktur', $user->id)
-            ->orderBy('created_at', 'desc')
+        // Fetch payroll items for this instructor (Instructors only see verified/processed or paid batches)
+        $query = PayrollItem::with(['batch'])
+            ->where('user_id_instruktur', $user->id);
+
+        if ($user->role === 'instruktur') {
+            $query->whereHas('batch', function ($q) {
+                $q->whereIn('status', ['processed', 'paid']);
+            });
+        }
+
+        $items = $query->orderBy('created_at', 'desc')
             ->paginate(12);
 
         return view('payroll.my_salaries', compact('items'));
@@ -247,6 +254,10 @@ class PayrollController extends Controller
 
         if (!$isOwner && !$isAdmin) {
             abort(403, 'Akses ditolak.');
+        }
+
+        if ($user->role === 'instruktur' && optional($item->batch)->status === 'draft') {
+            abort(403, 'Slip gaji ini masih dalam tahap Draf/Perhitungan dan belum diverifikasi oleh Admin.');
         }
 
         return view('payroll.slip_detail', compact('item'));
