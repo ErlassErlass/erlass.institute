@@ -101,6 +101,12 @@ class PayrollController extends Controller
 
         $batch = PayrollBatch::with(['items.instruktur', 'processor', 'payer'])->findOrFail($id);
 
+        $sortedItems = $batch->items->sortBy(function ($item) {
+            return strtolower($item->instruktur->nama_lengkap ?? $item->instruktur->name ?? '');
+        })->values();
+
+        $batch->setRelation('items', $sortedItems);
+
         return view('payroll.show', compact('batch'));
     }
 
@@ -278,6 +284,8 @@ class PayrollController extends Controller
             'items.sessions.rombel',
             'payer'
         ])->findOrFail($id);
+
+        $batch->setRelation('items', $batch->items->sortBy(fn($i) => strtolower($i->instruktur->nama_lengkap ?? $i->instruktur->name ?? ''))->values());
 
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
 
@@ -479,6 +487,7 @@ class PayrollController extends Controller
         }
 
         $batch = PayrollBatch::with(['items.instruktur.instructorProfile'])->findOrFail($id);
+        $batch->setRelation('items', $batch->items->sortBy(fn($i) => strtolower($i->instruktur->nama_lengkap ?? $i->instruktur->name ?? ''))->values());
 
         $filename = "Transfer_Bank_{$batch->code}_" . date('Ymd_His') . ".csv";
 
@@ -528,6 +537,8 @@ class PayrollController extends Controller
             'items.sessions.rombel',
             'payer'
         ])->findOrFail($id);
+
+        $batch->setRelation('items', $batch->items->sortBy(fn($i) => strtolower($i->instruktur->nama_lengkap ?? $i->instruktur->name ?? ''))->values());
 
         return view('payroll.export_pdf', compact('batch'));
     }
