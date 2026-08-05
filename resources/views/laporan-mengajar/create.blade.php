@@ -156,7 +156,7 @@
                                     <label for="kategori_pengajaran" class="form-label">Kategori Pengajaran</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="fas fa-tag"></i></span>
-                                        <select name="kategori_pengajaran" id="kategori_pengajaran" class="form-select @error('kategori_pengajaran') is-invalid @enderror" required>
+                                        <select name="kategori_pengajaran" id="kategori_pengajaran" class="form-select @error('kategori_pengajaran') is-invalid @enderror" required onchange="toggleFreeTrialFields()">
                                             <option value="">Pilih Kategori</option>
                                             @foreach ($kategori as $kat)
                                             <option value="{{ $kat }}" {{ old('kategori_pengajaran', $laporanMengajar->kategori_pengajaran ?? '') == $kat ? 'selected' : '' }}>
@@ -266,6 +266,31 @@
         </div>
     </div>
 </div>
+
+<script>
+function toggleFreeTrialFields() {
+    var select = document.getElementById('kategori_pengajaran');
+    var wrapper = document.getElementById('freeTrialStudentCountWrapper');
+    var inputHadir = document.getElementById('jumlah_siswa_hadir');
+    
+    if (!select || !wrapper) return;
+
+    var val = (select.value || '').toLowerCase();
+    var isTrial = val.indexOf('trial') !== -1 || val.indexOf('free') !== -1;
+
+    if (isTrial) {
+        wrapper.style.display = 'flex';
+        if (inputHadir) inputHadir.setAttribute('required', 'required');
+    } else {
+        wrapper.style.display = 'none';
+        if (inputHadir) inputHadir.removeAttribute('required');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    toggleFreeTrialFields();
+});
+</script>
 @endsection
 
 @push('modals')
