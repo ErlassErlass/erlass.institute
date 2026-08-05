@@ -6,34 +6,34 @@
 
 @section('content')
 <div class="container-fluid py-4">
-    <!-- Hero Banner -->
-    <div class="card border-0 shadow-lg mb-4 text-white overflow-hidden" style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #2563EB 100%); border-radius: 1rem;">
+    <!-- Hero Banner (Bright / Light Theme) -->
+    <div class="card border-0 shadow-sm mb-4 overflow-hidden" style="background: linear-gradient(135deg, #EFF6FF 0%, #F8FAFC 50%, #E0F2FE 100%); border-radius: 1rem; border: 1px solid #DBEAFE !important;">
         <div class="card-body p-4 p-lg-5 position-relative">
             <div class="row align-items-center">
                 <div class="col-lg-8">
                     <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="badge bg-white bg-opacity-20 text-white border border-white border-opacity-25 rounded-pill px-3 py-1 small fw-semibold">
+                        <span class="badge bg-blue-50 text-blue-700 border border-blue-200 rounded-pill px-3 py-1 small fw-bold">
                             <i class="bi bi-shield-check me-1"></i> Mode Otorisasi Terproteksi
                         </span>
-                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1 small fw-bold">
+                        <span class="badge bg-warning bg-opacity-20 text-dark border border-warning border-opacity-30 rounded-pill px-3 py-1 small fw-bold">
                             <i class="bi bi-clock-history me-1"></i> Cutoff 11 – 10
                         </span>
                     </div>
-                    <h1 class="h2 fw-bold text-white mb-2">Pencairan Payroll & Kompensasi</h1>
-                    <p class="text-white opacity-85 mb-0 fs-6" style="max-width: 680px;">
+                    <h1 class="h2 fw-bold text-dark mb-2">Pencairan Payroll & Kompensasi</h1>
+                    <p class="text-slate-600 mb-0 fs-6" style="max-width: 680px;">
                         Kelola batch honorarium sesi mengajar bulanan instruktur secara terpusat. Dilengkapi dengan <strong>6 Aturan Warning Calculator Engine</strong>, validasi presensi H+1, dan ekspor rincian payroll (.xlsx / .csv / .pdf).
                     </p>
                 </div>
                 <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                    <div class="bg-white bg-opacity-10 backdrop-blur rounded-3 p-3 border border-white border-opacity-15 d-inline-block text-start" style="min-width: 220px;">
-                        <div class="text-white opacity-75 small">Otorisasi Kelola Payroll:</div>
-                        <div class="fw-bold text-white small mt-1">
-                            <i class="bi bi-person-check-fill text-info me-1"></i> Adinda Wardania
+                    <div class="bg-white rounded-3 p-3 border border-slate-200 shadow-sm d-inline-block text-start" style="min-width: 230px;">
+                        <div class="text-muted small fw-semibold text-uppercase tracking-wider">Otorisasi Kelola Payroll:</div>
+                        <div class="fw-bold text-dark small mt-1.5">
+                            <i class="bi bi-person-check-fill text-success me-1"></i> Adinda Wardania
                         </div>
-                        <div class="fw-bold text-white small">
-                            <i class="bi bi-person-check-fill text-info me-1"></i> Cornelis Banu
+                        <div class="fw-bold text-dark small mt-1">
+                            <i class="bi bi-person-check-fill text-success me-1"></i> Cornelis Banu
                         </div>
-                        <div class="fw-bold text-white small">
+                        <div class="fw-bold text-dark small mt-1">
                             <i class="bi bi-shield-lock-fill text-warning me-1"></i> Webmaster IT
                         </div>
                     </div>
