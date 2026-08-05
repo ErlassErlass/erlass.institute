@@ -197,23 +197,24 @@
                                 </div>
                             </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="jumlah_siswa_hadir" class="form-label fw-bold text-success"><i class="fas fa-user-check me-1"></i>Jumlah Siswa Hadir <span class="text-danger">*</span></label>
+                            <!-- Dynamic Section: Input Jumlah Siswa Khusus Free Trial Class -->
+                            <div class="row bg-success bg-opacity-10 p-3 rounded mb-3 border border-success border-opacity-25" id="freeTrialStudentCountWrapper" style="display: none;">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <label for="jumlah_siswa_hadir" class="form-label fw-bold text-success"><i class="fas fa-user-check me-1"></i>Jumlah Siswa Hadir Free Trial <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-success bg-opacity-10 text-success"><i class="fas fa-users"></i></span>
-                                        <input type="number" name="jumlah_siswa_hadir" id="jumlah_siswa_hadir" class="form-control @error('jumlah_siswa_hadir') is-invalid @enderror" value="{{ old('jumlah_siswa_hadir', 0) }}" required min="0" placeholder="0">
+                                        <span class="input-group-text bg-success text-white"><i class="fas fa-users"></i></span>
+                                        <input type="number" name="jumlah_siswa_hadir" id="jumlah_siswa_hadir" class="form-control @error('jumlah_siswa_hadir') is-invalid @enderror" value="{{ old('jumlah_siswa_hadir', 0) }}" min="0" placeholder="0">
                                     </div>
-                                    <small class="form-text text-muted"><i class="bi bi-info-circle text-success me-1"></i>Isi total peserta/siswa yang HADIR pada kegiatan ini (penting untuk perhitungan honor Free Trial Class, Sosialisasi, Inkul, dll.).</small>
+                                    <small class="form-text text-muted"><i class="bi bi-info-circle text-success me-1"></i>Masukkan total peserta yang HADIR pada <strong>Free Trial Class</strong> ini (digunakan untuk penentuan honor: &gt;6 siswa = Rp 100.000, ≤6 siswa = Rp 75.000).</small>
                                     @error('jumlah_siswa_hadir') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-6 mb-3 mb-md-0">
                                     <label for="jumlah_siswa_tidak_hadir" class="form-label fw-bold text-secondary"><i class="fas fa-user-times me-1"></i>Jumlah Siswa Tidak Hadir (Opsional)</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fas fa-user-minus"></i></span>
                                         <input type="number" name="jumlah_siswa_tidak_hadir" id="jumlah_siswa_tidak_hadir" class="form-control @error('jumlah_siswa_tidak_hadir') is-invalid @enderror" value="{{ old('jumlah_siswa_tidak_hadir', 0) }}" min="0" placeholder="0">
                                     </div>
-                                    <small class="form-text text-muted">Jumlah peserta/siswa yang tidak hadir (bisa diisi 0 jika tidak ada).</small>
+                                    <small class="form-text text-muted">Jumlah peserta trial yang berhalangan/batal hadir (opsional).</small>
                                     @error('jumlah_siswa_tidak_hadir') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                             </div>
@@ -496,7 +497,20 @@
                     // console.log('Durasi: ' + durationText.trim());
                 }
             }
-        });
+        // Toggle input jumlah siswa khusus untuk Kategori Free Trial Class
+        function toggleFreeTrialFields() {
+            var kat = ($('#kategori_pengajaran').val() || '').toLowerCase();
+            if (kat.indexOf('trial') !== -1 || kat.indexOf('free trial') !== -1) {
+                $('#freeTrialStudentCountWrapper').slideDown();
+                $('#jumlah_siswa_hadir').attr('required', true);
+            } else {
+                $('#freeTrialStudentCountWrapper').slideUp();
+                $('#jumlah_siswa_hadir').removeAttr('required');
+            }
+        }
+
+        $('#kategori_pengajaran').on('change', toggleFreeTrialFields);
+        toggleFreeTrialFields();
     });
 </script>
 <script>
