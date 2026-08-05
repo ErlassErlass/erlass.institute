@@ -27,9 +27,10 @@ Menggunakan `spatie/laravel-permission`.
 - **Source Data**: Table `ref_materi` (Disinkronkan via `RefMateriSeeder`).
 - **AJAX Endpoint**: `/laporan-mengajar/get-materi`
 
-### 3. Data Master (Import)
+### 3. Data Master & Export/Import
 - **Sekolah**: Import dari CSV (`SekolahSeeder`). Logic updateOrCreate untuk mencegah duplikasi.
-- **Karyawan**: Import dari CSV (`EmployeeSeeder`). Mapping Job Title ke Role otomatis.
+- **Siswa**: Direktori terpusat (`SiswaController`) dengan pencarian Select2, filter NISN Temp, filter gender/sekolah, streaming export CSV (`SiswaController@export`), dan link WhatsApp orang tua.
+- **Karyawan**: Import dari CSV (`EmployeeSeeder`). Mapping Job Title ke Role otomatis. Otorisasi utama dipegang oleh Admin Utama `adinda.wardania@erlass.institute` (`admin_sistem`).
 
 ## Development Setup
 

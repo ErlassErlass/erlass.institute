@@ -62,11 +62,11 @@ Kebijakan registrasi mandiri dengan kelengkapan data awal ini diterapkan dengan 
 
 ## 📊 4. Ringkasan Instruktur Terdaftar Saat Ini
 
-Per 31 Juli 2026, total instruktur terdaftar dan aktif di database `erlass_db` adalah **73 Instruktur**:
-- **Disetujui & Terverifikasi (Approved)**: 73 Instruktur
-- **Status Akun**: 73 Aktif
+Per 5 Agustus 2026, total instruktur terdaftar dan aktif di database `erlass_db` adalah **86 Instruktur**:
+- **Disetujui & Terverifikasi (Approved)**: 86 Instruktur
+- **Status Akun**: 86 Aktif
 
 ---
 
-_Dokumen diperbarui: 31 Juli 2026 | Sistem: erlass.institute_
+_Dokumen diperbarui: 5 Agustus 2026 | Sistem: erlass.institute_
 
