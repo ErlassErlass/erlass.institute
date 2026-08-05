@@ -89,12 +89,12 @@
                             <ul class="list-unstyled mb-3 d-flex flex-column gap-2 text-muted">
                                 <li>
                                     <i class="bi bi-check-circle-fill text-success me-1"></i>
-                                    <strong>Jarak ≥ 10 KM dari Pejaten</strong>:<br>
-                                    <code class="text-dark bg-light px-2 py-1 rounded d-inline-block mt-1">(Jarak KM × Rp 350) + Rp 7.500</code>
+                                    <strong>Jarak ≥ 10 KM dari Pejaten (2x PP Bensin)</strong>:<br>
+                                    <code class="text-dark bg-light px-2 py-1 rounded d-inline-block mt-1">(Jarak KM × Rp 350 × 2) + Rp 7.500</code>
                                 </li>
                                 <li>
                                     <i class="bi bi-check-circle-fill text-success me-1"></i>
-                                    <strong>Guru Internal &amp; Sesi Kantor Erlass</strong>:<br>
+                                    <strong>Jarak &lt; 10 KM, Guru Internal &amp; Sesi Kantor Erlass</strong>:<br>
                                     Uang transport = <strong class="text-dark">Rp 0</strong>.
                                 </li>
                                 <li>
