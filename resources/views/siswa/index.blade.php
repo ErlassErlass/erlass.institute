@@ -217,6 +217,9 @@
                 <i class="bi bi-info-circle me-1"></i> Menampilkan <strong>{{ $siswa->count() }}</strong> dari <strong>{{ $siswa->total() }}</strong> siswa terdaftar
             </div>
             <div class="d-flex gap-2">
+                <a href="{{ route('siswa.export', request()->query()) }}" class="btn btn-outline-light btn-sm fw-semibold shadow-sm px-3 rounded-3" title="Unduh Data Siswa (CSV)">
+                    <i class="bi bi-download me-1.5"></i> Export CSV
+                </a>
                 @if(auth()->user()->role !== 'instruktur')
                     <a href="{{ route('siswa.import') }}" class="btn btn-light btn-sm fw-semibold shadow-sm px-3 rounded-3">
                         <i class="bi bi-file-earmark-spreadsheet me-1.5 text-success"></i> Import Excel / CSV
@@ -375,7 +378,13 @@
                                             <div class="fw-bold text-dark">{{ $item->nama_lengkap }}</div>
                                             <div class="text-muted small fs-7">
                                                 @if($item->no_hp_orangtua && $item->no_hp_orangtua !== '-')
-                                                    <i class="bi bi-telephone me-1"></i>{{ $item->no_hp_orangtua }}
+                                                    @php
+                                                        $cleanPhone = preg_replace('/[^0-9]/', '', $item->no_hp_orangtua);
+                                                        $waPhone = str_starts_with($cleanPhone, '0') ? '62' . substr($cleanPhone, 1) : $cleanPhone;
+                                                    @endphp
+                                                    <a href="https://wa.me/{{ $waPhone }}" target="_blank" class="text-success fw-medium text-decoration-none" title="Chat WhatsApp Ortu">
+                                                        <i class="bi bi-whatsapp me-1"></i>{{ $item->no_hp_orangtua }}
+                                                    </a>
                                                 @else
                                                     <span class="opacity-50">Tidak ada no HP Ortu</span>
                                                 @endif

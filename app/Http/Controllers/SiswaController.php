@@ -35,6 +35,16 @@ class SiswaController extends Controller
             });
         }
 
+        // Filter jenis kelamin
+        if ($request->filled('jenis_kelamin')) {
+            $jk = $request->jenis_kelamin;
+            if ($jk === 'L') {
+                $query->whereIn('jenis_kelamin', ['L', 'Laki-laki', 'laki-laki']);
+            } elseif ($jk === 'P') {
+                $query->whereIn('jenis_kelamin', ['P', 'Perempuan', 'perempuan']);
+            }
+        }
+
         // Urutkan berdasarkan NISN secara Numerik (001 s.d. 1080)
         $perPage = $request->input('per_page', 25);
         if ($perPage === 'all' || $perPage == -1) {
@@ -197,6 +207,69 @@ class SiswaController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan saat import: ' . $e->getMessage());
         }
+    }
+
+    public function export(Request $request)
+    {
+        $query = Siswa::query()->with('sekolah');
+
+        if ($request->filled('search')) {
+            $query->where('nama_lengkap', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->has('temp_nisn')) {
+            $query->where('nisn', 'like', 'TMP%');
+        }
+
+        if ($request->filled('kodlan')) {
+            $sekolahKodlan = $request->kodlan;
+            $query->whereHas('sekolah', function ($q) use ($sekolahKodlan) {
+                $q->where('kodlan', $sekolahKodlan);
+            });
+        }
+
+        if ($request->filled('jenis_kelamin')) {
+            $jk = $request->jenis_kelamin;
+            if ($jk === 'L') {
+                $query->whereIn('jenis_kelamin', ['L', 'Laki-laki', 'laki-laki']);
+            } elseif ($jk === 'P') {
+                $query->whereIn('jenis_kelamin', ['P', 'Perempuan', 'perempuan']);
+            }
+        }
+
+        $siswa = $query->orderByRaw('CAST(nisn AS UNSIGNED) ASC, nisn ASC')->get();
+
+        $fileName = 'Data_Siswa_Erlass_' . date('Y-m-d_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($siswa) {
+            $file = fopen('php://output', 'w');
+            fputs($file, "\xEF\xBB\xBF");
+            fputcsv($file, ['NISN', 'Nama Lengkap', 'Jenis Kelamin', 'Sekolah (Kodlan)', 'Nama Sekolah', 'Kelas', 'No HP Orang Tua']);
+
+            foreach ($siswa as $item) {
+                fputcsv($file, [
+                    $item->nisn ?? '-',
+                    $item->nama_lengkap ?? '-',
+                    $item->jenis_kelamin ?? '-',
+                    $item->sekolah_kodlan ?? '-',
+                    $item->sekolah?->namasekolah ?? '-',
+                    $item->kelas ?? '-',
+                    $item->no_hp_orangtua ?? '-',
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }
 
