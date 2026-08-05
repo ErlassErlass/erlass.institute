@@ -29,9 +29,9 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Audit Form & Pembersihan Notifikasi Ganda Seluruh Modul System**:
   - Pemeriksaan komprehensif 4 Jalur Form & Tombol Submit (Akademik, Payroll, Data Master, Sales/System).
   - Pembersihan blok alert manual ganda pada `absensi/index`, `laporan-mengajar/index`, `sekolah/index`, `siswa/index`, `salesmen/index`, `products/index`, `salary_rates/index`, `schedule_changes/index`.
-- **Validasi Wajib Foto Kegiatan (`/laporan-mengajar/create`)**:
-  - Pengubahan aturan validasi `foto_kegiatan` dari `nullable` menjadi **`required`** pada `StoreLaporanMengajarRequest`, `LaporanMengajarController`, dan formulir pembuatan laporan mengajar.
-  - Penambahan indikator bintang merah (`*`) dan atribut HTML5 `required` untuk memastikan seluruh laporan mengajar baru wajib menyertakan foto dokumentasi kegiatan mengajar.
+- **Pembersihan Total Program Non-Reguler / Data Uji Coba (`/ekstrakurikuler`)**:
+  - Penghapusan permanen (*force delete*) seluruh data program non-reguler/insidental (Sosialisasi bersama Sales, Trial Class, Pameran) beserta seluruh rombel, sesi, dan laporan mengajar terkait dari database agar tidak mengotori daftar jadwal operasional.
+  - Memastikan otorisasi pengeleloaan penuh CRUD Data Master, Kompensasi & Payroll, serta Akademik & Penjadwalan dipegang oleh Admin Utama **Adinda Wardania** (`adinda.wardania@erlass.institute` - `admin_sistem`).
 
 ## [2.5.0] - 2026-08-03
 
