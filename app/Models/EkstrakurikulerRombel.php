@@ -395,6 +395,20 @@ class EkstrakurikulerRombel extends Model
      */
     public function generateSessions(): void
     {
+        // Skip auto-generation for Ad-Hoc / Special / Cancelled wrapper contracts
+        if ($this->ekstrakurikuler) {
+            $catLower = strtolower($this->ekstrakurikuler->kategori_program ?? '');
+            $isAdHoc = str_contains($catLower, 'trial') 
+                    || str_contains($catLower, 'free')
+                    || str_contains($catLower, 'sosialisasi')
+                    || str_contains($catLower, 'pameran')
+                    || str_contains($catLower, 'lomba')
+                    || str_contains($catLower, 'event');
+            if ($this->ekstrakurikuler->status === 'dibatalkan' || $isAdHoc) {
+                return;
+            }
+        }
+
         // Hapus sessions yang sudah ada dan belum dimulai
         $this->sessions()->where('status', 'terjadwal')->delete();
 
