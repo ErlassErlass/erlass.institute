@@ -7,7 +7,7 @@ Dokumen ini menjelaskan pembagian hak akses untuk 4 tipe pengguna dalam sistem w
 | Role | Nama | Deskripsi Singkat | Level Akses |
 | :--- | :--- | :--- | :--- |
 | **webmaster** | Webmaster Utama | Super Admin & Pemilik Sistem. | **Root**. Bisa melakukan segalanya, termasuk memverifikasi instruktur dan mengelola user lain. |
-| **admin_sistem** | Admin Sistem | Administrator Teknis & Operasional Utama. | **High**. Akses penuh ke operasional, Data Master, Kompensasi & Payroll, serta Penjadwalan. Pemegang otorisasi utama: **Adinda Wardania** (`adinda.wardania@erlass.institute`). |
+| **admin_sistem** | Admin Sistem | Administrator Teknis & Operasional Utama. | **High**. Akses penuh ke operasional, Data Master, Kompensasi & Payroll, serta Penjadwalan. Pemegang otorisasi utama payroll & master CRUD: **Adinda Wardania** (`adinda.wardania@erlass.institute`) & **Cornelis Banu** (`cornelis.banu@erlass.institute`). |
 | **admin** | Admin Operasional | Administrator Harian. | **Medium**. Fokus pada data operasional (Jadwal, Absensi, Laporan), tidak bisa mengelola user. |
 | **sales** | Sales / Marketing | Tim Pemasaran. | **Low-Medium**. Fokus pada pembuatan program baru dan monitoring sekolah. |
 | **instruktur** | Instruktur | Pengajar/Guru. | **Low**. Hanya bisa mengakses data kelas, jadwal, dan laporan miliknya sendiri. |

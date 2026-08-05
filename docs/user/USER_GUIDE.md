@@ -27,7 +27,7 @@ Admin memiliki akses penuh terhadap sistem.
 
 ### 1. Manajemen Data Master
 *   **Data Sekolah**: Menambah, mengedit, dan menghapus data sekolah (calon klien atau klien aktif).
-*   **Data User**: Mengelola akun pengguna (Instruktur, Sales, Admin Sekolah). Otorisasi utama dipegang oleh Admin Utama **Adinda Wardania** (`adinda.wardania@erlass.institute`).
+*   **Data User**: Mengelola akun pengguna (Instruktur, Sales, Admin Sekolah). Otorisasi utama dipegang oleh Admin Utama **Adinda Wardania** (`adinda.wardania@erlass.institute`) & **Cornelis Banu** (`cornelis.banu@erlass.institute`).
 *   **Data Siswa (`/siswa`)**: Mengelola data siswa per sekolah/rombel. Dilengkapi Hero Banner Statistik (Total Siswa, NISN Sementara, Total Sekolah), Glassmorphic Filter, Tab Filter "Perlu Verifikasi NISN (TMP)", **Chat WhatsApp 1-Klik Orang Tua** (`https://wa.me/...`), serta fitur **`Export CSV`** untuk mengunduh data terfilter.
 
 ### 2. Monitoring & Laporan
