@@ -165,7 +165,7 @@ class EkstrakurikulerReportController extends Controller
             'absensi.*' => ['required', \Illuminate\Validation\Rule::in([0, 1, '0', '1', 'hadir', 'alpha'])], // Strict status validation
             'keaktifan' => ['required', \Illuminate\Validation\Rule::in(['sangat_pasif', 'pasif', 'aktif', 'sangat_aktif'])],
             'pemahaman_materi' => ['required', \Illuminate\Validation\Rule::in(['belum_paham', 'sedikit_paham', 'paham', 'sangat_paham'])],
-            'file_project' => 'required|file|mimes:sb3,hex,py,zip,rar,pdf,txt|max:10240', // Max 10MB (.sb3, .hex, .py, .pdf, .zip, .rar)
+            'file_project' => 'required|file|mimes:sb3,hex,zip,rar|max:10240', // Max 10MB (.sb3, .hex, .zip, .rar)
             'deskripsi' => 'nullable|string|max:2000',
             'refleksi_siswa' => 'nullable|string|max:2000',
             'refleksi_capaian' => 'nullable|string|max:2000',
