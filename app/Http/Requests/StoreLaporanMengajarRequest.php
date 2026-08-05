@@ -25,16 +25,19 @@ class StoreLaporanMengajarRequest extends FormRequest
     {
         $allowedKategori = array_unique(array_merge(
             [
+                'Free Trial Class',
+                'Trial Class',
+                'Inkul Coding Scratch',
+                'Inkul LKPD Informatika SD',
+                'Inkul LKPD Informatika SMA',
+                'Inkul LKPD Informatika SMP',
+                'Inkul LMS Koding KA SD',
                 'Pameran',
                 'Pendampingan Lomba',
                 'Sosialisasi bersama Sales',
-                'Trial Class',
-                'Inkul Coding Scratch',
-                'Inkul LMS Koding KA SD',
-                'Inkul LKPD Informatika SD',
-                'Inkul LKPD Informatika SMP',
-                'Inkul LKPD Informatika SMA',
                 'ekstrakurikuler',
+                'Ekstrakurikuler',
+                'Reguler',
             ],
             \App\Models\RefMateri::distinct()->pluck('kategori')->toArray()
         ));
