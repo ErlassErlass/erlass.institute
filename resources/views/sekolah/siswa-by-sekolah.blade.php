@@ -198,7 +198,7 @@
                         Kodlan: {{ $sekolah->kodlan }}
                     </span>
                 </div>
-                <p class="text-white-50 mb-0 d-flex align-items-center gap-2 flex-wrap small">
+                <p class="mb-0 d-flex align-items-center gap-2 flex-wrap small" style="color: rgba(255, 255, 255, 0.92);">
                     <span><i class="bi bi-geo-alt-fill me-1 text-info"></i> {{ $sekolah->formatted_lokasi }}</span>
                     <span class="opacity-50">•</span>
                     <span><i class="bi bi-award-fill me-1 text-warning"></i> Jenjang {{ $sekolah->jenjang ?? '-' }} ({{ $sekolah->status ?? 'Swasta' }})</span>
@@ -214,25 +214,25 @@
                 <div class="row g-2 justify-content-lg-end">
                     <div class="col-6 col-sm-3 col-lg-3">
                         <div class="glass-stat-card text-center">
-                            <span class="d-block text-white-50 fs-8 text-uppercase fw-semibold ls-1">Total Siswa</span>
+                            <span class="d-block fs-8 text-uppercase fw-semibold ls-1" style="color: rgba(255, 255, 255, 0.88);">Total Siswa</span>
                             <span class="h3 fw-bold text-white mb-0 d-block lh-1 mt-1">{{ $totalSiswa }}</span>
                         </div>
                     </div>
                     <div class="col-6 col-sm-3 col-lg-3">
                         <div class="glass-stat-card text-center">
-                            <span class="d-block text-white-50 fs-8 text-uppercase fw-semibold ls-1"><i class="bi bi-gender-male me-1 text-info"></i>Laki-Laki</span>
+                            <span class="d-block fs-8 text-uppercase fw-semibold ls-1" style="color: rgba(255, 255, 255, 0.88);"><i class="bi bi-gender-male me-1 text-info"></i>Laki-Laki</span>
                             <span class="h3 fw-bold text-info mb-0 d-block lh-1 mt-1">{{ $totalLaki }}</span>
                         </div>
                     </div>
                     <div class="col-6 col-sm-3 col-lg-3">
                         <div class="glass-stat-card text-center">
-                            <span class="d-block text-white-50 fs-8 text-uppercase fw-semibold ls-1"><i class="bi bi-gender-female me-1 text-danger"></i>Perempuan</span>
+                            <span class="d-block fs-8 text-uppercase fw-semibold ls-1" style="color: rgba(255, 255, 255, 0.88);"><i class="bi bi-gender-female me-1 text-danger"></i>Perempuan</span>
                             <span class="h3 fw-bold text-pink mb-0 d-block lh-1 mt-1" style="color: #f472b6;">{{ $totalPerempuan }}</span>
                         </div>
                     </div>
                     <div class="col-6 col-sm-3 col-lg-3">
                         <div class="glass-stat-card text-center">
-                            <span class="d-block text-white-50 fs-8 text-uppercase fw-semibold ls-1"><i class="bi bi-star-fill me-1 text-warning"></i>Ikut Ekskul</span>
+                            <span class="d-block fs-8 text-uppercase fw-semibold ls-1" style="color: rgba(255, 255, 255, 0.88);"><i class="bi bi-star-fill me-1 text-warning"></i>Ikut Ekskul</span>
                             <span class="h3 fw-bold mb-0 d-block lh-1 mt-1" style="color: #fbbf24;">{{ $totalIkutEkskul }}</span>
                         </div>
                     </div>

@@ -51,29 +51,31 @@
 
     /* ── Nav Pills ───────────────────────────────────────── */
     .nav-pills-custom .nav-link {
-        color: #64748B;
+        color: #334155;
         font-size: 0.875rem;
         font-weight: 600;
         border-radius: 10px;
         padding: 0.55rem 1.15rem;
         transition: all 0.2s ease;
         background: #F8FAFC;
-        border: 1px solid #E2E8F0;
+        border: 1px solid #CBD5E1;
     }
     .nav-pills-custom .nav-link:hover {
-        color: #1E293B;
+        color: #0F172A;
         background: #F1F5F9;
     }
-    .nav-pills-custom .nav-link.active {
-        background: #2563EB;
-        color: #ffffff;
-        border-color: #2563EB;
+    .nav-pills-custom .nav-link.active,
+    .nav-pills-custom .nav-link.active i {
+        background: #2563EB !important;
+        color: #ffffff !important;
+        border-color: #2563EB !important;
         box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
     }
-    .nav-pills-custom .nav-link.active-warning {
-        background: #D97706;
-        color: #ffffff;
-        border-color: #D97706;
+    .nav-pills-custom .nav-link.active-warning,
+    .nav-pills-custom .nav-link.active-warning i {
+        background: #D97706 !important;
+        color: #ffffff !important;
+        border-color: #D97706 !important;
         box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
     }
 
@@ -174,29 +176,29 @@
         <div class="row align-items-center g-3">
             <div class="col-lg-6">
                 <div class="d-flex align-items-center gap-2 mb-2">
-                    <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 text-uppercase small fw-semibold">
+                    <span class="badge border border-white border-opacity-25 text-white rounded-pill px-3 py-1.5 text-uppercase small fw-semibold" style="background: rgba(255, 255, 255, 0.18);">
                         <i class="bi bi-people-fill me-1"></i> Data Master Siswa
                     </span>
                     @if(request('temp_nisn'))
-                        <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1 small fw-bold">
+                        <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1.5 small fw-bold">
                             <i class="bi bi-exclamation-triangle-fill me-1"></i> Filter: NISN Sementara
                         </span>
                     @endif
                 </div>
                 <h1 class="h2 fw-bold text-white mb-2">Kelola Data Siswa</h1>
-                <p class="text-white-50 mb-0">Direktori siswa terdaftar dalam seluruh program ekstrakurikuler & kelas Erlass Institute.</p>
+                <p class="mb-0" style="color: rgba(255, 255, 255, 0.92); font-size: 0.95rem;">Direktori siswa terdaftar dalam seluruh program ekstrakurikuler & kelas Erlass Institute.</p>
             </div>
             <div class="col-lg-6">
                 <div class="row g-2 justify-content-lg-end">
                     <div class="col-6 col-sm-4">
                         <div class="stat-card-mini text-center">
-                            <div class="text-white-50 small fw-medium mb-1">Total Siswa</div>
+                            <div class="small fw-semibold mb-1" style="color: rgba(255, 255, 255, 0.88);">Total Siswa</div>
                             <div class="fs-4 fw-bold text-white">{{ number_format($totalSiswaCount ?? 0) }}</div>
                         </div>
                     </div>
                     <div class="col-6 col-sm-4">
                         <div class="stat-card-mini text-center">
-                            <div class="text-white-50 small fw-medium mb-1">NISN Temp (TMP)</div>
+                            <div class="small fw-semibold mb-1" style="color: rgba(255, 255, 255, 0.88);">NISN Temp (TMP)</div>
                             <div class="fs-4 fw-bold {{ ($tempNisnCount ?? 0) > 0 ? 'text-warning' : 'text-white' }}">
                                 {{ number_format($tempNisnCount ?? 0) }}
                             </div>
@@ -204,7 +206,7 @@
                     </div>
                     <div class="col-6 col-sm-4 col-lg-4">
                         <div class="stat-card-mini text-center">
-                            <div class="text-white-50 small fw-medium mb-1">Sekolah</div>
+                            <div class="small fw-semibold mb-1" style="color: rgba(255, 255, 255, 0.88);">Sekolah</div>
                             <div class="fs-4 fw-bold text-white">{{ number_format($totalSekolahCount ?? 0) }}</div>
                         </div>
                     </div>
@@ -212,9 +214,9 @@
             </div>
         </div>
 
-        <div class="d-flex flex-wrap gap-2 mt-4 pt-2 border-top border-white border-opacity-10 justify-content-between align-items-center">
-            <div class="text-white-50 small">
-                <i class="bi bi-info-circle me-1"></i> Menampilkan <strong>{{ $siswa->count() }}</strong> dari <strong>{{ $siswa->total() }}</strong> siswa terdaftar
+        <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top border-white border-opacity-20 justify-content-between align-items-center">
+            <div class="small" style="color: rgba(255, 255, 255, 0.92);">
+                <i class="bi bi-info-circle me-1"></i> Menampilkan <strong class="text-white fw-bold">{{ $siswa->count() }}</strong> dari <strong class="text-white fw-bold">{{ $siswa->total() }}</strong> siswa terdaftar
             </div>
             <div class="d-flex gap-2">
                 <a href="{{ route('siswa.export', request()->query()) }}" class="btn btn-outline-light btn-sm fw-semibold shadow-sm px-3 rounded-3" title="Unduh Data Siswa (CSV)">
