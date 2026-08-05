@@ -64,7 +64,7 @@ class InstructorRegistrationController extends Controller
             'no_hp_2' => 'required|string|max:20',
             'agama' => 'required|string|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu,Lainnya',
             'alamat_domisili' => 'required|string',
-            'kota_domisili' => 'required|string|max:100',
+            'kota_domisili' => ['required', 'string', \Illuminate\Validation\Rule::in(\App\Models\InstructorProfile::listKotaDomisili())],
             'status_pernikahan' => 'required|string|in:Lajang,Menikah,Duda/Janda',
 
             // Documents

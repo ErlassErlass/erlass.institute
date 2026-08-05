@@ -304,8 +304,13 @@
                              </div>
                              <div class="col-md-6">
                                 <label class="form-label small text-muted">Kota Domisili <span class="text-danger">*</span></label>
-                                <input class="form-control @error('kota_domisili') is-invalid @enderror" type="text" name="kota_domisili" value="{{ old('kota_domisili') }}" required placeholder="Jakarta Selatan" />
-                                @error('kota_domisili') <div class="small text-danger mt-1">{{ $message }}</div> @enderror
+                                 <select class="form-select @error('kota_domisili') is-invalid @enderror" name="kota_domisili" required>
+                                     <option value="">-- Pilih Kota Domisili --</option>
+                                     @foreach(\App\Models\InstructorProfile::listKotaDomisili() as $city)
+                                         <option value="{{ $city }}" {{ old('kota_domisili') == $city ? 'selected' : '' }}>{{ $city }}</option>
+                                     @endforeach
+                                 </select>
+                                 @error('kota_domisili') <div class="small text-danger mt-1">{{ $message }}</div> @enderror
                              </div>
                              <div class="col-md-6">
                                 <label class="form-label small text-muted">No HP Darurat (Keluarga) <span class="text-danger">*</span></label>

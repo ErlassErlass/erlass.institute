@@ -306,10 +306,12 @@
                                         <!-- Kota Domisili -->
                                         <div class="mb-3">
                                             <label for="kota_domisili" class="form-label">Kota Domisili</label>
-                                            <input type="text" class="form-control @error('kota_domisili') is-invalid @enderror" 
-                                                   id="kota_domisili" name="kota_domisili" 
-                                                   value="{{ old('kota_domisili', $user->instructorProfile->kota_domisili ?? '') }}"
-                                                   placeholder="Contoh: Jakarta Selatan">
+                                            <select class="form-select @error('kota_domisili') is-invalid @enderror" id="kota_domisili" name="kota_domisili">
+                                                <option value="">-- Pilih Kota Domisili --</option>
+                                                @foreach(\App\Models\InstructorProfile::listKotaDomisili() as $city)
+                                                    <option value="{{ $city }}" {{ old('kota_domisili', $user->instructorProfile->kota_domisili ?? '') == $city ? 'selected' : '' }}>{{ $city }}</option>
+                                                @endforeach
+                                            </select>
                                             @error('kota_domisili')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror

@@ -19,4 +19,28 @@ class InstructorProfile extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Master list of normalized instructor domicile cities.
+     */
+    public static function listKotaDomisili(): array
+    {
+        return [
+            'Jakarta Selatan',
+            'Jakarta Timur',
+            'Jakarta Pusat',
+            'Jakarta Barat',
+            'Jakarta Utara',
+            'Kota Bogor',
+            'Kabupaten Bogor',
+            'Depok',
+            'Kota Tangerang',
+            'Kabupaten Tangerang',
+            'Tangerang Selatan',
+            'Kota Bekasi',
+            'Kabupaten Bekasi',
+            'Serang',
+            'Lainnya',
+        ];
+    }
 }

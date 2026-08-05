@@ -154,7 +154,7 @@ class UserController extends Controller
             'tanggal_aktif' => ['nullable', 'date'],
             'tanggal_nonaktif' => ['nullable', 'date', 'after_or_equal:tanggal_aktif'],
             'alamat_domisili' => ['nullable', 'string'],
-            'kota_domisili' => ['nullable', 'string', 'max:255'],
+            'kota_domisili' => ['nullable', 'string', \Illuminate\Validation\Rule::in(\App\Models\InstructorProfile::listKotaDomisili())],
         ], [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
             'email.required' => 'Email wajib diisi.',
@@ -372,7 +372,7 @@ class UserController extends Controller
                 'nama_panggilan' => 'required|string|max:100',
                 'no_hp_2' => 'required|string|max:20',
                 'alamat_domisili' => 'required|string',
-                'kota_domisili' => 'required|string|max:100',
+                'kota_domisili' => ['required', 'string', \Illuminate\Validation\Rule::in(\App\Models\InstructorProfile::listKotaDomisili())],
                 'status_pernikahan' => 'required|string|max:50',
 
                 // Documents (nullable if already exists)
