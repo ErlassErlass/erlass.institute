@@ -11,11 +11,11 @@
         <div class="card-body p-4 p-lg-5 position-relative">
             <div class="row align-items-center">
                 <div class="col-lg-8">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="badge bg-blue-50 text-blue-700 border border-blue-200 rounded-pill px-3 py-1 small fw-bold">
-                            <i class="bi bi-shield-check me-1"></i> Mode Otorisasi Terproteksi
+                    <div class="d-flex align-items-center gap-2 mb-2.5">
+                        <span class="badge bg-primary text-white shadow-sm rounded-pill px-3 py-1.5 small fw-bold">
+                            <i class="bi bi-shield-lock-fill me-1 text-white"></i> Mode Otorisasi Terproteksi
                         </span>
-                        <span class="badge bg-warning bg-opacity-20 text-dark border border-warning border-opacity-30 rounded-pill px-3 py-1 small fw-bold">
+                        <span class="badge bg-warning text-dark shadow-sm rounded-pill px-3 py-1.5 small fw-bold">
                             <i class="bi bi-clock-history me-1"></i> Cutoff 11 – 10
                         </span>
                     </div>
