@@ -18,6 +18,10 @@ class AbsensiController extends Controller
      */
     public function create(LaporanMengajar $laporanMengajar, Request $request)
     {
+        if (!$laporanMengajar || !$laporanMengajar->exists) {
+            return redirect()->route('laporan-mengajar.index')->with('warning', 'Silakan pilih laporan mengajar terlebih dahulu untuk menginput absensi.');
+        }
+
         // Otorisasi menggunakan Policy: Apakah user ini boleh membuat absensi untuk laporan ini?
         $this->authorize('create', [Absensi::class, $laporanMengajar]);
 

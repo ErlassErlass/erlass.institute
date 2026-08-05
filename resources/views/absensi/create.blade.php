@@ -40,7 +40,7 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('laporan-mengajar.absensi.store', $laporanMengajar) }}">
+                    <form method="POST" action="{{ route('laporan-mengajar.absensi.store', $laporanMengajar->id ?? $laporanMengajar ?? 0) }}">
                         @csrf
                         <div class="table-responsive">
                             <table class="table table-hover align-middle">
