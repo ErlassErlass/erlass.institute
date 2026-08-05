@@ -57,8 +57,9 @@ Ditentukan berdasarkan akumulasi jumlah siswa **HADIR** dalam sesi:
 1. **Guru Internal Sekolah & Sesi di Kantor Erlass**:
    - Biaya Transportasi: **Rp 0** (Hanya membayarkan honorarium mengajar).
 2. **Sekolah Berjarak $\ge 10\text{ KM}$ dari Pejaten**:
-   $$\text{Biaya Transport 1 Arah} = (\text{Jarak KM} \times \text{Rp 350}) + \text{Rp 7.500 (Sewa Kendaraan)}$$
-   $$\text{Biaya Transport 2x PP} = \text{Biaya Transport 1 Arah} \times 2$$
+   $$\text{Biaya Bensin 2x PP} = \text{Jarak KM} \times \text{Rp 350} \times 2$$
+   $$\text{Biaya Transport Total} = \text{Biaya Bensin 2x PP} + \text{Rp 7.500 (Sewa Kendaraan)}$$
+   *(Contoh Jarak 15 KM: $[15 \times 350 \times 2] + 7.500 = 10.500 + 7.500 = \text{Rp 18.000}$)*
 3. **Sekolah Berjarak $< 10\text{ KM}$**:
    - Biaya Transportasi: **Rp 0** (Sekolah berjarak di bawah 10 KM dari Pejaten tidak mendapatkan kompensasi transport).
 4. **Deduplikasi Per Sekolah Per Hari**:

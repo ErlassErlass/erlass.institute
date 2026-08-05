@@ -178,10 +178,11 @@ class PayrollCalculatorService
             // Sekolah berjarak < 10 KM dari Pejaten: Uang Transport = Rp 0
             $transportFee = 0.00;
         } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km >= 10.0) {
-            // Sekolah berjarak >= 10 KM dari Pejaten: (Jarak KM x Rp 350 + Rp 7.500 sewa kendaraan) x 2 PP
+            // Sekolah berjarak >= 10 KM dari Pejaten: (Jarak KM x Rp 350 x 2 PP) + Rp 7.500 (Sewa Kendaraan)
             $distKm = (float) $ekskul->jarak_km;
-            $oneWay = ($distKm * 350.00) + 7500.00;
-            $transportFee = $oneWay * 2; // 2x PP (Pulang-Pergi)
+            $bensinPP = $distKm * 350.00 * 2; // Bensin 2x PP (Pulang-Pergi)
+            $sewaKendaraan = 7500.00; // Fixed flat fee 1x
+            $transportFee = $bensinPP + $sewaKendaraan;
         } elseif ($sekolah && $sekolah->kustom_transport_fee !== null) {
             $transportFee = (float)$sekolah->kustom_transport_fee * 2; // 2x PP
         } else {

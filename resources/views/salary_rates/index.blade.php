@@ -141,10 +141,10 @@
                         <p class="text-muted mb-2">Biaya transportasi dihitung <strong>2x PP</strong> untuk sekolah berjarak <strong>≥ 10 KM</strong> dari Pejaten. Sekolah berjarak <strong>&lt; 10 KM</strong> transport = <strong>Rp 0</strong>.</p>
                         <div class="bg-white p-2 rounded border small">
                             <div class="text-muted mb-1">Contoh Jarak 15 KM:</div>
-                            <code class="text-dark d-block">1 Arah = (15 × Rp 350) + Rp 7.500</code>
-                            <code class="text-dark d-block">= Rp 12.750</code>
+                            <code class="text-dark d-block">Bensin 2x PP = (15 × Rp 350) × 2 = Rp 10.500</code>
+                            <code class="text-dark d-block">Sewa Kendaraan = Rp 7.500</code>
                             <hr class="my-1">
-                            <code class="text-success fw-bold d-block">2x PP = Rp 25.500</code>
+                            <code class="text-success fw-bold d-block">Total Transport = Rp 18.000</code>
                         </div>
                     </div>
                 </div>
