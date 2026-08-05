@@ -393,17 +393,17 @@
                                     </div>
                                 </td>
 
-                                <td>
+                                 <td>
                                     @if($isMale)
-                                        <span class="badge bg-blue-50 text-blue-700 border border-blue-200 rounded-pill px-2.5 py-1 small">
-                                            <i class="bi bi-gender-male me-1"></i> Laki-laki
+                                        <span class="badge bg-blue-50 text-dark fw-bold border border-blue-200 rounded-pill px-2.5 py-1 small">
+                                            <i class="bi bi-gender-male me-1 text-primary"></i> Laki-laki
                                         </span>
                                     @elseif($isFemale)
-                                        <span class="badge bg-pink-50 text-pink-700 border border-pink-200 rounded-pill px-2.5 py-1 small">
-                                            <i class="bi bi-gender-female me-1"></i> Perempuan
+                                        <span class="badge bg-pink-50 text-dark fw-bold border border-pink-200 rounded-pill px-2.5 py-1 small">
+                                            <i class="bi bi-gender-female me-1 text-danger"></i> Perempuan
                                         </span>
                                     @else
-                                        <span class="text-muted small">—</span>
+                                        <span class="text-dark small">—</span>
                                     @endif
                                 </td>
 
@@ -415,7 +415,7 @@
                                 </td>
 
                                 <td class="text-center">
-                                    <span class="badge bg-slate-100 text-slate-800 border px-2.5 py-1 rounded-3 font-monospace">
+                                    <span class="badge bg-slate-100 text-dark fw-bold border border-slate-300 px-2.5 py-1 rounded-3 font-monospace">
                                         {{ $item->kelas }}
                                     </span>
                                 </td>
@@ -498,11 +498,11 @@
                                 <div class="text-muted mb-0.5"><i class="bi bi-gender-ambiguous me-1"></i>Gender</div>
                                 <div>
                                     @if($isMale)
-                                        <span class="badge bg-blue-50 text-blue-700 border border-blue-200 rounded-pill px-2 py-0.5 small">
+                                        <span class="badge bg-blue-50 text-dark fw-bold border border-blue-200 rounded-pill px-2 py-0.5 small">
                                             Laki-laki
                                         </span>
                                     @elseif($isFemale)
-                                        <span class="badge bg-pink-50 text-pink-700 border border-pink-200 rounded-pill px-2 py-0.5 small">
+                                        <span class="badge bg-pink-50 text-dark fw-bold border border-pink-200 rounded-pill px-2 py-0.5 small">
                                             Perempuan
                                         </span>
                                     @else
@@ -512,7 +512,7 @@
                             </div>
                             <div class="col-6">
                                 <div class="text-muted mb-0.5"><i class="bi bi-bookmarks me-1"></i>Kelas</div>
-                                <span class="badge bg-slate-100 text-slate-800 border px-2 py-0.5 rounded-3">{{ $item->kelas }}</span>
+                                <span class="badge bg-slate-100 text-dark fw-bold border border-slate-300 px-2 py-0.5 rounded-3">{{ $item->kelas }}</span>
                             </div>
                         </div>
 
