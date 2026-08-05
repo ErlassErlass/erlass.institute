@@ -6,11 +6,46 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 px-4">
             
-            <div class="mb-4">
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    {{ __('Distribusi Jadwal Instruktur') }}
-                </h2>
+    <!-- Hero Header -->
+    <div class="card border-0 mb-4 text-white overflow-hidden shadow-sm" style="background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #2563EB 100%); border-radius: 16px;">
+        <div class="card-body p-4 position-relative">
+            <div class="row align-items-center g-3">
+                <div class="col-lg-6">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge border border-white border-opacity-25 text-white rounded-pill px-3 py-1.5 text-uppercase small fw-semibold" style="background: rgba(255, 255, 255, 0.18);">
+                            <i class="bi bi-bar-chart-steps me-1"></i> Analytics & Penjadwalan
+                        </span>
+                    </div>
+                    <h1 class="h2 fw-bold text-white mb-2">Distribusi Jadwal Instruktur</h1>
+                    <p class="mb-0" style="color: rgba(255, 255, 255, 0.92); font-size: 0.95rem;">
+                        Analisis pemerataan beban mengajar & distribusi jadwal seluruh instruktur Erlass Institute.
+                    </p>
+                </div>
+                <div class="col-lg-6">
+                    <div class="row g-2 justify-content-lg-end">
+                        <div class="col-6 col-sm-4">
+                            <div class="p-3 text-center rounded-3" style="background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.25);">
+                                <div class="small fw-semibold mb-1" style="color: rgba(255, 255, 255, 0.88);">Rata-rata Sesi</div>
+                                <div class="fs-4 fw-bold text-white">{{ $average_sessions }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-4">
+                            <div class="p-3 text-center rounded-3" style="background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.25);">
+                                <div class="small fw-semibold mb-1" style="color: rgba(255, 255, 255, 0.88);">Total Instruktur</div>
+                                <div class="fs-4 fw-bold text-white">{{ $instructors->count() }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-4">
+                            <div class="p-3 text-center rounded-3" style="background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.25);">
+                                <div class="small fw-semibold mb-1" style="color: rgba(255, 255, 255, 0.88);">Perlu Tambahan</div>
+                                <div class="fs-4 fw-bold text-warning">{{ count($recommended_instructors) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </div>
+    </div>
             
             <div class="row mb-4">
                 <!-- Chart Section -->
