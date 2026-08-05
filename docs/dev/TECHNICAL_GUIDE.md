@@ -107,10 +107,12 @@ Proses registrasi instruktur melibatkan transaksi database (`DB::transaction`) u
 *   **Webmaster**: Super Admin.
 
 ### 5. Laporan Mengajar Logic
-**Controller**: `LaporanMengajarController`
-**Validation**:
+**Controller**: `LaporanMengajarController`, `EkstrakurikulerReportController`
+**Validation & Workflow**:
 *   **H+1 Restriction**: Instruktur tidak bisa membuat laporan untuk tanggal yang sudah lewat > 1 hari (`store` method).
-*   **Auto Creation**: Jika sesi ekstrakurikuler selesai, laporan bisa dibuat otomatis dari sesi tersebut (`createFromEkstrakurikuler`).
+*   **Auto Creation & Ad-Hoc Wrapper**: Jika sesi ekstrakurikuler selesai, laporan dibuat dari sesi tersebut. Untuk laporan *Free Trial Class / Ad-Hoc* pada sekolah tanpa kontrak ekskul reguler, sistem membuat kontrak pembungkus Ad-Hoc berstatus `dibatalkan` untuk keperluan honor payroll tanpa memicu pembuatan *slot dummy* jadwal tambahan (`EkstrakurikulerRombel::generateSessions` guarded).
+*   **Free Trial Class Field & Honor Logic**: Kategori *Free Trial Class* menampilkan input khusus `Jumlah Siswa Hadir Free Trial` (pemicu `onchange="toggleFreeTrialFields()"` vanilla JS). Honor ditentukan secara otomatis: >6 siswa = Rp 100.000, &le;6 siswa = Rp 75.000.
+*   **File Project Formats**: Mengunggah berkas project wajib (`file_project`, max 10MB) dengan ekstensi yang diizinkan: `.sb3` (Scratch), `.hex` (Micro:bit), `.zip`, `.rar`.
 
 ### 6. WhatsApp Notifications (Fonnte)
 **Channel**: `App\Notifications\Channels\WhatsAppChannel`

@@ -2,6 +2,28 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.7.0] - 2026-08-05
+
+### Ditambahkan & Dioptimalkan (Added & Optimized)
+- **Pengaturan & Form Input Siswa Hadir Free Trial (`/laporan-mengajar/create`)**:
+  - Penambahan form khusus `Jumlah Siswa Hadir Free Trial` (kotak hijau interaktif) pada form pembuatan laporan mengajar.
+  - Penggunaan skrip *vanilla JavaScript* dengan pemicu `onchange="toggleFreeTrialFields()"` langsung pada `<select>` kategori pengajaran untuk menjamin ketersediaan & visibilitas input 100% konsisten tanpa tergantung jQuery.
+- **Penyatuan & Validasi Ketat Kategori Pengajaran A-Z**:
+  - Penggabungan opsi kategori ganda (`Trial Class` dan `Free Trial Class`) menjadi satu nama resmi standar: **`Free Trial Class`**.
+  - Pengurutan seluruh daftar kategori pengajaran secara alfabetis (A-Z) pada dropdown form.
+  - Penerapan sterilisasi validasi server menggunakan `Rule::in($allowedKategori)` pada `StoreLaporanMengajarRequest.php` dan `LaporanMengajarController.php` untuk mencegah manipulasi string dari luar.
+- **Peningkatan Dukungan Format File Project (`/ekstrakurikuler/sessions/{id}/report/create`)**:
+  - Penambahan dukungan ekstensi berkas Micro:bit **`.hex`** (bersama `.sb3`, `.zip`, `.rar`) pada pengunggahan File Project laporan ekskul.
+  - Pembersihan ekstensi non-coding (`.pdf`, `.py`) dari aturan validasi backend (`EkstrakurikulerReportController.php`) dan filter frontend.
+- **Audit Kontras Tinggi & Typografi Terang Seluruh Frontend View Blade**:
+  - Pembenahan masalah teks redup `text-white-50` dan bentrok warna pada seluruh berkas Blade utama (`siswa/index`, `sekolah/siswa-by-sekolah`, `dashboard/stat-card`, `instructor-stats`, `ekstrakurikuler/show`, `welcome`, `register-instructor`, `certificates/verify`, `schedule-distribution`).
+  - Penggantian teks redup menjadi warna **putih terang crisp `rgba(255, 255, 255, 0.92)`** dan penyesuaian tab aktif agar teks tidak biru di atas latar biru.
+- **Pencegahan Sesi Dummy Orfan pada Kontrak Ad-Hoc (`EkstrakurikulerRombel`)**:
+  - Penambahan *guard check* pada `EkstrakurikulerRombel::generateSessions()`. Sistem otomatis melewati pembentukan *slot dummy* jadwal jika kontrak berstatus `dibatalkan` atau berkategori Ad-Hoc (*Free Trial, Trial Class, Sosialisasi Sales, Pameran, Event*).
+  - Eliminasi bug yang sebelumnya menyebabkan terciptanya sesi orfan kosong (seperti Sesi `#8628`).
+- **Pengamanan Rute & Fallback Guard Absensi (`AbsensiController`)**:
+  - Penambahan *guard redirect* pada `AbsensiController::create` & `resources/views/absensi/create.blade.php`. Jika rute diakses tanpa parameter ID laporan yang valid, sistem otomatis mengalihkan pengguna kembali ke `/laporan-mengajar` dengan notifikasi aman tanpa pemicu HTTP 500.
+
 ## [2.6.0] - 2026-08-04
 
 ### Ditambahkan & Dioptimalkan (Added & Optimized)

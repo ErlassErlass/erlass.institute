@@ -1,6 +1,6 @@
 # Dokumentasi Spesifikasi & Panduan Perhitungan Payroll (Spesifikasi Teknis Sistem Penggajian)
 
-**Versi Dokumen:** 2.3.0  
+**Versi Dokumen:** 2.3.1  
 **Tanggal Diperbarui:** 5 Agustus 2026  
 **Landasan Hukum & Acuan Resmi:** Surat Memo Direksi No. 536/EPI/V/2025 (*Pengajuan Honor Instruktur Erlass TAB 2025/2026*)  
 **Repositori:** `erlass.institute`  
