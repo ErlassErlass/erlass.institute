@@ -197,6 +197,27 @@
                                 </div>
                             </div>
 
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="jumlah_siswa_hadir" class="form-label fw-bold text-success"><i class="fas fa-user-check me-1"></i>Jumlah Siswa Hadir <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-success bg-opacity-10 text-success"><i class="fas fa-users"></i></span>
+                                        <input type="number" name="jumlah_siswa_hadir" id="jumlah_siswa_hadir" class="form-control @error('jumlah_siswa_hadir') is-invalid @enderror" value="{{ old('jumlah_siswa_hadir', 0) }}" required min="0" placeholder="0">
+                                    </div>
+                                    <small class="form-text text-muted"><i class="bi bi-info-circle text-success me-1"></i>Isi total peserta/siswa yang HADIR pada kegiatan ini (penting untuk perhitungan honor Free Trial Class, Sosialisasi, Inkul, dll.).</small>
+                                    @error('jumlah_siswa_hadir') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="jumlah_siswa_tidak_hadir" class="form-label fw-bold text-secondary"><i class="fas fa-user-times me-1"></i>Jumlah Siswa Tidak Hadir (Opsional)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-user-minus"></i></span>
+                                        <input type="number" name="jumlah_siswa_tidak_hadir" id="jumlah_siswa_tidak_hadir" class="form-control @error('jumlah_siswa_tidak_hadir') is-invalid @enderror" value="{{ old('jumlah_siswa_tidak_hadir', 0) }}" min="0" placeholder="0">
+                                    </div>
+                                    <small class="form-text text-muted">Jumlah peserta/siswa yang tidak hadir (bisa diisi 0 jika tidak ada).</small>
+                                    @error('jumlah_siswa_tidak_hadir') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
+
                             <div class="mb-3">
                                 <label for="materi_pengajaran" class="form-label">Materi Pengajaran</label>
                                 <textarea name="materi_pengajaran" id="materi_pengajaran" class="form-control @error('materi_pengajaran') is-invalid @enderror" rows="3" required placeholder="Tuliskan materi pengajaran...">{{ old('materi_pengajaran') }}</textarea>

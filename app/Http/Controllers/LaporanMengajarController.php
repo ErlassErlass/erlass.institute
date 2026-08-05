@@ -377,8 +377,8 @@ class LaporanMengajarController extends Controller
         // Get complete school data
         $validated['status'] = $request->has('draft') ? 'draft' : 'submitted';
 
-        $validated['jumlah_siswa_hadir'] = 0;
-        $validated['jumlah_siswa_tidak_hadir'] = 0;
+        $validated['jumlah_siswa_hadir'] = (int) $request->input('jumlah_siswa_hadir', 0);
+        $validated['jumlah_siswa_tidak_hadir'] = (int) $request->input('jumlah_siswa_tidak_hadir', 0);
         $validated['jumlah_siswa_keluar'] = 0;
         
         // Default values for removed evaluation fields
@@ -396,8 +396,6 @@ class LaporanMengajarController extends Controller
             );
         }
 
-        // Removed: foto_absensi_siswa logic as requested
-
         // Create the report
         $laporan = LaporanMengajar::create($validated);
 
@@ -413,9 +411,19 @@ class LaporanMengajarController extends Controller
             'user_agent' => $request->userAgent(),
         ]);
 
-        // Redirect to attendance input
-        return redirect()->route('laporan-mengajar.absensi.create', $laporan)
-            ->with('success', 'Laporan dasar berhasil dibuat! Sekarang, silakan isi absensi.');
+        // Smart Redirect: If pre-registered students exist in DB for this school & rombel, redirect to absensi.create.
+        // Otherwise (for Ad-Hoc / Free Trial Class with standalone text rombel), redirect directly to show.
+        $hasRegisteredStudents = \App\Models\Siswa::where('sekolah_kodlan', $validated['sekolah_kodlan'])
+            ->where('rombel', $validated['rombel'])
+            ->exists();
+
+        if ($hasRegisteredStudents) {
+            return redirect()->route('laporan-mengajar.absensi.create', $laporan)
+                ->with('success', 'Laporan dasar berhasil dibuat! Silakan tandai absensi siswa.');
+        }
+
+        return redirect()->route('laporan-mengajar.show', $laporan)
+            ->with('success', 'Laporan mengajar Ad-Hoc / Free Trial Class berhasil dibuat!');
     }
 
     public function show(LaporanMengajar $laporanMengajar)
