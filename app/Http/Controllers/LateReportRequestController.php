@@ -31,7 +31,7 @@ class LateReportRequestController extends Controller
 
         // Cek kuota bulanan
         if ($user->monthly_late_report_quota <= 0) {
-            return back()->with('error', 'Kuota permohonan bulanan Anda sudah habis (Max 3).');
+            return back()->with('error', "Kuota permohonan bulanan Anda sudah habis (Max {$user->max_late_report_quota}).");
         }
 
         // Cek apakah sudah ada request pending untuk sesi ini
@@ -70,7 +70,7 @@ class LateReportRequestController extends Controller
         }
 
         if ($user->monthly_late_report_quota <= 0) {
-            return back()->with('error', 'Kuota permohonan bulanan Anda sudah habis (Max 3).');
+            return back()->with('error', "Kuota permohonan bulanan Anda sudah habis (Max {$user->max_late_report_quota}).");
         }
 
         $request->validate([

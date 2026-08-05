@@ -138,7 +138,16 @@ class User extends Authenticatable
         return $this->hasMany(LateReportRequest::class);
     }
 
-    public function getMonthlyLateReportQuotaAttribute()
+    /**
+     * Max kuota permohonan bulanan (10x saat masa transisi s/d 11 Agustus 2026, 3x pada periode normal).
+     */
+    public function getMaxLateReportQuotaAttribute(): int
+    {
+        $isTransitionPeriod = (now()->year == 2026 && now()->month == 8 && now()->day <= 11);
+        return $isTransitionPeriod ? 10 : 3;
+    }
+
+    public function getMonthlyLateReportQuotaAttribute(): int
     {
         $approvedThisMonth = $this->lateReportRequests()
             ->where("status", "approved")
@@ -146,7 +155,7 @@ class User extends Authenticatable
             ->whereYear("created_at", now()->year)
             ->count();
 
-        return max(0, 3 - $approvedThisMonth);
+        return max(0, $this->max_late_report_quota - $approvedThisMonth);
     }
 
     public function laporanMengajar()
