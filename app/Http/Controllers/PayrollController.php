@@ -48,8 +48,8 @@ class PayrollController extends Controller
      */
     public function storeBatch(Request $request)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->isPrimaryAdmin()) {
+            abort(403, 'Akses ditolak. Pengelolaan dan pembuatan Batch Payroll hanya dapat dilakukan oleh Admin Utama (Adinda Wardania).');
         }
 
         $request->validate([
@@ -109,8 +109,8 @@ class PayrollController extends Controller
      */
     public function processBatch($id)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->isPrimaryAdmin()) {
+            abort(403, 'Akses ditolak. Verifikasi Batch Payroll hanya dapat dilakukan oleh Admin Utama (Adinda Wardania).');
         }
 
         $batch = PayrollBatch::findOrFail($id);
@@ -138,8 +138,8 @@ class PayrollController extends Controller
      */
     public function payBatch($id)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->isPrimaryAdmin()) {
+            abort(403, 'Akses ditolak. Pencairan Batch Payroll hanya dapat dilakukan oleh Admin Utama (Adinda Wardania).');
         }
 
         $batch = PayrollBatch::findOrFail($id);
@@ -176,8 +176,8 @@ class PayrollController extends Controller
      */
     public function destroyBatch($id)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->isPrimaryAdmin()) {
+            abort(403, 'Akses ditolak. Penghapusan Batch Payroll hanya dapat dilakukan oleh Admin Utama (Adinda Wardania).');
         }
 
         $batch = PayrollBatch::findOrFail($id);

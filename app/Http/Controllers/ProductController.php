@@ -130,8 +130,8 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->isPrimaryAdmin()) {
+            abort(403, 'Akses ditolak. Penghapusan data master produk hanya dapat dilakukan oleh Admin Utama (Adinda Wardania).');
         }
 
         $product->delete();
@@ -147,8 +147,8 @@ class ProductController extends Controller
      */
     public function toggleAktif(Product $product)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->isPrimaryAdmin()) {
+            abort(403, 'Akses ditolak. Pengubahan status aktif produk hanya dapat dilakukan oleh Admin Utama (Adinda Wardania).');
         }
 
         $product->update(['is_aktif' => !$product->is_aktif]);

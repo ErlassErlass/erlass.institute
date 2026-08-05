@@ -42,8 +42,8 @@ class SalaryRateController extends Controller
      */
     public function store(Request $request)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->isPrimaryAdmin()) {
+            abort(403, 'Akses ditolak. Pengelolaan tarif master kompensasi hanya dapat dilakukan oleh Admin Utama (Adinda Wardania).');
         }
 
         $validated = $request->validate([
@@ -66,8 +66,8 @@ class SalaryRateController extends Controller
      */
     public function edit($id)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->isPrimaryAdmin()) {
+            abort(403, 'Akses ditolak. Perubahan tarif master kompensasi hanya dapat dilakukan oleh Admin Utama (Adinda Wardania).');
         }
 
         $rate = SalaryRate::findOrFail($id);
@@ -79,8 +79,8 @@ class SalaryRateController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->isPrimaryAdmin()) {
+            abort(403, 'Akses ditolak. Perubahan tarif master kompensasi hanya dapat dilakukan oleh Admin Utama (Adinda Wardania).');
         }
 
         $rate = SalaryRate::findOrFail($id);
@@ -104,8 +104,8 @@ class SalaryRateController extends Controller
      */
     public function destroy($id)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->isPrimaryAdmin()) {
+            abort(403, 'Akses ditolak. Penghapusan tarif master kompensasi hanya dapat dilakukan oleh Admin Utama (Adinda Wardania).');
         }
 
         $rate = SalaryRate::findOrFail($id);

@@ -57,7 +57,7 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        return in_array($user->role, ['webmaster', 'admin_sistem']);
+        return $user->isPrimaryAdmin();
     }
 
     /**
@@ -65,14 +65,9 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        // Webmaster bisa edit semua user
-        if ($user->role === 'webmaster') {
+        // Primary admin (Webmaster & Adinda Wardania) bisa edit user lain
+        if ($user->isPrimaryAdmin()) {
             return true;
-        }
-
-        // Admin Sistem bisa edit user lain, KECUALI Webmaster
-        if ($user->role === 'admin_sistem') {
-            return $model->role !== 'webmaster';
         }
 
         // User lain hanya bisa edit profilenya sendiri (kecuali role)
@@ -84,14 +79,9 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
-        // Webmaster bisa delete siapa saja (kecuali diri sendiri)
-        if ($user->role === 'webmaster') {
+        // Hanya Primary Admin yang bisa delete user lain (kecuali diri sendiri)
+        if ($user->isPrimaryAdmin()) {
             return $user->id !== $model->id;
-        }
-
-        // Admin Sistem bisa delete user lain, KECUALI Webmaster
-        if ($user->role === 'admin_sistem') {
-            return $model->role !== 'webmaster' && $user->id !== $model->id;
         }
 
         return false;

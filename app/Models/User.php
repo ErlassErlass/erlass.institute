@@ -183,6 +183,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Cek apakah user adalah Admin Utama (Adinda Wardania atau Webmaster)
+     */
+    public function isPrimaryAdmin(): bool
+    {
+        return $this->role === 'webmaster' || $this->email === 'adinda.wardania@erlass.institute';
+    }
+
+    /**
      * Cek apakah user bisa mengelola user lain (khusus webmaster)
      */
     public function canManageUsers(): bool
