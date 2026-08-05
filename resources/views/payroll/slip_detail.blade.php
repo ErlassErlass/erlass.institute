@@ -122,19 +122,33 @@
                                 @foreach ($item->sessions as $session)
                                     <tr>
                                         <td class="ps-4">
-                                            <div class="fw-bold text-dark">Pertemuan Ke-{{ $session->nomor_pertemuan }}</div>
-                                            @php
-                                                $catLower = strtolower($session->laporanMengajar->kategori_pengajaran ?? $session->topik_materi ?? '');
-                                                $isAdHocSess = ($session->laporanMengajar && $session->laporanMengajar->ekstrakurikuler_session_id === null)
-                                                    || in_array($catLower, ['pameran', 'sosialisasi', 'trial', 'free trial', 'trial class', 'lomba', 'pendampingan', 'per-pertemuan', 'per pertemuan', 'event', 'kegiatan mandiri']);
-                                            @endphp
-                                            @if($isAdHocSess)
-                                                <span class="badge rounded-pill mt-1" style="background-color: rgba(139, 92, 246, 0.12); color: #7c3aed; border: 1px solid rgba(139, 92, 246, 0.25); font-size: 0.7rem;">
-                                                    <i class="bi bi-stars me-1"></i> Kegiatan Mandiri
-                                                </span>
-                                            @endif
-                                            <small class="text-muted d-block mt-1">{{ $session->ekstrakurikuler->sekolah->namasekolah ?? 'Sekolah' }}</small>
-                                        </td>
+                                             @php
+                                                 $catLower = strtolower($session->laporanMengajar->kategori_pengajaran ?? $session->topik_materi ?? '');
+                                                 $isAdHocSess = ($session->nomor_pertemuan == 0)
+                                                     || ($session->laporanMengajar && $session->laporanMengajar->ekstrakurikuler_session_id === null)
+                                                     || str_contains($catLower, 'pameran')
+                                                     || str_contains($catLower, 'sosialisasi')
+                                                     || str_contains($catLower, 'trial')
+                                                     || str_contains($catLower, 'lomba')
+                                                     || str_contains($catLower, 'pendampingan')
+                                                     || str_contains($catLower, 'per-pertemuan')
+                                                     || str_contains($catLower, 'event')
+                                                     || str_contains($catLower, 'inkul')
+                                                     || str_contains($catLower, 'mandiri');
+
+                                                 $displayTitle = $isAdHocSess
+                                                     ? ($session->laporanMengajar->kategori_pengajaran ?? $session->topik_materi ?? 'Kegiatan Ad-Hoc / Khusus')
+                                                     : 'Pertemuan Ke-' . $session->nomor_pertemuan;
+                                             @endphp
+
+                                             <div class="fw-bold text-dark">{{ $displayTitle }}</div>
+                                             @if($isAdHocSess)
+                                                 <span class="badge rounded-pill mt-1" style="background-color: rgba(139, 92, 246, 0.12); color: #7c3aed; border: 1px solid rgba(139, 92, 246, 0.25); font-size: 0.7rem;">
+                                                     <i class="bi bi-stars me-1"></i> Kegiatan Khusus / Ad-Hoc
+                                                 </span>
+                                             @endif
+                                             <small class="text-muted d-block mt-1">{{ $session->ekstrakurikuler->sekolah->namasekolah ?? 'Sekolah' }}</small>
+                                         </td>
                                         <td>
                                             <div class="fw-semibold text-dark">{{ $session->rombel->nama_rombel }}</div>
                                             <small class="text-muted">{{ $session->tanggal_pelaksanaan ? $session->tanggal_pelaksanaan->format('d/m/Y') : $session->tanggal_terjadwal->format('d/m/Y') }}</small>

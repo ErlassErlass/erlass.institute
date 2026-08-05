@@ -266,6 +266,38 @@ class LaporanMengajar extends Model
             }
         }
 
+        // Cek apakah kategori pengajaran termasuk Kegiatan Ad-Hoc / Khusus / Non-Reguler
+        $catLower = strtolower($this->kategori_pengajaran ?? $this->materi_pengajaran ?? '');
+        $isAdHocCategory = str_contains($catLower, 'sosialisasi')
+            || str_contains($catLower, 'trial')
+            || str_contains($catLower, 'pameran')
+            || str_contains($catLower, 'lomba')
+            || str_contains($catLower, 'pendampingan')
+            || str_contains($catLower, 'per-pertemuan')
+            || str_contains($catLower, 'per pertemuan')
+            || str_contains($catLower, 'event')
+            || str_contains($catLower, 'inkul')
+            || str_contains($catLower, 'mandiri');
+
+        // 1. Cek apakah ada sesi terjadwal reguler pada tanggal & sekolah tersebut yang belum di-link
+        if (! $isAdHocCategory && $this->sekolah_kodlan && $this->jadwal_mengajar) {
+            $matchingSession = \App\Models\EkstrakurikulerSession::whereHas('ekstrakurikuler', function ($q) {
+                    $q->where('sekolah_kodlan', $this->sekolah_kodlan);
+                })
+                ->where(function ($q) {
+                    $q->whereDate('tanggal_pelaksanaan', $this->jadwal_mengajar)
+                      ->orWhereDate('tanggal_terjadwal', $this->jadwal_mengajar);
+                })
+                ->where('user_id_instruktur', $this->user_id_instruktur)
+                ->whereDoesntHave('laporanMengajar')
+                ->first();
+
+            if ($matchingSession) {
+                $this->update(['ekstrakurikuler_session_id' => $matchingSession->id]);
+                return $matchingSession;
+            }
+        }
+
         $ekstrakurikulerId = null;
         $rombelId = null;
 
@@ -305,10 +337,18 @@ class LaporanMengajar extends Model
             $rombelId = $rombel->id;
         }
 
-        $nomorPertemuan = $this->pertemuan_ke ?? 1;
-        if ($rombelId) {
-            while (\App\Models\EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombelId)->where('nomor_pertemuan', $nomorPertemuan)->exists()) {
-                $nomorPertemuan++;
+        // Untuk Kegiatan Ad-Hoc / Khusus, nomor pertemuan diset 0 (Non-Reguler) agar tidak menggelembungkan nomor pertemuan rombel
+        if ($isAdHocCategory) {
+            $nomorPertemuan = 0;
+        } else {
+            $nomorPertemuan = $this->pertemuan_ke ?? 1;
+            if ($rombelId) {
+                while (\App\Models\EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombelId)->where('nomor_pertemuan', $nomorPertemuan)->exists()) {
+                    $nomorPertemuan++;
+                }
+                if ($nomorPertemuan > 24) {
+                    $nomorPertemuan = 0; // Fallback ke 0 jika melebihi batas 24 pertemuan reguler
+                }
             }
         }
 
