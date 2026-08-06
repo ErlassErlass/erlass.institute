@@ -5,6 +5,8 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 ## [2.7.1] - 2026-08-06
 
 ### Ditambahkan & Diperbaiki (Added & Fixed)
+- **Penambahan Kuota Khusus Request Ad-Hoc Instruktur Ira Arsetiani (`User.php`)**:
+  - Penambahan kuota ekstra **+10x permohonan Ad-Hoc/Late Report** untuk instruktur **Ira Arsetiani (ID 131)** (Total batas kuota menjadi **20x** di masa transisi).
 - **Penambahan Kategori Pengajaran "Backup Pertemuan" (`/laporan-mengajar/create`)**:
   - Penambahan opsi **`Backup Pertemuan`** pada daftar rujukan & dropdown Kategori Pengajaran untuk memfasilitasi pelaporan di masa transisi.
   - Penyesuaian aturan validasi backend (`StoreLaporanMengajarRequest.php` & `LaporanMengajarController.php`) agar kategori baru terverifikasi sah oleh server.
