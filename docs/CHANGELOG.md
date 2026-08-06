@@ -4,7 +4,10 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
 ## [2.7.1] - 2026-08-06
 
-### Diperbaiki (Fixed)
+### Ditambahkan & Diperbaiki (Added & Fixed)
+- **Penambahan Kategori Pengajaran "Backup Pertemuan" (`/laporan-mengajar/create`)**:
+  - Penambahan opsi **`Backup Pertemuan`** pada daftar rujukan & dropdown Kategori Pengajaran untuk memfasilitasi pelaporan di masa transisi.
+  - Penyesuaian aturan validasi backend (`StoreLaporanMengajarRequest.php` & `LaporanMengajarController.php`) agar kategori baru terverifikasi sah oleh server.
 - **Perbaikan Hilangnya Sesi Terjadwal Saat Edit Ekskul / Rombel (`SchedulingService.php`)**:
   - Eliminasi bug *Duplicate Entry 1062* yang sebelumnya memicu kegagalan pendaftaran sesi baru saat mengedit data ekskul / rombel yang sudah memiliki sesi mengajar berkategori `selesai`.
   - Penyesuaian metode `SchedulingService::generateSessionsForRombel` agar secara cerdas melewati (*skip*) nomor pertemuan yang sudah selesai/terisi tanpa menghapus atau memutus urutan sesi terjadwal di depannya.
