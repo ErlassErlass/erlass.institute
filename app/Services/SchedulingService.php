@@ -62,36 +62,68 @@ class SchedulingService
             $this->clearExistingSessions($rombel);
         }
 
-        // Dapatkan nomor pertemuan yang sudah ada (misal sesi yang status != STATUS_TERJADWAL)
-        $existingCompletedSessions = EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombel->id)
+        // Dapatkan sesi-sesi yang sudah ada & tidak boleh diubah (selesai / berlangsung / dibatalkan)
+        $existingNonTerjadwal = EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombel->id)
             ->where('status', '!=', EkstrakurikulerSession::STATUS_TERJADWAL)
-            ->get();
-            
-        $existingNumbers = $existingCompletedSessions->pluck('nomor_pertemuan')->toArray();
+            ->get()
+            ->keyBy('nomor_pertemuan');
 
-        $sessionDates = $this->calculateSessionDates($rombel, $options);
-        $totalTarget = $rombel->total_pertemuan ?? $sessionDates->count();
+        // Mapping hari ke nomor hari dalam minggu (1=Senin, 7=Minggu)
+        $hariMapping = [
+            EkstrakurikulerRombel::HARI_SENIN => Carbon::MONDAY,
+            EkstrakurikulerRombel::HARI_SELASA => Carbon::TUESDAY,
+            EkstrakurikulerRombel::HARI_RABU => Carbon::WEDNESDAY,
+            EkstrakurikulerRombel::HARI_KAMIS => Carbon::THURSDAY,
+            EkstrakurikulerRombel::HARI_JUMAT => Carbon::FRIDAY,
+            EkstrakurikulerRombel::HARI_SABTU => Carbon::SATURDAY,
+            EkstrakurikulerRombel::HARI_MINGGU => Carbon::SUNDAY,
+        ];
+        $targetDayOfWeek = $hariMapping[$rombel->hari] ?? Carbon::FRIDAY;
 
-        $dateIndex = 0;
+        $intervalDays = match ($rombel->frekuensi) {
+            EkstrakurikulerRombel::FREKUENSI_HARIAN => 1,
+            EkstrakurikulerRombel::FREKUENSI_MINGGUAN => 7,
+            EkstrakurikulerRombel::FREKUENSI_DUA_MINGGU => 14,
+            EkstrakurikulerRombel::FREKUENSI_BULANAN => 30,
+            default => 7
+        };
+
+        $skipHolidays = $options['skip_holidays'] ?? true;
+        $totalTarget = $rombel->total_pertemuan ?? 24;
+
+        // Tanggal awal penjatdualan
+        $currentDate = Carbon::parse($rombel->tanggal_mulai);
+        $endDate = Carbon::parse($rombel->tanggal_selesai);
+
+        // Cari hari pertama yang sesuai dengan hari jadwal rombel
+        while ($currentDate->dayOfWeek !== $targetDayOfWeek && $currentDate->lte($endDate)) {
+            $currentDate->addDay();
+        }
+
         for ($sessionNumber = 1; $sessionNumber <= $totalTarget; $sessionNumber++) {
-            // Jika nomor pertemuan ini sudah ada (misal selesai/berlangsung/laporan), lewati pendaftarannya
-            if (in_array($sessionNumber, $existingNumbers)) {
-                $dateIndex++;
+            if ($existingNonTerjadwal->has($sessionNumber)) {
+                // Sesi ini sudah ada (misal selesai / ada laporan)
+                $existingSession = $existingNonTerjadwal->get($sessionNumber);
+                $existingDate = Carbon::parse($existingSession->tanggal_terjadwal);
+
+                // Set currentDate ke jadwal minggu berikutnya dari tanggal sesi selesai tersebut
+                $currentDate = $existingDate->copy()->addDays($intervalDays);
+                while ($currentDate->dayOfWeek !== $targetDayOfWeek) {
+                    $currentDate->addDay();
+                }
                 continue;
             }
 
-            if (!isset($sessionDates[$dateIndex])) {
-                break;
+            // Skip jika tanggal adalah hari libur nasional
+            while ($skipHolidays && $this->isHoliday($currentDate)) {
+                $currentDate->addDays($intervalDays);
             }
-
-            $date = $sessionDates[$dateIndex];
-            $dateIndex++;
 
             $sessionData = [
                 'ekstrakurikuler_id' => $rombel->ekstrakurikuler_id,
                 'ekstrakurikuler_rombel_id' => $rombel->id,
                 'nomor_pertemuan' => $sessionNumber,
-                'tanggal_terjadwal' => $date->toDateString(),
+                'tanggal_terjadwal' => $currentDate->toDateString(),
                 'jam_mulai_terjadwal' => $rombel->jam_mulai,
                 'jam_selesai_terjadwal' => $rombel->jam_selesai,
                 'user_id_instruktur' => $rombel->user_id_instruktur,
@@ -103,6 +135,9 @@ class SchedulingService
 
             $session = EkstrakurikulerSession::create($sessionData);
             $sessions->push($session);
+
+            // Lanjut ke interval hari berikutnya
+            $currentDate->addDays($intervalDays);
         }
 
         return $sessions;
