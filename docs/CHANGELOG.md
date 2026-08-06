@@ -2,6 +2,14 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.7.1] - 2026-08-06
+
+### Diperbaiki (Fixed)
+- **Perbaikan Hilangnya Sesi Terjadwal Saat Edit Ekskul / Rombel (`SchedulingService.php`)**:
+  - Eliminasi bug *Duplicate Entry 1062* yang sebelumnya memicu kegagalan pendaftaran sesi baru saat mengedit data ekskul / rombel yang sudah memiliki sesi mengajar berkategori `selesai`.
+  - Penyesuaian metode `SchedulingService::generateSessionsForRombel` agar secara cerdas melewati (*skip*) nomor pertemuan yang sudah selesai/terisi tanpa menghapus atau memutus urutan sesi terjadwal di depannya.
+  - Perbaikan & pemulihan otomatis seluruh sesi yang sempat hilang pada seluruh Rombel aktif di database (termasuk Ekskul #1, #2, #12).
+
 ## [2.7.0] - 2026-08-05
 
 ### Ditambahkan & Dioptimalkan (Added & Optimized)
