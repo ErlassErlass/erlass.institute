@@ -171,6 +171,7 @@ class LaporanMengajarController extends Controller
     private function getKategoriList(): array
     {
         $categories = [
+            'Backup Pertemuan',
             'Free Trial Class',
             'Inkul Coding Scratch',
             'Inkul LKPD Informatika SD',
@@ -588,6 +589,7 @@ class LaporanMengajarController extends Controller
         $request = $request ?? request();
         $allowedKategori = array_unique(array_merge(
             [
+                'Backup Pertemuan',
                 'Free Trial Class',
                 'Trial Class',
                 'Inkul Coding Scratch',

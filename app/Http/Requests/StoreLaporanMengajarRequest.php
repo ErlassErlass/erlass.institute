@@ -25,6 +25,7 @@ class StoreLaporanMengajarRequest extends FormRequest
     {
         $allowedKategori = array_unique(array_merge(
             [
+                'Backup Pertemuan',
                 'Free Trial Class',
                 'Trial Class',
                 'Inkul Coding Scratch',
