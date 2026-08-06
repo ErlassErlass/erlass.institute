@@ -57,15 +57,35 @@ class SchedulingService
             throw new \InvalidArgumentException('Data rombel tidak valid untuk generate sessions');
         }
 
-        // Hapus sessions yang sudah ada jika diminta
+        // Hapus sessions berstatus TERJADWAL saja jika diminta
         if ($options['replace_existing'] ?? false) {
             $this->clearExistingSessions($rombel);
         }
 
-        $sessionDates = $this->calculateSessionDates($rombel, $options);
+        // Dapatkan nomor pertemuan yang sudah ada (misal sesi yang status != STATUS_TERJADWAL)
+        $existingCompletedSessions = EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombel->id)
+            ->where('status', '!=', EkstrakurikulerSession::STATUS_TERJADWAL)
+            ->get();
+            
+        $existingNumbers = $existingCompletedSessions->pluck('nomor_pertemuan')->toArray();
 
-        foreach ($sessionDates as $index => $date) {
-            $sessionNumber = $index + 1;
+        $sessionDates = $this->calculateSessionDates($rombel, $options);
+        $totalTarget = $rombel->total_pertemuan ?? $sessionDates->count();
+
+        $dateIndex = 0;
+        for ($sessionNumber = 1; $sessionNumber <= $totalTarget; $sessionNumber++) {
+            // Jika nomor pertemuan ini sudah ada (misal selesai/berlangsung/laporan), lewati pendaftarannya
+            if (in_array($sessionNumber, $existingNumbers)) {
+                $dateIndex++;
+                continue;
+            }
+
+            if (!isset($sessionDates[$dateIndex])) {
+                break;
+            }
+
+            $date = $sessionDates[$dateIndex];
+            $dateIndex++;
 
             $sessionData = [
                 'ekstrakurikuler_id' => $rombel->ekstrakurikuler_id,
