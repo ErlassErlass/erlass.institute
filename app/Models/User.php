@@ -140,11 +140,19 @@ class User extends Authenticatable
 
     /**
      * Max kuota permohonan bulanan (10x saat masa transisi s/d 11 Agustus 2026, 3x pada periode normal).
+     * Tambahan kuota khusus per user (misal: Ira Arsetiani ID 131 +10x kuota).
      */
     public function getMaxLateReportQuotaAttribute(): int
     {
         $isTransitionPeriod = (now()->year == 2026 && now()->month == 8 && now()->day <= 11);
-        return $isTransitionPeriod ? 10 : 3;
+        $baseQuota = $isTransitionPeriod ? 10 : 3;
+
+        // Custom extra quota grants
+        $extraQuotaMap = [
+            131 => 10, // Ira Arsetiani (+10x kuota tambahan request ad-hoc)
+        ];
+
+        return $baseQuota + ($extraQuotaMap[$this->id] ?? 0);
     }
 
     public function getMonthlyLateReportQuotaAttribute(): int
