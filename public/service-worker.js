@@ -1,10 +1,22 @@
-const CACHE_NAME = 'erlass-ekskul-cache-v1';
+const CACHE_NAME = 'erlass-ekskul-cache-v2';
 const OFFLINE_URL = '/offline.html';
 const CORE_ASSETS = [
     OFFLINE_URL,
     '/images/logo-erlass.png',
-    '/favicon.ico'
+    '/favicon.ico',
+    '/error.html'
 ];
+const MAX_DYNAMIC_ITEMS = 100;
+
+// Helper: Trim cache size to prevent memory bloat
+const trimCache = async (cacheName, maxItems) => {
+    const cache = await caches.open(cacheName);
+    const keys = await cache.keys();
+    if (keys.length > maxItems) {
+        await cache.delete(keys[0]);
+        trimCache(cacheName, maxItems);
+    }
+};
 
 // Install event: Pre-cache core assets
 self.addEventListener('install', (event) => {
@@ -15,7 +27,7 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// Activate event: Clean up old caches
+// Activate event: Clean up old caches & claim clients immediately
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
@@ -30,66 +42,88 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Fetch event: Network-First for documents, Cache-First for static assets
+// Fetch event with 2.5s Timeout for HTML Navigation & Stale-While-Revalidate for Static Assets
 self.addEventListener('fetch', (event) => {
-    // Only handle GET requests
     if (event.request.method !== 'GET') return;
 
     const requestUrl = new URL(event.request.url);
 
-    // Document request (HTML Page navigation)
+    // 1. Document request (HTML Page navigation): Network-First with 2.5s Timeout
     if (event.request.mode === 'navigate') {
         event.respondWith(
-            fetch(event.request)
-                .then((networkResponse) => {
-                    // Cache the new page dynamically
-                    return caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, networkResponse.clone());
-                        return networkResponse;
-                    });
-                })
-                .catch(() => {
-                    // Network failed: Try serving from cache
-                    return caches.match(event.request).then((cachedResponse) => {
+            new Promise((resolve) => {
+                let isTimedOut = false;
+                const timeoutId = setTimeout(() => {
+                    isTimedOut = true;
+                    // Fallback to cache on network timeout (2.5s)
+                    caches.match(event.request).then((cachedResponse) => {
                         if (cachedResponse) {
-                            return cachedResponse;
+                            resolve(cachedResponse);
+                        } else {
+                            caches.match(OFFLINE_URL).then((offlineRes) => resolve(offlineRes));
                         }
-                        // Not in cache: Return offline fallback page
-                        return caches.match(OFFLINE_URL);
                     });
-                })
+                }, 2500);
+
+                fetch(event.request)
+                    .then((networkResponse) => {
+                        clearTimeout(timeoutId);
+                        if (!isTimedOut && networkResponse.status === 200) {
+                            const responseClone = networkResponse.clone();
+                            caches.open(CACHE_NAME).then((cache) => {
+                                cache.put(event.request, responseClone);
+                                trimCache(CACHE_NAME, MAX_DYNAMIC_ITEMS);
+                            });
+                        }
+                        if (!isTimedOut) resolve(networkResponse);
+                    })
+                    .catch(() => {
+                        clearTimeout(timeoutId);
+                        if (!isTimedOut) {
+                            caches.match(event.request).then((cachedResponse) => {
+                                if (cachedResponse) {
+                                    resolve(cachedResponse);
+                                } else {
+                                    caches.match(OFFLINE_URL).then((offlineRes) => resolve(offlineRes));
+                                }
+                            });
+                        }
+                    });
+            })
         );
         return;
     }
 
-    // Static assets (CSS, JS, Fonts, Images)
-    event.respondWith(
-        caches.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) {
-                return cachedResponse;
-            }
-
-            return fetch(event.request).then((networkResponse) => {
-                // Cache dynamic images, fonts, css, js files
-                if (
-                    networkResponse.status === 200 &&
-                    (requestUrl.origin === self.location.origin) &&
-                    (event.request.destination === 'style' ||
-                     event.request.destination === 'script' ||
-                     event.request.destination === 'image' ||
-                     event.request.destination === 'font')
-                ) {
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, networkResponse.clone());
+    // 2. Static Assets (CSS, JS, Fonts, Images): Stale-While-Revalidate
+    if (
+        requestUrl.origin === self.location.origin &&
+        (event.request.destination === 'style' ||
+         event.request.destination === 'script' ||
+         event.request.destination === 'image' ||
+         event.request.destination === 'font')
+    ) {
+        event.respondWith(
+            caches.match(event.request).then((cachedResponse) => {
+                const fetchPromise = fetch(event.request)
+                    .then((networkResponse) => {
+                        if (networkResponse.status === 200) {
+                            const responseClone = networkResponse.clone();
+                            caches.open(CACHE_NAME).then((cache) => {
+                                cache.put(event.request, responseClone);
+                                trimCache(CACHE_NAME, MAX_DYNAMIC_ITEMS);
+                            });
+                        }
+                        return networkResponse;
+                    })
+                    .catch(() => {
+                        if (event.request.destination === 'image') {
+                            return caches.match('/images/logo-erlass.png');
+                        }
                     });
-                }
-                return networkResponse;
-            });
-        }).catch(() => {
-            // Static asset failed: Fallback to placeholder if it's an image
-            if (event.request.destination === 'image') {
-                return caches.match('/images/logo-erlass.png');
-            }
-        })
-    );
+
+                // Return cached version immediately if available, otherwise wait for network fetch
+                return cachedResponse || fetchPromise;
+            })
+        );
+    }
 });

@@ -22,6 +22,11 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
   - Penambahan AJAX route & controller `ekstrakurikuler.sessions.check-conflict` (`EkstrakurikulerSessionController@checkConflict`).
   - Mengganti kode simulasi acak (*mock*) pada tombol **"Cek Konflik Jadwal"** di halaman edit sesi dengan query real-time ke database MySQL untuk memeriksa bentrok waktu pengajar/asisten di seluruh sekolah & rombel.
 
+- **Optimasi Performa & Cache PWA Service Worker (`public/service-worker.js`)**:
+  - Penambahan batas waktu jaringan (*Network Timeout*) **2,5 detik** pada permintaan navigasi HTML agar PWA tidak menggantung saat sinyal lemah.
+  - Penerapan strategi **Stale-While-Revalidate** untuk seluruh aset statis (CSS, JS, Fonts, Images) agar halaman dapat dimuat instan sembari memperbarui aset di latar belakang.
+  - Penambahan fungsi pembersihan otomatis (*Cache Trimming*) dengan batas maksimal 100 entri untuk mencegah pembengkakan penggunaan memori perangkat.
+
 ## [2.7.1] - 2026-08-06
 
 ### Ditambahkan & Diperbaiki (Added & Fixed)
