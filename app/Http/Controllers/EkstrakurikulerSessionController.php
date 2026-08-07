@@ -35,9 +35,31 @@ class EkstrakurikulerSessionController extends Controller
     /**
      * Tampilkan daftar sessions dengan filter dan pencarian.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
-        $query = EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah', 'rombel.ekstrakurikuler.sales', 'instruktur', 'asisten', 'laporanMengajar']);
+        // Handling Reset Filter
+        if ($request->has('reset_filter')) {
+            session()->forget('ekstrakurikuler_sessions_filters');
+            return redirect()->route('ekstrakurikuler.sessions.index');
+        }
+
+        $filterKeys = ['status', 'instruktur', 'tanggal_dari', 'tanggal_sampai', 'rombel', 'search', 'sort', 'filter_no_instructor', 'page'];
+
+        // If request query is completely empty but we have saved filters in session, restore them automatically
+        if (empty($request->query()) && session()->has('ekstrakurikuler_sessions_filters')) {
+            $savedFilters = session('ekstrakurikuler_sessions_filters');
+            if (!empty($savedFilters)) {
+                return redirect()->route('ekstrakurikuler.sessions.index', $savedFilters);
+            }
+        }
+
+        // Save current active filters to session if any filter query is set
+        $currentFilters = array_filter($request->only($filterKeys), fn($val) => !is_null($val) && $val !== '');
+        if (!empty($currentFilters)) {
+            session(['ekstrakurikuler_sessions_filters' => $currentFilters]);
+        }
+
+        $query = EkstrakurikulerSession::with(['ekstrakurikuler.sekolah', 'rombel.ekstrakurikuler.sekolah', 'rombel.ekstrakurikuler.sales', 'instruktur', 'asisten', 'laporanMengajar']);
 
         // Filter berdasarkan status
         if ($request->filled('status')) {
@@ -358,7 +380,21 @@ class EkstrakurikulerSessionController extends Controller
             }
         }
 
-        $redirect = redirect()->route('ekstrakurikuler.sessions.show', ['session' => $session->id])
+        $targetRoute = 'ekstrakurikuler.sessions.show';
+        $routeParams = ['session' => $session->id];
+
+        if ($request->input('redirect_to') === 'index' || $request->has('_return_query')) {
+            $targetRoute = 'ekstrakurikuler.sessions.index';
+            $routeParams = session('ekstrakurikuler_sessions_filters', []);
+            if ($request->has('_return_query')) {
+                $decoded = json_decode($request->input('_return_query'), true);
+                if (is_array($decoded) && !empty($decoded)) {
+                    $routeParams = array_merge($routeParams, $decoded);
+                }
+            }
+        }
+
+        $redirect = redirect()->route($targetRoute, $routeParams)
             ->with('success', 'Session berhasil diupdate');
             
         if (!empty($softWarnings)) {

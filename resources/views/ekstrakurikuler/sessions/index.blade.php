@@ -156,7 +156,7 @@
                                 <button type="submit" class="btn btn-primary">
                                     <i class="bi bi-funnel me-1"></i> Filter
                                 </button>
-                                <a href="{{ route('ekstrakurikuler.sessions.index') }}" class="btn btn-light border">
+                                <a href="{{ route('ekstrakurikuler.sessions.index', ['reset_filter' => 1]) }}" class="btn btn-light border">
                                     <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
                                 </a>
                                 <button type="button" class="btn btn-warning text-dark border" onclick="exportScheduleToImage()">
@@ -273,14 +273,14 @@
                             </td>
                             <td class="text-end">
                                 <div class="btn-group-custom">
-                                    <a href="{{ route('ekstrakurikuler.sessions.show', $session) }}" 
+                                    <a href="{{ route('ekstrakurikuler.sessions.show', array_merge(['session' => $session->id], request()->query())) }}" 
                                        class="btn-action view" title="Detail">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                     
                                     @can('update', $session)
                                         @if(in_array($session->status, ['terjadwal', 'ditunda']))
-                                            <a href="{{ route('ekstrakurikuler.sessions.edit', $session) }}" 
+                                            <a href="{{ route('ekstrakurikuler.sessions.edit', array_merge(['session' => $session->id], request()->query())) }}" 
                                                class="btn-action edit" title="Edit">
                                                 <i class="bi bi-pencil"></i>
                                             </a>

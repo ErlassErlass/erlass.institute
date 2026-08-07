@@ -8,7 +8,7 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
-                <a href="{{ route('ekstrakurikuler.sessions.index') }}" class="text-decoration-none">
+                <a href="{{ route('ekstrakurikuler.sessions.index', request()->query() ?: session('ekstrakurikuler_sessions_filters', [])) }}" class="text-decoration-none">
                     <i class="bi bi-calendar-event me-1"></i>Sessions
                 </a>
             </li>
@@ -42,7 +42,7 @@
                     
                     @can('update', $session)
                         @if(in_array($session->status, ['terjadwal', 'ditunda']))
-                            <a href="{{ route('ekstrakurikuler.sessions.edit', $session) }}" 
+                            <a href="{{ route('ekstrakurikuler.sessions.edit', array_merge(['session' => $session->id], request()->query())) }}" 
                                class="btn btn-outline-primary w-100 w-sm-auto">
                                 <i class="bi bi-pencil me-1"></i> Edit
                             </a>

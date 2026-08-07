@@ -27,6 +27,11 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
   - Penerapan strategi **Stale-While-Revalidate** untuk seluruh aset statis (CSS, JS, Fonts, Images) agar halaman dapat dimuat instan sembari memperbarui aset di latar belakang.
   - Penambahan fungsi pembersihan otomatis (*Cache Trimming*) dengan batas maksimal 100 entri untuk mencegah pembengkakan penggunaan memori perangkat.
 
+- **Preservasi Filter Otomatis Halaman Kelola Sesi (`/ekstrakurikuler/sessions`)**:
+  - Penerapan metode *Hybrid Session Filter Memory & Query Propagation* pada `EkstrakurikulerSessionController` dan view Blade (`index`, `edit`, `show`).
+  - Mengunci & mengingat filter yang sedang aktif (status, instruktur, tanggal, pencarian, urutan, pagination) saat pengguna mengklik **Edit**, **Detail**, atau navigasi **Batal** / **Simpan**, sehingga tidak ter-reset saat kembali ke daftar sesi.
+  - Penambahan parameter `reset_filter=1` pada tombol Reset untuk menghapus memori filter tersimpan.
+
 ## [2.7.1] - 2026-08-06
 
 ### Ditambahkan & Diperbaiki (Added & Fixed)

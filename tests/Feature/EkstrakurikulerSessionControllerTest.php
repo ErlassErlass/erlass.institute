@@ -188,4 +188,19 @@ class EkstrakurikulerSessionControllerTest extends TestCase
                 'has_conflict' => true,
             ]);
     }
+
+    public function test_index_filters_are_remembered_and_restored()
+    {
+        // 1. Visit index with status filter
+        $response = $this->actingAs($this->admin)->get(route('ekstrakurikuler.sessions.index', ['status' => 'terjadwal']));
+        $response->assertStatus(200);
+
+        // 2. Re-visit index without params -> should redirect to preserved filter URL
+        $response2 = $this->actingAs($this->admin)->get(route('ekstrakurikuler.sessions.index'));
+        $response2->assertRedirect(route('ekstrakurikuler.sessions.index', ['status' => 'terjadwal']));
+
+        // 3. Visit with reset_filter -> should clear memory and stay on clean index
+        $response3 = $this->actingAs($this->admin)->get(route('ekstrakurikuler.sessions.index', ['reset_filter' => 1]));
+        $response3->assertRedirect(route('ekstrakurikuler.sessions.index'));
+    }
 }

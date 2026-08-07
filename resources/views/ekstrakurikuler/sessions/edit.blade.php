@@ -8,12 +8,12 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
-                <a href="{{ route('ekstrakurikuler.sessions.index') }}" class="text-decoration-none">
+                <a href="{{ route('ekstrakurikuler.sessions.index', request()->query() ?: session('ekstrakurikuler_sessions_filters', [])) }}" class="text-decoration-none">
                     <i class="bi bi-calendar-event me-1"></i>Sessions
                 </a>
             </li>
             <li class="breadcrumb-item">
-                <a href="{{ route('ekstrakurikuler.sessions.show', $session) }}" class="text-decoration-none">
+                <a href="{{ route('ekstrakurikuler.sessions.show', array_merge(['session' => $session->id], request()->query())) }}" class="text-decoration-none">
                     Pertemuan {{ $session->nomor_pertemuan }}
                 </a>
             </li>
@@ -36,9 +36,10 @@
             </div>
 
             <!-- Form -->
-            <form method="POST" action="{{ route('ekstrakurikuler.sessions.update', $session) }}">
+            <form method="POST" action="{{ route('ekstrakurikuler.sessions.update', array_merge(['session' => $session->id], request()->query())) }}">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="_return_query" value="{{ json_encode(request()->query()) }}">
 
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-light">
@@ -48,59 +49,30 @@
                         <div class="row g-3">
                             <!-- Tanggal -->
                             <div class="col-md-6">
-                                <label for="tanggal_terjadwal" class="form-label">Tanggal Sesi <span class="text-danger">*</span></label>
-                                <input type="text" 
-                                       name="tanggal_terjadwal" 
-                                       id="tanggal_terjadwal" 
-                                       value="{{ old('tanggal_terjadwal', $session->tanggal_terjadwal->format('Y-m-d')) }}"
-                                       class="form-control datepicker @error('tanggal_terjadwal') is-invalid @enderror"
-                                       placeholder="DD-MM-YYYY">
+                                <label for="tanggal_terjadwal" class="form-label fw-bold">Tanggal Terjadwal <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control @error('tanggal_terjadwal') is-invalid @enderror" 
+                                       id="tanggal_terjadwal" name="tanggal_terjadwal" 
+                                       value="{{ old('tanggal_terjadwal', $session->tanggal_terjadwal ? $session->tanggal_terjadwal->format('Y-m-d') : '') }}" required>
                                 @error('tanggal_terjadwal')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            <!-- Status -->
-                            <div class="col-md-6">
-                                <label class="form-label">Status Sesi</label>
-                                <div>
-                                    @php
-                                        $statusClass = match($session->status) {
-                                            'terjadwal' => 'primary',
-                                            'berlangsung' => 'warning',
-                                            'selesai' => 'success',
-                                            'dibatalkan' => 'danger',
-                                            'ditunda' => 'secondary',
-                                            default => 'secondary'
-                                        };
-                                    @endphp
-                                    <span class="badge bg-{{ $statusClass }} fs-6">
-                                        {{ $session->status_label }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- Jam Mulai -->
-                            <div class="col-md-6">
-                                <label for="jam_mulai_terjadwal" class="form-label">Jam Mulai <span class="text-danger">*</span></label>
-                                <input type="time" 
-                                       name="jam_mulai_terjadwal" 
-                                       id="jam_mulai_terjadwal" 
-                                       value="{{ old('jam_mulai_terjadwal', $session->jam_mulai_terjadwal->format('H:i')) }}"
-                                       class="form-control @error('jam_mulai_terjadwal') is-invalid @enderror">
+                            <!-- Jam Mulai & Selesai -->
+                            <div class="col-md-3">
+                                <label for="jam_mulai_terjadwal" class="form-label fw-bold">Jam Mulai <span class="text-danger">*</span></label>
+                                <input type="time" class="form-control @error('jam_mulai_terjadwal') is-invalid @enderror" 
+                                       id="jam_mulai_terjadwal" name="jam_mulai_terjadwal" 
+                                       value="{{ old('jam_mulai_terjadwal', $session->jam_mulai_terjadwal ? \Carbon\Carbon::parse($session->jam_mulai_terjadwal)->format('H:i') : '') }}" required>
                                 @error('jam_mulai_terjadwal')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-
-                            <!-- Jam Selesai -->
-                            <div class="col-md-6">
-                                <label for="jam_selesai_terjadwal" class="form-label">Jam Selesai <span class="text-danger">*</span></label>
-                                <input type="time" 
-                                       name="jam_selesai_terjadwal" 
-                                       id="jam_selesai_terjadwal" 
-                                       value="{{ old('jam_selesai_terjadwal', $session->jam_selesai_terjadwal->format('H:i')) }}"
-                                       class="form-control @error('jam_selesai_terjadwal') is-invalid @enderror">
+                            <div class="col-md-3">
+                                <label for="jam_selesai_terjadwal" class="form-label fw-bold">Jam Selesai <span class="text-danger">*</span></label>
+                                <input type="time" class="form-control @error('jam_selesai_terjadwal') is-invalid @enderror" 
+                                       id="jam_selesai_terjadwal" name="jam_selesai_terjadwal" 
+                                       value="{{ old('jam_selesai_terjadwal', $session->jam_selesai_terjadwal ? \Carbon\Carbon::parse($session->jam_selesai_terjadwal)->format('H:i') : '') }}" required>
                                 @error('jam_selesai_terjadwal')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -109,23 +81,22 @@
                     </div>
                 </div>
 
-                <!-- Tim Pengajar -->
+                <!-- Pengajar -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-light">
-                        <h5 class="mb-0 card-title">Tim Pengajar</h5>
+                        <h5 class="mb-0 card-title">Pengajar</h5>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
-                            <!-- Instruktur -->
+                            <!-- Instruktur Utama -->
                             <div class="col-md-6">
-                                <label for="user_id_instruktur" class="form-label">Instruktur</label>
-                                <select name="user_id_instruktur" 
-                                        id="user_id_instruktur"
-                                        class="form-select select2 @error('user_id_instruktur') is-invalid @enderror">
-                                    <option value="">Pilih Instruktur</option>
+                                <label for="user_id_instruktur" class="form-label fw-bold">Instruktur Utama</label>
+                                <select class="form-select select2 @error('user_id_instruktur') is-invalid @enderror" 
+                                        id="user_id_instruktur" name="user_id_instruktur">
+                                    <option value="">-- Pilih Instruktur Utama --</option>
                                     @foreach($instructors as $instructor)
                                         <option value="{{ $instructor->id }}" 
-                                                {{ old('user_id_instruktur', $session->user_id_instruktur) == $instructor->id ? 'selected' : '' }}>
+                                            {{ old('user_id_instruktur', $session->user_id_instruktur) == $instructor->id ? 'selected' : '' }}>
                                             {{ $instructor->nama_lengkap }}
                                         </option>
                                     @endforeach
@@ -135,16 +106,15 @@
                                 @enderror
                             </div>
 
-                            <!-- Asisten -->
+                            <!-- Asisten Instruktur -->
                             <div class="col-md-6">
-                                <label for="user_id_asisten" class="form-label">Asisten (Opsional)</label>
-                                <select name="user_id_asisten" 
-                                        id="user_id_asisten"
-                                        class="form-select select2 @error('user_id_asisten') is-invalid @enderror">
-                                    <option value="">Tidak Ada Asisten</option>
+                                <label for="user_id_asisten" class="form-label fw-bold">Asisten Instruktur</label>
+                                <select class="form-select select2 @error('user_id_asisten') is-invalid @enderror" 
+                                        id="user_id_asisten" name="user_id_asisten">
+                                    <option value="">-- Pilih Asisten Instruktur (Opsional) --</option>
                                     @foreach($instructors as $instructor)
                                         <option value="{{ $instructor->id }}" 
-                                                {{ old('user_id_asisten', $session->user_id_asisten) == $instructor->id ? 'selected' : '' }}>
+                                            {{ old('user_id_asisten', $session->user_id_asisten) == $instructor->id ? 'selected' : '' }}>
                                             {{ $instructor->nama_lengkap }}
                                         </option>
                                     @endforeach
@@ -153,32 +123,14 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
-                            <!-- Conflict Check Params -->
-                            <div class="col-12 mt-3">
-                                <button type="button" onclick="checkConflicts()" class="btn btn-warning text-dark">
-                                    <i class="bi bi-exclamation-triangle me-1"></i> Cek Konflik Jadwal
+
+                            <div class="col-12">
+                                <button type="button" class="btn btn-outline-info btn-sm" onclick="checkConflicts()">
+                                    <i class="bi bi-shield-check me-1"></i> Cek Konflik Jadwal
                                 </button>
                                 <div id="conflictResults" class="mt-2"></div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Materi & Catatan -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0 card-title">Materi & Catatan</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label for="topik_materi" class="form-label">Topik Materi</label>
-                            <select name="topik_materi" 
-                                    id="topik_materi" 
-                                    class="form-select select2 @error('topik_materi') is-invalid @enderror">
-                                <option value="">Pilih Topik Materi</option>
-                                @php
-                                    $currentMateri = old('topik_materi', $session->topik_materi);
                                     // Check if current materi is in the list
                                     $isInList = $materiList->contains($currentMateri);
                                 @endphp
