@@ -300,13 +300,28 @@
         $totalRombel = $formData['total_rombel'] ?? 0;
         $totalSiswaRombel = 0;
         $totalPertemuanAll = 0;
+        $totalJamAll = 0;
         
         if (isset($formData['rombels'])) {
             for ($i = 1; $i <= $totalRombel; $i++) {
                 if (isset($formData['rombels'][$i])) {
                     $rombel = $formData['rombels'][$i];
-                    $totalSiswaRombel += $rombel['jumlah_siswa'] ?? 0;
-                    $totalPertemuanAll += $rombel['total_pertemuan'] ?? 0;
+                    $pertemuan = (int)($rombel['total_pertemuan'] ?? 0);
+                    $totalSiswaRombel += (int)($rombel['jumlah_siswa'] ?? 0);
+                    $totalPertemuanAll += $pertemuan;
+
+                    $durationMinutes = 90;
+                    if (!empty($rombel['jam_mulai'])) {
+                        $jamMulai = $rombel['jam_mulai'];
+                        $jamSelesai = $rombel['jam_selesai'] ?? \Carbon\Carbon::parse($jamMulai)->addMinutes(90)->format('H:i');
+                        try {
+                            $start = \Carbon\Carbon::parse($jamMulai);
+                            $end = \Carbon\Carbon::parse($jamSelesai);
+                            if ($end < $start) $end->addDay();
+                            $durationMinutes = $start->diffInMinutes($end);
+                        } catch (\Throwable $e) {}
+                    }
+                    $totalJamAll += ($pertemuan * $durationMinutes) / 60;
                 }
             }
         }
@@ -341,7 +356,7 @@
         
         <div class="col-md-3">
             <div class="text-center">
-                <div class="h4 text-secondary">{{ $totalPertemuanAll * 2 }}</div>
+                <div class="h4 text-secondary">{{ round($totalJamAll, 1) }}</div>
                 <small class="text-muted">Total Jam</small>
             </div>
         </div>
@@ -714,7 +729,7 @@ function renderSessionPreview(previews, summary) {
                 <li>Sessions akan dibuat otomatis setelah program ekstrakurikuler disimpan</li>
                 <li>Jadwal dapat diubah nanti melalui menu Session Management</li>
                 <li>Sistem otomatis melewati hari libur nasional</li>
-                <li>Setiap session berdurasi 2 jam (dapat disesuaikan per session)</li>
+                <li>Setiap session berdurasi 60 s.d. 90 menit (dapat disesuaikan per session)</li>
                 <li>Instruktur dapat ditugaskan per session atau secara bulk</li>
             </ul>
         </div>

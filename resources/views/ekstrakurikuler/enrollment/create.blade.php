@@ -56,7 +56,7 @@
                                             data-current="{{ $rombel->getJumlahSiswaAktual() }}"
                                             {{ old('ekstrakurikuler_rombel_id') == $rombel->id ? 'selected' : '' }}>
                                         {{ $rombel->nama_rombel }} 
-                                        ({{ $rombel->getJumlahSiswaAktual() }}/{{ $rombel->jumlah_siswa }} siswa)
+                                        ({{ $rombel->getJumlahSiswaAktual() }} siswa)
                                     </option>
                                 @endforeach
                             </select>

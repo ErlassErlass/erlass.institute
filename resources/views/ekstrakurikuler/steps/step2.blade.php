@@ -48,14 +48,13 @@
             <label for="jarak_km" class="form-label">
                 Jarak dari Erlass POP (KM) <span class="required-indicator">*</span>
             </label>
-            <input type="number" 
+            <input type="text" 
+                   inputmode="decimal"
                    class="form-control @error('jarak_km') is-invalid @enderror" 
                    id="jarak_km" 
                    name="jarak_km" 
                    value="{{ old('jarak_km', $formData['jarak_km'] ?? '') }}" 
-                   step="0.1" 
-                   min="0"
-                   placeholder="0.0"
+                   placeholder="Contoh: 12.5 atau 12,5"
                    required>
             @error('jarak_km')
                 <div class="invalid-feedback">{{ $message }}</div>
@@ -254,6 +253,19 @@ function initSekolahSelect2() {
                     const location = (kec && kotkab) ? `\n${kec}, ${kotkab}` : '';
                     alamatField.val(`${data.text.trim()}${location}`);
                 }
+            }
+        });
+
+        // Validate and normalize jarak_km decimal input (convert comma to dot)
+        $('#jarak_km').on('blur change', function() {
+            let val = $(this).val();
+            if (val) {
+                val = val.replace(',', '.').replace(/[^0-9.]/g, '');
+                const parts = val.split('.');
+                if (parts.length > 2) {
+                    val = parts[0] + '.' + parts.slice(1).join('');
+                }
+                $(this).val(val);
             }
         });
 

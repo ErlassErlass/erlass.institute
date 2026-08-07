@@ -162,7 +162,7 @@
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
                 <small class="form-text text-muted">
-                    Waktu mulai kegiatan (format 24 jam)
+                    Waktu mulai kegiatan (Durasi mengajar per sesi: 60 s.d. 90 menit)
                 </small>
             </div>
         </div>

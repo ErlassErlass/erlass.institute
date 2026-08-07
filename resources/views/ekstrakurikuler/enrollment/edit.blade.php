@@ -70,7 +70,7 @@
                                     <option value="{{ $rombel->id }}"
                                         {{ old('ekstrakurikuler_rombel_id', $enrollment->ekstrakurikuler_rombel_id) == $rombel->id ? 'selected' : '' }}>
                                         {{ $rombel->nama_rombel }}
-                                        ({{ $rombel->getJumlahSiswaAktual() }}/{{ $rombel->jumlah_siswa }} siswa)
+                                        ({{ $rombel->getJumlahSiswaAktual() }} siswa)
                                     </option>
                                 @endforeach
                             </select>

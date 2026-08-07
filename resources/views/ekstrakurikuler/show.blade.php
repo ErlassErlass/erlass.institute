@@ -378,7 +378,7 @@
                 <div class="row g-4">
                     <!-- Column 1: Basic Program Info -->
                     <div class="col-md-6">
-                        <div class="p-3 bg-light rounded-3 h-100 border border-slate-200">
+                        <div class="p-3 bg-light rounded-3 h-100 border border-secondary-subtle">
                             <h6 class="fw-bold text-primary mb-3 pb-2 border-bottom">
                                 <i class="bi bi-award-fill me-2"></i>Informasi Program
                             </h6>
@@ -415,7 +415,7 @@
                     
                     <!-- Column 2: School Details -->
                     <div class="col-md-6">
-                        <div class="p-3 bg-light rounded-3 h-100 border border-slate-200">
+                        <div class="p-3 bg-light rounded-3 h-100 border border-secondary-subtle">
                             <h6 class="fw-bold text-primary mb-3 pb-2 border-bottom">
                                 <i class="bi bi-building me-2"></i>Detail Sekolah Mitra
                             </h6>
@@ -529,10 +529,7 @@
                                 <div class="row g-2 mb-3">
                                     <div class="col-6">
                                         <small class="text-muted d-block">Siswa Terdaftar</small>
-                                        <span class="fw-semibold text-dark"><i class="bi bi-person me-1"></i>{{ $rombel->siswaAktif()->count() }} Siswa</span>
-                                        @if($rombel->jumlah_siswa > 0)
-                                            <small class="text-muted d-block fs-8">(Kuota Target: {{ $rombel->jumlah_siswa }})</small>
-                                        @endif
+                                        <span class="fw-semibold text-dark"><i class="bi bi-person me-1"></i>{{ $rombel->getJumlahSiswaAktual() }} Siswa</span>
                                     </div>
                                     <div class="col-6">
                                         <small class="text-muted d-block">Hari & Waktu</small>

@@ -316,17 +316,17 @@
                                     <label for="jarak_km" class="form-label">
                                         Jarak dari POP (KM) <span class="required-indicator">*</span>
                                     </label>
-                                    <input type="number" 
-                                           class="form-control @error('jarak_km') is-invalid @enderror" 
-                                           id="jarak_km" 
-                                           name="jarak_km" 
-                                           value="{{ old('jarak_km', $ekstrakurikuler->jarak_km) }}" 
-                                           step="0.1" 
-                                           min="0"
-                                           required>
-                                    @error('jarak_km')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                     <input type="text" 
+                                            inputmode="decimal"
+                                            class="form-control @error('jarak_km') is-invalid @enderror" 
+                                            id="jarak_km" 
+                                            name="jarak_km" 
+                                            value="{{ old('jarak_km', $ekstrakurikuler->jarak_km) }}" 
+                                            placeholder="Contoh: 12.5 atau 12,5"
+                                            required>
+                                     @error('jarak_km')
+                                         <div class="invalid-feedback">{{ $message }}</div>
+                                     @enderror
                                 </div>
                             </div>
                         </div>
@@ -590,7 +590,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
-                                        <label class="form-label">Jumlah Siswa</label>
+                                        <label class="form-label">Target Kuota Rombel (Kapasitas)</label>
                                         <input type="number" 
                                                class="form-control" 
                                                name="rombel[{{ $rombel->id }}][jumlah_siswa]" 
@@ -638,7 +638,7 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <div class="form-group mb-3">
                                         <label class="form-label">Hari</label>
                                         <select class="form-control" name="rombel[{{ $rombel->id }}][hari]">
@@ -657,13 +657,23 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <div class="form-group mb-3">
                                         <label class="form-label">Jam Mulai</label>
                                         <input type="time" 
                                                class="form-control" 
                                                name="rombel[{{ $rombel->id }}][jam_mulai]" 
                                                value="{{ $rombel->jam_mulai ? $rombel->jam_mulai->format('H:i') : '' }}">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-2">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Jam Selesai</label>
+                                        <input type="time" 
+                                               class="form-control" 
+                                               name="rombel[{{ $rombel->id }}][jam_selesai]" 
+                                               value="{{ $rombel->jam_selesai ? $rombel->jam_selesai->format('H:i') : '' }}">
                                     </div>
                                 </div>
 

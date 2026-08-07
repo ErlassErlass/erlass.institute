@@ -162,10 +162,27 @@ class StoreLaporanMengajarRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            // Custom validation: Ensure instructor is not the same as assistant
+            // Validasi kustom: Pastikan instruktur tidak sama dengan asisten
             if ($this->user_id_instruktur && $this->user_id_assisten &&
                 $this->user_id_instruktur == $this->user_id_assisten) {
                 $validator->errors()->add('user_id_assisten', 'Asisten tidak boleh sama dengan instruktur.');
+            }
+
+            // Validasi kustom: Durasi mengajar harus antara 60 s.d. 90 menit
+            $jamMulai = $this->input('jam_mulai');
+            $jamSelesai = $this->input('jam_selesai');
+            if ($jamMulai && $jamSelesai) {
+                try {
+                    $start = \Carbon\Carbon::createFromFormat('H:i', $jamMulai);
+                    $end = \Carbon\Carbon::createFromFormat('H:i', $jamSelesai);
+                    if ($end < $start) $end->addDay();
+                    $diff = $start->diffInMinutes($end);
+                    if ($diff < 60) {
+                        $validator->errors()->add('jam_selesai', 'Durasi mengajar minimal 60 menit (1 jam).');
+                    } elseif ($diff > 90) {
+                        $validator->errors()->add('jam_selesai', 'Durasi mengajar maksimal 90 menit (1,5 jam).');
+                    }
+                } catch (\Throwable $e) {}
             }
         });
     }

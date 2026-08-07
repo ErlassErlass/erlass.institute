@@ -103,10 +103,12 @@ class DashboardController extends Controller
     private function getRecentActivities()
     {
         $activities = collect();
+        $thirtyDaysAgo = Carbon::now()->subDays(30);
 
-        // 1. Laporan Terbaru - query tunggal dengan eager loading
+        // 1. Laporan Terbaru - hanya 30 hari terakhir
         $recent_reports = \App\Models\LaporanMengajar::with(['sekolah:kodlan,namasekolah', 'instruktur:id,nama_lengkap'])
             ->select('id', 'user_id_instruktur', 'sekolah_kodlan', 'created_at')
+            ->where('created_at', '>=', $thirtyDaysAgo)
             ->latest()
             ->take(5)
             ->get()
@@ -121,33 +123,42 @@ class DashboardController extends Controller
                 'link' => route('laporan-mengajar.show', $item->id)
             ]);
 
-        // 2. Sesi Pertemuan Terbaru - pilih hanya kolom yang dibutuhkan
-        $recent_sessions = \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler:id,kategori_program'])
-            ->select('id', 'ekstrakurikuler_rombel_id', 'status', 'topik_materi', 'updated_at')
-            ->whereIn('status', ['berjalan', 'selesai'])
-            ->orderBy('updated_at', 'desc')
+        // 2. Sesi Pertemuan Terbaru - sumber kebenaran dari Laporan Mengajar
+        // Menggunakan LaporanMengajar karena:
+        // - Hanya ada jika instruktur benar-benar mengajar dan submit laporan
+        // - created_at-nya akurat & tidak terpengaruh cron/batch update
+        // - Terhubung langsung ke session via ekstrakurikuler_session_id
+        $recent_sessions = \App\Models\LaporanMengajar::with([
+                'instruktur:id,nama_lengkap',
+                'session.rombel.ekstrakurikuler:id,kategori_program',
+            ])
+            ->select('id', 'user_id_instruktur', 'ekstrakurikuler_session_id', 'materi_pengajaran', 'created_at')
+            ->whereNotNull('ekstrakurikuler_session_id')
+            ->where('created_at', '>=', $thirtyDaysAgo)
+            ->latest()
             ->take(5)
             ->get()
             ->map(function ($item) {
-                $statusLabel = $item->status == 'berjalan' ? 'Sesi Dimulai' : 'Sesi Selesai';
-                $color = $item->status == 'berjalan' ? 'text-success' : 'text-info';
-                $bg = $item->status == 'berjalan' ? 'bg-success-subtle' : 'bg-info-subtle';
-                
+                $ekskul = $item->session?->rombel?->ekstrakurikuler?->kategori_program ?? 'Ekskul';
+                $instruktur = $item->instruktur?->nama_lengkap ?? 'Instruktur';
                 return [
-                    'type' => 'session',
-                    'icon' => 'bi-clock-history',
-                    'color' => $color,
-                    'bg' => $bg,
-                    'title' => $statusLabel,
-                    'desc' => ($item->rombel->ekstrakurikuler->kategori_program ?? 'Ekskul') . ' - Topik: ' . \Illuminate\Support\Str::limit($item->topik_materi ?? 'Tanpa Topik', 20),
-                    'time' => $item->updated_at,
-                    'link' => route('ekstrakurikuler.sessions.show', $item->id)
+                    'type'  => 'session',
+                    'icon'  => 'bi-clock-history',
+                    'color' => 'text-info',
+                    'bg'    => 'bg-info-subtle',
+                    'title' => 'Sesi Selesai',
+                    'desc'  => $ekskul . ' - ' . \Illuminate\Support\Str::limit($item->materi_pengajaran ?? 'Tanpa Topik', 25),
+                    'time'  => $item->created_at,
+                    'link'  => $item->ekstrakurikuler_session_id
+                        ? route('ekstrakurikuler.sessions.show', $item->ekstrakurikuler_session_id)
+                        : route('laporan-mengajar.show', $item->id),
                 ];
             });
 
-        // 3. Program Baru - pilih hanya kolom yang dibutuhkan
+        // 3. Program Baru - hanya 30 hari terakhir
         $new_programs = \App\Models\Ekstrakurikuler::with('sekolah:kodlan,namasekolah')
             ->select('id', 'sekolah_kodlan', 'kategori_program', 'created_at')
+            ->where('created_at', '>=', $thirtyDaysAgo)
             ->latest()
             ->take(3)
             ->get()

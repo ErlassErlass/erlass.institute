@@ -37,6 +37,7 @@ class Ekstrakurikuler extends Model
         'penanggung_jawab',
         'no_telepon',
         'koneksi_internet',
+        'keterangan_internet',
         'proyektor',
         'keterangan_proyektor',
         'kabel_hdmi',

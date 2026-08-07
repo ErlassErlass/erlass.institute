@@ -42,6 +42,9 @@ class User extends Authenticatable
             if (empty($user->kompetensi_1)) {
                 $user->kompetensi_1 = 'General';
             }
+            if (empty($user->no_telephone)) {
+                $user->no_telephone = '-';
+            }
         });
 
         static::saving(function ($user) {

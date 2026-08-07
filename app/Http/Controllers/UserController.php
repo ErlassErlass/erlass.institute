@@ -143,7 +143,7 @@ class UserController extends Controller
             'nama_lengkap' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'tanggal_lahir' => ['required', 'date', 'before:today'],
+            'tanggal_lahir' => ['nullable', 'date', 'before:today'],
             'no_telephone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
             'status' => ['required', 'in:Aktif,Nonaktif'],
             'agama' => ['nullable', 'string', 'in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu,Lainnya'],
@@ -168,19 +168,22 @@ class UserController extends Controller
             'tanggal_nonaktif.after_or_equal' => 'Tanggal nonaktif harus setelah atau sama dengan tanggal aktif.',
         ]);
 
+        // Separate User fields from InstructorProfile fields
+        $userData = \Illuminate\Support\Arr::except($validated, ['alamat_domisili', 'kota_domisili']);
+
         // Hash password
-        $validated['password'] = Hash::make($validated['password']);
+        $userData['password'] = Hash::make($userData['password']);
 
         // Set initial verification status for instructors
-        if ($validated['role'] === 'instruktur') {
-            $validated['is_verified'] = false;
-            $validated['verification_status'] = 'pending';
-            $validated['application_date'] = now();
+        if ($userData['role'] === 'instruktur') {
+            $userData['is_verified'] = false;
+            $userData['verification_status'] = 'pending';
+            $userData['application_date'] = now();
         }
 
-        $user = User::create($validated);
+        $user = User::create($userData);
 
-        if ($validated['role'] === 'instruktur') {
+        if ($userData['role'] === 'instruktur') {
             $user->instructorProfile()->create([
                 'alamat_domisili' => $request->alamat_domisili,
                 'kota_domisili' => $request->kota_domisili,

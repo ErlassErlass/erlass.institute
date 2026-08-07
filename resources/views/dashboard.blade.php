@@ -205,7 +205,7 @@
                             </div>
                             <div class="d-flex align-items-center gap-3 text-secondary small mb-3">
                                 <span><i class="bi bi-calendar-event me-1"></i>{{ \Carbon\Carbon::parse($todo->tanggal_terjadwal)->format('d M Y') }}</span>
-                                <span><i class="bi bi-people-fill text-info me-1"></i><strong>{{ $todo->rombel->jumlah_siswa ?? 0 }} Siswa Terdaftar</strong></span>
+                                <span><i class="bi bi-people-fill text-info me-1"></i><strong>{{ $todo->rombel->getJumlahSiswaAktual() }} Siswa Terdaftar</strong></span>
                             </div>
                         </div>
                         <a href="{{ route('ekstrakurikuler.sessions.report.create', $todo->id) }}" class="btn btn-warning text-dark fw-bold btn-sm rounded-pill w-100 shadow-sm">

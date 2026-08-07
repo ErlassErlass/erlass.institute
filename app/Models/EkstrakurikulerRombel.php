@@ -349,37 +349,22 @@ class EkstrakurikulerRombel extends Model
     }
 
     /**
-     * Method untuk increment jumlah siswa.
+     * Catatan: Kolom jumlah_siswa berfungsi murni sebagai Target Kuota Rombel.
+     * Untuk mendapatkan jumlah siswa terdaftar saat ini, gunakan getJumlahSiswaAktual().
      */
     public function incrementJumlahSiswa(): bool
     {
-        $this->jumlah_siswa++;
-
-        return $this->save();
+        return true;
     }
 
-    /**
-     * Method untuk decrement jumlah siswa.
-     */
     public function decrementJumlahSiswa(): bool
     {
-        if ($this->jumlah_siswa > 0) {
-            $this->jumlah_siswa--;
-
-            return $this->save();
-        }
-
-        return false;
+        return true;
     }
 
-    /**
-     * Method untuk sync jumlah siswa dengan enrollment aktif.
-     */
     public function syncJumlahSiswa(): bool
     {
-        $this->jumlah_siswa = $this->activeEnrollments()->count();
-
-        return $this->save();
+        return true;
     }
 
     /**

@@ -49,7 +49,7 @@ class LaporanMengajarExport implements FromCollection, WithHeadings, WithMapping
             \Carbon\Carbon::parse($laporan->jadwal_mengajar)->format('d/m/Y'),
             $laporan->instruktur->nama_lengkap ?? 'N/A',
             $laporan->asisten->nama_lengkap ?? 'N/A',
-            $laporan->sekolah->namasekolah ?? 'N/A',
+            $laporan->sekolah->namasekolah ?? $laporan->sekolah_nama ?? 'N/A',
             $laporan->sekolah->kec ?? 'N/A',
             $laporan->sekolah->kotkab ?? 'N/A',
             $laporan->rombel,

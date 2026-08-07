@@ -261,7 +261,7 @@
             @endif
             
             <div class="col-md-5 col-lg-4">
-                <label class="form-label small fw-bold text-slate-600 mb-1">Cari Nama Siswa / NISN</label>
+                <label class="form-label small fw-bold text-secondary mb-1">Cari Nama Siswa / NISN</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0 text-muted ps-3"><i class="bi bi-search"></i></span>
                     <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Ketik nama siswa atau NISN..." value="{{ request('search') }}">
@@ -269,7 +269,7 @@
             </div>
 
             <div class="col-md-4 col-lg-4">
-                <label class="form-label small fw-bold text-slate-600 mb-1">Filter Sekolah</label>
+                <label class="form-label small fw-bold text-secondary mb-1">Filter Sekolah</label>
                 <select name="kodlan" class="form-select" onchange="this.form.submit()">
                     <option value="">🏫 Semua Sekolah Terdaftar</option>
                     @foreach($sekolahs as $sekolah)
@@ -281,7 +281,7 @@
             </div>
 
             <div class="col-md-3 col-lg-2">
-                <label class="form-label small fw-bold text-slate-600 mb-1">Tampilkan Data</label>
+                <label class="form-label small fw-bold text-secondary mb-1">Tampilkan Data</label>
                 <select name="per_page" class="form-select" onchange="this.form.submit()">
                     <option value="25" {{ request('per_page', 25) == '25' ? 'selected' : '' }}>25 Baris</option>
                     <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50 Baris</option>
@@ -313,8 +313,8 @@
                     <h5 class="card-title mb-0 fw-bold text-dark fs-6">
                         <i class="bi bi-table me-2 text-primary"></i>Direktori Data Siswa
                     </h5>
-                    <span class="badge bg-slate-100 text-slate-700 border px-2.5 py-1 rounded-pill small">
-                        {{ $siswa->total() }} Siswa
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill fw-semibold small">
+                        <i class="bi bi-people-fill me-1"></i>{{ number_format($siswa->total()) }} Siswa
                     </span>
                 </div>
 
@@ -411,13 +411,13 @@
 
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-building text-slate-400"></i>
+                                        <i class="bi bi-building text-muted"></i>
                                         <span class="fw-medium text-dark">{{ $item->sekolah?->namasekolah ?? '—' }}</span>
                                     </div>
                                 </td>
 
                                 <td class="text-center">
-                                    <span class="badge bg-slate-100 text-dark fw-bold border border-slate-300 px-2.5 py-1 rounded-3 font-monospace">
+                                    <span class="badge bg-light text-dark fw-bold border border-secondary-subtle px-2.5 py-1 rounded-3 font-monospace">
                                         {{ $item->kelas }}
                                     </span>
                                 </td>
@@ -514,7 +514,7 @@
                             </div>
                             <div class="col-6">
                                 <div class="text-muted mb-0.5"><i class="bi bi-bookmarks me-1"></i>Kelas</div>
-                                <span class="badge bg-slate-100 text-dark fw-bold border border-slate-300 px-2 py-0.5 rounded-3">{{ $item->kelas }}</span>
+                                <span class="badge bg-light text-dark fw-bold border border-secondary-subtle px-2 py-0.5 rounded-3">{{ $item->kelas }}</span>
                             </div>
                         </div>
 

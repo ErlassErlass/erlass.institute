@@ -351,7 +351,7 @@
                                         data-capacity="{{ $rombel->jumlah_siswa }}"
                                         data-current="{{ $rombel->getJumlahSiswaAktual() }}">
                                     {{ $rombel->nama_rombel }} 
-                                    ({{ $rombel->getJumlahSiswaAktual() }}/{{ $rombel->jumlah_siswa }} siswa)
+                                    ({{ $rombel->getJumlahSiswaAktual() }} siswa)
                                 </option>
                             @endforeach
                         </select>

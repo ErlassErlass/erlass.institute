@@ -250,8 +250,6 @@ class EkstrakurikulerReportController extends Controller
                         'tanggal_daftar' => now(),
                         'catatan' => 'Auto-enrolled via Session Report #' . $session->id
                     ]);
-                    // Update rombel student count
-                    $rombel->incrementJumlahSiswa();
 
                     // Dispatch Welcome Notification
                     $siswa = Siswa::find($siswaId);

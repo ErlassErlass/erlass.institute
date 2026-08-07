@@ -152,6 +152,8 @@ Route::middleware(['auth'])->group(function () {
             ->name('sessions.postpone');
         Route::post('sessions/{session}/override-fee', [EkstrakurikulerSessionController::class, 'overrideFee'])
             ->name('sessions.override-fee');
+        Route::post('sessions/{session}/check-conflict', [EkstrakurikulerSessionController::class, 'checkConflict'])
+            ->name('sessions.check-conflict');
 
         // Bulk Operations
         Route::post('sessions/bulk', [EkstrakurikulerSessionController::class, 'bulk'])

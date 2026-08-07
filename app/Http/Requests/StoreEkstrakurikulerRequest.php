@@ -51,6 +51,7 @@ class StoreEkstrakurikulerRequest extends FormRequest
             'keterangan_proyektor' => 'nullable|string|max:500',
             'kabel_hdmi' => 'required|string|in:ada,tidak_ada,tidak_diketahui',
             'kabel_vga' => 'required|string|in:ada,tidak_ada,tidak_diketahui',
+            'kabel_roll' => 'required|string|in:ada,tidak_ada,tidak_diketahui',
             'keterangan_kabel' => 'nullable|string|max:500',
 
             // Class Structure
@@ -84,6 +85,7 @@ class StoreEkstrakurikulerRequest extends FormRequest
             'keterangan_proyektor' => 'keterangan proyektor',
             'kabel_hdmi' => 'kabel HDMI',
             'kabel_vga' => 'kabel VGA',
+            'kabel_roll' => 'kabel roll',
             'keterangan_kabel' => 'keterangan kabel',
             'total_siswa' => 'total siswa',
             'total_ruangan' => 'total ruangan',
@@ -142,6 +144,9 @@ class StoreEkstrakurikulerRequest extends FormRequest
             'kabel_vga.required' => 'Status kabel VGA wajib dipilih.',
             'kabel_vga.in' => 'Status kabel VGA tidak valid.',
 
+            'kabel_roll.required' => 'Status kabel roll wajib dipilih.',
+            'kabel_roll.in' => 'Status kabel roll tidak valid.',
+
             'total_siswa.required' => 'Total siswa wajib diisi.',
             'total_siswa.integer' => 'Total siswa harus berupa angka.',
             'total_siswa.min' => 'Total siswa minimal 1 orang.',
@@ -180,11 +185,14 @@ class StoreEkstrakurikulerRequest extends FormRequest
             ]);
         }
 
-        // Ensure jarak_km is properly formatted
-        if ($this->has('jarak_km')) {
-            $this->merge([
-                'jarak_km' => is_numeric($this->jarak_km) ? (float) $this->jarak_km : $this->jarak_km,
-            ]);
+        // Ensure jarak_km is properly normalized (comma to dot, strip units)
+        if ($this->has('jarak_km') && $this->jarak_km !== null && $this->jarak_km !== '') {
+            $raw = str_replace(',', '.', (string) $this->jarak_km);
+            if (preg_match('/[0-9]+(?:\.[0-9]+)?/', $raw, $matches)) {
+                $this->merge([
+                    'jarak_km' => (float) $matches[0],
+                ]);
+            }
         }
     }
 

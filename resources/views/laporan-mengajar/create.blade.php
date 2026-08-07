@@ -194,6 +194,7 @@
                                         <input type="text" name="jam_selesai" id="jam_selesai" class="form-control time-picker @error('jam_selesai') is-invalid @enderror" value="{{ old('jam_selesai') }}" required placeholder="HH:MM" autocomplete="off">
                                     </div>
                                     @error('jam_selesai') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                    <small class="form-text text-muted">Durasi mengajar: 60 – 90 menit.</small>
                                 </div>
                             </div>
 
@@ -522,12 +523,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Toggle input jumlah siswa khusus untuk Kategori Free Trial Class
+        // Toggle input jumlah siswa khusus untuk Kategori Ad-Hoc / Special Event
         function toggleFreeTrialFields() {
             var kat = ($('#kategori_pengajaran').val() || '').toLowerCase();
-            var isTrial = kat.indexOf('trial') !== -1 || kat.indexOf('free trial') !== -1 || kat.indexOf('free') !== -1;
+            var isAdHoc = kat.indexOf('trial') !== -1 
+                || kat.indexOf('free') !== -1 
+                || kat.indexOf('sosialisasi') !== -1 
+                || kat.indexOf('pameran') !== -1 
+                || kat.indexOf('lomba') !== -1 
+                || kat.indexOf('pendampingan') !== -1 
+                || kat.indexOf('event') !== -1 
+                || kat.indexOf('per-pertemuan') !== -1 
+                || kat.indexOf('inkul') !== -1 
+                || kat.indexOf('mandiri') !== -1;
             
-            if (isTrial) {
+            if (isAdHoc) {
                 $('#freeTrialStudentCountWrapper').removeClass('d-none').show();
                 $('#jumlah_siswa_hadir').attr('required', 'required');
             } else {

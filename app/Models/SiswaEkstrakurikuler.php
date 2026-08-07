@@ -300,33 +300,7 @@ class SiswaEkstrakurikuler extends Model
             }
         });
 
-        // Auto-update jumlah siswa di rombel ketika enrollment berubah
-        static::created(function ($model) {
-            if ($model->status === self::STATUS_AKTIF) {
-                $model->rombel?->incrementJumlahSiswa();
-            }
-        });
-
-        static::updated(function ($model) {
-            if ($model->isDirty('status')) {
-                $originalStatus = $model->getOriginal('status');
-                $newStatus = $model->status;
-
-                // Jika dari non-aktif ke aktif
-                if ($originalStatus !== self::STATUS_AKTIF && $newStatus === self::STATUS_AKTIF) {
-                    $model->rombel?->incrementJumlahSiswa();
-                }
-                // Jika dari aktif ke non-aktif
-                elseif ($originalStatus === self::STATUS_AKTIF && $newStatus !== self::STATUS_AKTIF) {
-                    $model->rombel?->decrementJumlahSiswa();
-                }
-            }
-        });
-
-        static::deleted(function ($model) {
-            if ($model->status === self::STATUS_AKTIF) {
-                $model->rombel?->decrementJumlahSiswa();
-            }
-        });
+        // Jumlah siswa terdaftar dihitung secara real-time dari relasi activeEnrollments()
+        // Kolom jumlah_siswa pada rombel berfungsi murni sebagai Target Kuota Rombel
     }
 }

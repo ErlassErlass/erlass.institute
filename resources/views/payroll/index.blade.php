@@ -20,12 +20,12 @@
                         </span>
                     </div>
                     <h1 class="h2 fw-bold text-dark mb-2">Pencairan Payroll & Kompensasi</h1>
-                    <p class="text-slate-600 mb-0 fs-6" style="max-width: 680px;">
+                    <p class="text-muted mb-0 fs-6" style="max-width: 680px;">
                         Kelola batch honorarium sesi mengajar bulanan instruktur secara terpusat. Dilengkapi dengan <strong>6 Aturan Warning Calculator Engine</strong>, validasi presensi H+1, dan ekspor rincian payroll (.xlsx / .csv / .pdf).
                     </p>
                 </div>
                 <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                    <div class="bg-white rounded-3 p-3 border border-slate-200 shadow-sm d-inline-block text-start" style="min-width: 230px;">
+                    <div class="bg-white rounded-3 p-3 border border-secondary-subtle shadow-sm d-inline-block text-start" style="min-width: 230px;">
                         <div class="text-muted small fw-semibold text-uppercase tracking-wider">Otorisasi Kelola Payroll:</div>
                         <div class="fw-bold text-dark small mt-1.5">
                             <i class="bi bi-person-check-fill text-success me-1"></i> Adinda Wardania
@@ -98,7 +98,7 @@
                     <h5 class="card-title mb-0 fw-bold text-dark">
                         <i class="bi bi-journal-text text-primary me-2"></i>Daftar Batch Payroll
                     </h5>
-                    <span class="badge bg-slate-100 text-dark border px-2.5 py-1 rounded-pill small fw-medium">
+                    <span class="badge bg-light text-dark border px-2.5 py-1 rounded-pill small fw-medium">
                         Total: {{ $batches->total() }} Batch
                     </span>
                 </div>
@@ -123,7 +123,7 @@
                                         </td>
                                         <td>
                                             @if ($item->status === 'draft')
-                                                <span class="badge bg-slate-100 text-dark border px-2.5 py-1 rounded-pill small fw-bold">
+                                                <span class="badge bg-secondary-subtle text-secondary-emphasis border px-2.5 py-1 rounded-pill small fw-bold">
                                                     <i class="bi bi-pencil me-1 text-secondary"></i> Draft
                                                 </span>
                                             @elseif ($item->status === 'processed')
@@ -201,7 +201,7 @@
                                 >
                                 <div class="form-text small text-primary mt-2.5 p-3 bg-blue-50 rounded-3 border border-blue-200">
                                     <i class="bi bi-calendar-range me-1 fw-bold"></i> <strong>Aturan Cutoff Payroll:</strong>
-                                    <div class="mt-1 text-slate-700">Tanggal 11 bulan sebelumnya s.d. Tanggal 10 bulan terpilih.</div>
+                                    <div class="mt-1 text-secondary">Tanggal 11 bulan sebelumnya s.d. Tanggal 10 bulan terpilih.</div>
                                     <div class="mt-1 text-muted small">Contoh: Memilih <strong>Agustus 2026</strong> akan menyaring sesi & laporan mengajar dari <em>11 Juli s/d 10 Agustus 2026</em>.</div>
                                 </div>
                                 @error('month')

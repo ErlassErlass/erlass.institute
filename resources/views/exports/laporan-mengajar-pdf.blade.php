@@ -44,7 +44,7 @@
                 @endif
             </td>
             <td>
-                {{ $item->sekolah->namasekolah ?? 'N/A' }}
+                {{ $item->sekolah->namasekolah ?? $item->sekolah_nama ?? 'N/A' }}
                 <br><small>{{ $item->sekolah->kec ?? '' }}, {{ $item->sekolah->kotkab ?? '' }}</small>
             </td>
             <td>{{ $item->rombel }}</td>

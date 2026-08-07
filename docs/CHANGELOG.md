@@ -2,6 +2,26 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.7.2] - 2026-08-07
+
+### Ditambahkan & Diperbaiki (Added & Fixed)
+- **Modul Presensi Khusus Sesi Rutin (`nomor_pertemuan > 0`) & Bypass Presensi Ad-Hoc (`AbsensiController` & `LaporanMengajarController`)**:
+  - Menyaring & meng-exclude seluruh sesi/laporan Ad-Hoc (`nomor_pertemuan = 0` atau kategori Ad-Hoc seperti *Trial Class, Sosialisasi, Pameran, Event, Lomba, Pendampingan*) dari matriks rekap presensi siswa dan cetakan presensi.
+  - Laporan Mengajar Ad-Hoc hanya memerlukan total `jumlah_siswa_hadir` dan langsung mengarahkan pengguna ke halaman detail laporan tanpa prompt presensi individual.
+  - Penambahan helper `isAdHoc(): bool` pada model `LaporanMengajar.php` dan `EkstrakurikulerSession.php`.
+- **Perbaikan Validasi Form Wizard Ekskul Step 3 & Step 5 (`EkstrakurikulerFormService.php`)**:
+  - Memperbaiki validasi kebutuhan teknis step 3 dari `boolean` menjadi `required|in:ada,tidak_ada,tidak_diketahui` (mengatasi `validation.boolean` error).
+  - Memperbaiki validasi `jam_selesai` pada rombel step 5-9 dari `required` menjadi `nullable`. Pengisian `jam_mulai` tanpa `jam_selesai` otomatis dihitung 90 menit (1.5 jam).
+  - Penyesuaian kalkulasi total jam dinamis dan teks durasi pada `resources/views/ekstrakurikuler/steps/step-final.blade.php`.
+- **Proteksi Akses Langsung URL Wizard (*Prevent Direct Step Jumping*) (`EkstrakurikulerController.php`)**:
+  - Penambahan pengecekan kelengkapan data session `getHighestAllowedStep()`. Mencoba mengakses URL step secara langsung tanpa menyelesaikan step sebelumnya akan otomatis di-redirect ke step pertama yang belum lengkap dengan notifikasi peringatan.
+- **Pemulihan Kolom Database `keterangan_internet` (`2026_08_07_033500_add_keterangan_internet_to_ekstrakurikuler_table.php`)**:
+  - Pembuatan & eksekusi migrasi database MySQL untuk menambahkan kembali kolom `keterangan_internet` pada tabel `ekstrakurikuler`.
+  - Eliminasi SQL Error 1054 (`Unknown column 'keterangan_internet'`).
+- **Fitur Cek Konflik Jadwal Real-Time Database (`/ekstrakurikuler/sessions/{id}/edit`)**:
+  - Penambahan AJAX route & controller `ekstrakurikuler.sessions.check-conflict` (`EkstrakurikulerSessionController@checkConflict`).
+  - Mengganti kode simulasi acak (*mock*) pada tombol **"Cek Konflik Jadwal"** di halaman edit sesi dengan query real-time ke database MySQL untuk memeriksa bentrok waktu pengajar/asisten di seluruh sekolah & rombel.
+
 ## [2.7.1] - 2026-08-06
 
 ### Ditambahkan & Diperbaiki (Added & Fixed)

@@ -246,7 +246,24 @@ class EkstrakurikulerSessionController extends Controller
         $validator = Validator::make($request->all(), [
             'tanggal_terjadwal' => 'required|date',
             'jam_mulai_terjadwal' => 'required|date_format:H:i',
-            'jam_selesai_terjadwal' => 'required|date_format:H:i|after:jam_mulai_terjadwal',
+            'jam_selesai_terjadwal' => [
+                'required',
+                'date_format:H:i',
+                'after:jam_mulai_terjadwal',
+                function ($attribute, $value, $fail) use ($request) {
+                    // Validasi durasi mengajar per sesi (minimal 60 menit, maksimal 90 menit)
+                    if ($request->jam_mulai_terjadwal && $value) {
+                        try {
+                            $start = \Carbon\Carbon::createFromFormat('H:i', $request->jam_mulai_terjadwal);
+                            $end = \Carbon\Carbon::createFromFormat('H:i', $value);
+                            if ($end < $start) $end->addDay();
+                            $diff = $start->diffInMinutes($end);
+                            if ($diff < 60) $fail('Durasi mengajar minimal 60 menit (1 jam).');
+                            if ($diff > 90) $fail('Durasi mengajar maksimal 90 menit (1,5 jam).');
+                        } catch (\Throwable $e) {}
+                    }
+                }
+            ],
             'user_id_instruktur' => 'nullable|exists:users,id',
             'user_id_asisten' => 'nullable|exists:users,id',
             'topik_materi' => 'nullable|string|max:255',
@@ -349,6 +366,81 @@ class EkstrakurikulerSessionController extends Controller
         }
 
         return $redirect;
+    }
+
+    /**
+     * AJAX endpoint untuk mengecek konflik jadwal session (Instruktur & Asisten) secara real-time.
+     */
+    public function checkConflict(Request $request, EkstrakurikulerSession $session): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id_instruktur' => 'nullable|exists:users,id',
+            'user_id_asisten' => 'nullable|exists:users,id',
+            'tanggal_terjadwal' => 'required|date',
+            'jam_mulai_terjadwal' => 'required',
+            'jam_selesai_terjadwal' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $instrukturId = $request->input('user_id_instruktur') ?: null;
+        $asistenId = $request->input('user_id_asisten') ?: null;
+
+        $instructor = $instrukturId ? User::find($instrukturId) : null;
+        $assistant = $asistenId ? User::find($asistenId) : null;
+
+        if (!$instructor && !$assistant) {
+            return response()->json([
+                'success' => true,
+                'has_conflict' => false,
+                'messages' => [],
+            ]);
+        }
+
+        $tempSession = clone $session;
+        $tempSession->tanggal_terjadwal = $request->input('tanggal_terjadwal');
+        $tempSession->jam_mulai_terjadwal = $request->input('jam_mulai_terjadwal');
+        $tempSession->jam_selesai_terjadwal = $request->input('jam_selesai_terjadwal');
+        if ($instrukturId) $tempSession->user_id_instruktur = $instrukturId;
+        if ($asistenId) $tempSession->user_id_asisten = $asistenId;
+
+        $conflicts = [];
+        if ($instructor) {
+            $conflicts = array_merge($conflicts, $this->schedulingService->checkInstructorConflicts($instructor, $tempSession, $assistant));
+        }
+
+        $details = [];
+        if ($instrukturId) {
+            $conflictingSessions = EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah'])
+                ->where('user_id_instruktur', $instrukturId)
+                ->where('id', '!=', $session->id)
+                ->where('tanggal_terjadwal', $tempSession->tanggal_terjadwal)
+                ->where('status', '!=', EkstrakurikulerSession::STATUS_DIBATALKAN)
+                ->where(function ($q) use ($tempSession) {
+                    $q->whereBetween('jam_mulai_terjadwal', [$tempSession->jam_mulai_terjadwal, $tempSession->jam_selesai_terjadwal])
+                      ->orWhereBetween('jam_selesai_terjadwal', [$tempSession->jam_mulai_terjadwal, $tempSession->jam_selesai_terjadwal]);
+                })
+                ->get();
+
+            foreach ($conflictingSessions as $cs) {
+                $sekolahNama = $cs->rombel->ekstrakurikuler->sekolah->namasekolah ?? 'Sekolah';
+                $rombelNama = $cs->rombel->nama_rombel ?? 'Rombel';
+                $jamStart = \Carbon\Carbon::parse($cs->jam_mulai_terjadwal)->format('H:i');
+                $jamEnd = \Carbon\Carbon::parse($cs->jam_selesai_terjadwal)->format('H:i');
+                $details[] = "Instruktur bertabrakan dengan {$sekolahNama} ({$rombelNama}) jam {$jamStart} - {$jamEnd}";
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'has_conflict' => !empty($conflicts) || !empty($details),
+            'messages' => !empty($details) ? $details : $conflicts,
+        ]);
     }
 
     /**

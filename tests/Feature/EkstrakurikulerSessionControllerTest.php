@@ -138,4 +138,54 @@ class EkstrakurikulerSessionControllerTest extends TestCase
         $this->assertNull($this->session->alasan_pembatalan);
         $this->assertStringContainsString('Rescheduled: Jadwal baru disepakati', $this->session->catatan);
     }
+
+    public function test_check_conflict_ajax_detects_real_schedule_conflicts()
+    {
+        // 1. Session 1 assigned to instructor
+        $this->session->update([
+            'user_id_instruktur' => $this->instructor->id,
+            'tanggal_terjadwal' => now()->toDateString(),
+            'jam_mulai_terjadwal' => '08:00',
+            'jam_selesai_terjadwal' => '09:30',
+            'status' => EkstrakurikulerSession::STATUS_TERJADWAL,
+        ]);
+
+        // 2. Create another session for another rombel
+        $rombel2 = EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $this->ekstrakurikuler->id,
+            'nama_rombel' => 'Rombel 2',
+            'nomor_rombel' => 2,
+            'total_pertemuan' => 12,
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addMonths(3)->toDateString(),
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '09:30',
+            'hari' => 'senin',
+            'jumlah_siswa' => 15,
+        ]);
+
+        $session2 = EkstrakurikulerSession::create([
+            'ekstrakurikuler_id' => $this->ekstrakurikuler->id,
+            'ekstrakurikuler_rombel_id' => $rombel2->id,
+            'nomor_pertemuan' => 99,
+            'tanggal_terjadwal' => now()->toDateString(),
+            'jam_mulai_terjadwal' => '08:00',
+            'jam_selesai_terjadwal' => '09:30',
+            'status' => EkstrakurikulerSession::STATUS_TERJADWAL,
+        ]);
+
+        // 3. Test checkConflict AJAX endpoint for session2 trying to select $this->instructor
+        $response = $this->actingAs($this->admin)->postJson(route('ekstrakurikuler.sessions.check-conflict', $session2), [
+            'user_id_instruktur' => $this->instructor->id,
+            'tanggal_terjadwal' => now()->toDateString(),
+            'jam_mulai_terjadwal' => '08:00',
+            'jam_selesai_terjadwal' => '09:30',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'has_conflict' => true,
+            ]);
+    }
 }

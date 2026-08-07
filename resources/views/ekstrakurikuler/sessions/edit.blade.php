@@ -297,41 +297,72 @@
 
     function checkConflicts() {
         const instrukturId = document.getElementById('user_id_instruktur').value;
+        const asistenId = document.getElementById('user_id_asisten') ? document.getElementById('user_id_asisten').value : null;
         const tanggal = document.getElementById('tanggal_terjadwal').value;
         const jamMulai = document.getElementById('jam_mulai_terjadwal').value;
         const jamSelesai = document.getElementById('jam_selesai_terjadwal').value;
         
-        if (!instrukturId || !tanggal || !jamMulai || !jamSelesai) {
-            alert('Mohon isi instruktur, tanggal, dan waktu terlebih dahulu');
+        if (!tanggal || !jamMulai || !jamSelesai) {
+            alert('Mohon isi tanggal dan waktu terlebih dahulu');
+            return;
+        }
+
+        if (!instrukturId && !asistenId) {
+            alert('Mohon pilih instruktur atau asisten terlebih dahulu');
             return;
         }
         
         const resultsDiv = document.getElementById('conflictResults');
-        resultsDiv.innerHTML = '<div class="text-muted"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Mengecek konflik...</div>';
-        
-        // Mock conflict check
-        setTimeout(() => {
-            const hasConflict = Math.random() < 0.3; 
-            if (hasConflict) {
-                resultsDiv.innerHTML = `
-                    <div class="alert alert-danger mt-2 mb-0 d-flex align-items-center">
-                        <i class="bi bi-exclamation-circle-fill me-2 fs-5"></i>
-                        <div>
-                            <strong>Konflik Ditemukan:</strong> Instruktur sudah memiliki jadwal lain.
+        resultsDiv.innerHTML = '<div class="text-muted"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Mengecek konflik di database...</div>';
+
+        const token = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '{{ csrf_token() }}';
+
+        fetch('{{ route("ekstrakurikuler.sessions.check-conflict", $session) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': token
+            },
+            body: JSON.stringify({
+                user_id_instruktur: instrukturId,
+                user_id_asisten: asistenId,
+                tanggal_terjadwal: tanggal,
+                jam_mulai_terjadwal: jamMulai,
+                jam_selesai_terjadwal: jamSelesai
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.has_conflict) {
+                    let msgList = (data.messages || []).map(m => `<li>${m}</li>`).join('');
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-danger mt-2 mb-0">
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="bi bi-exclamation-circle-fill me-2 fs-5"></i>
+                                <strong>Konflik Jadwal Ditemukan:</strong>
+                            </div>
+                            <ul class="mb-0 ps-3 small">${msgList || 'Pengajar sudah memiliki jadwal lain pada waktu tersebut.'}</ul>
                         </div>
-                    </div>
-                `;
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-success mt-2 mb-0 d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                            <div>
+                                Tidak ada konflik jadwal ditemukan.
+                            </div>
+                        </div>
+                    `;
+                }
             } else {
-                resultsDiv.innerHTML = `
-                    <div class="alert alert-success mt-2 mb-0 d-flex align-items-center">
-                        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
-                        <div>
-                            Tidak ada konflik jadwal ditemukan.
-                        </div>
-                    </div>
-                `;
+                resultsDiv.innerHTML = `<div class="alert alert-warning mt-2 mb-0">${data.message || 'Gagal mengecek konflik.'}</div>`;
             }
-        }, 1000);
+        })
+        .catch(err => {
+            resultsDiv.innerHTML = '<div class="alert alert-danger mt-2 mb-0">Terjadi kesalahan koneksi saat mengecek konflik.</div>';
+        });
     }
 </script>
 @endpush

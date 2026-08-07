@@ -629,6 +629,34 @@ class EkstrakurikulerSession extends Model
     }
 
     /**
+     * Check if this session is an Ad-Hoc / Special event session.
+     */
+    public function isAdHoc(): bool
+    {
+        if ($this->nomor_pertemuan === 0) {
+            return true;
+        }
+
+        $catLower = strtolower(
+            $this->laporanMengajar->kategori_pengajaran 
+            ?? $this->topik_materi 
+            ?? $this->rombel->ekstrakurikuler->kategori_program 
+            ?? ''
+        );
+
+        return str_contains($catLower, 'sosialisasi')
+            || str_contains($catLower, 'trial')
+            || str_contains($catLower, 'pameran')
+            || str_contains($catLower, 'lomba')
+            || str_contains($catLower, 'pendampingan')
+            || str_contains($catLower, 'per-pertemuan')
+            || str_contains($catLower, 'per pertemuan')
+            || str_contains($catLower, 'event')
+            || str_contains($catLower, 'inkul')
+            || str_contains($catLower, 'mandiri');
+    }
+
+    /**
      * Boot method untuk handle events.
      */
     protected static function boot()

@@ -337,17 +337,19 @@ class LaporanMengajar extends Model
             $rombelId = $rombel->id;
         }
 
-        // Untuk Kegiatan Ad-Hoc / Khusus, nomor pertemuan diset 0 (Non-Reguler) agar tidak menggelembungkan nomor pertemuan rombel
+        // Untuk Kegiatan Ad-Hoc / Khusus / Backup, pastikan nomor_pertemuan unik dan tidak bentrok (termasuk soft-deleted)
         if ($isAdHocCategory) {
             $nomorPertemuan = 0;
+            if ($rombelId) {
+                while (\App\Models\EkstrakurikulerSession::withTrashed()->where('ekstrakurikuler_rombel_id', $rombelId)->where('nomor_pertemuan', $nomorPertemuan)->exists()) {
+                    $nomorPertemuan++;
+                }
+            }
         } else {
             $nomorPertemuan = $this->pertemuan_ke ?? 1;
             if ($rombelId) {
-                while (\App\Models\EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombelId)->where('nomor_pertemuan', $nomorPertemuan)->exists()) {
+                while (\App\Models\EkstrakurikulerSession::withTrashed()->where('ekstrakurikuler_rombel_id', $rombelId)->where('nomor_pertemuan', $nomorPertemuan)->exists()) {
                     $nomorPertemuan++;
-                }
-                if ($nomorPertemuan > 24) {
-                    $nomorPertemuan = 0; // Fallback ke 0 jika melebihi batas 24 pertemuan reguler
                 }
             }
         }
@@ -374,5 +376,27 @@ class LaporanMengajar extends Model
         $session->checkAndUpdateParentProgramCompletion();
 
         return $session;
+    }
+
+    /**
+     * Check if this teaching report is for an Ad-Hoc / Special event session.
+     */
+    public function isAdHoc(): bool
+    {
+        if ($this->ekstrakurikulerSession && $this->ekstrakurikulerSession->nomor_pertemuan === 0) {
+            return true;
+        }
+
+        $catLower = strtolower($this->kategori_pengajaran ?? $this->materi_pengajaran ?? '');
+        return str_contains($catLower, 'sosialisasi')
+            || str_contains($catLower, 'trial')
+            || str_contains($catLower, 'pameran')
+            || str_contains($catLower, 'lomba')
+            || str_contains($catLower, 'pendampingan')
+            || str_contains($catLower, 'per-pertemuan')
+            || str_contains($catLower, 'per pertemuan')
+            || str_contains($catLower, 'event')
+            || str_contains($catLower, 'inkul')
+            || str_contains($catLower, 'mandiri');
     }
 }

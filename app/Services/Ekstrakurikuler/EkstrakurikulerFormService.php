@@ -44,7 +44,7 @@ class EkstrakurikulerFormService
                     'tanggal_selesai' => $rombelData['tanggal_selesai'],
                     'hari' => $rombelData['hari'],
                     'jam_mulai' => $rombelData['jam_mulai'],
-                    'jam_selesai' => \Carbon\Carbon::createFromFormat('H:i', $rombelData['jam_mulai'])->addHours(2)->format('H:i'),
+                    'jam_selesai' => $rombelData['jam_selesai'] ?? \Carbon\Carbon::parse($rombelData['jam_mulai'])->addMinutes(90)->format('H:i'),
                     'total_pertemuan' => $rombelData['total_pertemuan'],
                     'frekuensi' => \App\Models\EkstrakurikulerRombel::FREKUENSI_MINGGUAN,
                 ]);
@@ -180,10 +180,19 @@ class EkstrakurikulerFormService
      */
     protected function extractStep2Data(Request $request): array
     {
-        return $request->only([
+        $data = $request->only([
             'sekolah_kodlan', 'alamat_lengkap', 'google_maps_link',
             'jarak_km', 'kepala_sekolah', 'penanggung_jawab', 'no_telepon',
         ]);
+
+        if (isset($data['jarak_km']) && $data['jarak_km'] !== null && $data['jarak_km'] !== '') {
+            $raw = str_replace(',', '.', (string) $data['jarak_km']);
+            if (preg_match('/[0-9]+(?:\.[0-9]+)?/', $raw, $matches)) {
+                $data['jarak_km'] = (float) $matches[0];
+            }
+        }
+
+        return $data;
     }
 
     /**
@@ -192,7 +201,7 @@ class EkstrakurikulerFormService
     protected function extractStep3Data(Request $request): array
     {
         return $request->only([
-            'koneksi_internet', 'proyektor',
+            'koneksi_internet', 'keterangan_internet', 'proyektor',
             'keterangan_proyektor', 'kabel_hdmi', 'kabel_vga', 'kabel_roll', 'keterangan_kabel',
         ]);
     }
@@ -216,10 +225,10 @@ class EkstrakurikulerFormService
         $prefix = "rombel_{$rombelNumber}_";
         
         $jamMulai = $request->input($prefix . 'jam_mulai');
-        $jamSelesai = null;
+        $jamSelesai = $request->input($prefix . 'jam_selesai');
         
-        if ($jamMulai) {
-            $jamSelesai = \Carbon\Carbon::parse($jamMulai)->addHours(2)->format('H:i');
+        if ($jamMulai && !$jamSelesai) {
+            $jamSelesai = \Carbon\Carbon::parse($jamMulai)->addMinutes(90)->format('H:i');
         }
 
         return [
@@ -230,7 +239,7 @@ class EkstrakurikulerFormService
                     'tanggal_selesai' => $request->input($prefix . 'tanggal_selesai'),
                     'hari' => $request->input($prefix . 'hari'),
                     'jam_mulai' => $jamMulai,
-                    'jam_selesai' => $jamSelesai, // Auto calculated
+                    'jam_selesai' => $jamSelesai, // Otomatis dihitung 90 menit jika kosong
                     'jumlah_siswa' => $request->input($prefix . 'jumlah_siswa'),
                     'ruangan' => $request->input($prefix . 'ruangan', ''),
                     'keterangan_ruangan' => $request->input($prefix . 'keterangan_ruangan', ''),
@@ -240,7 +249,7 @@ class EkstrakurikulerFormService
     }
 
     /**
-     * Get validation rules for specific step
+     * Dapatkan aturan validasi untuk langkah spesifik
      */
     public function getStepValidationRules(int $step): array
     {
@@ -262,7 +271,7 @@ class EkstrakurikulerFormService
     }
 
     /**
-     * Step 1 validation rules
+     * Aturan validasi Langkah 1
      */
     protected function getStep1ValidationRules(): array
     {
@@ -274,66 +283,64 @@ class EkstrakurikulerFormService
                 \App\Models\Ekstrakurikuler::KATEGORI_MICROBIT_LEARNING,
                 \App\Models\Ekstrakurikuler::KATEGORI_PICTOBLOX_AI,
                 \App\Models\Ekstrakurikuler::KATEGORI_ROBOTIK_EXPLORER,
-                \App\Models\Ekstrakurikuler::KATEGORI_ROBOTIK_JIMU,
+                \App\Models\Ekstrakurikuler::KATEGORI_SAINS_EKSPERIMEN,
             ];
         }
 
         return [
-            'kategori_program' => 'required|string|in:' . implode(',', $activeProducts),
-            'user_id_sales' => 'required|exists:salesmen,id',
-            'region' => 'nullable|string',
-            'city' => 'required|string',
-            'jenis_alat' => 'nullable|string',
-            'jumlah_siswa_per_alat' => 'nullable|integer',
+            'kategori_program' => 'required|in:' . implode(',', $activeProducts),
+            'deskripsi' => 'nullable|string|max:1000',
         ];
     }
 
     /**
-     * Step 2 validation rules
+     * Aturan validasi Langkah 2
      */
     protected function getStep2ValidationRules(): array
     {
         return [
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
-            'alamat_lengkap' => 'required|string',
-            'google_maps_link' => 'required|url',
-            'jarak_km' => 'required|numeric|min:0',
+            'alamat_lengkap' => 'required|string|min:10|max:500',
+            'google_maps_link' => 'nullable|url|max:500',
+            'jarak_km' => 'required|numeric|min:0|max:999.99',
             'kepala_sekolah' => 'required|string|max:255',
             'penanggung_jawab' => 'required|string|max:255',
-            'no_telepon' => 'required|string|max:20',
+            'no_telepon' => 'required|string|min:10|max:20',
+            'email' => 'nullable|email|max:255',
         ];
     }
 
     /**
-     * Step 3 validation rules
+     * Aturan validasi Langkah 3
      */
     protected function getStep3ValidationRules(): array
     {
         return [
             'koneksi_internet' => 'required|in:ada,tidak_ada,tidak_diketahui',
+            'keterangan_internet' => 'nullable|string|max:500',
             'proyektor' => 'required|in:ada,tidak_ada,tidak_diketahui',
-            'keterangan_proyektor' => 'nullable|string',
+            'keterangan_proyektor' => 'nullable|string|max:500',
             'kabel_hdmi' => 'required|in:ada,tidak_ada,tidak_diketahui',
             'kabel_vga' => 'required|in:ada,tidak_ada,tidak_diketahui',
             'kabel_roll' => 'required|in:ada,tidak_ada,tidak_diketahui',
-            'keterangan_kabel' => 'nullable|string',
+            'keterangan_kabel' => 'nullable|string|max:500',
         ];
     }
 
     /**
-     * Step 4 validation rules
+     * Aturan validasi Langkah 4
      */
     protected function getStep4ValidationRules(): array
     {
         return [
-            'total_siswa' => 'required|integer|min:1',
-            'total_ruangan' => 'required|integer|min:1',
+            'total_siswa' => 'required|integer|min:1|max:1000',
+            'total_ruangan' => 'required|integer|min:1|max:50',
             'total_rombel' => 'required|integer|min:1|max:10',
         ];
     }
 
     /**
-     * Rombel validation rules for steps 5-9
+     * Aturan validasi Rombel untuk langkah 5-9
      */
     protected function getRombelValidationRules(int $step): array
     {
@@ -344,12 +351,31 @@ class EkstrakurikulerFormService
             "rombel_{$rombelNumber}_tanggal_selesai" => 'required|date|after_or_equal:rombel_' . $rombelNumber . '_tanggal_mulai',
             "rombel_{$rombelNumber}_hari" => 'required|in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
             "rombel_{$rombelNumber}_jam_mulai" => 'required|date_format:H:i',
+            "rombel_{$rombelNumber}_jam_selesai" => [
+                'nullable',
+                'date_format:H:i',
+                'after:rombel_' . $rombelNumber . '_jam_mulai',
+                function ($attribute, $value, $fail) use ($rombelNumber) {
+                    // Validasi durasi mengajar per sesi (minimal 60 menit, maksimal 90 menit)
+                    $jamMulai = request()->input("rombel_{$rombelNumber}_jam_mulai");
+                    if ($jamMulai && $value) {
+                        try {
+                            $start = \Carbon\Carbon::createFromFormat('H:i', $jamMulai);
+                            $end = \Carbon\Carbon::createFromFormat('H:i', $value);
+                            if ($end < $start) $end->addDay();
+                            $diff = $start->diffInMinutes($end);
+                            if ($diff < 60) $fail('Durasi mengajar minimal 60 menit (1 jam).');
+                            if ($diff > 90) $fail('Durasi mengajar maksimal 90 menit (1,5 jam).');
+                        } catch (\Throwable $e) {}
+                    }
+                }
+            ],
             "rombel_{$rombelNumber}_jumlah_siswa" => 'required|integer|min:1',
         ];
     }
 
     /**
-     * Validate final form data
+     * Validasi data akhir formulir
      */
     public function validateFinalForm(array $formData): void
     {
@@ -422,6 +448,55 @@ class EkstrakurikulerFormService
     {
         $finalStep = $this->getFinalStep($formData);
         return $step >= 1 && $step <= $finalStep;
+    }
+
+    /**
+     * Dapatkan langkah tertinggi yang diizinkan untuk diakses pengguna berdasarkan kelengkapan data session.
+     */
+    public function getHighestAllowedStep(array $formData = []): int
+    {
+        $data = !empty($formData) ? $formData : $this->getFormData();
+
+        // Check Step 1 (Kategori Program)
+        if (empty($data['kategori_program'])) {
+            return 1;
+        }
+
+        // Check Step 2 (Informasi Sekolah & Kontak)
+        if (empty($data['sekolah_kodlan']) || empty($data['alamat_lengkap']) || empty($data['kepala_sekolah']) || empty($data['penanggung_jawab']) || empty($data['no_telepon'])) {
+            return 2;
+        }
+
+        // Check Step 3 (Kebutuhan Teknis)
+        if (empty($data['koneksi_internet']) || empty($data['proyektor']) || empty($data['kabel_hdmi']) || empty($data['kabel_vga']) || empty($data['kabel_roll'])) {
+            return 3;
+        }
+
+        // Check Step 4 (Struktur Kelas & Jumlah Rombel)
+        if (empty($data['total_siswa']) || empty($data['total_ruangan']) || empty($data['total_rombel'])) {
+            return 4;
+        }
+
+        // Check Steps 5..N (Detail Rombel 1 s/d N)
+        $totalRombel = (int)$data['total_rombel'];
+        for ($i = 1; $i <= $totalRombel; $i++) {
+            $rombelStep = 4 + $i;
+            $rombelData = $data['rombels'][$i] ?? [];
+
+            $isRombelComplete = !empty($rombelData['total_pertemuan'])
+                && !empty($rombelData['tanggal_mulai'])
+                && !empty($rombelData['tanggal_selesai'])
+                && !empty($rombelData['hari'])
+                && !empty($rombelData['jam_mulai'])
+                && !empty($rombelData['jumlah_siswa']);
+
+            if (!$isRombelComplete) {
+                return $rombelStep;
+            }
+        }
+
+        // Semua langkah 1 s/d N selesai, diizinkan mengakses langkah final
+        return $this->getFinalStep($data);
     }
 
     /**
@@ -580,6 +655,7 @@ class EkstrakurikulerFormService
                 'penanggung_jawab' => $formData['penanggung_jawab'],
                 'no_telepon' => $formData['no_telepon'],
                 'koneksi_internet' => $formData['koneksi_internet'],
+                'keterangan_internet' => $formData['keterangan_internet'] ?? null,
                 'proyektor' => $formData['proyektor'],
                 'keterangan_proyektor' => $formData['keterangan_proyektor'] ?? null,
                 'kabel_hdmi' => $formData['kabel_hdmi'],
@@ -612,7 +688,7 @@ class EkstrakurikulerFormService
                             'tanggal_selesai' => $rombelData['tanggal_selesai'],
                             'hari' => $rombelData['hari'],
                             'jam_mulai' => $rombelData['jam_mulai'],
-                            'jam_selesai' => $rombelData['jam_selesai'] ?? \Carbon\Carbon::parse($rombelData['jam_mulai'])->addHours(2)->format('H:i'), // Ensure fallback
+                            'jam_selesai' => $rombelData['jam_selesai'] ?? \Carbon\Carbon::parse($rombelData['jam_mulai'])->addMinutes(90)->format('H:i'), // Ensure fallback
                             'jumlah_siswa' => $rombelData['jumlah_siswa'],
                             'ruangan' => $rombelData['ruangan'] ?? '',
                             'keterangan_ruangan' => $rombelData['keterangan_ruangan'] ?? '',
@@ -673,7 +749,8 @@ class EkstrakurikulerFormService
                 foreach ($rombelData as $rombelId => $data) {
                     $rombel = $ekstrakurikuler->rombels()->find($rombelId);
                     if ($rombel) {
-                        $jamSelesai = $data['jam_selesai'] ?? \Carbon\Carbon::parse($data['jam_mulai'])->addHours(2)->format('H:i');
+                        // Jika jam_selesai tidak diinput, otomatis hitung +90 menit dari jam_mulai
+                        $jamSelesai = $data['jam_selesai'] ?? \Carbon\Carbon::parse($data['jam_mulai'])->addMinutes(90)->format('H:i');
 
                         $rombel->update([
                             'jumlah_siswa' => $data['jumlah_siswa'],

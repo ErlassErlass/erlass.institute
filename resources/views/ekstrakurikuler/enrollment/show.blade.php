@@ -106,12 +106,12 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label text-muted small fw-semibold text-uppercase">Tanggal Daftar</label>
-                            <p class="mb-0">{{ $enrollment->tanggal_daftar->format('d MMMM Y') }}</p>
+                            <p class="mb-0">{{ $enrollment->tanggal_daftar ? $enrollment->tanggal_daftar->isoFormat('D MMMM YYYY') : '-' }}</p>
                         </div>
                         @if($enrollment->tanggal_keluar)
                         <div class="col-md-6">
                             <label class="form-label text-muted small fw-semibold text-uppercase">Tanggal Keluar</label>
-                            <p class="mb-0">{{ $enrollment->tanggal_keluar->format('d MMMM Y') }}</p>
+                            <p class="mb-0">{{ $enrollment->tanggal_keluar->isoFormat('D MMMM YYYY') }}</p>
                         </div>
                         @endif
                         @if($enrollment->alasan_keluar)
@@ -255,7 +255,7 @@
                                 @if($rombel->id !== $enrollment->ekstrakurikuler_rombel_id)
                                     <option value="{{ $rombel->id }}">
                                         {{ $rombel->nama_rombel }}
-                                        ({{ $rombel->getJumlahSiswaAktual() }}/{{ $rombel->jumlah_siswa }} siswa)
+                                        ({{ $rombel->getJumlahSiswaAktual() }} siswa)
                                     </option>
                                 @endif
                             @endforeach

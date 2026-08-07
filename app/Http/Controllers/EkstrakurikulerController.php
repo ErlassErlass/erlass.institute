@@ -127,9 +127,17 @@ class EkstrakurikulerController extends Controller
         // Get form data from service
         $formData = $this->formService->getFormData();
         $finalStep = $this->formService->getFinalStep($formData);
+        $highestAllowedStep = $this->formService->getHighestAllowedStep($formData);
 
-        if ($step < 1 || $step > $finalStep) {
+        $step = (int) $step;
+        if ($step < 1) {
             $step = 1;
+        }
+
+        // Prevent direct URL jumping to uncompleted steps
+        if ($step > $highestAllowedStep) {
+            return redirect()->route('ekstrakurikuler.create.step', ['step' => $highestAllowedStep])
+                ->with('warning', 'Silakan lengkapi langkah sebelumnya terlebih dahulu.');
         }
 
         // Get dropdown data
@@ -469,7 +477,24 @@ class EkstrakurikulerController extends Controller
         $validated = $request->validate([
             'hari' => 'required|string|in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
             'jam_mulai' => 'required|date_format:H:i',
-            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
+            'jam_selesai' => [
+                'required',
+                'date_format:H:i',
+                'after:jam_mulai',
+                function ($attribute, $value, $fail) use ($request) {
+                    // Validasi durasi mengajar per sesi (minimal 60 menit, maksimal 90 menit)
+                    if ($request->jam_mulai && $value) {
+                        try {
+                            $start = \Carbon\Carbon::createFromFormat('H:i', $request->jam_mulai);
+                            $end = \Carbon\Carbon::createFromFormat('H:i', $value);
+                            if ($end < $start) $end->addDay();
+                            $diff = $start->diffInMinutes($end);
+                            if ($diff < 60) $fail('Durasi mengajar minimal 60 menit (1 jam).');
+                            if ($diff > 90) $fail('Durasi mengajar maksimal 90 menit (1,5 jam).');
+                        } catch (\Throwable $e) {}
+                    }
+                }
+            ],
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'total_pertemuan' => 'required|integer|min:1|max:52',

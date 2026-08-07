@@ -100,11 +100,14 @@ class CreateEkstrakurikulerStep2Request extends FormRequest
             ]);
         }
 
-        // Ensure jarak_km is properly formatted as float
-        if ($this->has('jarak_km')) {
-            $this->merge([
-                'jarak_km' => is_numeric($this->jarak_km) ? (float) $this->jarak_km : $this->jarak_km,
-            ]);
+        // Ensure jarak_km is properly normalized (comma to dot, strip units)
+        if ($this->has('jarak_km') && $this->jarak_km !== null && $this->jarak_km !== '') {
+            $raw = str_replace(',', '.', (string) $this->jarak_km);
+            if (preg_match('/[0-9]+(?:\.[0-9]+)?/', $raw, $matches)) {
+                $this->merge([
+                    'jarak_km' => (float) $matches[0],
+                ]);
+            }
         }
 
         // Trim text fields

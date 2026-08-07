@@ -520,7 +520,7 @@
                                             <span class="badge {{ $batchBadge }}">{{ ucfirst($batchStatus) }}</span>
                                         </td>
                                         <td class="text-center">
-                                            <a href="{{ route('payroll.slip', $pItem->id) }}" class="btn btn-sm btn-outline-primary" title="Lihat Slip Gaji">
+                                            <a href="{{ route('payroll.slip.show', $pItem->id) }}" class="btn btn-sm btn-outline-primary" title="Lihat Slip Gaji">
                                                 <i class="bi bi-receipt"></i>
                                             </a>
                                         </td>

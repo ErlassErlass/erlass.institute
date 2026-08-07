@@ -22,6 +22,11 @@ class AbsensiController extends Controller
             return redirect()->route('laporan-mengajar.index')->with('warning', 'Silakan pilih laporan mengajar terlebih dahulu untuk menginput absensi.');
         }
 
+        if ($laporanMengajar->isAdHoc()) {
+            return redirect()->route('laporan-mengajar.show', $laporanMengajar)
+                ->with('info', 'Kegiatan Ad-Hoc / Khusus tidak memerlukan pengisian absensi siswa individual.');
+        }
+
         // Otorisasi menggunakan Policy: Apakah user ini boleh membuat absensi untuk laporan ini?
         $this->authorize('create', [Absensi::class, $laporanMengajar]);
 
@@ -69,6 +74,16 @@ class AbsensiController extends Controller
      */
     public function createForEkstrakurikuler(EkstrakurikulerSession $session)
     {
+        if ($session->isAdHoc()) {
+            $laporan = $session->laporanMengajar;
+            if ($laporan) {
+                return redirect()->route('laporan-mengajar.show', $laporan)
+                    ->with('info', 'Kegiatan Ad-Hoc / Khusus tidak memerlukan pengisian absensi siswa individual.');
+            }
+            return redirect()->route('ekstrakurikuler.show', $session->ekstrakurikuler_id)
+                ->with('info', 'Kegiatan Ad-Hoc / Khusus tidak memerlukan pengisian absensi siswa individual.');
+        }
+
         // Otorisasi: Admin boleh semua, Instruktur hanya boleh sesi tugasnya
         $user = auth()->user();
         $allowedRoles = ['webmaster', 'admin_sistem', 'admin'];
@@ -129,7 +144,6 @@ class AbsensiController extends Controller
                                 'tanggal_daftar' => now(),
                                 'catatan' => 'Auto-enrolled via Absensi Session #' . $ekstrakurikulerSession->id
                             ]);
-                            $rombel->incrementJumlahSiswa();
 
                             // Dispatch Welcome Notification
                             if ($siswa->no_hp_orangtua) {
@@ -609,7 +623,9 @@ class AbsensiController extends Controller
                 });
             }
 
-            $reports = $query->get();
+            $reports = $query->get()->reject(function ($report) {
+                return $report->isAdHoc();
+            })->values();
 
             // 2. Get Unique Students from Absensi
             $studentIds = Absensi::whereIn('laporan_mengajar_id', $reports->pluck('id'))
@@ -682,11 +698,15 @@ class AbsensiController extends Controller
             ? $date->year . '/' . ($date->year + 1)
             : ($date->year - 1) . '/' . $date->year;
 
-        // Fetch ALL sessions for this Rombel ordered by meeting number with eager loading
+        // Fetch ALL regular sessions (nomor_pertemuan > 0) for this Rombel ordered by meeting number with eager loading
         $allSessions = \App\Models\EkstrakurikulerSession::with(['laporanMengajar.absensis'])
             ->where('ekstrakurikuler_rombel_id', $session->ekstrakurikuler_rombel_id)
+            ->where('nomor_pertemuan', '>', 0)
             ->orderBy('nomor_pertemuan')
-            ->get();
+            ->get()
+            ->reject(function ($s) {
+                return $s->isAdHoc();
+            })->values();
             
         // Determine which batch of 4 this session belongs to
         // If pertemuan_ke is 1, 2, 3, or 4 -> index 0 (Batch 1)

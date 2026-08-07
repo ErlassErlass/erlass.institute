@@ -451,7 +451,6 @@ class EkstrakurikulerApiController extends Controller
                                 'catatan' => 'Auto-enrolled via Quick Add Student',
                             ]
                         ]);
-                        $rombel->incrementJumlahSiswa();
                     }
                 }
             }

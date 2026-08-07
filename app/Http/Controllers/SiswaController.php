@@ -165,8 +165,8 @@ class SiswaController extends Controller
         \Illuminate\Support\Facades\DB::transaction(function () use ($ids) {
             // Hapus absensi terkait
             \App\Models\Absensi::whereIn('siswa_id', $ids)->delete();
-            // Hapus pendaftaran ekstrakurikuler (pivot)
-            \Illuminate\Support\Facades\DB::table('ekstrakurikuler_siswa')->whereIn('siswa_id', $ids)->delete();
+            // Hapus pendaftaran ekstrakurikuler (siswa_ekstrakurikuler)
+            \App\Models\SiswaEkstrakurikuler::whereIn('siswa_id', $ids)->delete();
             // Hapus siswa
             Siswa::whereIn('id', $ids)->delete();
         });

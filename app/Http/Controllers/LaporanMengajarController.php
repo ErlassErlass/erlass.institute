@@ -38,7 +38,10 @@ class LaporanMengajarController extends Controller
     // I will do Constructor first.
 
 
-    public function index(Request $request)
+    /**
+     * Shared filter query builder for index, statistics, and exports.
+     */
+    private function getFilteredLaporanQuery(Request $request)
     {
         $user = Auth::user();
         $laporanQuery = LaporanMengajar::with('instruktur', 'sekolah', 'asisten', 'ekstrakurikulerSession.rombel.ekstrakurikuler');
@@ -92,8 +95,7 @@ class LaporanMengajarController extends Controller
                     $laporanQuery->whereBetween('jadwal_mengajar', [$startDate, $endDate]);
                 }
             } catch (\Exception $e) {
-                return redirect()->route('laporan-mengajar.index')
-                    ->with('error', 'Format tanggal tidak valid. Gunakan format dd/mm/yyyy');
+                // Silently ignore invalid dates
             }
         }
 
@@ -114,6 +116,14 @@ class LaporanMengajarController extends Controller
                 });
             });
         }
+
+        return $laporanQuery;
+    }
+
+    public function index(Request $request)
+    {
+        $user = Auth::user();
+        $laporanQuery = $this->getFilteredLaporanQuery($request);
 
         // Get statistics
         $totalLaporan = (clone $laporanQuery)->count();
@@ -173,10 +183,10 @@ class LaporanMengajarController extends Controller
         $categories = [
             'Backup Pertemuan',
             'Free Trial Class',
-            'Inkul Coding Scratch',
-            'Inkul LKPD Informatika SD',
-            'Inkul LKPD Informatika SMA',
-            'Inkul LKPD Informatika SMP',
+            'Inkul LMS Coding Scratch',
+            'Inkul LMS LKPD Informatika SD',
+            'Inkul LMS LKPD Informatika SMA',
+            'Inkul LMS LKPD Informatika SMP',
             'Inkul LMS Koding KA SD',
             'Pameran',
             'Pendampingan Lomba',
@@ -193,46 +203,7 @@ class LaporanMengajarController extends Controller
             return back()->with('error', 'Format ekspor tidak valid');
         }
 
-        $user = Auth::user();
-        $query = LaporanMengajar::with('instruktur', 'sekolah', 'asisten');
-
-        if (! in_array($user->role, ['admin', 'admin_sistem', 'webmaster'])) {
-            $query->where('user_id_instruktur', $user->id);
-        }
-
-        if ($request->filled('instruktur_id')) {
-            $query->where('user_id_instruktur', $request->instruktur_id);
-        }
-
-        if ($request->filled('date_range')) {
-            try {
-                $dateRange = str_replace(' - ', ' to ', $request->date_range);
-                $dates = array_map('trim', explode(' to ', $dateRange));
-                $parseDate = function ($dateString) {
-                    try {
-                        return \Carbon\Carbon::createFromFormat('d/m/Y', $dateString);
-                    } catch (\Exception $e) {
-                        return \Carbon\Carbon::createFromFormat('Y-m-d', $dateString);
-                    }
-                };
-
-                if (count($dates) === 1) {
-                    $date = $parseDate($dates[0]);
-                    $query->whereDate('jadwal_mengajar', $date);
-                } elseif (count($dates) === 2) {
-                    $startDate = $parseDate($dates[0])->startOfDay();
-                    $endDate = $parseDate($dates[1])->endOfDay();
-                    $query->whereBetween('jadwal_mengajar', [$startDate, $endDate]);
-                }
-            } catch (\Exception $e) {
-                return back()->with('error', 'Format tanggal tidak valid');
-            }
-        }
-
-        if ($request->filled('kategori')) {
-            $query->where('kategori_pengajaran', $request->kategori);
-        }
-
+        $query = $this->getFilteredLaporanQuery($request);
         $laporan = $query->latest()->get();
 
         if ($format === 'excel') {
@@ -319,9 +290,8 @@ class LaporanMengajarController extends Controller
 
     public function create()
     {
-        // Fix: Only show instructors in dropdown
         $instructors = User::where('role', 'instruktur')
-            ->where('id', '!=', auth()->id())
+            ->where('verification_status', 'approved')
             ->orderBy('nama_lengkap')
             ->get();
             
@@ -414,8 +384,14 @@ class LaporanMengajarController extends Controller
             'user_agent' => $request->userAgent(),
         ]);
 
+        // For Ad-Hoc / Special event reports, skip individual student attendance and redirect to show.
+        if ($laporan->isAdHoc()) {
+            return redirect()->route('laporan-mengajar.show', $laporan)
+                ->with('success', 'Laporan mengajar Ad-Hoc / Khusus berhasil dibuat!');
+        }
+
         // Smart Redirect: If pre-registered students exist in DB for this school & rombel, redirect to absensi.create.
-        // Otherwise (for Ad-Hoc / Free Trial Class with standalone text rombel), redirect directly to show.
+        // Otherwise (for standalone text rombel), redirect directly to show.
         $hasRegisteredStudents = \App\Models\Siswa::where('sekolah_kodlan', $validated['sekolah_kodlan'])
             ->where('rombel', $validated['rombel'])
             ->exists();
@@ -453,9 +429,8 @@ class LaporanMengajarController extends Controller
     {
         $this->authorize('update', $laporanMengajar);
         
-        // Fix: Only show instructors in dropdown
         $instructors = User::where('role', 'instruktur')
-            ->where('id', '!=', $laporanMengajar->user_id_instruktur)
+            ->where('verification_status', 'approved')
             ->orderBy('nama_lengkap')
             ->get();
             
@@ -562,6 +537,11 @@ class LaporanMengajarController extends Controller
         // Update session status
         $session->update(['status' => 'berlangsung']);
 
+        if ($session->isAdHoc() || $laporan->isAdHoc()) {
+            return redirect()->route('laporan-mengajar.show', $laporan)
+                ->with('success', 'Laporan dari sesi Ad-Hoc / Khusus berhasil dibuat!');
+        }
+
         return redirect()->route('laporan-mengajar.absensi.create', $laporan)
             ->with('success', 'Laporan dari sesi ekstrakurikuler berhasil dibuat! Silakan isi absensi.');
     }
@@ -640,7 +620,24 @@ class LaporanMengajarController extends Controller
                 },
             ],
             'jam_mulai' => 'required|date_format:H:i',
-            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
+            'jam_selesai' => [
+                'required',
+                'date_format:H:i',
+                'after:jam_mulai',
+                function ($attribute, $value, $fail) use ($request) {
+                    // Validasi durasi mengajar per sesi (minimal 60 menit, maksimal 90 menit)
+                    if ($request->jam_mulai && $value) {
+                        try {
+                            $start = \Carbon\Carbon::createFromFormat('H:i', $request->jam_mulai);
+                            $end = \Carbon\Carbon::createFromFormat('H:i', $value);
+                            if ($end < $start) $end->addDay();
+                            $diff = $start->diffInMinutes($end);
+                            if ($diff < 60) $fail('Durasi mengajar minimal 60 menit (1 jam).');
+                            if ($diff > 90) $fail('Durasi mengajar maksimal 90 menit (1,5 jam).');
+                        } catch (\Throwable $e) {}
+                    }
+                }
+            ],
             'materi_pengajaran' => [
                 'required',
                 'string',

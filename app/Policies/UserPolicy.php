@@ -53,11 +53,11 @@ class UserPolicy
     }
 
     /**
-     * Menentukan siapa yang boleh membuat user baru.
+     * Menentukan siapa yang boleh membuat user baru (khusus webmaster).
      */
     public function create(User $user): bool
     {
-        return $user->isPrimaryAdmin();
+        return $user->role === 'webmaster';
     }
 
     /**
