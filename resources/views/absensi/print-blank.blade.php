@@ -105,7 +105,7 @@
         
         /* Uniform row height for empty rows */
         tbody tr {
-            height: 26px; 
+            height: 22px; 
         }
 
         .col-no { text-align: center; }
@@ -115,7 +115,7 @@
         .col-ket { text-align: center; }
 
         .row-paraf {
-            height: 38px;
+            height: 28px;
             background-color: #f8fafc;
         }
         .row-paraf td {
@@ -123,7 +123,7 @@
         }
 
         .footer {
-            margin-top: 20px;
+            margin-top: 10px;
             display: flex;
             justify-content: space-between;
             padding: 0 10px;
@@ -135,7 +135,7 @@
             font-size: 8.5pt;
         }
         .signature-space {
-            height: 55px;
+            height: 42px;
         }
         .signature-line {
             border-top: 1px solid #0f172a;
@@ -146,7 +146,7 @@
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 8mm;
+                margin: 6mm 8mm;
             }
             body {
                 background: #ffffff;
@@ -249,7 +249,7 @@
             $meetingPercent = round(44 / $maxColumns, 2);
             $namaPercent = round(100 - $fixedSum - ($maxColumns * $meetingPercent), 2);
             
-            $totalRows = 24; 
+            $totalRows = 18; 
             $currentCount = $students->count();
             $emptyRowsNeeded = max(0, $totalRows - $currentCount);
         @endphp
