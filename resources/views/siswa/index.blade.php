@@ -234,6 +234,37 @@
         </div>
     </div>
 
+    <!-- Last NISN System Info Banner -->
+    @if(isset($lastNisnSiswa) && $lastNisnSiswa)
+    <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #EFF6FF 0%, #E0F2FE 100%); border-left: 5px solid #2563EB !important; border-radius: 14px;">
+        <div class="card-body py-3 px-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-primary text-white rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; flex-shrink: 0;">
+                    <i class="bi bi-hash fs-5"></i>
+                </div>
+                <div>
+                    <div class="text-secondary small fw-semibold text-uppercase letter-spacing-1">Informasi NISN Terakhir Sistem</div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mt-0.5">
+                        <span class="fs-6 text-dark fw-normal">NISN Terakhir Terpakai:</span>
+                        <span class="badge bg-dark text-white font-monospace fs-6 px-2.5 py-1 rounded-3">
+                            {{ $lastNisnSiswa->nisn }}
+                        </span>
+                        <span class="text-muted small">
+                            (<i class="bi bi-building me-1"></i>Sekolah: <strong class="text-dark">{{ $lastNisnSiswa->sekolah->namasekolah ?? 'N/A' }}</strong>)
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white border border-primary border-opacity-25 rounded-3 px-3 py-2 text-center shadow-xs">
+                <div class="text-muted extra-small font-uppercase fw-semibold" style="font-size: 0.72rem;">Rekomendasi NISN Baru Berikutnya</div>
+                <div class="fs-5 font-monospace fw-bold text-primary">
+                    {{ sprintf('%04d', ((int)$lastNisnSiswa->nisn) + 1) }}
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Quick Navigation Pills -->
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
         <ul class="nav nav-pills nav-pills-custom gap-2">

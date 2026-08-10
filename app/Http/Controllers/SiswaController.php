@@ -62,7 +62,12 @@ class SiswaController extends Controller
         $tempNisnCount = \Illuminate\Support\Facades\Cache::remember('siswa_temp_nisn_count', 300, fn() => Siswa::where('nisn', 'like', 'TMP%')->count());
         $totalSekolahCount = count($sekolahs);
 
-        return view('siswa.index', compact('siswa', 'sekolahs', 'totalSiswaCount', 'tempNisnCount', 'totalSekolahCount'));
+        $lastNisnSiswa = Siswa::with('sekolah')
+            ->whereRaw("nisn REGEXP '^[0-9]+$'")
+            ->orderByRaw('CAST(nisn AS UNSIGNED) DESC')
+            ->first();
+
+        return view('siswa.index', compact('siswa', 'sekolahs', 'totalSiswaCount', 'tempNisnCount', 'totalSekolahCount', 'lastNisnSiswa'));
     }
 
     // app/Http/Controllers/SiswaController.php

@@ -48,7 +48,7 @@ class SiswaControllerTest extends TestCase
         $response->assertSessionHas('success');
 
         $this->assertDatabaseHas('siswa', [
-            'nama_lengkap' => 'Siswa Tanpa HP',
+            'nama_lengkap' => 'Siswa Tanpa Hp',
             'nisn' => '1234567800',
             'sekolah_kodlan' => '20218093',
             'kelas' => 'X-IPA-1',
@@ -84,7 +84,7 @@ class SiswaControllerTest extends TestCase
         $response->assertSessionHas('success');
 
         $this->assertDatabaseHas('siswa', [
-            'nama_lengkap' => 'Siswa Dengan HP',
+            'nama_lengkap' => 'Siswa Dengan Hp',
             'nisn' => '1234567801',
             'sekolah_kodlan' => '20218093',
             'kelas' => 'X-IPA-2',
