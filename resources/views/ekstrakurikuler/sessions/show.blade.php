@@ -143,7 +143,7 @@
                                 </div>
                             @elseif(Auth::user()->monthly_late_report_quota > 0)
                                 <p class="text-muted small mb-3">
-                                    Sesi ini sudah melewati batas H+1. Anda masih memiliki <strong>{{ Auth::user()->monthly_late_report_quota }}</strong> kuota bantuan bulan ini untuk membuka laporan ini.
+                                    Sesi ini sudah melewati batas H+1. Silakan tuliskan alasan keterlambatan di bawah ini untuk mengajukan permohonan buka akses laporan ke Admin.
                                 </p>
                                 <form action="{{ route('sessions.late-report-request.store', $session) }}" method="POST">
                                     @csrf
