@@ -265,23 +265,31 @@ class EkstrakurikulerSessionController extends Controller
     {
         $this->authorize('update', $session);
         
-        $validator = Validator::make($request->all(), [
+        $input = $request->all();
+        if (!empty($input['jam_mulai_terjadwal'])) {
+            $input['jam_mulai_terjadwal'] = substr($input['jam_mulai_terjadwal'], 0, 5);
+        }
+        if (!empty($input['jam_selesai_terjadwal'])) {
+            $input['jam_selesai_terjadwal'] = substr($input['jam_selesai_terjadwal'], 0, 5);
+        }
+
+        $validator = Validator::make($input, [
             'tanggal_terjadwal' => 'required|date',
             'jam_mulai_terjadwal' => 'required|date_format:H:i',
             'jam_selesai_terjadwal' => [
                 'required',
                 'date_format:H:i',
                 'after:jam_mulai_terjadwal',
-                function ($attribute, $value, $fail) use ($request) {
-                    // Validasi durasi mengajar per sesi (minimal 60 menit, maksimal 90 menit)
-                    if ($request->jam_mulai_terjadwal && $value) {
+                function ($attribute, $value, $fail) use ($input) {
+                    // Validasi durasi mengajar per sesi (minimal 30 menit, maksimal 180 menit)
+                    if (!empty($input['jam_mulai_terjadwal']) && $value) {
                         try {
-                            $start = \Carbon\Carbon::createFromFormat('H:i', $request->jam_mulai_terjadwal);
+                            $start = \Carbon\Carbon::createFromFormat('H:i', $input['jam_mulai_terjadwal']);
                             $end = \Carbon\Carbon::createFromFormat('H:i', $value);
                             if ($end < $start) $end->addDay();
                             $diff = $start->diffInMinutes($end);
-                            if ($diff < 60) $fail('Durasi mengajar minimal 60 menit (1 jam).');
-                            if ($diff > 90) $fail('Durasi mengajar maksimal 90 menit (1,5 jam).');
+                            if ($diff < 30) $fail('Durasi mengajar minimal 30 menit.');
+                            if ($diff > 180) $fail('Durasi mengajar maksimal 180 menit (3 jam).');
                         } catch (\Throwable $e) {}
                     }
                 }
