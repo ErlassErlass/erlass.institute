@@ -142,16 +142,40 @@ class User extends Authenticatable
     }
 
     /**
-     * Max kuota permohonan bulanan (Bebas Kuota / Unlimited).
+     * Max kuota permohonan bulanan.
+     * Masa transisi (Agustus 2026): Bebas Kuota (999).
+     * Periode Normal (Setelah transisi): 3x per bulan (ditambah kuota ekstra spesifik per instruktur).
      */
     public function getMaxLateReportQuotaAttribute(): int
     {
-        return 999;
+        $isTransitionPeriod = (now()->year == 2026 && now()->month == 8);
+        if ($isTransitionPeriod) {
+            return 999;
+        }
+
+        $baseQuota = 3;
+
+        // Custom extra quota grants per instructor
+        $extraQuotaMap = [
+            131 => 10, // Ira Arsetiani (+10x kuota tambahan)
+        ];
+
+        return $baseQuota + ($extraQuotaMap[$this->id] ?? 0);
     }
 
     public function getMonthlyLateReportQuotaAttribute(): int
     {
-        return 999;
+        if ($this->max_late_report_quota >= 999) {
+            return 999;
+        }
+
+        $approvedThisMonth = $this->lateReportRequests()
+            ->where("status", "approved")
+            ->whereMonth("created_at", now()->month)
+            ->whereYear("created_at", now()->year)
+            ->count();
+
+        return max(0, $this->max_late_report_quota - $approvedThisMonth);
     }
 
     public function laporanMengajar()
