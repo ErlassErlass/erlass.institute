@@ -137,10 +137,17 @@ Terdapat **dua cara** membuat laporan:
 3.  Upload bukti kegiatan.
 4.  **Tambah Siswa**: Jika siswa belum ada di database, gunakan tombol **"Tambah Siswa Baru"** di dalam form absensi.
 
-> **⚠️ PENTING: Batas Waktu Pelaporan (H+1)**
-> - Instruktur **WAJIB** membuat laporan pada hari H atau selambat-lambatnya **H+1** (Satu hari setelah jadwal).
-> - Jika melewati batas H+1 pukul 23:59, sistem akan **mengunci** pembuatan laporan.
-> - Jika terlewat, Instruktur harus menghubungi Admin untuk bantuan manual.
+> **⚠️ PENTING: Batas Waktu Pelaporan (H+1) & KPI Kedisiplinan**
+> - Instruktur **WAJIB** membuat laporan pada hari H atau selambat-lambatnya **H+1** (Satu hari setelah jadwal jam 23:59).
+> - Jika melewati batas H+1 pukul 23:59, sistem akan **mengunci** pembuatan laporan. Instruktur dapat mengajukan permohonan buka akses (Grace System) ke Admin.
+> - **Modul KPI Ketepatan Waktu (*Punctuality Rate*)**:
+>   - Sistem menghitung persentase kedisiplinan pelaporan secara real-time:
+>     $$\text{Punctuality Rate (\%)} = \left( \frac{\text{Laporan Tepat Waktu (H+0 / H+1)}}{\text{Total Sesi Mengajar Selesai}} \right) \times 100\%$$
+>   - **Tingkat Kategori**:
+>     - 🟢 **Sangat Disiplin ($\ge 90\%$)**: Pelaporan konsisten sebelum H+1.
+>     - 🟡 **Cukup / Standard ($75\% - 89\%$)**: Terdapat beberapa kali keterlambatan dengan izin Grace.
+>     - 🔴 **Perlu Pembinaan ($< 75\%$)**: Sering terlambat melapor di luar batas H+1.
+>   - KPI ini dapat dipantau langsung pada **Dashboard Instruktur** (Personal KPI Card) dan **Halaman Profil Instruktur** oleh Admin.
 
 ### 5. Riwayat & Cetak Absensi
 *   **Riwayat**: Melihat daftar laporan yang sudah dibuat.

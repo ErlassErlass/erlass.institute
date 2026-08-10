@@ -995,4 +995,16 @@ Format title tab: `[Nama Halaman] — Erlass Ekskul`
 
 ---
 
+## 📈 Modul KPI Ketepatan Waktu (*Punctuality KPI*)
+
+### 1. Definisi & Formula Kalkulasi
+* **Formula Utama**:
+  $$\text{Punctuality Rate (\%)} = \left( \frac{\text{Jumlah Laporan Tepat Waktu (H+0 / H+1)}}{\text{Total Sesi Mengajar Selesai}} \right) \times 100\%$$
+* **Logika Evaluasi**:
+  * Sebuah laporan dianggap **Tepat Waktu (On Time)** apabila `laporan_mengajar.created_at` $\le \text{tanggal\_terjadwal} + 1 \text{ hari (23:59:59)}$.
+  * Jika laporan dibuat via permohonan izin buka akses yang disetujui Admin (`LateReportRequest`), laporan dikategorikan sebagai **Susulan (Late Request)**.
+* **Non-Destruktif**: Tidak membutuhkan skema tabel baru atau migrasi database. Menggunakan data historis `laporan_mengajar` & `ekstrakurikuler_session`.
+
+---
+
 *Dokumentasi ini dibuat berdasarkan analisis kode sumber project `/root/webapperlass` (erlass.institute).*
