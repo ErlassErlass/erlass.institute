@@ -126,7 +126,7 @@
                                     <option value="">Pilih Instruktur</option>
                                     @foreach($instructors as $instructor)
                                         <option value="{{ $instructor->id }}" 
-                                                {{ old('user_id_instruktur', $session->user_id_instruktur) == $instructor->id ? 'selected' : '' }}>
+                                                {{ old('user_id_instruktur', $session->user_id_instruktur ?? $session->rombel?->user_id_instruktur) == $instructor->id ? 'selected' : '' }}>
                                             {{ $instructor->nama_lengkap }}
                                         </option>
                                     @endforeach
@@ -145,7 +145,7 @@
                                     <option value="">Tidak Ada Asisten</option>
                                     @foreach($instructors as $instructor)
                                         <option value="{{ $instructor->id }}" 
-                                                {{ old('user_id_asisten', $session->user_id_asisten) == $instructor->id ? 'selected' : '' }}>
+                                                {{ old('user_id_asisten', $session->user_id_asisten ?? $session->rombel?->user_id_asisten) == $instructor->id ? 'selected' : '' }}>
                                             {{ $instructor->nama_lengkap }}
                                         </option>
                                     @endforeach

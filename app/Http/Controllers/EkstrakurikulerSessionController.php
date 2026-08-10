@@ -347,9 +347,21 @@ class EkstrakurikulerSessionController extends Controller
             'catatan' => $input['catatan'] ?? null,
         ];
 
-        // Handle nullable foreign keys explicitly
-        $data['user_id_instruktur'] = $request->input('user_id_instruktur') ?: null;
-        $data['user_id_asisten'] = $request->input('user_id_asisten') ?: null;
+        // Preserve existing instructor and assistant if empty/unselected input is submitted
+        $submittedInstruktur = $request->input('user_id_instruktur');
+        if (!empty($submittedInstruktur)) {
+            $data['user_id_instruktur'] = (int) $submittedInstruktur;
+        } else {
+            // Keep existing session instructor or fall back to parent rombel's assigned instructor
+            $data['user_id_instruktur'] = $session->user_id_instruktur ?? $session->rombel?->user_id_instruktur;
+        }
+
+        $submittedAsisten = $request->input('user_id_asisten');
+        if (!empty($submittedAsisten)) {
+            $data['user_id_asisten'] = (int) $submittedAsisten;
+        } else {
+            $data['user_id_asisten'] = $session->user_id_asisten;
+        }
 
         // Cek conflict jika ada perubahan instructor atau waktu
         if ($data['user_id_instruktur']) {
