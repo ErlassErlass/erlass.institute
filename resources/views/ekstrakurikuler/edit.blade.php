@@ -508,7 +508,7 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="form-group mb-3">
                                     <label class="form-label">
                                         Kabel HDMI <span class="required-indicator">*</span>
@@ -526,10 +526,13 @@
                                                {{ old('kabel_hdmi', $ekstrakurikuler->kabel_hdmi) == 'tidak_diketahui' ? 'checked' : '' }}>
                                         <label class="btn btn-outline-warning" for="hdmi_tidak_diketahui">Tidak Diketahui</label>
                                     </div>
+                                    @error('kabel_hdmi')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="form-group mb-3">
                                     <label class="form-label">
                                         Kabel VGA <span class="required-indicator">*</span>
@@ -547,6 +550,33 @@
                                                {{ old('kabel_vga', $ekstrakurikuler->kabel_vga) == 'tidak_diketahui' ? 'checked' : '' }}>
                                         <label class="btn btn-outline-warning" for="vga_tidak_diketahui">Tidak Diketahui</label>
                                     </div>
+                                    @error('kabel_vga')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label class="form-label">
+                                        Kabel Roll <span class="required-indicator">*</span>
+                                    </label>
+                                    <div class="btn-group d-flex" role="group">
+                                        <input type="radio" class="btn-check" name="kabel_roll" id="roll_ada" value="ada" 
+                                               {{ old('kabel_roll', $ekstrakurikuler->kabel_roll) == 'ada' ? 'checked' : '' }}>
+                                        <label class="btn btn-outline-success" for="roll_ada">Ada</label>
+
+                                        <input type="radio" class="btn-check" name="kabel_roll" id="roll_tidak_ada" value="tidak_ada" 
+                                               {{ old('kabel_roll', $ekstrakurikuler->kabel_roll) == 'tidak_ada' ? 'checked' : '' }}>
+                                        <label class="btn btn-outline-danger" for="roll_tidak_ada">Tidak Ada</label>
+
+                                        <input type="radio" class="btn-check" name="kabel_roll" id="roll_tidak_diketahui" value="tidak_diketahui" 
+                                               {{ old('kabel_roll', $ekstrakurikuler->kabel_roll ?? 'tidak_diketahui') == 'tidak_diketahui' ? 'checked' : '' }}>
+                                        <label class="btn btn-outline-warning" for="roll_tidak_diketahui">Tidak Diketahui</label>
+                                    </div>
+                                    @error('kabel_roll')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
@@ -824,7 +854,7 @@ function validateForm() {
     });
 
     // Validate radio groups
-    const radioGroups = ['koneksi_internet', 'proyektor', 'kabel_hdmi', 'kabel_vga'];
+    const radioGroups = ['koneksi_internet', 'proyektor', 'kabel_hdmi', 'kabel_vga', 'kabel_roll'];
     radioGroups.forEach(groupName => {
         const checkedRadio = document.querySelector(`input[name="${groupName}"]:checked`);
         if (!checkedRadio) {

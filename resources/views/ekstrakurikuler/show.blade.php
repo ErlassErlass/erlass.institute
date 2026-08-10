@@ -767,6 +767,26 @@
                             </span>
                         </div>
                     </div>
+
+                    <!-- Kabel Roll -->
+                    @php
+                        $rollClass = match($ekstrakurikuler->kabel_roll) {
+                            'ada' => 'bg-success bg-opacity-10 text-success',
+                            'tidak_ada' => 'bg-danger bg-opacity-10 text-danger',
+                            default => 'bg-warning bg-opacity-10 text-warning'
+                        };
+                    @endphp
+                    <div class="col-6 col-md-3">
+                        <div class="p-3 text-center border rounded-3 bg-white h-100">
+                            <div class="facility-card-icon {{ $rollClass }}">
+                                <i class="bi bi-lightning-charge"></i>
+                            </div>
+                            <h6 class="fw-bold mb-1 text-dark">Kabel Roll</h6>
+                            <span class="badge {{ $rollClass }} px-3 py-1 rounded-pill">
+                                {{ ucfirst(str_replace('_', ' ', $ekstrakurikuler->kabel_roll ?? 'Belum Diketahui')) }}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 @if($ekstrakurikuler->keterangan_kabel)
