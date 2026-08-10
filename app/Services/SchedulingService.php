@@ -434,17 +434,20 @@ class SchedulingService
     {
         $conflicts = [];
 
-        // Cek konflik instructor (strict overlap check: start_a < end_b AND end_a > start_b)
+        // Cek konflik instructor (hanya cek jadwal rutin aktif: TERJADWAL & BERLANGSUNG)
         $instructorConflicts = EkstrakurikulerSession::where('user_id_instruktur', $instructor->id)
             ->where('id', '!=', $session->id)
             ->where('tanggal_terjadwal', $session->tanggal_terjadwal)
-            ->where('status', '!=', EkstrakurikulerSession::STATUS_DIBATALKAN)
+            ->whereIn('status', [
+                EkstrakurikulerSession::STATUS_TERJADWAL,
+                EkstrakurikulerSession::STATUS_BERLANGSUNG,
+            ])
             ->where('jam_mulai_terjadwal', '<', $session->jam_selesai_terjadwal)
             ->where('jam_selesai_terjadwal', '>', $session->jam_mulai_terjadwal)
             ->exists();
 
         if ($instructorConflicts) {
-            $conflicts[] = 'Instructor sudah memiliki jadwal lain pada waktu yang sama';
+            $conflicts[] = 'Instructor sudah memiliki jadwal rutin aktif lain pada waktu yang sama';
         }
 
         // Cek konflik assistant jika ada
@@ -452,13 +455,16 @@ class SchedulingService
             $assistantConflicts = EkstrakurikulerSession::where('user_id_asisten', $assistant->id)
                 ->where('id', '!=', $session->id)
                 ->where('tanggal_terjadwal', $session->tanggal_terjadwal)
-                ->where('status', '!=', EkstrakurikulerSession::STATUS_DIBATALKAN)
+                ->whereIn('status', [
+                    EkstrakurikulerSession::STATUS_TERJADWAL,
+                    EkstrakurikulerSession::STATUS_BERLANGSUNG,
+                ])
                 ->where('jam_mulai_terjadwal', '<', $session->jam_selesai_terjadwal)
                 ->where('jam_selesai_terjadwal', '>', $session->jam_mulai_terjadwal)
                 ->exists();
 
             if ($assistantConflicts) {
-                $conflicts[] = 'Assistant sudah memiliki jadwal lain pada waktu yang sama';
+                $conflicts[] = 'Assistant sudah memiliki jadwal rutin aktif lain pada waktu yang sama';
             }
         }
 
