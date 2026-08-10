@@ -96,7 +96,9 @@ class EkstrakurikulerReportController extends Controller
             ->first();
         }
 
-        return view('ekstrakurikuler.reports.create', compact('session', 'siswaList', 'defaults', 'materiList', 'previousReport'));
+        $errors = session('errors') ?? new \Illuminate\Support\ViewErrorBag();
+
+        return view('ekstrakurikuler.reports.create', compact('session', 'siswaList', 'defaults', 'materiList', 'previousReport', 'errors'));
     }
 
     /**
