@@ -88,10 +88,12 @@
         
         th, td {
             border: 1px solid #334155;
-            padding: 4px 3px;
+            padding: 3px 4px;
             vertical-align: middle;
             word-wrap: break-word;
             overflow-wrap: break-word;
+            line-height: 1.15;
+            font-size: 8pt;
         }
         
         th {
@@ -99,13 +101,13 @@
             color: #0f172a;
             text-align: center;
             font-weight: 700;
-            padding: 5px 3px;
+            padding: 4px 3px;
             border-bottom: 2px solid #0f172a;
         }
         
         /* Uniform row height for empty rows */
         tbody tr {
-            height: 22px; 
+            min-height: 20px; 
         }
 
         .col-no { text-align: center; }
@@ -239,17 +241,16 @@
             $sessions = $monthlySessions;
             $maxColumns = max(4, $sessions->count());
             
-            // Dynamic width calculation for A4 Portrait (Total 100%)
-            $noPercent = 4;        // ~30px on A4
-            $kelasPercent = 9;     // ~65px on A4
-            $ketPercent = 7;       // ~50px on A4
-            $fixedSum = $noPercent + $kelasPercent + $ketPercent; // 20%
+            // Optimized width calculation for A4 Portrait (Total 100%)
+            $noPercent = 3.5;       // ~25px on A4
+            $kelasPercent = 16;     // ~115px on A4 (ample space for long class names)
+            $ketPercent = 5.5;      // ~40px on A4
+            $meetingPercent = 7.5;  // ~55px on A4 per meeting column (x4 = 30%)
             
-            // Distribute remaining 80% dynamically to meeting columns and student name
-            $meetingPercent = round(44 / $maxColumns, 2);
-            $namaPercent = round(100 - $fixedSum - ($maxColumns * $meetingPercent), 2);
+            // Distribute remaining width to student name
+            $namaPercent = round(100 - $noPercent - $kelasPercent - $ketPercent - ($maxColumns * $meetingPercent), 2); // ~45%
             
-            $totalRows = 18; 
+            $totalRows = 15; 
             $currentCount = $students->count();
             $emptyRowsNeeded = max(0, $totalRows - $currentCount);
         @endphp
