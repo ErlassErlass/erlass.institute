@@ -22,7 +22,7 @@
             <form action="{{ route('ekstrakurikuler.sessions.report.store', $session) }}" method="POST" enctype="multipart/form-data" id="reportForm">
                 @csrf
                 
-                @if ($errors->any())
+                @if (isset($errors) && $errors->any())
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <h4 class="alert-heading h5"><i class="bi bi-exclamation-triangle-fill me-2"></i>Terdapat kesalahan pada input:</h4>
                         <ul class="mb-0">
