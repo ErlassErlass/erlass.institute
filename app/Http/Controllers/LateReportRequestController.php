@@ -25,7 +25,10 @@ class LateReportRequestController extends Controller
             return back()->with('error', 'Hanya instruktur yang dapat mengajukan permohonan.');
         }
 
-        if ($session->user_id_instruktur !== $user->id && $session->user_id_asisten !== $user->id) {
+        $isAssignedOnSession = ($session->user_id_instruktur === $user->id || $session->user_id_asisten === $user->id);
+        $isAssignedOnRombel = ($session->rombel && ($session->rombel->user_id_instruktur === $user->id || $session->rombel->user_id_asisten === $user->id));
+
+        if (!$isAssignedOnSession && !$isAssignedOnRombel) {
             return back()->with('error', 'Akses ditolak. Anda bukan instruktur atau asisten untuk sesi ini.');
         }
 
