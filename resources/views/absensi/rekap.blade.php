@@ -84,19 +84,34 @@
         </div>
 
         <form action="{{ route('rekap-absensi') }}" method="GET" class="row g-3 align-items-end">
-            <!-- Sekolah Dropdown -->
-            <div class="col-lg-4 col-md-6">
+            <!-- Sekolah Search Input (Interactive Live Search, Not plain dropdown!) -->
+            <div class="col-lg-4 col-md-6 position-relative">
                 <label class="form-label fw-semibold text-secondary small mb-1">
-                    <i class="bi bi-building me-1 text-primary"></i> Pilih Sekolah <span class="text-danger">*</span>
+                    <i class="bi bi-building me-1 text-primary"></i> Cari Sekolah <span class="text-danger">*</span>
                 </label>
-                <select name="sekolah_kodlan" id="sekolah_kodlan" class="form-select select2-searchable" required data-placeholder="🔍 Cari & pilih sekolah...">
-                    <option value=""></option>
-                    @foreach($sekolahs as $sekolah)
-                        <option value="{{ $sekolah->kodlan }}" {{ $selectedSekolah == $sekolah->kodlan ? 'selected' : '' }}>
-                            {{ $sekolah->namasekolah }} ({{ $sekolah->kodlan }})
-                        </option>
-                    @endforeach
-                </select>
+                
+                <input type="hidden" name="sekolah_kodlan" id="sekolah_kodlan" value="{{ $selectedSekolah }}" required>
+
+                <div class="position-relative">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    <input type="text" 
+                           id="sekolah_search_input" 
+                           class="form-control ps-5 pe-5 rounded-3" 
+                           placeholder="🔍 Ketik nama sekolah / KODLAN..." 
+                           value="{{ $selectedSchoolName ? $selectedSchoolName . ' (' . $selectedSekolah . ')' : '' }}"
+                           autocomplete="off">
+                    <button type="button" 
+                            id="clearSekolahSearch" 
+                            class="btn btn-sm btn-link text-danger position-absolute top-50 end-0 translate-middle-y me-2 p-0 text-decoration-none" 
+                            style="display: {{ $selectedSekolah ? 'block' : 'none' }};"
+                            title="Hapus pilihan sekolah">
+                        <i class="bi bi-x-circle-fill fs-6"></i>
+                    </button>
+                </div>
+
+                <!-- Live Auto-complete Popover Suggestions -->
+                <div id="sekolahSearchResults" class="dropdown-menu shadow-lg w-100 border-0 rounded-3 mt-1 py-1" style="max-height: 280px; overflow-y: auto; display: none; z-index: 1050;">
+                </div>
             </div>
 
             <!-- Program Ekskul Dropdown -->
@@ -261,7 +276,65 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        // Initialize Searchable Select2
+        // 0. Interactive Live Text Search for Sekolah
+        var schoolList = [
+            @foreach($sekolahs as $sekolah)
+                { kodlan: "{{ $sekolah->kodlan }}", name: @json($sekolah->namasekolah) },
+            @endforeach
+        ];
+
+        $('#sekolah_search_input').on('focus input keyup', function() {
+            var query = $(this).val().toLowerCase().trim();
+            var $results = $('#sekolahSearchResults');
+            $results.empty();
+
+            var matches = schoolList.filter(function(s) {
+                return s.name.toLowerCase().indexOf(query) !== -1 || s.kodlan.indexOf(query) !== -1;
+            });
+
+            if (matches.length === 0) {
+                $results.html('<div class="dropdown-item text-muted small py-2 text-center"><i class="bi bi-exclamation-circle me-1"></i> Tidak ditemukan sekolah cocok</div>').show();
+            } else {
+                renderSchoolResults(matches.slice(0, 20));
+                $results.show();
+            }
+        });
+
+        function renderSchoolResults(list) {
+            var $results = $('#sekolahSearchResults');
+            $.each(list, function(i, s) {
+                var $item = $('<a class="dropdown-item py-2 px-3 border-bottom border-light cursor-pointer d-flex justify-content-between align-items-center"></a>');
+                $item.html('<div><strong class="text-dark d-block small mb-0.5">' + s.name + '</strong><span class="text-muted extra-small">KODLAN: ' + s.kodlan + '</span></div><i class="bi bi-chevron-right text-muted extra-small"></i>');
+                $item.on('mousedown click', function(e) {
+                    e.preventDefault();
+                    selectSchool(s.kodlan, s.name);
+                });
+                $results.append($item);
+            });
+        }
+
+        function selectSchool(kodlan, name) {
+            $('#sekolah_kodlan').val(kodlan);
+            $('#sekolah_search_input').val(name + ' (' + kodlan + ')');
+            $('#clearSekolahSearch').show();
+            $('#sekolahSearchResults').hide();
+            $('#sekolah_kodlan').trigger('change');
+        }
+
+        $('#clearSekolahSearch').on('click', function() {
+            $('#sekolah_kodlan').val('');
+            $('#sekolah_search_input').val('').focus();
+            $(this).hide();
+            $('#sekolah_kodlan').trigger('change');
+        });
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#sekolah_search_input, #sekolahSearchResults').length) {
+                $('#sekolahSearchResults').hide();
+            }
+        });
+
+        // Initialize Searchable Select2 for Program & Rombel
         function initSearchableSelect2() {
             $('.select2-searchable').each(function() {
                 var placeholder = $(this).data('placeholder') || 'Pilih opsi...';
