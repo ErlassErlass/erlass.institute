@@ -138,7 +138,7 @@ class AgendaKegiatanController extends Controller
         }
 
         if ($request->filled('instruktur_id')) {
-            $query->where('instruktur_id', $request->instruktur_id);
+            $query->where('user_id_instruktur', $request->instruktur_id);
         }
 
         if ($request->filled('keyword')) {
