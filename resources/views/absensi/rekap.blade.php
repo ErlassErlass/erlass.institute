@@ -274,7 +274,17 @@
 @endsection
 
 @push('scripts')
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+(function initRekapPage() {
+    if (typeof window.jQuery === 'undefined' || typeof window.$ === 'undefined') {
+        setTimeout(initRekapPage, 50);
+        return;
+    }
+    
+    var $ = window.jQuery;
+
     $(document).ready(function() {
         // 0. Interactive Live Text Search for Sekolah
         var schoolList = [
@@ -336,6 +346,10 @@
 
         // Initialize Searchable Select2 for Program & Rombel
         function initSearchableSelect2() {
+            if (typeof $.fn.select2 === 'undefined') {
+                setTimeout(initSearchableSelect2, 50);
+                return;
+            }
             $('.select2-searchable').each(function() {
                 var placeholder = $(this).data('placeholder') || 'Pilih opsi...';
                 $(this).select2({
@@ -437,5 +451,6 @@
             }
         });
     });
+})();
 </script>
 @endpush
