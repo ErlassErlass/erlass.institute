@@ -41,6 +41,23 @@
                 @method('PUT')
                 <input type="hidden" name="_return_query" value="{{ json_encode(request()->query()) }}">
 
+                @if($errors->any())
+                    <div class="alert alert-danger shadow-sm border-0 mb-4 alert-dismissible fade show" role="alert">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-exclamation-triangle-fill fs-4 text-danger me-2"></i>
+                            <div>
+                                <strong>Gagal Menyimpan Perubahan!</strong>
+                                <ul class="mb-0 ps-3 mt-1">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-light">
                         <h5 class="mb-0 card-title">Jadwal Sesi</h5>

@@ -434,21 +434,13 @@ class SchedulingService
     {
         $conflicts = [];
 
-        // Cek konflik instructor
+        // Cek konflik instructor (strict overlap check: start_a < end_b AND end_a > start_b)
         $instructorConflicts = EkstrakurikulerSession::where('user_id_instruktur', $instructor->id)
             ->where('id', '!=', $session->id)
             ->where('tanggal_terjadwal', $session->tanggal_terjadwal)
             ->where('status', '!=', EkstrakurikulerSession::STATUS_DIBATALKAN)
-            ->where(function ($q) use ($session) {
-                $q->whereBetween('jam_mulai_terjadwal', [
-                    $session->jam_mulai_terjadwal,
-                    $session->jam_selesai_terjadwal,
-                ])
-                    ->orWhereBetween('jam_selesai_terjadwal', [
-                        $session->jam_mulai_terjadwal,
-                        $session->jam_selesai_terjadwal,
-                    ]);
-            })
+            ->where('jam_mulai_terjadwal', '<', $session->jam_selesai_terjadwal)
+            ->where('jam_selesai_terjadwal', '>', $session->jam_mulai_terjadwal)
             ->exists();
 
         if ($instructorConflicts) {
@@ -461,16 +453,8 @@ class SchedulingService
                 ->where('id', '!=', $session->id)
                 ->where('tanggal_terjadwal', $session->tanggal_terjadwal)
                 ->where('status', '!=', EkstrakurikulerSession::STATUS_DIBATALKAN)
-                ->where(function ($q) use ($session) {
-                    $q->whereBetween('jam_mulai_terjadwal', [
-                        $session->jam_mulai_terjadwal,
-                        $session->jam_selesai_terjadwal,
-                    ])
-                        ->orWhereBetween('jam_selesai_terjadwal', [
-                            $session->jam_mulai_terjadwal,
-                            $session->jam_selesai_terjadwal,
-                        ]);
-                })
+                ->where('jam_mulai_terjadwal', '<', $session->jam_selesai_terjadwal)
+                ->where('jam_selesai_terjadwal', '>', $session->jam_mulai_terjadwal)
                 ->exists();
 
             if ($assistantConflicts) {
