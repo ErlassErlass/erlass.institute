@@ -340,7 +340,11 @@ class SiswaImporterService
 
                 $siswa = null;
                 if (!empty($nisn)) {
-                    $siswa = Siswa::where('nisn', $nisn)->first();
+                    $query = Siswa::where('nisn', $nisn);
+                    if ($sekolahKodlan) {
+                        $query->where('sekolah_kodlan', $sekolahKodlan);
+                    }
+                    $siswa = $query->first();
                 }
                 if (!$siswa && !empty($nama)) {
                     $query = Siswa::where('nama_lengkap', $nama);
