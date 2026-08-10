@@ -266,11 +266,32 @@ class EkstrakurikulerSessionController extends Controller
         $this->authorize('update', $session);
         
         $input = $request->all();
-        if (!empty($input['jam_mulai_terjadwal'])) {
-            $input['jam_mulai_terjadwal'] = substr($input['jam_mulai_terjadwal'], 0, 5);
+
+        // Normalisasi tanggal_terjadwal (contoh: 10-08-2026 -> 2026-08-10)
+        if (!empty($input['tanggal_terjadwal'])) {
+            $rawDate = trim($input['tanggal_terjadwal']);
+            try {
+                if (preg_match('/^\d{2}[-\/]\d{2}[-\/]\d{4}$/', $rawDate)) {
+                    $parts = preg_split('/[-\/]/', $rawDate);
+                    $input['tanggal_terjadwal'] = sprintf('%04d-%02d-%02d', $parts[2], $parts[1], $parts[0]);
+                } else {
+                    $input['tanggal_terjadwal'] = \Carbon\Carbon::parse($rawDate)->format('Y-m-d');
+                }
+            } catch (\Throwable $e) {}
         }
-        if (!empty($input['jam_selesai_terjadwal'])) {
-            $input['jam_selesai_terjadwal'] = substr($input['jam_selesai_terjadwal'], 0, 5);
+
+        // Normalisasi jam_mulai_terjadwal & jam_selesai_terjadwal (contoh: 02:30 PM -> 14:30)
+        foreach (['jam_mulai_terjadwal', 'jam_selesai_terjadwal'] as $timeKey) {
+            if (!empty($input[$timeKey])) {
+                $rawTime = trim($input[$timeKey]);
+                try {
+                    $input[$timeKey] = \Carbon\Carbon::parse($rawTime)->format('H:i');
+                } catch (\Throwable $e) {
+                    if (preg_match('/^\d{1,2}:\d{2}/', $rawTime, $m)) {
+                        $input[$timeKey] = strlen($m[0]) === 4 ? '0' . $m[0] : $m[0];
+                    }
+                }
+            }
         }
 
         $validator = Validator::make($input, [
@@ -317,14 +338,14 @@ class EkstrakurikulerSessionController extends Controller
         }
 
         // Prepare data for update
-        $data = $request->only([
-            'tanggal_terjadwal',
-            'jam_mulai_terjadwal',
-            'jam_selesai_terjadwal',
-            'topik_materi',
-            'deskripsi_kegiatan',
-            'catatan',
-        ]);
+        $data = [
+            'tanggal_terjadwal' => $input['tanggal_terjadwal'] ?? $session->tanggal_terjadwal,
+            'jam_mulai_terjadwal' => $input['jam_mulai_terjadwal'] ?? $session->jam_mulai_terjadwal,
+            'jam_selesai_terjadwal' => $input['jam_selesai_terjadwal'] ?? $session->jam_selesai_terjadwal,
+            'topik_materi' => $input['topik_materi'] ?? null,
+            'deskripsi_kegiatan' => $input['deskripsi_kegiatan'] ?? null,
+            'catatan' => $input['catatan'] ?? null,
+        ];
 
         // Handle nullable foreign keys explicitly
         $data['user_id_instruktur'] = $request->input('user_id_instruktur') ?: null;
