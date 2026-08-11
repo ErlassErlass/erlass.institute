@@ -1034,4 +1034,22 @@ Format title tab: `[Nama Halaman] — Erlass Ekskul`
 
 ---
 
+## 🛡️ Arsitektur Custom Error & Maintenance Pages (`resources/views/errors/`)
+
+### 1. Daftar Halaman Custom Error HTTP
+| Kode HTTP | Nama Error | File View | Tipe Rendering | Keterangan & Proteksi |
+| :--- | :--- | :--- | :--- | :--- |
+| **503** | Service Unavailable / Maintenance | `errors/503.blade.php` | Standalone HTML | Tidak mengekstend layout master / DB agar 100% andal saat `php artisan down`. |
+| **419** | Page Expired (CSRF Timeout) | `errors/419.blade.php` | Blade Layout | Menangani token CSRF kadaluarsa saat form didiamkan lama sebelum submit. |
+| **429** | Too Many Requests (Rate Limited) | `errors/429.blade.php` | Blade Layout | Menampilkan instruksi pelambatan saat pembatasan *throttling* aktif. |
+| **401** | Unauthorized | `errors/401.blade.php` | Blade Layout | Arahan masuk akun/login saat otentikasi dibutuhkan. |
+| **403** | Access Forbidden | `errors/403.blade.php` | Blade Layout | Penanganan otorisasi peran (*Role Middleware* / Policy fail). |
+| **404** | Not Found | `errors/404.blade.php` | Blade Layout | Penanganan URL tidak ditemukan. |
+| **500** | Internal Server Error | `errors/500.blade.php` | Blade Layout | Penanganan kesalahan server tak terduga. |
+
+### 2. Pengujian Otomatis
+Unit/Feature Test diuji melalui `tests/Feature/CustomErrorPagesTest.php` untuk memastikan seluruh view terender dengan sukses tanpa kebergantungan variabel yang hilang.
+
+---
+
 *Dokumentasi ini dibuat berdasarkan analisis kode sumber project `/root/webapperlass` (erlass.institute).*

@@ -255,5 +255,8 @@ Sistem menerapkan pengamanan berlapis pada seluruh formulir pelaporan (`/laporan
 * **Sanitasi Anti-XSS**: Input teks bebas (seperti Topik Materi, Catatan, Refleksi, Rombel) secara otomatis dibersihkan dari tag HTML/Script (`strip_tags`) untuk memproteksi sistem dari serangan injeksi script berbahaya.
 * **Integritas Relasi Data**: ID siswa dan ID instruktur asisten divalidasi keaktifannya secara langsung ke basis data server sebelum disimpan.
 
-### Bantuan
-*   Jika mengalami kendala teknis, hubungi **Admin Sistem**.
+### Bantuan & Penanganan Error Sistem
+* **Halaman Maintenance (503)**: Saat admin melakukan pemeliharaan berkala (`php artisan down`), sistem menampilkan halaman custom ramah "Sistem Sedang Pemeliharaan Berkala" dengan fitur auto-connect otomatis.
+* **Halaman Sesi Kadaluarsa (419)**: Jika formulir pelaporan didiamkan terlalu lama sebelum submit, sistem akan menampilkan arahan untuk memuat ulang (*refresh*) halaman dengan aman tanpa merusak aplikasi.
+* **Halaman Error Custom (404, 500, 403, 429, 401)**: Seluruh status error HTTP memiliki tampilan custom berestetika tinggi yang membimbing pengguna kembali ke Halaman Beranda / Login.
+* Jika mengalami kendala teknis lebih lanjut, hubungi **Admin Sistem**.
