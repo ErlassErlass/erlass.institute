@@ -79,6 +79,15 @@ class DashboardController extends Controller
             $data = array_merge($data, $adminData);
         }
 
+        // Inject Punctuality KPI Data
+        $punctualityService = app(\App\Services\PunctualityKpiService::class);
+        if ($user->role === 'instruktur') {
+            $data['punctuality_kpi'] = $punctualityService->getPersonalKpi($user);
+        } else {
+            $data['corporate_punctuality'] = $punctualityService->getCorporateOverview();
+            $data['punctuality_leaderboard'] = $punctualityService->getInstructorLeaderboard();
+        }
+
         return view('dashboard', $data);
     }
 

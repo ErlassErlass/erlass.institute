@@ -75,3 +75,61 @@
         </div>
     </div>
 </div>
+
+@if(isset($corporate_punctuality))
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100 bg-white rounded-3">
+            <div class="card-body p-3 text-center d-flex flex-column justify-content-center">
+                <div class="p-2 bg-success bg-opacity-10 text-success rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="bi bi-shield-check fs-3"></i>
+                </div>
+                <h6 class="fw-bold text-dark mb-1">Corporate Punctuality Rate</h6>
+                <h2 class="display-6 fw-bold text-success mb-0">{{ $corporate_punctuality['corporate_rate'] }}%</h2>
+                <small class="text-muted mt-1">Rata-rata Disiplin Instruktur (Bulan Ini)</small>
+                <div class="mt-2 pt-2 border-top">
+                    <span class="badge bg-success bg-opacity-10 text-success me-1">🟢 {{ $corporate_punctuality['on_time_count'] }} On Time</span>
+                    <span class="badge bg-warning bg-opacity-10 text-warning">🟡 {{ $corporate_punctuality['late_count'] }} Terlambat</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if(isset($punctuality_leaderboard) && $punctuality_leaderboard->count() > 0)
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 h-100 bg-white rounded-3">
+            <div class="card-header bg-light py-2 d-flex align-items-center justify-content-between">
+                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-award me-1 text-warning"></i> Evaluasi Disiplin Instruktur</h6>
+                <small class="text-muted">Status Check-in & Laporan H+1</small>
+            </div>
+            <div class="card-body p-0" style="max-height: 180px; overflow-y: auto;">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm align-middle mb-0">
+                        <thead class="table-light small">
+                            <tr>
+                                <th class="ps-3">Instruktur</th>
+                                <th class="text-center">Total Sesi</th>
+                                <th class="text-center">Score On Time</th>
+                                <th class="text-center">Status Disiplin</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            @foreach($punctuality_leaderboard->take(10) as $item)
+                            <tr>
+                                <td class="ps-3 fw-bold text-dark">{{ $item['nama_lengkap'] }}</td>
+                                <td class="text-center">{{ $item['kpi']['total_laporan'] }}</td>
+                                <td class="text-center fw-bold text-{{ $item['kpi']['badge_color'] }}">{{ $item['kpi']['punctuality_rate'] }}%</td>
+                                <td class="text-center">
+                                    <span class="badge bg-{{ $item['kpi']['badge_color'] }}">{{ $item['kpi']['status_label'] }}</span>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+</div>
+@endif

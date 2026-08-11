@@ -71,3 +71,64 @@
         </div>
     </div>
 </div>
+
+@if(isset($punctuality_kpi))
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 bg-white rounded-3">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-3">
+                            <i class="bi bi-clock-history fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark">Status Check-in & Personal Punctuality KPI</h6>
+                            <small class="text-muted">Kombinasi Kehadiran di Sekolah & Input Laporan (H+1)</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-{{ $punctuality_kpi['badge_color'] }} fs-6 px-3 py-2 rounded-pill shadow-sm">
+                        {{ $punctuality_kpi['punctuality_rate'] }}% On Time ({{ $punctuality_kpi['status_label'] }})
+                    </span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress mb-3" style="height: 10px; border-radius: 5px;">
+                    <div class="progress-bar bg-success" style="width: {{ $punctuality_kpi['punctuality_rate'] }}%" title="On Time"></div>
+                    <div class="progress-bar bg-warning" style="width: {{ round(($punctuality_kpi['late_report_count'] / max(1, $punctuality_kpi['total_laporan'])) * 100) }}%" title="Late Report"></div>
+                    <div class="progress-bar bg-info" style="width: {{ round(($punctuality_kpi['late_arrival_count'] / max(1, $punctuality_kpi['total_laporan'])) * 100) }}%" title="Late Arrival"></div>
+                    <div class="progress-bar bg-danger" style="width: {{ round(($punctuality_kpi['late_both_count'] / max(1, $punctuality_kpi['total_laporan'])) * 100) }}%" title="Late Both"></div>
+                </div>
+
+                <!-- Breakdown -->
+                <div class="row text-center g-2">
+                    <div class="col-3">
+                        <div class="p-2 bg-success bg-opacity-10 rounded">
+                            <span class="d-block fw-bold text-success fs-6">{{ $punctuality_kpi['on_time_count'] }}</span>
+                            <span class="small text-muted" style="font-size: 0.75rem;">🟢 Sempurna</span>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-2 bg-warning bg-opacity-10 rounded">
+                            <span class="d-block fw-bold text-warning fs-6">{{ $punctuality_kpi['late_report_count'] }}</span>
+                            <span class="small text-muted" style="font-size: 0.75rem;">🟡 Late Report</span>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-2 bg-info bg-opacity-10 rounded">
+                            <span class="d-block fw-bold text-info fs-6">{{ $punctuality_kpi['late_arrival_count'] }}</span>
+                            <span class="small text-muted" style="font-size: 0.75rem;">🟠 Late Arrival</span>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-2 bg-danger bg-opacity-10 rounded">
+                            <span class="d-block fw-bold text-danger fs-6">{{ $punctuality_kpi['late_both_count'] }}</span>
+                            <span class="small text-muted" style="font-size: 0.75rem;">🔴 Late Both</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
