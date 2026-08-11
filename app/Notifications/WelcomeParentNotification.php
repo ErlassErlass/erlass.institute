@@ -35,6 +35,10 @@ class WelcomeParentNotification extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
+        if (! config('services.whatsapp.welcome_enabled', false)) {
+            return [];
+        }
+
         return [WhatsAppChannel::class];
     }
 

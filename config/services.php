@@ -38,6 +38,7 @@ return [
     'whatsapp' => [
         'provider' => env('WHATSAPP_PROVIDER', 'log'),
         'fonnte_token' => env('WHATSAPP_FONNTE_TOKEN'),
+        'welcome_enabled' => env('WHATSAPP_WELCOME_ENABLED', false),
     ],
 
 ];
