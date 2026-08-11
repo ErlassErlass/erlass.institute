@@ -19,7 +19,8 @@ return new class extends Migration
                 'missing_report', 
                 'low_attendance', 
                 'reschedule_limit', 
-                'behind_target'
+                'behind_target',
+                'rombel_hold'
             ]);
             
             // Polymorphic relation fields

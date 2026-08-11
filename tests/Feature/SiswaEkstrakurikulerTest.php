@@ -84,8 +84,8 @@ class SiswaEkstrakurikulerTest extends TestCase
         $this->rombelA->refresh();
         $this->rombelB->refresh();
         
-        $this->assertEquals(1, $this->rombelA->jumlah_siswa);
-        $this->assertEquals(0, $this->rombelB->jumlah_siswa);
+        $this->assertEquals(1, $this->rombelA->activeEnrollments()->count());
+        $this->assertEquals(0, $this->rombelB->activeEnrollments()->count());
 
         // 2. Lakukan transfer rombel ke Rombel B
         $result = $enrollment->transfer($this->rombelB->id, 'Pindah karena bentrok jadwal les');
@@ -118,8 +118,8 @@ class SiswaEkstrakurikulerTest extends TestCase
         $this->rombelA->refresh();
         $this->rombelB->refresh();
 
-        $this->assertEquals(0, $this->rombelA->jumlah_siswa);
-        $this->assertEquals(1, $this->rombelB->jumlah_siswa);
+        $this->assertEquals(0, $this->rombelA->activeEnrollments()->count());
+        $this->assertEquals(1, $this->rombelB->activeEnrollments()->count());
     }
 
     public function test_import_siswa_program()

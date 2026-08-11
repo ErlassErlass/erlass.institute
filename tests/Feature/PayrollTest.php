@@ -145,7 +145,7 @@ class PayrollTest extends TestCase
             'ekstrakurikuler_id' => $ekskul->id,
             'nama_rombel' => 'Robotics A',
             'nomor_rombel' => 1,
-            'jumlah_siswa' => 0,
+            'jumlah_siswa' => 15,
             'ruangan' => 'Lab 1',
             'tanggal_mulai' => '2026-06-01',
             'tanggal_selesai' => '2026-12-01',
@@ -175,7 +175,7 @@ class PayrollTest extends TestCase
         $this->assertEquals('on_time', $calc['actual_checkin_status']);
         $this->assertEquals(0.00, $calc['actual_checkin_penalty']);
         $this->assertEquals(200000.00, $calc['net_fee']);
-        $this->assertEquals(37500.00, $calc['transport_fee']); // 12.5 * 3000 = 37500
+        $this->assertEquals(16250.00, $calc['transport_fee']); // (12.5 * 350 * 2) + 7500 = 16250
 
         // Case 2: Late checkin (penalty applied)
         $sessionLate = $rombel->sessions()->where('nomor_pertemuan', 2)->first();
@@ -250,7 +250,7 @@ class PayrollTest extends TestCase
             'ekstrakurikuler_id' => $ekskul->id,
             'nama_rombel' => 'Scratch Junior',
             'nomor_rombel' => 1,
-            'jumlah_siswa' => 0,
+            'jumlah_siswa' => 15,
             'ruangan' => 'Lab 1',
             'tanggal_mulai' => '2026-06-01',
             'tanggal_selesai' => '2026-12-01',
@@ -310,8 +310,8 @@ class PayrollTest extends TestCase
         $this->assertNotNull($payrollItem);
         $this->assertEquals($batch->id, $payrollItem->payroll_batch_id);
         $this->assertEquals($instructor->id, $payrollItem->user_id_instruktur);
-        $this->assertEquals(20000.00, $payrollItem->total_transport_fee);
-        $this->assertEquals(120000.00, $payrollItem->net_salary);
+        $this->assertEquals(0.00, $payrollItem->total_transport_fee);
+        $this->assertEquals(150000.00, $payrollItem->net_salary);
 
         // 2. Process batch
         $response = $this->actingAs($admin)->post(route('admin.payroll.batches.process', $batch->id));
@@ -398,26 +398,25 @@ class PayrollTest extends TestCase
 
         // Priority 1: sekolah has kustom_transport_fee = 45000, ekskul jarak_km is null
         $calc1 = $service->calculateSessionFee($session);
-        $this->assertEquals(45000.00, $calc1['transport_fee']);
+        $this->assertEquals(90000.00, $calc1['transport_fee']);
 
-        // Priority 2: ekskul jarak_km is defined (say 8 km) -> calculates based on jarak_km (8 * 3000 = 24000)
-        // which takes priority over school custom rate as it's the main reference
-        $ekskul->update(['jarak_km' => 8.00]);
+        // Priority 2: ekskul jarak_km is defined (15 km >= 10 km) -> (15 * 350 * 2) + 7500 = 18000
+        $ekskul->update(['jarak_km' => 15.00]);
         $session->refresh();
         $calc2 = $service->calculateSessionFee($session);
-        $this->assertEquals(24000.00, $calc2['transport_fee']);
+        $this->assertEquals(18000.00, $calc2['transport_fee']);
 
-        // Priority 2 (Minimum): ekskul jarak_km is defined (say 5 km) -> calculations give 15000, minimum is 20000
+        // Priority 2 (Under 10 KM): ekskul jarak_km is defined (< 10 km) -> 0.00
         $ekskul->update(['jarak_km' => 5.00]);
         $session->refresh();
         $calc2Min = $service->calculateSessionFee($session);
-        $this->assertEquals(20000.00, $calc2Min['transport_fee']);
+        $this->assertEquals(0.00, $calc2Min['transport_fee']);
 
-        // Priority 3 (Fallback): both jarak_km is null/0 and kustom_transport_fee is null -> flat 30000
+        // Priority 3 (Fallback): both jarak_km is 0 and kustom_transport_fee is null -> 0.00
         $ekskul->update(['jarak_km' => 0.00]);
         $sekolah->update(['kustom_transport_fee' => null]);
         $session->refresh();
         $calc3 = $service->calculateSessionFee($session);
-        $this->assertEquals(30000.00, $calc3['transport_fee']);
+        $this->assertEquals(0.00, $calc3['transport_fee']);
     }
 }

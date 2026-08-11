@@ -36,8 +36,7 @@ class LaporanMengajarControllerTest extends TestCase
             'nama_lengkap' => 'Test Admin',
         ]);
 
-        $this->otherInstructor = User::factory()->create([
-            'role' => 'instruktur',
+        $this->otherInstructor = User::factory()->verifiedInstructor()->create([
             'nama_lengkap' => 'Other Instructor',
         ]);
 
@@ -132,21 +131,26 @@ class LaporanMengajarControllerTest extends TestCase
             'rombel' => 'A1',
             'sekolah_kodlan' => 'TEST001',
             'sekolah_nama' => 'Test School',
-            'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
+            'jadwal_mengajar' => Carbon::today()->format('Y-m-d'),
             'jam_mulai' => '08:00',
-            'jam_selesai' => '10:00',
-            'kategori_pengajaran' => 'Regular',
+            'jam_selesai' => '09:30',
+            'kategori_pengajaran' => 'Pameran',
             'materi_pengajaran' => 'Test Material',
             'keaktifan' => 'aktif',
             'pemahaman_materi' => 'paham',
             'refleksi_siswa' => 'Good participation',
             'refleksi_capaian' => 'Target achieved',
+            'foto_kegiatan' => $fotoKegiatan,
         ];
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.store'), $laporanData);
 
-        $response->assertRedirect(route('laporan-mengajar.absensi.create', LaporanMengajar::latest()->first()));
+        $response->assertSessionHasNoErrors();
+
+        $laporan = LaporanMengajar::latest()->first();
+        $this->assertNotNull($laporan);
+        $response->assertRedirect(route('laporan-mengajar.show', $laporan->id));
         $response->assertSessionHas('success');
 
         // Verify database record
@@ -181,11 +185,18 @@ class LaporanMengajarControllerTest extends TestCase
 
     public function test_validates_pertemuan_ke_range(): void
     {
+        Storage::fake('public');
         $laporanData = [
             'user_id_instruktur' => $this->instructor->id,
-            'pertemuan_ke' => 51, // Above max
+            'pertemuan_ke' => 101, // Above max 100
             'sekolah_kodlan' => 'TEST001',
+            'rombel' => 'A1',
             'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '09:30',
+            'kategori_pengajaran' => 'ekstrakurikuler',
+            'materi_pengajaran' => 'Test',
+            'foto_kegiatan' => UploadedFile::fake()->image('test.jpg'),
         ];
 
         $response = $this->actingAs($this->instructor)
@@ -307,6 +318,7 @@ class LaporanMengajarControllerTest extends TestCase
         $laporan = LaporanMengajar::factory()->create([
             'user_id_instruktur' => $this->instructor->id,
             'sekolah_kodlan' => 'TEST001',
+            'jadwal_mengajar' => Carbon::today()->format('Y-m-d'),
         ]);
 
         $response = $this->actingAs($this->instructor)
@@ -319,9 +331,11 @@ class LaporanMengajarControllerTest extends TestCase
 
     public function test_can_update_laporan(): void
     {
+        Storage::fake('public');
         $laporan = LaporanMengajar::factory()->create([
             'user_id_instruktur' => $this->instructor->id,
             'sekolah_kodlan' => 'TEST001',
+            'jadwal_mengajar' => Carbon::today()->format('Y-m-d'),
             'materi_pengajaran' => 'Original Material',
         ]);
 
@@ -332,11 +346,12 @@ class LaporanMengajarControllerTest extends TestCase
             'rombel' => 'A1',
             'jadwal_mengajar' => Carbon::parse($laporan->jadwal_mengajar)->format('d/m/Y'),
             'jam_mulai' => '08:00',
-            'jam_selesai' => '10:00',
-            'kategori_pengajaran' => 'Regular',
+            'jam_selesai' => '09:30',
+            'kategori_pengajaran' => 'ekstrakurikuler',
             'materi_pengajaran' => 'Updated Material',
             'keaktifan' => 'sangat_aktif',
             'pemahaman_materi' => 'sangat_paham',
+            'foto_kegiatan' => UploadedFile::fake()->image('test.jpg'),
         ];
 
         $response = $this->actingAs($this->instructor)

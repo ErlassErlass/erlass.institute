@@ -179,8 +179,8 @@ class StoreLaporanMengajarRequest extends FormRequest
                     $diff = $start->diffInMinutes($end);
                     if ($diff < 60) {
                         $validator->errors()->add('jam_selesai', 'Durasi mengajar minimal 60 menit (1 jam).');
-                    } elseif ($diff > 90) {
-                        $validator->errors()->add('jam_selesai', 'Durasi mengajar maksimal 90 menit (1,5 jam).');
+                    } elseif ($diff > 180) {
+                        $validator->errors()->add('jam_selesai', 'Durasi mengajar maksimal 180 menit (3 jam).');
                     }
                 } catch (\Throwable $e) {}
             }

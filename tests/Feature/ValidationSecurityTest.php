@@ -239,24 +239,24 @@ class ValidationSecurityTest extends TestCase
             'user_id_instruktur' => $this->instructor->id,
             'pertemuan_ke' => 1,
             'sekolah_kodlan' => 'TEST001',
-            'jadwal_mengajar' => Carbon::today()->format('d/m/Y'),
+            'jadwal_mengajar' => Carbon::today()->format('Y-m-d'),
             'rombel' => '1',
             'jam_mulai' => '08:00',
             'jam_selesai' => '09:00',
-            'kategori_pengajaran' => 'Regular',
+            'kategori_pengajaran' => 'Pameran',
+            'foto_kegiatan' => \Illuminate\Http\UploadedFile::fake()->image('test.jpg'),
         ], $maliciousInput);
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.store'), $laporanData);
 
-        if ($response->status() === 302) { // Redirect on success
-            $laporan = LaporanMengajar::latest()->first();
+        $response->assertSessionHasNoErrors();
+        $laporan = LaporanMengajar::latest()->first();
 
             // Verify that malicious scripts are escaped or removed
             $this->assertStringNotContainsString('<script>', $laporan->materi_pengajaran);
             $this->assertStringNotContainsString('<?php', $laporan->refleksi_siswa);
             $this->assertStringNotContainsString('onerror=', $laporan->sekolah_nama);
-        }
     }
 
     public function test_foreign_key_validation(): void

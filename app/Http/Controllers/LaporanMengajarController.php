@@ -633,7 +633,7 @@ class LaporanMengajarController extends Controller
                             if ($end < $start) $end->addDay();
                             $diff = $start->diffInMinutes($end);
                             if ($diff < 60) $fail('Durasi mengajar minimal 60 menit (1 jam).');
-                            if ($diff > 90) $fail('Durasi mengajar maksimal 90 menit (1,5 jam).');
+                            if ($diff > 180) $fail('Durasi mengajar maksimal 180 menit (3 jam).');
                         } catch (\Throwable $e) {}
                     }
                 }

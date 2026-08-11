@@ -33,8 +33,8 @@ class ProfileTest extends TestCase
                 'tanggal_lahir' => '1990-01-01',
                 'no_telephone' => '081234567890',
                 'agama' => 'Lainnya',
-                'pend_terakhir' => 'SMA',
-                'kompetensi_1' => 'General',
+                'pend_terakhir' => 'SMA/SMK Sederajat',
+                'kompetensi_1' => 'Coding',
             ]);
 
         $response
@@ -59,8 +59,8 @@ class ProfileTest extends TestCase
                 'tanggal_lahir' => '1990-01-01',
                 'no_telephone' => '081234567890',
                 'agama' => 'Lainnya',
-                'pend_terakhir' => 'SMA',
-                'kompetensi_1' => 'General',
+                'pend_terakhir' => 'SMA/SMK Sederajat',
+                'kompetensi_1' => 'Coding',
             ]);
 
         $response

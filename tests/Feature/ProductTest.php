@@ -21,7 +21,7 @@ class ProductTest extends TestCase
     {
         parent::setUp();
         
-        $this->admin = User::factory()->create(['role' => 'admin']);
+        $this->admin = User::factory()->create(['role' => 'webmaster']);
         $this->salesmanUser = User::factory()->create(['role' => 'sales']);
         $this->salesman = Salesman::create([
             'kode_salesman' => 'SLS001',
