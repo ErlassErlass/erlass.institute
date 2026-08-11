@@ -2,6 +2,30 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.8.0] - 2026-08-11
+
+### Ditambahkan & Diperbaiki (Added & Fixed)
+- **Sistem Check-in Real-Time GPS & Kamera Live (Skenario A) (`EkstrakurikulerSessionController` & `show.blade.php`)**:
+  - Penambahan tombol & modal **📌 Check-in Hadir (GPS & Camera)** pada detail Sesi Ekstrakurikuler untuk Instruktur.
+  - Penggunaan kamera HP langsung (`capture="camera"`) dan penangkapan titik koordinat GPS presisi peramban (`navigator.geolocation`).
+  - Implementasi rumus jarak **Haversine** di backend untuk menghitung jarak presisi (meter) HP ke koordinat Sekolah dengan status verifikasi radius `🟢 Valid (<=500m)` atau `🟡 Diluar Radius (>500m)`.
+  - Penambahan kolom migrasi database pada tabel `ekstrakurikuler_session`: `checkin_lat`, `checkin_lng`, `checkin_distance_meters`, `checkin_status_radius`, `checkin_photo_path`.
+- **Panel Verifikasi Admin & Google Maps Integration**:
+  - Penambahan keping badge verifikasi radius GPS, tombol tautan langsung ke **Google Maps**, dan pratinjau foto live check-in pada halaman detail Admin.
+- **Pusat Bantuan, Panduan 101 & FAQ (`/help`) & Sidebar Navigasi**:
+  - Penambahan item menu baru **"Panduan & FAQ 101"** pada sidebar kiri ([app.blade.php](file:///var/www/webapperlass/resources/views/layouts/app.blade.php)).
+  - Pembuatan controller `HelpCenterController` & view `resources/views/help/index.blade.php`.
+  - Penulisan panduan visual 2 jalur laporan: **Jalur 1 Sesi Rutin (Agenda Sesi)** vs **Jalur 2 Sesi Ad-Hoc / Pengganti**, detail 6 komponen wajib laporan mengajar, serta FAQ interaktif dengan pencarian otomatis.
+- **Polesan Antarmuka Impeccable (v4.0.4) Halaman Log Pergerakan Admin (`/admin/activity-logs`)**:
+  - Penambahan 3 keping statistik cepat di header (*Log Hari Ini*, *Perubahan Data*, *Admin Aktif*).
+  - Penambahan **User Avatar Chips** dengan gradien warna berbasis role (`webmaster` red, `admin_sistem` amber, `admin` royal blue).
+  - Standarisasi ikon **Bootstrap Icons** untuk seluruh badge aksi (`CREATE`, `UPDATE`, `DELETE`, `LOGIN`) dengan rasio kontras WCAG AA (>=4.5:1).
+  - Mengonversi User Agent mentah menjadi ikon OS & Browser yang rapi.
+- **Perbaikan Logika Jam Selesai Terbalik (`13:00 - 11:40` -> `13:00 - 14:30 WIB`) & Koreksi Basis Data**:
+  - Memperbaiki pengisian `jam_selesai` pada `EkstrakurikulerReportController.php` dan `EkstrakurikulerSession.php` agar tidak menggunakan `now()` saat submit di hari yang berbeda.
+  - Menjalankan koreksi otomatis pada 13 rekor historis `laporan_mengajar` dan 13 rekor `ekstrakurikuler_session` yang terbalik.
+  - Pemisahan indikator kedisiplinan secara transparan: **Kehadiran di Sekolah (Check-in)** vs **Ketepatan Submit Laporan H+1**.
+
 ## [2.7.2] - 2026-08-07
 
 ### Ditambahkan & Diperbaiki (Added & Fixed)

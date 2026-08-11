@@ -16,10 +16,17 @@ Menggunakan `spatie/laravel-permission`.
 
 ## Modul Utama
 
-### 1. Ekstrakurikuler
+### 1. Ekstrakurikuler & Real-Time GPS Check-in (Scenario A)
 - **Workflow**: Multi-step form (Info Dasar -> Jadwal -> Peserta -> Review).
 - **Session Logic**: Sesi digenerate otomatis saat approval.
-- **Data Tables**: `ekstrakurikuler`, `ekstrakurikuler_sessions`, `ekstrakurikuler_enrollments`.
+- **Data Tables**: `ekstrakurikuler`, `ekstrakurikuler_session`, `ekstrakurikuler_enrollments`.
+- **GPS Check-in Metadata**: Columns added: `checkin_lat`, `checkin_lng`, `checkin_distance_meters`, `checkin_status_radius` (`valid` / `out_of_bounds`), `checkin_photo_path`.
+- **Haversine Formula**: Endpoint `/ekstrakurikuler/sessions/{session}/checkin` calculates real-time distance from instructor's geolocation to school coordinates (tolerance radius $\le 500$m).
+
+### 2. Help Center & FAQ 101 (`/help`)
+- **Controller**: `App\Http\Controllers\HelpCenterController@index`.
+- **View**: `resources/views/help/index.blade.php`.
+- **Content**: 2-path report creation guide (Rutin via Agenda vs Ad-hoc), mandatory form components, and interactive FAQ with JS search filter.
 
 ### 2. Laporan Mengajar
 - **Fitur Baru**: Sinkronisasi Materi Ajar.

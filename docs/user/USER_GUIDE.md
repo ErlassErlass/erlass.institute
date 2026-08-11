@@ -98,6 +98,20 @@ Instruktur bertugas melaksanakan kegiatan pengajaran dan pelaporan.
     *   **Jadwal Ketersediaan**: Gunakan tabel (Baris = Hari, Kolom = Jam) untuk menandai waktu kapan Anda bisa mengajar.
     *   **Kembali ke Home**: Jika salah masuk, gunakan tombol "Kembali ke Beranda" di pojok kiri atas.
 *   **Lengkapi Profil**: Setelah login, instruktur wajib melengkapi data (Dokumen, Bank, Fisik) melalui menu "Lengkapi Profil".
+
+### 2. Check-in GPS Real-Time di Sekolah (Skenario A)
+*   **Waktu Kedatangan**: Saat tiba di sekolah sebelum mengajar, buka detail Sesi Pertemuan dan tekan tombol **"📌 Check-in Hadir (GPS & Camera)"**.
+*   **Kamera Live**: Sistem akan membuka kamera HP secara langsung (`capture="camera"`). Ambil foto selfie / suasana sekolah.
+*   **Verifikasi Radius (500 Meter)**: Sistem menghitung koordinat GPS Anda ke titik sekolah. Berstatus **🟢 Terverifikasi (Valid)** jika berada dalam radius $\le 500$ meter dari sekolah.
+
+### 3. Pembuatan Laporan Mengajar (2 Jalur Utama)
+*   **Jalur 1 — Sesi Rutin (Agenda Sesi)**: Masuk ke menu Agenda Kegiatan $\rightarrow$ Detail Sesi $\rightarrow$ Check-in GPS $\rightarrow$ Buat Laporan & Absensi.
+*   **Jalur 2 — Sesi Ad-Hoc / Pengganti**: Jika jadwal tidak ada di agenda rutin, buka menu *Buat Laporan Mengajar* $\rightarrow$ Pilih Kategori *Ad-Hoc / Sesi Pengganti* $\rightarrow$ Isi detail manual.
+*   **Komponen Wajib Laporan**: Absensi siswa (+ ad-hoc enroll), Topik & Materi, Foto Suasana & Absensi Fisik, File Project (opsional), serta Refleksi Capaian & Kendala.
+*   **Batas Waktu H+1**: Pengisian wajib dilakukan maksimal **H+1 (24 jam)**. Pengisian susulan ($>\text{H}+1$) akan otomatis berlabel *Terlambat (H+X)*.
+
+### 4. Pusat Bantuan & Panduan FAQ 101 (`/help`)
+Akses menu **"Panduan & FAQ 101"** di sidebar kiri untuk mempelajari SOP pengisian laporan, penanganan masalah lokasi GPS, toleransi keterlambatan check-in 14 menit, dan rincian slip gaji.
     *   Field **Tanggal Lahir** kini menggunakan *Date Picker* untuk kemudahan input.
     *   Pastikan semua data bertanda bintang (*) terisi agar profil diverifikasi admin.
 
