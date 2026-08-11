@@ -185,19 +185,19 @@
                     <i class="bi bi-funnel-fill me-1 text-primary"></i> Pilih Periode Tampilan:
                 </label>
                 <div class="d-flex flex-wrap gap-2">
-                    <a href="{{ route('analytics.schedule-distribution', ['period_mode' => 'honor_current']) }}" 
+                    <a href="{{ route('admin.analytics.schedule-distribution', ['period_mode' => 'honor_current']) }}" 
                        class="sd-period-pill {{ $period_mode === 'honor_current' ? 'active' : '' }}">
                        <i class="bi bi-clock-history"></i> Honor Berjalan
                     </a>
-                    <a href="{{ route('analytics.schedule-distribution', ['period_mode' => 'honor_prev']) }}" 
+                    <a href="{{ route('admin.analytics.schedule-distribution', ['period_mode' => 'honor_prev']) }}" 
                        class="sd-period-pill {{ $period_mode === 'honor_prev' ? 'active' : '' }}">
                        <i class="bi bi-arrow-left-circle"></i> Periode Lalu
                     </a>
-                    <a href="{{ route('analytics.schedule-distribution', ['period_mode' => 'honor_prev2']) }}" 
+                    <a href="{{ route('admin.analytics.schedule-distribution', ['period_mode' => 'honor_prev2']) }}" 
                        class="sd-period-pill {{ $period_mode === 'honor_prev2' ? 'active' : '' }}">
                        <i class="bi bi-rewind"></i> 2 Bulan Lalu
                     </a>
-                    <a href="{{ route('analytics.schedule-distribution', ['period_mode' => 'all']) }}" 
+                    <a href="{{ route('admin.analytics.schedule-distribution', ['period_mode' => 'all']) }}" 
                        class="sd-period-pill {{ $period_mode === 'all' ? 'active' : '' }}">
                        <i class="bi bi-infinity"></i> Seluruh Waktu (All Time)
                     </a>
@@ -210,7 +210,7 @@
 
             {{-- Actions: Export Excel --}}
             <div class="d-flex align-items-end">
-                <a href="{{ route('analytics.schedule-distribution.export', array_merge(request()->query(), ['period_mode' => $period_mode])) }}" 
+                <a href="{{ route('admin.analytics.schedule-distribution.export', array_merge(request()->query(), ['period_mode' => $period_mode])) }}" 
                    class="btn btn-success fw-bold px-3 py-2 rounded-3 shadow-sm text-nowrap" style="font-size: .875rem;">
                     <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
                 </a>
@@ -220,7 +220,7 @@
 
         {{-- Custom Filter Collapse (Month/Year & Custom Range) --}}
         <div class="collapse {{ in_array($period_mode, ['month', 'custom']) ? 'show' : '' }} mt-3 pt-3 border-top" id="customFilterCollapse">
-            <form action="{{ route('analytics.schedule-distribution') }}" method="GET" class="row g-3 align-items-end">
+            <form action="{{ route('admin.analytics.schedule-distribution') }}" method="GET" class="row g-3 align-items-end">
                 
                 <div class="col-md-3">
                     <label class="form-label small fw-bold text-dark">Mode Filter</label>
