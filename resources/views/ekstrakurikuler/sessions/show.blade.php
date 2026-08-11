@@ -913,16 +913,25 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="checkin_photo" class="form-label fw-bold text-dark">Foto Live Kamera (Wajib Selfie / Suasana Sekolah)</label>
-                        <input type="file" name="photo" id="checkin_photo" capture="camera" accept="image/*" class="form-control" required>
-                        <small class="text-muted d-block mt-1">Gunakan Kamera HP secara langsung untuk mengambil foto terbaru di sekolah.</small>
+                        <label for="checkin_photo" class="form-label fw-bold text-dark">
+                            <i class="bi bi-camera-fill me-1 text-primary"></i>
+                            <span id="photoLabel">Foto Bukti Kehadiran (Wajib)</span>
+                        </label>
+                        {{-- capture attribute will be set by JS on mobile only --}}
+                        <input type="file" name="photo" id="checkin_photo" accept="image/*" class="form-control" required>
+                        <small class="text-muted d-block mt-1" id="photoHint">Memuat...</small>
                     </div>
 
-                    <div class="bg-light p-3 rounded-3 border">
+                    <div class="bg-light p-3 rounded-3 border" id="gpsRuleBox">
                         <small class="text-muted fw-bold d-block"><i class="bi bi-shield-check text-success me-1"></i>Aturan Verifikasi GPS Erlass:</small>
                         <small class="text-secondary d-block" style="font-size: 0.75rem;">
-                            Sistem akan secara otomatis menghitung jarak presisi titik HP Anda ke Sekolah (Radius Toleransi: &le; 500 meter).
+                            Sistem akan secara otomatis menghitung jarak presisi titik Anda ke Sekolah (Radius Toleransi: &le; 500 meter).
                         </small>
+                        <div id="desktopAccuracyNote" class="d-none mt-2">
+                            <small class="text-warning fw-semibold d-block" style="font-size: 0.75rem;">
+                                <i class="bi bi-laptop me-1"></i><strong>Mode Desktop:</strong> Akurasi GPS mungkin lebih rendah (via WiFi/IP). Admin akan memverifikasi secara manual jika status <em>Diluar Radius</em>.
+                            </small>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
@@ -943,6 +952,30 @@ function sendReminderTarget(target) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    // ─── Device detection ───
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    // Set photo input behaviour based on device
+    const photoInput = document.getElementById('checkin_photo');
+    const photoLabel = document.getElementById('photoLabel');
+    const photoHint = document.getElementById('photoHint');
+    const desktopNote = document.getElementById('desktopAccuracyNote');
+
+    if (photoInput) {
+        if (isMobile) {
+            photoInput.setAttribute('capture', 'camera');
+            photoLabel.textContent = 'Foto Live Kamera (Wajib Selfie / Suasana Sekolah)';
+            photoHint.textContent = 'Gunakan kamera HP langsung untuk mengambil foto terbaru di sekolah.';
+        } else {
+            // Desktop: remove capture so file picker works normally
+            photoInput.removeAttribute('capture');
+            photoLabel.textContent = 'Foto Bukti Kehadiran (Upload dari Perangkat)';
+            photoHint.textContent = 'Pilih foto terbaru yang diambil di area sekolah hari ini.';
+            if (desktopNote) desktopNote.classList.remove('d-none');
+        }
+    }
+
+    // ─── GPS check-in modal ───
     const modalEl = document.getElementById('gpsCheckinModal');
     if (modalEl) {
         modalEl.addEventListener('shown.bs.modal', function () {
@@ -957,20 +990,23 @@ document.addEventListener('DOMContentLoaded', function () {
                         document.getElementById('checkin_lat').value = position.coords.latitude;
                         document.getElementById('checkin_lng').value = position.coords.longitude;
 
+                        const acc = position.coords.accuracy ? Math.round(position.coords.accuracy) + 'm' : '?';
+                        const accNote = !isMobile ? ` <span class="badge bg-warning text-dark" style="font-size:.65rem;">Desktop — akurasi ±${acc}</span>` : '';
+
                         statusAlert.className = 'alert alert-success d-flex align-items-center gap-2 mb-3';
                         spinner.style.display = 'none';
-                        statusText.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Lokasi GPS Terdeteksi! (Lat: ' + position.coords.latitude.toFixed(5) + ', Lng: ' + position.coords.longitude.toFixed(5) + ')';
+                        statusText.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Lokasi Terdeteksi! (Lat: ' + position.coords.latitude.toFixed(5) + ', Lng: ' + position.coords.longitude.toFixed(5) + ')' + accNote;
                         btnSubmit.disabled = false;
                     },
                     function (error) {
                         spinner.style.display = 'none';
                         statusAlert.className = 'alert alert-warning d-flex align-items-center gap-2 mb-3';
-                        statusText.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Gagal mengambil GPS: ' + error.message + '. Menggunakan koordinat default.';
+                        statusText.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Gagal GPS: ' + error.message + '. Menggunakan koordinat default.';
                         document.getElementById('checkin_lat').value = -6.200000;
                         document.getElementById('checkin_lng').value = 106.816666;
                         btnSubmit.disabled = false;
                     },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    { enableHighAccuracy: isMobile, timeout: 10000, maximumAge: 0 }
                 );
             } else {
                 spinner.style.display = 'none';
