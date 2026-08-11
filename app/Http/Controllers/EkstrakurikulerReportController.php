@@ -165,9 +165,20 @@ class EkstrakurikulerReportController extends Controller
             'foto_absensi_siswa' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // Wajib TTD & Stempel
             'absensi' => 'required|array|min:1',
             'absensi.*' => ['required', \Illuminate\Validation\Rule::in([0, 1, '0', '1', 'hadir', 'alpha'])], // Strict status validation
-            'keaktifan' => ['required', \Illuminate\Validation\Rule::in(['sangat_pasif', 'pasif', 'aktif', 'sangat_aktif'])],
-            'pemahaman_materi' => ['required', \Illuminate\Validation\Rule::in(['belum_paham', 'sedikit_paham', 'paham', 'sangat_paham'])],
-            'file_project' => 'required|file|mimes:sb3,hex,zip,rar|max:10240', // Max 10MB (.sb3, .hex, .zip, .rar)
+            'file_project' => [
+                'required',
+                'file',
+                'max:10240',
+                function ($attribute, $value, $fail) {
+                    if ($value && method_exists($value, 'getClientOriginalExtension')) {
+                        $ext = strtolower($value->getClientOriginalExtension());
+                        $allowed = ['hex', 'sb3', 'zip', 'rar', '7z', 'py', 'ino', 'cpp', 'pdf', 'png', 'jpg', 'jpeg'];
+                        if (!in_array($ext, $allowed)) {
+                            $fail('Format file project tidak didukung. Ekstensi yang diperbolehkan: .hex, .sb3, .zip, .rar, .7z, .py, .ino, .pdf, .png, .jpg.');
+                        }
+                    }
+                }
+            ], // Wajib upload file project (Max 10MB: .hex, .sb3, .zip, .rar, .py, .ino, .pdf)
             'deskripsi' => 'nullable|string|max:2000',
             'refleksi_siswa' => 'nullable|string|max:2000',
             'refleksi_capaian' => 'nullable|string|max:2000',

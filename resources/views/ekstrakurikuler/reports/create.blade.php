@@ -126,8 +126,8 @@
                             <div class="col-12">
                                 <label class="form-label fw-bold">File Project <span class="text-danger">*</span></label>
                                 <input type="file" name="file_project" class="form-control @error('file_project') is-invalid @enderror" 
-                                       accept=".sb3,.hex,.zip,.rar" data-max-size="10485760" required>
-                                <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Format: .sb3 (Scratch), .hex (Micro:bit), atau .zip / .rar. Max: 10MB</small>
+                                       accept=".hex,.sb3,.zip,.rar,.7z,.py,.ino,.cpp,.pdf,.png,.jpg,.jpeg" data-max-size="10485760" required>
+                                <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Format: .hex (Micro:bit), .sb3 (Scratch), .zip, .rar, .py, .ino, .pdf. Max: 10MB</small>
                                 @error('file_project')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
 
