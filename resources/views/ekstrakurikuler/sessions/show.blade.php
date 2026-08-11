@@ -33,9 +33,26 @@
                         <i class="bi bi-printer me-1"></i> Cetak Presensi
                     </a>
 
-                    @if(Auth::user()->role === 'instruktur' && in_array($session->status, ['terjadwal', 'berlangsung']))
-                        <button type="button" class="btn btn-success w-100 w-sm-auto shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#gpsCheckinModal">
-                            <i class="bi bi-geo-alt-fill me-1"></i> 📌 Check-in Hadir (GPS & Camera)
+                    @php
+                        $userRole = Auth::user()->role ?? '';
+                        $canCheckin = in_array($session->status, ['terjadwal', 'berlangsung', 'selesai']);
+                        $isInstruktur = $userRole === 'instruktur';
+                        $isAdmin = in_array($userRole, ['webmaster', 'admin_sistem', 'admin']);
+                        $alreadyCheckedIn = !empty($session->checkin_lat);
+                    @endphp
+
+                    @if(($isInstruktur || $isAdmin) && $canCheckin)
+                        <button type="button"
+                            class="btn {{ $alreadyCheckedIn ? 'btn-outline-success' : 'btn-success' }} w-100 w-sm-auto shadow-sm fw-bold"
+                            data-bs-toggle="modal" data-bs-target="#gpsCheckinModal">
+                            <i class="bi bi-geo-alt-fill me-1"></i>
+                            @if($alreadyCheckedIn)
+                                🔄 Update Check-in (GPS & Camera)
+                            @elseif($isAdmin)
+                                📌 Check-in Verifikasi (GPS & Camera)
+                            @else
+                                📌 Check-in Hadir (GPS & Camera)
+                            @endif
                         </button>
                     @endif
 
