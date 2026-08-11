@@ -33,6 +33,12 @@
                         <i class="bi bi-printer me-1"></i> Cetak Presensi
                     </a>
 
+                    @if(Auth::user()->role === 'instruktur' && in_array($session->status, ['terjadwal', 'berlangsung']))
+                        <button type="button" class="btn btn-success w-100 w-sm-auto shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#gpsCheckinModal">
+                            <i class="bi bi-geo-alt-fill me-1"></i> 📌 Check-in Hadir (GPS & Camera)
+                        </button>
+                    @endif
+
                     @if($session->canComplete())
                         <a href="{{ route('ekstrakurikuler.sessions.report.create', $session) }}" 
                            class="btn btn-primary w-100 w-sm-auto">
@@ -235,6 +241,33 @@
                                         <span class="badge text-bg-light border ms-2">{{ $session->durasi_aktual }} menit</span>
                                     @endif
                                 </p>
+                            </div>
+                        @endif
+
+                        @if($session->checkin_lat)
+                            <div class="col-12 mt-3 pt-3 border-top">
+                                <label class="small text-muted text-uppercase fw-bold d-block mb-1">Verifikasi GPS Check-in (Scenario A)</label>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    @if($session->checkin_status_radius === 'valid')
+                                        <span class="badge bg-success fs-7 px-3 py-1.5 rounded-pill">
+                                            <i class="bi bi-shield-check me-1"></i>Terverifikasi di Sekolah (Jarak: {{ $session->checkin_distance_meters }}m)
+                                        </span>
+                                    @else
+                                        <span class="badge bg-warning text-dark fs-7 px-3 py-1.5 rounded-pill">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Diluar Radius (Jarak: {{ $session->checkin_distance_meters }}m dari Sekolah)
+                                        </span>
+                                    @endif
+
+                                    <a href="https://maps.google.com/?q={{ $session->checkin_lat }},{{ $session->checkin_lng }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        <i class="bi bi-map me-1"></i> Peta Google Maps
+                                    </a>
+
+                                    @if($session->checkin_photo_path)
+                                        <a href="{{ asset('storage/' . $session->checkin_photo_path) }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                            <i class="bi bi-camera me-1"></i> Lihat Foto Live
+                                        </a>
+                                    @endif
+                                </div>
                             </div>
                         @endif
                     </div>
@@ -858,11 +891,95 @@
     </div>
 </div>
 
+<!-- Modal GPS Check-in (Live Camera & GPS Location) -->
+<div class="modal fade" id="gpsCheckinModal" tabindex="-1" aria-labelledby="gpsCheckinModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="gpsCheckinModalLabel">
+                    <i class="bi bi-geo-alt-fill me-1"></i> Check-in Real-Time (GPS & Camera)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('ekstrakurikuler.sessions.checkin', $session) }}" method="POST" enctype="multipart/form-data" id="gpsCheckinForm">
+                @csrf
+                <div class="modal-body p-4">
+                    <input type="hidden" name="latitude" id="checkin_lat">
+                    <input type="hidden" name="longitude" id="checkin_lng">
+
+                    <div id="gpsStatusAlert" class="alert alert-info d-flex align-items-center gap-2 mb-3">
+                        <div class="spinner-border spinner-border-sm text-primary" id="gpsSpinner" role="status"></div>
+                        <div id="gpsStatusText" class="small fw-semibold">Mendeteksi titik lokasi GPS HP Anda...</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="checkin_photo" class="form-label fw-bold text-dark">Foto Live Kamera (Wajib Selfie / Suasana Sekolah)</label>
+                        <input type="file" name="photo" id="checkin_photo" capture="camera" accept="image/*" class="form-control" required>
+                        <small class="text-muted d-block mt-1">Gunakan Kamera HP secara langsung untuk mengambil foto terbaru di sekolah.</small>
+                    </div>
+
+                    <div class="bg-light p-3 rounded-3 border">
+                        <small class="text-muted fw-bold d-block"><i class="bi bi-shield-check text-success me-1"></i>Aturan Verifikasi GPS Erlass:</small>
+                        <small class="text-secondary d-block" style="font-size: 0.75rem;">
+                            Sistem akan secara otomatis menghitung jarak presisi titik HP Anda ke Sekolah (Radius Toleransi: &le; 500 meter).
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4" id="btnSubmitCheckin" disabled>
+                        <i class="bi bi-check-circle me-1"></i> Kirim Check-in
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 function sendReminderTarget(target) {
     document.getElementById('reminderTarget').value = target;
     document.getElementById('reminderForm').requestSubmit();
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const modalEl = document.getElementById('gpsCheckinModal');
+    if (modalEl) {
+        modalEl.addEventListener('shown.bs.modal', function () {
+            const statusAlert = document.getElementById('gpsStatusAlert');
+            const statusText = document.getElementById('gpsStatusText');
+            const spinner = document.getElementById('gpsSpinner');
+            const btnSubmit = document.getElementById('btnSubmitCheckin');
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    function (position) {
+                        document.getElementById('checkin_lat').value = position.coords.latitude;
+                        document.getElementById('checkin_lng').value = position.coords.longitude;
+
+                        statusAlert.className = 'alert alert-success d-flex align-items-center gap-2 mb-3';
+                        spinner.style.display = 'none';
+                        statusText.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Lokasi GPS Terdeteksi! (Lat: ' + position.coords.latitude.toFixed(5) + ', Lng: ' + position.coords.longitude.toFixed(5) + ')';
+                        btnSubmit.disabled = false;
+                    },
+                    function (error) {
+                        spinner.style.display = 'none';
+                        statusAlert.className = 'alert alert-warning d-flex align-items-center gap-2 mb-3';
+                        statusText.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Gagal mengambil GPS: ' + error.message + '. Menggunakan koordinat default.';
+                        document.getElementById('checkin_lat').value = -6.200000;
+                        document.getElementById('checkin_lng').value = 106.816666;
+                        btnSubmit.disabled = false;
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                spinner.style.display = 'none';
+                statusAlert.className = 'alert alert-danger d-flex align-items-center gap-2 mb-3';
+                statusText.innerHTML = 'Browser Anda tidak mendukung Geolocation GPS.';
+            }
+        });
+    }
+});
 </script>
 @endpush
 

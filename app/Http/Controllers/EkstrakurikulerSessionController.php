@@ -1133,4 +1133,68 @@ class EkstrakurikulerSessionController extends Controller
             return redirect()->back()->with('error', 'Gagal menambahkan sesi baru: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Processing GPS Check-in & Live Photo submission from Instructor.
+     */
+    public function checkin(Request $request, EkstrakurikulerSession $session): RedirectResponse|JsonResponse
+    {
+        $request->validate([
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'photo' => 'required|image|max:10240', // Max 10MB
+        ]);
+
+        $lat = (float) $request->input('latitude');
+        $lng = (float) $request->input('longitude');
+
+        // Target school location coordinates
+        $sekolah = $session->ekstrakurikuler?->sekolah;
+        $targetLat = $sekolah && $sekolah->latitude ? (float) $sekolah->latitude : -6.2000000;
+        $targetLng = $sekolah && $sekolah->longitude ? (float) $sekolah->longitude : 106.816666;
+
+        // Haversine formula calculation (distance in meters)
+        $earthRadius = 6371000; // Earth radius in meters
+        $dLat = deg2rad($targetLat - $lat);
+        $dLng = deg2rad($targetLng - $lng);
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+             cos(deg2rad($lat)) * cos(deg2rad($targetLat)) *
+             sin($dLng / 2) * sin($dLng / 2);
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        $distanceMeters = (int) round($earthRadius * $c);
+
+        // Max radius tolerance 500 meters
+        $statusRadius = $distanceMeters <= 500 ? 'valid' : 'out_of_bounds';
+
+        // Store photo
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('checkin_photos', 'public');
+        }
+
+        // Start session & save checkin metadata
+        $session->start();
+        $session->update([
+            'checkin_lat' => $lat,
+            'checkin_lng' => $lng,
+            'checkin_distance_meters' => $distanceMeters,
+            'checkin_status_radius' => $statusRadius,
+            'checkin_photo_path' => $photoPath,
+        ]);
+
+        $message = $statusRadius === 'valid'
+            ? "Check-in GPS Berhasil! Lokasi terverifikasi di area sekolah (Jarak: {$distanceMeters} meter)."
+            : "Check-in Berhasil tercatat! Peringatan: Posisi GPS Anda berada di luar radius sekolah (Jarak: {$distanceMeters} meter).";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'distance_meters' => $distanceMeters,
+                'status_radius' => $statusRadius,
+            ]);
+        }
+
+        return redirect()->back()->with($statusRadius === 'valid' ? 'success' : 'warning', $message);
+    }
 }

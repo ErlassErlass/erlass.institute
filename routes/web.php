@@ -25,6 +25,7 @@ use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\SchoolCalendarController;
 use App\Http\Controllers\AgendaKegiatanController;
+use App\Http\Controllers\HelpCenterController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -74,6 +75,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/laporan-mengajar/get-materi', [LaporanMengajarController::class, 'getMateri'])
         ->name('laporan-mengajar.get-materi');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/help', [HelpCenterController::class, 'index'])->name('help.index');
+    Route::post('/ekstrakurikuler/sessions/{session}/checkin', [EkstrakurikulerSessionController::class, 'checkin'])->name('ekstrakurikuler.sessions.checkin');
     Route::post('/admin/warnings/{warning}/resolve', [DashboardController::class, 'resolveWarning'])
         ->name('admin.warnings.resolve')
         ->middleware('role:webmaster,admin_sistem,admin');

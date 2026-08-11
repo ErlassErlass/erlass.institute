@@ -48,6 +48,11 @@ class EkstrakurikulerSession extends Model
         'override_fee',
         'transport_fee',
         'reminder_h1_sent_at',
+        'checkin_lat',
+        'checkin_lng',
+        'checkin_distance_meters',
+        'checkin_status_radius',
+        'checkin_photo_path',
         'reminder_h0_sent_at',
     ];
 

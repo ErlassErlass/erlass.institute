@@ -753,6 +753,14 @@
                         @endif
                     @endif
 
+                    <li class="sidebar-section-title">Bantuan & Support</li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ request()->routeIs('help.index') ? 'active' : '' }}" href="{{ route('help.index') }}">
+                            <i class="bi bi-question-circle-fill text-primary"></i>
+                            <span>Panduan & FAQ 101</span>
+                        </a>
+                    </li>
+
                     <!-- PWA Install Button inside Sidebar -->
                     <li class="sidebar-item d-none" id="pwa-install-item">
                         <a href="javascript:void(0)" class="sidebar-link text-primary fw-bold" id="btn-pwa-install">
