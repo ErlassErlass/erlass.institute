@@ -402,5 +402,13 @@
     Fancybox.bind("[data-fancybox]", {
         // Opsi custom jika diperlukan
     });
+
+    // Move modal to body level to prevent parent z-index backdrop shadow overlap
+    document.addEventListener('DOMContentLoaded', function() {
+        const relocateModal = document.getElementById('relocateReportModal');
+        if (relocateModal && relocateModal.parentNode !== document.body) {
+            document.body.appendChild(relocateModal);
+        }
+    });
 </script>
 @endpush
