@@ -99,7 +99,8 @@ class PayrollController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        $batch = PayrollBatch::with(['items.instruktur', 'processor', 'payer'])->findOrFail($id);
+        $batchId = $id instanceof PayrollBatch ? $id->id : $id;
+        $batch = PayrollBatch::with(['items.instruktur', 'processor', 'payer'])->findOrFail($batchId);
 
         $sortedItems = $batch->items->sortBy(function ($item) {
             return strtolower($item->instruktur->nama_lengkap ?? $item->instruktur->name ?? '');
@@ -119,7 +120,7 @@ class PayrollController extends Controller
             abort(403, 'Akses ditolak. Verifikasi Batch Payroll hanya dapat dilakukan oleh Admin Utama (Adinda Wardania).');
         }
 
-        $batch = PayrollBatch::findOrFail($id);
+        $batch = $id instanceof PayrollBatch ? $id : PayrollBatch::findOrFail($id);
 
         if ($batch->status !== 'draft') {
             return redirect()->route('admin.payroll.batches.show', $batch->id)
@@ -128,15 +129,12 @@ class PayrollController extends Controller
 
         $batch->update([
             'status' => 'processed',
-            'processed_at' => now(),
             'processed_by' => auth()->id(),
+            'processed_at' => now(),
         ]);
 
-        // Update items status
-        PayrollItem::where('payroll_batch_id', $batch->id)->update(['status' => 'approved']);
-
         return redirect()->route('admin.payroll.batches.show', $batch->id)
-            ->with('success', 'Batch payroll berhasil diverifikasi dan diproses.');
+            ->with('success', 'Batch Payroll berhasil diverifikasi!');
     }
 
     /**
@@ -144,22 +142,22 @@ class PayrollController extends Controller
      */
     public function payBatch($id)
     {
-        if (!auth()->user()->isPrimaryAdmin()) {
-            abort(403, 'Akses ditolak. Pencairan Batch Payroll hanya dapat dilakukan oleh Admin Utama (Adinda Wardania).');
+        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+            abort(403, 'Akses ditolak.');
         }
 
-        $batch = PayrollBatch::findOrFail($id);
+        $batch = $id instanceof PayrollBatch ? $id : PayrollBatch::findOrFail($id);
 
         if ($batch->status !== 'processed') {
             return redirect()->route('admin.payroll.batches.show', $batch->id)
-                ->with('error', 'Hanya batch berstatus Processed yang dapat dicairkan.');
+                ->with('error', 'Hanya batch berstatus Verified yang dapat dibayarkan.');
         }
 
         DB::transaction(function () use ($batch) {
             $batch->update([
                 'status' => 'paid',
-                'paid_at' => now(),
                 'paid_by' => auth()->id(),
+                'paid_at' => now(),
             ]);
 
             // Mark payroll items as paid
@@ -278,12 +276,13 @@ class PayrollController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
+        $batchId = $id instanceof PayrollBatch ? $id->id : $id;
         $batch = PayrollBatch::with([
             'items.instruktur.instructorProfile',
             'items.sessions.ekstrakurikuler.sekolah',
             'items.sessions.rombel',
             'payer'
-        ])->findOrFail($id);
+        ])->findOrFail($batchId);
 
         $batch->setRelation('items', $batch->items->sortBy(fn($i) => strtolower($i->instruktur->nama_lengkap ?? $i->instruktur->name ?? ''))->values());
 
@@ -486,7 +485,8 @@ class PayrollController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        $batch = PayrollBatch::with(['items.instruktur.instructorProfile'])->findOrFail($id);
+        $batchId = $id instanceof PayrollBatch ? $id->id : $id;
+        $batch = PayrollBatch::with(['items.instruktur.instructorProfile'])->findOrFail($batchId);
         $batch->setRelation('items', $batch->items->sortBy(fn($i) => strtolower($i->instruktur->nama_lengkap ?? $i->instruktur->name ?? ''))->values());
 
         $filename = "Transfer_Bank_{$batch->code}_" . date('Ymd_His') . ".csv";
@@ -531,12 +531,13 @@ class PayrollController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
+        $batchId = $id instanceof PayrollBatch ? $id->id : $id;
         $batch = PayrollBatch::with([
             'items.instruktur.instructorProfile',
             'items.sessions.ekstrakurikuler.sekolah',
             'items.sessions.rombel',
             'payer'
-        ])->findOrFail($id);
+        ])->findOrFail($batchId);
 
         $batch->setRelation('items', $batch->items->sortBy(fn($i) => strtolower($i->instruktur->nama_lengkap ?? $i->instruktur->name ?? ''))->values());
 
