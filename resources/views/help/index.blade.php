@@ -1,373 +1,697 @@
 @extends('layouts.app')
 
-@section('title', 'Pusat Bantuan & Panduan FAQ 101')
+@section('title', 'Panduan & FAQ 101 — Erlass Institute')
+
+@push('styles')
+<style>
+    /* ─── Page-level tokens ─── */
+    :root {
+        --help-navy:  #0f172a;
+        --help-slate: #334155;
+        --help-muted: #64748b;
+        --help-line:  #e2e8f0;
+        --help-bg:    #f8fafc;
+        --help-blue:  #2563eb;
+        --help-blue-light: #eff6ff;
+        --help-amber: #b45309;
+        --help-amber-light: #fffbeb;
+        --help-green: #15803d;
+        --help-green-light: #f0fdf4;
+        --help-red:   #b91c1c;
+        --help-red-light: #fef2f2;
+        --help-radius: 12px;
+    }
+
+    /* ─── Hero ─── */
+    .help-hero {
+        background: var(--help-navy);
+        color: #fff;
+        padding: 3rem 2rem 2.75rem;
+        border-radius: var(--help-radius);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .help-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(ellipse 60% 80% at 100% 0%, rgba(37,99,235,.28) 0%, transparent 70%),
+            radial-gradient(ellipse 40% 50% at -10% 120%, rgba(14,165,233,.18) 0%, transparent 60%);
+        pointer-events: none;
+    }
+    .help-hero__eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #93c5fd;
+        margin-bottom: 1rem;
+    }
+    .help-hero h1 {
+        font-size: clamp(1.75rem, 3vw, 2.25rem);
+        font-weight: 800;
+        line-height: 1.15;
+        letter-spacing: -.02em;
+        margin-bottom: .75rem;
+    }
+    .help-hero p {
+        color: #cbd5e1;
+        max-width: 56ch;
+        margin-bottom: 1.75rem;
+        line-height: 1.7;
+        font-size: .95rem;
+    }
+
+    /* ─── Search ─── */
+    .help-search-wrap {
+        position: relative;
+        max-width: 480px;
+    }
+    .help-search-wrap .bi-search {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1rem;
+        pointer-events: none;
+    }
+    #faqSearchInput {
+        background: rgba(255,255,255,.1);
+        border: 1px solid rgba(255,255,255,.18);
+        border-radius: 8px;
+        color: #fff;
+        padding: .75rem 1rem .75rem 2.75rem;
+        font-size: .9rem;
+        width: 100%;
+        transition: background .2s, border-color .2s;
+    }
+    #faqSearchInput::placeholder { color: #94a3b8; }
+    #faqSearchInput:focus {
+        outline: none;
+        background: rgba(255,255,255,.15);
+        border-color: rgba(255,255,255,.4);
+    }
+
+    /* ─── Tabs ─── */
+    .help-tab-nav {
+        display: flex;
+        gap: .5rem;
+        border-bottom: 2px solid var(--help-line);
+        margin-bottom: 2rem;
+    }
+    .help-tab-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        padding: .75rem 1.25rem;
+        font-size: .875rem;
+        font-weight: 600;
+        color: var(--help-muted);
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        cursor: pointer;
+        border-radius: 6px 6px 0 0;
+        transition: color .15s, border-color .15s;
+    }
+    .help-tab-btn:hover { color: var(--help-blue); }
+    .help-tab-btn.active {
+        color: var(--help-blue);
+        border-bottom-color: var(--help-blue);
+        background: var(--help-blue-light);
+    }
+    .help-tab-content { display: none; }
+    .help-tab-content.active { display: block; }
+
+    /* ─── Section heading ─── */
+    .section-label {
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--help-muted);
+        margin-bottom: .5rem;
+    }
+    .section-heading {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--help-navy);
+        letter-spacing: -.02em;
+        margin-bottom: 1.5rem;
+    }
+
+    /* ─── 2-path cards ─── */
+    .path-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    @media (max-width: 768px) { .path-grid { grid-template-columns: 1fr; } }
+
+    .path-card {
+        border: 1px solid var(--help-line);
+        border-radius: var(--help-radius);
+        padding: 1.75rem;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(15,23,42,.06), 0 4px 12px rgba(15,23,42,.04);
+        transition: box-shadow .2s;
+    }
+    .path-card:hover {
+        box-shadow: 0 4px 20px rgba(15,23,42,.10);
+    }
+    .path-card--blue { border-top: 3px solid var(--help-blue); }
+    .path-card--amber { border-top: 3px solid #d97706; }
+
+    .path-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .375rem;
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        padding: .3rem .75rem;
+        border-radius: 999px;
+        margin-bottom: 1rem;
+    }
+    .path-badge--blue { background: var(--help-blue-light); color: var(--help-blue); }
+    .path-badge--amber { background: var(--help-amber-light); color: var(--help-amber); }
+
+    .path-card h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--help-navy);
+        letter-spacing: -.01em;
+        margin-bottom: .5rem;
+    }
+    .path-card p.desc {
+        font-size: .875rem;
+        color: var(--help-slate);
+        line-height: 1.65;
+        margin-bottom: 1.25rem;
+    }
+
+    /* Steps list */
+    .steps-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        counter-reset: step;
+    }
+    .steps-list li {
+        counter-increment: step;
+        display: flex;
+        align-items: flex-start;
+        gap: .875rem;
+        padding: .625rem 0;
+        font-size: .875rem;
+        color: var(--help-slate);
+        line-height: 1.5;
+        border-bottom: 1px solid var(--help-line);
+    }
+    .steps-list li:last-child { border-bottom: none; }
+    .steps-list li::before {
+        content: counter(step);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        font-size: .7rem;
+        font-weight: 700;
+        margin-top: 1px;
+    }
+    .path-card--blue .steps-list li::before {
+        background: var(--help-blue-light);
+        color: var(--help-blue);
+    }
+    .path-card--amber .steps-list li::before {
+        background: var(--help-amber-light);
+        color: var(--help-amber);
+    }
+    .steps-list li strong { color: var(--help-navy); }
+
+    .path-tip {
+        display: flex;
+        align-items: flex-start;
+        gap: .625rem;
+        font-size: .8rem;
+        border-radius: 8px;
+        padding: .75rem 1rem;
+        margin-top: 1.25rem;
+        line-height: 1.55;
+    }
+    .path-tip--blue { background: var(--help-blue-light); color: var(--help-blue); }
+    .path-tip--amber { background: var(--help-amber-light); color: var(--help-amber); }
+
+    /* ─── Components grid ─── */
+    .comp-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    @media (max-width: 992px) { .comp-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 576px) { .comp-grid { grid-template-columns: 1fr; } }
+
+    .comp-item {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 1.25rem;
+        background: #fff;
+        border: 1px solid var(--help-line);
+        border-radius: var(--help-radius);
+        box-shadow: 0 1px 3px rgba(15,23,42,.04);
+    }
+    .comp-icon {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+    .comp-item h6 {
+        font-size: .875rem;
+        font-weight: 700;
+        color: var(--help-navy);
+        letter-spacing: -.01em;
+        margin-bottom: .25rem;
+    }
+    .comp-item p {
+        font-size: .8rem;
+        color: var(--help-muted);
+        line-height: 1.55;
+        margin: 0;
+    }
+    .comp-optional {
+        font-size: .65rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        background: #f1f5f9;
+        color: var(--help-muted);
+        padding: .15rem .5rem;
+        border-radius: 999px;
+        margin-left: .4rem;
+        vertical-align: middle;
+    }
+
+    /* ─── Deadline banner ─── */
+    .deadline-banner {
+        display: flex;
+        gap: 1.25rem;
+        align-items: flex-start;
+        background: var(--help-red-light);
+        border: 1px solid #fecaca;
+        border-radius: var(--help-radius);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .deadline-banner i { color: var(--help-red); font-size: 1.5rem; flex-shrink: 0; margin-top: .1rem; }
+    .deadline-banner h6 { font-size: .95rem; font-weight: 700; color: #7f1d1d; margin-bottom: .35rem; }
+    .deadline-banner p { font-size: .875rem; color: #991b1b; margin: 0; line-height: 1.6; }
+
+    /* ─── FAQ ─── */
+    .faq-list { display: flex; flex-direction: column; gap: .75rem; }
+    .faq-item {
+        background: #fff;
+        border: 1px solid var(--help-line);
+        border-radius: var(--help-radius);
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(15,23,42,.04);
+        transition: box-shadow .2s;
+    }
+    .faq-item.hidden { display: none; }
+    .faq-item:hover { box-shadow: 0 3px 12px rgba(15,23,42,.08); }
+
+    .faq-question {
+        display: flex;
+        align-items: center;
+        gap: .875rem;
+        padding: 1.1rem 1.5rem;
+        cursor: pointer;
+        background: none;
+        border: none;
+        width: 100%;
+        text-align: left;
+        font-size: .9rem;
+        font-weight: 600;
+        color: var(--help-navy);
+        line-height: 1.4;
+        transition: background .15s;
+        user-select: none;
+    }
+    .faq-question:hover { background: var(--help-bg); }
+    .faq-question[aria-expanded="true"] { background: var(--help-blue-light); color: var(--help-blue); }
+    .faq-question .faq-chevron {
+        margin-left: auto;
+        flex-shrink: 0;
+        color: var(--help-muted);
+        font-size: .85rem;
+        transition: transform .2s cubic-bezier(.4,0,.2,1), color .15s;
+    }
+    .faq-question[aria-expanded="true"] .faq-chevron {
+        transform: rotate(180deg);
+        color: var(--help-blue);
+    }
+    .faq-question .faq-q-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--help-bg);
+        font-size: .75rem;
+        font-weight: 700;
+        color: var(--help-muted);
+        border: 1px solid var(--help-line);
+        transition: background .15s, color .15s;
+    }
+    .faq-question[aria-expanded="true"] .faq-q-num {
+        background: var(--help-blue);
+        color: #fff;
+        border-color: var(--help-blue);
+    }
+    .faq-answer {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows .28s cubic-bezier(.4,0,.2,1);
+    }
+    .faq-answer.open { grid-template-rows: 1fr; }
+    .faq-answer__overflow { overflow: hidden; }
+    .faq-answer__inner {
+        padding: 0 1.5rem 1.25rem 4.25rem;
+        font-size: .875rem;
+        color: var(--help-slate);
+        line-height: 1.7;
+    }
+    .faq-answer__inner strong { color: var(--help-navy); }
+
+    /* ─── Empty search state ─── */
+    .faq-empty {
+        display: none;
+        padding: 3rem 1rem;
+        text-align: center;
+        color: var(--help-muted);
+        font-size: .9rem;
+    }
+    .faq-empty i { font-size: 2rem; display: block; margin-bottom: .75rem; opacity: .4; }
+
+    /* ─── Inline code ─── */
+    code {
+        background: #f1f5f9;
+        border-radius: 4px;
+        padding: .1em .35em;
+        font-size: .85em;
+        color: #1e40af;
+    }
+</style>
+@endpush
 
 @section('content')
-<div class="container-fluid py-4">
-    <!-- Header Hero Section -->
-    <div class="card bg-primary text-white border-0 shadow-sm mb-4 overflow-hidden position-relative" style="background: linear-gradient(135deg, #0d6efd, #0b5ed7);">
-        <div class="card-body p-4 p-lg-5 position-relative" style="z-index: 2;">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <span class="badge bg-white bg-opacity-20 text-white px-3 py-1.5 rounded-pill fw-semibold mb-2">
-                        <i class="bi bi-journal-bookmark-fill me-1"></i> Official Guide & Standard Operating Procedure
-                    </span>
-                    <h1 class="h2 fw-bold mb-2">Pusat Bantuan & Panduan FAQ 101</h1>
-                    <p class="mb-4 text-white-50" style="max-width: 650px;">
-                        Panduan resmi tata cara pembuatan laporan mengajar (Jalur Rutin vs Ad-Hoc), Check-in GPS real-time, detail komponen wajib laporan, serta rincian aturan Payroll.
-                    </p>
+<div class="container-fluid py-4" style="max-width: 1100px;">
 
-                    <!-- Live Search Input -->
-                    <div class="input-group input-group-lg shadow-sm" style="max-width: 550px;">
-                        <span class="input-group-text bg-white border-0 text-primary">
-                            <i class="bi bi-search"></i>
-                        </span>
-                        <input type="text" id="faqSearchInput" class="form-control border-0 fs-6" placeholder="Ketik kata kunci (misal: Rutin, Ad-hoc, GPS, Foto, Gaji)..." onkeyup="filterFaq()">
-                    </div>
-                </div>
-                <div class="col-lg-4 d-none d-lg-block text-end opacity-75">
-                    <i class="bi bi-patch-question-fill" style="font-size: 8rem; line-height: 1;"></i>
-                </div>
-            </div>
+    {{-- ═══ HERO ═══ --}}
+    <div class="help-hero">
+        <div class="help-hero__eyebrow">
+            <i class="bi bi-book-half"></i>
+            Panduan Resmi & FAQ
+        </div>
+        <h1>Cara Membuat Laporan Mengajar</h1>
+        <p>Panduan langkah demi langkah untuk seluruh instruktur Erlass Institute — jalur Rutin via Agenda Sesi, jalur Ad-Hoc, detail komponen wajib laporan, dan jawaban atas pertanyaan yang paling sering diajukan.</p>
+
+        <div class="help-search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" id="faqSearchInput" placeholder="Cari di FAQ (misal: GPS, terlambat, foto, gaji...)" autocomplete="off" aria-label="Cari FAQ">
         </div>
     </div>
 
-    <!-- Navigation Tabs -->
-    <ul class="nav nav-pills nav-fill bg-white p-2 rounded-3 shadow-sm border border-light-subtle mb-4" id="helpTab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active fw-bold py-2.5" id="howto-tab" data-bs-toggle="tab" data-bs-target="#howto-content" type="button" role="tab">
-                <i class="bi bi-book-half me-1"></i> 📘 Panduan 101: Cara Membuat Laporan
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold py-2.5" id="faq-tab" data-bs-toggle="tab" data-bs-target="#faq-content" type="button" role="tab">
-                <i class="bi bi-question-circle-fill me-1"></i> ❓ Tanya Jawab (FAQ)
-            </button>
-        </li>
-    </ul>
+    {{-- ═══ TAB NAV ═══ --}}
+    <div class="help-tab-nav" role="tablist">
+        <button class="help-tab-btn active" role="tab" aria-selected="true" aria-controls="tab-panduan" id="btn-panduan" onclick="switchTab('panduan', this)">
+            <i class="bi bi-list-check"></i> Panduan 101
+        </button>
+        <button class="help-tab-btn" role="tab" aria-selected="false" aria-controls="tab-faq" id="btn-faq" onclick="switchTab('faq', this)">
+            <i class="bi bi-question-circle"></i> Tanya Jawab (FAQ)
+        </button>
+    </div>
 
-    <!-- Tab Contents -->
-    <div class="tab-content" id="helpTabContent">
+    {{-- ═══════════════════════════════════════════ --}}
+    {{-- TAB 1 — PANDUAN 101                        --}}
+    {{-- ═══════════════════════════════════════════ --}}
+    <div class="help-tab-content active" id="tab-panduan" role="tabpanel" aria-labelledby="btn-panduan">
 
-        <!-- TAB 1: PANDUAN 101 (CARA MEMBUAT LAPORAN ME NGAJAR) -->
-        <div class="tab-pane fade show active" id="howto-content" role="tabpanel">
+        {{-- Section 1: 2 Jalur --}}
+        <p class="section-label"><i class="bi bi-signpost-split me-1"></i>Langkah 1 dari 3 — Pilih Jalur</p>
+        <h2 class="section-heading">2 Jalur Pembuatan Laporan Mengajar</h2>
 
-            <!-- Section A: 2 Jalur Pembuatan Laporan -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3 border-bottom">
-                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                        <i class="bi bi-signpost-split text-primary fs-4"></i> 2 Jalur Pembuatan Laporan Mengajar
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-4">
-                        
-                        <!-- Jalur 1: Sesi Rutin -->
-                        <div class="col-lg-6">
-                            <div class="p-4 rounded-4 bg-primary bg-opacity-10 border border-primary border-opacity-25 h-100">
-                                <div class="d-flex align-items-center gap-2 mb-3">
-                                    <span class="badge bg-primary px-3 py-1.5 rounded-pill fw-bold">JALUR 1 (UTAMA)</span>
-                                    <h6 class="fw-bold mb-0 text-dark fs-5">📅 Sesi Rutin (Agenda Kegiatan)</h6>
-                                </div>
-                                <p class="text-secondary small mb-3">
-                                    Gunakan jalur ini untuk seluruh kegiatan mengajar yang <strong>sesuai dengan jadwal rutin mingguan</strong> yang terdaftar di Agenda Kegiatan.
-                                </p>
-                                <div class="bg-white p-3 rounded-3 border border-primary-subtle shadow-sm mb-3">
-                                    <h6 class="fw-bold small text-primary mb-2"><i class="bi bi-list-check me-1"></i>Langkah Pembuatan:</h6>
-                                    <ol class="small text-dark ps-3 mb-0 lh-lg">
-                                        <li>Buka menu <strong>Agenda Kegiatan / Penjadwalan Sesi</strong> di sidebar kiri.</li>
-                                        <li>Cari Sesi Pertemuan sekolah Anda, lalu klik tombol <strong>"Detail Sesi"</strong>.</li>
-                                        <li>Saat tiba di sekolah, tekan <strong>"📌 Check-in Hadir (GPS & Camera)"</strong> untuk merekam lokasi & selfie.</li>
-                                        <li>Setelah mengajar selesai, tekan tombol <strong>"Buat Laporan & Absensi"</strong>.</li>
-                                    </ol>
-                                </div>
-                                <div class="d-flex align-items-center gap-2 text-primary small fw-semibold">
-                                    <i class="bi bi-info-circle-fill"></i> Rekomendasi: Otomatis terhubung dengan presensi siswa & rombel.
-                                </div>
-                            </div>
-                        </div>
+        <div class="path-grid">
 
-                        <!-- Jalur 2: Sesi Ad-Hoc -->
-                        <div class="col-lg-6">
-                            <div class="p-4 rounded-4 bg-warning bg-opacity-10 border border-warning border-opacity-25 h-100">
-                                <div class="d-flex align-items-center gap-2 mb-3">
-                                    <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill fw-bold">JALUR 2 (KHUSUS)</span>
-                                    <h6 class="fw-bold mb-0 text-dark fs-5">⚡ Sesi Ad-Hoc / Pengganti</h6>
-                                </div>
-                                <p class="text-secondary small mb-3">
-                                    Gunakan jalur ini jika mengajar <strong>di luar jadwal rutin</strong> (sesi tambahan, kelas pengganti, atau kegiatan insidental).
-                                </p>
-                                <div class="bg-white p-3 rounded-3 border border-warning-subtle shadow-sm mb-3">
-                                    <h6 class="fw-bold small text-warning text-darken mb-2"><i class="bi bi-list-check me-1"></i>Langkah Pembuatan:</h6>
-                                    <ol class="small text-dark ps-3 mb-0 lh-lg">
-                                        <li>Buka menu <strong>Buat Laporan Mengajar</strong> di sidebar kiri.</li>
-                                        <li>Pada opsi kategori, pilih <strong>"Ad-Hoc / Sesi Pengganti"</strong>.</li>
-                                        <li>Pilih nama Sekolah, Rombel, dan tanggal pelaksanaan secara manual.</li>
-                                        <li>Isi seluruh detail materi, absensi, dan foto kegiatan lalu tekan <strong>Simpan Laporan</strong>.</li>
-                                    </ol>
-                                </div>
-                                <div class="d-flex align-items-center gap-2 text-warning text-darken small fw-semibold">
-                                    <i class="bi bi-exclamation-triangle-fill"></i> Digunakan hanya saat jadwal tidak ditemukan di Agenda Sesi Rutin.
-                                </div>
-                            </div>
-                        </div>
+            {{-- Jalur Rutin --}}
+            <div class="path-card path-card--blue">
+                <div class="path-badge path-badge--blue"><i class="bi bi-calendar-check"></i> Jalur 1 — Utama</div>
+                <h3>Sesi Rutin (Agenda Kegiatan)</h3>
+                <p class="desc">Untuk seluruh kegiatan yang <strong>sesuai jadwal rutin mingguan</strong> yang sudah terdaftar di Agenda Sesi.</p>
 
-                    </div>
+                <ol class="steps-list">
+                    <li>Buka <strong>Agenda Kegiatan / Penjadwalan Sesi</strong> di sidebar kiri.</li>
+                    <li>Temukan Sesi Pertemuan hari ini, klik <strong>"Detail Sesi"</strong>.</li>
+                    <li>Saat tiba di sekolah, tekan tombol <strong>"📌 Check-in Hadir (GPS &amp; Camera)"</strong>.</li>
+                    <li>Setelah selesai mengajar, klik <strong>"Buat Laporan &amp; Absensi"</strong>.</li>
+                    <li>Isi seluruh komponen wajib, lalu tekan <strong>Simpan Laporan</strong>.</li>
+                </ol>
+
+                <div class="path-tip path-tip--blue">
+                    <i class="bi bi-lightbulb-fill flex-shrink-0 mt-1"></i>
+                    <span>Rekap presensi siswa &amp; data rombel otomatis tersinkronisasi. Tidak perlu input ulang.</span>
                 </div>
             </div>
 
-            <!-- Section B: Detail Komponen Wajib Pengisian Laporan -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3 border-bottom">
-                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                        <i class="bi bi-check-all text-success fs-4"></i> Detail Komponen Wajib Pengisian Form Laporan
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-4">
-                        
-                        <!-- Check-in GPS -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="d-flex align-items-start gap-3 p-3 bg-light rounded-3 border border-light-subtle h-100">
-                                <div class="bg-primary text-white rounded-circle p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                    <i class="bi bi-geo-alt-fill"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1 text-dark">1. GPS Check-in & Live Selfie</h6>
-                                    <p class="small text-muted mb-0">
-                                        Diambil langsung dari kamera HP di area sekolah ($\le 500$m). Merekam koordinat presisi dan waktu kedatangan.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+            {{-- Jalur Ad-Hoc --}}
+            <div class="path-card path-card--amber">
+                <div class="path-badge path-badge--amber"><i class="bi bi-lightning-charge"></i> Jalur 2 — Khusus</div>
+                <h3>Sesi Ad-Hoc / Pengganti</h3>
+                <p class="desc">Untuk kegiatan mengajar <strong>di luar jadwal rutin</strong> — kelas pengganti, sesi tambahan, atau kegiatan insidental.</p>
 
-                        <!-- Absensi Siswa -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="d-flex align-items-start gap-3 p-3 bg-light rounded-3 border border-light-subtle h-100">
-                                <div class="bg-success text-white rounded-circle p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                    <i class="bi bi-person-check-fill"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1 text-dark">2. Absensi Siswa & Ad-Hoc</h6>
-                                    <p class="small text-muted mb-0">
-                                        Tandai siswa Hadir / Alpha. Siswa baru yang belum ada di list bisa langsung ditambah secara instan di form absensi.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                <ol class="steps-list">
+                    <li>Buka menu <strong>Buat Laporan Mengajar</strong> di sidebar kiri.</li>
+                    <li>Pada kolom kategori, pilih <strong>"Ad-Hoc / Sesi Pengganti"</strong>.</li>
+                    <li>Pilih Sekolah, Rombel, dan tanggal pelaksanaan <strong>secara manual</strong>.</li>
+                    <li>Isi seluruh detail materi, absensi, dan foto kegiatan.</li>
+                    <li>Tekan tombol <strong>Simpan Laporan</strong>.</li>
+                </ol>
 
-                        <!-- Materi & Topik -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="d-flex align-items-start gap-3 p-3 bg-light rounded-3 border border-light-subtle h-100">
-                                <div class="bg-warning text-dark rounded-circle p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                    <i class="bi bi-journal-code"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1 text-dark">3. Topik & Materi Pengajaran</h6>
-                                    <p class="small text-muted mb-0">
-                                        Tuliskan modul, topik utama, serta ringkasan materi pembelajaran yang telah disampaikan kepada siswa.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Foto Kegiatan & Bukti -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="d-flex align-items-start gap-3 p-3 bg-light rounded-3 border border-light-subtle h-100">
-                                <div class="bg-info text-white rounded-circle p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                    <i class="bi bi-camera-fill"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1 text-dark">4. Foto Suasana & Absensi</h6>
-                                    <p class="small text-muted mb-0">
-                                        Unggah foto aktivitas pembelajaran siswa di kelas dan foto lembar bukti absensi fisik yang telah ditandatangani.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- File Project -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="d-flex align-items-start gap-3 p-3 bg-light rounded-3 border border-light-subtle h-100">
-                                <div class="bg-purple text-white rounded-circle p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: #6f42c1;">
-                                    <i class="bi bi-file-earmark-zip-fill"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1 text-dark">5. File Project (Optional)</h6>
-                                    <p class="small text-muted mb-0">
-                                        Unggah file project koding (.sb3 Scratch / Micro:bit / Python / PDF) hasil karya siswa jika tersedia.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Refleksi & Evaluasi -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="d-flex align-items-start gap-3 p-3 bg-light rounded-3 border border-light-subtle h-100">
-                                <div class="bg-danger text-white rounded-circle p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                    <i class="bi bi-chat-quote-fill"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1 text-dark">6. Refleksi Capaian & Kendala</h6>
-                                    <p class="small text-muted mb-0">
-                                        Catat evaluasi pemahaman siswa serta kendala peralatan/perangkat di kelas (misal: "Servo 360 tidak bergetar").
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
+                <div class="path-tip path-tip--amber">
+                    <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1"></i>
+                    <span>Gunakan hanya saat sesi <strong>tidak ditemukan</strong> di Agenda Sesi Rutin.</span>
                 </div>
             </div>
 
-            <!-- Section C: Batas Waktu H+1 & Konsekuensi Keterlambatan -->
-            <div class="alert alert-danger border-0 shadow-sm rounded-4 p-4 d-flex align-items-start gap-3">
-                <i class="bi bi-exclamation-octagon-fill fs-2 flex-shrink-0 mt-1"></i>
+        </div>
+
+        {{-- Section 2: Komponen Wajib --}}
+        <p class="section-label"><i class="bi bi-check-all me-1"></i>Langkah 2 dari 3 — Isi Form</p>
+        <h2 class="section-heading">Komponen Wajib Pengisian Laporan</h2>
+
+        <div class="comp-grid">
+            <div class="comp-item">
+                <div class="comp-icon" style="background:#eff6ff;color:#2563eb;"><i class="bi bi-geo-alt-fill"></i></div>
                 <div>
-                    <h6 class="fw-bold mb-1">Batas Waktu Pengisian Laporan Mengajar (Tenggat H+1)</h6>
-                    <p class="mb-0 small lh-base">
-                        Sesuai standar operasional Erlass Institute, seluruh Laporan Mengajar <strong>WAJIB di-submit maksimal 24 jam (H+1)</strong> setelah kelas selesai. Jika pengisian dilakukan melewati H+1, form akan terkunci dan laporan akan ditandai sebagai <strong>Terlambat (H+X)</strong> yang memerlukan persetujuan Request Laporan Susulan oleh Admin.
-                    </p>
+                    <h6>GPS Check-in &amp; Live Selfie</h6>
+                    <p>Diambil langsung dari kamera HP di area sekolah (≤ 500 m). Merekam koordinat presisi &amp; cap waktu kedatangan.</p>
                 </div>
             </div>
-
+            <div class="comp-item">
+                <div class="comp-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-person-check-fill"></i></div>
+                <div>
+                    <h6>Absensi Siswa</h6>
+                    <p>Tandai Hadir / Alpha per siswa. Siswa baru yang belum terdaftar bisa ditambah langsung dari form absensi.</p>
+                </div>
+            </div>
+            <div class="comp-item">
+                <div class="comp-icon" style="background:#fffbeb;color:#b45309;"><i class="bi bi-journal-code"></i></div>
+                <div>
+                    <h6>Topik &amp; Materi Pengajaran</h6>
+                    <p>Tuliskan modul, topik utama, dan ringkasan materi yang telah disampaikan kepada siswa hari ini.</p>
+                </div>
+            </div>
+            <div class="comp-item">
+                <div class="comp-icon" style="background:#f0f9ff;color:#0284c7;"><i class="bi bi-camera-fill"></i></div>
+                <div>
+                    <h6>Foto Suasana &amp; Absensi</h6>
+                    <p>Foto aktivitas kelas &amp; foto lembar absensi fisik bertandatangan yang menjadi bukti pengajaran.</p>
+                </div>
+            </div>
+            <div class="comp-item">
+                <div class="comp-icon" style="background:#fdf4ff;color:#7e22ce;"><i class="bi bi-file-earmark-zip-fill"></i></div>
+                <div>
+                    <h6>File Project <span class="comp-optional">Opsional</span></h6>
+                    <p>Unggah file karya siswa (.sb3 Scratch, Micro:bit, Python, PDF) bila tersedia di akhir pertemuan.</p>
+                </div>
+            </div>
+            <div class="comp-item">
+                <div class="comp-icon" style="background:#fff1f2;color:#be123c;"><i class="bi bi-chat-quote-fill"></i></div>
+                <div>
+                    <h6>Refleksi &amp; Kendala</h6>
+                    <p>Catat evaluasi pemahaman siswa &amp; kendala peralatan (misal: "Servo 360° tidak merespons").</p>
+                </div>
+            </div>
         </div>
 
-        <!-- TAB 2: INTERACTIVE FAQ -->
-        <div class="tab-pane fade" id="faq-content" role="tabpanel">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
+        {{-- Section 3: Deadline --}}
+        <p class="section-label"><i class="bi bi-clock me-1"></i>Langkah 3 dari 3 — Kirim Tepat Waktu</p>
+        <h2 class="section-heading">Batas Waktu H+1</h2>
 
-                    <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
-                        <i class="bi bi-question-circle text-primary"></i> Pertanyaan Yang Sering Diajukan
-                    </h5>
-
-                    <div class="accordion accordion-flush" id="faqAccordion">
-
-                        <!-- FAQ 1 -->
-                        <div class="accordion-item faq-item">
-                            <h2 class="accordion-header" id="headingOne">
-                                <button class="accordion-button fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
-                                    📅 1. Kapan saya harus menggunakan Jalur Rutin vs Jalur Ad-Hoc?
-                                </button>
-                            </h2>
-                            <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body text-secondary small lh-base">
-                                    Gunakan <strong>Jalur Rutin (Agenda Kegiatan)</strong> untuk seluruh pertemuan yang sudah memiliki jadwal mingguan resmi. Gunakan <strong>Jalur Ad-Hoc</strong> hanya jika Anda mengajar kelas pengganti atau sesi tambahan yang jadwal resminya belum terdaftar di Agenda Kegiatan.
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- FAQ 2 -->
-                        <div class="accordion-item faq-item">
-                            <h2 class="accordion-header" id="headingTwo">
-                                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
-                                    📍 2. Bagaimana cara kerja Check-in GPS Real-Time?
-                                </button>
-                            </h2>
-                            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body text-secondary small lh-base">
-                                    Saat Anda tiba di lokasi sekolah, buka detail Sesi Ekstrakurikuler dan tekan tombol <strong>"📌 Check-in Hadir di Sekolah"</strong>. Sistem akan mengambil koordinat GPS perangkat HP Anda dan meminta foto kamera langsung. Jika Anda berada dalam radius $\le 500$ meter dari sekolah, status check-in Anda akan otomatis terverifikasi 🟢.
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- FAQ 3 -->
-                        <div class="accordion-item faq-item">
-                            <h2 class="accordion-header" id="headingThree">
-                                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
-                                    ⚠️ 3. Mengapa status Check-in saya bernilai "Diluar Radius (Warning)"?
-                                </button>
-                            </h2>
-                            <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body text-secondary small lh-base">
-                                    Status <strong>Diluar Radius</strong> terjadi jika Anda menekan tombol check-in ketika posisi GPS perangkat Anda berjarak lebih dari 500 meter dari titik koordinat sekolah yang terdaftar. Pastikan Anda sudah berada di area lingkungan sekolah sebelum menekan tombol check-in.
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- FAQ 4 -->
-                        <div class="accordion-item faq-item">
-                            <h2 class="accordion-header" id="headingFour">
-                                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">
-                                    📝 4. Mengapa laporan saya berlabel "Terlambat (H+4)" padahal waktu datang saya Tepat Waktu?
-                                </button>
-                            </h2>
-                            <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body text-secondary small lh-base">
-                                    Sistem memisahkan antara <strong>Kedisiplinan Kehadiran di Sekolah (Check-in)</strong> dan <strong>Ketepatan Submit Laporan (KPI H+1)</strong>. Jika Anda datang jam 13:00 tepat waktu di hari Jumat, namun baru mengisi dan menekan tombol simpan laporan pada hari Selasa (4 hari kemudian), maka laporan tersebut tercatat sebagai laporan susulan (Terlambat H+4).
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- FAQ 5 -->
-                        <div class="accordion-item faq-item">
-                            <h2 class="accordion-header" id="headingFive">
-                                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive">
-                                    ⏱️ 5. Berapa batas waktu keterlambatan check-in sebelum dikenakan denda?
-                                </button>
-                            </h2>
-                            <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body text-secondary small lh-base">
-                                    Toleransi keterlambatan check-in adalah <strong>14 menit</strong> (berstatus <em>Warning</em> tanpa denda). Jika check-in dilakukan $\ge 15$ menit dari jam mulai jadwal, sistem secara otomatis menetapkan status <em>Penalty</em> dengan pemotongan denda keterlambatan sebesar Rp 25.000 pada payroll bulanan.
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- FAQ 6 -->
-                        <div class="accordion-item faq-item">
-                            <h2 class="accordion-header" id="headingSix">
-                                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix">
-                                    📱 6. Apa yang harus dilakukan jika GPS di HP saya tidak terdeteksi?
-                                </button>
-                            </h2>
-                            <div id="collapseSix" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body text-secondary small lh-base">
-                                    1. Pastikan fitur <strong>Location / GPS</strong> di HP Anda sudah dalam posisi aktif (ON).<br>
-                                    2. Pastikan peramban (Chrome/Safari) telah diizinkan untuk mengakses lokasi.<br>
-                                    3. Muat ulang (refresh) halaman dan coba tekan tombol Check-in kembali.
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
+        <div class="deadline-banner">
+            <i class="bi bi-exclamation-octagon-fill"></i>
+            <div>
+                <h6>Laporan wajib di-submit maksimal 24 jam (H+1) setelah kelas selesai.</h6>
+                <p>Jika melewati batas H+1, laporan akan otomatis berlabel <strong>Terlambat (H+X)</strong>. Pengisian susulan memerlukan persetujuan khusus dari Admin melalui fitur <strong>Request Laporan Susulan</strong>.</p>
             </div>
         </div>
 
     </div>
+
+    {{-- ═══════════════════════════════════════════ --}}
+    {{-- TAB 2 — FAQ                                --}}
+    {{-- ═══════════════════════════════════════════ --}}
+    <div class="help-tab-content" id="tab-faq" role="tabpanel" aria-labelledby="btn-faq">
+
+        <h2 class="section-heading">Pertanyaan yang Sering Diajukan</h2>
+
+        <div class="faq-list" id="faqList">
+
+            @php
+            $faqs = [
+                [
+                    'q' => 'Kapan saya harus menggunakan Jalur Rutin vs Jalur Ad-Hoc?',
+                    'a' => 'Gunakan <strong>Jalur Rutin</strong> (via Agenda Kegiatan) untuk seluruh pertemuan yang sudah memiliki jadwal mingguan resmi. Gunakan <strong>Jalur Ad-Hoc</strong> hanya jika Anda mengajar kelas pengganti atau sesi tambahan yang jadwalnya belum terdaftar di Agenda Sesi Rutin.',
+                ],
+                [
+                    'q' => 'Bagaimana cara kerja Check-in GPS Real-Time?',
+                    'a' => 'Saat tiba di sekolah, buka detail Sesi Ekstrakurikuler dan tekan tombol <strong>"📌 Check-in Hadir (GPS &amp; Camera)"</strong>. Sistem membuka kamera HP langsung dan mengambil titik koordinat GPS presisi. Jika Anda berada dalam radius ≤ 500 meter dari sekolah, status check-in otomatis terverifikasi <strong>🟢 Valid</strong>.',
+                ],
+                [
+                    'q' => 'Mengapa status check-in saya bernilai "Diluar Radius (Warning)"?',
+                    'a' => 'Status <strong>Diluar Radius</strong> terjadi jika posisi GPS perangkat Anda berjarak lebih dari 500 meter dari titik koordinat sekolah yang terdaftar. Pastikan Anda sudah berada di area lingkungan sekolah sebelum menekan tombol check-in.',
+                ],
+                [
+                    'q' => 'Mengapa laporan saya berlabel "Terlambat (H+4)" padahal saya datang tepat waktu?',
+                    'a' => 'Sistem memisahkan dua KPI berbeda: <strong>Kedisiplinan Kehadiran di Sekolah (Check-in)</strong> dan <strong>Ketepatan Submit Laporan (H+1)</strong>. Anda bisa datang tepat waktu di hari Jumat, namun jika laporan baru diisi 4 hari kemudian (Selasa), laporan tersebut tercatat sebagai susulan <em>Terlambat H+4</em> — keduanya independen.',
+                ],
+                [
+                    'q' => 'Berapa toleransi keterlambatan check-in sebelum dikenakan denda?',
+                    'a' => 'Toleransi keterlambatan adalah <strong>14 menit</strong> (status <em>Warning</em>, tanpa denda). Jika check-in dilakukan ≥ 15 menit setelah jam mulai jadwal, sistem otomatis menetapkan status <em>Penalty</em> dengan pemotongan <strong>Rp 25.000</strong> pada payroll bulan berjalan.',
+                ],
+                [
+                    'q' => 'Apa yang harus dilakukan jika GPS di HP tidak terdeteksi?',
+                    'a' => '1. Pastikan fitur <strong>Location / GPS</strong> di HP sudah aktif (ON).<br>2. Pastikan peramban (Chrome / Safari) sudah diberi izin mengakses lokasi.<br>3. Muat ulang halaman (<em>refresh</em>) dan coba tekan tombol Check-in kembali.',
+                ],
+                [
+                    'q' => 'Kapan form laporan terkunci dan tidak bisa diisi lagi?',
+                    'a' => 'Form laporan mengajar terkunci otomatis setelah melewati batas <strong>H+1 (24 jam)</strong>. Jika sudah terkunci, Anda perlu mengajukan <strong>Request Laporan Susulan</strong> kepada Admin untuk membuka aksesnya kembali.',
+                ],
+                [
+                    'q' => 'Bagaimana cara menambah siswa baru yang belum ada di daftar absensi?',
+                    'a' => 'Di dalam form absensi sesi, tersedia tombol <strong>"+ Tambah Siswa Ad-Hoc"</strong>. Isi nama lengkap dan data dasar siswa, sistem akan langsung mendaftarkan siswa tersebut ke dalam rombel dan mencatat kehadirannya di sesi ini.',
+                ],
+            ];
+            @endphp
+
+            @foreach($faqs as $i => $faq)
+            <div class="faq-item" data-keywords="{{ strtolower(strip_tags($faq['q'].' '.$faq['a'])) }}">
+                <button
+                    class="faq-question"
+                    aria-expanded="false"
+                    aria-controls="faq-answer-{{ $i }}"
+                    onclick="toggleFaq(this)"
+                >
+                    <span class="faq-q-num">{{ $i + 1 }}</span>
+                    <span>{{ $faq['q'] }}</span>
+                    <i class="bi bi-chevron-down faq-chevron"></i>
+                </button>
+                <div class="faq-answer" id="faq-answer-{{ $i }}" role="region">
+                    <div class="faq-answer__overflow">
+                        <div class="faq-answer__inner">{!! $faq['a'] !!}</div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+
+        </div>
+
+        <div class="faq-empty" id="faqEmpty">
+            <i class="bi bi-search"></i>
+            Tidak ada hasil untuk kata kunci tersebut.
+        </div>
+
+    </div>
+
 </div>
 
 <script>
-    function filterFaq() {
-        let input = document.getElementById('faqSearchInput').value.toLowerCase();
-        let items = document.querySelectorAll('.faq-item');
-        
-        // Switch to FAQ tab if searching
-        if (input.trim() !== '') {
-            let faqTab = new bootstrap.Tab(document.getElementById('faq-tab'));
-            faqTab.show();
-        }
-
-        items.forEach(function(item) {
-            let text = item.innerText.toLowerCase();
-            if (text.includes(input)) {
-                item.style.display = 'block';
-            } else {
-                item.style.display = 'none';
-            }
+    /* ─── Tab switching ─── */
+    function switchTab(id, btn) {
+        document.querySelectorAll('.help-tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.help-tab-btn').forEach(el => {
+            el.classList.remove('active');
+            el.setAttribute('aria-selected', 'false');
         });
+        document.getElementById('tab-' + id).classList.add('active');
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
     }
-</script>
 
-<style>
-    .card-hover {
-        transition: all 0.25s ease;
+    /* ─── FAQ accordion ─── */
+    function toggleFaq(btn) {
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        // Close all
+        document.querySelectorAll('.faq-question').forEach(b => {
+            b.setAttribute('aria-expanded', 'false');
+            document.getElementById(b.getAttribute('aria-controls')).classList.remove('open');
+        });
+        // Open clicked (if was closed)
+        if (!expanded) {
+            btn.setAttribute('aria-expanded', 'true');
+            document.getElementById(btn.getAttribute('aria-controls')).classList.add('open');
+        }
     }
-    .card-hover:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08) !important;
-    }
-</style>
+
+    /* ─── Search filter ─── */
+    document.getElementById('faqSearchInput').addEventListener('input', function () {
+        const q = this.value.trim().toLowerCase();
+        const items = document.querySelectorAll('.faq-item');
+        let visible = 0;
+
+        items.forEach(item => {
+            const match = !q || item.dataset.keywords.includes(q);
+            item.classList.toggle('hidden', !match);
+            if (match) visible++;
+        });
+
+        document.getElementById('faqEmpty').style.display = (visible === 0 && q) ? 'block' : 'none';
+
+        // Auto-switch to FAQ tab when searching
+        if (q) {
+            const faqBtn = document.getElementById('btn-faq');
+            if (!faqBtn.classList.contains('active')) switchTab('faq', faqBtn);
+        }
+    });
+</script>
 @endsection

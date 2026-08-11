@@ -23,7 +23,7 @@ class HelpCenterTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewIs('help.index');
-        $response->assertSee('Pusat Bantuan & Panduan FAQ 101');
+        $response->assertSee('Panduan & FAQ 101');
         $response->assertSee('Cara Membuat Laporan');
     }
 }
