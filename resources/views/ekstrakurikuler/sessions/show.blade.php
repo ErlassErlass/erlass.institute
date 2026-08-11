@@ -145,7 +145,7 @@
                                 <p class="text-muted small mb-3">
                                     Sesi ini sudah melewati batas H+1. Silakan tuliskan alasan keterlambatan di bawah ini untuk mengajukan permohonan buka akses laporan ke Admin.
                                 </p>
-                                <form action="{{ route('sessions.late-report-request.store', $session) }}" method="POST">
+                                <form action="{{ route('ekstrakurikuler.sessions.late-report-request.store', $session) }}" method="POST">
                                     @csrf
                                     <div class="mb-3">
                                         <label class="form-label small fw-bold">Alasan Keterlambatan</label>

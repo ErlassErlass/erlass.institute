@@ -153,7 +153,7 @@
                             <i class="bi bi-pencil-square me-1"></i> Buat Laporan Ad-Hoc
                         </a>
                     @elseif($approvedReq->session)
-                        <a href="{{ route('sessions.report.create', $approvedReq->session->id) }}" class="btn btn-success text-white fw-bold px-3 py-2 rounded-3 shadow-sm">
+                        <a href="{{ route('ekstrakurikuler.sessions.report.create', $approvedReq->session->id) }}" class="btn btn-success text-white fw-bold px-3 py-2 rounded-3 shadow-sm">
                             <i class="bi bi-pencil-square me-1"></i> Isi Laporan Sesi Ini
                         </a>
                     @else

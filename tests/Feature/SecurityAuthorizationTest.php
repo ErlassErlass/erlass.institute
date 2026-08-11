@@ -334,7 +334,7 @@ class SecurityAuthorizationTest extends TestCase
         }
 
         // Instructor 1 tries to request late report for Instructor 2's session
-        $response = $this->actingAs($this->instructor1)->post(route('sessions.late-report-request.store', $session->id), [
+        $response = $this->actingAs($this->instructor1)->post(route('ekstrakurikuler.sessions.late-report-request.store', $session->id), [
             'reason' => 'Permohonan terlambat dari instruktur lain.',
         ]);
         
