@@ -51,7 +51,13 @@ Fitur notifikasi WhatsApp (Fonnte) sudah terintegrasi secara cerdas:
     *   **Grafik Visual**: Membandingkan jumlah sesi antar instruktur secara real-time.
     *   **Rekomendasi Penambahan Sesi**: Sistem otomatis menyarankan instruktur yang masih memiliki jam mengajar di bawah rata-rata.
     *   **Pencarian Live Instruktur**: Menyaring nama instruktur secara instan pada tabel data.
-    *   **Export Excel Dinamis**: Unduh berkas rekap distribusi ke format Excel sesuai dengan periode yang sedang aktif dipilih.
+5. **Fitur Relokasi Laporan Mengajar Antar-Pertemuan Sesi**:
+   * Jika Instruktur secara tidak sengaja salah mengisi laporan di Pertemuan 2 padahal seharusnya untuk Pertemuan 1:
+   * Login sebagai **Admin / Webmaster**.
+   * Buka **Detail Laporan Mengajar** (`/laporan-mengajar/{id}`) atau **Detail Sesi** (`/ekstrakurikuler/sessions/{id}`).
+   * Klik tombol **`⇄ Pindahkan Pertemuan`**.
+   * Pilih **Pertemuan Target** (misal: Pertemuan 1) dan masukkan alasan pemindahan (opsional).
+   * Klik **Konfirmasi Pindahkan**. Sistem akan mengalihkan laporan, foto kegiatan, dan absensi ke Pertemuan 1 (`🟢 Selesai`), serta mengosongkan Pertemuan 2 (`🔵 Terjadwal`).
 
 ### 6. Membuat Program Ekstrakurikuler Baru
 

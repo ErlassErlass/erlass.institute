@@ -422,7 +422,14 @@ class LaporanMengajarController extends Controller
             }
         }
 
-        return view('laporan-mengajar.show', compact('laporanMengajar', 'isEkstrakurikuler', 'ekstrakurikulerSession', 'ekstrakurikulerData'));
+        $availableSessions = collect();
+        if ($ekstrakurikulerSession && $ekstrakurikulerSession->ekstrakurikuler_rombel_id) {
+            $availableSessions = \App\Models\EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $ekstrakurikulerSession->ekstrakurikuler_rombel_id)
+                ->orderBy('nomor_pertemuan')
+                ->get();
+        }
+
+        return view('laporan-mengajar.show', compact('laporanMengajar', 'isEkstrakurikuler', 'ekstrakurikulerSession', 'ekstrakurikulerData', 'availableSessions'));
     }
 
     public function edit(LaporanMengajar $laporanMengajar)
@@ -656,5 +663,69 @@ class LaporanMengajarController extends Controller
             ],
             'foto_kegiatan' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ];
+    }
+
+    /**
+     * Relocate a LaporanMengajar from one EkstrakurikulerSession to another target session in the same Rombel.
+     */
+    public function relocateReport(Request $request, LaporanMengajar $laporan)
+    {
+        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+            abort(403, 'Akses ditolak. Fitur relokasi laporan hanya dapat dilakukan oleh Admin.');
+        }
+
+        $request->validate([
+            'target_session_id' => 'required|exists:ekstrakurikuler_session,id',
+            'alasan_relokasi' => 'nullable|string|max:500',
+        ]);
+
+        $targetSession = \App\Models\EkstrakurikulerSession::with('rombel')->findOrFail($request->input('target_session_id'));
+        $currentSession = \App\Models\EkstrakurikulerSession::find($laporan->ekstrakurikuler_session_id);
+
+        if ($currentSession && $currentSession->ekstrakurikuler_rombel_id !== $targetSession->ekstrakurikuler_rombel_id) {
+            return redirect()->back()->with('error', 'Relokasi gagal: Sesi target harus berada pada Rombel yang sama.');
+        }
+
+        if ($targetSession->laporanMengajar()->exists() && $targetSession->laporanMengajar->id != $laporan->id) {
+            return redirect()->back()->with('error', 'Relokasi gagal: Sesi target (Pertemuan ' . $targetSession->nomor_pertemuan . ') sudah memiliki laporan lain.');
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($laporan, $currentSession, $targetSession, $request) {
+            $oldPertemuan = $laporan->pertemuan_ke;
+            $newPertemuan = $targetSession->nomor_pertemuan;
+
+            // 1. Reset current (old) session if exists
+            if ($currentSession && $currentSession->id !== $targetSession->id) {
+                $currentSession->update([
+                    'status' => \App\Models\EkstrakurikulerSession::STATUS_TERJADWAL,
+                ]);
+            }
+
+            // 2. Update status of new target session
+            $targetSession->update([
+                'status' => \App\Models\EkstrakurikulerSession::STATUS_SELESAI,
+            ]);
+
+            // 3. Update LaporanMengajar attributes
+            $laporan->update([
+                'ekstrakurikuler_session_id' => $targetSession->id,
+                'pertemuan_ke' => $newPertemuan,
+                'jadwal_mengajar' => $targetSession->tanggal_terjadwal ? $targetSession->tanggal_terjadwal->format('Y-m-d') : $laporan->jadwal_mengajar,
+            ]);
+
+            // 4. Log Activity
+            if (class_exists('\App\Models\ActivityLog')) {
+                \App\Models\ActivityLog::create([
+                    'user_id' => auth()->id(),
+                    'action' => 'UPDATE',
+                    'module' => 'Laporan Mengajar',
+                    'description' => "Memindahkan Laporan #{$laporan->id} dari Pertemuan {$oldPertemuan} ke Pertemuan {$newPertemuan} (Rombel ID #{$targetSession->ekstrakurikuler_rombel_id}). Alasan: " . ($request->input('alasan_relokasi') ?? '-'),
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ]);
+            }
+        });
+
+        return redirect()->back()->with('success', 'Laporan Mengajar berhasil dipindahkan ke Pertemuan ' . $targetSession->nomor_pertemuan . '!');
     }
 }

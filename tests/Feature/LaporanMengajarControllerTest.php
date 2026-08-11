@@ -423,4 +423,71 @@ class LaporanMengajarControllerTest extends TestCase
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'application/pdf');
     }
+
+    public function test_admin_can_relocate_laporan_mengajar_between_sessions(): void
+    {
+        $sekolah = \App\Models\Sekolah::factory()->create();
+        $salesman = \App\Models\Salesman::factory()->create(['user_id' => $this->admin->id]);
+        $ekskul = \App\Models\Ekstrakurikuler::factory()->create([
+            'sekolah_kodlan' => $sekolah->kodlan,
+            'user_id_sales' => $salesman->id,
+            'status' => 'aktif',
+        ]);
+
+        $rombel = \App\Models\EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nama_rombel' => 'Rombel Test Relokasi',
+            'nomor_rombel' => 1,
+            'total_pertemuan' => 12,
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addMonths(3)->toDateString(),
+            'hari' => 'senin',
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '10:00',
+            'jumlah_siswa' => 5,
+            'status' => 'berlangsung',
+        ]);
+
+        $session1 = \App\Models\EkstrakurikulerSession::firstOrCreate(
+            ['ekstrakurikuler_rombel_id' => $rombel->id, 'nomor_pertemuan' => 1],
+            ['ekstrakurikuler_id' => $ekskul->id, 'status' => 'terjadwal', 'tanggal_terjadwal' => now()->toDateString(), 'jam_mulai_terjadwal' => '08:00', 'jam_selesai_terjadwal' => '10:00']
+        );
+        $session2 = \App\Models\EkstrakurikulerSession::firstOrCreate(
+            ['ekstrakurikuler_rombel_id' => $rombel->id, 'nomor_pertemuan' => 2],
+            ['ekstrakurikuler_id' => $ekskul->id, 'status' => 'selesai', 'tanggal_terjadwal' => now()->addDays(7)->toDateString(), 'jam_mulai_terjadwal' => '08:00', 'jam_selesai_terjadwal' => '10:00']
+        );
+
+        $session1->update(['status' => 'terjadwal', 'user_id_instruktur' => $this->instructor->id]);
+        $session2->update(['status' => 'selesai', 'user_id_instruktur' => $this->instructor->id]);
+
+        $laporan = LaporanMengajar::factory()->create([
+            'ekstrakurikuler_session_id' => $session2->id,
+            'pertemuan_ke' => 2,
+            'user_id_instruktur' => $this->instructor->id,
+            'sekolah_kodlan' => $sekolah->kodlan,
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->post(route('laporan-mengajar.relocate', $laporan), [
+                'target_session_id' => $session1->id,
+                'alasan_relokasi' => 'Salah delegasi saat submit',
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $session1->refresh();
+        $session2->refresh();
+        $laporan->refresh();
+
+        $this->assertEquals('selesai', $session1->status);
+        $this->assertNotNull($session1->laporanMengajar);
+        $this->assertEquals($laporan->id, $session1->laporanMengajar->id);
+
+        $this->assertEquals('terjadwal', $session2->status);
+        $this->assertFalse($session2->laporanMengajar()->exists());
+
+        $this->assertEquals($session1->id, $laporan->ekstrakurikuler_session_id);
+        $this->assertEquals(1, $laporan->pertemuan_ke);
+    }
 }

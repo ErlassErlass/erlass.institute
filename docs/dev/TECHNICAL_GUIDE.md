@@ -23,7 +23,16 @@ Menggunakan `spatie/laravel-permission`.
 - **GPS Check-in Metadata**: Columns added: `checkin_lat`, `checkin_lng`, `checkin_distance_meters`, `checkin_status_radius` (`valid` / `out_of_bounds`), `checkin_photo_path`.
 - **Haversine Formula**: Endpoint `/ekstrakurikuler/sessions/{session}/checkin` calculates real-time distance from instructor's geolocation to school coordinates (tolerance radius $\le 500$m).
 
-### 2. Help Center & FAQ 101 (`/help`)
+### 2. Relokasi Laporan Mengajar Antar-Pertemuan (`LaporanMengajarController@relocateReport`)
+- **Route**: `POST /laporan-mengajar/{laporan}/relocate` (Named: `laporan-mengajar.relocate`).
+- **Authorization**: Restrict to `webmaster`, `admin_sistem`, `admin`.
+- **Database Transaction**:
+  - `old_session->update(['status' => 'terjadwal'])`
+  - `new_session->update(['status' => 'selesai'])`
+  - `$laporan->update(['ekstrakurikuler_session_id' => $new_session->id, 'pertemuan_ke' => $new_session->nomor_pertemuan])`
+  - Audit logging via `ActivityLog::create(...)`.
+
+### 3. Help Center & FAQ 101 (`/help`)
 - **Controller**: `App\Http\Controllers\HelpCenterController@index`.
 - **View**: `resources/views/help/index.blade.php`.
 - **Content**: 2-path report creation guide (Rutin via Agenda vs Ad-hoc), mandatory form components, and interactive FAQ with JS search filter.

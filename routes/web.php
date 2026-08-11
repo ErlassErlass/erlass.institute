@@ -74,6 +74,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('laporan-mengajar.export');
     Route::get('/laporan-mengajar/get-materi', [LaporanMengajarController::class, 'getMateri'])
         ->name('laporan-mengajar.get-materi');
+    Route::post('/laporan-mengajar/{laporan}/relocate', [LaporanMengajarController::class, 'relocateReport'])
+        ->name('laporan-mengajar.relocate');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/help', [HelpCenterController::class, 'index'])->name('help.index');
     Route::post('/ekstrakurikuler/sessions/{session}/checkin', [EkstrakurikulerSessionController::class, 'checkin'])->name('ekstrakurikuler.sessions.checkin');

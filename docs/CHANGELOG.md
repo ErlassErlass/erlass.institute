@@ -2,6 +2,16 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.8.2] - 2026-08-11
+
+### Ditambahkan & Diperbaiki (Added & Fixed)
+- **Fitur Relokasi Laporan Mengajar Antar-Pertemuan Sesi (`LaporanMengajarController@relocateReport`)**:
+  - Penambahan tombol **`⇄ Pindahkan Pertemuan`** & Modal Pop-up interaktif pada Halaman Detail Laporan Mengajar (`/laporan-mengajar/{id}`).
+  - Memungkinkan Admin & Webmaster mengalihkan Laporan Mengajar (beserta foto kegiatan, absensi siswa, dan materi) dari satu Pertemuan Sesi ke Pertemuan Sesi lainnya dalam Rombel yang sama jika terjadi kekeliruan penugasan/input.
+  - Alur relokasi aman di dalam transaksi database (`DB::transaction`): Sesi Asal otomatis di-reset ke status `🔵 Terjadwal`, Sesi Target di-update ke status `🟢 Selesai`, dan audit log aktivitas pemindahan tercatat otomatis.
+- **Perbaikan Submit Laporan Mengajar Sesi (`EkstrakurikulerReportController.php`)**:
+  - Menyertakan atribut `'jadwal_mengajar'` secara otomatis saat pembuatan record `LaporanMengajar`, mengatasi kendala `Field 'jadwal_mengajar' doesn't have a default value`.
+
 ## [2.8.1] - 2026-08-11
 
 ### Ditambahkan & Diperbaiki (Added & Fixed)

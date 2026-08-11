@@ -52,8 +52,13 @@
             <a href="{{ route('laporan-mengajar.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar
             </a>
+            @if(in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin']) && $isEkstrakurikuler)
+            <button type="button" class="btn btn-warning fw-bold text-dark shadow-sm ms-1" data-bs-toggle="modal" data-bs-target="#relocateReportModal">
+                <i class="bi bi-arrow-left-right me-1"></i> Pindahkan Pertemuan
+            </button>
+            @endif
             @can('update', $laporanMengajar)
-            <a href="{{ route('laporan-mengajar.edit', $laporanMengajar) }}" class="btn btn-primary">
+            <a href="{{ route('laporan-mengajar.edit', $laporanMengajar) }}" class="btn btn-primary ms-1">
                 <i class="bi bi-pencil-square me-1"></i> Edit Laporan
             </a>
             @endcan
@@ -339,6 +344,55 @@
         </div>
     </div>
 </div>
+
+@if(in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin']) && $isEkstrakurikuler)
+<div class="modal fade" id="relocateReportModal" tabindex="-1" aria-labelledby="relocateReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-warning bg-opacity-10 border-bottom border-warning border-opacity-25 rounded-top-4 py-3">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center me-2" id="relocateReportModalLabel">
+                    <i class="bi bi-arrow-left-right text-warning fs-4 me-2"></i> Relokasi Laporan Mengajar
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('laporan-mengajar.relocate', $laporanMengajar) }}" method="POST">
+                @csrf
+                <div class="modal-body p-4">
+                    <div class="alert alert-info border-0 bg-info bg-opacity-10 rounded-3 mb-3 text-dark small">
+                        <i class="bi bi-info-circle-fill me-1 text-info"></i>
+                        Laporan ini saat ini berada di <strong>Pertemuan Ke-{{ $laporanMengajar->pertemuan_ke }}</strong>. Memindahkan laporan akan meng-update status sesi target menjadi <strong>Selesai</strong> dan mengosongkan sesi asal.
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="target_session_id" class="form-label fw-semibold text-dark small">Pilih Pertemuan Target <span class="text-danger">*</span></label>
+                        <select name="target_session_id" id="target_session_id" class="form-select rounded-3" required>
+                            <option value="" disabled selected>-- Pilih Pertemuan --</option>
+                            @foreach($availableSessions as $sess)
+                                <option value="{{ $sess->id }}" {{ $sess->id == $laporanMengajar->ekstrakurikuler_session_id ? 'disabled' : '' }}>
+                                    Pertemuan {{ $sess->nomor_pertemuan }} ({{ $sess->tanggal_terjadwal ? $sess->tanggal_terjadwal->format('d/m/Y') : '-' }}) 
+                                    - Status: {{ ucfirst($sess->status) }}
+                                    {{ $sess->id == $laporanMengajar->ekstrakurikuler_session_id ? ' [Sesi Saat Ini]' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="alasan_relokasi" class="form-label fw-semibold text-dark small">Alasan Pemindahan <span class="text-muted fw-normal">(Opsional)</span></label>
+                        <textarea name="alasan_relokasi" id="alasan_relokasi" rows="2" class="form-control rounded-3" placeholder="Contoh: Instruktur salah mendelegasikan saat input laporan"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light rounded-bottom-4 py-2 px-4 border-top">
+                    <button type="button" class="btn btn-light rounded-3 fw-semibold border" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold rounded-3 shadow-sm">
+                        <i class="bi bi-check2-circle me-1"></i> Konfirmasi Pindahkan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 @endsection
 
 @push('scripts')
