@@ -2,6 +2,21 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.8.1] - 2026-08-11
+
+### Ditambahkan & Diperbaiki (Added & Fixed)
+- **Modul Analytics Distribusi Jadwal Instruktur Impeccable (v4.0.4) & Filter Multi-Periode (`/admin/analytics/schedule-distribution`)**:
+  - Penambahan toolbar filter pilihan periode: *Honor Berjalan (Siklus 11-10)*, *Periode Lalu*, *2 Bulan Lalu*, *Seluruh Waktu (All Time)*, *Bulan/Tahun*, dan *Custom Date Range*.
+  - Penambahan 4 keping KPI summary card (*Total Sesi Ditugaskan*, *Rata-rata Sesi / Instruktur*, *Instruktur Aktif Mengajar*, *Perlu Penambahan Sesi*).
+  - Integrasi Grafik Distribusi Sesi Chart.js interaktif & panel rekomendasi penambahan beban mengajar.
+  - Penambahan pencarian live nama instruktur pada tabel data distribusi dan tombol Export Excel dinamis sesuai periode terpilih.
+- **Perbaikan Ekspor Excel & Route Model Binding Batch Payroll (`PayrollController.php`)**:
+  - Memperbaiki penanganan parameter `{batch}` pada method `exportExcel`, `exportCsv`, `exportPdf`, `showBatch`, `processBatch`, `payBatch`, dan `destroyBatch` agar secara fleksibel menerima baik ID numerik maupun *Model Instance*.
+  - Menyelesaikan kendala 404 / exception pada saat mengunduh berkas Excel Payroll Batch (misal: `/admin/payroll/batches/52/export-excel`).
+- **Peningkatan Kompatibilitas Desktop pada Modal Check-in GPS & Kamera Live (`show.blade.php`)**:
+  - Penambahan deteksi perangkat otomatis (`navigator.userAgent`) pada peramban.
+  - Di perangkat desktop, atribut `capture="camera"` secara otomatis dilepas sehingga jendela penjelajah berkas (file picker) dapat terbuka normal, disertai lencana peringatan akurasi GPS desktop.
+
 ## [2.8.0] - 2026-08-11
 
 ### Ditambahkan & Diperbaiki (Added & Fixed)

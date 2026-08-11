@@ -28,6 +28,15 @@ Menggunakan `spatie/laravel-permission`.
 - **View**: `resources/views/help/index.blade.php`.
 - **Content**: 2-path report creation guide (Rutin via Agenda vs Ad-hoc), mandatory form components, and interactive FAQ with JS search filter.
 
+### 3. Analytics Distribusi Jadwal & Batch Payroll
+- **Schedule Distribution (`/admin/analytics/schedule-distribution`)**:
+  - **Controller**: `DashboardAnalyticsController@scheduleDistribution`.
+  - **Period Modes**: `honor_current` (Cut-off 11-10), `honor_prev`, `honor_prev2`, `all`, `month`, `custom`.
+  - **Dynamic Export**: `DashboardAnalyticsController@exportScheduleDistribution` maps `ScheduleDistributionExport` class according to active filter date boundaries.
+- **Payroll Batch Export (`/admin/payroll/batches/{batch}/export-excel`)**:
+  - **Controller**: `PayrollController` (`exportExcel`, `exportCsv`, `exportPdf`, `showBatch`, `processBatch`, `payBatch`, `destroyBatch`).
+  - **Model Instance Handling**: Resolves `$batchId` dynamically via `$id instanceof PayrollBatch ? $id->id : $id;` to ensure compatibility with implicit Laravel route model binding.
+
 ### 2. Laporan Mengajar
 - **Fitur Baru**: Sinkronisasi Materi Ajar.
 - **Logic**: Dropdown "Materi Pengajaran" dinamis berdasarkan "Kategori Pengajaran".

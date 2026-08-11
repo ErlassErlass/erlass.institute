@@ -45,11 +45,13 @@ Fitur notifikasi WhatsApp (Fonnte) sudah terintegrasi secara cerdas:
 *   **Progress Reminder Otomatis/Manual**: Setiap 4x kehadiran anak, sistem mengirim ringkasan belajar ke Orang Tua. Admin juga bisa **mengirim ulang secara manual** dari halaman Detail Sesi. Laporan kini menggunakan format Emoji interaktif (✅ / ❌) yang detail untuk setiap pertemuannya.
 *   **Pengingat Instruktur**: Mengirim reminder manual jadwal mengajar kepada Instruktur.
 
-### 5. Analisis Jadwal & Beban Kerja
+### 5. Analisis Jadwal & Beban Kerja (`/admin/analytics/schedule-distribution`)
 *   **Distribusi Jadwal**: Melihat grafik beban kerja instruktur untuk memastikan pembagian jam mengajar yang adil.
-    *   **Grafik Visual**: Membandingkan jumlah sesi antar instruktur.
-    *   **Rekomendasi**: Sistem otomatis menyarankan instruktur yang masih kurang jam mengajar (di bawah rata-rata).
-    *   **Export Data**: Unduh laporan distribusi ke format **Excel** untuk analisa lebih lanjut.
+    *   **Filter Multi-Periode**: Admin dapat memilih tampilan data berdasarkan *Periode Honor Berjalan (Siklus 11-10)*, *Periode Lalu*, *2 Bulan Lalu*, *Seluruh Waktu (All Time)*, *Bulan & Tahun*, atau *Custom Date Range*.
+    *   **Grafik Visual**: Membandingkan jumlah sesi antar instruktur secara real-time.
+    *   **Rekomendasi Penambahan Sesi**: Sistem otomatis menyarankan instruktur yang masih memiliki jam mengajar di bawah rata-rata.
+    *   **Pencarian Live Instruktur**: Menyaring nama instruktur secara instan pada tabel data.
+    *   **Export Excel Dinamis**: Unduh berkas rekap distribusi ke format Excel sesuai dengan periode yang sedang aktif dipilih.
 
 ### 6. Membuat Program Ekstrakurikuler Baru
 
