@@ -356,9 +356,12 @@ class EkstrakurikulerSessionController extends Controller
             $data['user_id_instruktur'] = $session->user_id_instruktur ?? $session->rombel?->user_id_instruktur;
         }
 
-        $submittedAsisten = $request->input('user_id_asisten');
-        if (!empty($submittedAsisten)) {
-            $data['user_id_asisten'] = (int) $submittedAsisten;
+        // Jika field asisten dikirim (termasuk kosong = "Tidak Ada Asisten"),
+        // gunakan nilai yang dikirim. Jika tidak ada di request sama sekali, pertahankan lama.
+        if ($request->has('user_id_asisten')) {
+            $data['user_id_asisten'] = $request->filled('user_id_asisten')
+                ? (int) $request->input('user_id_asisten')
+                : null;  // "" → null (hapus asisten)
         } else {
             $data['user_id_asisten'] = $session->user_id_asisten;
         }

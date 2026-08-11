@@ -94,31 +94,76 @@ class DashboardAnalyticsController extends Controller
     /**
      * Display schedule distribution analytics.
      */
-    public function scheduleDistribution()
+    public function scheduleDistribution(Request $request)
     {
-        // Logic: Count sessions within current "Honor Period" (11th to 10th)
+        $periodMode = $request->input('period_mode', 'honor_current');
         $now = Carbon::now();
         $cutoffDay = 10;
-        
-        if ($now->day > $cutoffDay) {
-            // Period: 11th This Month -> 10th Next Month
-            $periodStart = $now->copy()->startOfMonth()->addDays($cutoffDay);
-            $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+
+        $periodStart = null;
+        $periodEnd = null;
+        $periodLabel = '';
+
+        if ($periodMode === 'honor_current') {
+            if ($now->day > $cutoffDay) {
+                $periodStart = $now->copy()->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            } else {
+                $periodStart = $now->copy()->subMonth()->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            }
+            $periodLabel = 'Periode Honor Berjalan (' . $periodStart->translatedFormat('d M Y') . ' - ' . $periodEnd->translatedFormat('d M Y') . ')';
+        } elseif ($periodMode === 'honor_prev') {
+            if ($now->day > $cutoffDay) {
+                $periodStart = $now->copy()->subMonth()->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            } else {
+                $periodStart = $now->copy()->subMonths(2)->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            }
+            $periodLabel = 'Periode Honor Lalu (' . $periodStart->translatedFormat('d M Y') . ' - ' . $periodEnd->translatedFormat('d M Y') . ')';
+        } elseif ($periodMode === 'honor_prev2') {
+            if ($now->day > $cutoffDay) {
+                $periodStart = $now->copy()->subMonths(2)->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            } else {
+                $periodStart = $now->copy()->subMonths(3)->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            }
+            $periodLabel = 'Periode Honor 2 Bulan Lalu (' . $periodStart->translatedFormat('d M Y') . ' - ' . $periodEnd->translatedFormat('d M Y') . ')';
+        } elseif ($periodMode === 'all') {
+            $periodStart = null;
+            $periodEnd = null;
+            $periodLabel = 'Seluruh Waktu (All Time)';
+        } elseif ($periodMode === 'custom' && $request->filled('start_date') && $request->filled('end_date')) {
+            $periodStart = Carbon::parse($request->input('start_date'))->startOfDay();
+            $periodEnd = Carbon::parse($request->input('end_date'))->endOfDay();
+            $periodLabel = 'Custom (' . $periodStart->translatedFormat('d M Y') . ' - ' . $periodEnd->translatedFormat('d M Y') . ')';
+        } elseif ($periodMode === 'month' && $request->filled('month') && $request->filled('year')) {
+            $m = (int) $request->input('month');
+            $y = (int) $request->input('year');
+            $periodStart = Carbon::createFromDate($y, $m, 1)->startOfMonth();
+            $periodEnd = Carbon::createFromDate($y, $m, 1)->endOfMonth();
+            $periodLabel = 'Bulan ' . $periodStart->translatedFormat('F Y');
         } else {
-            // Period: 11th Last Month -> 10th This Month
-            $periodStart = $now->copy()->subMonth()->startOfMonth()->addDays($cutoffDay);
-            $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            $periodMode = 'honor_current';
+            if ($now->day > $cutoffDay) {
+                $periodStart = $now->copy()->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            } else {
+                $periodStart = $now->copy()->subMonth()->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            }
+            $periodLabel = 'Periode Honor Berjalan (' . $periodStart->translatedFormat('d M Y') . ' - ' . $periodEnd->translatedFormat('d M Y') . ')';
         }
 
-        $data['period_start'] = $periodStart;
-        $data['period_end'] = $periodEnd;
-
-        $instructors = User::teachingStaff() // Use new scope (ID >= 48)
+        $instructors = User::teachingStaff()
             ->with(['instructorProfile'])
             ->withCount(['ekstrakurikulerSessions' => function ($query) use ($periodStart, $periodEnd) {
-                // Count ALL sessions (except cancelled) in the period
-                $query->where('status', '!=', 'dibatalkan')
-                      ->whereBetween('tanggal_terjadwal', [$periodStart, $periodEnd]);
+                $query->where('status', '!=', 'dibatalkan');
+                if ($periodStart && $periodEnd) {
+                    $query->whereBetween('tanggal_terjadwal', [$periodStart, $periodEnd]);
+                }
             }])
             ->orderBy('ekstrakurikuler_sessions_count', 'desc')
             ->orderBy('nama_lengkap', 'asc')
@@ -129,15 +174,12 @@ class DashboardAnalyticsController extends Controller
         $activeInstructorCount = $instructors->count();
         $averageSessions = $activeInstructorCount > 0 ? round($totalSessions / $activeInstructorCount, 1) : 0;
 
-        // Recommendations: Instructors with sessions below average (and active)
-        // Split into "Critical" (0 sessions) and "Warning" (< Average)
         $recommendedInstructors = $instructors->filter(function ($instr) use ($averageSessions) {
             return $instr->ekstrakurikuler_sessions_count < $averageSessions;
         })->sortBy('ekstrakurikuler_sessions_count');
 
-        // Prepare Chart Data (Filter: Only show instructors with > 0 sessions to declutter)
         $activeChartInstructors = $instructors->where('ekstrakurikuler_sessions_count', '>', 0)
-                                              ->sortByDesc('ekstrakurikuler_sessions_count'); // Optional: Sort by count
+                                              ->sortByDesc('ekstrakurikuler_sessions_count');
 
         $chartData = [
             'labels' => $activeChartInstructors->pluck('nama_lengkap')->toArray(),
@@ -146,31 +188,82 @@ class DashboardAnalyticsController extends Controller
 
         return view('admin.analytics.schedule-distribution', [
             'instructors' => $instructors,
+            'period_mode' => $periodMode,
             'period_start' => $periodStart,
             'period_end' => $periodEnd,
+            'period_label' => $periodLabel,
             'average_sessions' => $averageSessions,
             'recommended_instructors' => $recommendedInstructors,
-            'chart_data' => $chartData
+            'chart_data' => $chartData,
+            'selected_month' => $request->input('month', now()->month),
+            'selected_year' => $request->input('year', now()->year),
+            'start_date' => $request->input('start_date'),
+            'end_date' => $request->input('end_date'),
         ]);
     }
 
     /**
      * Export schedule distribution to Excel.
      */
-    public function exportScheduleDistribution()
+    public function exportScheduleDistribution(Request $request)
     {
+        $periodMode = $request->input('period_mode', 'honor_current');
         $now = Carbon::now();
         $cutoffDay = 10;
-        
-        if ($now->day > $cutoffDay) {
-            $periodStart = $now->copy()->startOfMonth()->addDays($cutoffDay);
-            $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+
+        $periodStart = null;
+        $periodEnd = null;
+
+        if ($periodMode === 'honor_current') {
+            if ($now->day > $cutoffDay) {
+                $periodStart = $now->copy()->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            } else {
+                $periodStart = $now->copy()->subMonth()->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            }
+        } elseif ($periodMode === 'honor_prev') {
+            if ($now->day > $cutoffDay) {
+                $periodStart = $now->copy()->subMonth()->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            } else {
+                $periodStart = $now->copy()->subMonths(2)->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            }
+        } elseif ($periodMode === 'honor_prev2') {
+            if ($now->day > $cutoffDay) {
+                $periodStart = $now->copy()->subMonths(2)->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            } else {
+                $periodStart = $now->copy()->subMonths(3)->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            }
+        } elseif ($periodMode === 'all') {
+            $periodStart = null;
+            $periodEnd = null;
+        } elseif ($periodMode === 'custom' && $request->filled('start_date') && $request->filled('end_date')) {
+            $periodStart = Carbon::parse($request->input('start_date'))->startOfDay();
+            $periodEnd = Carbon::parse($request->input('end_date'))->endOfDay();
+        } elseif ($periodMode === 'month' && $request->filled('month') && $request->filled('year')) {
+            $m = (int) $request->input('month');
+            $y = (int) $request->input('year');
+            $periodStart = Carbon::createFromDate($y, $m, 1)->startOfMonth();
+            $periodEnd = Carbon::createFromDate($y, $m, 1)->endOfMonth();
         } else {
-            $periodStart = $now->copy()->subMonth()->startOfMonth()->addDays($cutoffDay);
-            $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            if ($now->day > $cutoffDay) {
+                $periodStart = $now->copy()->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            } else {
+                $periodStart = $now->copy()->subMonth()->startOfMonth()->addDays($cutoffDay);
+                $periodEnd = $periodStart->copy()->addMonth()->subDay()->endOfDay();
+            }
         }
 
-        $fileName = 'Distribusi_Jadwal_' . $periodStart->format('Y-m-d') . '_to_' . $periodEnd->format('Y-m-d') . '.xlsx';
+        $dateSuffix = $periodStart && $periodEnd 
+            ? $periodStart->format('Y-m-d') . '_to_' . $periodEnd->format('Y-m-d')
+            : 'All_Time';
+
+        $fileName = 'Distribusi_Jadwal_' . $dateSuffix . '.xlsx';
 
         return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\ScheduleDistributionExport($periodStart, $periodEnd), $fileName);
     }

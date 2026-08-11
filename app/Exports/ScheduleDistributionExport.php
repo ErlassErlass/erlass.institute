@@ -28,9 +28,10 @@ class ScheduleDistributionExport implements FromCollection, WithHeadings, WithMa
         return User::teachingStaff()
             ->with(['instructorProfile:user_id,kota_domisili'])
             ->withCount(['ekstrakurikulerSessions' => function ($query) {
-                // Count ALL sessions (except cancelled) in the period
-                $query->where('status', '!=', 'dibatalkan')
-                      ->whereBetween('tanggal_terjadwal', [$this->periodStart, $this->periodEnd]);
+                $query->where('status', '!=', 'dibatalkan');
+                if ($this->periodStart && $this->periodEnd) {
+                    $query->whereBetween('tanggal_terjadwal', [$this->periodStart, $this->periodEnd]);
+                }
             }])
             ->orderBy('ekstrakurikuler_sessions_count', 'desc')
             ->orderBy('nama_lengkap', 'asc')
