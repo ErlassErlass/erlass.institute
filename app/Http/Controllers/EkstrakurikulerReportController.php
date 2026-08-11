@@ -228,9 +228,10 @@ class EkstrakurikulerReportController extends Controller
                 'pertemuan_ke' => $session->nomor_pertemuan,
                 'rombel' => $session->rombel->nama_rombel,
                 'sekolah_kodlan' => $session->rombel->ekstrakurikuler->sekolah_kodlan,
-                'jadwal_mengajar' => $session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal,
-                'jam_mulai' => $session->jam_mulai_terjadwal, // Defaulting to scheduled if not tracked
-                'jam_selesai' => now()->format('H:i'), // Finished just now
+                'jam_mulai' => $session->jam_mulai_terjadwal ? \Carbon\Carbon::parse($session->jam_mulai_terjadwal)->format('H:i') : '13:00',
+                'jam_selesai' => $session->jam_selesai_terjadwal ? \Carbon\Carbon::parse($session->jam_selesai_terjadwal)->format('H:i') : (
+                    $session->jam_mulai_terjadwal ? \Carbon\Carbon::parse($session->jam_mulai_terjadwal)->addMinutes(90)->format('H:i') : '14:30'
+                ),
                 'kategori_pengajaran' => 'ekstrakurikuler',
                 'materi_pengajaran' => $topikMateriClean,
                 'jumlah_siswa_hadir' => $jumlahSiswaHadir,

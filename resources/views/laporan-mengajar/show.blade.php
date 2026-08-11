@@ -112,7 +112,8 @@
                                                 </p>
                                             </div>
                                             <div class="col-md-6 mt-2">
-                                                <small class="text-muted">Status Check-in (Punctuality):</small>
+                                            <div class="col-md-6 mt-2">
+                                                <small class="text-muted">Kehadiran Sekolah (Check-in):</small>
                                                 <p class="mb-1">
                                                     @php
                                                         $checkinStatus = $ekstrakurikulerSession->actual_checkin_status ?? 'on_time';
@@ -124,18 +125,34 @@
                                                             default => 'secondary',
                                                         };
                                                         $checkinLabel = match($checkinStatus) {
-                                                            'excellent' => 'Excellent (Tepat Waktu & Cepat)',
-                                                            'on_time' => 'On Time (Tepat Waktu)',
-                                                            'warning' => 'Warning (Terlambat <15 Menit)',
-                                                            'penalty' => 'Penalty (Terlambat >15 Menit)',
+                                                            'excellent' => 'Excellent (Datang Cepat)',
+                                                            'on_time' => 'On Time (Datang Tepat Waktu)',
+                                                            'warning' => 'Warning (Terlambat <15 Mnt)',
+                                                            'penalty' => 'Penalty (Terlambat >15 Mnt)',
                                                             default => 'Belum Check-in / N/A',
                                                         };
                                                     @endphp
                                                     <span class="badge bg-{{ $badgeCheckin }}">
-                                                        {{ $checkinLabel }}
+                                                        <i class="bi bi-geo-alt-fill me-1"></i>{{ $checkinLabel }}
                                                     </span>
-                                                    @if($checkinStatus === 'penalty')
-                                                        <small class="text-danger d-block mt-1 fw-semibold"><i class="bi bi-exclamation-octagon me-1"></i>Denda Keterlambatan Terhitung</small>
+                                                </p>
+                                            </div>
+                                            <div class="col-md-6 mt-2">
+                                                <small class="text-muted">Ketepatan Submit Laporan (H+1):</small>
+                                                <p class="mb-1">
+                                                    @php
+                                                        $tglJadwal = \Carbon\Carbon::parse($laporanMengajar->jadwal_mengajar)->startOfDay();
+                                                        $tglSubmit = $laporanMengajar->created_at ? $laporanMengajar->created_at->startOfDay() : now()->startOfDay();
+                                                        $selisihHari = (int) $tglJadwal->diffInDays($tglSubmit, false);
+                                                    @endphp
+                                                    @if($selisihHari <= 1)
+                                                        <span class="badge bg-success">
+                                                            <i class="bi bi-check-circle-fill me-1"></i>Tepat Waktu (H+{{ max(0, $selisihHari) }})
+                                                        </span>
+                                                    @else
+                                                        <span class="badge bg-danger">
+                                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Terlambat (H+{{ $selisihHari }})
+                                                        </span>
                                                     @endif
                                                 </p>
                                             </div>
@@ -149,7 +166,7 @@
                                                 </p>
                                             </div>
                                             @if($ekstrakurikulerSession->topik_materi)
-                                                <div class="col-12">
+                                                <div class="col-12 mt-2">
                                                     <small class="text-muted">Topik Session:</small>
                                                     <p class="mb-1">{{ $ekstrakurikulerSession->topik_materi }}</p>
                                                 </div>
@@ -176,7 +193,14 @@
                         </div>
                         <div class="col-md-6">
                             <strong>Jam:</strong>
-                            <p>{{ \Carbon\Carbon::parse($laporanMengajar->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($laporanMengajar->jam_selesai)->format('H:i') }}</p>
+                            @php
+                                $jMulai = \Carbon\Carbon::parse($laporanMengajar->jam_mulai);
+                                $jSelesai = \Carbon\Carbon::parse($laporanMengajar->jam_selesai);
+                                if ($jSelesai->lessThanOrEqualTo($jMulai)) {
+                                    $jSelesai = (clone $jMulai)->addMinutes(90);
+                                }
+                            @endphp
+                            <p>{{ $jMulai->format('H:i') }} - {{ $jSelesai->format('H:i') }} WIB</p>
                         </div>
                         <div class="col-md-6">
                             <strong>Rombel:</strong>

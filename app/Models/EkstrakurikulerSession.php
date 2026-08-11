@@ -436,7 +436,18 @@ class EkstrakurikulerSession extends Model
             // Jika langsung complete tanpa start, gunakan waktu jadwal atau now
             $this->jam_mulai_aktual = $this->jam_mulai_terjadwal; 
         }
-        $this->jam_selesai_aktual = now()->format('H:i');
+
+        if ($this->jam_selesai_terjadwal) {
+            $this->jam_selesai_aktual = $this->jam_selesai_terjadwal;
+        } else {
+            $nowTime = now()->format('H:i');
+            $startTime = $this->jam_mulai_aktual ? \Carbon\Carbon::parse($this->jam_mulai_aktual)->format('H:i') : '13:00';
+            if ($nowTime < $startTime) {
+                $this->jam_selesai_aktual = \Carbon\Carbon::parse($startTime)->addMinutes(90)->format('H:i');
+            } else {
+                $this->jam_selesai_aktual = $nowTime;
+            }
+        }
 
         if (! empty($data['catatan'])) {
             $this->catatan = $data['catatan'];
