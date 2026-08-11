@@ -296,7 +296,6 @@
                                 </div>
                             </td>
                         </tr>
-                        @empty
                         @endforelse
                     </tbody>
                 </table>
