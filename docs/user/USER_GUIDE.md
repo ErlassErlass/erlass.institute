@@ -213,6 +213,16 @@ Status: Terjadwal
 --------------------------------
 ```
 
+### Penugasan Instruktur Massal ke 32 Pertemuan Rombel (Opsi B)
+
+Admin/Instruktur dapat menerapkan penugasan tim pengajar ke seluruh pertemuan rutin dalam satu Rombel secara massal melalui form Edit Sesi:
+1. Buka form edit sesi (misal Pertemuan #1) pada Rombel yang diinginkan.
+2. Pilih **Instruktur** dan **Asisten** yang bertugas.
+3. Centang opsi: **`[x] Terapkan Instruktur & Asisten ini ke seluruh sesi terjadwal dalam Rombel ini (Pertemuan 1 s/d 32)`**.
+4. Klik **Simpan Perubahan**. Sistem akan otomatis menugaskan tim pengajar tersebut ke seluruh sesi tersisa yang berstatus `Terjadwal` dan mengupdate master Rombel. Sesi terdahulu yang sudah `Selesai` tidak akan terpengaruh.
+
+---
+
 ### Rekap Absensi (Untuk Invoice)
 
 Halaman khusus untuk Admin/Keuangan memantau tagihan berdasarkan kehadiran siswa.

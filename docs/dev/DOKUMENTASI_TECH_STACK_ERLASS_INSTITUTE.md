@@ -1007,4 +1007,31 @@ Format title tab: `[Nama Halaman] — Erlass Ekskul`
 
 ---
 
+## 👥 Modul Penugasan Tim Pengajar Massal (*Bulk Instructor Assignment — Opsi B*)
+
+### 1. Arsitektur Pemrosesan Data
+* **Trigger Input**: Parameter boolean `apply_to_all_sessions` yang dikirim dari form edit sesi (`edit.blade.php`).
+* **Sinkronisasi Master Rombel**:
+  ```php
+  if ($request->boolean('apply_to_all_sessions') && $session->ekstrakurikuler_rombel_id) {
+      if ($session->rombel) {
+          $session->rombel->update([
+              'user_id_instruktur' => $data['user_id_instruktur'],
+              'user_id_asisten' => $data['user_id_asisten'],
+          ]);
+      }
+      EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $session->ekstrakurikuler_rombel_id)
+          ->where('status', EkstrakurikulerSession::STATUS_TERJADWAL)
+          ->where('id', '!=', $session->id)
+          ->update([
+              'user_id_instruktur' => $data['user_id_instruktur'],
+              'user_id_asisten' => $data['user_id_asisten'],
+              'updated_by' => Auth::id(),
+          ]);
+  }
+  ```
+* **Proteksi Sesi Selesai**: Query update dibatasi ketat `where('status', STATUS_TERJADWAL)` sehingga riwayat presensi & laporan mengajar pada sesi berstatus `Selesai` tidak mengalami *data override*.
+
+---
+
 *Dokumentasi ini dibuat berdasarkan analisis kode sumber project `/root/webapperlass` (erlass.institute).*

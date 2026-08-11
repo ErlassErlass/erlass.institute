@@ -405,6 +405,28 @@ class EkstrakurikulerSessionController extends Controller
 
         $session->update($data);
 
+        // Process Option B: Apply instructor & assistant to all scheduled sessions in the Rombel
+        $bulkUpdatedCount = 0;
+        if ($request->boolean('apply_to_all_sessions') && $session->ekstrakurikuler_rombel_id) {
+            // 1. Sync parent Rombel's master assigned instructor & assistant
+            if ($session->rombel) {
+                $session->rombel->update([
+                    'user_id_instruktur' => $data['user_id_instruktur'],
+                    'user_id_asisten' => $data['user_id_asisten'],
+                ]);
+            }
+
+            // 2. Bulk update all other sessions in the same Rombel that are still TERJADWAL
+            $bulkUpdatedCount = EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $session->ekstrakurikuler_rombel_id)
+                ->where('status', EkstrakurikulerSession::STATUS_TERJADWAL)
+                ->where('id', '!=', $session->id)
+                ->update([
+                    'user_id_instruktur' => $data['user_id_instruktur'],
+                    'user_id_asisten' => $data['user_id_asisten'],
+                    'updated_by' => Auth::id(),
+                ]);
+        }
+
         // If instructor has changed, record into rombel_instructor_history
         if ($newInstruktorId && $oldInstruktorId !== $newInstruktorId) {
             $rombel = $session->rombel;
@@ -435,8 +457,13 @@ class EkstrakurikulerSessionController extends Controller
             }
         }
 
+        $successMessage = 'Session berhasil diupdate';
+        if ($bulkUpdatedCount > 0) {
+            $successMessage .= ' dan penugasan tim pengajar telah diterapkan ke ' . ($bulkUpdatedCount + 1) . ' sesi terjadwal dalam Rombel.';
+        }
+
         $redirect = redirect()->route($targetRoute, $routeParams)
-            ->with('success', 'Session berhasil diupdate');
+            ->with('success', $successMessage);
             
         if (!empty($softWarnings)) {
             $redirect->with('warning', 'Session diupdate dengan Peringatan Ketersediaan: ' . implode(', ', $softWarnings));

@@ -172,6 +172,19 @@
                                 @enderror
                             </div>
                             
+                            <!-- Option B: Apply to All Scheduled Sessions -->
+                            <div class="col-12 mt-3">
+                                <div class="form-check form-switch p-3 bg-light rounded border">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" name="apply_to_all_sessions" value="1" id="apply_to_all_sessions" {{ old('apply_to_all_sessions') ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-bold text-dark" for="apply_to_all_sessions">
+                                        Terapkan Instruktur & Asisten ini ke seluruh sesi terjadwal dalam Rombel ini (Pertemuan 1 s/d 32)
+                                    </label>
+                                    <div class="form-text text-muted small mt-1">
+                                        <i class="bi bi-info-circle me-1"></i> Centang opsi ini jika Anda ingin instruktur/asisten yang dipilih bertugas untuk seluruh pertemuan rutin Rombel yang belum dilaksanakan. Sesi yang sudah selesai tidak akan terpengaruh.
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Conflict Check Params -->
                             <div class="col-12 mt-3">
                                 <button type="button" onclick="checkConflicts()" class="btn btn-warning text-dark">
