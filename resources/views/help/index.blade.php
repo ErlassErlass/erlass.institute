@@ -459,6 +459,9 @@
         <button class="help-tab-btn active" role="tab" aria-selected="true" aria-controls="tab-panduan" id="btn-panduan" onclick="switchTab('panduan', this)">
             <i class="bi bi-list-check"></i> Panduan 101
         </button>
+        <button class="help-tab-btn" role="tab" aria-selected="false" aria-controls="tab-honor" id="btn-honor" onclick="switchTab('honor', this)">
+            <i class="bi bi-cash-coin"></i> Kompensasi & Honor
+        </button>
         <button class="help-tab-btn" role="tab" aria-selected="false" aria-controls="tab-faq" id="btn-faq" onclick="switchTab('faq', this)">
             <i class="bi bi-question-circle"></i> Tanya Jawab (FAQ)
         </button>
@@ -583,7 +586,7 @@
     {{-- ═══════════════════════════════════════════ --}}
     {{-- SECTION: Kompensasi & Honor                --}}
     {{-- ═══════════════════════════════════════════ --}}
-    <div class="tab-pane fade show" id="honor-tab-pane" style="display:block !important; opacity:1 !important;">
+    <div class="help-tab-content" id="tab-honor" role="tabpanel" aria-labelledby="btn-honor">
 
         <h2 class="section-heading">💰 Kompensasi & Honor Mengajar</h2>
         <p class="text-muted mb-4" style="font-size:.9rem;">Informasi resmi mengenai besaran honorarium per sesi mengajar, formula transportasi, dan ketentuan khusus sesuai <strong>Keputusan Direksi No. 536/EPI/V/2025</strong>.</p>
