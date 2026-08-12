@@ -424,13 +424,14 @@
         <div class="col-lg-8 col-12">
             <!-- Today's Schedule (Visible to ALL roles) -->
             <div class="dashboard-card mb-4">
-                <div class="dashboard-card-header p-3.5 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold text-dark">
-                        <i class="bi bi-calendar-day me-2 text-primary"></i>Jadwal Hari Ini 
-                        <span class="text-muted fs-6 ms-2 font-monospace">({{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM Y') }})</span>
+                <div class="dashboard-card-header p-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-calendar2-week-fill text-primary"></i>
+                        <span>Jadwal Hari Ini</span>
+                        <span class="text-muted fs-6 fw-normal">({{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM Y') }})</span>
                     </h5>
                     @if(isset($todays_schedule))
-                        <span class="badge bg-primary rounded-pill px-3 py-2">{{ $todays_schedule->count() }} Sesi Hari Ini</span>
+                        <span class="badge bg-primary rounded-pill px-3 py-2 fw-semibold">{{ $todays_schedule->count() }} Sesi Hari Ini</span>
                     @endif
                 </div>
                 <div class="card-body p-0">
