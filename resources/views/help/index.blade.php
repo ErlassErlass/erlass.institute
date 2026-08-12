@@ -309,6 +309,18 @@
         margin-left: .4rem;
         vertical-align: middle;
     }
+    .comp-required {
+        font-size: .65rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        background: #fef2f2;
+        color: #b91c1c;
+        padding: .15rem .5rem;
+        border-radius: 999px;
+        margin-left: .4rem;
+        vertical-align: middle;
+    }
 
     /* ─── Deadline banner ─── */
     .deadline-banner {
@@ -541,8 +553,8 @@
             <div class="comp-item">
                 <div class="comp-icon" style="background:#fdf4ff;color:#7e22ce;"><i class="bi bi-file-earmark-zip-fill"></i></div>
                 <div>
-                    <h6>File Project <span class="comp-optional">Opsional</span></h6>
-                    <p>Unggah file karya siswa (.sb3 Scratch, Micro:bit, Python, PDF) bila tersedia di akhir pertemuan.</p>
+                    <h6>File Project <span class="comp-required">Wajib</span></h6>
+                    <p>Unggah file karya siswa (.sb3 Scratch, Micro:bit, Python, PDF) di akhir setiap pertemuan. File ini wajib diunggah sebagai bukti hasil kegiatan belajar.</p>
                 </div>
             </div>
             <div class="comp-item">
