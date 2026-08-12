@@ -182,7 +182,7 @@
                     {{ $greeting }}, {{ Auth::user()->nama_lengkap }}! 👋
                 </h1>
                 <p class="hero-subtext mb-0">
-                    Sistem Manajemen Operational & Laporan Mengajar Ekstrakurikuler Erlass Institute
+                    Sistem Manajemen Operational & Laporan Mengajar Ekstrakurikuler Erlass Prokreatif Indonesia
                 </p>
             </div>
             <div class="col-md-5 text-md-end">
