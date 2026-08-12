@@ -456,6 +456,12 @@ class EkstrakurikulerRombel extends Model
     {
         parent::boot();
 
+        static::saving(function ($model) {
+            if (!empty($model->nomor_rombel)) {
+                $model->nama_rombel = "Rombel {$model->nomor_rombel}";
+            }
+        });
+
         // Set created_by dan updated_by otomatis
         static::creating(function ($model) {
             if (auth()->check()) {
