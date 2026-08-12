@@ -816,21 +816,23 @@ function exportScheduleToImage() {
         </div>
     </div>
 </div>
-<div id="export-table-container" style="position: absolute; left: -9999px; top: -9999px; width: 1200px; background-color: #ffffff; padding: 20px;">
+<div id="export-table-container" style="position: absolute; left: -9999px; top: -9999px; width: 1400px; background-color: #ffffff; padding: 20px;">
     <h3 style="font-family: Arial, sans-serif; font-weight: bold; margin-bottom: 5px; color: #333; text-align: center; text-transform: uppercase; font-size: 16px;">JADWAL EKSTRAKURIKULER ERLASS</h3>
     @if(request('tanggal_dari'))
         <p style="font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; text-align: center; margin-top: 0; margin-bottom: 20px; color: #555;">
-            TANGGAL: {{ request('tanggal_dari') }} {{ request('tanggal_sampai') && request('tanggal_sampai') !== request('tanggal_dari') ? ' s/d ' . request('tanggal_sampai') : '' }}
+            TANGGAL MENGAJAR: {{ request('tanggal_dari') }} {{ request('tanggal_sampai') && request('tanggal_sampai') !== request('tanggal_dari') ? ' s/d ' . request('tanggal_sampai') : '' }}
         </p>
     @else
         <p style="font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; text-align: center; margin-top: 0; margin-bottom: 20px; color: #555;">
-            TANGGAL: {{ now()->format('d-m-Y') }}
+            TANGGAL MENGAJAR: {{ now()->format('d-m-Y') }}
         </p>
     @endif
     <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10px; border: 1px solid #cbd5e1;">
         <thead>
             <tr style="background-color: #f1f5f9; color: #1e293b; font-weight: bold; border: 1px solid #cbd5e1; text-transform: uppercase;">
                 <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 30px;">No.</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 90px;">Tanggal Mengajar</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 70px;">Pertemuan</th>
                 <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Nama Instruktur</th>
                 <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Asst. Instruktur</th>
                 <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Sekolah</th>
@@ -848,6 +850,15 @@ function exportScheduleToImage() {
             @foreach($sessions as $index => $session)
             <tr style="background-color: {{ $index % 2 === 0 ? '#ffffff' : '#f8fafc' }}; color: #334155; border: 1px solid #cbd5e1;">
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center;">{{ $index + 1 }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0f172a;">
+                    @php
+                        $tgl = $session->laporanMengajar?->jadwal_mengajar ?? ($session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal);
+                    @endphp
+                    {{ $tgl ? \Carbon\Carbon::parse($tgl)->format('d/m/Y') : '-' }}
+                </td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #1e40af;">
+                    Ke-{{ $session->nomor_pertemuan }}
+                </td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left; font-weight: bold; color: #0f172a;">{{ $session->instruktur->nama_lengkap ?? '-' }}</td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->asisten->nama_lengkap ?? '-' }}</td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->sekolah->namasekolah ?? '-' }}</td>
