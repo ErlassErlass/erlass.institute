@@ -73,14 +73,42 @@ class AgendaKegiatanController extends Controller
 
             if ($request->filled('sekolah_kodlan')) {
                 $query->where('ekstrakurikuler.sekolah_kodlan', $request->sekolah_kodlan);
+
+                $rombels = $query->select(
+                        'ekstrakurikuler_rombel.id',
+                        'ekstrakurikuler_rombel.nama_rombel',
+                        'ekstrakurikuler.kategori_program'
+                    )
+                    ->distinct()
+                    ->orderBy('ekstrakurikuler_rombel.nama_rombel')
+                    ->get();
+
+                $hasMultiplePrograms = $rombels->pluck('kategori_program')->unique()->count() > 1;
+
+                $result = $rombels->map(function ($r) use ($hasMultiplePrograms) {
+                    return [
+                        'id' => (string) $r->id,
+                        'nama_rombel' => $hasMultiplePrograms ? "{$r->nama_rombel} ({$r->kategori_program})" : $r->nama_rombel,
+                    ];
+                });
+
+                return response()->json($result);
+            } else {
+                $uniqueNames = $query->distinct()
+                    ->orderBy('ekstrakurikuler_rombel.nama_rombel')
+                    ->pluck('ekstrakurikuler_rombel.nama_rombel')
+                    ->unique()
+                    ->values();
+
+                $result = $uniqueNames->map(function ($name) {
+                    return [
+                        'id' => $name,
+                        'nama_rombel' => $name,
+                    ];
+                });
+
+                return response()->json($result);
             }
-
-            $rombelList = $query->distinct()
-                ->orderBy('ekstrakurikuler_rombel.nama_rombel')
-                ->select('ekstrakurikuler_rombel.id', 'ekstrakurikuler_rombel.nama_rombel')
-                ->get();
-
-            return response()->json($rombelList);
         }
 
         // Default: fetch sekolah
@@ -128,7 +156,14 @@ class AgendaKegiatanController extends Controller
         }
 
         if ($request->filled('rombel_id')) {
-            $query->where('ekstrakurikuler_rombel_id', $request->rombel_id);
+            $rVal = $request->rombel_id;
+            if (is_numeric($rVal)) {
+                $query->where('ekstrakurikuler_rombel_id', $rVal);
+            } else {
+                $query->whereHas('rombel', function ($q) use ($rVal) {
+                    $q->where('nama_rombel', $rVal);
+                });
+            }
         }
 
         if ($request->filled('program')) {

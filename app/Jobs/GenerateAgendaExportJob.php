@@ -149,7 +149,14 @@ class GenerateAgendaExportJob implements ShouldQueue
         }
 
         if (!empty($this->filters['rombel_id'])) {
-            $query->where('ekstrakurikuler_rombel_id', $this->filters['rombel_id']);
+            $rVal = $this->filters['rombel_id'];
+            if (is_numeric($rVal)) {
+                $query->where('ekstrakurikuler_rombel_id', $rVal);
+            } else {
+                $query->whereHas('rombel', function ($q) use ($rVal) {
+                    $q->where('nama_rombel', $rVal);
+                });
+            }
         }
 
         if (!empty($this->filters['tanggal_dari'])) {
