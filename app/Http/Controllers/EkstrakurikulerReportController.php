@@ -294,6 +294,13 @@ class EkstrakurikulerReportController extends Controller
                 'auto_create_laporan' => false // We just created it manually
             ]);
 
+            // 4.6. Trigger Admin Milestone Notification (Meeting 4, 8, 12, 16, 20, 24, 28, 32)
+            try {
+                app(\App\Services\MilestoneNotificationService::class)->checkAndTriggerMilestoneNotification($session, $laporan);
+            } catch (\Exception $e) {
+                Log::error("Admin Milestone Notification Error for session {$session->id}: " . $e->getMessage());
+            }
+
             // 4.5. Trigger WhatsApp Progress Reminder
             try {
                 $studentsToNotify = Siswa::whereIn('id', array_keys($request->absensi))

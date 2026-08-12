@@ -783,6 +783,42 @@
                     </div>
                     
                     <div class="d-flex align-items-center gap-3">
+                        @if(Auth::check() && in_array(Auth::user()->role, ['webmaster', 'admin_sistem', 'admin', 'debug_user']))
+                        <!-- Notification Bell Dropdown (Opsi A) -->
+                        <div class="dropdown me-1" id="notificationBellDropdown">
+                            <button class="btn btn-light border p-2 position-relative d-flex align-items-center justify-content-center" 
+                                    type="button" id="notifBellBtn" data-bs-toggle="dropdown" aria-expanded="false" 
+                                    style="width: 40px; height: 40px; border-radius: 10px;" title="Notifikasi Milestone Laporan">
+                                <i class="bi bi-bell fs-5 text-dark"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                                      id="notifCountBadge" style="display:none; font-size: 0.65rem; padding: 0.25em 0.5em;">0</span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 animate slideIn p-0" 
+                                 aria-labelledby="notifBellBtn" 
+                                 style="width: 380px; max-width: 92vw; border-radius: 14px; overflow: hidden; z-index: 1055;">
+                                <div class="p-3 bg-primary text-white d-flex align-items-center justify-content-between">
+                                    <div class="fw-bold" style="font-size: 0.88rem;">
+                                        <i class="bi bi-bell-fill me-1"></i> Milestone Laporan (4, 8, 12... 32)
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-link text-white text-decoration-none p-0 fw-semibold" 
+                                            onclick="markAllNotifsAsRead()" style="font-size: 0.72rem;">
+                                        Tandai Semua Dibaca
+                                    </button>
+                                </div>
+                                <div id="notifListContainer" style="max-height: 380px; overflow-y: auto;">
+                                    <div class="text-center py-4 text-muted small" id="notifLoading">
+                                        <div class="spinner-border spinner-border-sm text-primary me-1"></div> Memuat...
+                                    </div>
+                                </div>
+                                <div class="p-2 bg-light text-center border-top">
+                                    <span class="text-muted small" style="font-size: 0.72rem;">
+                                        <i class="bi bi-info-circle me-1"></i>Notifikasi otomatis untuk sesi kelipatan 4
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
                         <div class="dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 py-1 pe-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center border" style="width: 38px; height: 38px;">
@@ -1021,5 +1057,118 @@
             NProgress.start();
         });
     </script>
+
+    @if(Auth::check() && in_array(Auth::user()->role, ['webmaster', 'admin_sistem', 'admin', 'debug_user']))
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchUnreadNotifications();
+        setInterval(fetchUnreadNotifications, 30000);
+    });
+
+    function fetchUnreadNotifications() {
+        fetch("{{ route('admin.notifications.unread') }}")
+            .then(r => r.json())
+            .then(res => {
+                const badge = document.getElementById('notifCountBadge');
+                const container = document.getElementById('notifListContainer');
+
+                if (!badge || !container) return;
+
+                if (res.unread_count > 0) {
+                    badge.textContent = res.unread_count > 99 ? '99+' : res.unread_count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+
+                if (!res.notifications || res.notifications.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-4 text-muted small">
+                            <i class="bi bi-bell-slash fs-4 d-block mb-1 opacity-50"></i>
+                            Belum ada notifikasi milestone baru
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = res.notifications.map(n => {
+                    const d = n.data || {};
+                    const tgl4Html = (d.tanggal_mengajar_4 || []).map(t => 
+                        `<span class="badge bg-white text-dark border me-1 mb-1 shadow-sm" style="font-size:0.68rem; font-weight:600;">P${t.pertemuan_ke}: ${t.tanggal}</span>`
+                    ).join('');
+
+                    return `
+                        <div class="p-3 border-bottom notif-item" id="notif-item-${n.id}" style="background: #F8FAFC; transition: background 0.15s;">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                <span class="badge bg-primary text-white" style="font-size:0.68rem; font-weight:700;">
+                                    Milestone Pertemuan Ke-${d.pertemuan_ke}
+                                </span>
+                                <small class="text-muted" style="font-size:0.68rem;">${formatTimeAgo(n.created_at)}</small>
+                            </div>
+                            <div class="fw-bold text-dark" style="font-size:0.85rem;">${escJs(d.sekolah_nama || 'Sekolah')}</div>
+                            <div class="text-secondary small mb-2" style="font-size:0.78rem;">
+                                <strong>${escJs(d.kategori)}</strong> • ${escJs(d.rombel)} • Ins: <strong>${escJs(d.instruktur_nama)}</strong>
+                            </div>
+                            <div class="mb-2 p-2 rounded bg-light border">
+                                <div class="text-muted mb-1 fw-bold" style="font-size:0.7rem;"><i class="bi bi-calendar4-week me-1 text-primary"></i>4 Tanggal Mengajar:</div>
+                                <div class="d-flex flex-wrap">${tgl4Html}</div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between pt-1" style="font-size:0.75rem;">
+                                <span class="text-success fw-bold"><i class="bi bi-people-fill me-1"></i>${d.jumlah_hadir} Hadir</span>
+                                <div class="d-flex gap-1">
+                                    ${d.foto_absensi_url ? `<a href="${d.foto_absensi_url}" target="_blank" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size:0.7rem;"><i class="bi bi-file-earmark-image me-1"></i>Absensi</a>` : ''}
+                                    ${d.report_detail_url ? `<a href="${d.report_detail_url}" target="_blank" class="btn btn-primary btn-sm py-0 px-2" style="font-size:0.7rem;"><i class="bi bi-eye me-1"></i>Detail</a>` : ''}
+                                    <button class="btn btn-outline-secondary btn-sm py-0 px-1" title="Tandai Dibaca" onclick="markNotifAsRead(${n.id})" style="font-size:0.7rem;"><i class="bi bi-check2"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            })
+            .catch(() => {});
+    }
+
+    function markNotifAsRead(id) {
+        fetch("{{ url('admin/notifications') }}/" + id + "/read", {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(() => {
+            fetchUnreadNotifications();
+        });
+    }
+
+    function markAllNotifsAsRead() {
+        fetch("{{ route('admin.notifications.read-all') }}", {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(() => {
+            fetchUnreadNotifications();
+        });
+    }
+
+    function formatTimeAgo(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        const diff = Math.floor((new Date() - d) / 1000);
+        if (diff < 60) return 'Baru saja';
+        if (diff < 3600) return Math.floor(diff / 60) + 'm lalu';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'j lalu';
+        return Math.floor(diff / 86400) + 'h lalu';
+    }
+
+    function escJs(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    </script>
+    @endif
 </body>
 </html>

@@ -78,6 +78,14 @@ Route::middleware(['auth'])->group(function () {
         ->name('laporan-mengajar.relocate');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/help', [HelpCenterController::class, 'index'])->name('help.index');
+
+    // Admin Milestone Notifications API
+    Route::get('/admin/notifications/unread', [App\Http\Controllers\NotificationController::class, 'getUnreadNotifications'])
+        ->name('admin.notifications.unread');
+    Route::post('/admin/notifications/{notification}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])
+        ->name('admin.notifications.read');
+    Route::post('/admin/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])
+        ->name('admin.notifications.read-all');
     Route::post('/ekstrakurikuler/sessions/{session}/checkin', [EkstrakurikulerSessionController::class, 'checkin'])->name('ekstrakurikuler.sessions.checkin');
     Route::post('/admin/warnings/{warning}/resolve', [DashboardController::class, 'resolveWarning'])
         ->name('admin.warnings.resolve')

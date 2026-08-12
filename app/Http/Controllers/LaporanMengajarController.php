@@ -384,6 +384,15 @@ class LaporanMengajarController extends Controller
             'user_agent' => $request->userAgent(),
         ]);
 
+        // Trigger Admin Milestone Notification if session exists and is milestone
+        if ($laporan->ekstrakurikulerSession) {
+            try {
+                app(\App\Services\MilestoneNotificationService::class)->checkAndTriggerMilestoneNotification($laporan->ekstrakurikulerSession, $laporan);
+            } catch (\Exception $e) {
+                \Log::error("MilestoneNotification error: " . $e->getMessage());
+            }
+        }
+
         // For Ad-Hoc / Special event reports, skip individual student attendance and redirect to show.
         if ($laporan->isAdHoc()) {
             return redirect()->route('laporan-mengajar.show', $laporan)
