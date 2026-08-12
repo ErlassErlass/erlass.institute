@@ -791,10 +791,23 @@
                                 <div class="d-none d-md-block line-height-sm text-start">
                                     <span class="d-block fw-bold small text-dark">{{ Str::limit(Auth::user()->nama_lengkap, 15) }}</span>
                                     <span class="d-block x-small text-muted" style="font-size: 0.7rem;">{{ ucfirst(Auth::user()->role) }}</span>
+                                    @if(Auth::user()->role === 'instruktur' && Auth::user()->instructor_id)
+                                    <span class="d-block" style="font-size: 0.65rem; color: #6366f1; font-weight: 600; letter-spacing: 0.03em;">{{ Auth::user()->instructor_id }}</span>
+                                    @endif
                                 </div>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end animate slideIn">
                                 <li><div class="dropdown-header">Akun Saya</div></li>
+                                @if(Auth::user()->role === 'instruktur' && Auth::user()->instructor_id)
+                                <li>
+                                    <div class="dropdown-item disabled pe-none" style="font-size: 0.8rem;">
+                                        <i class="bi bi-person-badge me-2 text-primary"></i>
+                                        <span class="text-muted">ID: </span>
+                                        <span class="fw-bold text-primary">{{ Auth::user()->instructor_id }}</span>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                @endif
                                 <li><a class="dropdown-item" href="{{ route('profile.edit') }}">
                                     <i class="bi bi-person me-2"></i>Edit Profil
                                 </a></li>
