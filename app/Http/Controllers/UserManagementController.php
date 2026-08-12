@@ -94,14 +94,15 @@ class UserManagementController extends Controller
 
         $userData = $request->all();
         $userData['password'] = Hash::make($request->password);
-        $userData['status'] = 'Aktif';
 
-        // Set default verification status berdasarkan role
+        // Set default status & verification berdasarkan role
         if ($request->role === 'instruktur') {
+            $userData['status'] = 'Nonaktif'; // Nonaktif sampai webmaster approve
             $userData['is_verified'] = false;
             $userData['verification_status'] = 'pending';
             $userData['application_date'] = now();
         } else {
+            $userData['status'] = 'Aktif';
             $userData['is_verified'] = true;
             $userData['verification_status'] = 'approved';
             $userData['verified_at'] = now();

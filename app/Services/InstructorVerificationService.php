@@ -79,6 +79,7 @@ class InstructorVerificationService
                 'verified_at' => now(),
                 'verified_by' => $verifier->id,
                 'rejection_reason' => null,
+                'status' => 'Aktif', // Aktifkan akun setelah disetujui webmaster
             ]);
 
             // Log aktivitas

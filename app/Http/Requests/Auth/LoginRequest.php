@@ -52,6 +52,17 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Blokir instruktur yang belum diaktifkan (status Nonaktif = belum diapprove webmaster)
+        $user = Auth::user();
+        if ($user->role === 'instruktur' && !in_array(strtolower($user->status ?? ''), ['aktif', 'active'])) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda belum aktif. Silakan tunggu verifikasi dari administrator.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
