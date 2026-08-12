@@ -792,7 +792,7 @@
                                     <span class="d-block fw-bold small text-dark">{{ Str::limit(Auth::user()->nama_lengkap, 15) }}</span>
                                     <span class="d-block x-small text-muted" style="font-size: 0.7rem;">{{ ucfirst(Auth::user()->role) }}</span>
                                     @if(Auth::user()->role === 'instruktur' && Auth::user()->instructor_id)
-                                    <span class="d-block" style="font-size: 0.65rem; color: #6366f1; font-weight: 600; letter-spacing: 0.03em;">{{ Auth::user()->instructor_id }}</span>
+                                    <span class="d-block badge rounded-pill px-1" style="font-size: 0.62rem; background: #e0e7ff; color: #4338ca; font-weight: 700;">{{ Auth::user()->instructor_id }}</span>
                                     @endif
                                 </div>
                             </a>
