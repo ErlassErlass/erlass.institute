@@ -6,7 +6,7 @@
     .dashboard-hero {
         background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #2563EB 100%);
         border-radius: 20px;
-        color: #FFFFFF;
+        color: #FFFFFF !important;
         padding: 2.25rem 2.5rem;
         position: relative;
         overflow: hidden;
@@ -26,18 +26,19 @@
         letter-spacing: -0.02em;
         line-height: 1.25;
         margin-bottom: 0.35rem;
+        color: #FFFFFF !important;
     }
     .hero-subtext {
         font-size: 0.95rem;
-        color: rgba(255, 255, 255, 0.85);
+        color: rgba(255, 255, 255, 0.9) !important;
         font-weight: 400;
     }
     .hero-date-pill {
-        background: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.15) !important;
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.22);
-        color: #FFFFFF;
-        padding: 0.5rem 1.1rem;
+        border: 1px solid rgba(255, 255, 255, 0.25) !important;
+        color: #FFFFFF !important;
+        padding: 0.59rem 1.2rem;
         border-radius: 30px;
         font-size: 0.85rem;
         font-weight: 600;
@@ -166,11 +167,11 @@
         <div class="row align-items-center g-3">
             <div class="col-md-7">
                 <div class="d-flex align-items-center gap-2 mb-2">
-                    <span class="badge bg-white bg-opacity-20 text-white border border-white border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;">
+                    <span class="badge rounded-pill px-3 py-1.5 fw-bold" style="background: rgba(255, 255, 255, 0.18) !important; color: #FFFFFF !important; border: 1px solid rgba(255, 255, 255, 0.28) !important; font-size: 0.75rem;">
                         <i class="bi bi-shield-check me-1"></i> PORTAL UTAMA ERLASS
                     </span>
                 </div>
-                <h1 class="hero-greeting">
+                <h1 class="hero-greeting mb-2">
                     @php
                         $hour = date('H');
                         $greeting = 'Selamat Pagi';
@@ -423,7 +424,7 @@
         <div class="col-lg-8 col-12">
             <!-- Today's Schedule (Visible to ALL roles) -->
             <div class="dashboard-card mb-4">
-                <div class="dashboard-card-header d-flex justify-content-between align-items-center">
+                <div class="dashboard-card-header p-3.5 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold text-dark">
                         <i class="bi bi-calendar-day me-2 text-primary"></i>Jadwal Hari Ini 
                         <span class="text-muted fs-6 ms-2 font-monospace">({{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM Y') }})</span>
@@ -597,7 +598,7 @@
                 <!-- Admin Monitoring: Pending Reports -->
                 @if(isset($admin_pending_reports) && $admin_pending_reports->count() > 0)
                 <div class="dashboard-card mb-4" style="border-left: 6px solid #0EA5E9 !important;">
-                    <div class="dashboard-card-header bg-info-subtle text-info-emphasis fw-bold d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                    <div class="card-header bg-info-subtle text-info-emphasis fw-bold d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 p-3">
                         <span><i class="bi bi-clipboard-data me-2"></i>MONITORING: BELUM LAPOR ({{ $admin_pending_reports->count() }} Teratas)</span>
                         <small class="text-muted fst-italic">Urut Deadline</small>
                     </div>
@@ -654,7 +655,7 @@
                 @endif
 
                 <div class="dashboard-card mb-4">
-                    <div class="dashboard-card-header">
+                    <div class="card-header bg-white py-3 border-bottom px-4">
                         <div class="d-flex align-items-center justify-content-between">
                             <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-shield-check me-2 text-primary"></i>Pusat Verifikasi</h5>
                             <span class="badge bg-primary rounded-pill px-3 py-1">Admin Area</span>
@@ -710,7 +711,7 @@
 
                 <!-- Warning QC Panel -->
                 <div class="dashboard-card mb-4">
-                    <div class="dashboard-card-header d-flex justify-content-between align-items-center">
+                    <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 fw-bold text-dark">
                             <i class="bi bi-shield-fill-exclamation text-danger me-2"></i>Log Warning Quality Control
                         </h5>
@@ -813,7 +814,7 @@
 
             <!-- Live Activities Feed -->
             <div class="dashboard-card mb-4">
-                <div class="dashboard-card-header px-4 py-3 d-flex justify-content-between align-items-center">
+                <div class="card-header bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-2">
                         <div class="spinner-grow text-success spinner-grow-sm" role="status"></div>
                         <h5 class="mb-0 fw-bold text-dark">Live Activity</h5>
@@ -868,7 +869,7 @@
                 <!-- Instructor To-Do List (Urgent Reports) - Wajib Dilaporkan -->
                 @if(isset($instructor_todo_list) && $instructor_todo_list->count() > 0)
                 <div class="dashboard-card mb-4" style="border-left: 6px solid #F59E0B !important;">
-                    <div class="dashboard-card-header bg-warning-subtle text-warning-emphasis fw-bold d-flex justify-content-between align-items-center py-3">
+                    <div class="card-header bg-warning-subtle text-warning-emphasis fw-bold d-flex justify-content-between align-items-center p-3">
                         <span class="d-flex align-items-center"><i class="bi bi-exclamation-triangle-fill text-warning me-2 fs-5"></i>WAJIB DILAPORKAN ({{ $instructor_todo_list->count() }})</span>
                     </div>
                     <div class="card-body p-0 todo-scrollable" style="max-height: 450px; overflow-y: auto;">
@@ -942,7 +943,7 @@
                 <!-- School Distribution (Admin/Webmaster only) -->
                 @if(auth()->user()?->hasAdminAccess())
                 <div class="dashboard-card mb-4">
-                    <div class="dashboard-card-header px-4 py-3">
+                    <div class="card-header bg-white border-bottom px-4 py-3">
                         <h5 class="mb-0 fw-bold text-dark">Distribusi Siswa</h5>
                     </div>
                     <div class="card-body p-4">
@@ -986,3 +987,217 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. Activity Chart (30 Hari Terakhir)
+        @if(isset($chart_labels) && isset($chart_values))
+        const elActivity = document.getElementById('activityChart');
+        if (elActivity) {
+            const ctx = elActivity.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient.addColorStop(0, 'rgba(37, 99, 235, 0.25)');
+            gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: {!! json_encode($chart_labels) !!},
+                    datasets: [{
+                        label: 'Laporan Masuk',
+                        data: {!! json_encode($chart_values) !!},
+                        borderColor: '#2563EB',
+                        backgroundColor: gradient,
+                        borderWidth: 2.5,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#2563EB'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                borderDash: [5, 5],
+                                drawBorder: false
+                            },
+                            ticks: { stepSize: 1 }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+        @endif
+
+        // 2. Attendance Chart (6 Bulan Terakhir)
+        @if(isset($attendanceLabels) && isset($attendanceValues))
+        const elAttendance = document.getElementById('attendanceChart');
+        if (elAttendance) {
+            const ctxAttendance = elAttendance.getContext('2d');
+            new Chart(ctxAttendance, {
+                type: 'bar',
+                data: {
+                    labels: {!! json_encode($attendanceLabels) !!},
+                    datasets: [{
+                        label: 'Kehadiran (%)',
+                        data: {!! json_encode($attendanceValues) !!},
+                        backgroundColor: '#10B981',
+                        borderRadius: 6,
+                        barPercentage: 0.55
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                borderDash: [5, 5],
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+        @endif
+    });
+</script>
+
+<!-- Fonnte WhatsApp Reminder Modal (Dashboard Monitoring) -->
+<div class="modal fade" id="dashboardReminderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-success text-white py-3 px-4">
+                <h5 class="modal-title fw-bold"><i class="bi bi-whatsapp me-2"></i>Kirim Pengingat Laporan via Fonnte</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="dashSessionId">
+                <input type="hidden" id="dashCleanPhone">
+
+                <div class="alert alert-light border shadow-xs rounded-3 mb-3 p-3">
+                    <div class="fw-bold text-dark mb-1 fs-6" id="dashInstrukturName">Nama Instruktur</div>
+                    <div class="text-muted small" id="dashSessionInfo">Program & Sekolah</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="dashCustomMessage" class="form-label small fw-bold text-dark">Pesan Tambahan (Opsional)</label>
+                    <textarea class="form-control" id="dashCustomMessage" rows="3" placeholder="Contoh: Harap segera mengunggah laporan mengajar dan foto absensi hari ini."></textarea>
+                </div>
+
+                <div class="alert alert-info border-0 p-2.5 small mb-0 rounded-3">
+                    <i class="bi bi-info-circle-fill me-1"></i> Notifikasi otomatis terkirim langsung ke nomor WhatsApp instruktur via <strong>Fonnte WA Gateway API</strong>.
+                </div>
+            </div>
+            <div class="modal-footer bg-light p-3 d-flex flex-wrap justify-content-between gap-2 border-top">
+                <button type="button" class="btn btn-outline-success btn-sm fw-bold rounded-pill px-3" id="btnDashTestAdmin" onclick="sendDashboardFonnteReminder('admin')">
+                    <i class="bi bi-whatsapp me-1"></i> 🧪 Tes WA Admin (+62 821-1830-2927)
+                </button>
+                <div class="d-flex gap-2">
+                    <a href="#" id="btnDashManualWA" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm rounded-pill px-3" title="Buka Web WhatsApp Manual">
+                        <i class="bi bi-box-arrow-up-right me-1"></i> Web WA
+                    </a>
+                    <button type="button" class="btn btn-primary btn-sm fw-bold rounded-pill px-4" id="btnDashSendFonnte" onclick="sendDashboardFonnteReminder('instructor')">
+                        <span class="spinner-border spinner-border-sm d-none me-1" id="dashSpinFonnte" role="status"></span>
+                        <i class="bi bi-send me-1"></i> Kirim via Fonnte
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openDashboardFonnteModal(sessionId, instrukturName, phone, programName, sekolahName, tanggalText) {
+    document.getElementById('dashSessionId').value = sessionId;
+    document.getElementById('dashCleanPhone').value = phone;
+    document.getElementById('dashInstrukturName').textContent = 'Instruktur: ' + instrukturName;
+    document.getElementById('dashSessionInfo').textContent = programName + ' • ' + sekolahName + ' (' + tanggalText + ')';
+    document.getElementById('dashCustomMessage').value = '';
+
+    const waMsgText = encodeURIComponent(`Halo ${instrukturName}, mohon segera mengunggah laporan sesi ${programName} di ${sekolahName} tanggal ${tanggalText}.`);
+    const btnManual = document.getElementById('btnDashManualWA');
+    if (phone) {
+        btnManual.href = `https://wa.me/${phone}?text=${waMsgText}`;
+        btnManual.classList.remove('disabled');
+    } else {
+        btnManual.href = 'javascript:void(0)';
+        btnManual.classList.add('disabled');
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('dashboardReminderModal'));
+    modal.show();
+}
+
+function sendDashboardFonnteReminder(target) {
+    const sessionId = document.getElementById('dashSessionId').value;
+    const customMessage = document.getElementById('dashCustomMessage').value;
+    const btnSend = document.getElementById('btnDashSendFonnte');
+    const btnAdmin = document.getElementById('btnDashTestAdmin');
+    const spinner = document.getElementById('dashSpinFonnte');
+
+    btnSend.disabled = true;
+    btnAdmin.disabled = true;
+    spinner.classList.remove('d-none');
+
+    fetch(`/ekstrakurikuler/sessions/${sessionId}/remind`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            target: target,
+            custom_message: customMessage
+        })
+    })
+    .then(r => r.json())
+    .then(res => {
+        btnSend.disabled = false;
+        btnAdmin.disabled = false;
+        spinner.classList.add('d-none');
+
+        if (res.success) {
+            alert('✅ ' + res.message);
+            bootstrap.Modal.getInstance(document.getElementById('dashboardReminderModal')).hide();
+        } else {
+            alert('⚠️ Gagal: ' + (res.message || 'Terjadi kesalahan sistem'));
+        }
+    })
+    .catch(err => {
+        btnSend.disabled = false;
+        btnAdmin.disabled = false;
+        spinner.classList.add('d-none');
+        alert('❌ Error: ' + err.message);
+    });
+}
+</script>
+@endpush
