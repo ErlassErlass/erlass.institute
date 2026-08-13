@@ -2,6 +2,16 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.1] - 2026-08-13
+
+### Ditambahkan & Diperbaiki (Added & Fixed)
+- **Modul Upgrade Progressive Web App (PWA v3) & Pengalaman Mobile Native**:
+  - **Service Worker v3 (`public/service-worker.js`)**: Pembaruan ServiceWorker dengan mekanisme `SKIP_WAITING`, manajemen dynamic cache trim (`MAX_DYNAMIC_ITEMS = 100`), serta kesiapan handler *Web Push Notification* (`push` & `notificationclick`).
+  - **Panduan Instalasi Khusus iOS (Safari)**: Penambahan modal interaktif (`#iosInstallModal`) pada `layouts/app.blade.php` dengan panduan visual 2 langkah mudah untuk pengguna iPhone/iPad (*Pilih Share ⎋ → Add to Home Screen ➕*).
+  - **Notifikasi Pembaruan Versi PWA (Update Toast)**: Penambahan komponen toast notification melayang (`#pwaUpdateToast`) yang otomatis mendeteksi saat ada rilis versi baru di server dan memberikan tombol 1-klik *"Perbarui"*.
+  - **Redesign Halaman Offline Impeccable (`public/offline.html`)**: Halaman penanganan koneksi terputus dengan desain Impeccable (Hero banner navy gradient, badge status sinyal, tombol *"Coba Hubungkan Ulang"*, dan pemicu *auto-reload* saat sinyal kembali stabil).
+  - **Rich Manifest Config (`public/manifest.json`)**: Pemetaan ikon maskable (`favicon-192.png`, `logo-erlass-compressed.png`), pembaruan warna tema (`#2563eb`), serta penambahan *App Shortcuts* untuk akses cepat ke *Buat Laporan*, *Agenda Sesi*, dan *Pusat Bantuan*.
+
 ## [2.9.0] - 2026-08-13
 
 ### Ditambahkan & Diperbaiki (Added & Fixed)
