@@ -2,6 +2,18 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.3] - 2026-08-13
+
+### Redesign Antarmuka & Perbaikan Layout (UI Redesign & Layout Fix)
+- **Redesign Impeccable Design Halaman Presensi Siswa (`/laporan-mengajar/{id}/absensi/create`)**:
+  - Banner Hero Glassmorphism Navy-Blue dengan Chip Status Sesi (`Sesi Berlangsung / Sesi Selesai`, `Program Ekstrakurikuler / Sesi Regular`, dan Tanggal Sesi).
+  - 3 Live Counter Stat Cards (*Total Siswa, Hadir, Absen*) dan Progress Bar Tingkat Kehadiran siswa animasi real-time.
+  - Tabel Presensi Siswa dengan tinting latar belakang dinamis (*Soft Green #F0FDF4* untuk Hadir, *Soft Red #FEF2F2* untuk Absen) & Avatar inisial berwarna.
+  - Live Search Filter Nama Siswa di dalam tabel serta Tombol Massal *"Hadir Semua"*.
+  - Proteksi Penambahan Siswa Pasca-Laporan (Opsi 1) dengan status terkunci bagi Instruktur pada laporan yang sudah disubmit dan modal *Quick Add* untuk Webmaster/Admin.
+- **Perbaikan Struktur Layout & Top Header Bar**:
+  - Memperbaiki penguncian tag `@endsection` pada `resources/views/absensi/create.blade.php` sehingga elemen `<main>` ter-render tepat di bawah Top Header Bar (`Erlass Portal`) dan di atas Footer secara presisi.
+
 ## [2.9.2] - 2026-08-13
 
 ### Keamanan & Proteksi Honor (Security & Payroll Protection)
