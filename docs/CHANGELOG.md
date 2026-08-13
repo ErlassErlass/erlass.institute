@@ -2,6 +2,15 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.2] - 2026-08-13
+
+### Keamanan & Proteksi Honor (Security & Payroll Protection)
+- **Proteksi Penambahan Siswa Pasca-Laporan (Absensi)**:
+  - Pembatasan tombol **"Tambah Siswa (Lainnya)"** pada form absensi (`resources/views/absensi/create.blade.php`). Jika laporan sudah terkirim/dikirimkan, fitur penambahan siswa baru dikunci (*disabled*) untuk role Instruktur untuk mencegah manipulasi data yang berdampak pada kalkulasi honor.
+  - Penambahan badge penanda: `🔒 Penambahan Siswa Terkunci (Telah Dilaporkan)`.
+  - Pengecualian role Admin (`webmaster`, `admin_sistem`, `admin`) yang tetap dapat menambah siswa untuk perbaikan resmi data oleh manajemen.
+  - *Server-side Validation* di `AbsensiController@store` untuk memblokir auto-enrollment siswa baru dari pengguna non-admin jika sesi/laporan telah selesai.
+
 ## [2.9.1] - 2026-08-13
 
 ### Ditambahkan & Diperbaiki (Added & Fixed)
