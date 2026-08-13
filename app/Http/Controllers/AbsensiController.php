@@ -136,8 +136,16 @@ class AbsensiController extends Controller
                         $rombel = $ekstrakurikulerSession->rombel;
                         $isEnrolled = $rombel->siswa()->where('siswa_id', $siswaId)->exists();
                         
-                        // Auto-enroll jika belum terdaftar
+                        // Auto-enroll jika belum terdaftar (Hanya diperbolehkan sebelum selesai atau jika user adalah Admin)
                         if (!$isEnrolled) {
+                            $isSessionFinished = ($ekstrakurikulerSession->status === 'selesai') || ($laporanMengajar->exists && $laporanMengajar->created_at);
+                            $isAdmin = in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin']);
+
+                            if ($isSessionFinished && !$isAdmin) {
+                                // Instruktur tidak diizinkan auto-enroll siswa baru pasca laporan terkirim
+                                continue;
+                            }
+
                             $rombel->siswa()->attach($siswaId, [
                                 'ekstrakurikuler_id' => $rombel->ekstrakurikuler_id,
                                 'status' => 'aktif',

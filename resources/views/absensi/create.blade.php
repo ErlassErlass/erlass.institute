@@ -121,11 +121,23 @@
                         @endif
                         
 
+                        @php
+                            $isReported = ($laporanMengajar && $laporanMengajar->exists && $laporanMengajar->created_at) || ($ekstrakurikulerSession && $ekstrakurikulerSession->status === 'selesai');
+                            $isAdmin = in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin']);
+                            $canAddExtraStudent = !$isReported || $isAdmin;
+                        @endphp
+
                         <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                             <div>
-                                <button type="button" class="btn btn-outline-success btn-sm" id="btn-add-student">
-                                    <i class="bi bi-person-plus-fill me-1"></i> Tambah Siswa (Lainnya)
-                                </button>
+                                @if($canAddExtraStudent)
+                                    <button type="button" class="btn btn-outline-success btn-sm" id="btn-add-student">
+                                        <i class="bi bi-person-plus-fill me-1"></i> Tambah Siswa (Lainnya)
+                                    </button>
+                                @else
+                                    <span class="badge bg-light text-secondary border py-2 px-3" title="Laporan telah dikirim. Penambahan siswa baru hanya dapat dilakukan oleh Admin.">
+                                        <i class="bi bi-lock-fill text-warning me-1"></i> Penambahan Siswa Terkunci (Telah Dilaporkan)
+                                    </span>
+                                @endif
                             </div>
                             <div>
                                 @if($isEkstrakurikuler ?? false)
