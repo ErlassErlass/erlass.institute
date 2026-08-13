@@ -1,4 +1,4 @@
-const CACHE_NAME = 'erlass-ekskul-cache-v3';
+const CACHE_NAME = 'erlass-ekskul-cache-v4';
 const OFFLINE_URL = '/offline.html';
 const CORE_ASSETS = [
     OFFLINE_URL,
