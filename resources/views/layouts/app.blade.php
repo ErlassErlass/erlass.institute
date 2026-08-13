@@ -457,17 +457,14 @@
 
         /* Top Header Bar */
         .header-bar {
-            background-color: rgba(255, 255, 255, 0.8) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background-color: #FFFFFF !important;
             border-bottom: 1px solid var(--border-color);
             padding: 0.75rem 1.5rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 999;
+            position: relative;
+            z-index: 100;
             height: 70px;
         }
 
