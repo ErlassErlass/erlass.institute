@@ -112,11 +112,18 @@ Instruktur bertugas melaksanakan kegiatan pengajaran dan pelaporan.
 *   **Kamera Live**: Sistem akan membuka kamera HP secara langsung (`capture="camera"`). Ambil foto selfie / suasana sekolah.
 *   **Verifikasi Radius (500 Meter)**: Sistem menghitung koordinat GPS Anda ke titik sekolah. Berstatus **🟢 Terverifikasi (Valid)** jika berada dalam radius $\le 500$ meter dari sekolah.
 
-### 3. Pembuatan Laporan Mengajar (2 Jalur Utama)
-*   **Jalur 1 — Sesi Rutin (Agenda Sesi)**: Masuk ke menu Agenda Kegiatan $\rightarrow$ Detail Sesi $\rightarrow$ Check-in GPS $\rightarrow$ Buat Laporan & Absensi.
+### 3. Pembuatan Laporan Mengajar & Absensi Sesi (Impeccable UI)
+*   **Jalur 1 — Sesi Rutin (Agenda Sesi)**: Masuk ke menu Agenda Kegiatan $\rightarrow$ Detail Sesi $\rightarrow$ Check-in GPS $\rightarrow$ Klik **"Buat Laporan & Absensi"** (`/ekstrakurikuler/sessions/{id}/report/create`).
 *   **Jalur 2 — Sesi Ad-Hoc / Pengganti**: Jika jadwal tidak ada di agenda rutin, buka menu *Buat Laporan Mengajar* $\rightarrow$ Pilih Kategori *Ad-Hoc / Sesi Pengganti* $\rightarrow$ Isi detail manual.
-*   **Komponen Wajib Laporan**: Absensi siswa (+ ad-hoc enroll), Topik & Materi, Foto Suasana & Absensi Fisik, File Project (opsional), serta Refleksi Capaian & Kendala.
-*   **Batas Waktu H+1**: Pengisian wajib dilakukan maksimal **H+1 (24 jam)**. Pengisian susulan ($>\text{H}+1$) akan otomatis berlabel *Terlambat (H+X)*.
+*   **Tampilan & Alur Baru Impeccable**:
+    *   **Glassmorphic Hero Banner**: Menampilkan ringkasan informasi sekolah, rombel, tanggal, dan jam mengajar secara kontras dan jelas.
+    *   **Stepper Progress 4-Step**: Pemantau progresis bentuk langkah (*1. Detail Kegiatan → 2. Absensi Siswa → 3. Evaluasi → 4. Submit*).
+    *   **Zona Upload Drag & Drop**: Cukup seret atau klik file untuk mengunggah *Foto Kegiatan*, *File Project*, dan *Foto Absensi Fisik (TTD)*. Terdapat pratinjau (*live preview*) gambar dan verifikasi otomatis ukuran file.
+    *   **File Project WAJIB**: Seluruh pengisian laporan mengajar **wajib melampirkan File Project** (format `.hex`, `.sb3`, `.zip`, `.rar`, `.py`, `.ino`, `.pdf`, dll. max 10MB).
+    *   **Tabel Absensi Touch-Friendly**: Dilengkapi avatar inisial warna-warni, tombol toggle *Hadir/Absen* besar, penghitung real-time jumlah siswa hadir vs absen, serta kotak pencarian nama siswa di tabel.
+    *   **Tambah Siswa Fast-Add**: Tambahkan siswa baru yang belum terdaftar langsung ke daftar hadir melalui modal *Cari Siswa* atau *Buat Baru*.
+    *   **Modal Konfirmasi Submit**: Sebelum laporan disimpan, sistem menampilkan modal ringkasan untuk verifikasi ulang data.
+*   **Batas Waktu H+1**: Pengisian wajib dilakukan maksimal **H+1 akhir hari**. Jika melebihi batas waktu, instruktur harus mengajukan izin ke Admin.
 
 ### 4. Pusat Bantuan & Panduan FAQ 101 (`/help`)
 Akses menu **"Panduan & FAQ 101"** di sidebar kiri untuk mempelajari SOP pengisian laporan, penanganan masalah lokasi GPS, toleransi keterlambatan check-in 14 menit, dan rincian slip gaji.

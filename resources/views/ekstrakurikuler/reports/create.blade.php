@@ -55,28 +55,40 @@
         pointer-events: none;
     }
     .report-hero h1 {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
         font-weight: 800;
         letter-spacing: -0.02em;
         margin-bottom: 0.25rem;
+        color: #FFFFFF;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        position: relative;
+        z-index: 1;
     }
     .report-hero .hero-subtitle {
-        font-size: 0.9rem;
-        color: rgba(255,255,255,0.7);
-        font-weight: 500;
+        font-size: 0.95rem;
+        color: rgba(255,255,255,0.9);
+        font-weight: 600;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        position: relative;
+        z-index: 1;
+    }
+    .report-hero .d-flex {
+        position: relative;
+        z-index: 1;
     }
     .hero-meta-chip {
         display: inline-flex;
         align-items: center;
         gap: 0.35rem;
-        background: rgba(255,255,255,0.12);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.18);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.25);
         border-radius: 20px;
-        padding: 0.3rem 0.85rem;
-        font-size: 0.78rem;
-        color: rgba(255,255,255,0.9);
-        font-weight: 500;
+        padding: 0.35rem 0.9rem;
+        font-size: 0.8rem;
+        color: #FFFFFF;
+        font-weight: 600;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
 
     /* ── Stepper Progress ──────────────────────────────────── */

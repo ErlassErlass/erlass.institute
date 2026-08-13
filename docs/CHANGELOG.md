@@ -2,6 +2,33 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.0] - 2026-08-13
+
+### Ditambahkan & Diperbaiki (Added & Fixed)
+- **Redesign Impeccable & Perbaikan Bug Kritis Form Laporan & Absensi Sesi (`/ekstrakurikuler/sessions/{id}/report/create`)**:
+  - **Fix Bug Relasi `laporan_mengajar_id`**: Memperbaiki exception pada `EkstrakurikulerReportController.php` (method `create` & `store`) dari pengaksesan kolom `$session->laporan_mengajar_id` yang tidak ada di tabel `ekstrakurikuler_session` menjadi relasi Eloquent `$session->laporanMengajar()->exists()`.
+  - **Banner Hero Glassmorphic**: Header visual baru berlatar gradien navy-blue dengan chip metadata sesi (*Sekolah, Rombel, Tanggal, Jam*), serta peningkatan kontras teks judul & subtitle menggunakan *text-shadow* dan warna putih solid.
+  - **Stepper Progress Visual**: 4-step progress tracker interaktif (*Detail Kegiatan → Absensi Siswa → Evaluasi → Submit*) yang otomatis menyesuaikan status aktif saat pengguna melakukan *scrolling*.
+  - **Zona Upload Drag & Drop & Live Preview**: Mengganti `<input file>` standar dengan zona drop file interaktif lengkap dengan pratinjau gambar live dan pengecekan batas ukuran berkas (Foto Kegiatan max 5MB, File Project max 10MB, Foto Presensi TTD max 5MB).
+  - **Tabel Absensi Premium & Kontrol Toggle**: Menampilkan avatar inisial siswa berwarna (berdasarkan gender), tombol toggle *Hadir / Absen* besar dan *touch-friendly*, penghitung statistik real-time (*Hadir: X | Absen: Y | Total: Z*), dan fitur pencarian nama siswa di dalam tabel.
+  - **Modal Konfirmasi Submit & Indikator Loading**: Penambahan modal pop-up konfirmasi ringkasan laporan sebelum data disimpan serta status *loading spinner* pada tombol submit untuk mencegah klik ganda.
+  - **Tata Letak Mobile-First Responsif**: Penyesuaian antarmuka yang mulus di perangkat seluler dengan format kartu per siswa.
+- **Peningkatan Antarmuka & Perbaikan Dashboard (`/dashboard`)**:
+  - **Impeccable Hero Banner & Sapaan Waktu**: Pembaharuan banner hero dashboard dengan gradien modern, sapaan kontekstual otomatis (*Selamat Pagi / Siang / Sore / Malam*), pill tanggal Outfit, serta pembaruan teks merek menjadi *"Sistem Manajemen Operational & Laporan Mengajar Ekstrakurikuler Erlass Prokreatif Indonesia"*.
+  - **Restorasi Grafik Chart.js & Reminder WhatsApp Gateway**: Pengembalian skrip inisialisasi grafik tren laporan masuk 30 hari terakhir & tren kehadiran siswa 6 bulan terakhir, serta modal pengingat otomatis Fonnte.
+  - **Penyempurnaan Header Jadwal Hari Ini**: Menghapus `font-monospace` pada format tanggal header jadwal harian untuk kerapian jarak antar-karakter dan mengganti ikon kalender ke `bi-calendar2-week-fill`.
+- **Standarisasi Penamaan Rombel Ketat (`Rombel 1, Rombel 2, dst`)**:
+  - Pengarahan penamaan rombel secara otomatis di tingkat database & Model Observer `EkstrakurikulerRombel` untuk menjaga konsistensi format penamaan rombel seluruh sekolah.
+  - Menghapus opsi duplikat pada dropdown filter Rombel di halaman Rekap Pertemuan Ekskul (`/rekap-pertemuan-ekskul`).
+- **Notifikasi Milestone Admin & Ekspor Gambar Jadwal Ekskul**:
+  - Implementasi **Notifikasi Milestone Admin** (ikon lonceng navbar) untuk mendeteksi pencapaian sesi ke-4, 8, 12, 16, 20, 24, 28, dan 32 beserta daftar 4 tanggal mengajar terkait.
+  - Penambahan kolom *Tanggal Mengajar* dan *Pertemuan Ke-* pada Ekspor Gambar Jadwal Ekskul (`/rekap-pertemuan-ekskul`).
+  - Pencarian interaktif Select2 pada filter sekolah di halaman Rekap Pertemuan Ekskul.
+- **Pusat Bantuan & Kebijakan Keamanan Instruktur (`/help`)**:
+  - Penambahan seksi **Kompensasi & Honor Instruktur** di Pusat Bantuan.
+  - Perubahan aturan pembuatan laporan: penyerahan **File Project** diubah dari opsi opsional menjadi **Wajib**.
+  - **Verifikasi Status Akun Instruktur Baru**: Memblokir autentikasi login akun instruktur baru yang mendaftar hingga disetujui (*approval*) oleh Webmaster/Admin.
+
 ## [2.8.2] - 2026-08-11
 
 ### Ditambahkan & Diperbaiki (Added & Fixed)
