@@ -312,6 +312,8 @@
     </div>
 </div>
 
+@endsection
+
 @push('modals')
 <!-- Modal Cari Siswa -->
 <div class="modal fade" id="searchStudentModal" tabindex="-1" aria-hidden="true">
