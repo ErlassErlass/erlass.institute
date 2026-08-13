@@ -60,8 +60,9 @@ class EkstrakurikulerReportController extends Controller
             }
         }
 
-        if ($session->laporan_mengajar_id) {
-            return redirect()->route('laporan-mengajar.show', $session->laporan_mengajar_id)
+        $existingLaporan = $session->laporanMengajar;
+        if ($existingLaporan) {
+            return redirect()->route('laporan-mengajar.show', $existingLaporan->id)
                 ->with('info', 'Laporan sudah ada untuk sesi ini.');
         }
 
@@ -122,8 +123,9 @@ class EkstrakurikulerReportController extends Controller
         }
 
         // Guard Check 2: Report must not already exist
-        if ($session->laporan_mengajar_id) {
-            return redirect()->route('laporan-mengajar.show', $session->laporan_mengajar_id)
+        $existingLaporan = $session->laporanMengajar;
+        if ($existingLaporan) {
+            return redirect()->route('laporan-mengajar.show', $existingLaporan->id)
                 ->with('info', 'Laporan sudah dibuat sebelumnya untuk sesi ini.');
         }
 
