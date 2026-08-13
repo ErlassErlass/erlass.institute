@@ -54,7 +54,7 @@ Jika VPS akan digunakan untuk **beberapa aplikasi sekaligus**, Docker adalah pil
 | **VPS + RunCloud/Ploi** | CI/CD otomatis | Rp 100-250rb | ⭐⭐ Sedang |
 | **Shared Hosting + cPanel** | MVP / tahap awal | Rp 30-100rb | ⭐ Rendah |
 
-> **Panduan Docker lengkap**: Lihat [DEPLOYMENT_DOCKER.md](./DEPLOYMENT_DOCKER.md) untuk instruksi Docker Compose, CI/CD, dan container management.
+> **Panduan Docker lengkap**: Lihat [DOCKER_DEPLOYMENT.md](./DOCKER_DEPLOYMENT.md) untuk instruksi Docker Compose, CI/CD, dan container management.
 
 ### Provider VPS Lokal yang Direkomendasikan
 *   **IDCloudHost** — Data center Indonesia, latency rendah

@@ -40,7 +40,7 @@ Prosedur sysadmin untuk pemeliharaan server dan deployment Docker.
 
 *   [**`ANALISIS_FEASIBILITY_SCALING.md`**](ops/ANALISIS_FEASIBILITY_SCALING.md) — Analisis kelayakan dan performa infrastruktur server/aplikasi untuk target 5.000 siswa dan 10.000 laporan.
 *   [**`DEPLOYMENT_GUIDE.md`**](ops/DEPLOYMENT_GUIDE.md) — Panduan komprehensif deploy VPS, konfigurasi Nginx Reverse Proxy, dan setup SSL Let's Encrypt.
-*   [**`DEPLOYMENT_DOCKER.md`**](ops/DEPLOYMENT_DOCKER.md) — Setup containerization menggunakan Docker Compose.
+*   [**`DOCKER_DEPLOYMENT.md`**](ops/DOCKER_DEPLOYMENT.md) — Setup containerization menggunakan Docker Compose.
 *   [**`PANDUAN_ISOLASI_APLIKASI.md`**](ops/PANDUAN_ISOLASI_APLIKASI.md) — Prosedur mengisolasi resource aplikasi demi keamanan data.
 *   [**`PANDUAN_SUBDOMAIN.md`**](ops/PANDUAN_SUBDOMAIN.md) — Konfigurasi routing subdomain server Nginx.
 *   [**`DOKUMENTASI_ASSETS_MANAGER.md`**](ops/DOKUMENTASI_ASSETS_MANAGER.md) — Petunjuk penggunaan utilitas Assets Manager.

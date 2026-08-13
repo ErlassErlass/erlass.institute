@@ -283,12 +283,12 @@ docker stats webapperlass
 ### **Development Resources**
 - [Laravel Documentation](https://laravel.com/docs)
 - [PHPUnit Testing](https://phpunit.de/documentation.html)
-- [Project Architecture](./CLAUDE.md)
+- [Project Architecture](./TECHNICAL_GUIDE.md)
 
 ### **DevOps Resources**  
-- [Docker Documentation](./docker/README.md)
-- [Deployment Guide](./scripts/README.md)
-- [Monitoring Setup](./monitoring/README.md)
+- [Docker Documentation](../ops/DOCKER_DEPLOYMENT.md)
+- [Deployment Guide](../ops/DEPLOYMENT_GUIDE.md)
+- [Monitoring Setup](../ops/VPS_MONITORING.md)
 
 ---
 
