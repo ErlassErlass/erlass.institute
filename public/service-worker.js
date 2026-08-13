@@ -1,8 +1,11 @@
-const CACHE_NAME = 'erlass-ekskul-cache-v2';
+const CACHE_NAME = 'erlass-ekskul-cache-v3';
 const OFFLINE_URL = '/offline.html';
 const CORE_ASSETS = [
     OFFLINE_URL,
     '/images/logo-erlass.png',
+    '/images/logo-erlass-compressed.png',
+    '/images/favicon-192.png',
+    '/favicon-32.png',
     '/favicon.ico',
     '/error.html'
 ];
@@ -42,7 +45,14 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Fetch event with 2.5s Timeout for HTML Navigation & Stale-While-Revalidate for Static Assets
+// Listen for SKIP_WAITING message from client UI
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+});
+
+// Fetch event: Network-First for HTML navigation with 2.5s Timeout & Stale-While-Revalidate for Static Assets
 self.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') return;
 
@@ -121,9 +131,48 @@ self.addEventListener('fetch', (event) => {
                         }
                     });
 
-                // Return cached version immediately if available, otherwise wait for network fetch
                 return cachedResponse || fetchPromise;
             })
         );
     }
+});
+
+// Push Notification Handler
+self.addEventListener('push', (event) => {
+    let data = { title: 'Erlass Ekskul', body: 'Ada pembaruan penting di Erlass Portal.', icon: '/images/favicon-192.png', url: '/dashboard' };
+    if (event.data) {
+        try {
+            data = Object.assign(data, event.data.json());
+        } catch (e) {
+            data.body = event.data.text();
+        }
+    }
+
+    const options = {
+        body: data.body,
+        icon: data.icon || '/images/favicon-192.png',
+        badge: '/favicon-32.png',
+        vibrate: [100, 50, 100],
+        data: { url: data.url || '/dashboard' }
+    };
+
+    event.waitUntil(self.registration.showNotification(data.title, options));
+});
+
+// Push Notification Click Event
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const targetUrl = event.notification.data ? event.notification.data.url : '/dashboard';
+    event.waitUntil(
+        clients.matchAll({ type: 'window' }).then((clientList) => {
+            for (const client of clientList) {
+                if (client.url === targetUrl && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
+        })
+    );
 });

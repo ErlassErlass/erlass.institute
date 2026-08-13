@@ -2,94 +2,206 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Koneksi Terputus - Erlass Ekskul</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Koneksi Terputus — Erlass Ekskul</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap">
+
     <style>
         :root {
-            --primary-color: #2563eb;
-            --bg-body: #f1f5f9;
-            --text-color: #334155;
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --imp-navy: #0F172A;
+            --imp-blue: #3B82F6;
+            --imp-blue-dark: #1E40AF;
+            --imp-slate: #64748B;
+            --imp-surface: #FFFFFF;
+            --imp-border: #E2E8F0;
+            --imp-radius: 20px;
+            --imp-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
         }
+
         body {
             font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-color);
-            margin: 0;
+            background: #F8FAFC;
+            color: var(--imp-navy);
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            padding: 1.5rem;
+            margin: 0;
+        }
+
+        .offline-card {
+            background: var(--imp-surface);
+            border: 1px solid var(--imp-border);
+            border-radius: var(--imp-radius);
+            box-shadow: var(--imp-shadow);
+            max-width: 480px;
+            width: 100%;
+            overflow: hidden;
             text-align: center;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.04) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.04) 0px, transparent 50%);
         }
-        .offline-container {
-            max-width: 450px;
-            padding: 2.5rem;
-            background: white;
-            border-radius: 16px;
-            box-shadow: var(--shadow-md);
-            margin: 1rem;
-        }
-        .icon {
-            font-size: 4rem;
-            color: #94a3b8;
-            margin-bottom: 1.5rem;
-            animation: pulse 2s infinite ease-in-out;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.7; }
-            50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(1); opacity: 0.7; }
-        }
-        h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-top: 0;
-            margin-bottom: 0.75rem;
-            color: #1e293b;
-        }
-        p {
-            font-size: 0.95rem;
-            line-height: 1.5;
-            color: #64748b;
-            margin-bottom: 2rem;
-        }
-        .btn-retry {
-            display: inline-block;
-            background-color: var(--primary-color);
+
+        .offline-hero {
+            background: linear-gradient(135deg, var(--imp-navy) 0%, #1E3A5F 50%, var(--imp-blue-dark) 100%);
+            padding: 2.5rem 1.5rem;
             color: white;
-            text-decoration: none;
-            padding: 0.75rem 1.75rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .offline-hero::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.3), transparent 70%);
+            pointer-events: none;
+        }
+
+        .offline-icon-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+            font-size: 2.5rem;
+            color: #FBBF24;
+            animation: pulseGlow 2s infinite ease-in-out;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 12px rgba(251, 191, 36, 0); }
+        }
+
+        .offline-hero h2 {
+            font-weight: 800;
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+            color: #FFFFFF;
+        }
+
+        .offline-hero p {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .offline-body {
+            padding: 2rem 1.5rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            margin-bottom: 1.25rem;
+        }
+
+        .status-badge.online {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10B981;
+        }
+
+        .btn-reconnect {
+            background: linear-gradient(135deg, var(--imp-blue) 0%, var(--imp-blue-dark) 100%);
+            color: white;
             border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            border-radius: 12px;
+            padding: 0.85rem 2rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            width: 100%;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35);
+            transition: all 0.3s ease;
         }
-        .btn-retry:hover {
-            background-color: #1d4ed8;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
-        }
-        .btn-retry:active {
-            transform: translateY(0);
+
+        .btn-reconnect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.45);
+            color: white;
         }
     </style>
 </head>
 <body>
-    <div class="offline-container">
-        <div class="icon">⚡</div>
-        <h1>Koneksi Internet Terputus</h1>
-        <p>Halaman yang Anda tuju belum tersimpan dalam cache lokal atau koneksi internet Anda sedang bermasalah. Pastikan perangkat Anda terhubung ke jaringan internet dan coba kembali.</p>
-        <button class="btn-retry" onclick="window.location.reload()">Coba Lagi</button>
+
+    <div class="offline-card">
+        <div class="offline-hero">
+            <div class="offline-icon-circle">
+                <i class="bi bi-wifi-off"></i>
+            </div>
+            <h2>Koneksi Internet Terputus</h2>
+            <p>Erlass Ekskul — Mode Luar Jaringan (Offline)</p>
+        </div>
+
+        <div class="offline-body">
+            <div class="status-badge" id="statusBadge">
+                <i class="bi bi-exclamation-circle-fill"></i> Sinyal Terputus
+            </div>
+
+            <p class="small text-secondary mb-4">
+                Halaman ini tidak dapat dimuat karena perangkat Anda kehilangan koneksi internet. Pastikan WiFi atau Data Seluler aktif.
+            </p>
+
+            <button type="button" class="btn-reconnect mb-3" id="btnReload">
+                <i class="bi bi-arrow-clockwise me-2"></i> Coba Hubungkan Ulang
+            </button>
+
+            <div class="small text-muted" style="font-size: 0.78rem;">
+                <i class="bi bi-info-circle me-1"></i> Aplikasi akan otomatis memuat ulang saat koneksi kembali stabil.
+            </div>
+        </div>
     </div>
+
+    <script>
+        const statusBadge = document.getElementById('statusBadge');
+        const btnReload = document.getElementById('btnReload');
+
+        function updateOnlineStatus() {
+            if (navigator.onLine) {
+                statusBadge.className = 'status-badge online';
+                statusBadge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Terhubung Kembali! Memuat...';
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                statusBadge.className = 'status-badge';
+                statusBadge.innerHTML = '<i class="bi bi-exclamation-circle-fill me-1"></i> Sinyal Terputus';
+            }
+        }
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        btnReload.addEventListener('click', () => {
+            btnReload.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memeriksa Sinyal...';
+            btnReload.disabled = true;
+            setTimeout(() => {
+                if (!navigator.onLine) {
+                    btnReload.disabled = false;
+                    btnReload.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i> Coba Hubungkan Ulang';
+                    alert('Internet masih terputus. Mohon periksa jaringan Anda.');
+                } else {
+                    window.location.reload();
+                }
+            }, 1200);
+        });
+    </script>
 </body>
 </html>

@@ -919,6 +919,54 @@
     @endauth
 
     @stack('modals')
+
+    <!-- PWA Install Modal untuk iOS (Safari) -->
+    <div class="modal fade" id="iosInstallModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0" style="padding: 1.5rem 1.5rem 0.5rem;">
+                    <h5 class="modal-title fw-bold text-dark d-flex align-items-center">
+                        <i class="bi bi-apple me-2 text-primary fs-4"></i>Install Aplikasi di iPhone / iPad
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <img src="{{ asset('images/logo-erlass.png') }}" width="64" height="64" class="rounded-4 mb-3 shadow-sm" alt="Logo Erlass">
+                    <p class="small text-secondary mb-4">Ikuti 2 langkah mudah untuk memasang <strong>Erlass Ekskul</strong> ke layar utama iPhone Anda:</p>
+                    
+                    <div class="p-3 bg-light rounded-3 text-start mb-3 border">
+                        <div class="d-flex align-items-center gap-3 mb-2.5">
+                            <span class="badge bg-primary rounded-circle px-2.5 py-1">1</span>
+                            <span class="small fw-bold text-dark">Tekan tombol <strong>Share</strong> <i class="bi bi-box-arrow-up text-primary fs-5 ms-1"></i> di bagian bawah browser Safari.</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="badge bg-primary rounded-circle px-2.5 py-1">2</span>
+                            <span class="small fw-bold text-dark">Pilih menu <strong>"Add to Home Screen"</strong> (Tambah ke Layar Utama) <i class="bi bi-plus-square text-primary fs-5 ms-1"></i>.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-primary w-100 rounded-3 fw-bold py-2" data-bs-dismiss="modal">Saya Mengerti</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PWA Update Toast Notification -->
+    <div id="pwaUpdateToast" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1090; display: none;">
+        <div class="toast show border-0 shadow-lg rounded-4 text-white" style="background: linear-gradient(135deg, #0F172A, #1E40AF);">
+            <div class="toast-body d-flex align-items-center justify-content-between gap-3 p-3">
+                <div>
+                    <div class="fw-bold small"><i class="bi bi-rocket-takeoff-fill text-warning me-2"></i>Versi Baru Tersedia!</div>
+                    <div class="text-white-50" style="font-size: 0.78rem;">Pembaruan fitur Erlass Ekskul siap dipasang.</div>
+                </div>
+                <button type="button" class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 shadow-sm" id="btnReloadPwa">
+                    Perbarui
+                </button>
+            </div>
+        </div>
+    </div>
+
     @stack('scripts')
 
     <!-- Animation Keyframes -->
@@ -979,31 +1027,81 @@
                 setTimeout(() => backdrop.classList.add('d-none'), 300);
             });
 
-            // PWA Service Worker Registration
+            // ═══ PWA Service Worker & Lifecycle Registration ═══
+            const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+            // Show PWA Install menu for iOS devices if not already standalone
+            if (isIos && !isStandalone) {
+                document.getElementById('pwa-install-item')?.classList.remove('d-none');
+            }
+
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/service-worker.js')
                     .then(function(registration) {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        console.log('ServiceWorker registered with scope:', registration.scope);
+                        
+                        // Detect Service Worker Update
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New SW version is available and waiting
+                                    showPwaUpdateToast(newWorker);
+                                }
+                            });
+                        });
                     })
                     .catch(function(err) {
                         console.log('ServiceWorker registration failed: ', err);
                     });
+
+                // Listen for controllerchange event (SW activated)
+                let refreshing = false;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (!refreshing) {
+                        refreshing = true;
+                        window.location.reload();
+                    }
+                });
             }
 
-            // PWA Custom Installation Logic
+            // Show PWA Update Toast UI
+            function showPwaUpdateToast(worker) {
+                const toastContainer = document.getElementById('pwaUpdateToast');
+                const btnReload = document.getElementById('btnReloadPwa');
+                if (toastContainer) {
+                    toastContainer.style.display = 'block';
+                    if (btnReload) {
+                        btnReload.addEventListener('click', () => {
+                            worker.postMessage({ type: 'SKIP_WAITING' });
+                        });
+                    }
+                }
+            }
+
+            // PWA Installation Prompt Logic (Android / Desktop / iOS)
             let deferredPrompt;
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
-                
-                // Show custom install sidebar item
                 document.getElementById('pwa-install-item')?.classList.remove('d-none');
             });
 
             const btnInstall = document.getElementById('btn-pwa-install');
             if (btnInstall) {
                 btnInstall.addEventListener('click', async () => {
-                    if (!deferredPrompt) return;
+                    if (isIos) {
+                        // Trigger iOS Install Modal
+                        const iosModal = new bootstrap.Modal(document.getElementById('iosInstallModal'));
+                        iosModal.show();
+                        return;
+                    }
+
+                    if (!deferredPrompt) {
+                        alert('Aplikasi sudah terpasang atau perangkat Anda mendukung instalasi dari menu peramban.');
+                        return;
+                    }
                     deferredPrompt.prompt();
                     const { outcome } = await deferredPrompt.userChoice;
                     console.log('PWA installation choice:', outcome);
@@ -1016,6 +1114,17 @@
                 console.log('PWA was installed successfully!');
                 document.getElementById('pwa-install-item')?.classList.add('d-none');
             });
+
+            // Web Push Notification Permission Request Helper
+            window.requestWebPushPermission = function() {
+                if ('Notification' in window && Notification.permission !== 'granted') {
+                    Notification.requestPermission().then((permission) => {
+                        if (permission === 'granted') {
+                            showNetworkToast('Izin notifikasi aplikasi berhasil diaktifkan!', 'success');
+                        }
+                    });
+                }
+            };
 
             // PWA Network Status (Offline/Online Toast)
             function updateNetworkStatus(e) {
