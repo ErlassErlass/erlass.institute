@@ -289,17 +289,16 @@
             </div>
             <div>
                 <h5 class="alert-heading h6 fw-bold mb-2 text-dark">PENTING: CARA PELAPORAN MENGAJAR</h5>
-                <p class="mb-0 small text-dark opacity-75">Mohon perhatikan perbedaan cara pelaporan berikut:</p>
+                <p class="mb-0 small text-dark opacity-75">Mohon perhatikan perbedaan cara pelaporan berikut agar tidak salah jalur:</p>
                 <ul class="mb-0 mt-2 small text-dark ps-3">
                     <li class="mb-1">
                         <strong>Kelas Rutin / Terjadwal:</strong> WAJIB melalui menu 
-                        <a href="{{ route('ekstrakurikuler.sessions.index') }}" class="fw-bold text-decoration-underline text-danger">Jadwal Mengajar</a>. 
-                        (Data siswa & rombel terisi otomatis).
+                        <a href="{{ route('ekstrakurikuler.sessions.index') }}" class="fw-bold text-decoration-underline text-danger">Jadwal Sesi &amp; Laporan</a> atau tombol <em>"Buat Laporan"</em> di tabel Jadwal Hari Ini. (Data siswa &amp; rombel terhubung otomatis).
                     </li>
                     <li>
                         <strong>Kelas Tambahan / Ad-Hoc:</strong> Gunakan menu 
-                        <a href="{{ route('laporan-mengajar.create') }}" class="fw-bold text-decoration-underline text-danger">Buat Laporan Baru</a>. 
-                        (KHUSUS untuk Pameran, Lomba, Sosialisasi atau Pendampingan).
+                        <a href="{{ route('laporan-mengajar.create') }}" class="fw-bold text-decoration-underline text-danger">Laporan Ad-Hoc / Pengganti</a>. 
+                        (KHUSUS untuk Pameran, Lomba, Sosialisasi atau Sesi Pengganti di luar jadwal rutin).
                     </li>
                 </ul>
             </div>

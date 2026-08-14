@@ -17,7 +17,7 @@
         </div>
         @can('create', App\Models\LaporanMengajar::class)
         <a href="{{ route('laporan-mengajar.create') }}" class="btn btn-primary shadow-sm">
-            <i class="bi bi-plus-lg me-2"></i>Buat Laporan Baru
+            <i class="bi bi-lightning-charge me-2"></i>Buat Laporan Ad-Hoc
         </a>
         @endcan
     </div>
