@@ -11,11 +11,12 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 9pt;
+            font-size: 8pt;
             margin: 0;
-            padding: 15px;
+            padding: 10px;
             background-color: #f1f5f9;
             color: #1e293b;
+            line-height: 1.15;
         }
 
         .page-container {
@@ -23,7 +24,7 @@
             max-width: 210mm;
             margin: 0 auto;
             background: #ffffff;
-            padding: 12mm;
+            padding: 6mm 10mm;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
 
@@ -33,37 +34,38 @@
         .uppercase { text-transform: uppercase; }
         
         .header {
-            margin-bottom: 12px;
-            border-bottom: 2px solid #0f172a;
-            padding-bottom: 8px;
+            margin-bottom: 6px;
+            border-bottom: 1.5px solid #0f172a;
+            padding-bottom: 4px;
         }
         .header h1 {
             margin: 0;
-            font-size: 13.5pt;
+            font-size: 11pt;
             color: #0f172a;
             letter-spacing: 0.5px;
+            font-weight: 700;
         }
         .header h2 {
-            margin: 3px 0 0;
-            font-size: 10pt;
-            font-weight: 500;
+            margin: 2px 0 0;
+            font-size: 8.5pt;
+            font-weight: 600;
             color: #475569;
         }
 
         .meta-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
-            font-size: 8.5pt;
+            gap: 4px 16px;
+            margin-bottom: 6px;
+            font-size: 7.8pt;
         }
         .meta-row {
             display: flex;
-            margin-bottom: 4px;
-            align-items: flex-start;
+            margin-bottom: 2px;
+            align-items: baseline;
         }
         .meta-label {
-            width: 125px;
+            width: 115px;
             font-weight: 600;
             color: #334155;
             flex-shrink: 0;
@@ -76,24 +78,25 @@
 
         .table-container {
             width: 100%;
-            margin-bottom: 15px;
+            margin-bottom: 6px;
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 8.5pt;
+            font-size: 7.5pt;
             table-layout: fixed;
         }
         
         th, td {
             border: 1px solid #334155;
-            padding: 3px 4px;
+            padding: 1.5px 3px;
             vertical-align: middle;
             word-wrap: break-word;
             overflow-wrap: break-word;
-            line-height: 1.15;
-            font-size: 8pt;
+            line-height: 1.1;
+            font-size: 7.5pt;
+            height: 15.5px;
         }
         
         th {
@@ -101,59 +104,63 @@
             color: #0f172a;
             text-align: center;
             font-weight: 700;
-            padding: 4px 3px;
-            border-bottom: 2px solid #0f172a;
+            padding: 2.5px 2px;
+            border-bottom: 1.5px solid #0f172a;
+            font-size: 7.5pt;
         }
         
-        /* Uniform row height for empty rows */
+        /* Uniform row height for empty and filled rows */
         tbody tr {
-            min-height: 20px; 
+            height: 15.5px;
         }
 
-        .col-no { text-align: center; }
-        .col-nama { text-align: left; padding-left: 6px; } 
+        .col-no { text-align: center; width: 3.5%; }
+        .col-nama { text-align: left; padding-left: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } 
         .col-kelas { text-align: center; }
         .col-meeting { text-align: center; }
         .col-ket { text-align: center; }
 
         .row-paraf {
-            height: 28px;
+            height: 20px;
             background-color: #f8fafc;
         }
         .row-paraf td {
-            border-top: 2px solid #0f172a;
+            border-top: 1.5px solid #0f172a;
+            font-size: 7.5pt;
         }
 
         .footer {
-            margin-top: 10px;
+            margin-top: 6px;
             display: flex;
             justify-content: space-between;
-            padding: 0 10px;
+            padding: 0 15px;
             page-break-inside: avoid;
         }
         .signature-box {
             text-align: center;
-            width: 200px;
-            font-size: 8.5pt;
+            width: 180px;
+            font-size: 7.5pt;
         }
         .signature-space {
-            height: 42px;
+            height: 28px;
         }
         .signature-line {
             border-top: 1px solid #0f172a;
-            margin-top: 4px;
-            padding-top: 4px;
+            margin-top: 2px;
+            padding-top: 2px;
+            font-weight: 600;
         }
 
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 6mm 8mm;
+                margin: 4mm 6mm;
             }
             body {
                 background: #ffffff;
                 padding: 0;
                 margin: 0;
+                font-size: 7.5pt;
             }
             .page-container {
                 max-width: 100% !important;
@@ -173,15 +180,15 @@
             background: #0f172a;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
-            margin-bottom: 15px;
-            font-size: 13px;
+            margin-bottom: 10px;
+            font-size: 12px;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .btn-print:hover {
@@ -192,11 +199,11 @@
 <body>
 
     <button onclick="window.print()" class="no-print btn-print">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
             <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1"/>
             <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1"/>
         </svg>
-        Cetak Dokumen
+        Cetak Dokumen (A4)
     </button>
 
     <div class="page-container">
@@ -231,7 +238,7 @@
                     <span class="meta-value">: {{ $salesName }}</span>
                 </div>
                  <div class="meta-row">
-                    <span class="meta-label">Bulan</span>
+                    <span class="meta-label">Bulan / Periode</span>
                     <span class="meta-value">: {{ $monthName }}</span>
                 </div>
             </div>
@@ -242,15 +249,16 @@
             $maxColumns = max(4, $sessions->count());
             
             // Optimized width calculation for A4 Portrait (Total 100%)
-            $noPercent = 3.5;       // ~25px on A4
-            $kelasPercent = 16;     // ~115px on A4 (ample space for long class names)
-            $ketPercent = 5.5;      // ~40px on A4
+            $noPercent = 4.0;       // ~30px on A4
+            $kelasPercent = 15;     // ~110px on A4
+            $ketPercent = 6.0;      // ~45px on A4
             $meetingPercent = 7.5;  // ~55px on A4 per meeting column (x4 = 30%)
             
-            // Distribute remaining width to student name
-            $namaPercent = round(100 - $noPercent - $kelasPercent - $ketPercent - ($maxColumns * $meetingPercent), 2); // ~45%
+            // Distribute remaining width to student name (~45%)
+            $namaPercent = round(100 - $noPercent - $kelasPercent - $ketPercent - ($maxColumns * $meetingPercent), 2);
             
-            $totalRows = 15; 
+            // Target max 30 students per sheet
+            $totalRows = 30; 
             $currentCount = $students->count();
             $emptyRowsNeeded = max(0, $totalRows - $currentCount);
         @endphp
@@ -280,7 +288,7 @@
                     </tr>
                     <tr>
                         @for($i = 0; $i < $maxColumns; $i++)
-                            <th style="font-weight: normal; font-size: 8pt;">
+                            <th style="font-weight: normal; font-size: 7pt;">
                                 <span style="color: #64748b;">Tgl:</span> 
                                 {{ isset($sessions[$i]) && ($sessions[$i]->tanggal_terjadwal ?? $sessions[$i]->tanggal_pelaksanaan) ? ($sessions[$i]->tanggal_terjadwal ?? $sessions[$i]->tanggal_pelaksanaan)->format('d/m') : '-' }}
                             </th>
@@ -304,7 +312,7 @@
                                     @endphp
                                     
                                     @if($status === 1 || $status === true || $status === '1')
-                                        <span>&#10003;</span>
+                                        <span style="font-weight: bold;">&#10003;</span>
                                     @elseif($status === 0 || $status === false || $status === '0')
                                         <span style="color: #ef4444; font-weight: bold;">x</span>
                                     @endif
@@ -316,22 +324,22 @@
                     </tr>
                     @endforeach
                     
-                    <!-- Fill empty rows -->
+                    <!-- Fill empty rows up to 30 for manual entry in next meetings -->
                     @for($i = 0; $i < $emptyRowsNeeded; $i++)
                     <tr>
-                        <td class="col-no" style="color: #cbd5e1;">{{ $currentCount + $i + 1 }}</td>
-                        <td></td>
-                        <td></td>
+                        <td class="col-no" style="color: #94a3b8;">{{ $currentCount + $i + 1 }}</td>
+                        <td class="col-nama"></td>
+                        <td class="col-kelas"></td>
                         @for($j = 0; $j < $maxColumns; $j++)
                             <td></td>
                         @endfor
-                        <td></td>
+                        <td class="col-ket"></td>
                     </tr>
                     @endfor
                 </tbody>
                 <tfoot>
                     <tr class="row-paraf">
-                        <td colspan="3" class="text-bold text-end" style="font-size: 8pt; color: #0f172a; padding-right: 6px;">Paraf PIC Ekskul:</td>
+                        <td colspan="3" class="text-bold text-end" style="font-size: 7.5pt; color: #0f172a; padding-right: 6px;">Paraf PIC Ekskul:</td>
                         @for($i = 0; $i < $maxColumns; $i++)
                             <td style="text-align: center; vertical-align: bottom; padding-bottom: 2px;"></td>
                         @endfor

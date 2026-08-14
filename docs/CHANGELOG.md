@@ -2,6 +2,14 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.4] - 2026-08-14
+
+### Pembaruan Format Cetak Presensi (Attendance Print Layout)
+- **Pemadatan Lembar Cetak Presensi A4 Portrait (`/ekstrakurikuler-session/{id}/print`)**:
+  - Penambahan kuota baris hingga maksimal **30 siswa per lembar**.
+  - Baris kosong otomatis digenerate dari nomor siswa terdaftar sampai dengan baris ke-30 untuk memungkinkan pencatatan manual siswa susulan/tambahan menggunakan pulpen di pertemuan berikutnya.
+  - Pemadatan tipografi, margin kertas (`4mm 6mm`), padding baris tabel (`1.5px 3px`), serta blok metadata & tanda tangan agar seluruh 30 baris muat presisi dalam **1 lembar A4 portrait** tanpa tumpah ke halaman 2.
+
 ## [2.9.3] - 2026-08-13
 
 ### Redesign Antarmuka & Perbaikan Layout (UI Redesign & Layout Fix)
