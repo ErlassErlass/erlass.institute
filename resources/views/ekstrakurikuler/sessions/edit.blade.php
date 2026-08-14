@@ -58,6 +58,16 @@
                     </div>
                 @endif
 
+                @if($session->status === 'selesai')
+                    <div class="alert alert-info border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center gap-3">
+                        <i class="bi bi-info-circle-fill fs-3 text-info"></i>
+                        <div>
+                            <strong class="d-block text-dark">Mode Koreksi Tim Pengajar (Sesi Selesai)</strong>
+                            <span class="small text-muted">Sesi ini telah selesai. Sebagai Admin, Anda dapat menambahkan atau mengganti <strong>Instruktur & Asisten Instruktur</strong>. Perubahan akan otomatis disinkronkan ke Laporan Mengajar dan kalkulasi Payroll terkait.</span>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-light">
                         <h5 class="mb-0 card-title">Jadwal Sesi</h5>

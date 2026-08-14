@@ -328,11 +328,14 @@ class EkstrakurikulerSessionController extends Controller
                 ->withInput();
         }
 
-        // Cek apakah session dapat diupdate
+        $user = Auth::user();
+        $isAdmin = $user && $user->hasRole(['webmaster', 'admin_sistem', 'admin']);
+
+        // Cek apakah session dapat diupdate (Admin berwenang update sesi selesai untuk penyesuaian instruktur / asisten)
         if (! in_array($session->status, [
             EkstrakurikulerSession::STATUS_TERJADWAL,
             EkstrakurikulerSession::STATUS_DITUNDA,
-        ])) {
+        ]) && ! ($isAdmin && $session->status === EkstrakurikulerSession::STATUS_SELESAI)) {
             return redirect()->back()
                 ->withErrors(['status' => 'Session ini tidak dapat diupdate karena sudah '.$session->status_label]);
         }
@@ -407,6 +410,14 @@ class EkstrakurikulerSessionController extends Controller
         $newInstruktorId = $data['user_id_instruktur'] ?? null;
 
         $session->update($data);
+
+        // Jika sesi memiliki laporan mengajar terkait, sinkronkan asisten & instruktur secara otomatis
+        if ($session->laporanMengajar) {
+            $session->laporanMengajar->update([
+                'user_id_assisten' => $data['user_id_asisten'],
+                'user_id_instruktur' => $data['user_id_instruktur'] ?? $session->laporanMengajar->user_id_instruktur,
+            ]);
+        }
 
         // Process Option B: Apply instructor & assistant to all scheduled sessions in the Rombel
         $bulkUpdatedCount = 0;

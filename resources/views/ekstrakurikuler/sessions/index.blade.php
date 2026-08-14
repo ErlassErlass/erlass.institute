@@ -279,7 +279,7 @@
                                     </a>
                                     
                                     @can('update', $session)
-                                        @if(in_array($session->status, ['terjadwal', 'ditunda']))
+                                        @if(in_array($session->status, ['terjadwal', 'ditunda']) || ($session->status === 'selesai' && Auth::user()->hasRole(['webmaster', 'admin_sistem', 'admin'])))
                                             <a href="{{ route('ekstrakurikuler.sessions.edit', array_merge(['session' => $session->id], request()->query())) }}" 
                                                class="btn-action edit" title="Edit">
                                                 <i class="bi bi-pencil"></i>

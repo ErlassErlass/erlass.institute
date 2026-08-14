@@ -64,7 +64,7 @@
                     @endif
                     
                     @can('update', $session)
-                        @if(in_array($session->status, ['terjadwal', 'ditunda']))
+                        @if(in_array($session->status, ['terjadwal', 'ditunda']) || ($session->status === 'selesai' && Auth::user()->hasRole(['webmaster', 'admin_sistem', 'admin'])))
                             <a href="{{ route('ekstrakurikuler.sessions.edit', array_merge(['session' => $session->id], request()->query())) }}" 
                                class="btn btn-outline-primary w-100 w-sm-auto">
                                 <i class="bi bi-pencil me-1"></i> Edit
