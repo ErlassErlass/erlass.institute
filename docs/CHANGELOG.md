@@ -4,11 +4,15 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
 ## [2.9.4] - 2026-08-14
 
-### Pembaruan Format Cetak Presensi (Attendance Print Layout)
+### Pembaruan Format Cetak Presensi & Pusat Bantuan (Attendance Print & Help Center)
 - **Pemadatan Lembar Cetak Presensi A4 Portrait (`/ekstrakurikuler-session/{id}/print`)**:
   - Penambahan kuota baris hingga maksimal **30 siswa per lembar**.
   - Baris kosong otomatis digenerate dari nomor siswa terdaftar sampai dengan baris ke-30 untuk memungkinkan pencatatan manual siswa susulan/tambahan menggunakan pulpen di pertemuan berikutnya.
   - Pemadatan tipografi, margin kertas (`4mm 6mm`), padding baris tabel (`1.5px 3px`), serta blok metadata & tanda tangan agar seluruh 30 baris muat presisi dalam **1 lembar A4 portrait** tanpa tumpah ke halaman 2.
+- **Pembaruan Panduan & FAQ 101 (`/help`)**:
+  - Penambahan ketentuan kapasitas rombel: maksimal **30 siswa per rombel**.
+  - Penegasan aturan pendampingan: rombel dengan **$\ge 24$ siswa wajib didampingi 1 Asisten Instruktur** (Honor Asisten: Rp 100.000 / sesi).
+  - Penambahan butir Tanya Jawab (FAQ) khusus mengenai kapasitas rombel dan regulasi asisten pengajar.
 
 ## [2.9.3] - 2026-08-13
 

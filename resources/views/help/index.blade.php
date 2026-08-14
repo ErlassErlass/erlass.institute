@@ -535,8 +535,8 @@
             <div class="comp-item">
                 <div class="comp-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-person-check-fill"></i></div>
                 <div>
-                    <h6>Absensi Siswa</h6>
-                    <p>Tandai Hadir / Alpha per siswa. Siswa baru yang belum terdaftar bisa ditambah langsung dari form absensi.</p>
+                    <h6>Absensi &amp; Kapasitas Siswa (Maks. 30 Siswa)</h6>
+                    <p>Tandai Hadir / Alpha per siswa. Kapasitas maksimal adalah <strong>30 siswa per rombel</strong>. Jika rombel memiliki <strong>≥ 24 siswa</strong>, wajib didampingi 1 orang Asisten Instruktur.</p>
                 </div>
             </div>
             <div class="comp-item">
@@ -655,12 +655,22 @@
             </div>
             <div class="col-md-6">
                 <div class="p-3 bg-white rounded border h-100" style="font-size:.88rem;">
-                    <div class="fw-bold text-primary mb-2"><i class="bi bi-person-plus-fill me-1"></i> Ketentuan Khusus</div>
+                    <div class="fw-bold text-primary mb-2"><i class="bi bi-person-plus-fill me-1"></i> Ketentuan Rombel &amp; Asisten</div>
                     <ul class="list-unstyled mb-0 d-flex flex-column gap-2 text-muted">
                         <li>
                             <i class="bi bi-check-circle-fill text-success me-1"></i>
+                            <strong>Kapasitas Maksimal Rombel:</strong><br>
+                            Maksimal <strong class="text-dark">30 Siswa</strong> per rombel ekstrakurikuler.
+                        </li>
+                        <li>
+                            <i class="bi bi-check-circle-fill text-success me-1"></i>
+                            <strong>Wajib Asisten Instruktur (≥ 24 Siswa):</strong><br>
+                            Jika jumlah siswa terdaftar / hadir <strong class="text-dark">≥ 24 orang</strong>, rombel <strong>wajib didampingi 1 Asisten Instruktur</strong>.
+                        </li>
+                        <li>
+                            <i class="bi bi-cash-stack text-primary me-1"></i>
                             <strong>Honor Asisten Instruktur:</strong><br>
-                            <strong class="text-dark">Rp 100.000</strong> / sesi (jika rombel &gt; 24 siswa).
+                            <strong class="text-dark">Rp 100.000</strong> / sesi (berlaku untuk rombel ≥ 24 siswa).
                         </li>
                         <li>
                             <i class="bi bi-info-circle-fill text-warning me-1"></i>
@@ -720,6 +730,10 @@
                 [
                     'q' => 'Bagaimana cara menambah siswa baru yang belum ada di daftar absensi?',
                     'a' => 'Di dalam form absensi sesi, tersedia tombol <strong>"+ Tambah Siswa Ad-Hoc"</strong>. Isi nama lengkap dan data dasar siswa, sistem akan langsung mendaftarkan siswa tersebut ke dalam rombel dan mencatat kehadirannya di sesi ini.',
+                ],
+                [
+                    'q' => 'Berapa batas maksimal siswa per rombel dan kapan wajib menggunakan asisten?',
+                    'a' => 'Setiap rombel ekstrakurikuler memiliki kapasitas maksimal <strong>30 orang siswa</strong>. Apabila jumlah siswa dalam satu rombel mencapai <strong>24 orang atau lebih (≥ 24 siswa)</strong>, maka kegiatan mengajar <strong>wajib didampingi oleh 1 orang Asisten Instruktur</strong> guna menjaga efektivitas kelas, bimbingan teknis, dan keamanan belajar.',
                 ],
             ];
             @endphp
