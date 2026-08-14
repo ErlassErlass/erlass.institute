@@ -629,8 +629,8 @@
                     @endif
                     <li class="sidebar-item">
                         <a class="sidebar-link {{ request()->routeIs(['ekstrakurikuler.sessions.*', 'ekstrakurikuler.reports.*']) ? 'active' : '' }}" href="{{ route('ekstrakurikuler.sessions.index') }}">
-                            <i class="bi bi-calendar-event"></i>
-                            <span>Agenda Kegiatan</span>
+                            <i class="bi bi-calendar2-check"></i>
+                            <span>Jadwal Sesi &amp; Laporan</span>
                         </a>
                     </li>
 
@@ -638,15 +638,15 @@
                     @if(Auth::user()?->role === 'instruktur' || Auth::user()?->hasAdminAccess())
                         <li class="sidebar-item">
                             <a class="sidebar-link {{ request()->routeIs('laporan-mengajar.create') ? 'active' : '' }}" href="{{ route('laporan-mengajar.create') }}">
-                                <i class="bi bi-pencil-square"></i>
-                                <span>Buat Laporan</span>
+                                <i class="bi bi-lightning-charge"></i>
+                                <span>Laporan Ad-Hoc / Pengganti</span>
                             </a>
                         </li>
                     @endif
                     <li class="sidebar-item">
                         <a class="sidebar-link {{ request()->routeIs('laporan-mengajar.index') ? 'active' : '' }}" href="{{ route('laporan-mengajar.index') }}">
                             <i class="bi bi-clock-history"></i>
-                            <span>Riwayat Laporan</span>
+                            <span>Semua Riwayat Laporan</span>
                         </a>
                     </li>
                     <li class="sidebar-item">

@@ -481,11 +481,11 @@
             {{-- Jalur Rutin --}}
             <div class="path-card path-card--blue">
                 <div class="path-badge path-badge--blue"><i class="bi bi-calendar-check"></i> Jalur 1 — Utama</div>
-                <h3>Sesi Rutin (Agenda Kegiatan)</h3>
+                <h3>Sesi Rutin (Jadwal Sesi &amp; Laporan)</h3>
                 <p class="desc">Untuk seluruh kegiatan yang <strong>sesuai jadwal rutin mingguan</strong> yang sudah terdaftar di Agenda Sesi.</p>
 
                 <ol class="steps-list">
-                    <li>Buka <strong>Agenda Kegiatan / Penjadwalan Sesi</strong> di sidebar kiri.</li>
+                    <li>Buka menu <strong>Jadwal Sesi &amp; Laporan</strong> di sidebar kiri atau tombol <strong>Buat Laporan</strong> di tabel Jadwal Hari Ini pada Dashboard.</li>
                     <li>Temukan Sesi Pertemuan hari ini, klik <strong>"Detail Sesi"</strong>.</li>
                     <li>Saat tiba di sekolah, tekan tombol <strong>"📌 Check-in Hadir (GPS &amp; Camera)"</strong>.</li>
                     <li>Setelah selesai mengajar, klik <strong>"Buat Laporan &amp; Absensi"</strong>.</li>
@@ -505,7 +505,7 @@
                 <p class="desc">Untuk kegiatan mengajar <strong>di luar jadwal rutin</strong> — kelas pengganti, sesi tambahan, atau kegiatan insidental.</p>
 
                 <ol class="steps-list">
-                    <li>Buka menu <strong>Buat Laporan Mengajar</strong> di sidebar kiri.</li>
+                    <li>Buka menu <strong>Laporan Ad-Hoc / Pengganti</strong> di sidebar kiri.</li>
                     <li>Pada kolom kategori, pilih <strong>"Ad-Hoc / Sesi Pengganti"</strong>.</li>
                     <li>Pilih Sekolah, Rombel, dan tanggal pelaksanaan <strong>secara manual</strong>.</li>
                     <li>Isi seluruh detail materi, absensi, dan foto kegiatan.</li>
@@ -701,7 +701,7 @@
             $faqs = [
                 [
                     'q' => 'Kapan saya harus menggunakan Jalur Rutin vs Jalur Ad-Hoc?',
-                    'a' => 'Gunakan <strong>Jalur Rutin</strong> (via Agenda Kegiatan) untuk seluruh pertemuan yang sudah memiliki jadwal mingguan resmi. Gunakan <strong>Jalur Ad-Hoc</strong> hanya jika Anda mengajar kelas pengganti atau sesi tambahan yang jadwalnya belum terdaftar di Agenda Sesi Rutin.',
+                    'a' => 'Gunakan <strong>Jalur Rutin</strong> (via menu <em>Jadwal Sesi &amp; Laporan</em> atau tombol langsung di Dashboard) untuk seluruh pertemuan yang sudah memiliki jadwal mingguan resmi. Gunakan <strong>Jalur Ad-Hoc</strong> (menu <em>Laporan Ad-Hoc / Pengganti</em>) hanya jika Anda mengajar kelas pengganti atau kegiatan insidental yang jadwalnya belum terdaftar di Agenda Sesi Rutin.',
                 ],
                 [
                     'q' => 'Bagaimana cara kerja Check-in GPS Real-Time?',

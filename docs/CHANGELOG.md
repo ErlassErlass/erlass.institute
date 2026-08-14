@@ -9,10 +9,15 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
   - Penambahan kuota baris hingga maksimal **30 siswa per lembar**.
   - Baris kosong otomatis digenerate dari nomor siswa terdaftar sampai dengan baris ke-30 untuk memungkinkan pencatatan manual siswa susulan/tambahan menggunakan pulpen di pertemuan berikutnya.
   - Pemadatan tipografi, margin kertas (`4mm 6mm`), padding baris tabel (`1.5px 3px`), serta blok metadata & tanda tangan agar seluruh 30 baris muat presisi dalam **1 lembar A4 portrait** tanpa tumpah ke halaman 2.
-- **Koreksi & Penugasan Tim Pengajar pada Sesi Selesai (Completed Session Admin Edit)**:
-  - Pembukaan hak akses bagi role Admin (`webmaster`, `admin_sistem`, `admin`) untuk tetap dapat mengedit dan menugaskan **Asisten Instruktur / Instruktur** pada sesi yang telah berstatus `selesai` langsung via tombol **Edit Sesi** standar.
-  - Sinkronisasi otomatis dua arah (*Auto-Sync*): Pembaruan nama asisten di sesi selesai akan otomatis menyinkronkan data `user_id_assisten` pada Laporan Mengajar terkait dan memutakhirkan hak kalkulasi honorarium di engine Payroll.
-  - Penambahan banner panduan *Mode Koreksi Tim Pengajar (Sesi Selesai)* pada form edit sesi.
+- **Penyempurnaan Label Navigasi Sidebar & Tombol Aksi Langsung Dashboard**:
+  - Penyesuaian label navigasi sidebar kiri untuk menghilangkan kebingungan instruktur:
+    - `Agenda Kegiatan` $\rightarrow$ **📅 Jadwal Sesi & Laporan** *(tempat utama instruktur melihat jadwal rutin & mengisi laporan sesi)*.
+    - `Buat Laporan` $\rightarrow$ **⚡ Laporan Ad-Hoc / Pengganti** *(khusus sesi pengganti / insidental di luar jadwal rutin)*.
+    - `Riwayat Laporan` $\rightarrow$ **📑 Semua Riwayat Laporan**.
+  - Penambahan tombol aksi kontekstual langsung pada tabel **Jadwal Hari Ini** di Dashboard:
+    - **`[📝 Buat Laporan]`**: 1-klik langsung membuka form laporan & absensi untuk sesi hari ini yang belum dilaporkan.
+    - **`[✅ Laporan Selesai]`**: Akses langsung ke laporan yang sudah selesai disubmit.
+    - **`[Detail →]`**: Melihat rincian sesi lengkap.
 
 ## [2.9.3] - 2026-08-13
 

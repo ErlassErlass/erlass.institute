@@ -505,10 +505,21 @@
                                                     {{ $session->status_label }}
                                                 </span>
                                             </td>
-                                            <td class="text-end pe-4">
-                                                <a href="{{ route('ekstrakurikuler.sessions.show', $session->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
-                                                    Detail <i class="bi bi-arrow-right ms-1"></i>
-                                                </a>
+                                            <td class="text-end pe-4 text-nowrap">
+                                                <div class="d-inline-flex align-items-center gap-1">
+                                                    @if($session->laporanMengajar)
+                                                        <a href="{{ route('laporan-mengajar.show', $session->laporanMengajar->id) }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold shadow-xs" title="Lihat Laporan Selesai">
+                                                            <i class="bi bi-check-circle-fill me-1"></i> Laporan Selesai
+                                                        </a>
+                                                    @elseif(in_array($session->status, ['terjadwal', 'berlangsung']))
+                                                        <a href="{{ route('ekstrakurikuler.sessions.report.create', $session->id) }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-xs" title="Buat Laporan & Presensi Sesi Ini">
+                                                            <i class="bi bi-pencil-square me-1"></i> Buat Laporan
+                                                        </a>
+                                                    @endif
+                                                    <a href="{{ route('ekstrakurikuler.sessions.show', $session->id) }}" class="btn btn-sm btn-light border rounded-pill px-2" title="Detail Sesi">
+                                                        <i class="bi bi-arrow-right"></i>
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
