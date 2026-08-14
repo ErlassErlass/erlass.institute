@@ -436,29 +436,33 @@
                 </div>
                 <div class="card-body p-0">
                     @if(isset($todays_schedule) && $todays_schedule->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th class="ps-4">Jam</th>
-                                        <th>Sekolah & Program</th>
-                                        <th>Instruktur</th>
-                                        <th class="text-center">Status</th>
-                                        <th class="text-end pe-4">Aksi</th>
+                        <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+                            <table class="table table-hover align-middle mb-0" style="font-size: 0.84rem;">
+                                <thead class="table-light sticky-top" style="z-index: 5; background-color: #F8FAFC;">
+                                    <tr class="text-secondary text-uppercase fw-bold" style="font-size: 0.72rem; letter-spacing: 0.05em; border-bottom: 2px solid #E2E8F0;">
+                                        <th class="ps-3 py-2.5" style="width: 125px;">JAM</th>
+                                        <th class="py-2.5" style="min-width: 210px;">SEKOLAH &amp; PROGRAM</th>
+                                        <th class="py-2.5" style="min-width: 150px;">INSTRUKTUR</th>
+                                        <th class="text-center py-2.5" style="width: 105px;">STATUS</th>
+                                        <th class="text-end pe-3 py-2.5" style="width: 155px;">AKSI</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($todays_schedule as $session)
                                         <tr>
-                                            <td class="ps-4 fw-bold text-nowrap" style="width: 120px;">
-                                                <i class="bi bi-clock text-primary me-1"></i> {{ $session->jam_mulai_terjadwal->format('H:i') }} - {{ $session->jam_selesai_terjadwal->format('H:i') }}
+                                            <td class="ps-3 py-2 fw-bold text-dark text-nowrap" style="font-size: 0.8rem;">
+                                                <i class="bi bi-clock-fill text-primary me-1" style="font-size: 0.75rem;"></i> {{ $session->jam_mulai_terjadwal->format('H:i') }} - {{ $session->jam_selesai_terjadwal->format('H:i') }}
                                             </td>
-                                            <td>
-                                                <div class="fw-bold text-dark d-flex align-items-center gap-2 flex-wrap mb-1">
-                                                    <span>{{ $session->rombel->ekstrakurikuler->sekolah->namasekolah }}</span>
+                                            <td class="py-2">
+                                                <div class="fw-bold text-dark lh-sm mb-1" style="font-size: 0.85rem;">
+                                                    {{ $session->rombel->ekstrakurikuler->sekolah->namasekolah }}
+                                                </div>
+                                                <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                                    <span class="text-secondary fw-semibold" style="font-size: 0.75rem;">{{ $session->rombel->ekstrakurikuler->kategori_program }}</span>
+                                                    <span class="badge bg-light text-dark border px-1.5 py-0.5" style="font-size: 0.7rem;">{{ $session->rombel->nama_rombel }}</span>
                                                     @if($session->rombel->ekstrakurikuler->google_maps_link)
-                                                        <a href="{{ $session->rombel->ekstrakurikuler->google_maps_link }}" target="_blank" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill text-decoration-none px-2 py-1" title="Buka Google Maps">
-                                                            <i class="bi bi-geo-alt-fill me-1"></i> Maps
+                                                        <a href="{{ $session->rombel->ekstrakurikuler->google_maps_link }}" target="_blank" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill text-decoration-none px-1.5 py-0.5" title="Buka Google Maps" style="font-size: 0.68rem;">
+                                                            <i class="bi bi-geo-alt-fill"></i> Maps
                                                         </a>
                                                     @endif
                                                     @if($session->rombel->ekstrakurikuler->no_telepon)
@@ -469,28 +473,27 @@
                                                             }
                                                             $waText = urlencode("Halo " . $session->rombel->ekstrakurikuler->penanggung_jawab . ", saya instruktur Erlass untuk ekstrakurikuler " . $session->rombel->ekstrakurikuler->kategori_program . ".");
                                                         @endphp
-                                                        <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" rel="noopener" class="wa-contact-chip" title="WhatsApp PJ: {{ $session->rombel->ekstrakurikuler->penanggung_jawab }}">
-                                                            <span class="wa-dot"></span> WhatsApp
+                                                        <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" rel="noopener" class="wa-contact-chip py-0 px-1.5" title="WhatsApp PJ: {{ $session->rombel->ekstrakurikuler->penanggung_jawab }}" style="font-size: 0.68rem;">
+                                                            <span class="wa-dot"></span> WA
                                                         </a>
                                                     @endif
                                                 </div>
-                                                <div class="text-muted small">
-                                                    <span class="fw-semibold text-secondary">{{ $session->rombel->ekstrakurikuler->kategori_program }}</span> • <span class="badge bg-light text-dark border">{{ $session->rombel->nama_rombel }}</span>
-                                                </div>
                                             </td>
-                                            <td>
+                                            <td class="py-2">
                                                 @if($session->instruktur)
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="avatar-sm bg-primary-subtle text-primary rounded-circle me-2 d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 11px;">
+                                                    <div class="d-flex align-items-center gap-1.5">
+                                                        <div class="avatar-sm bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 26px; height: 26px; font-size: 10px; min-width: 26px;">
                                                             {{ substr($session->instruktur->nama_lengkap, 0, 1) }}
                                                         </div>
-                                                        <span class="text-dark small fw-semibold">{{ $session->instruktur->nama_lengkap }}</span>
+                                                        <span class="text-dark fw-semibold text-truncate" style="font-size: 0.8rem; max-width: 130px;" title="{{ $session->instruktur->nama_lengkap }}">
+                                                            {{ $session->instruktur->nama_lengkap }}
+                                                        </span>
                                                     </div>
                                                 @else
-                                                    <span class="badge bg-danger-subtle text-danger border border-danger">Belum Ada Instruktur</span>
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0.5" style="font-size: 0.7rem;">Belum Ditugaskan</span>
                                                 @endif
                                             </td>
-                                            <td class="text-center">
+                                            <td class="text-center py-2">
                                                 @php
                                                     $statusClass = match($session->status) {
                                                         'terjadwal' => 'primary',
@@ -501,22 +504,22 @@
                                                         default => 'secondary'
                                                     };
                                                 @endphp
-                                                <span class="badge bg-{{ $statusClass }}-subtle text-{{ $statusClass }} border border-{{ $statusClass }} px-3 py-1 rounded-pill">
+                                                <span class="badge bg-{{ $statusClass }}-subtle text-{{ $statusClass }} border border-{{ $statusClass }}-subtle px-2.5 py-1 rounded-pill" style="font-size: 0.72rem; font-weight: 600;">
                                                     {{ $session->status_label }}
                                                 </span>
                                             </td>
-                                            <td class="text-end pe-4 text-nowrap">
+                                            <td class="text-end pe-3 py-2 text-nowrap">
                                                 <div class="d-inline-flex align-items-center gap-1">
                                                     @if($session->laporanMengajar)
-                                                        <a href="{{ route('laporan-mengajar.show', $session->laporanMengajar->id) }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold shadow-xs" title="Lihat Laporan Selesai">
+                                                        <a href="{{ route('laporan-mengajar.show', $session->laporanMengajar->id) }}" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 fw-semibold shadow-xs" title="Lihat Laporan Selesai" style="font-size: 0.75rem;">
                                                             <i class="bi bi-check-circle-fill me-1"></i> Laporan Selesai
                                                         </a>
                                                     @elseif(in_array($session->status, ['terjadwal', 'berlangsung']))
-                                                        <a href="{{ route('ekstrakurikuler.sessions.report.create', $session->id) }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-xs" title="Buat Laporan & Presensi Sesi Ini">
+                                                        <a href="{{ route('ekstrakurikuler.sessions.report.create', $session->id) }}" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 fw-bold shadow-xs" title="Buat Laporan & Presensi Sesi Ini" style="font-size: 0.75rem;">
                                                             <i class="bi bi-pencil-square me-1"></i> Buat Laporan
                                                         </a>
                                                     @endif
-                                                    <a href="{{ route('ekstrakurikuler.sessions.show', $session->id) }}" class="btn btn-sm btn-light border rounded-pill px-2" title="Detail Sesi">
+                                                    <a href="{{ route('ekstrakurikuler.sessions.show', $session->id) }}" class="btn btn-sm btn-light border rounded-pill px-2 py-1" title="Detail Sesi" style="font-size: 0.75rem;">
                                                         <i class="bi bi-arrow-right"></i>
                                                     </a>
                                                 </div>
