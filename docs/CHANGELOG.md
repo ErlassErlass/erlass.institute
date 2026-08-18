@@ -2,6 +2,19 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.5] - 2026-08-18
+
+### Ekstraksi Koordinat GPS Otomatis & Presisi Verifikasi Check-in (Google Maps Geolocation)
+- **Ekstraksi Otomatis Koordinat Sekolah dari Link Google Maps**:
+  - Penambahan kolom `latitude` (`decimal(10,7)`) dan `longitude` (`decimal(10,7)`) pada tabel `ekstrakurikuler`.
+  - Service [`GoogleMapsLocationService`](file:///var/www/webapperlass/app/Services/GoogleMapsLocationService.php) untuk mengurai (*resolve*) link Google Maps (termasuk link pendek `maps.app.goo.gl`, `goo.gl`, dll.) menjadi koordinat GPS asli sekolah menggunakan regex multi-pola (Pin `!3d...!4d...`, Query `?q=lat,lng`, View Center `@lat,lng`).
+  - Model [`Ekstrakurikuler`](file:///var/www/webapperlass/app/Models/Ekstrakurikuler.php) hook `static::saving(...)` yang otomatis mengekstrak koordinat saat link Google Maps diinput/diperbarui.
+  - Backfill massal berhasil mempopulasi koordinat akurat pada seluruh data ekstrakurikuler aktif yang memiliki link Google Maps.
+- **Penyempurnaan Verifikasi Check-in Instruktur (`/ekstrakurikuler/sessions/{session}/checkin`)**:
+  - Perhitungan formula **Haversine** kini membandingkan posisi GPS HP instruktur terhadap titik presisi sekolah yang bersangkutan (bukan lagi fallback ke Monas/Jakarta Pusat).
+  - Penanganan kasus jika sekolah belum memiliki koordinat terdaftar: status dicatat sebagai `unverified` (*"Lokasi Tercatat (Koordinat Sekolah Belum Disetel)"*) tanpa memvonis penalti palsu *out of bounds*.
+  - UI Feedback badge di halaman detail sesi ([show.blade.php](file:///var/www/webapperlass/resources/views/ekstrakurikuler/sessions/show.blade.php)) mendukung status `valid` (🟢), `out_of_bounds` (🟡), dan `unverified` (⚪).
+
 ## [2.9.4] - 2026-08-14
 
 ### Pembaruan Format Cetak Presensi & Pusat Bantuan (Attendance Print & Help Center)

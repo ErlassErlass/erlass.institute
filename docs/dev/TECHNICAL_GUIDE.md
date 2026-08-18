@@ -19,9 +19,10 @@ Menggunakan `spatie/laravel-permission`.
 ### 1. Ekstrakurikuler & Real-Time GPS Check-in (Scenario A)
 - **Workflow**: Multi-step form (Info Dasar -> Jadwal -> Peserta -> Review).
 - **Session Logic**: Sesi digenerate otomatis saat approval.
-- **Data Tables**: `ekstrakurikuler`, `ekstrakurikuler_session`, `ekstrakurikuler_enrollments`.
-- **GPS Check-in Metadata**: Columns added: `checkin_lat`, `checkin_lng`, `checkin_distance_meters`, `checkin_status_radius` (`valid` / `out_of_bounds`), `checkin_photo_path`.
-- **Haversine Formula**: Endpoint `/ekstrakurikuler/sessions/{session}/checkin` calculates real-time distance from instructor's geolocation to school coordinates (tolerance radius $\le 500$m).
+- **Data Tables**: `ekstrakurikuler` (termasuk `latitude`, `longitude`, `google_maps_link`), `ekstrakurikuler_session`, `ekstrakurikuler_enrollments`.
+- **GPS Check-in Metadata**: Columns: `checkin_lat`, `checkin_lng`, `checkin_distance_meters`, `checkin_status_radius` (`valid` / `out_of_bounds` / `unverified`), `checkin_photo_path`.
+- **Geolocation Engine**: `GoogleMapsLocationService` mengurai short link Google Maps secara otomatis menjadi koordinat asli sekolah saat penyimpanan data ekstrakurikuler.
+- **Haversine Formula**: Endpoint `/ekstrakurikuler/sessions/{session}/checkin` menghitung jarak real-time dari posisi GPS instruktur ke koordinat sekolah yang terdaftar (toleransi radius $\le 500$m). Jika koordinat belum dikonfigurasi, status dicatat sebagai `unverified`.
 
 ### 2. Form Laporan & Absensi Sesi Impeccable (`/ekstrakurikuler/sessions/{id}/report/create`)
 - **Controller**: `EkstrakurikulerReportController@create` & `EkstrakurikulerReportController@store`.

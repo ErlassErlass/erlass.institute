@@ -32,6 +32,8 @@ class Ekstrakurikuler extends Model
         'sekolah_kodlan',
         'alamat_lengkap',
         'google_maps_link',
+        'latitude',
+        'longitude',
         'jarak_km',
         'kepala_sekolah',
         'penanggung_jawab',
@@ -81,6 +83,8 @@ class Ekstrakurikuler extends Model
         'tanggal_selesai_aktual' => 'datetime',
         'tanggal_dibatalkan' => 'datetime',
         'jarak_km' => 'decimal:2',
+        'latitude' => 'float',
+        'longitude' => 'float',
         'total_siswa' => 'integer',
         'total_ruangan' => 'integer',
         'total_rombel' => 'integer',
@@ -430,6 +434,37 @@ class Ekstrakurikuler extends Model
     }
 
     /**
+     * Dapatkan koordinat lokasi sekolah atau ekstrak dari link Google Maps jika belum ada.
+     *
+     * @return array{lat: float, lng: float}|null
+     */
+    public function getOrExtractCoordinates(): ?array
+    {
+        if ($this->latitude !== null && $this->longitude !== null) {
+            return [
+                'lat' => (float) $this->latitude,
+                'lng' => (float) $this->longitude,
+            ];
+        }
+
+        if (!empty($this->google_maps_link)) {
+            $extracted = app(\App\Services\GoogleMapsLocationService::class)->extractCoordinates($this->google_maps_link);
+            if ($extracted) {
+                $this->updateQuietly([
+                    'latitude' => $extracted['lat'],
+                    'longitude' => $extracted['lng'],
+                ]);
+                return [
+                    'lat' => $extracted['lat'],
+                    'lng' => $extracted['lng'],
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Boot method untuk handle events.
      */
     protected static function boot()
@@ -447,6 +482,19 @@ class Ekstrakurikuler extends Model
         static::updating(function ($model) {
             if (auth()->check()) {
                 $model->updated_by = auth()->id();
+            }
+        });
+
+        // Auto-extract coordinates saat google_maps_link diisi / diubah
+        static::saving(function ($model) {
+            if ($model->isDirty('google_maps_link') && !empty($model->google_maps_link)) {
+                if (empty($model->latitude) || empty($model->longitude) || $model->isDirty('google_maps_link')) {
+                    $extracted = app(\App\Services\GoogleMapsLocationService::class)->extractCoordinates($model->google_maps_link);
+                    if ($extracted) {
+                        $model->latitude = $extracted['lat'];
+                        $model->longitude = $extracted['lng'];
+                    }
+                }
             }
         });
     }

@@ -269,9 +269,13 @@
                                         <span class="badge bg-success fs-7 px-3 py-1.5 rounded-pill">
                                             <i class="bi bi-shield-check me-1"></i>Terverifikasi di Sekolah (Jarak: {{ $session->checkin_distance_meters }}m)
                                         </span>
-                                    @else
+                                    @elseif($session->checkin_status_radius === 'out_of_bounds')
                                         <span class="badge bg-warning text-dark fs-7 px-3 py-1.5 rounded-pill">
                                             <i class="bi bi-exclamation-triangle-fill me-1"></i>Diluar Radius (Jarak: {{ $session->checkin_distance_meters }}m dari Sekolah)
+                                        </span>
+                                    @else
+                                        <span class="badge bg-secondary fs-7 px-3 py-1.5 rounded-pill">
+                                            <i class="bi bi-geo-alt me-1"></i>Lokasi Tercatat (Koordinat Sekolah Belum Disetel)
                                         </span>
                                     @endif
 

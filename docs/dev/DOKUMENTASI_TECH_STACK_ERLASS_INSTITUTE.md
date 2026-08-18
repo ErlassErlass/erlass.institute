@@ -288,6 +288,8 @@ Menggunakan **Spatie Laravel Permission** dengan 5 role:
 | `sekolah_kodlan` | varchar FK | FK → sekolah.kodlan |
 | `alamat_lengkap` | text nullable | |
 | `google_maps_link` | varchar nullable | |
+| `latitude` | decimal(10,7) nullable | Koordinat Latitude Sekolah |
+| `longitude` | decimal(10,7) nullable | Koordinat Longitude Sekolah |
 | `jarak_km` | decimal(8,2) nullable | Jarak tempuh |
 | `kepala_sekolah` | varchar nullable | |
 | `penanggung_jawab` | varchar nullable | |
