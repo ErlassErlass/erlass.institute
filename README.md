@@ -1,11 +1,12 @@
-# 🏫 Erlass Portal — Web Apperlass (v2.6.0)
+# 🏫 Erlass Portal — Web Apperlass (v2.9.5)
 
 **Dashboard Manajemen Sistem & Portal Operasional Terpadu untuk Erlass Institute (Pendidikan & Ekstrakurikuler)**
 
-[![Laravel](https://img.shields.io/badge/Laravel-11.x-red.svg)](https://laravel.com)
+[![Laravel](https://img.shields.io/badge/Laravel-11.x%20%7C%2012.x-red.svg)](https://laravel.com)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue.svg)](https://php.net)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple.svg)](https://getbootstrap.com)
-[![PWA](https://img.shields.io/badge/PWA-Supported-green.svg)](https://w3c.github.io/manifest/)
+[![PWA](https://img.shields.io/badge/PWA-v3%20Active-green.svg)](https://w3c.github.io/manifest/)
+[![GPS](https://img.shields.io/badge/GPS-Google%20Maps%20Auto--Extract-orange.svg)](https://erlass.institute)
 [![Status](https://img.shields.io/badge/Production-Active-success.svg)](https://erlass.institute)
 
 ---
@@ -26,6 +27,33 @@ Erlass Portal dibangun berdasarkan **Blueprint AOQCS (Academic Operations, Quali
 
 ---
 
+## 🌟 Fitur Unggulan Sistem (v2.9.5)
+
+- 📍 **Presisi GPS Check-in & Auto-Extract Google Maps (v2.9.5)**:
+  - Ekstraksi otomatis titik koordinat presisi sekolah (`latitude` & `longitude`) dari link Google Maps pendek (`maps.app.goo.gl`) maupun panjang.
+  - Perhitungan jarak real-time dengan rumus **Haversine** (toleransi radius $\le 500$m) serta unggah foto live kamera untuk mencegah kecurangan presensi.
+  - Penanganan status toleransi (`valid` 🟢, `out_of_bounds` 🟡, dan `unverified` ⚪) untuk melindungi instruktur jika koordinat belum disetel.
+- 🖨️ **Format Cetak Presensi A4 Portrait 30 Siswa (v2.9.4)**:
+  - Generator lembar absensi cetak padat presisi 1 lembar A4 portrait dengan kapasitas hingga 30 siswa (termasuk baris kosong otomatis untuk siswa susulan).
+- 🎨 **Redesign Antarmuka Impeccable (v2.9.3)**:
+  - Desain modern dengan Hero banner glassmorphism, counter kehadiran real-time (*Hadir/Absen*), live search filter siswa, dan tinting warna dinamis.
+- 🔒 **Proteksi Keamanan Honor & Manipulasi Absensi (v2.9.2)**:
+  - Penguncian otomatis penambahan siswa pasca-laporan disubmit untuk role Instruktur guna menjaga integritas data perhitungan honor mengajar.
+- 📱 **Progressive Web App (PWA v3) & iOS Safari Support (v2.9.1)**:
+  - Service Worker v3 dengan dynamic cache trim & kesiapan Web Push Notification.
+  - Modal panduan instalasi visual khusus iOS Safari (*Share ⎋ → Add to Home Screen ➕*) dan toast notifikasi update rilis otomatis.
+- 🔀 **Relokasi Laporan Mengajar Antar-Pertemuan**:
+  - Kemampuan memindahkan laporan mengajar yang salah pilih pertemuan ke nomor sesi yang benar dengan database transaction dan activity log audit.
+- 📊 **Manajemen Payroll & Kompensasi Instruktur**:
+  - Pembuatan batch honor bulanan otomatis dengan rentang cutoff (tgl 11 s/d tgl 10 bulan berikutnya).
+  - Ekspor Akuntansi Multisheet (.xlsx), CSV Mass Transfer Internet Banking (BCA/Mandiri/BRI/BNI), dan Print PDF Kop Surat Resmi.
+- ⏰ **Permohonan Akses Ad-Hoc / Susulan (Late Report Request)**:
+  - Pengajuan buka akses laporan Ad-Hoc / tanggal lampau (H+1) dengan kuota 3x bulanan dan notifikasi emas di Dashboard Instruktur.
+- 🌐 **Dual-Stack IPv6 / IPv4 Native**:
+  - Konfigurasi Nginx Dual-Stack untuk aksesibilitas super lancar dari seluruh ISP seluler & serat optik (MyRepublic, Telkomsel, XL, Indosat).
+
+---
+
 ## 📚 Dokumentasi Terpadu
 
 Lihat indeks dokumen lengkap di **[docs/README.md](docs/README.md)**.
@@ -36,7 +64,7 @@ Lihat indeks dokumen lengkap di **[docs/README.md](docs/README.md)**.
 - **[Role Access Matrix](docs/user/ROLE_ACCESS_MATRIX.md)**: Matriks otorisasi dan hak akses fitur.
 
 ### 🔧 Panduan Developer & Arsitektur
-- **[Panduan Teknis](docs/dev/TECHNICAL_GUIDE.md)**: Arsitektur Laravel, service penjadwalan cerdas, & otorisasi.
+- **[Panduan Teknis](docs/dev/TECHNICAL_GUIDE.md)**: Arsitektur Laravel, service penjadwalan cerdas, Geolocation Engine, & otorisasi.
 - **[Database Schema](docs/dev/DATABASE_SCHEMA.md)**: Skema database relasional & relasi antar tabel.
 - **[API Documentation](docs/dev/API_DOCUMENTATION.md)**: Spesifikasi REST API & AJAX endpoints.
 - **[Changelog Rilis](docs/CHANGELOG.md)**: Catatan riwayat pembaruan dan versi rilis aplikasi.
@@ -51,7 +79,7 @@ Lihat indeks dokumen lengkap di **[docs/README.md](docs/README.md)**.
 ## 🚀 Mulai Cepat (Quick Start)
 
 ### 1. Requirements
-- PHP >= 8.2 (extensions: PDO, OpenSSL, Mbstring, Ctype, JSON, BCMath, Tokenizer, XML)
+- PHP >= 8.2 (extensions: PDO, OpenSSL, Mbstring, Ctype, JSON, BCMath, Tokenizer, XML, cURL)
 - Composer >= 2.x
 - Node.js >= 18.x & NPM
 - MySQL / MariaDB
@@ -77,25 +105,6 @@ php artisan migrate --seed
 npm run dev
 php artisan serve
 ```
-
----
-
-## 🌟 Fitur Utama Sistem (v2.6.0)
-
-- 📊 **Manajemen Payroll & Kompensasi Instruktur**:
-  - Pembuatan batch honor bulanan otomatis dengan rentang cutoff (tgl 11 s/d tgl 10 bulan berikutnya).
-  - Ekspor Akuntansi Multisheet (.xlsx), CSV Mass Transfer Internet Banking (BCA/Mandiri/BRI/BNI), dan Print PDF Kop Surat Resmi.
-- 🗂️ **Pusat Kendali Profil User (*User Command Center*)**:
-  - Tampilan profil terpadu berbasis role (Admin Level Otoritas & Log Aktivitas; Instruktur Profil Lengkap + KTP/NPWP/CV, Sesi, & Payroll).
-- ⏰ **Permohonan Akses Ad-Hoc / Susulan (Late Report Request)**:
-  - Pengajuan buka akses laporan Ad-Hoc / tanggal lampau (H+1) dengan kuota 3x bulanan dan notifikasi emas di Dashboard Instruktur.
-- 📅 **Penjadwalan & Pengurutan Sesi Cerdas**:
-  - Pengurutan sesi otomatis berorientasi hari ini, dengan pemindahan sesi berstatus `selesai` ke urutan paling belakang.
-  - Wizard 10-langkah pembuatan program ekskul dan bypass otomatis tanggal libur nasional.
-- 📲 **Progressive Web App (PWA) & WhatsApp Gateway**:
-  - Aplikasi PWA yang dapat di-install di Android & iOS dengan notifikasi WA otomatis via Fonnte Gateway.
-- 🌐 **Dual-Stack IPv6 / IPv4 Native**:
-  - Konfigurasi Nginx Dual-Stack untuk aksesibilitas super lancar dari seluruh ISP seluler & serat optik (MyRepublic, Telkomsel, XL, Indosat).
 
 ---
 
