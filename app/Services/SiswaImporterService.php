@@ -481,15 +481,15 @@ class SiswaImporterService
                     continue;
                 }
 
-                // Find target rombel
-                $targetRombel = $mappedRow['target_rombel_ekskul'];
-                $rombel = $ekstrakurikuler->rombels()
-                    ->where(function ($q) use ($targetRombel) {
-                        $q->where('nama_rombel', $targetRombel)
-                          ->orWhere('nomor_rombel', $targetRombel)
-                          ->orWhere('nama_rombel', 'like', '%' . $targetRombel . '%');
-                    })
-                    ->first();
+                // Find target rombel (case-insensitive & whitespace-trimmed)
+                $targetRombel = trim($mappedRow['target_rombel_ekskul'] ?? '');
+                $rombel = \App\Models\EkstrakurikulerRombel::where('ekstrakurikuler_id', $ekstrakurikuler->id)
+                    ->get()
+                    ->first(function ($r) use ($targetRombel) {
+                        return strcasecmp(trim($r->nama_rombel), $targetRombel) === 0
+                            || (string)$r->nomor_rombel === (string)$targetRombel
+                            || stripos(trim($r->nama_rombel), $targetRombel) !== false;
+                    });
 
                 if (!$rombel) {
                     $results['failed']++;

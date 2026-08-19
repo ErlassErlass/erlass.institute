@@ -291,17 +291,22 @@ class ValidationSecurityTest extends TestCase
 
     public function test_date_validation_business_rules(): void
     {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        $foto = \Illuminate\Http\UploadedFile::fake()->image('kegiatan.jpg', 600, 400);
+
         // Test future date (should fail)
         $laporanData = [
             'user_id_instruktur' => $this->instructor->id,
             'pertemuan_ke' => 1,
             'sekolah_kodlan' => 'TEST001',
-            'jadwal_mengajar' => Carbon::tomorrow()->format('d/m/Y'),
+            'sekolah_nama' => 'Test School',
+            'jadwal_mengajar' => Carbon::tomorrow()->format('Y-m-d'),
             'rombel' => '1',
             'jam_mulai' => '08:00',
             'jam_selesai' => '09:00',
-            'kategori_pengajaran' => 'Regular',
+            'kategori_pengajaran' => 'Pameran',
             'materi_pengajaran' => 'Test Material',
+            'foto_kegiatan' => $foto,
         ];
 
         $response = $this->actingAs($this->instructor)
@@ -309,8 +314,8 @@ class ValidationSecurityTest extends TestCase
 
         $response->assertSessionHasErrors(['jadwal_mengajar']);
 
-        // Test too far in past (>7 days, should fail)
-        $laporanData['jadwal_mengajar'] = Carbon::today()->subDays(8)->format('d/m/Y');
+        // Test too far in past (>30 days, should fail)
+        $laporanData['jadwal_mengajar'] = Carbon::today()->subDays(35)->format('Y-m-d');
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.store'), $laporanData);
@@ -318,7 +323,7 @@ class ValidationSecurityTest extends TestCase
         $response->assertSessionHasErrors(['jadwal_mengajar']);
 
         // Test valid date (within 7 days, should pass)
-        $laporanData['jadwal_mengajar'] = Carbon::today()->subDays(3)->format('d/m/Y');
+        $laporanData['jadwal_mengajar'] = Carbon::today()->subDays(3)->format('Y-m-d');
 
         $response = $this->actingAs($this->instructor)
             ->post(route('laporan-mengajar.store'), $laporanData);

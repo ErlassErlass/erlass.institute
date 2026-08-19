@@ -116,7 +116,7 @@
         </div>
     @endif
 
-    @if($errors->import_errors->any())
+    @if(isset($errors) && $errors->hasBag('import_errors') && $errors->import_errors->any())
         <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
             <h6 class="alert-heading font-weight-bold mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Rincian Error Import Siswa Program:</h6>
             <ul class="mb-0 small ps-3" style="max-height: 180px; overflow-y: auto;">
@@ -335,7 +335,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    @if($errors->bulk_import->any())
+                    @if(isset($errors) && $errors->hasBag('bulk_import') && $errors->bulk_import->any())
                         <div class="alert alert-danger">
                             <ul class="mb-0">
                                 @foreach($errors->bulk_import->all() as $error)
@@ -683,7 +683,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Show modal if there are validation errors
-    @if(session('show_bulk_import_modal') && $errors->bulk_import->any())
+    @if(session('show_bulk_import_modal') && isset($errors) && $errors->hasBag('bulk_import') && $errors->bulk_import->any())
         const modal = new bootstrap.Modal(bulkImportModal);
         modal.show();
         // Load rombels and restore form values
