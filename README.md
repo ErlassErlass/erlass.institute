@@ -70,6 +70,7 @@ Erlass Portal dibangun berdasarkan **Blueprint AOQCS (Academic Operations, Quali
 Lihat indeks dokumen lengkap di **[docs/README.md](docs/README.md)**.
 
 ### 👥 Panduan Pengguna & Operasional
+- **[Panduan Operasional Instruktur (SOP Lengkap)](docs/user/PANDUAN_LENGKAP_INSTRUKTUR.md)**: Panduan end-to-end instruktur dari registrasi, ketersediaan, check-in GPS, hingga presensi & pelaporan.
 - **[Panduan Pengguna](docs/user/USER_GUIDE.md)**: Panduan operasional lengkap per role (Webmaster, Admin Sistem, Instruktur, Sales).
 - **[SOP & Tupoksi](docs/user/SOP_TUPOKSI.md)**: Standar operasional & pembagian tugas per jabatan.
 - **[Role Access Matrix](docs/user/ROLE_ACCESS_MATRIX.md)**: Matriks otorisasi dan hak akses fitur.

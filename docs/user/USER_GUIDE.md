@@ -99,7 +99,11 @@ Admin dan Webmaster dapat menambah Rombel (kelompok belajar) baru ke program eks
 
 ## Role: Instruktur
 
-Instruktur bertugas melaksanakan kegiatan pengajaran dan pelaporan.
+Instruktur bertugas melaksanakan kegiatan pengajaran dan pelaporan di sekolah mitra.
+
+> [!TIP]
+> **Panduan Lengkap & Terstruktur Instruktur**:
+> Untuk panduan langkah demi langkah bergambar (*Step-by-Step SOP*) dari registrasi, input ketersediaan, check-in GPS, hingga pengisian laporan dan absensi, silakan buka dokumen **[Panduan Lengkap Operasional Instruktur (docs/user/PANDUAN_LENGKAP_INSTRUKTUR.md)](PANDUAN_LENGKAP_INSTRUKTUR.md)**.
 
 ### 1. Pendaftaran & Profil
 *   **Registrasi**: Calon instruktur mendaftar melalui halaman registrasi dengan mengisi data diri lengkap.
