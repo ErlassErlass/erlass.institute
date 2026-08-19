@@ -53,13 +53,32 @@ Menggunakan `spatie/laravel-permission`.
 - **View**: `resources/views/help/index.blade.php`.
 - **Content**: 2-path report creation guide (Rutin via Agenda vs Ad-hoc), mandatory form components, Compensation & Honor guide, and interactive FAQ with JS search filter.
 
-### 3. Analytics Distribusi Jadwal & Batch Payroll
+### 6. Sistem Tiket Bantuan & Helpdesk Terpadu (`/tickets`)
+- **Database Tables**: `tickets` (`id`, `ticket_number`, `user_id`, `category`, `subject`, `description`, `status`, `priority`, `ekstrakurikuler_session_id`, `last_reply_at`, `closed_at`), `ticket_replies` (`id`, `ticket_id`, `user_id`, `message`, `attachment_path`, `is_admin_reply`, `is_read`).
+- **Models**: `App\Models\Ticket`, `App\Models\TicketReply`.
+- **Controller**: `App\Http\Controllers\TicketController` (`index`, `create`, `store`, `show`, `reply`, `updateStatus`).
+- **Categories**: `Jadwal / Honor`, `Keluhan Lain`, `Teknis / Error`.
+- **Unread Tracking**: Live badge counter in sidebar navigation (`resources/views/layouts/app.blade.php`) querying unread replies for instructors and open tickets for admins.
+- **Automated Tests**: Feature test suite with 7 assertions in `tests/Feature/TicketTest.php`.
+
+### 7. Client-Side Photo Compression & Keep-Alive Engine
+- **HTML5 Canvas Mobile Compression**:
+  - Implemented on GPS Check-in modal (`resources/views/ekstrakurikuler/sessions/show.blade.php`).
+  - Automatically resizes raw 10MB–15MB mobile photos to max 1280px dimension at 0.75 JPEG quality before upload.
+  - Generates real-time size reduction feedback badge (*"Foto siap! 9.2 MB ➔ 185 KB"*), preview thumbnail, and submit button spinner state.
+- **Session Lifetime & Keep-Alive**:
+  - `SESSION_LIFETIME` configured to `10080` (7 days) in `.env` and `config/session.php`.
+  - Lightweight endpoint `/session/ping` coupled with client-side visibility change listener (`document.addEventListener('visibilitychange')`) to automatically keep Redis sessions alive and refresh CSRF tokens when mobile users wake their devices.
+  - Custom `TokenMismatchException` renderer in `bootstrap/app.php` redirecting with a warning alert instead of displaying a hard HTTP 419 error page.
+
+### 8. Analytics Distribusi Jadwal & Batch Payroll
 - **Schedule Distribution (`/admin/analytics/schedule-distribution`)**:
   - **Controller**: `DashboardAnalyticsController@scheduleDistribution`.
   - **Period Modes**: `honor_current` (Cut-off 11-10), `honor_prev`, `honor_prev2`, `all`, `month`, `custom`.
   - **Dynamic Export**: `DashboardAnalyticsController@exportScheduleDistribution` maps `ScheduleDistributionExport` class according to active filter date boundaries.
 - **Payroll Batch Export (`/admin/payroll/batches/{batch}/export-excel`)**:
   - **Controller**: `PayrollController` (`exportExcel`, `exportCsv`, `exportPdf`, `showBatch`, `processBatch`, `payBatch`, `destroyBatch`).
+  - **Instructor Role Breakdown**: Detailed distinction between **Instruktur Utama** and **Asisten Instruktur** across CSV and multi-sheet accounting exports.
   - **Model Instance Handling**: Resolves `$batchId` dynamically via `$id instanceof PayrollBatch ? $id->id : $id;` to ensure compatibility with implicit Laravel route model binding.
 
 ### 2. Laporan Mengajar

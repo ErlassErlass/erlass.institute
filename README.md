@@ -1,4 +1,4 @@
-# 🏫 Erlass Portal — Web Apperlass (v2.9.5)
+# 🏫 Erlass Portal — Web Apperlass (v2.9.6)
 
 **Dashboard Manajemen Sistem & Portal Operasional Terpadu untuk Erlass Institute (Pendidikan & Ekstrakurikuler)**
 
@@ -6,6 +6,7 @@
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue.svg)](https://php.net)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple.svg)](https://getbootstrap.com)
 [![PWA](https://img.shields.io/badge/PWA-v3%20Active-green.svg)](https://w3c.github.io/manifest/)
+[![Tickets](https://img.shields.io/badge/Helpdesk-Tickets%20System-blue.svg)](https://erlass.institute/tickets)
 [![GPS](https://img.shields.io/badge/GPS-Google%20Maps%20Auto--Extract-orange.svg)](https://erlass.institute)
 [![Status](https://img.shields.io/badge/Production-Active-success.svg)](https://erlass.institute)
 
@@ -27,8 +28,18 @@ Erlass Portal dibangun berdasarkan **Blueprint AOQCS (Academic Operations, Quali
 
 ---
 
-## 🌟 Fitur Unggulan Sistem (v2.9.5)
+## 🌟 Fitur Unggulan Sistem (v2.9.6)
 
+- 🎫 **Sistem Tiket Bantuan & Helpdesk Terpadu (`/tickets`) (v2.9.6)**:
+  - Modul pengaduan dan bantuan operasional lengkap untuk Instruktur dan Tim Manajemen Admin.
+  - Kategori tiket: `Jadwal / Honor`, `Keluhan Lain`, `Teknis / Error`.
+  - Format pesan berulir (*threaded reply*), badge status interaktif, serta penghitung notifikasi belum dibaca (*unread badge counter*) di sidebar.
+- ⚡ **Auto Client-Side Photo Compression GPS Check-in (v2.9.6)**:
+  - Kompresi foto otomatis di browser mobile instruktur berbasis HTML5 Canvas: mereduksi foto resolusi tinggi kamera HP (10MB–15MB) menjadi ~150–250KB secara instan sebelum diunggah ke server. Mengeliminasi timeout dan kegagalan check-in di jaringan seluler sekolah.
+- ⏳ **Sesi Login Panjang 7 Hari & Keep-Alive CSRF (Anti-419) (v2.9.6)**:
+  - Masa aktif sesi login server diperpanjang menjadi 7 hari (10.080 menit) dengan mekanisme auto-refresh token CSRF saat instruktur membuka kembali portal di HP setelah layar terkunci lama.
+- 🧹 **Pembersihan & Filtrasi Katalog Program Ad-Hoc / In-Kurikuler (v2.9.6)**:
+  - Saringan otomatis katalog program ekskul (`/ekstrakurikuler`) untuk mengecualikan program ad-hoc, in-kurikuler, dan trial class agar katalog kontrak ekskul reguler tetap rapi.
 - 📍 **Presisi GPS Check-in & Auto-Extract Google Maps (v2.9.5)**:
   - Ekstraksi otomatis titik koordinat presisi sekolah (`latitude` & `longitude`) dari link Google Maps pendek (`maps.app.goo.gl`) maupun panjang.
   - Perhitungan jarak real-time dengan rumus **Haversine** (toleransi radius $\le 500$m) serta unggah foto live kamera untuk mencegah kecurangan presensi.

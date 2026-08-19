@@ -2,6 +2,28 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.6] - 2026-08-19
+
+### Helpdesk Tiket Bantuan, Kompresi Foto GPS Check-in, Masa Sesi 7 Hari & Filtrasi Katalog Program
+- **Sistem Tiket Bantuan Terintegrasi (Helpdesk & Support — `/tickets`)**:
+  - Penambahan modul Helpdesk lengkap untuk pelaporan kendala oleh Instruktur dan tindak lanjut oleh Manajemen Admin.
+  - 3 Kategori Tiket: `Jadwal / Honor`, `Keluhan Lain`, `Teknis / Error`.
+  - Percakapan terstruktur (*threaded message replies*) dengan badge status (`open`, `in_progress`, `resolved`, `closed`), pelacakan pesan belum dibaca, dan *live unread badge counter* pada sidebar navigasi kiri (*Bantuan & Support*).
+  - Test suite komprehensif pada [`tests/Feature/TicketTest.php`](file:///var/www/webapperlass/tests/Feature/TicketTest.php) (7 test terverifikasi).
+- **Optimalisasi Kinerja & Kompresi Foto GPS Check-in Instruktur**:
+  - Kompresi foto otomatis di sisi client (HTML5 Canvas) pada modal GPS Check-in mobile ([`show.blade.php`](file:///var/www/webapperlass/resources/views/ekstrakurikuler/sessions/show.blade.php)), mereduksi ukuran foto kamera HP (10MB–15MB) menjadi ~150–250KB dalam hitungan milidetik. Mengeliminasi kendala `ERR_CONNECTION_TIMED_OUT` pada jaringan seluler sekolah.
+  - Indikator hemat ukuran foto (*"Foto siap! 9.2 MB ➔ 185 KB"*), preview thumbnail foto, dan spinner loading state saat submit.
+  - Sanitasi parser URL Google Maps ([`GoogleMapsLocationService`](file:///var/www/webapperlass/app/Services/GoogleMapsLocationService.php)) dengan pembersihan karakter spasi/newline tersembunyi serta batasan timeout 3s.
+- **Penyempurnaan Ekspor Akuntansi Payroll**:
+  - Penambahan rincian pemisahan kolom **Instruktur Utama** dan **Asisten Instruktur** pada seluruh lembar ekspor akuntansi CSV & Excel payroll batch.
+- **Pembersihan & Filtrasi Katalog Program Ad-Hoc / In-Kurikuler / Trial Class**:
+  - Penyempurnaan saringan otomatis pada [`EkstrakurikulerQueryService`](file:///var/www/webapperlass/app/Services/Ekstrakurikuler/EkstrakurikulerQueryService.php) untuk mengecualikan program ad-hoc / kegiatan khusus (`Trial Class`, `Free Trial Class`, `Sosialisasi bersama Sales`, `Backup Pertemuan`, `Remedial`, `Inkul`, `In-Kurikuler`) dari katalog kontrak ekskul reguler.
+  - Normalisasi program transisi (ID 147, 297, 196, 197, 202, 204) ke kontainer `Trial Class` dengan pembersihan 24 sesi kosong dummy, tetap menjaga 100% riwayat laporan mengajar dan honor instruktur.
+- **Perpanjangan Masa Sesi (Session Lifetime) & Pencegahan Cerdas Error 419 (CSRF Mismatch)**:
+  - Menaikkan `SESSION_LIFETIME` dari 120 menit (2 jam) menjadi **10.080 menit (7 hari)** di environment server untuk kenyamanan tugas lapangan instruktur.
+  - Penambahan endpoint keep-alive `/session/ping` dan skrip auto-refresh token CSRF saat instruktur kembali membuka tab browser di HP setelah layar terkunci lama.
+  - Penanganan `TokenMismatchException` di [`bootstrap/app.php`](file:///var/www/webapperlass/bootstrap/app.php) yang me-refresh sesi secara mulus tanpa menampilkan halaman error buntu.
+
 ## [2.9.5] - 2026-08-18
 
 ### Ekstraksi Koordinat GPS Otomatis & Presisi Verifikasi Check-in (Google Maps Geolocation)

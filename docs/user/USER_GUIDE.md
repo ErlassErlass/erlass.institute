@@ -125,10 +125,16 @@ Instruktur bertugas melaksanakan kegiatan pengajaran dan pelaporan.
     *   **Modal Konfirmasi Submit**: Sebelum laporan disimpan, sistem menampilkan modal ringkasan untuk verifikasi ulang data.
 *   **Batas Waktu H+1**: Pengisian wajib dilakukan maksimal **H+1 akhir hari**. Jika melebihi batas waktu, instruktur harus mengajukan izin ke Admin.
 
-### 4. Pusat Bantuan & Panduan FAQ 101 (`/help`)
-Akses menu **"Panduan & FAQ 101"** di sidebar kiri untuk mempelajari SOP pengisian laporan, penanganan masalah lokasi GPS, toleransi keterlambatan check-in 14 menit, dan rincian slip gaji.
-    *   Field **Tanggal Lahir** kini menggunakan *Date Picker* untuk kemudahan input.
-    *   Pastikan semua data bertanda bintang (*) terisi agar profil diverifikasi admin.
+### 4. Pusat Bantuan, FAQ 101 & Tiket Bantuan (`/tickets`)
+*   **Panduan & FAQ 101 (`/help`)**: Mempelajari SOP pengisian laporan, penanganan masalah lokasi GPS, toleransi keterlambatan check-in 14 menit, dan rincian slip gaji.
+*   **Tiket Bantuan & Pengaduan (`/tickets`)**:
+    *   Jika mengalami kendala operasional (kesalahan jadwal mengajar, ketidaksesuaian perhitungan honor/transport, atau error teknis aplikasi), buka menu **"Tiket Bantuan"** di sidebar.
+    *   Klik **"Buat Tiket Baru"**, pilih Kategori (`Jadwal / Honor`, `Keluhan Lain`, atau `Teknis / Error`), dan jelaskan kendala Anda (dapat melampirkan sesi pertemuan terkait).
+    *   Admin akan menindaklanjuti dan membalas tiket. Terdapat indikator pesan belum dibaca (*unread badge*) di sidebar untuk setiap balasan dari Admin.
+
+### 5. Kompresi Foto GPS Check-in Otomatis
+*   Saat melakukan check-in kehadiran di sekolah, browser HP otomatis mengompres foto kamera yang berukuran besar (10MB–15MB) menjadi ~150–250KB dalam sekejap.
+*   Instruktur dapat melihat indikator penghematan ukuran (*"Foto siap! 9.2 MB ➔ 185 KB"*) sebelum menekan tombol check-in, memastikan proses unggah sangat cepat dan bebas dari error timeout jaringan.
 
 ### 2. Dashboard & Jadwal
 *   **Personal Stats**: Melihat total jam mengajar dan laporan bulan ini.
