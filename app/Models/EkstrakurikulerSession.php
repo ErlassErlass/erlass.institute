@@ -54,6 +54,7 @@ class EkstrakurikulerSession extends Model
         'checkin_status_radius',
         'checkin_photo_path',
         'reminder_h0_sent_at',
+        'is_manual_reschedule',
     ];
 
     /**
@@ -71,6 +72,7 @@ class EkstrakurikulerSession extends Model
         'transport_fee' => 'decimal:2',
         'reminder_h1_sent_at' => 'datetime',
         'reminder_h0_sent_at' => 'datetime',
+        'is_manual_reschedule' => 'boolean',
     ];
 
     /**
@@ -534,6 +536,9 @@ class EkstrakurikulerSession extends Model
         $this->status = self::STATUS_TERJADWAL;
         $this->alasan_pembatalan = null;
         $this->tanggal_pengganti = null;
+
+        // Tandai sesi ini sebagai manual reschedule agar Sync Sesi tidak menghapusnya
+        $this->is_manual_reschedule = true;
 
         if ($alasan) {
             $this->catatan = trim(($this->catatan ? $this->catatan . "\n" : "") . "Rescheduled: " . $alasan);

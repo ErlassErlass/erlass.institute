@@ -58,55 +58,65 @@ class SchedulingService
         }
 
         // Hapus sessions berstatus TERJADWAL saja jika diminta
+        // (kecuali yang is_manual_reschedule = true — sesi yang sudah diubah jadwalnya secara manual)
         if ($options['replace_existing'] ?? false) {
             $this->clearExistingSessions($rombel);
         }
 
-        // Dapatkan sesi-sesi yang sudah ada & tidak boleh diubah (selesai / berlangsung / dibatalkan)
-        $existingNonTerjadwal = EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombel->id)
-            ->where('status', '!=', EkstrakurikulerSession::STATUS_TERJADWAL)
+        // [OPSI A] Dapatkan SEMUA sesi yang sudah ada sebagai anchor:
+        // - Sesi non-terjadwal (selesai/berlangsung/dibatalkan/ditunda/dll) → selalu anchor
+        // - Sesi terjadwal yang is_manual_reschedule = true → anchor (dilindungi dari sync)
+        $existingAnchor = EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombel->id)
+            ->where(function ($q) {
+                $q->where('status', '!=', EkstrakurikulerSession::STATUS_TERJADWAL)
+                  ->orWhere('is_manual_reschedule', true);
+            })
             ->get()
             ->keyBy('nomor_pertemuan');
 
         // Mapping hari ke nomor hari dalam minggu (1=Senin, 7=Minggu)
         $hariMapping = [
-            EkstrakurikulerRombel::HARI_SENIN => Carbon::MONDAY,
-            EkstrakurikulerRombel::HARI_SELASA => Carbon::TUESDAY,
-            EkstrakurikulerRombel::HARI_RABU => Carbon::WEDNESDAY,
-            EkstrakurikulerRombel::HARI_KAMIS => Carbon::THURSDAY,
-            EkstrakurikulerRombel::HARI_JUMAT => Carbon::FRIDAY,
-            EkstrakurikulerRombel::HARI_SABTU => Carbon::SATURDAY,
-            EkstrakurikulerRombel::HARI_MINGGU => Carbon::SUNDAY,
+            EkstrakurikulerRombel::HARI_SENIN    => Carbon::MONDAY,
+            EkstrakurikulerRombel::HARI_SELASA   => Carbon::TUESDAY,
+            EkstrakurikulerRombel::HARI_RABU     => Carbon::WEDNESDAY,
+            EkstrakurikulerRombel::HARI_KAMIS    => Carbon::THURSDAY,
+            EkstrakurikulerRombel::HARI_JUMAT    => Carbon::FRIDAY,
+            EkstrakurikulerRombel::HARI_SABTU    => Carbon::SATURDAY,
+            EkstrakurikulerRombel::HARI_MINGGU   => Carbon::SUNDAY,
         ];
         $targetDayOfWeek = $hariMapping[$rombel->hari] ?? Carbon::FRIDAY;
 
         $intervalDays = match ($rombel->frekuensi) {
-            EkstrakurikulerRombel::FREKUENSI_HARIAN => 1,
-            EkstrakurikulerRombel::FREKUENSI_MINGGUAN => 7,
-            EkstrakurikulerRombel::FREKUENSI_DUA_MINGGU => 14,
-            EkstrakurikulerRombel::FREKUENSI_BULANAN => 30,
-            default => 7
+            EkstrakurikulerRombel::FREKUENSI_HARIAN      => 1,
+            EkstrakurikulerRombel::FREKUENSI_MINGGUAN    => 7,
+            EkstrakurikulerRombel::FREKUENSI_DUA_MINGGU  => 14,
+            EkstrakurikulerRombel::FREKUENSI_BULANAN     => 30,
+            default                                        => 7
         };
 
         $skipHolidays = $options['skip_holidays'] ?? true;
-        $totalTarget = $rombel->total_pertemuan ?? 24;
+        $totalTarget  = $rombel->total_pertemuan ?? 24;
 
-        // Tanggal awal penjatdualan
+        // Tanggal awal penjadwalan
         $currentDate = Carbon::parse($rombel->tanggal_mulai);
-        $endDate = Carbon::parse($rombel->tanggal_selesai);
+        $endDate     = Carbon::parse($rombel->tanggal_selesai);
 
         // Cari hari pertama yang sesuai dengan hari jadwal rombel
         while ($currentDate->dayOfWeek !== $targetDayOfWeek && $currentDate->lte($endDate)) {
             $currentDate->addDay();
         }
 
-        for ($sessionNumber = 1; $sessionNumber <= $totalTarget; $sessionNumber++) {
-            if ($existingNonTerjadwal->has($sessionNumber)) {
-                // Sesi ini sudah ada (misal selesai / ada laporan)
-                $existingSession = $existingNonTerjadwal->get($sessionNumber);
-                $existingDate = Carbon::parse($existingSession->tanggal_terjadwal);
+        // Kumpulkan tanggal yang sudah dipakai (untuk deteksi duplikat)
+        $usedDates = $existingAnchor->pluck('tanggal_terjadwal')->map(fn($d) => Carbon::parse($d)->toDateString())->toArray();
+        $duplicateWarnings = [];
 
-                // Set currentDate ke jadwal minggu berikutnya dari tanggal sesi selesai tersebut
+        for ($sessionNumber = 1; $sessionNumber <= $totalTarget; $sessionNumber++) {
+            if ($existingAnchor->has($sessionNumber)) {
+                // [OPSI A] Sesi ini sudah ada sebagai anchor — skip & jadikan referensi currentDate
+                $existingSession = $existingAnchor->get($sessionNumber);
+                $existingDate    = Carbon::parse($existingSession->tanggal_terjadwal);
+
+                // Hitung currentDate berikutnya dari tanggal anchor ini
                 $currentDate = $existingDate->copy()->addDays($intervalDays);
                 while ($currentDate->dayOfWeek !== $targetDayOfWeek) {
                     $currentDate->addDay();
@@ -119,18 +129,30 @@ class SchedulingService
                 $currentDate->addDays($intervalDays);
             }
 
+            // Deteksi duplikat tanggal
+            $dateStr = $currentDate->toDateString();
+            if (in_array($dateStr, $usedDates)) {
+                $duplicateWarnings[] = [
+                    'nomor_pertemuan' => $sessionNumber,
+                    'tanggal'         => $dateStr,
+                    'message'         => "Pertemuan {$sessionNumber} memiliki tanggal yang sama dengan sesi lain ({$dateStr}). Harap periksa jadwal secara manual.",
+                ];
+            }
+            $usedDates[] = $dateStr;
+
             $sessionData = [
-                'ekstrakurikuler_id' => $rombel->ekstrakurikuler_id,
-                'ekstrakurikuler_rombel_id' => $rombel->id,
-                'nomor_pertemuan' => $sessionNumber,
-                'tanggal_terjadwal' => $currentDate->toDateString(),
-                'jam_mulai_terjadwal' => $rombel->jam_mulai,
-                'jam_selesai_terjadwal' => $rombel->jam_selesai,
-                'user_id_instruktur' => $rombel->user_id_instruktur,
-                'user_id_asisten' => $rombel->user_id_asisten,
-                'status' => EkstrakurikulerSession::STATUS_TERJADWAL,
-                'created_by' => auth()->id(),
-                'updated_by' => auth()->id(),
+                'ekstrakurikuler_id'         => $rombel->ekstrakurikuler_id,
+                'ekstrakurikuler_rombel_id'  => $rombel->id,
+                'nomor_pertemuan'            => $sessionNumber,
+                'tanggal_terjadwal'          => $dateStr,
+                'jam_mulai_terjadwal'        => $rombel->jam_mulai,
+                'jam_selesai_terjadwal'      => $rombel->jam_selesai,
+                'user_id_instruktur'         => $rombel->user_id_instruktur,
+                'user_id_asisten'            => $rombel->user_id_asisten,
+                'status'                     => EkstrakurikulerSession::STATUS_TERJADWAL,
+                'is_manual_reschedule'       => false, // Sesi baru dari sync bukan manual
+                'created_by'                 => auth()->id(),
+                'updated_by'                 => auth()->id(),
             ];
 
             $session = EkstrakurikulerSession::create($sessionData);
@@ -140,8 +162,14 @@ class SchedulingService
             $currentDate->addDays($intervalDays);
         }
 
+        // Simpan warnings ke session flash jika ada duplikat
+        if (! empty($duplicateWarnings) && function_exists('session')) {
+            session()->flash('sync_duplicate_warnings', $duplicateWarnings);
+        }
+
         return $sessions;
     }
+
 
     /**
      * Hitung tanggal-tanggal sessions berdasarkan jadwal rombel.
@@ -373,9 +401,12 @@ class SchedulingService
      */
     public function clearExistingSessions(EkstrakurikulerRombel $rombel): void
     {
-        // Use forceDelete to avoid unique constraint violations with soft deleted records
+        // Hapus hanya sesi TERJADWAL yang bukan hasil reschedule manual.
+        // Sesi dengan is_manual_reschedule = true HARUS dilindungi agar
+        // perubahan jadwal yang sudah disetujui tidak hilang saat Sync Sesi.
         $rombel->sessions()
             ->where('status', EkstrakurikulerSession::STATUS_TERJADWAL)
+            ->where('is_manual_reschedule', false)
             ->forceDelete();
     }
 

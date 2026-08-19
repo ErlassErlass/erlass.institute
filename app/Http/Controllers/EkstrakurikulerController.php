@@ -457,11 +457,20 @@ class EkstrakurikulerController extends Controller
         $result = $this->workflowService->regenerateSessions($ekstrakurikuler);
 
         if ($result['success']) {
+            // Cek apakah ada warning duplikat tanggal dari proses sync
+            $duplicateWarnings = session('sync_duplicate_warnings', []);
+            if (! empty($duplicateWarnings)) {
+                $warningMessages = collect($duplicateWarnings)->pluck('message')->implode(' | ');
+                return back()
+                    ->with('success', $result['message'])
+                    ->with('warning', '⚠️ Ditemukan tanggal duplikat: ' . $warningMessages . ' Harap sesuaikan jadwal secara manual.');
+            }
             return back()->with('success', $result['message']);
         } else {
             return back()->withErrors(['error' => $result['message']]);
         }
     }
+
 
     /**
      * Store a new rombel for an existing ekstrakurikuler program.

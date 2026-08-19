@@ -859,7 +859,7 @@
                 </header>
 
                 <main class="flex-grow-1 py-4 px-3 px-md-4">
-                    @if (session('status') || session('success') || session('error'))
+                    @if (session('status') || session('success') || session('error') || session('warning') || session('info'))
                     <div class="container-fluid p-0 mb-4 animate slideInDown">
                         <x-session-status />
                     </div>
@@ -897,7 +897,7 @@
         <div style="height: 100px;"></div>
 
         <main class="flex-grow-1 py-4">
-            @if (session('status') || session('success') || session('error'))
+            @if (session('status') || session('success') || session('error') || session('warning') || session('info'))
             <div class="container mt-4 animate slideInDown">
                 <x-session-status />
             </div>

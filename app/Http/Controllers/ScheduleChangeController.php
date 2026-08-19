@@ -181,6 +181,7 @@ class ScheduleChangeController extends Controller
                 'tanggal_terjadwal' => $scheduleChange->proposed_date,
                 'jam_mulai_terjadwal' => $scheduleChange->proposed_start_time,
                 'jam_selesai_terjadwal' => $scheduleChange->proposed_end_time,
+                'is_manual_reschedule' => true, // Proteksi dari auto-sync
             ]);
 
             $scheduleChange->update([
@@ -193,6 +194,7 @@ class ScheduleChangeController extends Controller
             return redirect()->back()
                 ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
+
     }
 
     /**
