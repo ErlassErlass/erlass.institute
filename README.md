@@ -40,6 +40,8 @@ Erlass Portal dibangun berdasarkan **Blueprint AOQCS (Academic Operations, Quali
   - Masa aktif sesi login server diperpanjang menjadi 7 hari (10.080 menit) dengan mekanisme auto-refresh token CSRF saat instruktur membuka kembali portal di HP setelah layar terkunci lama.
 - 🧹 **Pembersihan & Filtrasi Katalog Program Ad-Hoc / In-Kurikuler (v2.9.6)**:
   - Saringan otomatis katalog program ekskul (`/ekstrakurikuler`) untuk mengecualikan program ad-hoc, in-kurikuler, dan trial class agar katalog kontrak ekskul reguler tetap rapi.
+- 📄 **Akses Publik Cetak PDF Presensi Tanpa Login (v2.9.6)**:
+  - Pembukaan akses cetak PDF lembar presensi sesi (`/ekstrakurikuler-session/{session}/print`) untuk publik tanpa harus login. Kepala Sekolah dan PIC Mitra di portal [`/rekap-pertemuan-ekskul`](https://erlass.institute/rekap-pertemuan-ekskul) dapat langsung 1-klik mengunduh dokumen presensi resmi.
 - 📍 **Presisi GPS Check-in & Auto-Extract Google Maps (v2.9.5)**:
   - Ekstraksi otomatis titik koordinat presisi sekolah (`latitude` & `longitude`) dari link Google Maps pendek (`maps.app.goo.gl`) maupun panjang.
   - Perhitungan jarak real-time dengan rumus **Haversine** (toleransi radius $\le 500$m) serta unggah foto live kamera untuk mencegah kecurangan presensi.

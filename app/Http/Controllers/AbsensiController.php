@@ -673,23 +673,11 @@ class AbsensiController extends Controller
         return compact('rekapData', 'students');
     }
     /**
-     * Print blank attendance sheet for a session.
+     * Print blank/recap attendance sheet for a session (Publicly accessible for school partners & staff).
      */
     public function printSession(EkstrakurikulerSession $session)
     {
-        // Authorization: Ensure user is admin OR the assigned instructor/assistant
-        $user = auth()->user();
-        // Roles allowed to print ANY session
-        $allowedRoles = ['webmaster', 'admin_sistem', 'admin'];
-        
-        if (!in_array($user->role, $allowedRoles)) {
-            // If not admin, must be the assigned instructor or assistant
-            if ($session->user_id_instruktur !== $user->id && $session->user_id_asisten !== $user->id) {
-                abort(403, 'Akses Ditolak. Anda bukan instruktur atau asisten untuk sesi ini.');
-            }
-        }
-
-        $session->load(['rombel.ekstrakurikuler.sekolah', 'rombel.ekstrakurikuler.sales']);
+        $session->load(['rombel.ekstrakurikuler.sekolah', 'rombel.ekstrakurikuler.sales', 'instruktur', 'asisten']);
         
         $rombel = $session->rombel;
         $ekstrakurikuler = $rombel->ekstrakurikuler;
@@ -707,7 +695,7 @@ class AbsensiController extends Controller
             : ($date->year - 1) . '/' . $date->year;
 
         // Fetch ALL regular sessions (nomor_pertemuan > 0) for this Rombel ordered by meeting number with eager loading
-        $allSessions = \App\Models\EkstrakurikulerSession::with(['laporanMengajar.absensis'])
+        $allSessions = \App\Models\EkstrakurikulerSession::with(['laporanMengajar.absensis', 'rombel.ekstrakurikuler'])
             ->where('ekstrakurikuler_rombel_id', $session->ekstrakurikuler_rombel_id)
             ->where('nomor_pertemuan', '>', 0)
             ->orderBy('nomor_pertemuan')
@@ -772,7 +760,7 @@ class AbsensiController extends Controller
             'rombelNumber' => $rombel->nomor_rombel,
             'monthName' => $periodLabel, // Reusing variable name in view for compatibility
             'monthlySessions' => $batchSessions,
-            'instructorName' => auth()->user()->nama_lengkap ?? auth()->user()->name,
+            'instructorName' => $session->instruktur?->nama_lengkap ?? $session->instruktur?->name ?? (auth()->user()?->nama_lengkap ?? auth()->user()?->name ?? 'Instruktur Erlass'),
             'picName' => $ekstrakurikuler->penanggung_jawab ?? '-',
             'salesName' => $ekstrakurikuler->sales->nama_lengkap ?? $ekstrakurikuler->sales->name ?? '-',
             'academicYear' => $academicYear,

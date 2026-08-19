@@ -23,6 +23,10 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
   - Menaikkan `SESSION_LIFETIME` dari 120 menit (2 jam) menjadi **10.080 menit (7 hari)** di environment server untuk kenyamanan tugas lapangan instruktur.
   - Penambahan endpoint keep-alive `/session/ping` dan skrip auto-refresh token CSRF saat instruktur kembali membuka tab browser di HP setelah layar terkunci lama.
   - Penanganan `TokenMismatchException` di [`bootstrap/app.php`](file:///var/www/webapperlass/bootstrap/app.php) yang me-refresh sesi secara mulus tanpa menampilkan halaman error buntu.
+- **Akses Publik Cetak PDF Presensi / Rekap Pertemuan Ekskul (`/ekstrakurikuler-session/{session}/print`)**:
+  - Membuka rute cetak PDF lembar presensi sesi kegiatan menjadi **Akses Publik (Tanpa Wajib Login)**.
+  - Pihak sekolah mitra (Kepala Sekolah, Guru Pendamping, atau PIC Sekolah) yang mengakses portal publik [`https://erlass.institute/rekap-pertemuan-ekskul`](https://erlass.institute/rekap-pertemuan-ekskul) dapat langsung mengklik tombol **`[PDF]`** pada setiap baris pertemuan untuk melihat dan mencetak lembar presensi resmi tanpa terhambat pengalihan (*redirect*) ke halaman login.
+  - Resolusi nama instruktur otomatis mengambil data penugasan sesi (`$session->instruktur->nama_lengkap`).
 
 ## [2.9.5] - 2026-08-18
 

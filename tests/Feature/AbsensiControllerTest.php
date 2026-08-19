@@ -413,4 +413,55 @@ class AbsensiControllerTest extends TestCase
         $response->assertSee('Rombel Tidak Ditemukan');
         $response->assertSee('tidak memiliki');
     }
+
+    public function test_guest_can_access_print_session_publicly(): void
+    {
+        $salesUser = User::factory()->create(['role' => 'sales']);
+        $salesman = \App\Models\Salesman::factory()->create(['user_id' => $salesUser->id]);
+        $ekskul = \App\Models\Ekstrakurikuler::factory()->create([
+            'sekolah_kodlan' => $this->sekolah->kodlan,
+            'user_id_sales' => $salesman->id,
+            'kategori_program' => 'Coding Scratch',
+            'status' => 'aktif',
+        ]);
+
+        $rombel = \App\Models\EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nama_rombel' => 'Rombel 1',
+            'nomor_rombel' => 1,
+            'total_pertemuan' => 12,
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addMonths(3)->toDateString(),
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '09:30',
+            'hari' => 'senin',
+            'jumlah_siswa' => 15,
+            'user_id_instruktur' => $this->instructor->id,
+            'status' => 'berlangsung',
+        ]);
+
+        $session = $rombel->sessions()->where('nomor_pertemuan', 1)->first();
+        if (!$session) {
+            $session = \App\Models\EkstrakurikulerSession::create([
+                'ekstrakurikuler_id' => $ekskul->id,
+                'ekstrakurikuler_rombel_id' => $rombel->id,
+                'nomor_pertemuan' => 1,
+                'tanggal_terjadwal' => now()->toDateString(),
+                'jam_mulai_terjadwal' => '08:00',
+                'jam_selesai_terjadwal' => '09:30',
+                'status' => 'selesai',
+                'user_id_instruktur' => $this->instructor->id,
+            ]);
+        } else {
+            $session->update(['status' => 'selesai', 'user_id_instruktur' => $this->instructor->id]);
+        }
+
+        // Unauthenticated guest request to print session route
+        $response = $this->get(route('ekstrakurikuler-session.print-session', $session));
+
+        $response->assertStatus(200);
+        $response->assertViewIs('absensi.print-blank');
+        $response->assertSee('Presensi Coding Scratch');
+        $response->assertSee('Test School');
+    }
 }

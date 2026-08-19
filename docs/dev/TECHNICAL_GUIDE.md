@@ -280,4 +280,12 @@ Hasil build akan masuk ke folder `public/build/`.
     2. **Rotasi Log Bulanan**: Lakukan rotasi berkas `storage/logs/laravel.log` secara bulanan agar tidak mengonsumsi memori VPS berlebihan.
     3. **Rincian Audit**: Laporan audit performa lengkap dapat dilihat di [**`PERFORMANCE_ANALYSIS.md`**](PERFORMANCE_ANALYSIS.md).
 
+### 15. Rute Cetak Sesi Publik Tanpa Login (v2.9.6)
+*   **Rute**: `GET /ekstrakurikuler-session/{session}/print` (`ekstrakurikuler-session.print-session`)
+*   **Akses**: Public (Guest & Authenticated). Ditempatkan di luar grup middleware `auth` pada `routes/web.php`.
+*   **Controller**: `App\Http\Controllers\AbsensiController::printSession`
+*   **Tujuan**: Mengizinkan pemangku kepentingan sekolah (Kepala Sekolah, PIC Mitra) untuk langsung 1-klik mencetak lembar presensi resmi (A4 portrait) dari tabel publik `/rekap-pertemuan-ekskul`.
+*   **Keamanan & Data**: View hanya menyajikan nama siswa, rombel, materi, tanggal, dan status kehadiran. Data finansial (honor/rekening) dan data pribadi (NIK) tidak disertakan. Nama instruktur pengajar diselesaikan secara dinamis melalui `$session->instruktur->nama_lengkap`.
+
+
 

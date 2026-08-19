@@ -41,7 +41,7 @@ require __DIR__.'/health.php';
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
 
 // =====================================================
-// AGENDA KEGIATAN — Public Routes (No Auth Required)
+// AGENDA KEGIATAN & PRINT SESI — Public Routes (No Auth Required)
 // =====================================================
 Route::prefix('rekap-pertemuan-ekskul')->name('agenda-kegiatan.')->group(function () {
     Route::get('/', [AgendaKegiatanController::class, 'index'])->name('index');
@@ -52,6 +52,11 @@ Route::prefix('rekap-pertemuan-ekskul')->name('agenda-kegiatan.')->group(functio
         ->middleware('throttle:5,1');
     Route::get('/download/{token}', [AgendaKegiatanController::class, 'download'])->name('download');
 });
+
+// Print Session Attendance Sheet (Publicly Accessible for School Partners & Staff)
+Route::get('ekstrakurikuler-session/{session}/print', [AbsensiController::class, 'printSession'])
+    ->name('ekstrakurikuler-session.print-session');
+
 // User Registration (Instructor)
 Route::get('/register/instructor', [App\Http\Controllers\InstructorRegistrationController::class, 'create'])->name('instructor.register');
 Route::post('/register/instructor', [App\Http\Controllers\InstructorRegistrationController::class, 'store'])->name('instructor.register.store');
@@ -377,9 +382,6 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('ekstrakurikuler-session')->name('ekstrakurikuler-session.')->group(function () {
         Route::get('{session}/absensi', [AbsensiController::class, 'createForEkstrakurikuler'])
             ->name('absensi.create');
-        // Print Session Attendance
-        Route::get('{session}/print', [AbsensiController::class, 'printSession'])
-            ->name('print-session');
     });
 
     // Laporan mengajar ekstrakurikuler routes

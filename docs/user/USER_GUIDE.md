@@ -278,6 +278,22 @@ Sistem mengelompokkan kehadiran per **4 Pertemuan (1 Periode)**.
 
 ---
 
+### Portal Publik Rekap Pertemuan & Cetak Presensi (`/rekap-pertemuan-ekskul`)
+
+Halaman transparansi agenda kegiatan ekstrakurikuler yang dapat diakses oleh **Kepala Sekolah, Guru Pendamping, dan PIC Sekolah Mitra** tanpa memerlukan akun login.
+
+#### Fitur Portal Publik:
+1. **Filter & Pencarian Agenda**:
+   - Memfilter rekap sesi berdasarkan Sekolah Mitra, Rentang Tanggal, dan Kategori Program.
+2. **Lihat Foto Dokumentasi**:
+   - Tombol **`[Foto]`** untuk melihat dokumentasi kegiatan dan lembar presensi yang diunggah instruktur.
+3. **Cetak PDF Lembar Presensi (`[PDF]`)**:
+   - Tombol **`[PDF]`** dapat diklik secara langsung **tanpa login** untuk melihat dan mencetak lembar presensi format resmi A4 portrait (lengkap dengan nama siswa, materi, dan tanda tangan).
+4. **Ekspor Berkas Dokumentasi (ZIP)**:
+   - Mengunduh seluruh foto kegiatan dan rekapan dalam satu berkas arsip `.zip`.
+
+---
+
 ## Keamanan & Hak Akses
 
 ### Profil & Keamanan
