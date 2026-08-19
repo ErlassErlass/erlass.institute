@@ -157,34 +157,17 @@
                 </div>
             </div>
 
+            {{-- Link ke Aksi Bulk --}}
             @can('update', $ekstrakurikuler)
-            {{-- Actions Card --}}
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Aksi</h5>
+            <div class="alert alert-light border d-flex align-items-center gap-3 mt-2">
+                <i class="bi bi-info-circle fs-5 text-primary"></i>
+                <div>
+                    <strong>Kelola enrollment siswa ini</strong> melalui halaman Manajemen Siswa.<br>
+                    <small class="text-muted">Gunakan <em>Aksi Bulk</em> untuk Keluarkan, Pindah Rombel, Aktifkan, dan lainnya.</small>
                 </div>
-                <div class="card-body">
-                    <div class="d-flex flex-wrap gap-2">
-                        @if($enrollment->status === 'nonaktif')
-                        <form method="POST" action="{{ route('ekstrakurikuler.enrollment.activate', [$ekstrakurikuler, $enrollment]) }}">
-                            @csrf
-                            <button type="submit" class="btn btn-success btn-sm"
-                                    onclick="return confirm('Aktifkan kembali enrollment siswa ini?')">
-                                <i class="bi bi-person-check me-1"></i> Aktifkan Kembali
-                            </button>
-                        </form>
-                        @endif
-
-                        @if($enrollment->status === 'aktif')
-                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#transferModal">
-                            <i class="bi bi-arrow-left-right me-1"></i> Pindah Rombel
-                        </button>
-                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#withdrawModal">
-                            <i class="bi bi-person-x me-1"></i> Keluarkan Siswa
-                        </button>
-                        @endif
-                    </div>
-                </div>
+                <a href="{{ route('ekstrakurikuler.enrollment.index', $ekstrakurikuler) }}" class="btn btn-sm btn-primary ms-auto text-nowrap">
+                    <i class="bi bi-people-fill me-1"></i> Manajemen Siswa
+                </a>
             </div>
             @endcan
 
@@ -192,92 +175,6 @@
     </div>
 </div>
 
-@push('modals')
-{{-- Withdraw Modal --}}
-<div class="modal fade" id="withdrawModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="POST" action="{{ route('ekstrakurikuler.enrollment.withdraw', [$ekstrakurikuler, $enrollment]) }}">
-                @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title text-danger">
-                        <i class="bi bi-person-x me-2"></i>Keluarkan Siswa
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        Anda akan mengeluarkan <strong>{{ $enrollment->siswa->nama_lengkap }}</strong> dari program
-                        <strong>{{ $ekstrakurikuler->kategori_program }}</strong>.
-                    </div>
-                    <div class="mb-3">
-                        <label for="alasan_keluar_modal" class="form-label">Alasan Keluar <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="alasan_keluar_modal" name="alasan_keluar" rows="3"
-                                  placeholder="Masukkan alasan siswa keluar dari program..." required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-person-x me-1"></i> Keluarkan Siswa
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-{{-- Transfer Modal --}}
-@if($enrollment->status === 'aktif')
-<div class="modal fade" id="transferModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="POST" action="{{ route('ekstrakurikuler.enrollment.transfer', [$ekstrakurikuler, $enrollment]) }}">
-                @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-arrow-left-right me-2"></i>Pindah Rombel
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle me-2"></i>
-                        Memindahkan <strong>{{ $enrollment->siswa->nama_lengkap }}</strong> ke rombel lain.
-                        Data enrollment lama akan ditandai sebagai <em>Pindah Rombel</em>.
-                    </div>
-                    <div class="mb-3">
-                        <label for="new_rombel_id" class="form-label">Rombel Tujuan <span class="text-danger">*</span></label>
-                        <select class="form-select" id="new_rombel_id" name="new_rombel_id" required>
-                            <option value="">Pilih Rombel...</option>
-                            @foreach($enrollment->ekstrakurikuler->rombels as $rombel)
-                                @if($rombel->id !== $enrollment->ekstrakurikuler_rombel_id)
-                                    <option value="{{ $rombel->id }}">
-                                        {{ $rombel->nama_rombel }}
-                                        ({{ $rombel->getJumlahSiswaAktual() }} siswa)
-                                    </option>
-                                @endif
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="alasan_transfer" class="form-label">Alasan (Opsional)</label>
-                        <textarea class="form-control" id="alasan_transfer" name="alasan" rows="2"
-                                  placeholder="Alasan pemindahan rombel..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-arrow-left-right me-1"></i> Pindahkan
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-@endif
 @endpush
 
 <style>

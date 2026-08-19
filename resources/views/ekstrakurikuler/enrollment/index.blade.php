@@ -156,26 +156,35 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label for="search" class="form-label">Cari Siswa</label>
                         <input type="text" class="form-control" id="search" name="search" 
                                value="{{ request('search') }}" placeholder="Nama, NISN, atau Kelas">
                     </div>
-                    <div class="col-md-3">
-                        <label for="sort" class="form-label">Urutkan Berdasarkan</label>
+                    <div class="col-md-2">
+                        <label for="sort" class="form-label">Urutkan</label>
                         <select class="form-select" id="sort" name="sort">
-                            <option value="nisn_asc" {{ request('sort', 'nisn_asc') === 'nisn_asc' ? 'selected' : '' }}>NISN (Terkecil - Terbesar)</option>
-                            <option value="nisn_desc" {{ request('sort') === 'nisn_desc' ? 'selected' : '' }}>NISN (Terbesar - Terkecil)</option>
-                            <option value="name_asc" {{ request('sort') === 'name_asc' ? 'selected' : '' }}>Nama Siswa (A - Z)</option>
-                            <option value="name_desc" {{ request('sort') === 'name_desc' ? 'selected' : '' }}>Nama Siswa (Z - A)</option>
-                            <option value="date_desc" {{ request('sort') === 'date_desc' ? 'selected' : '' }}>Tanggal Daftar Terbaru</option>
+                            <option value="nisn_asc" {{ request('sort', 'nisn_asc') === 'nisn_asc' ? 'selected' : '' }}>NISN (Kecil - Besar)</option>
+                            <option value="nisn_desc" {{ request('sort') === 'nisn_desc' ? 'selected' : '' }}>NISN (Besar - Kecil)</option>
+                            <option value="name_asc" {{ request('sort') === 'name_asc' ? 'selected' : '' }}>Nama (A - Z)</option>
+                            <option value="name_desc" {{ request('sort') === 'name_desc' ? 'selected' : '' }}>Nama (Z - A)</option>
+                            <option value="date_desc" {{ request('sort') === 'date_desc' ? 'selected' : '' }}>Tgl Daftar Terbaru</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="per_page" class="form-label">Tampilkan</label>
+                        <select class="form-select" id="per_page" name="per_page">
+                            <option value="25" {{ request('per_page', '25') === '25' ? 'selected' : '' }}>25 data</option>
+                            <option value="50" {{ request('per_page') === '50' ? 'selected' : '' }}>50 data</option>
+                            <option value="100" {{ request('per_page') === '100' ? 'selected' : '' }}>100 data</option>
+                            <option value="all" {{ request('per_page') === 'all' ? 'selected' : '' }}>⚡ Semua data</option>
                         </select>
                     </div>
                     <div class="col-md-2 d-flex align-items-end gap-1">
                         <button type="submit" class="btn btn-primary flex-fill">
                             <i class="bi bi-search me-1"></i> Filter
                         </button>
-                        @if(request()->hasAny(['status', 'rombel_id', 'search', 'sort']))
+                        @if(request()->hasAny(['status', 'rombel_id', 'search', 'sort', 'per_page']))
                         <a href="{{ route('ekstrakurikuler.enrollment.index', $ekstrakurikuler) }}" class="btn btn-outline-secondary" title="Reset Filter">
                             <i class="bi bi-x-circle"></i>
                         </a>
@@ -190,14 +199,21 @@
     <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">Daftar Siswa Terdaftar</h6>
+                <h6 class="mb-0">
+                    Daftar Siswa Terdaftar
+                    @if(request('per_page') === 'all')
+                        <span class="badge bg-warning text-dark ms-2"><i class="bi bi-lightning-fill me-1"></i>Semua Data</span>
+                    @endif
+                </h6>
+                @can('update', $ekstrakurikuler)
                 @if($enrollments->isNotEmpty())
                     <div class="dropdown">
                         <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" 
                                 data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-three-dots-vertical"></i> Aksi Bulk
                         </button>
-                        <ul class="dropdown-menu">
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header">Status</h6></li>
                             <li><a class="dropdown-item" href="#" onclick="showBulkModal('activate')">
                                 <i class="bi bi-person-check me-1"></i> Aktifkan
                             </a></li>
@@ -208,12 +224,21 @@
                                 <i class="bi bi-trophy me-1"></i> Luluskan
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Tindakan</h6></li>
+                            <li><a class="dropdown-item text-warning" href="#" onclick="showBulkModal('transfer')">
+                                <i class="bi bi-arrow-left-right me-1"></i> Pindah Rombel
+                            </a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="showBulkModal('withdraw')">
+                                <i class="bi bi-person-x me-1"></i> Keluarkan Siswa
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="#" onclick="showBulkModal('delete')">
                                 <i class="bi bi-trash me-1"></i> Hapus
                             </a></li>
                         </ul>
                     </div>
                 @endif
+                @endcan
             </div>
         </div>
         <div class="card-body p-0">
@@ -416,12 +441,34 @@
                 <div class="modal-body">
                     <input type="hidden" name="action" id="bulkAction">
                     <input type="hidden" name="enrollment_ids" id="enrollmentIds">
+                    <input type="hidden" name="per_page" value="{{ request('per_page') }}">
                     
                     <div id="bulkActionContent"></div>
                     
+                    {{-- Alasan (untuk deactivate & withdraw) --}}
                     <div class="form-group mt-3" id="bulkReasonGroup" style="display: none;">
-                        <label for="bulk_alasan" class="form-label">Alasan</label>
-                        <textarea class="form-control" id="bulk_alasan" name="bulk_alasan" rows="3"></textarea>
+                        <label for="bulk_alasan" class="form-label">Alasan <span class="text-danger" id="bulk_alasan_required"></span></label>
+                        <textarea class="form-control" id="bulk_alasan" name="bulk_alasan" rows="3"
+                                  placeholder="Masukkan alasan..."></textarea>
+                    </div>
+
+                    {{-- Pilih Rombel Tujuan (untuk transfer) --}}
+                    <div class="form-group mt-3" id="bulkRombelGroup" style="display: none;">
+                        <label for="bulk_rombel_tujuan" class="form-label">Rombel Tujuan <span class="text-danger">*</span></label>
+                        <select class="form-select" id="bulk_rombel_tujuan" name="bulk_rombel_tujuan">
+                            <option value="">Pilih Rombel Tujuan...</option>
+                            @foreach($rombels as $rombel)
+                                <option value="{{ $rombel->id }}">
+                                    {{ $rombel->nama_rombel }} ({{ $rombel->getJumlahSiswaAktual() }} siswa)
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Siswa yang dipilih akan dipindahkan ke rombel ini. Hanya siswa berstatus <strong>Aktif</strong> yang akan diproses.</div>
+                        <div class="mt-2">
+                            <label for="bulk_alasan_transfer" class="form-label">Alasan Pindah (Opsional)</label>
+                            <textarea class="form-control" id="bulk_alasan_transfer" name="bulk_alasan" rows="2"
+                                      placeholder="Alasan pemindahan rombel..."></textarea>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -430,7 +477,7 @@
                 </div>
             </form>
         </div>
-</div>
+    </div>
 </div>
 
 <!-- Bulk Import Siswa Program Modal -->
@@ -509,23 +556,48 @@ function showBulkModal(action) {
     document.getElementById('enrollmentIds').value = enrollmentIds.join(',');
     
     const titles = {
-        'activate': 'Aktifkan Siswa',
+        'activate':   'Aktifkan Siswa',
         'deactivate': 'Non-aktifkan Siswa', 
-        'graduate': 'Luluskan Siswa',
-        'delete': 'Hapus Enrollment'
+        'graduate':   'Luluskan Siswa',
+        'delete':     'Hapus Enrollment',
+        'withdraw':   'Keluarkan Siswa dari Program',
+        'transfer':   'Pindah Rombel',
     };
     
     const contents = {
-        'activate': `<p>Yakin ingin mengaktifkan <strong>${checkedBoxes.length}</strong> siswa yang dipilih?</p>`,
+        'activate':   `<p>Yakin ingin mengaktifkan <strong>${checkedBoxes.length}</strong> siswa yang dipilih?</p>`,
         'deactivate': `<p>Yakin ingin menonaktifkan <strong>${checkedBoxes.length}</strong> siswa yang dipilih?</p>`,
-        'graduate': `<p>Yakin ingin meluluskan <strong>${checkedBoxes.length}</strong> siswa yang dipilih?</p>`,
-        'delete': `<p class="text-danger">Yakin ingin menghapus enrollment <strong>${checkedBoxes.length}</strong> siswa yang dipilih? <br><small>Tindakan ini tidak dapat dibatalkan.</small></p>`
+        'graduate':   `<p>Yakin ingin meluluskan <strong>${checkedBoxes.length}</strong> siswa yang dipilih?</p>`,
+        'delete':     `<p class="text-danger">Yakin ingin menghapus enrollment <strong>${checkedBoxes.length}</strong> siswa yang dipilih? <br><small>Tindakan ini tidak dapat dibatalkan.</small></p>`,
+        'withdraw':   `<div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-2"></i>Anda akan mengeluarkan <strong>${checkedBoxes.length}</strong> siswa dari program. Hanya siswa berstatus <strong>Aktif</strong> yang akan diproses.</div>`,
+        'transfer':   `<div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Memindahkan <strong>${checkedBoxes.length}</strong> siswa ke rombel lain. Hanya siswa berstatus <strong>Aktif</strong> yang akan diproses.</div>`,
     };
     
     document.getElementById('bulkActionTitle').textContent = titles[action];
     document.getElementById('bulkActionContent').innerHTML = contents[action];
-    document.getElementById('bulkReasonGroup').style.display = action === 'deactivate' ? 'block' : 'none';
-    document.getElementById('bulkActionBtn').className = `btn ${action === 'delete' ? 'btn-danger' : 'btn-primary'}`;
+    
+    // Tampilkan/sembunyikan field alasan
+    const reasonGroup = document.getElementById('bulkReasonGroup');
+    const rombelGroup = document.getElementById('bulkRombelGroup');
+    
+    reasonGroup.style.display  = ['deactivate', 'withdraw'].includes(action) ? 'block' : 'none';
+    rombelGroup.style.display  = (action === 'transfer') ? 'block' : 'none';
+
+    // Wajib isi alasan untuk withdraw
+    const requiredMark = document.getElementById('bulk_alasan_required');
+    if (requiredMark) requiredMark.textContent = (action === 'withdraw') ? '*' : '';
+    document.getElementById('bulk_alasan').required = (action === 'withdraw');
+
+    // Warna tombol
+    const btnClass = {
+        'delete': 'btn btn-danger',
+        'withdraw': 'btn btn-danger',
+        'transfer': 'btn btn-warning',
+        'graduate': 'btn btn-info',
+        'activate': 'btn btn-success',
+        'deactivate': 'btn btn-secondary',
+    };
+    document.getElementById('bulkActionBtn').className = btnClass[action] || 'btn btn-primary';
     
     modal.show();
 }

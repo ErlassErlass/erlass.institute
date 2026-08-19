@@ -66,7 +66,22 @@ class SiswaEkstrakurikulerController extends Controller
                 break;
         }
 
-        $enrollments = $query->paginate(20)->withQueryString();
+        // Per-page: support 'all' untuk tampilkan semua data
+        $perPage = $request->get('per_page', 25);
+        if ($perPage === 'all') {
+            $enrollments = $query->get();
+            // Wrap dalam LengthAwarePaginator kosong agar kompatibel dengan view
+            $enrollments = new \Illuminate\Pagination\LengthAwarePaginator(
+                $enrollments,
+                $enrollments->count(),
+                $enrollments->count() ?: 1,
+                1,
+                ['path' => request()->url(), 'query' => request()->query()]
+            );
+        } else {
+            $enrollments = $query->paginate((int) $perPage)->withQueryString();
+        }
+
         $rombels = $ekstrakurikuler->rombels;
 
         return view('ekstrakurikuler.enrollment.index', compact('ekstrakurikuler', 'enrollments', 'rombels'));
@@ -351,11 +366,17 @@ class SiswaEkstrakurikulerController extends Controller
         }
 
         $request->validate([
-            'enrollment_ids' => 'required|array|min:1',
-            'enrollment_ids.*' => 'exists:siswa_ekstrakurikuler,id',
-            'action' => 'required|in:activate,deactivate,graduate,delete',
-            'bulk_alasan' => 'nullable|string|max:1000',
+            'enrollment_ids'     => 'required|array|min:1',
+            'enrollment_ids.*'   => 'exists:siswa_ekstrakurikuler,id',
+            'action'             => 'required|in:activate,deactivate,graduate,delete,withdraw,transfer',
+            'bulk_alasan'        => 'nullable|string|max:1000',
+            'bulk_rombel_tujuan' => 'nullable|exists:ekstrakurikuler_rombel,id',
         ]);
+
+        // Validasi khusus per aksi
+        if ($request->action === 'transfer' && ! $request->filled('bulk_rombel_tujuan')) {
+            return redirect()->back()->with('error', 'Pilih rombel tujuan untuk aksi Pindah Rombel.');
+        }
 
         try {
             DB::beginTransaction();
@@ -365,6 +386,9 @@ class SiswaEkstrakurikulerController extends Controller
                 ->get();
 
             $successCount = 0;
+            $rombelTujuan = $request->filled('bulk_rombel_tujuan')
+                ? EkstrakurikulerRombel::find($request->bulk_rombel_tujuan)
+                : null;
 
             foreach ($enrollments as $enrollment) {
                 switch ($request->action) {
@@ -386,6 +410,33 @@ class SiswaEkstrakurikulerController extends Controller
                     case 'delete':
                         $enrollment->delete();
                         $successCount++;
+                        break;
+                    case 'withdraw':
+                        // Keluarkan siswa dengan alasan
+                        if ($enrollment->status === 'aktif' && $enrollment->withdraw($request->bulk_alasan)) {
+                            $successCount++;
+                        }
+                        break;
+                    case 'transfer':
+                        // Pindah rombel: tandai lama sebagai pindah, buat enrollment baru
+                        if ($enrollment->status === 'aktif' && $rombelTujuan && $rombelTujuan->id !== $enrollment->ekstrakurikuler_rombel_id) {
+                            $enrollment->update([
+                                'status'        => 'pindah',
+                                'tanggal_keluar' => now()->toDateString(),
+                                'alasan_keluar' => $request->bulk_alasan ?: 'Pindah rombel (bulk)',
+                            ]);
+                            SiswaEkstrakurikuler::create([
+                                'siswa_id'                   => $enrollment->siswa_id,
+                                'ekstrakurikuler_id'         => $ekstrakurikuler->id,
+                                'ekstrakurikuler_rombel_id'  => $rombelTujuan->id,
+                                'status'                     => 'aktif',
+                                'tanggal_daftar'             => now()->toDateString(),
+                                'catatan'                    => 'Pindah dari ' . ($enrollment->rombel->nama_rombel ?? '-') . ' (bulk transfer)',
+                                'created_by'                 => auth()->id(),
+                                'updated_by'                 => auth()->id(),
+                            ]);
+                            $successCount++;
+                        }
                         break;
                 }
             }
