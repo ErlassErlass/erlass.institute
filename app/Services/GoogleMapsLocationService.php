@@ -23,7 +23,11 @@ class GoogleMapsLocationService
             return null;
         }
 
-        $url = trim($url);
+        // Hapus semua whitespace & newline tersembunyi yang mungkin terbawa saat copy-paste
+        $url = preg_replace('/\s+/', '', trim((string) $url));
+        if (empty($url)) {
+            return null;
+        }
 
         // Jika URL sudah mengandung koordinat tanpa perlu redirect
         $coords = $this->parseCoordinatesFromUrlString($url);
@@ -39,8 +43,8 @@ class GoogleMapsLocationService
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_HEADER => true,
                 CURLOPT_NOBODY => true,
-                CURLOPT_TIMEOUT => 6,
-                CURLOPT_CONNECTTIMEOUT => 4,
+                CURLOPT_TIMEOUT => 3,
+                CURLOPT_CONNECTTIMEOUT => 2,
                 CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 CURLOPT_SSL_VERIFYPEER => false,
             ]);

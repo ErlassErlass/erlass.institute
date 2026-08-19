@@ -940,6 +940,14 @@
                         </label>
                         {{-- capture attribute will be set by JS on mobile only --}}
                         <input type="file" name="photo" id="checkin_photo" accept="image/*" class="form-control" required>
+                        <div id="photoCompressionBadge" class="mt-2 d-none">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle small py-1 px-2">
+                                <i class="bi bi-lightning-charge-fill me-1"></i><span id="photoCompressionText">Foto dioptimasi</span>
+                            </span>
+                        </div>
+                        <div id="photoPreviewContainer" class="mt-2 text-center d-none">
+                            <img id="photoPreview" src="" alt="Preview Foto Check-in" class="img-fluid rounded-3 border shadow-sm" style="max-height: 160px; object-fit: contain;">
+                        </div>
                         <small class="text-muted d-block mt-1" id="photoHint">Memuat...</small>
                     </div>
 
@@ -972,6 +980,73 @@ function sendReminderTarget(target) {
     document.getElementById('reminderForm').requestSubmit();
 }
 
+function formatBytes(bytes, decimals = 1) {
+    if (!+bytes) return '0 B';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+}
+
+function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.75) {
+    return new Promise((resolve) => {
+        if (!file || !file.type.startsWith('image/')) {
+            resolve(null);
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    if (!blob) {
+                        resolve(null);
+                        return;
+                    }
+                    const compressedFile = new File([blob], (file.name || 'checkin_photo').replace(/\.[^/.]+$/, "") + ".jpg", {
+                        type: 'image/jpeg',
+                        lastModified: Date.now()
+                    });
+                    resolve({
+                        file: compressedFile,
+                        previewUrl: canvas.toDataURL('image/jpeg', quality),
+                        originalSize: file.size,
+                        compressedSize: blob.size
+                    });
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = () => resolve(null);
+        };
+        reader.onerror = () => resolve(null);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // ─── Device detection ───
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -981,6 +1056,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const photoLabel = document.getElementById('photoLabel');
     const photoHint = document.getElementById('photoHint');
     const desktopNote = document.getElementById('desktopAccuracyNote');
+    const compressionBadge = document.getElementById('photoCompressionBadge');
+    const compressionText = document.getElementById('photoCompressionText');
+    const previewContainer = document.getElementById('photoPreviewContainer');
+    const photoPreview = document.getElementById('photoPreview');
+    const form = document.getElementById('gpsCheckinForm');
+    const btnSubmit = document.getElementById('btnSubmitCheckin');
 
     if (photoInput) {
         if (isMobile) {
@@ -994,6 +1075,45 @@ document.addEventListener('DOMContentLoaded', function () {
             photoHint.textContent = 'Pilih foto terbaru yang diambil di area sekolah hari ini.';
             if (desktopNote) desktopNote.classList.remove('d-none');
         }
+
+        // Automatic client-side image compression
+        photoInput.addEventListener('change', async function () {
+            if (this.files && this.files[0]) {
+                const originalFile = this.files[0];
+                if (compressionBadge) {
+                    compressionBadge.classList.remove('d-none');
+                    compressionText.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengoptimalkan foto...';
+                }
+
+                const result = await compressImageFile(originalFile);
+                if (result && result.file) {
+                    try {
+                        const dt = new DataTransfer();
+                        dt.items.add(result.file);
+                        photoInput.files = dt.files;
+                    } catch (e) {
+                        console.warn('DataTransfer not fully supported, fallback to native file', e);
+                    }
+
+                    if (photoPreview && previewContainer) {
+                        photoPreview.src = result.previewUrl;
+                        previewContainer.classList.remove('d-none');
+                    }
+
+                    if (compressionBadge && compressionText) {
+                        const reduction = Math.round((1 - (result.compressedSize / result.originalSize)) * 100);
+                        compressionText.innerHTML = `Foto siap! Ukuran: ${formatBytes(result.originalSize)} ➔ <strong>${formatBytes(result.compressedSize)}</strong> (${reduction > 0 ? reduction + '% lebih hemat' : 'Optimal'})`;
+                    }
+                }
+            }
+        });
+    }
+
+    if (form && btnSubmit) {
+        form.addEventListener('submit', function () {
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Mengirim Presensi...';
+        });
     }
 
     // ─── GPS check-in modal ───
@@ -1003,7 +1123,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const statusAlert = document.getElementById('gpsStatusAlert');
             const statusText = document.getElementById('gpsStatusText');
             const spinner = document.getElementById('gpsSpinner');
-            const btnSubmit = document.getElementById('btnSubmitCheckin');
 
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(
@@ -1027,7 +1146,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         document.getElementById('checkin_lng').value = 106.816666;
                         btnSubmit.disabled = false;
                     },
-                    { enableHighAccuracy: isMobile, timeout: 10000, maximumAge: 0 }
+                    { enableHighAccuracy: isMobile, timeout: 8000, maximumAge: 0 }
                 );
             } else {
                 spinner.style.display = 'none';

@@ -1163,7 +1163,7 @@ class EkstrakurikulerSessionController extends Controller
         $lng = (float) $request->input('longitude');
 
         // Target school location coordinates (dari Ekstrakurikuler / Google Maps Link)
-        $ekskul = $session->ekstrakurikuler;
+        $ekskul = $session->ekstrakurikuler ?: $session->rombel?->ekstrakurikuler;
         $coords = null;
 
         if ($ekskul) {
