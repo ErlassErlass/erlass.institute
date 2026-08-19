@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\SchoolCalendarController;
 use App\Http\Controllers\AgendaKegiatanController;
 use App\Http\Controllers\HelpCenterController;
+use App\Http\Controllers\TicketController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -78,6 +79,14 @@ Route::middleware(['auth'])->group(function () {
         ->name('laporan-mengajar.relocate');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/help', [HelpCenterController::class, 'index'])->name('help.index');
+
+    // Ticket & Helpdesk Routes (AQCOS Issue Management)
+    Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
+    Route::get('/tickets/create', [TicketController::class, 'create'])->name('tickets.create');
+    Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
+    Route::get('/tickets/{id}', [TicketController::class, 'show'])->name('tickets.show');
+    Route::post('/tickets/{id}/reply', [TicketController::class, 'reply'])->name('tickets.reply');
+    Route::patch('/tickets/{id}/status', [TicketController::class, 'updateStatus'])->name('tickets.update-status');
 
     // Admin Milestone Notifications API
     Route::get('/admin/notifications/unread', [App\Http\Controllers\NotificationController::class, 'getUnreadNotifications'])

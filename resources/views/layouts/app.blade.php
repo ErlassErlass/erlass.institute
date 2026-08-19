@@ -752,6 +752,25 @@
 
                     <li class="sidebar-section-title">Bantuan & Support</li>
                     <li class="sidebar-item">
+                        <a class="sidebar-link {{ request()->routeIs('tickets.*') ? 'active' : '' }}" href="{{ route('tickets.index') }}">
+                            <i class="bi bi-ticket-detailed-fill text-warning"></i>
+                            <span>Tiket Bantuan</span>
+                            @php
+                                $sidebarTicketBadge = 0;
+                                if (Auth::check()) {
+                                    if (in_array(Auth::user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+                                        $sidebarTicketBadge = \App\Models\Ticket::where('status', \App\Models\Ticket::STATUS_OPEN)->count();
+                                    } else {
+                                        $sidebarTicketBadge = \App\Models\Ticket::where('user_id', Auth::id())->where('has_unread_reply_for_user', true)->count();
+                                    }
+                                }
+                            @endphp
+                            @if($sidebarTicketBadge > 0)
+                                <span class="badge bg-danger rounded-pill ms-auto" style="font-size: 0.68rem;">{{ $sidebarTicketBadge }}</span>
+                            @endif
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
                         <a class="sidebar-link {{ request()->routeIs('help.index') ? 'active' : '' }}" href="{{ route('help.index') }}">
                             <i class="bi bi-question-circle-fill text-primary"></i>
                             <span>Panduan & FAQ 101</span>
