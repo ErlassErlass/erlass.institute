@@ -175,8 +175,6 @@
     </div>
 </div>
 
-@endpush
-
 <style>
 .avatar-lg {
     width: 56px;
