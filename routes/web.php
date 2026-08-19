@@ -58,6 +58,13 @@ Route::post('/register/instructor', [App\Http\Controllers\InstructorRegistration
 
 // Instructor Profile Completion (Redirected to Unified Profile)
 Route::middleware(['auth'])->group(function () {
+    Route::get('/session/ping', function () {
+        return response()->json([
+            'status' => 'ok',
+            'csrf_token' => csrf_token(),
+        ]);
+    })->name('session.ping');
+
     Route::get('/instructor/complete-profile', function () {
         return redirect()->route('profile.edit');
     })->name('instructor.profile.complete');

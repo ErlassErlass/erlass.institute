@@ -19,4 +19,14 @@ return Application::configure(basePath: dirname(__DIR__)) // <-- This is the cor
     })
     ->withExceptions(function (Exceptions $exceptions) {
         \Sentry\Laravel\Integration::handles($exceptions);
+
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'CSRF token mismatch / session expired.'], 419);
+            }
+            if (auth()->check()) {
+                return redirect()->back()->with('warning', 'Sesi keamanan Anda telah disegarkan otomatis. Silakan coba kembali.');
+            }
+            return redirect()->route('login')->with('warning', 'Waktu sesi telah berakhir karena tidak ada aktivitas. Silakan login kembali.');
+        });
     })->create();

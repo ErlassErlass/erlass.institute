@@ -1295,5 +1295,44 @@
     }
     </script>
     @endif
+
+    @auth
+    <!-- Session & CSRF Auto Keep-Alive for Instructors / Mobile Devices -->
+    <script>
+    (function() {
+        let lastPing = Date.now();
+        function pingSession() {
+            fetch("{{ route('session.ping') }}", {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.csrf_token) {
+                    const metaCsrf = document.querySelector('meta[name="csrf-token"]');
+                    if (metaCsrf) metaCsrf.setAttribute('content', data.csrf_token);
+                    document.querySelectorAll('input[name="_token"]').forEach(input => {
+                        input.value = data.csrf_token;
+                    });
+                }
+                lastPing = Date.now();
+            })
+            .catch(() => {});
+        }
+
+        // Ping every 15 minutes while tab is open
+        setInterval(pingSession, 15 * 60 * 1000);
+
+        // Ping when instructor unlocks phone / switches back to tab after > 5 minutes idle
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible' && (Date.now() - lastPing > 5 * 60 * 1000)) {
+                pingSession();
+            }
+        });
+    })();
+    </script>
+    @endauth
 </body>
 </html>

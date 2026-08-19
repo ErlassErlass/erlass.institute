@@ -18,7 +18,7 @@ class EkstrakurikulerQueryService
     {
         $query = Ekstrakurikuler::with(['sekolah', 'sales', 'rombels']);
 
-        // Filter out Ad-Hoc / Special Activity programs (Trial Class, Sosialisasi Sales, Pameran, Event, Backup Pertemuan, Remedial)
+        // Filter out Ad-Hoc / Special Activity programs (Trial Class, Sosialisasi Sales, Pameran, Event, Backup Pertemuan, Remedial, Inkul)
         // Main /ekstrakurikuler page should only display official regular contract programs
         if (! $request->filled('include_adhoc')) {
             $query->whereNotIn('kategori_program', [
@@ -32,11 +32,15 @@ class EkstrakurikulerQueryService
                 'Kegiatan Khusus',
                 'Backup Pertemuan',
                 'Remedial',
+                'Inkul',
+                'In-Kurikuler',
+                'Inkul Coding Scratch',
             ])
             ->where('kategori_program', 'not like', '%Trial%')
             ->where('kategori_program', 'not like', '%Sosialisasi%')
             ->where('kategori_program', 'not like', '%Backup%')
-            ->where('kategori_program', 'not like', '%Remedial%');
+            ->where('kategori_program', 'not like', '%Remedial%')
+            ->where('kategori_program', 'not like', '%Inkul%');
         }
 
         // Filter by user role
