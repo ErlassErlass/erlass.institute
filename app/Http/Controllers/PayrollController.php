@@ -280,7 +280,10 @@ class PayrollController extends Controller
         $batch = PayrollBatch::with([
             'items.instruktur.instructorProfile',
             'items.sessions.ekstrakurikuler.sekolah',
-            'items.sessions.rombel',
+            'items.sessions.rombel.instruktur',
+            'items.sessions.rombel.asisten',
+            'items.sessions.instruktur',
+            'items.sessions.asisten',
             'payer'
         ])->findOrFail($batchId);
 
@@ -295,27 +298,41 @@ class PayrollController extends Controller
         $sheet1->setTitle('Transfer Bank');
         
         $sheet1->setCellValue('A1', 'REKAPITULASI TRANSFER BANK PAYROLL INSTRUKTUR ERLASS');
-        $sheet1->mergeCells('A1:J1');
+        $sheet1->mergeCells('A1:L1');
         $sheet1->getStyle('A1')->getFont()->setBold(true)->setSize(14);
 
         $sheet1->setCellValue('A2', "Kode Batch: {$batch->code} | Periode: " . $batch->periode->format('F Y') . " | Status: " . strtoupper($batch->status));
-        $sheet1->mergeCells('A2:J2');
+        $sheet1->mergeCells('A2:L2');
         $sheet1->getStyle('A2')->getFont()->setItalic(true)->setSize(11);
 
-        $headers1 = ['No', 'ID Instruktur', 'Nama Lengkap Instruktur', 'Nama Bank', 'Nomor Rekening', 'Nama Pemilik Rekening', 'No HP / WA', 'Total Sesi', 'Nominal Netto (Rp)', 'Keterangan'];
+        $headers1 = ['No', 'ID Instruktur', 'Nama Lengkap Instruktur', 'Nama Bank', 'Nomor Rekening', 'Nama Pemilik Rekening', 'No HP / WA', 'Sesi Utama', 'Sesi Asisten', 'Total Sesi', 'Nominal Netto (Rp)', 'Keterangan'];
         $sheet1->fromArray($headers1, NULL, 'A4');
-        $sheet1->getStyle('A4:J4')->getFont()->setBold(true);
-        $sheet1->getStyle('A4:J4')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('4CAF50');
-        $sheet1->getStyle('A4:J4')->getFont()->getColor()->setRGB('FFFFFF');
+        $sheet1->getStyle('A4:L4')->getFont()->setBold(true);
+        $sheet1->getStyle('A4:L4')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('4CAF50');
+        $sheet1->getStyle('A4:L4')->getFont()->getColor()->setRGB('FFFFFF');
 
         $rowIdx = 5;
         $no = 1;
+        $totalSesiUtamaAll = 0;
+        $totalSesiAsistenAll = 0;
         $totalSessionsAll = 0;
         $totalNetSalaryAll = 0;
 
         foreach ($batch->items as $item) {
             $instructor = $item->instruktur;
             $profile = $instructor->instructorProfile ?? null;
+
+            $sessions = $item->sessions;
+            $sesiUtama = $sessions->filter(function($s) use ($item) {
+                return (int)$s->user_id_instruktur === (int)$item->user_id_instruktur;
+            })->count();
+            $sesiAsisten = $sessions->filter(function($s) use ($item) {
+                return (int)$s->user_id_asisten === (int)$item->user_id_instruktur && (int)$s->user_id_instruktur !== (int)$item->user_id_instruktur;
+            })->count();
+
+            if ($sesiUtama + $sesiAsisten < $item->total_sessions) {
+                $sesiUtama = $item->total_sessions - $sesiAsisten;
+            }
 
             $sheet1->setCellValue("A{$rowIdx}", $no++);
             $sheet1->setCellValue("B{$rowIdx}", $instructor->instructor_id ?? $instructor->id);
@@ -324,10 +341,14 @@ class PayrollController extends Controller
             $sheet1->setCellValueExplicit("E{$rowIdx}", $profile->no_rekening ?? '-', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
             $sheet1->setCellValue("F{$rowIdx}", $profile->nama_pemilik_rekening ?? $instructor->nama_lengkap);
             $sheet1->setCellValueExplicit("G{$rowIdx}", $instructor->no_telephone ?? '-', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-            $sheet1->setCellValue("H{$rowIdx}", $item->total_sessions);
-            $sheet1->setCellValue("I{$rowIdx}", $item->net_salary);
-            $sheet1->setCellValue("J{$rowIdx}", "Honor " . $batch->code);
+            $sheet1->setCellValue("H{$rowIdx}", $sesiUtama);
+            $sheet1->setCellValue("I{$rowIdx}", $sesiAsisten);
+            $sheet1->setCellValue("J{$rowIdx}", $item->total_sessions);
+            $sheet1->setCellValue("K{$rowIdx}", $item->net_salary);
+            $sheet1->setCellValue("L{$rowIdx}", "Honor " . $batch->code);
 
+            $totalSesiUtamaAll += $sesiUtama;
+            $totalSesiAsistenAll += $sesiAsisten;
             $totalSessionsAll += $item->total_sessions;
             $totalNetSalaryAll += $item->net_salary;
             $rowIdx++;
@@ -335,12 +356,14 @@ class PayrollController extends Controller
 
         $sheet1->setCellValue("A{$rowIdx}", 'TOTAL');
         $sheet1->mergeCells("A{$rowIdx}:G{$rowIdx}");
-        $sheet1->setCellValue("H{$rowIdx}", $totalSessionsAll);
-        $sheet1->setCellValue("I{$rowIdx}", $totalNetSalaryAll);
-        $sheet1->getStyle("A{$rowIdx}:J{$rowIdx}")->getFont()->setBold(true);
-        $sheet1->getStyle("I5:I{$rowIdx}")->getNumberFormat()->setFormatCode('#,##0');
+        $sheet1->setCellValue("H{$rowIdx}", $totalSesiUtamaAll);
+        $sheet1->setCellValue("I{$rowIdx}", $totalSesiAsistenAll);
+        $sheet1->setCellValue("J{$rowIdx}", $totalSessionsAll);
+        $sheet1->setCellValue("K{$rowIdx}", $totalNetSalaryAll);
+        $sheet1->getStyle("A{$rowIdx}:L{$rowIdx}")->getFont()->setBold(true);
+        $sheet1->getStyle("K5:K{$rowIdx}")->getNumberFormat()->setFormatCode('#,##0');
 
-        foreach (range('A', 'J') as $col) {
+        foreach (range('A', 'L') as $col) {
             $sheet1->getColumnDimension($col)->setAutoSize(true);
         }
 
@@ -351,18 +374,18 @@ class PayrollController extends Controller
         $sheet2->setTitle('Jurnal Akuntansi');
 
         $sheet2->setCellValue('A1', 'RINCIAN JURNAL AKUNTANSI PAYROLL INSTRUKTUR ERLASS');
-        $sheet2->mergeCells('A1:L1');
+        $sheet2->mergeCells('A1:N1');
         $sheet2->getStyle('A1')->getFont()->setBold(true)->setSize(14);
 
         $sheet2->setCellValue('A2', "Kode Batch: {$batch->code} | Periode: " . $batch->periode->format('F Y'));
-        $sheet2->mergeCells('A2:L2');
+        $sheet2->mergeCells('A2:N2');
         $sheet2->getStyle('A2')->getFont()->setItalic(true);
 
-        $headers2 = ['No', 'Kode Batch', 'Periode', 'ID Instruktur', 'Nama Instruktur', 'Total Sesi', 'Honor Dasar (Rp)', 'Bonus (Rp)', 'Transport (Rp)', 'Denda (Rp)', 'Gaji Netto (Rp)', 'Status'];
+        $headers2 = ['No', 'Kode Batch', 'Periode', 'ID Instruktur', 'Nama Instruktur', 'Sesi Utama', 'Sesi Asisten', 'Total Sesi', 'Honor Dasar (Rp)', 'Bonus (Rp)', 'Transport (Rp)', 'Denda (Rp)', 'Gaji Netto (Rp)', 'Status'];
         $sheet2->fromArray($headers2, NULL, 'A4');
-        $sheet2->getStyle('A4:L4')->getFont()->setBold(true);
-        $sheet2->getStyle('A4:L4')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('2196F3');
-        $sheet2->getStyle('A4:L4')->getFont()->getColor()->setRGB('FFFFFF');
+        $sheet2->getStyle('A4:N4')->getFont()->setBold(true);
+        $sheet2->getStyle('A4:N4')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('2196F3');
+        $sheet2->getStyle('A4:N4')->getFont()->getColor()->setRGB('FFFFFF');
 
         $rowIdx2 = 5;
         $no2 = 1;
@@ -370,18 +393,32 @@ class PayrollController extends Controller
         foreach ($batch->items as $item) {
             $instructor = $item->instruktur;
 
+            $sessions = $item->sessions;
+            $sesiUtama = $sessions->filter(function($s) use ($item) {
+                return (int)$s->user_id_instruktur === (int)$item->user_id_instruktur;
+            })->count();
+            $sesiAsisten = $sessions->filter(function($s) use ($item) {
+                return (int)$s->user_id_asisten === (int)$item->user_id_instruktur && (int)$s->user_id_instruktur !== (int)$item->user_id_instruktur;
+            })->count();
+
+            if ($sesiUtama + $sesiAsisten < $item->total_sessions) {
+                $sesiUtama = $item->total_sessions - $sesiAsisten;
+            }
+
             $sheet2->setCellValue("A{$rowIdx2}", $no2++);
             $sheet2->setCellValue("B{$rowIdx2}", $batch->code);
             $sheet2->setCellValue("C{$rowIdx2}", $batch->periode->format('Y-m'));
             $sheet2->setCellValue("D{$rowIdx2}", $instructor->instructor_id ?? $instructor->id);
             $sheet2->setCellValue("E{$rowIdx2}", $instructor->nama_lengkap);
-            $sheet2->setCellValue("F{$rowIdx2}", $item->total_sessions);
-            $sheet2->setCellValue("G{$rowIdx2}", $item->total_base_fee);
-            $sheet2->setCellValue("H{$rowIdx2}", $item->total_product_bonus);
-            $sheet2->setCellValue("I{$rowIdx2}", $item->total_transport_fee);
-            $sheet2->setCellValue("J{$rowIdx2}", $item->total_penalty);
-            $sheet2->setCellValue("K{$rowIdx2}", $item->net_salary);
-            $sheet2->setCellValue("L{$rowIdx2}", strtoupper($batch->status));
+            $sheet2->setCellValue("F{$rowIdx2}", $sesiUtama);
+            $sheet2->setCellValue("G{$rowIdx2}", $sesiAsisten);
+            $sheet2->setCellValue("H{$rowIdx2}", $item->total_sessions);
+            $sheet2->setCellValue("I{$rowIdx2}", $item->total_base_fee);
+            $sheet2->setCellValue("J{$rowIdx2}", $item->total_product_bonus);
+            $sheet2->setCellValue("K{$rowIdx2}", $item->total_transport_fee);
+            $sheet2->setCellValue("L{$rowIdx2}", $item->total_penalty);
+            $sheet2->setCellValue("M{$rowIdx2}", $item->net_salary);
+            $sheet2->setCellValue("N{$rowIdx2}", strtoupper($batch->status));
 
             $rowIdx2++;
         }
@@ -394,10 +431,12 @@ class PayrollController extends Controller
         $sheet2->setCellValue("I{$rowIdx2}", "=SUM(I5:I" . ($rowIdx2-1) . ")");
         $sheet2->setCellValue("J{$rowIdx2}", "=SUM(J5:J" . ($rowIdx2-1) . ")");
         $sheet2->setCellValue("K{$rowIdx2}", "=SUM(K5:K" . ($rowIdx2-1) . ")");
-        $sheet2->getStyle("A{$rowIdx2}:L{$rowIdx2}")->getFont()->setBold(true);
-        $sheet2->getStyle("G5:K{$rowIdx2}")->getNumberFormat()->setFormatCode('#,##0');
+        $sheet2->setCellValue("L{$rowIdx2}", "=SUM(L5:L" . ($rowIdx2-1) . ")");
+        $sheet2->setCellValue("M{$rowIdx2}", "=SUM(M5:M" . ($rowIdx2-1) . ")");
+        $sheet2->getStyle("A{$rowIdx2}:N{$rowIdx2}")->getFont()->setBold(true);
+        $sheet2->getStyle("I5:M{$rowIdx2}")->getNumberFormat()->setFormatCode('#,##0');
 
-        foreach (range('A', 'L') as $col) {
+        foreach (range('A', 'N') as $col) {
             $sheet2->getColumnDimension($col)->setAutoSize(true);
         }
 
@@ -408,17 +447,17 @@ class PayrollController extends Controller
         $sheet3->setTitle('Rincian Sesi Mengajar');
 
         $sheet3->setCellValue('A1', 'AUDIT RINCIAN PER SESI MENGAJAR PAYROLL ERLASS');
-        $sheet3->mergeCells('A1:L1');
+        $sheet3->mergeCells('A1:O1');
         $sheet3->getStyle('A1')->getFont()->setBold(true)->setSize(14);
 
         $sheet3->setCellValue('A2', "Kode Batch: {$batch->code}");
-        $sheet3->mergeCells('A2:L2');
+        $sheet3->mergeCells('A2:O2');
 
-        $headers3 = ['No', 'ID Sesi', 'Tanggal Sesi', 'Sekolah Mitra', 'Program / Rombel', 'ID Instruktur', 'Nama Instruktur', 'Honor Dasar (Rp)', 'Transport (Rp)', 'Denda Checkin (Rp)', 'Net Fee Sesi (Rp)', 'Status Sesi'];
+        $headers3 = ['No', 'ID Sesi', 'Tanggal Sesi', 'Sekolah Mitra', 'Program / Rombel', 'ID Pengajar', 'Nama Penerima Honor', 'Instruktur Utama', 'Asisten Instruktur', 'Peran Mengajar', 'Honor Dasar (Rp)', 'Transport (Rp)', 'Denda Checkin (Rp)', 'Net Fee Sesi (Rp)', 'Status Sesi'];
         $sheet3->fromArray($headers3, NULL, 'A4');
-        $sheet3->getStyle('A4:L4')->getFont()->setBold(true);
-        $sheet3->getStyle('A4:L4')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('FF9800');
-        $sheet3->getStyle('A4:L4')->getFont()->getColor()->setRGB('FFFFFF');
+        $sheet3->getStyle('A4:O4')->getFont()->setBold(true);
+        $sheet3->getStyle('A4:O4')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('FF9800');
+        $sheet3->getStyle('A4:O4')->getFont()->getColor()->setRGB('FFFFFF');
 
         $rowIdx3 = 5;
         $no3 = 1;
@@ -433,6 +472,18 @@ class PayrollController extends Controller
                 $sekolahName = optional(optional(optional($session->rombel)->ekstrakurikuler)->sekolah)->namasekolah ?? 'Kegiatan Office / Ad-Hoc';
                 $programName = optional(optional($session->rombel)->ekstrakurikuler)->kategori_program ?? 'Ad-Hoc';
 
+                $utamaName = optional($session->instruktur)->nama_lengkap 
+                    ?? optional(optional($session->rombel)->instruktur)->nama_lengkap 
+                    ?? '-';
+
+                $asistenName = optional($session->asisten)->nama_lengkap 
+                    ?? optional(optional($session->rombel)->asisten)->nama_lengkap 
+                    ?? '-';
+
+                $peran = ((int)$session->user_id_asisten === (int)$item->user_id_instruktur && (int)$session->user_id_instruktur !== (int)$item->user_id_instruktur)
+                    ? 'Asisten Instruktur'
+                    : 'Instruktur Utama';
+
                 $sheet3->setCellValue("A{$rowIdx3}", $no3++);
                 $sheet3->setCellValue("B{$rowIdx3}", $session->id);
                 $sheet3->setCellValue("C{$rowIdx3}", \Carbon\Carbon::parse($session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal)->format('d/m/Y'));
@@ -440,26 +491,29 @@ class PayrollController extends Controller
                 $sheet3->setCellValue("E{$rowIdx3}", $programName . ' (' . optional($session->rombel)->nama_rombel . ')');
                 $sheet3->setCellValue("F{$rowIdx3}", $item->instruktur->instructor_id ?? $item->instruktur->id);
                 $sheet3->setCellValue("G{$rowIdx3}", $item->instruktur->nama_lengkap);
-                $sheet3->setCellValue("H{$rowIdx3}", $baseFee);
-                $sheet3->setCellValue("I{$rowIdx3}", $calc['transport_fee']);
-                $sheet3->setCellValue("J{$rowIdx3}", $calc['actual_checkin_penalty']);
-                $sheet3->setCellValue("K{$rowIdx3}", $netFee);
-                $sheet3->setCellValue("L{$rowIdx3}", strtoupper($session->status));
+                $sheet3->setCellValue("H{$rowIdx3}", $utamaName);
+                $sheet3->setCellValue("I{$rowIdx3}", $asistenName);
+                $sheet3->setCellValue("J{$rowIdx3}", $peran);
+                $sheet3->setCellValue("K{$rowIdx3}", $baseFee);
+                $sheet3->setCellValue("L{$rowIdx3}", $calc['transport_fee']);
+                $sheet3->setCellValue("M{$rowIdx3}", $calc['actual_checkin_penalty']);
+                $sheet3->setCellValue("N{$rowIdx3}", $netFee);
+                $sheet3->setCellValue("O{$rowIdx3}", strtoupper($session->status));
 
                 $rowIdx3++;
             }
         }
 
         $sheet3->setCellValue("A{$rowIdx3}", 'TOTAL');
-        $sheet3->mergeCells("A{$rowIdx3}:G{$rowIdx3}");
-        $sheet3->setCellValue("H{$rowIdx3}", "=SUM(H5:H" . ($rowIdx3-1) . ")");
-        $sheet3->setCellValue("I{$rowIdx3}", "=SUM(I5:I" . ($rowIdx3-1) . ")");
-        $sheet3->setCellValue("J{$rowIdx3}", "=SUM(J5:J" . ($rowIdx3-1) . ")");
+        $sheet3->mergeCells("A{$rowIdx3}:J{$rowIdx3}");
         $sheet3->setCellValue("K{$rowIdx3}", "=SUM(K5:K" . ($rowIdx3-1) . ")");
-        $sheet3->getStyle("A{$rowIdx3}:L{$rowIdx3}")->getFont()->setBold(true);
-        $sheet3->getStyle("H5:K{$rowIdx3}")->getNumberFormat()->setFormatCode('#,##0');
+        $sheet3->setCellValue("L{$rowIdx3}", "=SUM(L5:L" . ($rowIdx3-1) . ")");
+        $sheet3->setCellValue("M{$rowIdx3}", "=SUM(M5:M" . ($rowIdx3-1) . ")");
+        $sheet3->setCellValue("N{$rowIdx3}", "=SUM(N5:N" . ($rowIdx3-1) . ")");
+        $sheet3->getStyle("A{$rowIdx3}:O{$rowIdx3}")->getFont()->setBold(true);
+        $sheet3->getStyle("K5:N{$rowIdx3}")->getNumberFormat()->setFormatCode('#,##0');
 
-        foreach (range('A', 'L') as $col) {
+        foreach (range('A', 'O') as $col) {
             $sheet3->getColumnDimension($col)->setAutoSize(true);
         }
 
@@ -486,7 +540,7 @@ class PayrollController extends Controller
         }
 
         $batchId = $id instanceof PayrollBatch ? $id->id : $id;
-        $batch = PayrollBatch::with(['items.instruktur.instructorProfile'])->findOrFail($batchId);
+        $batch = PayrollBatch::with(['items.instruktur.instructorProfile', 'items.sessions'])->findOrFail($batchId);
         $batch->setRelation('items', $batch->items->sortBy(fn($i) => strtolower($i->instruktur->nama_lengkap ?? $i->instruktur->name ?? ''))->values());
 
         $filename = "Transfer_Bank_{$batch->code}_" . date('Ymd_His') . ".csv";
@@ -497,12 +551,24 @@ class PayrollController extends Controller
         $output = fopen('php://output', 'w');
 
         // Headers
-        fputcsv($output, ['No', 'ID Instruktur', 'Nama Lengkap', 'Nama Bank', 'Nomor Rekening', 'Pemilik Rekening', 'No HP', 'Total Sesi', 'Nominal Netto (Rp)', 'Keterangan']);
+        fputcsv($output, ['No', 'ID Instruktur', 'Nama Lengkap', 'Nama Bank', 'Nomor Rekening', 'Pemilik Rekening', 'No HP', 'Sesi Utama', 'Sesi Asisten', 'Total Sesi', 'Nominal Netto (Rp)', 'Keterangan']);
 
         $no = 1;
         foreach ($batch->items as $item) {
             $instructor = $item->instruktur;
             $profile = $instructor->instructorProfile ?? null;
+
+            $sessions = $item->sessions;
+            $sesiUtama = $sessions->filter(function($s) use ($item) {
+                return (int)$s->user_id_instruktur === (int)$item->user_id_instruktur;
+            })->count();
+            $sesiAsisten = $sessions->filter(function($s) use ($item) {
+                return (int)$s->user_id_asisten === (int)$item->user_id_instruktur && (int)$s->user_id_instruktur !== (int)$item->user_id_instruktur;
+            })->count();
+
+            if ($sesiUtama + $sesiAsisten < $item->total_sessions) {
+                $sesiUtama = $item->total_sessions - $sesiAsisten;
+            }
 
             fputcsv($output, [
                 $no++,
@@ -512,6 +578,8 @@ class PayrollController extends Controller
                 "'" . ($profile->no_rekening ?? '-'),
                 $profile->nama_pemilik_rekening ?? $instructor->nama_lengkap,
                 "'" . ($instructor->no_telephone ?? '-'),
+                $sesiUtama,
+                $sesiAsisten,
                 $item->total_sessions,
                 $item->net_salary,
                 "Honor Batch " . $batch->code,
@@ -535,7 +603,10 @@ class PayrollController extends Controller
         $batch = PayrollBatch::with([
             'items.instruktur.instructorProfile',
             'items.sessions.ekstrakurikuler.sekolah',
-            'items.sessions.rombel',
+            'items.sessions.rombel.instruktur',
+            'items.sessions.rombel.asisten',
+            'items.sessions.instruktur',
+            'items.sessions.asisten',
             'payer'
         ])->findOrFail($batchId);
 

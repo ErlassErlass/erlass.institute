@@ -419,4 +419,54 @@ class PayrollTest extends TestCase
         $calc3 = $service->calculateSessionFee($session);
         $this->assertEquals(0.00, $calc3['transport_fee']);
     }
+
+    public function test_export_pdf_view_renders_with_session_and_instructor_details()
+    {
+        $admin = User::create([
+            'nama_lengkap' => 'Admin Payroll',
+            'email' => 'admin_payroll@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'webmaster',
+            'status' => 'Aktif',
+            'tanggal_lahir' => '1990-01-01',
+            'agama' => 'Lainnya',
+            'pend_terakhir' => 'SMA',
+            'kompetensi_1' => 'General',
+            'no_telephone' => '081234567890',
+        ]);
+
+        $instructor = User::create([
+            'nama_lengkap' => 'Instructor Utama Test',
+            'email' => 'utama@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'instruktur',
+            'status' => 'Aktif',
+            'tanggal_lahir' => '1990-01-01',
+            'agama' => 'Lainnya',
+            'pend_terakhir' => 'SMA',
+            'kompetensi_1' => 'General',
+            'no_telephone' => '081234567890',
+        ]);
+
+        $batch = PayrollBatch::create([
+            'code' => 'PAY-TEST-01',
+            'periode' => '2026-06-01',
+            'status' => 'draft',
+        ]);
+
+        $item = PayrollItem::create([
+            'payroll_batch_id' => $batch->id,
+            'user_id_instruktur' => $instructor->id,
+            'total_sessions' => 1,
+            'total_base_fee' => 150000,
+            'net_salary' => 150000,
+            'status' => 'pending',
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.payroll.batches.export-pdf', $batch->id));
+        $response->assertStatus(200);
+        $response->assertSee('Sesi Utama');
+        $response->assertSee('Sesi Asisten');
+        $response->assertSee('AUDIT RINCIAN PER SESI MENGAJAR');
+    }
 }
