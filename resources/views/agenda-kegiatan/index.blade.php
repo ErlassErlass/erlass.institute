@@ -280,6 +280,44 @@
         color: #1E40AF;
         border-color: #60A5FA;
     }
+    .btn-absensi {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 8px;
+        border: 1px solid #A7F3D0;
+        color: #047857;
+        background: #ECFDF5;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .btn-absensi:hover {
+        background: #D1FAE5;
+        color: #065F46;
+        border-color: #6EE7B7;
+    }
+    .btn-project {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 8px;
+        border: 1px solid #DDD6FE;
+        color: #6D28D9;
+        background: #F5F3FF;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .btn-project:hover {
+        background: #EDE9FE;
+        color: #5B21B6;
+        border-color: #C4B5FD;
+    }
     .btn-pdf {
         font-size: 0.75rem;
         padding: 0.25rem 0.6rem;
@@ -614,7 +652,7 @@
             <div class="export-panel">
                 <h6><i class="bi bi-box-arrow-down text-amber-500"></i> Ekspor Dokumentasi</h6>
                 <p class="text-muted mb-3" style="font-size:0.8rem; line-height: 1.55;">
-                    Unduh paket berkas ZIP berisi PDF Rekap Laporan, Foto Kegiatan, dan Karya Proyek Siswa sesuai filter aktif.
+                    Unduh paket berkas ZIP berisi PDF Rekap Laporan, Foto Kegiatan Kelas, Foto Fisik Absensi, dan Karya Proyek Siswa sesuai filter aktif.
                 </p>
                 <div class="d-grid mb-2">
                     <button class="btn btn-export" id="btnExport" disabled onclick="startExport()">
@@ -841,11 +879,23 @@ function renderTable(resp) {
             <td class="text-center"><span class="badge-hadir">${row.jumlah_hadir}</span></td>
             <td class="text-center">
                 <div class="d-flex flex-wrap gap-1 justify-content-center">
-                    ${row.foto_url
-                        ? `<a href="${escHtml(row.foto_url)}" target="_blank" class="btn btn-foto" title="Lihat Foto Absensi & Kegiatan"><i class="bi bi-image"></i>Foto</a>`
+                    ${row.foto_kegiatan_url
+                        ? `<a href="${escHtml(row.foto_kegiatan_url)}" target="_blank" class="btn btn-foto" title="Lihat Foto Kegiatan Belajar Mengajar"><i class="bi bi-camera-fill"></i>Foto Kelas</a>`
                         : ``
                     }
-                    <a href="${escHtml(row.print_url)}" target="_blank" class="btn btn-pdf" title="Cetak Laporan PDF"><i class="bi bi-file-earmark-pdf"></i>PDF</a>
+                    ${row.foto_absensi_url
+                        ? `<a href="${escHtml(row.foto_absensi_url)}" target="_blank" class="btn btn-absensi" title="Lihat Foto Lembar Absensi Fisik Bertanda Tangan"><i class="bi bi-card-checklist"></i>Fisik Absensi</a>`
+                        : ``
+                    }
+                    ${(!row.foto_kegiatan_url && !row.foto_absensi_url && row.foto_url)
+                        ? `<a href="${escHtml(row.foto_url)}" target="_blank" class="btn btn-foto" title="Lihat Foto Bukti"><i class="bi bi-image"></i>Foto</a>`
+                        : ``
+                    }
+                    ${row.project_url
+                        ? `<a href="${escHtml(row.project_url)}" target="_blank" class="btn btn-project" title="Unduh File Project Hasil Karya Siswa"><i class="bi bi-file-earmark-code"></i>Project</a>`
+                        : ``
+                    }
+                    <a href="${escHtml(row.print_url)}" target="_blank" class="btn btn-pdf" title="Cetak / Unduh Lembar Presensi PDF"><i class="bi bi-file-earmark-pdf-fill"></i>PDF</a>
                 </div>
             </td>
         </tr>

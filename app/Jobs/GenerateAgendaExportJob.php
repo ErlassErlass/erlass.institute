@@ -45,9 +45,11 @@ class GenerateAgendaExportJob implements ShouldQueue
 
             // 2. Prepare temp directory
             $tempDir = Storage::disk('local')->path("temp-exports/{$this->token}");
-            @mkdir($tempDir . '/foto',  0755, true);
-            @mkdir($tempDir . '/excel', 0755, true);
-            @mkdir($tempDir . '/pdf',   0755, true);
+            @mkdir($tempDir . '/foto_kegiatan', 0755, true);
+            @mkdir($tempDir . '/foto_absensi',  0755, true);
+            @mkdir($tempDir . '/project',       0755, true);
+            @mkdir($tempDir . '/excel',         0755, true);
+            @mkdir($tempDir . '/pdf',           0755, true);
 
             // 3. Build rows array for Excel
             $rows = $sessions->map(function (EkstrakurikulerSession $session) {
@@ -66,7 +68,9 @@ class GenerateAgendaExportJob implements ShouldQueue
                     'tanggal_raw'         => $tanggal ? $tanggal->format('Y-m-d') : '00000000',
                     'pertemuan_ke'        => $session->nomor_pertemuan ?? '—',
                     'jumlah_hadir'        => $laporan?->jumlah_siswa_hadir ?? 0,
-                    'foto_storage'        => $laporan?->foto_kegiatan ?? $laporan?->foto_absensi_siswa,
+                    'foto_kegiatan'       => $laporan?->foto_kegiatan,
+                    'foto_absensi'        => $laporan?->foto_absensi_siswa,
+                    'file_project'        => $laporan?->file_project,
                     'print_url'           => route('ekstrakurikuler-session.print-session', ['session' => $session->id]),
                 ];
             })->toArray();
@@ -75,23 +79,43 @@ class GenerateAgendaExportJob implements ShouldQueue
             $excelPath = $tempDir . '/excel/Agenda_Kegiatan.xlsx';
             Excel::store(new AgendaExport($rows), "temp-exports/{$this->token}/excel/Agenda_Kegiatan.xlsx", 'local');
 
-            // 5. Compress & rename photos (Optimize file size for fast download)
+            // 5. Compress & organize photos and project files
             foreach ($rows as $row) {
-                if (empty($row['foto_storage'])) continue;
-
-                $sourcePath = Storage::disk('public')->path($row['foto_storage']);
-                if (!file_exists($sourcePath)) continue;
-
                 $namsek    = preg_replace('/[^a-zA-Z0-9]/', '_', substr($row['namsek'], 0, 30));
                 $rombel    = preg_replace('/[^a-zA-Z0-9]/', '_', substr($row['rombel'], 0, 20));
                 $tanggal   = str_replace('-', '', $row['tanggal_raw']);
                 $pertemuan = is_numeric($row['pertemuan_ke']) ? str_pad($row['pertemuan_ke'], 2, '0', STR_PAD_LEFT) : $row['pertemuan_ke'];
-                
-                // Force output filename to .jpg as we compress to JPEG format
-                $fileName  = "{$namsek}_{$rombel}_{$tanggal}_Pertemuan{$pertemuan}.jpg";
-                $targetPath = $tempDir . '/foto/' . $fileName;
 
-                self::compressImage($sourcePath, $targetPath);
+                // 5a. Foto Kegiatan Kelas
+                if (!empty($row['foto_kegiatan'])) {
+                    $sourcePath = Storage::disk('public')->path($row['foto_kegiatan']);
+                    if (file_exists($sourcePath)) {
+                        $fileName = "{$namsek}_{$rombel}_{$tanggal}_Pertemuan{$pertemuan}_Kegiatan.jpg";
+                        $targetPath = $tempDir . '/foto_kegiatan/' . $fileName;
+                        self::compressImage($sourcePath, $targetPath);
+                    }
+                }
+
+                // 5b. Foto Fisik Absensi Siswa Bertanda Tangan
+                if (!empty($row['foto_absensi'])) {
+                    $sourcePath = Storage::disk('public')->path($row['foto_absensi']);
+                    if (file_exists($sourcePath)) {
+                        $fileName = "{$namsek}_{$rombel}_{$tanggal}_Pertemuan{$pertemuan}_AbsensiFisik.jpg";
+                        $targetPath = $tempDir . '/foto_absensi/' . $fileName;
+                        self::compressImage($sourcePath, $targetPath);
+                    }
+                }
+
+                // 5c. Karya / File Project Siswa (.sb3, .hex, .py, dll.)
+                if (!empty($row['file_project'])) {
+                    $sourcePath = Storage::disk('public')->path($row['file_project']);
+                    if (file_exists($sourcePath)) {
+                        $ext = pathinfo($sourcePath, PATHINFO_EXTENSION) ?: 'sb3';
+                        $fileName = "{$namsek}_{$rombel}_{$tanggal}_Pertemuan{$pertemuan}_Project.{$ext}";
+                        $targetPath = $tempDir . '/project/' . $fileName;
+                        @copy($sourcePath, $targetPath);
+                    }
+                }
             }
 
             // 6. Generate combined PDF (one multi-page PDF for all sessions)
@@ -109,7 +133,9 @@ class GenerateAgendaExportJob implements ShouldQueue
             $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
             $this->addDirectoryToZip($zip, $tempDir . '/excel', 'excel');
-            $this->addDirectoryToZip($zip, $tempDir . '/foto', 'foto');
+            $this->addDirectoryToZip($zip, $tempDir . '/foto_kegiatan', 'foto_kegiatan');
+            $this->addDirectoryToZip($zip, $tempDir . '/foto_absensi', 'foto_absensi');
+            $this->addDirectoryToZip($zip, $tempDir . '/project', 'project');
             $this->addDirectoryToZip($zip, $tempDir . '/pdf', 'pdf');
 
             $zip->close();

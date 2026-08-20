@@ -210,10 +210,14 @@ class AgendaKegiatanController extends Controller
             $laporan    = $session->laporanMengajar;
             $instruktur = $session->instruktur;
 
-            $fotoUrl = null;
-            $fotoPath = $laporan?->foto_kegiatan ?? $laporan?->foto_absensi_siswa;
-            if ($fotoPath) {
-                $fotoUrl = rtrim(request()->getSchemeAndHttpHost(), '/') . '/storage/' . ltrim($fotoPath, '/');
+            $fotoKegiatanUrl = null;
+            if ($laporan?->foto_kegiatan) {
+                $fotoKegiatanUrl = rtrim(request()->getSchemeAndHttpHost(), '/') . '/storage/' . ltrim($laporan->foto_kegiatan, '/');
+            }
+
+            $fotoAbsensiUrl = null;
+            if ($laporan?->foto_absensi_siswa) {
+                $fotoAbsensiUrl = rtrim(request()->getSchemeAndHttpHost(), '/') . '/storage/' . ltrim($laporan->foto_absensi_siswa, '/');
             }
 
             $projectUrl = null;
@@ -235,7 +239,9 @@ class AgendaKegiatanController extends Controller
                 'tanggal_raw'         => $tanggal ? $tanggal->format('Y-m-d') : null,
                 'pertemuan_ke'        => $session->nomor_pertemuan ?? '—',
                 'jumlah_hadir'        => $laporan?->jumlah_siswa_hadir ?? 0,
-                'foto_url'            => $fotoUrl,
+                'foto_url'            => $fotoKegiatanUrl ?? $fotoAbsensiUrl,
+                'foto_kegiatan_url'   => $fotoKegiatanUrl,
+                'foto_absensi_url'    => $fotoAbsensiUrl,
                 'project_url'         => $projectUrl,
                 'print_url'           => route('ekstrakurikuler-session.print-session', ['session' => $session->id]),
             ];

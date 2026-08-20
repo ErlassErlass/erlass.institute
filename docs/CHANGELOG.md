@@ -22,6 +22,10 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Fitur Libur Sesi, Reschedule & Reset Sesi Berlangsung**:
   - Penambahan tombol dan modal **Libur / Reschedule Sesi** pada tab Jadwal Sesi detail ekstrakurikuler (`/reschedule` dan `/postpone`).
   - Fitur **Reset Sesi** khusus untuk sesi berstatus `berlangsung` kembali ke `terjadwal` (`/reset-to-scheduled`) guna menangani ketidaksengajaan klik "Mulai Sesi".
+- **Penyempurnaan Portal Rekap Pertemuan Ekskul (`/rekap-pertemuan-ekskul`)**:
+  - Pemisahan tombol berkas pada tabel rekap: Tombol **📷 Foto Kelas** (kegiatan belajar mengajar) dan Tombol **📝 Fisik Absensi** (lembar presensi fisik bertanda tangan) kini tampil secara terpisah dan jelas.
+  - Penambahan tombol **💾 Project** jika sesi memiliki unggahan file project karya siswa (`.sb3`, `.hex`, `.py`, dll.).
+  - Peningkatan ekspor paket berkas ZIP (`GenerateAgendaExportJob`) yang mengorganisir folder ke dalam `foto_kegiatan/`, `foto_absensi/`, `project/`, `excel/`, dan `pdf/`.
 - **Penyempurnaan Tampilan, Real-Time Dashboard & Panduan Admin**:
   - Penambahan kolom **Kelas** reguler siswa sekolah di tab *Enrollment* (`/enrollment`).
   - Rendering nama **Asisten Instruktur** pada tab *Jadwal Sesi* detail program.
