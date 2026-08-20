@@ -462,6 +462,9 @@
         <button class="help-tab-btn" role="tab" aria-selected="false" aria-controls="tab-honor" id="btn-honor" onclick="switchTab('honor', this)">
             <i class="bi bi-cash-coin"></i> Kompensasi & Honor
         </button>
+        <button class="help-tab-btn" role="tab" aria-selected="false" aria-controls="tab-tiket" id="btn-tiket" onclick="switchTab('tiket', this)">
+            <i class="bi bi-headset"></i> Tiket Bantuan &amp; Support
+        </button>
         <button class="help-tab-btn" role="tab" aria-selected="false" aria-controls="tab-faq" id="btn-faq" onclick="switchTab('faq', this)">
             <i class="bi bi-question-circle"></i> Tanya Jawab (FAQ)
         </button>
@@ -487,7 +490,7 @@
                 <ol class="steps-list">
                     <li>Buka menu <strong>Jadwal Sesi &amp; Laporan</strong> di sidebar kiri atau tombol <strong>Buat Laporan</strong> di tabel Jadwal Hari Ini pada Dashboard.</li>
                     <li>Temukan Sesi Pertemuan hari ini, klik <strong>"Detail Sesi"</strong>.</li>
-                    <li>Saat tiba di sekolah, tekan tombol <strong>"📌 Check-in Hadir (GPS &amp; Camera)"</strong>.</li>
+                    <li>Saat tiba di sekolah, tekan tombol <strong>"📌 Check-in Hadir (GPS &amp; Camera)"</strong> (Tombol aktif mulai <strong>10 menit sebelum jam mulai sesi</strong>).</li>
                     <li>Setelah selesai mengajar, klik <strong>"Buat Laporan &amp; Absensi"</strong>.</li>
                     <li>Isi seluruh komponen wajib, lalu tekan <strong>Simpan Laporan</strong>.</li>
                 </ol>
@@ -528,8 +531,8 @@
             <div class="comp-item">
                 <div class="comp-icon" style="background:#eff6ff;color:#2563eb;"><i class="bi bi-geo-alt-fill"></i></div>
                 <div>
-                    <h6>GPS Check-in &amp; Live Selfie</h6>
-                    <p>Diambil langsung dari kamera HP di area sekolah (≤ 500 m). Merekam koordinat presisi &amp; cap waktu kedatangan.</p>
+                    <h6>GPS Check-in &amp; Live Geotag</h6>
+                    <p>Diambil langsung dari kamera HP di sekolah (≤ 500 m). Sistem otomatis mencetak stempel geotag (Nama Sekolah, Jam WIB, Koordinat GPS) permanen pada foto.</p>
                 </div>
             </div>
             <div class="comp-item">
@@ -549,15 +552,22 @@
             <div class="comp-item">
                 <div class="comp-icon" style="background:#f0f9ff;color:#0284c7;"><i class="bi bi-camera-fill"></i></div>
                 <div>
-                    <h6>Foto Suasana &amp; Absensi</h6>
-                    <p>Foto aktivitas kelas &amp; foto lembar absensi fisik bertandatangan yang menjadi bukti pengajaran.</p>
+                    <h6>Foto Kegiatan Kelas</h6>
+                    <p>Foto dokumentasi interaksi belajar mengajar, siswa beraktivitas di depan modul/komputer sebagai bukti pengajaran.</p>
+                </div>
+            </div>
+            <div class="comp-item">
+                <div class="comp-icon" style="background:#ecfdf5;color:#059669;"><i class="bi bi-card-checklist"></i></div>
+                <div>
+                    <h6>Foto Fisik Absensi Bertandatangan</h6>
+                    <p>Foto lembar kertas presensi manual yang telah diparaf/ditandatangani oleh guru pendamping sekolah mitra.</p>
                 </div>
             </div>
             <div class="comp-item">
                 <div class="comp-icon" style="background:#fdf4ff;color:#7e22ce;"><i class="bi bi-file-earmark-zip-fill"></i></div>
                 <div>
                     <h6>File Project <span class="comp-required">Wajib</span></h6>
-                    <p>Unggah file karya siswa (.sb3 Scratch, Micro:bit, Python, PDF) di akhir setiap pertemuan. File ini wajib diunggah sebagai bukti hasil kegiatan belajar.</p>
+                    <p>Unggah file karya siswa (.sb3 Scratch, Micro:bit, Python, PDF) di akhir setiap pertemuan sebagai bukti hasil kegiatan belajar.</p>
                 </div>
             </div>
             <div class="comp-item">
@@ -689,7 +699,70 @@
     </div>
 
     {{-- ═══════════════════════════════════════════ --}}
-    {{-- TAB 2 — FAQ                                --}}
+    {{-- TAB 3 — TIKET BANTUAN & SUPPORT            --}}
+    {{-- ═══════════════════════════════════════════ --}}
+    <div class="help-tab-content" id="tab-tiket" role="tabpanel" aria-labelledby="btn-tiket">
+
+        <h2 class="section-heading">🎧 Layanan Tiket Bantuan &amp; Pengaduan</h2>
+        <p class="text-muted mb-4" style="font-size:.9rem;">Jika Anda mengalami kendala operasional mengajar, masalah sistem/aplikasi, atau ketidaksesuaian rekap honor, gunakan sistem <strong>Tiket Bantuan Terpadu</strong> untuk tindak lanjut cepat dan terdokumentasi.</p>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="p-3 bg-white rounded border h-100 shadow-xs">
+                    <div class="d-flex align-items-center gap-2 mb-2 text-primary fw-bold">
+                        <i class="bi bi-calendar-range fs-5"></i>
+                        <span>1. Jadwal &amp; Honor</span>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        Untuk pelaporan kesalahan jadwal sesi, sesi yang belum muncul di dashboard, selisih perhitungan jam mengajar, uang bensin/transport, atau pembaruan nomor rekening bank.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 bg-white rounded border h-100 shadow-xs">
+                    <div class="d-flex align-items-center gap-2 mb-2 text-danger fw-bold">
+                        <i class="bi bi-laptop fs-5"></i>
+                        <span>2. Teknis &amp; Error Sistem</span>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        Untuk kendala GPS di luar radius, kamera HP gagal terbuka, upload file project error, sesi terkunci, atau ketidaksengajaan memulai sesi yang perlu di-reset.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 bg-white rounded border h-100 shadow-xs">
+                    <div class="d-flex align-items-center gap-2 mb-2 text-warning fw-bold">
+                        <i class="bi bi-chat-square-dots fs-5"></i>
+                        <span>3. Keluhan Lain / Lapangan</span>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        Untuk pelaporan perlengkapan robotik/modul yang rusak, kendala fasilitas proyektor/WiFi di sekolah, koordinasi PIC sekolah, atau izin ketidakhadiran mendesak.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-primary bg-opacity-10 border-start border-4 border-primary mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1"><i class="bi bi-ticket-perforated text-primary me-2"></i>Butuh Tindak Lanjut dari Tim Manajemen?</h5>
+                    <p class="text-secondary small mb-0">Buat tiket pengaduan baru dan pantau balasan pesan langsung dari tim Admin melalui percakapan terstruktur.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('tickets.index') }}" class="btn btn-outline-primary fw-semibold px-3 py-2">
+                        <i class="bi bi-list-task me-1"></i> Daftar Tiket Saya
+                    </a>
+                    <a href="{{ route('tickets.create') }}" class="btn btn-primary fw-bold px-4 py-2">
+                        <i class="bi bi-plus-circle me-1"></i> Buat Tiket Baru
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {{-- ═══════════════════════════════════════════ --}}
+    {{-- TAB 4 — FAQ                                --}}
     {{-- ═══════════════════════════════════════════ --}}
     <div class="help-tab-content" id="tab-faq" role="tabpanel" aria-labelledby="btn-faq">
 
@@ -704,12 +777,24 @@
                     'a' => 'Gunakan <strong>Jalur Rutin</strong> (via menu <em>Jadwal Sesi &amp; Laporan</em> atau tombol langsung di Dashboard) untuk seluruh pertemuan yang sudah memiliki jadwal mingguan resmi. Gunakan <strong>Jalur Ad-Hoc</strong> (menu <em>Laporan Ad-Hoc / Pengganti</em>) hanya jika Anda mengajar kelas pengganti atau kegiatan insidental yang jadwalnya belum terdaftar di Agenda Sesi Rutin.',
                 ],
                 [
-                    'q' => 'Bagaimana cara kerja Check-in GPS Real-Time?',
-                    'a' => 'Saat tiba di sekolah, buka detail Sesi Ekstrakurikuler dan tekan tombol <strong>"📌 Check-in Hadir (GPS &amp; Camera)"</strong>. Sistem membuka kamera HP langsung dan mengambil titik koordinat GPS presisi. Jika Anda berada dalam radius ≤ 500 meter dari sekolah, status check-in otomatis terverifikasi <strong>🟢 Valid</strong>.',
+                    'q' => 'Mengapa tombol "Check-in Hadir" nonaktif / berstatus "Check-in dibuka HH:ii WIB"?',
+                    'a' => 'Sistem menerapkan kebijakan jendela waktu check-in yang aman: tombol check-in baru akan <strong>aktif otomatis mulai 10 menit sebelum jam mulai sesi terjadwal</strong>. Contoh: jika kelas Anda dijadwalkan pukul 14:00, tombol check-in akan dapat diklik mulai pukul 13:50 WIB.',
+                ],
+                [
+                    'q' => 'Bagaimana cara kerja Check-in GPS & Stempel Geotag Kamera?',
+                    'a' => 'Saat tiba di sekolah (H - 10 menit), buka detail Sesi Ekstrakurikuler dan tekan tombol <strong>"📌 Check-in Hadir (GPS &amp; Camera)"</strong>. Sistem membuka kamera HP secara langsung dan mengambil titik koordinat GPS presisi. Sistem otomatis mencetak stempel visual permanen (Nama Sekolah, Pertemuan, Jam WIB, Koordinat GPS) di atas foto dan mengompres ukurannya menjadi ~150KB dalam hitungan milidetik.',
+                ],
+                [
+                    'q' => 'Mengapa foto check-in wajib menggunakan kamera HP langsung dan tidak bisa dari galeri?',
+                    'a' => 'Untuk menjamin keaslian dan integritas kehadiran instruktur di sekolah (*Quality Control Policy*), sistem mengunci input ke kamera HP (*Live Camera Only*). Foto dari galeri album tidak diizinkan untuk mencegah pemalsuan kehadiran.',
                 ],
                 [
                     'q' => 'Mengapa status check-in saya bernilai "Diluar Radius (Warning)"?',
                     'a' => 'Status <strong>Diluar Radius</strong> terjadi jika posisi GPS perangkat Anda berjarak lebih dari 500 meter dari titik koordinat sekolah yang terdaftar. Pastikan Anda sudah berada di area lingkungan sekolah sebelum menekan tombol check-in.',
+                ],
+                [
+                    'q' => 'Bagaimana jika sekolah tiba-tiba libur atau ada ujian/kegiatan mendadak?',
+                    'a' => 'Segera hubungi Admin atau buat tiket bantuan di menu <strong>Tiket Bantuan</strong>. Admin akan menggunakan fitur <strong>Libur / Reschedule Sesi</strong> untuk menunda sesi dan menentukan tanggal pertemuan pengganti yang disepakati dengan pihak sekolah.',
                 ],
                 [
                     'q' => 'Mengapa laporan saya berlabel "Terlambat (H+4)" padahal saya datang tepat waktu?',
@@ -721,7 +806,15 @@
                 ],
                 [
                     'q' => 'Apa yang harus dilakukan jika GPS di HP tidak terdeteksi?',
-                    'a' => '1. Pastikan fitur <strong>Location / GPS</strong> di HP sudah aktif (ON).<br>2. Pastikan peramban (Chrome / Safari) sudah diberi izin mengakses lokasi.<br>3. Muat ulang halaman (<em>refresh</em>) dan coba tekan tombol Check-in kembali.',
+                    'a' => '1. Pastikan fitur <strong>Location / GPS</strong> di HP sudah aktif (Mode Akurasi Tinggi).<br>2. Pastikan peramban (Chrome / Safari) sudah diberi izin mengakses lokasi.<br>3. Muat ulang halaman (<em>refresh</em>) dan coba tekan tombol Check-in kembali.',
+                ],
+                [
+                    'q' => 'Bagaimana cara melaporkan jika ada ketidaksesuaian data jadwal atau slip honor?',
+                    'a' => 'Buka menu <strong>Tiket Bantuan</strong> (`/tickets`) di sidebar, klik <strong>Buat Tiket Baru</strong>, pilih kategori <strong>Jadwal / Honor</strong>, lalu sertakan penjelasan dan sesi terkait. Tim Keuangan / Akademik akan meninjau dan merespons tiket Anda.',
+                ],
+                [
+                    'q' => 'Apakah pihak sekolah mitra bisa mencetak lembar presensi resmi tanpa login?',
+                    'a' => 'Ya. Pihak sekolah (Kepala Sekolah / Guru Pendamping) dapat membuka portal publik di <code>https://erlass.institute/rekap-pertemuan-ekskul</code> dan langsung mengklik tombol <strong>[PDF]</strong> pada pertemuan yang bersangkutan untuk mengunduh lembar presensi resmi berformat A4 portrait.',
                 ],
                 [
                     'q' => 'Kapan form laporan terkunci dan tidak bisa diisi lagi?',
