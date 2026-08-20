@@ -2,6 +2,32 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.7] - 2026-08-20
+
+### Anti-Fake GPS & Geotag Watermarking, Pembatasan Jendela Check-in 10 Menit, Reschedule Sesi & Panduan Admin
+- **Proteksi Multi-Layer Anti-Fake GPS & Anti-Spoofing Presensi**:
+  - Penegakan pembacaan langsung chip satelit GPS fisik perangkat (`enableHighAccuracy: true`, `timeout: 15s`, `maximumAge: 0`) untuk menggagalkan injeksi koordinat tiruan dari cache browser.
+  - Deteksi anomali metadata sensor GPS (*Sensor Fingerprinting*) — mendeteksi akurasi buatan `0 meter` dari aplikasi Mock Provider dan otomatis mencatat flag `checkin_mock_suspected = true`.
+  - Deteksi perpindahan mustahil (*Impossible Speed / Anti-Teleportation*) yang membandingkan koordinat dan kecepatan perpindahan antar-sesi instruktur (flag otomatis jika $>25$ km dalam rentang menit dengan kecepatan $>120$ km/jam).
+  - Migrasi database penambahan kolom `checkin_accuracy_meters`, `checkin_mock_suspected`, dan `checkin_device_info` pada tabel `ekstrakurikuler_session`.
+  - Badge transparansi akurasi GPS dan indikator bahaya merah `⚠️ Indikasi Fake GPS` pada halaman detail sesi untuk pemantauan tim Manajemen / Admin.
+- **Stempel Geotag Otomatis pada Foto Bukti Kehadiran (*Burn-In Canvas Watermark*)**:
+  - Pemrosesan canvas di sisi client yang mencetak stempel teks permanen di bagian bawah foto saat instruktur menjepret kamera:
+    * `📍 Nama Sekolah • Pertemuan X`
+    * `🕒 Tanggal & Jam WIB • GPS: Lat, Lng (±Akurasi m)`
+  - Menghasilkan bukti kehadiran otentik yang tidak dapat dimanipulasi dengan foto lama.
+- **Pembatasan Waktu Check-in (10 Menit Sebelum Jadwal Mulai Sesi)**:
+  - Tombol check-in instruktur hanya aktif mulai dari **10 menit sebelum jam mulai sesi** (`jam_mulai_terjadwal - 10 menit`). Sebelum waktu tersebut, tombol menampilkan status informatif nonaktif `[ 🕒 Check-in dibuka HH:ii WIB ]`.
+  - Hak akses *Bypass* untuk Administrator (Webmaster, Admin Sistem, Admin) untuk pengujian & verifikasi lapangan sewaktu-waktu.
+- **Fitur Libur Sesi, Reschedule & Reset Sesi Berlangsung**:
+  - Penambahan tombol dan modal **Libur / Reschedule Sesi** pada tab Jadwal Sesi detail ekstrakurikuler (`/reschedule` dan `/postpone`).
+  - Fitur **Reset Sesi** khusus untuk sesi berstatus `berlangsung` kembali ke `terjadwal` (`/reset-to-scheduled`) guna menangani ketidaksengajaan klik "Mulai Sesi".
+- **Penyempurnaan Tampilan, Real-Time Dashboard & Panduan Admin**:
+  - Penambahan kolom **Kelas** reguler siswa sekolah di tab *Enrollment* (`/enrollment`).
+  - Rendering nama **Asisten Instruktur** pada tab *Jadwal Sesi* detail program.
+  - Event Eloquent pada model `SiswaEkstrakurikuler` untuk otomatis membersihkan cache statistik dashboard saat ada mutasi data siswa.
+  - Menu dan modul komprehensif **Panduan Admin & SOP Sistem** (`/admin/panduan`) dengan 8 bab operasional terstruktur.
+
 ## [2.9.6] - 2026-08-19
 
 ### Helpdesk Tiket Bantuan, Kompresi Foto GPS Check-in, Masa Sesi 7 Hari & Filtrasi Katalog Program

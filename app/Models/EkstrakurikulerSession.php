@@ -51,6 +51,9 @@ class EkstrakurikulerSession extends Model
         'checkin_lat',
         'checkin_lng',
         'checkin_distance_meters',
+        'checkin_accuracy_meters',
+        'checkin_mock_suspected',
+        'checkin_device_info',
         'checkin_status_radius',
         'checkin_photo_path',
         'reminder_h0_sent_at',
@@ -70,6 +73,8 @@ class EkstrakurikulerSession extends Model
         'jam_selesai_aktual' => 'datetime:H:i',
         'nomor_pertemuan' => 'integer',
         'transport_fee' => 'decimal:2',
+        'checkin_accuracy_meters' => 'decimal:2',
+        'checkin_mock_suspected' => 'boolean',
         'reminder_h1_sent_at' => 'datetime',
         'reminder_h0_sent_at' => 'datetime',
         'is_manual_reschedule' => 'boolean',
@@ -342,20 +347,75 @@ class EkstrakurikulerSession extends Model
     }
 
     /**
+     * Waktu paling awal check-in dibuka sebelum jam mulai sesi (dalam menit).
+     */
+    public const CHECKIN_EARLY_WINDOW_MINUTES = 10;
+
+    /**
+     * Dapatkan objek Carbon waktu kapan check-in mulai dibuka (10 menit sebelum jam mulai terjadwal).
+     */
+    public function getWaktuBukaCheckinAttribute(): ?Carbon
+    {
+        $waktuMulai = $this->waktu_mulai_full;
+        if (!$waktuMulai) {
+            return null;
+        }
+
+        return $waktuMulai->copy()->subMinutes(self::CHECKIN_EARLY_WINDOW_MINUTES);
+    }
+
+    /**
+     * Cek apakah jendela waktu check-in sudah dibuka.
+     * - Admin / Webmaster / Admin Sistem selalu diizinkan (bypass).
+     * - Sesi lampau (kemarin atau sebelumnya) diizinkan jika statusnya terjadwal/berlangsung.
+     * - Sesi hari ini: hanya dibuka mulai dari H - 10 menit sebelum jam_mulai_terjadwal.
+     * - Sesi masa depan (besok atau seterusnya): belum dibuka.
+     */
+    public function isCheckinWindowOpen(?User $user = null): bool
+    {
+        // Bypass untuk Administrator
+        if ($user && $user->hasAdminAccess()) {
+            return true;
+        }
+
+        if (!$this->tanggal_terjadwal) {
+            return false;
+        }
+
+        // Jika sesi di masa lampau (kemarin atau lebih lama)
+        if ($this->tanggal_terjadwal->lt(now()->startOfDay())) {
+            return true;
+        }
+
+        // Jika sesi adalah hari ini
+        if ($this->tanggal_terjadwal->isToday()) {
+            $waktuBuka = $this->waktu_buka_checkin;
+            if (!$waktuBuka) {
+                return true;
+            }
+
+            return now()->gte($waktuBuka);
+        }
+
+        // Sesi di hari esok atau masa depan
+        return false;
+    }
+
+    /**
      * Cek apakah session adalah hari ini.
      */
     public function isToday(): bool
     {
-        return $this->tanggal_terjadwal->isToday();
+        return $this->tanggal_terjadwal ? $this->tanggal_terjadwal->isToday() : false;
     }
 
     /**
      * Cek apakah session dapat dimulai.
      */
-    public function canStart(): bool
+    public function canStart(?User $user = null): bool
     {
         return $this->status === self::STATUS_TERJADWAL &&
-               ($this->isToday() || $this->isPast());
+               $this->isCheckinWindowOpen($user);
     }
 
     /**
@@ -558,6 +618,37 @@ class EkstrakurikulerSession extends Model
 
         $this->status = self::STATUS_DITUNDA;
         $this->alasan_pembatalan = $alasan;
+
+        return $this->save();
+    }
+
+    /**
+     * Cek apakah session dapat di-reset kembali ke terjadwal.
+     * Hanya untuk status berlangsung (misal: admin tidak sengaja klik "Mulai").
+     */
+    public function canResetToScheduled(): bool
+    {
+        return $this->status === self::STATUS_BERLANGSUNG;
+    }
+
+    /**
+     * Reset sesi dari status "berlangsung" kembali ke "terjadwal".
+     * Menghapus data waktu aktual yang sudah terisi karena klik Start yang keliru.
+     */
+    public function resetToScheduled(?string $alasan = null): bool
+    {
+        if (! $this->canResetToScheduled()) {
+            return false;
+        }
+
+        $this->status       = self::STATUS_TERJADWAL;
+        $this->tanggal_pelaksanaan = null;
+        $this->jam_mulai_aktual    = null;
+        $this->jam_selesai_aktual  = null;
+
+        if ($alasan) {
+            $this->catatan = trim(($this->catatan ? $this->catatan . "\n" : "") . "Reset oleh admin: " . $alasan);
+        }
 
         return $this->save();
     }

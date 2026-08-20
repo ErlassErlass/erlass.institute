@@ -646,6 +646,11 @@
                                             <i class="bi bi-person me-1"></i> Instruktur: {{ $session->instruktur->nama_lengkap }}
                                         </div>
                                         @endif
+                                        @if($session->asisten)
+                                        <div class="small text-muted mt-1">
+                                            <i class="bi bi-person-fill-check me-1"></i> Asisten: {{ $session->asisten->nama_lengkap }}
+                                        </div>
+                                        @endif
                                     </div>
                                     
                                     @if($session->status === 'selesai' && !$session->laporan_mengajar_id)
@@ -655,6 +660,27 @@
                                         </span>
                                     </div>
                                     @endif
+                                    @can('update', $session)
+                                    @if($session->status === 'terjadwal' || $session->status === 'ditunda')
+                                    <div>
+                                        <button type="button"
+                                            class="btn btn-sm btn-outline-warning rounded-pill"
+                                            onclick="openRescheduleModal({{ $session->id }}, '{{ $session->tanggal_terjadwal?->format('d/m/Y') }}', '{{ $session->nomor_pertemuan }}')"
+                                            title="Libur / Jadwal Ulang">
+                                            <i class="bi bi-calendar-x me-1"></i>Libur / Jadwal Ulang
+                                        </button>
+                                    </div>
+                                    @elseif($session->status === 'berlangsung' && auth()->user()?->hasAdminAccess())
+                                    <div>
+                                        <button type="button"
+                                            class="btn btn-sm btn-outline-danger rounded-pill"
+                                            onclick="resetSessionToScheduled({{ $session->id }}, '{{ $session->nomor_pertemuan }}')"
+                                            title="Kembalikan status sesi dari Berlangsung ke Terjadwal">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Sesi
+                                        </button>
+                                    </div>
+                                    @endif
+                                    @endcan
                                 </div>
                             </div>
                         </div>
@@ -947,6 +973,49 @@
         </div>
     </div>
 @endif
+
+{{-- Modal: Libur / Jadwal Ulang Sesi --}}
+<div class="modal fade" id="rescheduleSessionModal" tabindex="-1" aria-labelledby="rescheduleSessionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold" id="rescheduleSessionModalLabel">
+                    <i class="bi bi-calendar-x me-2 text-warning"></i>Libur / Jadwal Ulang
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Sesi <strong id="rescheduleMeetingLabel">Pertemuan</strong> pada <strong id="rescheduleCurrentDate"></strong>.
+                    Pilih tindakan yang sesuai.
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Alasan</label>
+                    <textarea id="rescheduleAlasan" class="form-control" rows="2"
+                              placeholder="Mis: Libur nasional, cuaca buruk, dll."></textarea>
+                </div>
+
+                <hr>
+                <p class="fw-semibold mb-2">Jadwal pengganti (opsional)</p>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Pilih tanggal pengganti</label>
+                    <input type="date" id="rescheduleNewDate" class="form-control"
+                           min="{{ now()->addDay()->format('Y-m-d') }}">
+                    <div class="form-text">Kosongkan jika hanya ingin membatalkan sesi tanpa pengganti.</div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-warning rounded-pill px-4" id="btnConfirmReschedule"
+                        onclick="submitReschedule()">
+                    <i class="bi bi-arrow-repeat me-1"></i>Konfirmasi
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endpush
 
 @endsection
@@ -964,5 +1033,120 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// --- Reschedule / Libur Sesi ---
+let currentRescheduleSessionId = null;
+
+function openRescheduleModal(sessionId, currentDate, meetingNumber) {
+    currentRescheduleSessionId = sessionId;
+    document.getElementById('rescheduleMeetingLabel').textContent = 'Pertemuan ' + meetingNumber;
+    document.getElementById('rescheduleCurrentDate').textContent = currentDate;
+    document.getElementById('rescheduleAlasan').value = '';
+    document.getElementById('rescheduleNewDate').value = '';
+    const modal = new bootstrap.Modal(document.getElementById('rescheduleSessionModal'));
+    modal.show();
+}
+
+function submitReschedule() {
+    const alasan = document.getElementById('rescheduleAlasan').value.trim();
+    const newDate = document.getElementById('rescheduleNewDate').value;
+    const btn = document.getElementById('btnConfirmReschedule');
+
+    if (!alasan) {
+        alert('Harap isi alasan terlebih dahulu.');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Memproses...';
+
+    if (newDate) {
+        // Reschedule ke tanggal pengganti
+        fetch(`/ekstrakurikuler/sessions/${currentRescheduleSessionId}/reschedule`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ tanggal_pengganti: newDate, alasan: alasan })
+        })
+        .then(res => res.json())
+        .then(data => {
+            bootstrap.Modal.getInstance(document.getElementById('rescheduleSessionModal')).hide();
+            if (data.success) {
+                showToast('success', 'Sesi berhasil dijadwal ulang ke ' + newDate);
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                showToast('danger', data.message || 'Gagal menjadwal ulang sesi.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Konfirmasi';
+            }
+        })
+        .catch(() => {
+            showToast('danger', 'Terjadi kesalahan. Coba lagi.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Konfirmasi';
+        });
+    } else {
+        // Hanya tunda (postpone) sesi tanpa tanggal pengganti
+        fetch(`/ekstrakurikuler/sessions/${currentRescheduleSessionId}/postpone`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ alasan: alasan })
+        })
+        .then(res => res.json())
+        .then(data => {
+            bootstrap.Modal.getInstance(document.getElementById('rescheduleSessionModal')).hide();
+            if (data.success) {
+                showToast('success', 'Sesi berhasil ditunda. Status diubah ke "Ditunda".');
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                showToast('danger', data.message || 'Gagal menunda sesi.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Konfirmasi';
+            }
+        })
+        .catch(() => {
+            showToast('danger', 'Terjadi kesalahan. Coba lagi.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Konfirmasi';
+        });
+    }
+}
+
+function resetSessionToScheduled(sessionId, meetingNumber) {
+    if (!confirm(`Apakah Anda yakin ingin mereset Sesi Pertemuan ${meetingNumber} kembali ke status "Terjadwal"? Waktu mulai/selesai aktual yang terisi akan dikosongkan.`)) {
+        return;
+    }
+
+    const alasan = prompt('Alasan reset (opsional):', 'Sesi tidak sengaja dimulai') || 'Reset manual oleh admin';
+
+    fetch(`/ekstrakurikuler/sessions/${sessionId}/reset-to-scheduled`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ alasan: alasan })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast('success', data.message || 'Sesi berhasil direset ke status Terjadwal.');
+            setTimeout(() => location.reload(), 1200);
+        } else {
+            showToast('danger', data.message || 'Gagal mereset sesi.');
+        }
+    })
+    .catch(() => {
+        showToast('danger', 'Terjadi kesalahan saat memproses reset sesi.');
+    });
+}
 </script>
 @endpush

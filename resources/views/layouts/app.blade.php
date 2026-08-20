@@ -748,6 +748,12 @@
                                 </a>
                             </li>
                         @endif
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs('admin.guide.*') ? 'active' : '' }}" href="{{ route('admin.guide.index') }}">
+                                <i class="bi bi-book-half text-warning"></i>
+                                <span>Panduan Admin</span>
+                            </a>
+                        </li>
                     @endif
 
                     <li class="sidebar-section-title">Bantuan & Support</li>

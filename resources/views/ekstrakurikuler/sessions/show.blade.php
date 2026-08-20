@@ -39,21 +39,32 @@
                         $isInstruktur = $userRole === 'instruktur';
                         $isAdmin = in_array($userRole, ['webmaster', 'admin_sistem', 'admin']);
                         $alreadyCheckedIn = !empty($session->checkin_lat);
+                        $isWindowOpen = $session->isCheckinWindowOpen(Auth::user());
                     @endphp
 
                     @if(($isInstruktur || $isAdmin) && $canCheckin)
-                        <button type="button"
-                            class="btn {{ $alreadyCheckedIn ? 'btn-outline-success' : 'btn-success' }} w-100 w-sm-auto shadow-sm fw-bold"
-                            data-bs-toggle="modal" data-bs-target="#gpsCheckinModal">
-                            <i class="bi bi-geo-alt-fill me-1"></i>
-                            @if($alreadyCheckedIn)
-                                🔄 Update Check-in (GPS & Camera)
-                            @elseif($isAdmin)
-                                📌 Check-in Verifikasi (GPS & Camera)
-                            @else
-                                📌 Check-in Hadir (GPS & Camera)
-                            @endif
-                        </button>
+                        @if($isWindowOpen || $alreadyCheckedIn || $isAdmin)
+                            <button type="button"
+                                class="btn {{ $alreadyCheckedIn ? 'btn-outline-success' : 'btn-success' }} w-100 w-sm-auto shadow-sm fw-bold"
+                                data-bs-toggle="modal" data-bs-target="#gpsCheckinModal">
+                                <i class="bi bi-geo-alt-fill me-1"></i>
+                                @if($alreadyCheckedIn)
+                                    🔄 Update Check-in (GPS & Camera)
+                                @elseif($isAdmin)
+                                    📌 Check-in Verifikasi (GPS & Camera)
+                                @else
+                                    📌 Check-in Hadir (GPS & Camera)
+                                @endif
+                            </button>
+                        @else
+                            <button type="button"
+                                class="btn btn-outline-secondary w-100 w-sm-auto shadow-xs text-start text-sm-center"
+                                disabled
+                                title="Check-in dibuka 10 menit sebelum jadwal sesi">
+                                <i class="bi bi-clock me-1"></i>
+                                Check-in dibuka {{ $session->waktu_buka_checkin ? $session->waktu_buka_checkin->format('H:i') : '-' }} WIB
+                            </button>
+                        @endif
                     @endif
 
                     @if($session->canComplete())
@@ -276,6 +287,18 @@
                                     @else
                                         <span class="badge bg-secondary fs-7 px-3 py-1.5 rounded-pill">
                                             <i class="bi bi-geo-alt me-1"></i>Lokasi Tercatat (Koordinat Sekolah Belum Disetel)
+                                        </span>
+                                    @endif
+
+                                    @if($session->checkin_accuracy_meters)
+                                        <span class="badge bg-light text-dark border fs-7 px-2.5 py-1.5 rounded-pill" title="Akurasi Sinyal GPS">
+                                            <i class="bi bi-broadcast me-1 text-primary"></i>Akurasi: &plusmn;{{ round($session->checkin_accuracy_meters) }}m
+                                        </span>
+                                    @endif
+
+                                    @if($session->checkin_mock_suspected)
+                                        <span class="badge bg-danger text-white fs-7 px-3 py-1.5 rounded-pill" title="Terdeteksi anomali pada sensor GPS / Kecepatan perpindahan tidak wajar">
+                                            <i class="bi bi-shield-slash-fill me-1"></i>Indikasi Fake GPS
                                         </span>
                                     @endif
 
@@ -586,6 +609,12 @@
                                 </button>
                             @endif
                         @endcan
+
+                        @if($session->canResetToScheduled() && auth()->user()->hasRole(['admin', 'admin_sistem', 'webmaster']))
+                            <button type="button" class="btn btn-outline-danger text-start" onclick="resetSessionToScheduled()">
+                                <i class="bi bi-arrow-counterclockwise me-2"></i> Reset ke Terjadwal
+                            </button>
+                        @endif
                         
                         @if($session->status === 'selesai' && !$session->laporanMengajar)
                             <button onclick="createLaporan()" class="btn btn-outline-success text-start">
@@ -927,6 +956,9 @@
                 <div class="modal-body p-4">
                     <input type="hidden" name="latitude" id="checkin_lat">
                     <input type="hidden" name="longitude" id="checkin_lng">
+                    <input type="hidden" name="accuracy" id="checkin_accuracy">
+                    <input type="hidden" name="mock_suspected" id="checkin_mock_suspected" value="0">
+                    <input type="hidden" name="device_info" id="checkin_device_info">
 
                     <div id="gpsStatusAlert" class="alert alert-info d-flex align-items-center gap-2 mb-3">
                         <div class="spinner-border spinner-border-sm text-primary" id="gpsSpinner" role="status"></div>
@@ -955,6 +987,9 @@
                         <small class="text-muted fw-bold d-block"><i class="bi bi-shield-check text-success me-1"></i>Aturan Verifikasi GPS Erlass:</small>
                         <small class="text-secondary d-block" style="font-size: 0.75rem;">
                             Sistem akan secara otomatis menghitung jarak presisi titik Anda ke Sekolah (Radius Toleransi: &le; 500 meter).
+                        </small>
+                        <small class="text-secondary d-block mt-1" style="font-size: 0.75rem;">
+                            <i class="bi bi-clock-history text-primary me-1"></i>Check-in dibuka mulai 10 menit sebelum jam mulai sesi.
                         </small>
                         <div id="desktopAccuracyNote" class="d-none mt-2">
                             <small class="text-warning fw-semibold d-block" style="font-size: 0.75rem;">
@@ -989,7 +1024,7 @@ function formatBytes(bytes, decimals = 1) {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
-function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.75) {
+function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.75, watermarkData = null) {
     return new Promise((resolve) => {
         if (!file || !file.type.startsWith('image/')) {
             resolve(null);
@@ -1023,6 +1058,38 @@ function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.
 
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
+
+                // ─── Geotag Canvas Watermark ───
+                if (watermarkData) {
+                    const barHeight = Math.max(70, Math.round(height * 0.13));
+                    const gradient = ctx.createLinearGradient(0, height - barHeight, 0, height);
+                    gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+                    gradient.addColorStop(0.25, 'rgba(0, 0, 0, 0.72)');
+                    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.90)');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, height - barHeight, width, barHeight);
+
+                    const baseFontSize = Math.max(13, Math.round(width * 0.024));
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowBlur = 4;
+                    ctx.shadowOffsetX = 1;
+                    ctx.shadowOffsetY = 1;
+
+                    // Line 1: School & Meeting
+                    ctx.font = `bold ${baseFontSize}px sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    const line1 = `📍 ${watermarkData.school || 'Erlass Institute'} • Pertemuan ${watermarkData.meeting || '?'}`;
+                    ctx.fillText(line1, 16, height - (barHeight * 0.55));
+
+                    // Line 2: Timestamp & GPS Coordinates
+                    ctx.font = `normal ${Math.max(11, Math.round(baseFontSize * 0.85))}px sans-serif`;
+                    ctx.fillStyle = '#f8f9fa';
+                    const line2 = `🕒 ${watermarkData.time || ''} • GPS: ${watermarkData.coords || 'Aktif'}`;
+                    ctx.fillText(line2, 16, height - (barHeight * 0.20));
+
+                    ctx.shadowColor = 'transparent';
+                    ctx.shadowBlur = 0;
+                }
 
                 canvas.toBlob((blob) => {
                     if (!blob) {
@@ -1063,9 +1130,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('gpsCheckinForm');
     const btnSubmit = document.getElementById('btnSubmitCheckin');
 
+    const schoolName = @json($session->ekstrakurikuler?->sekolah?->namasekolah ?? ($session->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? 'Erlass Institute'));
+    const meetingNumber = @json($session->nomor_pertemuan);
+
     if (photoInput) {
         if (isMobile) {
-            photoInput.setAttribute('capture', 'camera');
+            photoInput.setAttribute('capture', 'environment');
             photoLabel.textContent = 'Foto Live Kamera (Wajib Selfie / Suasana Sekolah)';
             photoHint.textContent = 'Gunakan kamera HP langsung untuk mengambil foto terbaru di sekolah.';
         } else {
@@ -1076,16 +1146,32 @@ document.addEventListener('DOMContentLoaded', function () {
             if (desktopNote) desktopNote.classList.remove('d-none');
         }
 
-        // Automatic client-side image compression
+        // Automatic client-side image compression & Geotag Watermark
         photoInput.addEventListener('change', async function () {
             if (this.files && this.files[0]) {
                 const originalFile = this.files[0];
                 if (compressionBadge) {
                     compressionBadge.classList.remove('d-none');
-                    compressionText.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengoptimalkan foto...';
+                    compressionText.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengoptimalkan foto & mencetak stempel geotag...';
                 }
 
-                const result = await compressImageFile(originalFile);
+                const latVal = document.getElementById('checkin_lat').value;
+                const lngVal = document.getElementById('checkin_lng').value;
+                const accVal = document.getElementById('checkin_accuracy').value;
+                const coordsText = (latVal && lngVal) ? `${parseFloat(latVal).toFixed(5)}, ${parseFloat(lngVal).toFixed(5)} (±${accVal ? Math.round(accVal) + 'm' : '?'})` : 'GPS Aktif';
+
+                const now = new Date();
+                const timeString = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + 
+                                   now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+
+                const watermarkData = {
+                    school: schoolName,
+                    meeting: meetingNumber,
+                    time: timeString,
+                    coords: coordsText
+                };
+
+                const result = await compressImageFile(originalFile, 1280, 1280, 0.75, watermarkData);
                 if (result && result.file) {
                     try {
                         const dt = new DataTransfer();
@@ -1102,7 +1188,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     if (compressionBadge && compressionText) {
                         const reduction = Math.round((1 - (result.compressedSize / result.originalSize)) * 100);
-                        compressionText.innerHTML = `Foto siap! Ukuran: ${formatBytes(result.originalSize)} ➔ <strong>${formatBytes(result.compressedSize)}</strong> (${reduction > 0 ? reduction + '% lebih hemat' : 'Optimal'})`;
+                        compressionText.innerHTML = `Foto & Geotag siap! Ukuran: ${formatBytes(result.originalSize)} ➔ <strong>${formatBytes(result.compressedSize)}</strong> (${reduction > 0 ? reduction + '% lebih hemat' : 'Optimal'})`;
                     }
                 }
             }
@@ -1127,26 +1213,49 @@ document.addEventListener('DOMContentLoaded', function () {
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(
                     function (position) {
-                        document.getElementById('checkin_lat').value = position.coords.latitude;
-                        document.getElementById('checkin_lng').value = position.coords.longitude;
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        const accuracy = position.coords.accuracy;
 
-                        const acc = position.coords.accuracy ? Math.round(position.coords.accuracy) + 'm' : '?';
-                        const accNote = !isMobile ? ` <span class="badge bg-warning text-dark" style="font-size:.65rem;">Desktop — akurasi ±${acc}</span>` : '';
+                        document.getElementById('checkin_lat').value = lat;
+                        document.getElementById('checkin_lng').value = lng;
+                        document.getElementById('checkin_accuracy').value = accuracy ? accuracy.toFixed(2) : '';
+                        document.getElementById('checkin_device_info').value = navigator.userAgent;
 
-                        statusAlert.className = 'alert alert-success d-flex align-items-center gap-2 mb-3';
+                        // Heuristik Deteksi Fake GPS
+                        let isMockSuspected = false;
+                        let mockReason = '';
+
+                        if (accuracy === 0) {
+                            isMockSuspected = true;
+                            mockReason = 'Akurasi GPS 0m (anomali)';
+                        }
+
+                        if (isMockSuspected) {
+                            document.getElementById('checkin_mock_suspected').value = '1';
+                        }
+
+                        const acc = accuracy ? Math.round(accuracy) + 'm' : '?';
+                        const accBadge = ` <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:.7rem;"><i class="bi bi-broadcast me-1"></i>Akurasi: ±${acc}</span>`;
+
+                        statusAlert.className = isMockSuspected ? 'alert alert-warning d-flex align-items-center gap-2 mb-3' : 'alert alert-success d-flex align-items-center gap-2 mb-3';
                         spinner.style.display = 'none';
-                        statusText.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Lokasi Terdeteksi! (Lat: ' + position.coords.latitude.toFixed(5) + ', Lng: ' + position.coords.longitude.toFixed(5) + ')' + accNote;
+
+                        let statusHtml = '<div class="w-100"><div class="fw-bold"><i class="bi bi-check-circle-fill text-success me-1"></i> Lokasi GPS Terdeteksi!</div><div class="small text-muted mt-0.5">Lat: ' + lat.toFixed(5) + ', Lng: ' + lng.toFixed(5) + accBadge + '</div>';
+                        if (isMockSuspected) {
+                            statusHtml += `<div class="small text-danger mt-1 fw-semibold"><i class="bi bi-shield-slash me-1"></i>Perhatian: Terdeteksi sinyal anomali (${mockReason}).</div>`;
+                        }
+                        statusHtml += '</div>';
+                        statusText.innerHTML = statusHtml;
                         btnSubmit.disabled = false;
                     },
                     function (error) {
                         spinner.style.display = 'none';
                         statusAlert.className = 'alert alert-warning d-flex align-items-center gap-2 mb-3';
-                        statusText.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Gagal GPS: ' + error.message + '. Menggunakan koordinat default.';
-                        document.getElementById('checkin_lat').value = -6.200000;
-                        document.getElementById('checkin_lng').value = 106.816666;
+                        statusText.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Gagal GPS: ' + error.message + '. Silakan pastikan GPS HP aktif.';
                         btnSubmit.disabled = false;
                     },
-                    { enableHighAccuracy: isMobile, timeout: 8000, maximumAge: 0 }
+                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
                 );
             } else {
                 spinner.style.display = 'none';
@@ -1156,6 +1265,36 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+function resetSessionToScheduled() {
+    if (!confirm('Apakah Anda yakin ingin mereset sesi ini kembali ke status "Terjadwal"? Waktu pelaksanaan aktual akan dikosongkan.')) {
+        return;
+    }
+
+    const alasan = prompt('Alasan reset (opsional):', 'Sesi tidak sengaja dimulai') || 'Reset manual oleh admin';
+
+    fetch('{{ route("ekstrakurikuler.sessions.reset-to-scheduled", $session) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ alasan: alasan })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message || 'Sesi berhasil direset ke status Terjadwal.');
+            location.reload();
+        } else {
+            alert(data.message || 'Gagal mereset sesi.');
+        }
+    })
+    .catch(() => {
+        alert('Terjadi kesalahan jaringan saat memproses reset sesi.');
+    });
+}
 </script>
 @endpush
 

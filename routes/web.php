@@ -184,6 +184,8 @@ Route::middleware(['auth'])->group(function () {
             ->name('sessions.reschedule');
         Route::post('sessions/{session}/postpone', [EkstrakurikulerSessionController::class, 'postpone'])
             ->name('sessions.postpone');
+        Route::post('sessions/{session}/reset-to-scheduled', [EkstrakurikulerSessionController::class, 'resetToScheduled'])
+            ->name('sessions.reset-to-scheduled');
         Route::post('sessions/{session}/override-fee', [EkstrakurikulerSessionController::class, 'overrideFee'])
             ->name('sessions.override-fee');
         Route::post('sessions/{session}/check-conflict', [EkstrakurikulerSessionController::class, 'checkConflict'])
@@ -300,6 +302,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Admin Panel Routes
     Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:webmaster,admin_sistem,admin'])->group(function () {
+        Route::get('panduan', [HelpCenterController::class, 'adminGuide'])->name('guide.index');
         Route::resource('activity-logs', ActivityLogController::class)->only(['index']); // Logging route
 
         // Redirect old admin/users and admin/employees to /users (consolidated)

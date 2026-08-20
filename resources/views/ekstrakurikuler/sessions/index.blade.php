@@ -326,6 +326,10 @@
                                                 @endif
                                             @endcan
 
+                                            @if($session->canResetToScheduled() && auth()->user()->hasRole(['admin', 'admin_sistem', 'webmaster']))
+                                                <li><button class="dropdown-item text-danger" onclick="resetSessionToScheduled({{ $session->id }})"><i class="bi bi-arrow-counterclockwise me-2"></i>Reset Sesi</button></li>
+                                            @endif
+
 
                                             
                                             <!-- Manual Reminder Button -->
@@ -454,6 +458,10 @@
                                         <li><button class="dropdown-item text-secondary" onclick="postponeSession({{ $session->id }})"><i class="bi bi-pause-circle me-2"></i>Tunda Sesi</button></li>
                                     @endif
                                 @endcan
+
+                                @if($session->canResetToScheduled() && auth()->user()->hasRole(['admin', 'admin_sistem', 'webmaster']))
+                                    <li><button class="dropdown-item text-danger" onclick="resetSessionToScheduled({{ $session->id }})"><i class="bi bi-arrow-counterclockwise me-2"></i>Reset Sesi</button></li>
+                                @endif
                                 
                                 <li><hr class="dropdown-divider"></li>
                                 
@@ -672,6 +680,36 @@ function rescheduleSession(sessionId) {
 
 function postponeSession(sessionId) {
     window.location.href = `/ekstrakurikuler/sessions/${sessionId}`;
+}
+
+function resetSessionToScheduled(sessionId) {
+    if (!confirm('Apakah Anda yakin ingin mereset sesi ini kembali ke status "Terjadwal"? Data pelaksanaan yang sedang berlangsung akan dikosongkan.')) {
+        return;
+    }
+
+    const alasan = prompt('Alasan reset (opsional):', 'Sesi tidak sengaja dimulai') || 'Reset manual oleh admin';
+
+    fetch(`/ekstrakurikuler/sessions/${sessionId}/reset-to-scheduled`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ alasan: alasan })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message || 'Sesi berhasil direset ke status Terjadwal.');
+            location.reload();
+        } else {
+            alert(data.message || 'Gagal mereset sesi.');
+        }
+    })
+    .catch(() => {
+        alert('Terjadi kesalahan jaringan saat memproses reset sesi.');
+    });
 }
 
 // Bulk Actions placeholders

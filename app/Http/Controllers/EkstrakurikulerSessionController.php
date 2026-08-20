@@ -568,10 +568,12 @@ class EkstrakurikulerSessionController extends Controller
     {
         $this->authorize('start', $session);
 
-        if (! $session->canStart()) {
+        $user = auth()->user();
+        if (! $session->canStart($user)) {
+            $waktuBukaStr = $session->waktu_buka_checkin ? $session->waktu_buka_checkin->format('H:i') : '-';
             return response()->json([
                 'success' => false,
-                'message' => 'Session tidak dapat dimulai saat ini (Hanya bisa dimulai hari ini)',
+                'message' => "Sesi belum dapat dimulai. Sesi baru dapat dimulai 10 menit sebelum jadwal (pukul {$waktuBukaStr} WIB).",
             ], 400);
         }
 
@@ -630,6 +632,39 @@ class EkstrakurikulerSessionController extends Controller
             'success' => false,
             'message' => 'Fitur pembatalan sesi dinonaktifkan. Silakan gunakan fitur Reschedule untuk menggeser jadwal.',
         ], 400);
+    }
+
+    /**
+     * Reset sesi dari status "berlangsung" kembali ke "terjadwal".
+     * Khusus admin — untuk mengoreksi sesi yang tidak sengaja di-start.
+     */
+    public function resetToScheduled(Request $request, EkstrakurikulerSession $session): JsonResponse
+    {
+        // Hanya admin yang boleh melakukan reset ini
+        if (! auth()->user()?->hasAdminAccess()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Hanya admin yang dapat mereset sesi.',
+            ], 403);
+        }
+
+        if (! $session->canResetToScheduled()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sesi tidak dapat direset. Hanya sesi berstatus "Berlangsung" yang dapat direset.',
+            ], 400);
+        }
+
+        $alasan = $request->input('alasan', 'Reset manual oleh admin');
+        $reset  = $session->resetToScheduled($alasan);
+
+        return response()->json([
+            'success' => $reset,
+            'message' => $reset
+                ? 'Sesi berhasil direset ke status Terjadwal.'
+                : 'Gagal mereset sesi.',
+            'session' => $reset ? $session->fresh() : null,
+        ]);
     }
 
     /**
@@ -1159,8 +1194,30 @@ class EkstrakurikulerSessionController extends Controller
             'photo' => 'required|image|max:10240', // Max 10MB
         ]);
 
+        $user = auth()->user();
+        if (! $session->isCheckinWindowOpen($user)) {
+            $waktuBukaStr = $session->waktu_buka_checkin ? $session->waktu_buka_checkin->format('H:i') : '-';
+            $errMsg = "Check-in belum dibuka. Anda baru dapat melakukan check-in mulai pukul {$waktuBukaStr} WIB (10 menit sebelum sesi dimulai).";
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errMsg,
+                ], 422);
+            }
+
+            return redirect()->back()->with('warning', $errMsg);
+        }
+
         $lat = (float) $request->input('latitude');
         $lng = (float) $request->input('longitude');
+        $accuracy = $request->filled('accuracy') ? (float) $request->input('accuracy') : null;
+        $mockSuspected = (bool) $request->input('mock_suspected', false);
+
+        // Deteksi Anomali 1: Akurasi Fake GPS (akurasi 0m persis di perangkat mobile)
+        if ($accuracy !== null && $accuracy <= 0.0) {
+            $mockSuspected = true;
+        }
 
         // Target school location coordinates (dari Ekstrakurikuler / Google Maps Link)
         $ekskul = $session->ekstrakurikuler ?: $session->rombel?->ekstrakurikuler;
@@ -1181,14 +1238,40 @@ class EkstrakurikulerSessionController extends Controller
         $distanceMeters = null;
         $statusRadius = 'unverified';
 
+        /** @var \App\Services\GoogleMapsLocationService $locationService */
+        $locationService = app(\App\Services\GoogleMapsLocationService::class);
+
         if ($coords) {
             $targetLat = (float) $coords['lat'];
             $targetLng = (float) $coords['lng'];
 
-            /** @var \App\Services\GoogleMapsLocationService $locationService */
-            $locationService = app(\App\Services\GoogleMapsLocationService::class);
             $distanceMeters = $locationService->calculateDistance($lat, $lng, $targetLat, $targetLng);
             $statusRadius = $distanceMeters <= \App\Services\GoogleMapsLocationService::DEFAULT_RADIUS_TOLERANCE_METERS ? 'valid' : 'out_of_bounds';
+        }
+
+        // Deteksi Anomali 2: Anti-Teleportasi (Impossible Speed) dari check-in terakhir instruktur
+        $lastSession = EkstrakurikulerSession::where('user_id_instruktur', $session->user_id_instruktur ?? $user->id)
+            ->where('id', '!=', $session->id)
+            ->whereNotNull('checkin_lat')
+            ->whereNotNull('updated_at')
+            ->where('updated_at', '>=', now()->subHours(4))
+            ->latest('updated_at')
+            ->first();
+
+        if ($lastSession && $lastSession->checkin_lat && $lastSession->checkin_lng) {
+            $minutesDiff = max(1, now()->diffInMinutes($lastSession->updated_at));
+            $distPrevMeters = $locationService->calculateDistance(
+                $lat, $lng,
+                (float) $lastSession->checkin_lat,
+                (float) $lastSession->checkin_lng
+            );
+            $speedKmh = ($distPrevMeters / 1000) / ($minutesDiff / 60);
+
+            // Jika perpindahan > 25 km dalam rentang waktu singkat dengan kecepatan > 120 km/jam
+            if ($distPrevMeters > 25000 && $speedKmh > 120) {
+                $mockSuspected = true;
+                \Illuminate\Support\Facades\Log::warning("Indikasi Spoofing Teleportasi terdeteksi untuk Instruktur #{$session->user_id_instruktur}: Jarak {$distPrevMeters}m dalam {$minutesDiff} menit (Kecepatan: {$speedKmh} km/jam).");
+            }
         }
 
         // Store photo
@@ -1203,6 +1286,9 @@ class EkstrakurikulerSessionController extends Controller
             'checkin_lat' => $lat,
             'checkin_lng' => $lng,
             'checkin_distance_meters' => $distanceMeters,
+            'checkin_accuracy_meters' => $accuracy,
+            'checkin_mock_suspected' => $mockSuspected,
+            'checkin_device_info' => substr($request->input('device_info', $request->userAgent()), 0, 250),
             'checkin_status_radius' => $statusRadius,
             'checkin_photo_path' => $photoPath,
         ]);
@@ -1210,9 +1296,13 @@ class EkstrakurikulerSessionController extends Controller
         if ($statusRadius === 'valid') {
             $message = "Check-in GPS Berhasil! Lokasi terverifikasi di area sekolah (Jarak: {$distanceMeters} meter).";
         } elseif ($statusRadius === 'out_of_bounds') {
-            $message = "Check-in Berhasil tercatat! Peringatan: Posisi GPS Anda berada di luar radius sekolah (Jarak: {$distanceMeters} meter).";
+            $message = "Check-in berhasil tercatat, namun posisi GPS Anda terdeteksi di luar radius sekolah (Jarak: {$distanceMeters} meter).";
         } else {
-            $message = "Check-in Berhasil tercatat! (Koordinat acuan sekolah belum dikonfigurasi).";
+            $message = "Check-in berhasil tercatat (Koordinat acuan lokasi sekolah belum dikonfigurasi).";
+        }
+
+        if ($mockSuspected) {
+            $message .= " (Perhatian: Terdeteksi anomali pada sinyal GPS perangkat).";
         }
 
         if ($request->wantsJson()) {
@@ -1221,6 +1311,7 @@ class EkstrakurikulerSessionController extends Controller
                 'message' => $message,
                 'distance_meters' => $distanceMeters,
                 'status_radius' => $statusRadius,
+                'mock_suspected' => $mockSuspected,
             ]);
         }
 

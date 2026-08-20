@@ -252,6 +252,7 @@
                                 </th>
                                 <th>Siswa</th>
                                 <th>NISN</th>
+                                <th>Kelas</th>
                                 <th>Rombel</th>
                                 <th>Status</th>
                                 <th>Tgl Daftar</th>
@@ -280,6 +281,9 @@
                                         </div>
                                     </td>
                                     <td>{{ $enrollment->siswa->nisn ?? '-' }}</td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">{{ $enrollment->siswa->kelas ?? '-' }}</span>
+                                    </td>
                                     <td>
                                         <span class="badge bg-light text-dark">{{ $enrollment->rombel->nama_rombel }}</span>
                                     </td>

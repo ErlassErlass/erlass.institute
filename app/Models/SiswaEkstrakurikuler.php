@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\DashboardController;
 
 class SiswaEkstrakurikuler extends Model
 {
@@ -302,5 +303,18 @@ class SiswaEkstrakurikuler extends Model
 
         // Jumlah siswa terdaftar dihitung secara real-time dari relasi activeEnrollments()
         // Kolom jumlah_siswa pada rombel berfungsi murni sebagai Target Kuota Rombel
+
+        // Bersihkan cache dashboard saat data enrollment berubah
+        static::created(function ($model) {
+            DashboardController::clearCache();
+        });
+
+        static::updated(function ($model) {
+            DashboardController::clearCache();
+        });
+
+        static::deleted(function ($model) {
+            DashboardController::clearCache();
+        });
     }
 }

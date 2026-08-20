@@ -112,9 +112,10 @@ Instruktur bertugas melaksanakan kegiatan pengajaran dan pelaporan di sekolah mi
 *   **Lengkapi Profil**: Setelah login, instruktur wajib melengkapi data (Dokumen, Bank, Fisik) melalui menu "Lengkapi Profil".
 
 ### 2. Check-in GPS Real-Time di Sekolah (Skenario A)
-*   **Waktu Kedatangan**: Saat tiba di sekolah sebelum mengajar, buka detail Sesi Pertemuan dan tekan tombol **"📌 Check-in Hadir (GPS & Camera)"**.
-*   **Kamera Live**: Sistem akan membuka kamera HP secara langsung (`capture="camera"`). Ambil foto selfie / suasana sekolah.
+*   **Jendela Waktu Check-in (10 Menit Sebelum Sesi)**: Tombol check-in hanya aktif mulai **10 menit sebelum jam mulai sesi**. Sebelum waktu tersebut, tombol menampilkan status informatif nonaktif `[ 🕒 Check-in dibuka HH:ii WIB ]`.
+*   **Kamera Live & Stempel Geotag (*Burn-In Canvas Watermark*)**: Sistem mengaktifkan kamera HP secara langsung (`capture="environment"`). Sistem otomatis mencetak stempel visual permanen di bagian bawah foto berisi: *Nama Sekolah, Nomor Pertemuan, Tanggal & Jam WIB, serta Koordinat GPS & Akurasi*.
 *   **Verifikasi Radius (500 Meter)**: Sistem menghitung koordinat GPS Anda ke titik sekolah. Berstatus **🟢 Terverifikasi (Valid)** jika berada dalam radius $\le 500$ meter dari sekolah.
+*   **Proteksi Anti-Fake GPS & Anti-Spoofing**: Sistem memverifikasi sinyal satelit GPS asli (`enableHighAccuracy: true`) dan mendeteksi anomali akurasi tiruan (`0m`) atau perpindahan mustahil (*teleportation*), yang akan otomatis ditandai untuk pemeriksaan tim QC Admin.
 
 ### 3. Pembuatan Laporan Mengajar & Absensi Sesi (Impeccable UI)
 *   **Jalur 1 — Sesi Rutin (Agenda Sesi)**: Masuk ke menu Agenda Kegiatan $\rightarrow$ Detail Sesi $\rightarrow$ Check-in GPS $\rightarrow$ Klik **"Buat Laporan & Absensi"** (`/ekstrakurikuler/sessions/{id}/report/create`).
@@ -136,8 +137,8 @@ Instruktur bertugas melaksanakan kegiatan pengajaran dan pelaporan di sekolah mi
     *   Klik **"Buat Tiket Baru"**, pilih Kategori (`Jadwal / Honor`, `Keluhan Lain`, atau `Teknis / Error`), dan jelaskan kendala Anda (dapat melampirkan sesi pertemuan terkait).
     *   Admin akan menindaklanjuti dan membalas tiket. Terdapat indikator pesan belum dibaca (*unread badge*) di sidebar untuk setiap balasan dari Admin.
 
-### 5. Kompresi Foto GPS Check-in Otomatis
-*   Saat melakukan check-in kehadiran di sekolah, browser HP otomatis mengompres foto kamera yang berukuran besar (10MB–15MB) menjadi ~150–250KB dalam sekejap.
+### 5. Kompresi Foto GPS Check-in Otomatis & Watermark Geotag
+*   Saat melakukan check-in kehadiran di sekolah, browser HP otomatis mengompres foto kamera yang berukuran besar (10MB–15MB) menjadi ~150–250KB dalam sekejap sekaligus mencetak stempel geotag permanen.
 *   Instruktur dapat melihat indikator penghematan ukuran (*"Foto siap! 9.2 MB ➔ 185 KB"*) sebelum menekan tombol check-in, memastikan proses unggah sangat cepat dan bebas dari error timeout jaringan.
 
 ### 2. Dashboard & Jadwal

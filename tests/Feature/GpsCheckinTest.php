@@ -68,8 +68,8 @@ class GpsCheckinTest extends TestCase
             'tanggal_mulai' => now()->toDateString(),
             'tanggal_selesai' => now()->addMonths(3)->toDateString(),
             'hari' => 'jumat',
-            'jam_mulai' => '13:00',
-            'jam_selesai' => '14:30',
+            'jam_mulai' => now()->subMinutes(5)->format('H:i'),
+            'jam_selesai' => now()->addMinutes(85)->format('H:i'),
             'total_pertemuan' => 12,
             'user_id_instruktur' => $this->instructor->id,
         ]);
@@ -81,14 +81,17 @@ class GpsCheckinTest extends TestCase
                 'ekstrakurikuler_rombel_id' => $rombel->id,
                 'nomor_pertemuan' => 1,
                 'tanggal_terjadwal' => now()->toDateString(),
-                'jam_mulai_terjadwal' => '13:00',
-                'jam_selesai_terjadwal' => '14:30',
+                'jam_mulai_terjadwal' => now()->subMinutes(5)->format('H:i'),
+                'jam_selesai_terjadwal' => now()->addMinutes(85)->format('H:i'),
                 'user_id_instruktur' => $this->instructor->id,
                 'status' => EkstrakurikulerSession::STATUS_TERJADWAL,
             ]);
         } else {
             $this->session->update([
                 'user_id_instruktur' => $this->instructor->id,
+                'tanggal_terjadwal' => now()->toDateString(),
+                'jam_mulai_terjadwal' => now()->subMinutes(5)->format('H:i'),
+                'jam_selesai_terjadwal' => now()->addMinutes(85)->format('H:i'),
                 'status' => EkstrakurikulerSession::STATUS_TERJADWAL,
             ]);
         }
@@ -155,5 +158,107 @@ class GpsCheckinTest extends TestCase
         $this->session->refresh();
         $this->assertEquals('unverified', $this->session->checkin_status_radius);
         $this->assertNull($this->session->checkin_distance_meters);
+    }
+
+    public function test_instructor_cannot_checkin_before_10_minutes_window(): void
+    {
+        // Set scheduled time to 2 hours in the future
+        $this->session->updateQuietly([
+            'jam_mulai_terjadwal' => now()->addHours(2)->format('H:i'),
+            'jam_selesai_terjadwal' => now()->addHours(3)->addMinutes(30)->format('H:i'),
+        ]);
+
+        $file = UploadedFile::fake()->image('checkin.jpg');
+
+        $response = $this->actingAs($this->instructor)
+            ->post(route('ekstrakurikuler.sessions.checkin', $this->session), [
+                'latitude' => -6.2854970,
+                'longitude' => 106.8982750,
+                'photo' => $file,
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('warning');
+
+        $this->session->refresh();
+        $this->assertNull($this->session->checkin_lat);
+        $this->assertEquals(EkstrakurikulerSession::STATUS_TERJADWAL, $this->session->status);
+    }
+
+    public function test_admin_can_bypass_checkin_window(): void
+    {
+        $admin = \App\Models\User::factory()->create(['role' => 'admin']);
+
+        // Set scheduled time to 2 hours in the future
+        $this->session->updateQuietly([
+            'jam_mulai_terjadwal' => now()->addHours(2)->format('H:i'),
+            'jam_selesai_terjadwal' => now()->addHours(3)->addMinutes(30)->format('H:i'),
+        ]);
+
+        $file = UploadedFile::fake()->image('checkin.jpg');
+
+        $response = $this->actingAs($admin)
+            ->post(route('ekstrakurikuler.sessions.checkin', $this->session), [
+                'latitude' => -6.2853940,
+                'longitude' => 106.8987810,
+                'photo' => $file,
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->session->refresh();
+        $this->assertNotNull($this->session->checkin_lat);
+    }
+
+    public function test_checkin_with_mock_accuracy_flags_anomaly(): void
+    {
+        $file = UploadedFile::fake()->image('checkin.jpg');
+
+        $response = $this->actingAs($this->instructor)
+            ->post(route('ekstrakurikuler.sessions.checkin', $this->session), [
+                'latitude' => -6.2853940,
+                'longitude' => 106.8987810,
+                'accuracy' => 0, // Mock anomaly
+                'photo' => $file,
+            ]);
+
+        $response->assertRedirect();
+        $this->session->refresh();
+        $this->assertTrue((bool) $this->session->checkin_mock_suspected);
+    }
+
+    public function test_checkin_with_impossible_speed_flags_teleportation(): void
+    {
+        // Buat sesi sebelumnya 5 menit lalu di lokasi 40 km jauhnya
+        EkstrakurikulerSession::create([
+            'ekstrakurikuler_id' => $this->ekskul->id,
+            'ekstrakurikuler_rombel_id' => $this->session->ekstrakurikuler_rombel_id,
+            'nomor_pertemuan' => 99,
+            'tanggal_terjadwal' => now()->toDateString(),
+            'jam_mulai_terjadwal' => now()->subMinutes(30)->format('H:i'),
+            'jam_selesai_terjadwal' => now()->subMinutes(10)->format('H:i'),
+            'user_id_instruktur' => $this->instructor->id,
+            'checkin_lat' => -6.600000, // Bogor (~40 km dari Jakarta)
+            'checkin_lng' => 106.800000,
+            'checkin_distance_meters' => 10,
+            'checkin_status_radius' => 'valid',
+            'status' => EkstrakurikulerSession::STATUS_SELESAI,
+            'updated_at' => now()->subMinutes(5), // Baru 5 menit lalu
+        ]);
+
+        $file = UploadedFile::fake()->image('checkin.jpg');
+
+        $response = $this->actingAs($this->instructor)
+            ->post(route('ekstrakurikuler.sessions.checkin', $this->session), [
+                'latitude' => -6.2853940, // Jakarta
+                'longitude' => 106.8987810,
+                'accuracy' => 15,
+                'photo' => $file,
+            ]);
+
+        $response->assertRedirect();
+        $this->session->refresh();
+        $this->assertTrue((bool) $this->session->checkin_mock_suspected);
     }
 }

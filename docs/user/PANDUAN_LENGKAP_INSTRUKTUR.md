@@ -99,30 +99,32 @@ Setelah tim Akademik menugaskan Anda ke suatu program ekstrakurikuler:
 Saat Anda tiba di lokasi sekolah mitra pada hari mengajar:
 
 ```
-[ Tiba di Sekolah ] ➔ [ Buka Sesi Hari Ini ] ➔ [ Klik Check-in GPS ] ➔ [ Foto Selfie/Sekolah ] ➔ [ Submit ]
+[ Tiba di Sekolah ] ➔ [ Buka Sesi Hari Ini ] ➔ [ Buka 10 Mnt Sebelum Sesi ] ➔ [ Foto Live + Geotag Watermark ] ➔ [ Submit ]
 ```
 
 ### Langkah-Langkah Check-in:
-1. **Nyalakan GPS HP**: Pastikan fitur lokasi di pengaturan HP telah aktif dan browser diberikan izin mengakses lokasi (*Allow Location Access*).
-2. **Buka Detail Sesi**:
-   - Dari Dashboard, klik tombol **`[Detail →]`** pada jadwal yang bersangkutan.
+1. **Nyalakan GPS HP**: Pastikan fitur lokasi di pengaturan HP telah aktif (Mode Akurasi Tinggi) dan browser diberikan izin mengakses lokasi (*Allow Location Access*).
+2. **Jendela Waktu Check-in**:
+   - Check-in **hanya dibuka mulai 10 menit sebelum jam mulai sesi** (contoh: untuk sesi pukul 14:00, tombol check-in aktif mulai pukul 13:50 WIB).
+   - Sebelum waktu tersebut, tombol menampilkan status pengingat: `[ 🕒 Check-in dibuka 13:50 WIB ]`.
 3. **Klik Tombol "📌 Check-in Hadir (GPS & Camera)"**:
-   - Sistem akan meminta Anda mengambil foto secara langsung (*live camera*).
+   - Sistem akan mengaktifkan kamera secara langsung (*live camera*).
    - Arahkan kamera untuk foto diri di lingkungan sekolah atau ruangan kelas.
-4. **Kompresi Otomatis**:
-   - Anda tidak perlu khawatir kuota habis atau proses lemot; browser akan **otomatis mengompres foto** (dari 10MB menjadi ~150KB) dalam hitungan milidetik.
-   - Akan muncul indikator hijau: *"Foto siap! 9.2 MB ➔ 185 KB"*.
+4. **Kompresi & Stempel Geotag Otomatis**:
+   - Browser secara otomatis **mencetak stempel geotag permanen** (Nama Sekolah, Pertemuan, Jam WIB, Koordinat GPS & Akurasi) di bagian bawah foto.
+   - Foto otomatis dikompresi (dari 10MB menjadi ~150KB) dalam hitungan milidetik sehingga upload sangat cepat dan hemat kuota.
 5. **Kirim Check-in**:
-   - Klik tombol **"Kirim Check-in Kehadiran"**.
+   - Klik tombol **"Kirim Check-in"**. Sesi akan otomatis berubah ke status *Berlangsung*.
 
 ### Status Verifikasi Check-in:
 - 🟢 **Valid (Terverifikasi)**: Anda berada dalam radius aman $\le 500$ meter dari koordinat sekolah.
 - 🟡 **Out of Bounds**: Jarak terdeteksi $> 500$ meter dari sekolah. Pastikan Anda melakukan check-in saat sudah berada di area sekolah.
 - ⚪ **Unverified (Lokasi Tercatat)**: Muncul jika sekolah mitra baru belum disetel koordinat petanya oleh admin. Status ini aman dan tidak dikenakan penalti.
+- 🛡️ **Proteksi Keaslian Sinyal GPS (Anti-Fake GPS)**: Sistem memverifikasi sensor satelit asli dan akurasi perangkat. Penggunaan aplikasi pemalsu lokasi (*Mock GPS*) atau anomali perpindahan akan terdeteksi oleh sistem QC Admin.
 
 > [!IMPORTANT]
 > **Aturan Waktu & Toleransi Keterlambatan (Punctuality Policy)**:
-> - Disarankan tiba dan check-in **15–30 menit** sebelum jam mulai kelas.
+> - Disarankan tiba dan check-in **5–10 menit** sebelum jam mulai kelas.
 > - Terdapat **toleransi keterlambatan hingga 14 menit**.
 > - Jika check-in dilakukan **$\ge 15$ menit** setelah jam mulai kelas terjadwal, sistem Quality Control (QC) otomatis mencatat denda keterlambatan sebesar **Rp 25.000** pada rekap honor bulanan.
 
