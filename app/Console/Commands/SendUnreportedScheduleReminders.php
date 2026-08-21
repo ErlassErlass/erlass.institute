@@ -157,6 +157,25 @@ class SendUnreportedScheduleReminders extends Command
 
                 Log::info("WhatsApp Unreported Reminder terkirim ke {$nama} ({$phone}) untuk {$sessionCount} sesi.");
 
+                // Catat ke ActivityLog agar Webmaster dapat memantau di /activity-logs
+                $webmasterUserId = \App\Models\User::where('role', 'webmaster')->value('id') ?? $instructor->id;
+                \App\Models\ActivityLog::create([
+                    'user_id' => $webmasterUserId,
+                    'action' => 'reminder_wa_1800',
+                    'description' => "Pengingat WhatsApp jam 18:00 WIB otomatis terkirim ke instruktur {$nama} ({$phone}) untuk {$sessionCount} sesi belum lapor.",
+                    'subject_type' => \App\Models\User::class,
+                    'subject_id' => $instructor->id,
+                    'properties' => [
+                        'instructor_id' => $instructor->id,
+                        'instructor_name' => $nama,
+                        'session_ids' => $instructorSessions->pluck('id')->toArray(),
+                        'total_sessions' => $sessionCount,
+                        'phone' => $phone,
+                    ],
+                    'ip_address' => '127.0.0.1 (Scheduler)',
+                    'user_agent' => 'System Cron / schedule:send-unreported-reminders',
+                ]);
+
             } catch (\Exception $e) {
                 $this->error("  ✗ Gagal kirim ke {$nama}: " . $e->getMessage());
                 Log::error("Gagal kirim WhatsApp Unreported Reminder ke {$nama}: " . $e->getMessage());
