@@ -2,7 +2,23 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.8] - 2026-08-21
+
+### Matrix Akses Role & Perbaikan Konsistensi Middleware
+
+- **Halaman Matrix Akses Role (`/admin/access-matrix`)** — eksklusif Webmaster:
+  - Tabel visual read-only yang mendokumentasikan **semua modul dan fitur** sistem beserta hak akses per role (`webmaster`, `admin_sistem`, `admin`, `instruktur`).
+  - Mencakup 10 grup modul: Manajemen User, Laporan Mengajar, GPS & Check-in, Jadwal & Sesi, Sekolah & Data Master, Payroll, Analitik, Sistem & Log, Tiket & Support, Portal Publik — total **45+ fitur** terdokumentasi.
+  - Fitur **filter interaktif per role** — klik nama role untuk menampilkan hanya baris di mana role tersebut memiliki akses.
+  - Statistik otomatis: total fitur terdaftar & jumlah fitur eksklusif Webmaster.
+  - Tombol **cetak** (*print-friendly*) untuk dokumentasi fisik.
+  - Link di sidebar bagian "Sistem & Pengaturan" — hanya terlihat oleh Webmaster.
+- **Perbaikan Inkonsistensi Middleware Route `/users`**:
+  - Middleware group route `/users` (resource) diperbaiki dari `role:webmaster,admin_sistem,admin` → `role:webmaster,admin_sistem` agar konsisten dengan `UserPolicy::viewAny()` yang sudah benar.
+  - Sebelumnya: role `admin` bisa melewati middleware tetapi akan mendapat error 403 dari Policy — kini keduanya konsisten dan `admin` tidak bisa mengakses URL manajemen user sama sekali.
+
 ## [2.9.7] - 2026-08-20
+
 
 ### Anti-Fake GPS & Geotag Watermarking, Pembatasan Jendela Check-in 10 Menit, Reschedule Sesi & Panduan Admin
 - **Proteksi Multi-Layer Anti-Fake GPS & Anti-Spoofing Presensi**:

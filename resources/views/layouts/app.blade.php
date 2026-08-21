@@ -727,7 +727,16 @@
                                     <span>Manajemen User</span>
                                 </a>
                             </li>
+                            @if(Auth::user()?->role === 'webmaster')
+                            <li class="sidebar-item">
+                                <a class="sidebar-link {{ request()->routeIs('admin.access-matrix.index') ? 'active' : '' }}" href="{{ route('admin.access-matrix.index') }}">
+                                    <i class="bi bi-grid-3x3-gap-fill text-danger"></i>
+                                    <span>Matrix Akses</span>
+                                </a>
+                            </li>
+                            @endif
                         @endif
+
                         <li class="sidebar-item">
                             <a class="sidebar-link {{ request()->routeIs('admin.analytics.index') ? 'active' : '' }}" href="{{ route('admin.analytics.index') }}">
                                 <i class="bi bi-graph-up"></i>

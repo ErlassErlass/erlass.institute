@@ -139,10 +139,14 @@ Route::middleware(['auth'])->group(function () {
 
 
     
-    // User Management (Admin Only)
-    Route::middleware(['role:webmaster,admin_sistem,admin'])->group(function () {
-        Route::resource('users', UserController::class); // Otorisasi via Policy lebih disarankan
+    // User Management (hanya webmaster & admin_sistem — konsisten dengan UserPolicy)
+    Route::middleware(['role:webmaster,admin_sistem'])->group(function () {
+        Route::resource('users', UserController::class);
         Route::post('/ekstrakurikuler/{ekstrakurikuler}/cancel', [EkstrakurikulerController::class, 'cancel'])->name('ekstrakurikuler.cancel');
+        // Access Matrix — hanya webmaster
+        Route::middleware(['role:webmaster'])->group(function () {
+            Route::get('admin/access-matrix', [\App\Http\Controllers\AccessMatrixController::class, 'index'])->name('admin.access-matrix.index');
+        });
     });
     Route::resource('laporan-mengajar', LaporanMengajarController::class);
 
