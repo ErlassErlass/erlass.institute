@@ -4,15 +4,25 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
 ## [2.9.8] - 2026-08-21
 
-### Matrix Akses Role & Perbaikan Konsistensi Middleware
+### Perbaikan Relasi Sesi & Laporan Mengajar, Matrix Akses Role & Konsistensi Middleware
 
+- **Perbaikan Deteksi Status Laporan Sesi (*Fix Missing Report Badge Bug*)**:
+  - Mengatasi bug tampilan di mana sesi berstatus `selesai` yang **sebenarnya sudah memiliki laporan lengkap** (misal pertemuan di MI Emirattes Al Mushonnif, SDIT Citra Sahabat, dll.) keliru menampilkan badge merah `⚠️ Belum Ada Laporan`.
+  - **Akar Masalah**: Pengecekan pada template Blade (`ekstrakurikuler/show.blade.php` dan `sessions/show.blade.php`) sebelumnya masih mengacu pada kolom legacy `$session->laporan_mengajar_id`, padahal foreign key sudah dibalik ke `laporan_mengajar.ekstrakurikuler_session_id`.
+  - **Solusi**:
+    * Memperbaiki ekspresi kondisi Blade menjadi `@if($session->status === 'selesai' && !$session->laporanMengajar)`.
+    * Menambahkan accessor backward-compatibility `getLaporanMengajarIdAttribute()` pada model `EkstrakurikulerSession` agar pemanggilan atribut lama otomatis mengembalikan ID laporan terkait.
+    * Menambahkan eager loading `'rombels.sessions.laporanMengajar'` pada `EkstrakurikulerController@show` untuk menghindari N+1 query.
+- **Penyempurnaan UI & Rute Matrix Akses Role**:
+  - Memperbaiki kontras teks pada hero banner halaman Matrix Akses: judul dipaksa putih terang solid (`#ffffff`), badge `HANYA WEBMASTER` dipertegas, dan teks deskripsi (`#e2e8f0`) dijamin kontras di atas gradient navy gelap.
+  - Mendaftarkan rute langsung `https://erlass.institute/admin/access-matrix` dan `https://erlass.institute/access-matrix` dengan middleware `role:webmaster`.
 - **Halaman Matrix Akses Role (`/admin/access-matrix`)** — eksklusif Webmaster:
   - Tabel visual read-only yang mendokumentasikan **semua modul dan fitur** sistem beserta hak akses per role (`webmaster`, `admin_sistem`, `admin`, `instruktur`).
-  - Mencakup 10 grup modul: Manajemen User, Laporan Mengajar, GPS & Check-in, Jadwal & Sesi, Sekolah & Data Master, Payroll, Analitik, Sistem & Log, Tiket & Support, Portal Publik — total **45+ fitur** terdokumentasi.
+  - Mencakup 10 grup modul: Manajemen User, Laporan Mengajar, GPS & Check-in, Jadwal & Sesi, Sekolah & Data Master, Payroll, Analitik, Sistem & Log, Tiket & Support, Portal Publik — total **48 fitur** terdokumentasi.
   - Fitur **filter interaktif per role** — klik nama role untuk menampilkan hanya baris di mana role tersebut memiliki akses.
   - Statistik otomatis: total fitur terdaftar & jumlah fitur eksklusif Webmaster.
   - Tombol **cetak** (*print-friendly*) untuk dokumentasi fisik.
-  - Link di sidebar bagian "Sistem & Pengaturan" — hanya terlihat oleh Webmaster.
+  - Link di sidebar bagian "Sistem & Pengaturan" — hanya terlihat oleh Webmaster dengan badge `WM`.
 - **Perbaikan Inkonsistensi Middleware Route `/users`**:
   - Middleware group route `/users` (resource) diperbaiki dari `role:webmaster,admin_sistem,admin` → `role:webmaster,admin_sistem` agar konsisten dengan `UserPolicy::viewAny()` yang sudah benar.
   - Sebelumnya: role `admin` bisa melewati middleware tetapi akan mendapat error 403 dari Policy — kini keduanya konsisten dan `admin` tidak bisa mengakses URL manajemen user sama sekali.
