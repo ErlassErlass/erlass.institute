@@ -145,10 +145,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/ekstrakurikuler/{ekstrakurikuler}/cancel', [EkstrakurikulerController::class, 'cancel'])->name('ekstrakurikuler.cancel');
     });
 
-    // Access Matrix — eksklusif webmaster (standalone, tanpa nesting)
-    Route::get('/access-matrix', [\App\Http\Controllers\AccessMatrixController::class, 'index'])
+    // Access Matrix — eksklusif webmaster (mendukung /admin/access-matrix & /access-matrix)
+    Route::get('/admin/access-matrix', [\App\Http\Controllers\AccessMatrixController::class, 'index'])
         ->middleware('role:webmaster')
         ->name('admin.access-matrix.index');
+    Route::get('/access-matrix', [\App\Http\Controllers\AccessMatrixController::class, 'index'])
+        ->middleware('role:webmaster');
     Route::resource('laporan-mengajar', LaporanMengajarController::class);
 
     // Jadwal Harian
