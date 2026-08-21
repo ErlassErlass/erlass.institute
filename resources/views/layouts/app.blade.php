@@ -729,9 +729,11 @@
                             </li>
                             @if(Auth::user()?->role === 'webmaster')
                             <li class="sidebar-item">
-                                <a class="sidebar-link {{ request()->routeIs('admin.access-matrix.index') ? 'active' : '' }}" href="{{ route('admin.access-matrix.index') }}">
-                                    <i class="bi bi-grid-3x3-gap-fill text-danger"></i>
+                                <a class="sidebar-link {{ request()->routeIs('admin.access-matrix.index') ? 'active' : '' }}"
+                                   href="{{ route('admin.access-matrix.index') }}">
+                                    <i class="bi bi-grid-3x3-gap-fill" style="color:#dc2626;"></i>
                                     <span>Matrix Akses</span>
+                                    <span class="badge rounded-pill ms-auto" style="background:#dc2626;font-size:0.65rem;padding:2px 7px;">WM</span>
                                 </a>
                             </li>
                             @endif
