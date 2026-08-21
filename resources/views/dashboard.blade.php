@@ -1156,7 +1156,8 @@ function openDashboardFonnteModal(sessionId, instrukturName, phone, programName,
     document.getElementById('dashSessionInfo').textContent = programName + ' • ' + sekolahName + ' (' + tanggalText + ')';
     document.getElementById('dashCustomMessage').value = '';
 
-    const waMsgText = encodeURIComponent(`Halo ${instrukturName}, mohon segera mengunggah laporan sesi ${programName} di ${sekolahName} tanggal ${tanggalText}.`);
+    const sessionLink = `${window.location.origin}/ekstrakurikuler/sessions/${sessionId}`;
+    const waMsgText = encodeURIComponent(`Halo ${instrukturName}, mohon segera mengunggah laporan sesi ${programName} di ${sekolahName} tanggal ${tanggalText}.\n\nLink Sesi: ${sessionLink}`);
     const btnManual = document.getElementById('btnDashManualWA');
     if (phone) {
         btnManual.href = `https://wa.me/${phone}?text=${waMsgText}`;

@@ -28,6 +28,13 @@ if (app()->runningInConsole()) {
                   ->withoutOverlapping()
                   ->appendOutputTo(storage_path('logs/schedule-reminders.log'));
 
+         // Pengingat WhatsApp Sesi Belum Lapor: kirim otomatis setiap hari jam 18:00 WIB
+         $schedule->command('schedule:send-unreported-reminders')
+                  ->dailyAt('18:00')
+                  ->timezone('Asia/Jakarta')
+                  ->withoutOverlapping()
+                  ->appendOutputTo(storage_path('logs/unreported-schedule-reminders.log'));
+
          // Warning Engine: deteksi otomatis setiap hari jam 21:00 WIB (14:00 UTC)
          $schedule->command('warnings:detect')
                   ->dailyAt('14:00')

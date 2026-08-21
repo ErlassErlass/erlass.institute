@@ -4,7 +4,19 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
 ## [2.9.8] - 2026-08-21
 
-### Fitur Hapus Rombel, Perbaikan Relasi Sesi & Laporan Mengajar, Matrix Akses Role & Konsistensi Middleware
+### Pengingat WhatsApp Otomatis Jam 18:00 WIB, Fitur Hapus Rombel, Perbaikan Relasi Sesi & Laporan Mengajar, Matrix Akses Role & Konsistensi Middleware
+
+- **Pengingat WhatsApp Otomatis Jam 18:00 WIB untuk Sesi Belum Lapor**:
+  - Mengimplementasikan pengiriman notifikasi pengingat WhatsApp harian otomatis setiap pukul **18:00 WIB** via scheduler cron (`schedule:send-unreported-reminders`).
+  - **Pesan Terkelompok (*Grouped Message*)**: Seluruh sesi tanggungan milik satu instruktur digabung dalam 1 pesan rapi berpoin (1️⃣, 2️⃣, ...).
+  - **Tautan Langsung Terintegrasi**: Setiap item sesi menyertakan tautan langsung ke halaman sesi (`/ekstrakurikuler/sessions/{id}`), di mana instruktur dapat langsung submit laporan (jika masih dalam H+1) atau mengajukan permohonan buka akses susulan (`LateReportRequest`) jika form telah terkunci (> H+1).
+  - **Proteksi Anti-Spam (Maksimal 3x)**: Database melacak `unreported_reminder_count` per sesi. Sesi yang telah diingatkan 3 kali otomatis dihentikan dari antrean reminder harian.
+  - **Penambahan Kode**:
+    * Migration: `2026_08_21_150000_add_unreported_reminder_tracking_to_sessions.php` (`unreported_reminder_count` & `unreported_reminder_last_sent_at`).
+    * Notification: `App\Notifications\UnreportedScheduleReminderNotification.php`.
+    * Command: `App\Console\Commands\SendUnreportedScheduleReminders.php`.
+    * Registrasi jadwal: `routes/console.php` (setiap hari jam 18:00 WIB).
+    * Penyempurnaan modal Ingatkan manual di `resources/views/dashboard.blade.php`.
 
 - **Fitur Hapus Rombel (*Delete Rombongan Belajar*) dengan Proteksi Keamanan**:
   - Menyediakan tombol **`[ 🗑️ Hapus ]`** pada setiap Card Rombel di tab **Rombongan Belajar** (`/ekstrakurikuler/{id}`).

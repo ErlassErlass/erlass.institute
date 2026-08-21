@@ -57,6 +57,8 @@ class EkstrakurikulerSession extends Model
         'checkin_status_radius',
         'checkin_photo_path',
         'reminder_h0_sent_at',
+        'unreported_reminder_count',
+        'unreported_reminder_last_sent_at',
         'is_manual_reschedule',
     ];
 
@@ -72,11 +74,13 @@ class EkstrakurikulerSession extends Model
         'jam_mulai_aktual' => 'datetime:H:i',
         'jam_selesai_aktual' => 'datetime:H:i',
         'nomor_pertemuan' => 'integer',
+        'unreported_reminder_count' => 'integer',
         'transport_fee' => 'decimal:2',
         'checkin_accuracy_meters' => 'decimal:2',
         'checkin_mock_suspected' => 'boolean',
         'reminder_h1_sent_at' => 'datetime',
         'reminder_h0_sent_at' => 'datetime',
+        'unreported_reminder_last_sent_at' => 'datetime',
         'is_manual_reschedule' => 'boolean',
     ];
 
