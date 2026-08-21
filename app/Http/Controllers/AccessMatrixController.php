@@ -8,7 +8,8 @@ class AccessMatrixController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:webmaster']);
+        $this->middleware('auth');
+        $this->middleware('role:webmaster');
     }
 
     /**
