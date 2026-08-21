@@ -4,7 +4,16 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
 ## [2.9.8] - 2026-08-21
 
-### Pengingat WhatsApp Otomatis Jam 18:00 WIB, Fitur Hapus Rombel, Perbaikan Relasi Sesi & Laporan Mengajar, Matrix Akses Role & Konsistensi Middleware
+### Audit & Sinkronisasi Jadwal Sesi, Pengingat WhatsApp Otomatis Jam 18:00 WIB, Fitur Hapus Rombel, Perbaikan Relasi Sesi & Laporan Mengajar, Matrix Akses Role & Konsistensi Middleware
+
+- **Audit Menyeluruh & Sinkronisasi Jadwal Sesi Pertemuan Ekstrakurikuler**:
+  - **Penyelesaian Anomali Ekskul ID 339 (SD Student One Islamic School)**:
+    * Membersihkan duplikasi sesi pada tanggal 21 Agustus 2026 yang diakibatkan oleh residu sesi generasi lampau sebelum regenerasi jadwal baru.
+    * Menghapus laporan duplikat #649 serta sesi sisa ID 35368, mempertahankan laporan valid #651 pada Pertemuan 1.
+    * Mengurutkan ulang (*renumbering*) seluruh sesi terjadwal berikutnya (Pertemuan 2 tanggal 28 Agustus, Pertemuan 3 tanggal 04 September, dst.) hingga genap 28 sesi di Rombel 1 dan Rombel 3.
+  - **Audit Database Menyeluruh & Sinkronisasi Massal (9 Program Aktif)**:
+    * Menemukan dan membersihkan duplikasi tanggal pertemuan pada 9 program aktif: Ekskul ID 360, 361, 319, 323, 300, 275, 169, 43, dan 54.
+    * Menjalankan pembersihan dan sinkronisasi sesi dengan perlindungan sesi anchor (sesi yang sudah ada laporan mengajar dipertahankan, sementara sesi terjadwal mendatang diatur ulang dengan jeda 1 pekan yang rapi dan konsisten).
 
 - **Pengingat WhatsApp Otomatis Jam 18:00 WIB untuk Sesi Belum Lapor**:
   - Mengimplementasikan pengiriman notifikasi pengingat WhatsApp harian otomatis setiap pukul **18:00 WIB** via scheduler cron (`schedule:send-unreported-reminders`).
