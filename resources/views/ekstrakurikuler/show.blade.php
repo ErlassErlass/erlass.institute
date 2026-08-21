@@ -653,7 +653,7 @@
                                         @endif
                                     </div>
                                     
-                                    @if($session->status === 'selesai' && !$session->laporan_mengajar_id)
+                                    @if($session->status === 'selesai' && !$session->laporanMengajar)
                                     <div>
                                         <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2.5 py-1">
                                             <i class="bi bi-exclamation-triangle-fill me-1"></i> Belum Ada Laporan

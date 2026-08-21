@@ -230,7 +230,7 @@ class EkstrakurikulerController extends Controller
         $ekstrakurikuler->load([
             'sekolah',
             'sales',
-            'rombels.sessions',
+            'rombels.sessions.laporanMengajar',
             'sessions.instruktur',
             'sessions.asisten',
         ]);

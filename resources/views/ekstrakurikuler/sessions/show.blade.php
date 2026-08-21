@@ -82,7 +82,7 @@
                             </a>
                         @endif
 
-                        @if($session->status === 'selesai' && $session->laporan_mengajar_id)
+                        @if($session->status === 'selesai' && $session->laporanMengajar)
                             <form action="{{ route('ekstrakurikuler.sessions.progress-remind', $session) }}" method="POST" class="d-grid d-sm-inline">
                                 @csrf
                                 <button type="submit" class="btn btn-success w-100 w-sm-auto" onclick="return confirm('Apakah Anda yakin ingin mengirim ulang Pesan Pengingat Progress ke WhatsApp Orang Tua untuk siswa yang sudah menyelesaikan minimal 2 sesi berjalan?');">

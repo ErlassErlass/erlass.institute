@@ -160,6 +160,14 @@ class EkstrakurikulerSession extends Model
     }
 
     /**
+     * Backward-compatibility accessor untuk referensi $session->laporan_mengajar_id
+     */
+    public function getLaporanMengajarIdAttribute(): ?int
+    {
+        return $this->laporanMengajar?->id;
+    }
+
+    /**
      * Relasi ke User yang membuat record.
      */
     public function creator(): BelongsTo
