@@ -516,7 +516,7 @@ class EkstrakurikulerController extends Controller
             \DB::beginTransaction();
 
             // Determine next rombel number
-            $maxNomor = $ekstrakurikuler->rombels()->max('nomor_rombel') ?? 0;
+            $maxNomor = $ekstrakurikuler->rombels()->withTrashed()->max('nomor_rombel') ?? 0;
             $nomorRombelBaru = $maxNomor + 1;
 
             $rombel = \App\Models\EkstrakurikulerRombel::create([
@@ -565,6 +565,71 @@ class EkstrakurikulerController extends Controller
             return back()
                 ->withErrors(['error' => 'Terjadi kesalahan saat menambahkan rombel: ' . $e->getMessage()])
                 ->withInput();
+        }
+    }
+
+    /**
+     * Delete an empty rombel from an ekstrakurikuler program.
+     */
+    public function destroyRombel(Ekstrakurikuler $ekstrakurikuler, \App\Models\EkstrakurikulerRombel $rombel)
+    {
+        $user = auth()->user();
+        if (!$user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        // Pastikan rombel adalah milik ekstrakurikuler ini
+        if ($rombel->ekstrakurikuler_id !== $ekstrakurikuler->id) {
+            return back()->with('error', 'Rombel tidak cocok dengan program ekskul terpilih.');
+        }
+
+        // Validasi keamanan: Cek alasan pembatasan hapus (Siswa = 0, Nol Laporan)
+        $restrictionReason = $rombel->getDeleteRestrictionReason();
+        if ($restrictionReason) {
+            return back()->with('error', "Rombel tidak dapat dihapus: {$restrictionReason}");
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            $rombelNama = $rombel->nama_rombel;
+            $deletedSessionsCount = $rombel->sessions()->where('status', 'terjadwal')->count();
+
+            // Hapus semua sesi terjadwal
+            $rombel->sessions()->where('status', 'terjadwal')->forceDelete();
+
+            // Hapus rombel secara permanen
+            $rombel->forceDelete();
+
+            // Update total_rombel pada parent program
+            $ekstrakurikuler->update([
+                'total_rombel' => $ekstrakurikuler->rombels()->count(),
+            ]);
+
+            // Catat log aktivitas
+            \App\Models\ActivityLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'hapus_rombel',
+                'description' => "Menghapus {$rombelNama} ({$deletedSessionsCount} sesi kosong dibersihkan) pada program {$ekstrakurikuler->nama_ekskul} ({$ekstrakurikuler->sekolah?->namasekolah})",
+                'subject_type' => \App\Models\EkstrakurikulerRombel::class,
+                'subject_id' => $rombel->id,
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
+
+            \DB::commit();
+
+            return redirect()->route('ekstrakurikuler.show', $ekstrakurikuler)
+                ->with('success', "{$rombelNama} beserta {$deletedSessionsCount} sesi terjadwal kosong berhasil dihapus!");
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            Log::error('Error deleting rombel', [
+                'rombel_id' => $rombel->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Terjadi kesalahan saat menghapus rombel: ' . $e->getMessage());
         }
     }
 }

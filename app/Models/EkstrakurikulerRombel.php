@@ -367,12 +367,42 @@ class EkstrakurikulerRombel extends Model
         return true;
     }
 
-    /**
-     * Method untuk mendapatkan jumlah siswa aktual.
-     */
     public function getJumlahSiswaAktual(): int
     {
         return $this->activeEnrollments()->count();
+    }
+
+    /**
+     * Cek apakah rombel ini aman untuk dihapus:
+     * 1. Jumlah siswa terdaftar harus 0 (baik aktif maupun total enrollment)
+     * 2. Tidak ada laporan mengajar yang terhubung ke sesi di rombel ini
+     * 3. Tidak ada sesi yang sudah selesai / sedang berlangsung
+     */
+    public function canBeDeleted(): bool
+    {
+        return $this->getDeleteRestrictionReason() === null;
+    }
+
+    /**
+     * Dapatkan alasan pembatasan penghapusan rombel (null jika boleh dihapus).
+     */
+    public function getDeleteRestrictionReason(): ?string
+    {
+        $siswaCount = $this->enrollments()->count();
+        if ($siswaCount > 0) {
+            return "Memiliki {$siswaCount} siswa terdaftar. Pindahkan atau batalkan siswa terlebih dahulu.";
+        }
+
+        if ($this->sessions()->whereHas('laporanMengajar')->exists()) {
+            return "Sudah memiliki riwayat Laporan Mengajar.";
+        }
+
+        $nonScheduledCount = $this->sessions()->where('status', '!=', 'terjadwal')->count();
+        if ($nonScheduledCount > 0) {
+            return "Memiliki {$nonScheduledCount} sesi yang sudah selesai atau berlangsung.";
+        }
+
+        return null;
     }
 
     /**

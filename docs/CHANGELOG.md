@@ -4,7 +4,20 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
 ## [2.9.8] - 2026-08-21
 
-### Perbaikan Relasi Sesi & Laporan Mengajar, Matrix Akses Role & Konsistensi Middleware
+### Fitur Hapus Rombel, Perbaikan Relasi Sesi & Laporan Mengajar, Matrix Akses Role & Konsistensi Middleware
+
+- **Fitur Hapus Rombel (*Delete Rombongan Belajar*) dengan Proteksi Keamanan**:
+  - Menyediakan tombol **`[ 🗑️ Hapus ]`** pada setiap Card Rombel di tab **Rombongan Belajar** (`/ekstrakurikuler/{id}`).
+  - **Aturan Proteksi Cerdas (*Smart Safety Guards*)**:
+    * **Validasi Siswa = 0**: Rombel yang masih memiliki siswa terdaftar **tidak dapat dihapus** (tombol terkunci/disabled dengan tooltip keterangan jumlah siswa).
+    * **Validasi Nol Laporan Mengajar**: Rombel yang telah memiliki riwayat laporan mengajar / sesi berjalan **tidak dapat dihapus**.
+    * **Pembersihan Bersih (*Clean Deletion*)**: Menghapus rombel kosong secara otomatis membersihkan seluruh sesi jadwal pertemuan kosong (`terjadwal`) yang terikat padanya dan menyinkronkan counter `total_rombel` pada program utama.
+    * **Pencatatan Audit Trail**: Setiap aktivitas penghapusan rombel dicatat secara detail di `ActivityLog`.
+  - **Penambahan Kode**:
+    * Method `destroyRombel()` pada `EkstrakurikulerController.php`.
+    * Route `ekstrakurikuler.rombel.destroy` pada `routes/web.php`.
+    * Helper method `canBeDeleted()` dan `getDeleteRestrictionReason()` pada model `EkstrakurikulerRombel.php`.
+    * Modal konfirmasi interaktif dengan ringkasan status keamanan pada `resources/views/ekstrakurikuler/show.blade.php`.
 
 - **Perbaikan Deteksi Status Laporan Sesi (*Fix Missing Report Badge Bug*)**:
   - Mengatasi bug tampilan di mana sesi berstatus `selesai` yang **sebenarnya sudah memiliki laporan lengkap** (misal pertemuan di MI Emirattes Al Mushonnif, SDIT Citra Sahabat, dll.) keliru menampilkan badge merah `⚠️ Belum Ada Laporan`.

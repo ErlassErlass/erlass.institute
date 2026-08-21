@@ -520,9 +520,21 @@
                                     <span class="badge bg-light text-dark border ms-1">{{ $rombel->status_label }}</span>
                                 </h6>
                                 @if(auth()->user()->hasRole(['admin', 'admin_sistem', 'webmaster']))
-                                <button type="button" class="btn btn-sm btn-primary rounded-pill shadow-xs" data-bs-toggle="modal" data-bs-target="#addSessionModal{{ $rombel->id }}">
-                                    <i class="bi bi-plus-lg me-1"></i> Tambah Sesi
-                                </button>
+                                <div class="d-flex align-items-center gap-1.5">
+                                    <button type="button" class="btn btn-sm btn-primary rounded-pill shadow-xs" data-bs-toggle="modal" data-bs-target="#addSessionModal{{ $rombel->id }}">
+                                        <i class="bi bi-plus-lg me-1"></i> Sesi
+                                    </button>
+                                    
+                                    @if($rombel->canBeDeleted())
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" data-bs-toggle="modal" data-bs-target="#deleteRombelModal{{ $rombel->id }}" title="Hapus Rombel Kosong">
+                                        <i class="bi bi-trash"></i> Hapus
+                                    </button>
+                                    @else
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill opacity-50" disabled data-bs-toggle="tooltip" data-bs-placement="top" title="Tidak dapat dihapus: {{ $rombel->getDeleteRestrictionReason() }}">
+                                        <i class="bi bi-lock-fill"></i> Hapus
+                                    </button>
+                                    @endif
+                                </div>
                                 @endif
                             </div>
                             <div class="p-3">
@@ -877,6 +889,48 @@
                 </div>
             </div>
         </div>
+
+        {{-- Modal for Deleting Empty Rombel --}}
+        @if($rombel->canBeDeleted())
+        <div class="modal fade text-dark" id="deleteRombelModal{{ $rombel->id }}" tabindex="-1" aria-labelledby="deleteRombelModalLabel{{ $rombel->id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content text-start rounded-4 border-0 shadow">
+                    <form action="{{ route('ekstrakurikuler.rombel.destroy', [$ekstrakurikuler, $rombel]) }}" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <div class="modal-header border-bottom-0 pb-0">
+                            <h5 class="modal-title fw-bold text-danger" id="deleteRombelModalLabel{{ $rombel->id }}">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>Hapus {{ $rombel->nama_rombel }}
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="mb-3 text-secondary">
+                                Apakah Anda yakin ingin menghapus <strong>{{ $rombel->nama_rombel }}</strong> dari program <strong>{{ $ekstrakurikuler->nama_ekskul }}</strong>?
+                            </p>
+                            <div class="alert alert-warning py-2.5 small mb-3 border-0 bg-warning bg-opacity-10 text-dark rounded-3">
+                                <div class="fw-bold mb-1"><i class="bi bi-shield-check text-warning me-1"></i> Pemeriksaan Keamanan:</div>
+                                <ul class="mb-0 ps-3">
+                                    <li>Siswa terdaftar: <strong>0 Siswa</strong> (Memenuhi syarat).</li>
+                                    <li>Laporan mengajar: <strong>0 Laporan</strong> (Memenuhi syarat).</li>
+                                    <li>Sebanyak <strong>{{ $rombel->sessions()->where('status', 'terjadwal')->count() }} sesi pertemuan kosong</strong> yang masih terjadwal akan otomatis ikut dibersihkan.</li>
+                                </ul>
+                            </div>
+                            <p class="small text-danger mb-0 fw-semibold">
+                                <i class="bi bi-info-circle me-1"></i> Tindakan ini bersifat permanen dan tidak dapat dibatalkan.
+                            </p>
+                        </div>
+                        <div class="modal-footer border-top-0 pt-0">
+                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-danger rounded-pill px-4">
+                                <i class="bi bi-trash me-1"></i>Ya, Hapus Rombel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        @endif
     @endforeach
 
     {{-- Modal for Adding New Rombel --}}
