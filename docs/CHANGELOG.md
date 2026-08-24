@@ -2,6 +2,43 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.9] - 2026-08-24
+
+### Interactive Spotlight Onboarding Tour, Klarifikasi SOP Check-in Sebelum Mengajar, Modernisasi Form Edit Laporan Mengajar, Resolusi Anomali Sesi & Blast WhatsApp Pengingat Rutin
+
+- **Interactive Spotlight Onboarding Tour (Driver.js)**:
+  - Mengintegrasikan library `driver.js` dengan tema desain kustom Erlass (`onboarding-driver.css`) dan engine tur modular (`onboarding-engine.js`).
+  - Menyediakan 2 skenario tur interaktif:
+    * **Tur Instruktur**: Memandu alur kerja harian (Statistik cepat, Jadwal Hari Ini, Tombol Check-in GPS/Kamera sebelum kelas, Form Laporan H+1, dan Permohonan Buka Akses Susulan).
+    * **Tur Admin / Manajemen**: Memandu alur monitoring operasional (Laporan pending verifikasi, permohonan keterlambatan/late requests, sesi darurat hari ini, dan manajemen ekskul).
+  - Menyediakan tombol pemanggil tur kapan saja (**"🎯 Panduan Tur"**) di navbar atas dan menu profil user.
+  - Menyimpan status penyelesaian tur di `localStorage` agar tidak mengganggu instruktur yang sudah terbiasa, namun tetap dapat diulang kapan saja secara manual.
+
+- **Edukasi & Klarifikasi Aturan Check-in (Wajib SEBELUM Mengajar, Bukan Sesudah)**:
+  - **Banner Edukasi di Dashboard Instruktur**: Ditampilkan tepat di atas tabel "Jadwal Hari Ini" untuk mengingatkan bahwa tombol check-in aktif 10 menit sebelum jam mulai sesi dan wajib ditekan saat tiba di lokasi sebelum kelas dimulai.
+  - **Banner Pengingat di Modal Check-in GPS**: Memberikan instruksi tegas agar instruktur tidak menunda check-in hingga kelas selesai untuk mencegah penalti keterlambatan sistem.
+  - **Penyempurnaan Pusat Bantuan (`/help`) & Onboarding**: Memperbarui urutan langkah di Jalur Rutin, Komponen Wajib, dan menambahkan item FAQ prioritas teratas terkait aturan waktu check-in.
+  - **Perbaikan CSS Spacing di `/help`**: Memperbaiki bug layout `.steps-list li` dari `display: flex` menjadi block flow terstruktur sehingga teks mengalir rapi dan mudah dibaca di mobile/desktop.
+
+- **Upgrade Menyeluruh Form Edit Laporan Mengajar (`/laporan-mengajar/{id}/edit`)**:
+  - Mengadopsi arsitektur *Impeccable UI Design* yang seragam dengan form pelaporan sesi rutin modern (`/ekstrakurikuler/sessions/{id}/report/create`).
+  - **Interactive Student Attendance Grid**: Menampilkan daftar nama siswa rombel terdaftar lengkap dengan avatar inisial, gender styling, tombol cepat *"Semua Hadir"* / *"Semua Alpha"*, pencarian siswa, dan live counter kehadiran.
+  - **Standarisasi Silabus (`RefMateri`) & Evaluasi**: Integrasi dropdown silabus kurikulum per program ekskul, badge info catch-up materi sebelumnya, refleksi respon siswa & capaian target materi, serta rating keaktifan kelas dan pemahaman materi.
+  - **Manajemen Berkas & Foto**: Preview langsung foto kegiatan saat ini, foto absensi berstempel/TTD, dan file project (`.sb3`, `.hex`, `.zip`) dengan tautan unduh/lihat dan dropzone penggantian file baru.
+  - **Backend Synchronizer**: Controller secara otomatis melakukan *upsert* data kehadiran per-siswa di tabel `absensi`, menghitung ulang total kehadiran, dan menyinkronkan materi ke agenda sesi.
+
+- **Pembersihan Anomali & Manajemen Sesi Selesai / Penggabungan Rombel**:
+  - **Ekskul ID 175 (MIN AL-AZHAR ASY-SYARIF - Coding Scratch)**:
+    * Pertemuan 1 (Sesi #29346) tetap berstatus `selesai` (dengan laporan #484).
+    * Pertemuan 2 s.d. 32 (31 sesi) dialihkan statusnya menjadi `ditunda` karena Rombel 2 telah digabung ke Rombel 1.
+    * Status Rombel 2 diperbarui menjadi `selesai` (Catatan: Digabung ke Rombel 1).
+  - **SDIT CITRA SAHABAT**:
+    * Menghapus sesi anomali duplikat P.33 (#21331) yang tidak berelasi dengan laporan, sehingga rekam jejak Kak Novita kembali 100% bersih.
+
+- **WhatsApp Blast Pengingat Sesi Rutin Terlambat (Fonnte API)**:
+  - Melakukan blast pesan pengingat personalisasi via Fonnte API ke seluruh **32 instruktur aktif** yang memiliki tunggakan sesi rutin dengan tingkat keberhasilan pengiriman **100% (32/32 sukses)**.
+  - Log pengiriman tersimpan di `docs/LOG_PENGIRIMAN_FONNTE_LATEST.json` dan dokumentasi rekap di `docs/LAPORAN_TERLAMBAT_DAN_OVERDUE_WA.md`.
+
 ## [2.9.8] - 2026-08-21
 
 ### Audit & Sinkronisasi Jadwal Sesi, Pengingat WhatsApp Otomatis Jam 18:00 WIB, Fitur Hapus Rombel, Perbaikan Relasi Sesi & Laporan Mengajar, Matrix Akses Role & Konsistensi Middleware

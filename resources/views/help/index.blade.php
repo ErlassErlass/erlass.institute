@@ -208,28 +208,30 @@
     }
     .steps-list li {
         counter-increment: step;
-        display: flex;
-        align-items: flex-start;
-        gap: .875rem;
-        padding: .625rem 0;
+        position: relative;
+        padding: .65rem 0 .65rem 2.25rem;
         font-size: .875rem;
         color: var(--help-slate);
-        line-height: 1.5;
+        line-height: 1.6;
         border-bottom: 1px solid var(--help-line);
+        display: block;
+        text-align: left;
     }
     .steps-list li:last-child { border-bottom: none; }
     .steps-list li::before {
         content: counter(step);
+        position: absolute;
+        left: 0;
+        top: .65rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        flex-shrink: 0;
         width: 22px;
         height: 22px;
         border-radius: 50%;
-        font-size: .7rem;
+        font-size: .72rem;
         font-weight: 700;
-        margin-top: 1px;
+        line-height: 1;
     }
     .path-card--blue .steps-list li::before {
         background: var(--help-blue-light);
@@ -239,7 +241,7 @@
         background: var(--help-amber-light);
         color: var(--help-amber);
     }
-    .steps-list li strong { color: var(--help-navy); }
+    .steps-list li strong { color: var(--help-navy); font-weight: 600; }
 
     .path-tip {
         display: flex;
@@ -488,16 +490,16 @@
                 <p class="desc">Untuk seluruh kegiatan yang <strong>sesuai jadwal rutin mingguan</strong> yang sudah terdaftar di Agenda Sesi.</p>
 
                 <ol class="steps-list">
-                    <li>Buka menu <strong>Jadwal Sesi &amp; Laporan</strong> di sidebar kiri atau tombol <strong>Buat Laporan</strong> di tabel Jadwal Hari Ini pada Dashboard.</li>
-                    <li>Temukan Sesi Pertemuan hari ini, klik <strong>"Detail Sesi"</strong>.</li>
-                    <li>Saat tiba di sekolah, tekan tombol <strong>"📌 Check-in Hadir (GPS &amp; Camera)"</strong> (Tombol aktif mulai <strong>10 menit sebelum jam mulai sesi</strong>).</li>
-                    <li>Setelah selesai mengajar, klik <strong>"Buat Laporan &amp; Absensi"</strong>.</li>
-                    <li>Isi seluruh komponen wajib, lalu tekan <strong>Simpan Laporan</strong>.</li>
+                    <li>Buka menu <strong>Jadwal Sesi &amp; Laporan</strong> di sidebar kiri atau tombol <strong>Buat Laporan</strong> pada tabel Jadwal Hari Ini di Dashboard.</li>
+                    <li>Temukan Sesi Pertemuan hari ini, lalu klik tombol <strong>"Detail Sesi"</strong>.</li>
+                    <li>Saat tiba di sekolah (<strong>SEBELUM kelas dimulai</strong>), tekan tombol <strong>"📌 Check-in Hadir (GPS &amp; Camera)"</strong>. <span class="badge bg-danger text-white rounded-pill px-2 py-0.5" style="font-size: 0.68rem; font-weight: 600;">Wajib Sebelum Mengajar</span> <small class="text-muted d-block mt-0.5">(Tombol aktif mulai 10 menit sebelum jam mulai sesi)</small></li>
+                    <li>Setelah selesai kegiatan mengajar, barulah klik tombol <strong>"Buat Laporan &amp; Absensi"</strong> (Batas submit: H+1).</li>
+                    <li>Isi seluruh komponen wajib (materi, kehadiran siswa, foto kelas), lalu klik <strong>Simpan Laporan</strong>.</li>
                 </ol>
 
                 <div class="path-tip path-tip--blue">
                     <i class="bi bi-lightbulb-fill flex-shrink-0 mt-1"></i>
-                    <span>Rekap presensi siswa &amp; data rombel otomatis tersinkronisasi. Tidak perlu input ulang.</span>
+                    <span><strong>Tips Kedisiplinan:</strong> Jangan menunda check-in sampai kelas selesai mengajar agar jam kedatangan Anda tidak terhitung terlambat oleh sistem.</span>
                 </div>
             </div>
 
@@ -508,11 +510,11 @@
                 <p class="desc">Untuk kegiatan mengajar <strong>di luar jadwal rutin</strong> — kelas pengganti, sesi tambahan, atau kegiatan insidental.</p>
 
                 <ol class="steps-list">
-                    <li>Buka menu <strong>Laporan Ad-Hoc / Pengganti</strong> di sidebar kiri.</li>
-                    <li>Pada kolom kategori, pilih <strong>"Ad-Hoc / Sesi Pengganti"</strong>.</li>
-                    <li>Pilih Sekolah, Rombel, dan tanggal pelaksanaan <strong>secara manual</strong>.</li>
-                    <li>Isi seluruh detail materi, absensi, dan foto kegiatan.</li>
-                    <li>Tekan tombol <strong>Simpan Laporan</strong>.</li>
+                    <li>Buka menu <strong>Laporan Ad-Hoc / Pengganti</strong> di sidebar navigasi.</li>
+                    <li>Pada kolom kategori, pilih jenis <strong>"Ad-Hoc / Sesi Pengganti"</strong>.</li>
+                    <li>Pilih Sekolah, Rombel, dan tanggal pelaksanaan sesi <strong>secara manual</strong>.</li>
+                    <li>Isi seluruh detail materi pembelajaran, absensi kehadiran siswa, dan foto dokumentasi kegiatan.</li>
+                    <li>Tekan tombol <strong>Simpan Laporan</strong> untuk mengirim data.</li>
                 </ol>
 
                 <div class="path-tip path-tip--amber">
@@ -531,8 +533,8 @@
             <div class="comp-item">
                 <div class="comp-icon" style="background:#eff6ff;color:#2563eb;"><i class="bi bi-geo-alt-fill"></i></div>
                 <div>
-                    <h6>GPS Check-in &amp; Live Geotag</h6>
-                    <p>Diambil langsung dari kamera HP di sekolah (≤ 500 m). Sistem otomatis mencetak stempel geotag (Nama Sekolah, Jam WIB, Koordinat GPS) permanen pada foto.</p>
+                    <h6>GPS Check-in &amp; Live Geotag (Saat Tiba di Sekolah)</h6>
+                    <p>Wajib dilakukan <strong>saat baru tiba di sekolah sebelum mengajar</strong> (Radius: &le; 500 m). Sistem mencatat jam kedatangan fisik Anda. Jangan tunda sampai kelas selesai agar tidak terkena penalti keterlambatan.</p>
                 </div>
             </div>
             <div class="comp-item">
@@ -772,6 +774,10 @@
 
             @php
             $faqs = [
+                [
+                    'q' => 'Kapan waktu yang tepat untuk melakukan Check-in GPS? Sebelum atau sesudah kelas?',
+                    'a' => '<strong>WAJIB SEBELUM KELAS DIMULAI (Saat Baru Tiba di Sekolah)</strong>.<br>Check-in bertujuan mencatat <em>jam kedatangan fisik</em> Anda di lokasi sekolah. <strong class="text-danger">Jangan melakukan check-in setelah kelas selesai atau bersamaan saat mengisi laporan</strong>, karena sistem akan membaca Anda terlambat hadir selama durasi kelas (misal terlambat 60–90 menit) dan otomatis memicu status penalti denda keterlambatan.',
+                ],
                 [
                     'q' => 'Kapan saya harus menggunakan Jalur Rutin vs Jalur Ad-Hoc?',
                     'a' => 'Gunakan <strong>Jalur Rutin</strong> (via menu <em>Jadwal Sesi &amp; Laporan</em> atau tombol langsung di Dashboard) untuk seluruh pertemuan yang sudah memiliki jadwal mingguan resmi. Gunakan <strong>Jalur Ad-Hoc</strong> (menu <em>Laporan Ad-Hoc / Pengganti</em>) hanya jika Anda mengajar kelas pengganti atau kegiatan insidental yang jadwalnya belum terdaftar di Agenda Sesi Rutin.',

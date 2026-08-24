@@ -960,6 +960,13 @@
                     <input type="hidden" name="mock_suspected" id="checkin_mock_suspected" value="0">
                     <input type="hidden" name="device_info" id="checkin_device_info">
 
+                    <div class="alert alert-warning border-0 rounded-3 p-2.5 mb-3 d-flex align-items-center gap-2" style="background: #FFFBEB; border-left: 4px solid #F59E0B !important;">
+                        <i class="bi bi-info-circle-fill text-warning fs-5 flex-shrink-0"></i>
+                        <div class="small text-dark" style="font-size: 0.76rem; line-height: 1.35;">
+                            <strong>Waktu Check-in:</strong> Lakukan check-in <strong>saat Anda tiba di sekolah SEBELUM kelas dimulai</strong>, bukan setelah kelas selesai mengajar.
+                        </div>
+                    </div>
+
                     <div id="gpsStatusAlert" class="alert alert-info d-flex align-items-center gap-2 mb-3">
                         <div class="spinner-border spinner-border-sm text-primary" id="gpsSpinner" role="status"></div>
                         <div id="gpsStatusText" class="small fw-semibold">Mendeteksi titik lokasi GPS HP Anda...</div>

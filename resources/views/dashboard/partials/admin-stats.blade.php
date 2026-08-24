@@ -1,4 +1,4 @@
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-4" id="tour-admin-stats">
     <div class="col-6 col-md-4 col-xl-2">
         <div class="impeccable-stat-card h-100">
             <div class="d-flex align-items-center mb-2">

@@ -1,0 +1,192 @@
+/* ==========================================================================
+   Erlass Institute - Interactive Onboarding Tour Styles (Driver.js Custom Theme)
+   ========================================================================== */
+
+@import "driver.js/dist/driver.css";
+
+/* Spotlight & Stage Styling */
+.driver-stage {
+    border-radius: 16px !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 25px rgba(37, 99, 235, 0.35) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.driver-overlay {
+    background-color: rgba(15, 23, 42, 0.68) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+}
+
+/* Popover Card Styling */
+.driver-popover.erlass-tour-popover {
+    font-family: 'Outfit', sans-serif !important;
+    background: #ffffff !important;
+    color: #1e293b !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(226, 232, 240, 0.9) !important;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+    padding: 1.25rem 1.5rem !important;
+    max-width: 380px !important;
+    z-index: 1000000000 !important;
+    animation: tourPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes tourPopIn {
+    from {
+        opacity: 0;
+        transform: scale(0.94) translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Popover Header & Title */
+.driver-popover.erlass-tour-popover .driver-popover-title {
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    margin-bottom: 0.5rem !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    letter-spacing: -0.01em !important;
+}
+
+/* Popover Description */
+.driver-popover.erlass-tour-popover .driver-popover-description {
+    font-size: 0.88rem !important;
+    line-height: 1.55 !important;
+    color: #475569 !important;
+    margin-bottom: 1.1rem !important;
+}
+
+.driver-popover.erlass-tour-popover .driver-popover-description strong {
+    color: #0f172a !important;
+    font-weight: 600 !important;
+}
+
+.driver-popover.erlass-tour-popover .driver-popover-description .badge-step-pill {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+/* Popover Footer & Buttons */
+.driver-popover.erlass-tour-popover .driver-popover-footer {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-top: 0.75rem !important;
+    padding-top: 0.75rem !important;
+    border-top: 1px solid #f1f5f9 !important;
+    gap: 0.5rem !important;
+}
+
+/* Progress / Step Indicator */
+.driver-popover.erlass-tour-popover .driver-popover-progress-text {
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+}
+
+/* Navigation Buttons */
+.driver-popover.erlass-tour-popover .driver-popover-btn {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    padding: 0.45rem 1rem !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    border: none !important;
+    outline: none !important;
+}
+
+/* Close / Skip Button */
+.driver-popover.erlass-tour-popover .driver-popover-close-btn {
+    color: #94a3b8 !important;
+    font-size: 1.25rem !important;
+    top: 14px !important;
+    right: 14px !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+}
+
+.driver-popover.erlass-tour-popover .driver-popover-close-btn:hover {
+    color: #0f172a !important;
+    background-color: #f1f5f9 !important;
+}
+
+/* Prev Button */
+.driver-popover.erlass-tour-popover .driver-popover-prev-btn {
+    background: #f8fafc !important;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.driver-popover.erlass-tour-popover .driver-popover-prev-btn:hover {
+    background: #f1f5f9 !important;
+    color: #1e293b !important;
+}
+
+/* Next / Done Button */
+.driver-popover.erlass-tour-popover .driver-popover-next-btn {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.28) !important;
+}
+
+.driver-popover.erlass-tour-popover .driver-popover-next-btn:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.38) !important;
+    transform: translateY(-1px);
+}
+
+/* Arrow Customization */
+.driver-popover.erlass-tour-popover .driver-popover-arrow {
+    border-color: #ffffff !important;
+}
+
+/* Header Tour Trigger Button */
+.btn-tour-trigger {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
+}
+
+.btn-tour-trigger:hover {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border-color: #93c5fd;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
+}
+
+/* Responsive adjustment */
+@media (max-width: 576px) {
+    .driver-popover.erlass-tour-popover {
+        max-width: calc(100vw - 32px) !important;
+        margin: 0 16px !important;
+        padding: 1rem 1.15rem !important;
+    }
+}

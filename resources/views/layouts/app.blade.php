@@ -18,6 +18,7 @@
     </style>
     
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="user-role" content="{{ Auth::check() ? Auth::user()->role : 'guest' }}">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
@@ -852,6 +853,36 @@
                         </div>
                         @endif
 
+                        @if(Auth::check() && in_array(Auth::user()->role, ['webmaster', 'admin_sistem', 'admin']))
+                        <!-- Admin Tour Button with Options -->
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-primary fw-semibold rounded-pill px-3 py-1.5 d-flex align-items-center gap-1.5 shadow-none dropdown-toggle" 
+                                    type="button" id="tourDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Mulai Panduan Tur">
+                                <i class="bi bi-compass-fill"></i>
+                                <span class="d-none d-sm-inline">Panduan Tur</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 animate slideIn" aria-labelledby="tourDropdownBtn" style="border-radius: 12px;">
+                                <li>
+                                    <a class="dropdown-item btn-trigger-erlass-tour small fw-medium py-2" href="javascript:void(0)" data-tour-role="admin">
+                                        <i class="bi bi-shield-check me-2 text-primary"></i>Tur Mode Admin
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item btn-trigger-erlass-tour small fw-medium py-2" href="javascript:void(0)" data-tour-role="instruktur">
+                                        <i class="bi bi-person-video3 me-2 text-success"></i>Tur Mode Instruktur (Preview)
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        @elseif(Auth::check() && Auth::user()->role === 'instruktur')
+                        <!-- Instructor Tour Button -->
+                        <button type="button" class="btn btn-sm btn-outline-primary fw-semibold rounded-pill px-3 py-1.5 d-flex align-items-center gap-1.5 btn-trigger-erlass-tour shadow-none" 
+                                id="btnStartDashboardTour" title="Mulai Panduan Tur Interaktif">
+                            <i class="bi bi-compass-fill"></i>
+                            <span class="d-none d-sm-inline">Panduan Tur</span>
+                        </button>
+                        @endif
+
                         <div class="dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 py-1 pe-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center border" style="width: 38px; height: 38px;">
@@ -861,7 +892,7 @@
                                     <span class="d-block fw-bold small text-dark">{{ Str::limit(Auth::user()->nama_lengkap, 15) }}</span>
                                     <span class="d-block x-small text-muted" style="font-size: 0.7rem;">{{ ucfirst(Auth::user()->role) }}</span>
                                     @if(Auth::user()->role === 'instruktur' && Auth::user()->instructor_id)
-                                    <span class="d-block badge rounded-pill px-1" style="font-size: 0.62rem; background: #e0e7ff; color: #4338ca; font-weight: 700;">{{ Auth::user()->instructor_id }}</span>
+                                     <span class="d-block badge rounded-pill px-1" style="font-size: 0.62rem; background: #e0e7ff; color: #4338ca; font-weight: 700;">{{ Auth::user()->instructor_id }}</span>
                                     @endif
                                 </div>
                             </a>
@@ -879,6 +910,9 @@
                                 @endif
                                 <li><a class="dropdown-item" href="{{ route('profile.edit') }}">
                                     <i class="bi bi-person me-2"></i>Edit Profil
+                                </a></li>
+                                <li><a class="dropdown-item btn-trigger-erlass-tour" href="javascript:void(0)">
+                                    <i class="bi bi-compass me-2 text-primary"></i>Panduan Tur Aplikasi
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>

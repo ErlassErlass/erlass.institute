@@ -1,10 +1,12 @@
 import './bootstrap';
 import '../css/app.css';
+import '../css/onboarding-driver.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-// Import Alpine.js
+// Import Alpine.js & Onboarding Tour
 import Alpine from 'alpinejs';
 import { showToast } from './utils/helpers.js';
+import { initErlassOnboarding } from './onboarding/onboarding-engine.js';
 
 // Make utilities globally available
 window.showToast = showToast;
@@ -12,6 +14,11 @@ window.Alpine = Alpine;
 
 // Initialize Alpine.js
 Alpine.start();
+
+// Initialize Onboarding Tour
+document.addEventListener('DOMContentLoaded', function () {
+    initErlassOnboarding();
+});
 
 // Handle AJAX form submissions globally if needed
 document.addEventListener('DOMContentLoaded', function () {

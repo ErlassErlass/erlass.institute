@@ -452,38 +452,255 @@ class LaporanMengajarController extends Controller
             
         $kategori = $this->getKategoriList();
 
-        return view('laporan-mengajar.edit', compact('laporanMengajar', 'instructors', 'kategori'));
+        $session = $laporanMengajar->ekstrakurikulerSession;
+        $siswaList = collect();
+        $absensiMap = [];
+        $materiList = collect();
+        $previousReport = null;
+
+        if ($session) {
+            $session->load(['rombel.siswaAktif', 'rombel.ekstrakurikuler.sekolah']);
+            $kategoriProgram = $session->rombel->ekstrakurikuler->kategori_program ?? null;
+            if ($kategoriProgram) {
+                $materiList = \App\Models\RefMateri::where('kategori', $kategoriProgram)
+                    ->orderByRaw("CASE WHEN TRIM(materi) = 'Lain - Lain' THEN 1 ELSE 0 END")
+                    ->orderBy('id', 'asc')
+                    ->pluck('materi');
+            }
+
+            // Get enrolled students from rombel
+            $enrolledStudents = $session->rombel ? $session->rombel->siswaAktif()->orderBy('nama_lengkap')->get() : collect();
+            
+            // Get existing attendance records
+            $existingAbsensi = \App\Models\Absensi::with('siswa')
+                ->where('laporan_mengajar_id', $laporanMengajar->id)
+                ->get();
+
+            foreach ($existingAbsensi as $abs) {
+                $absensiMap[$abs->siswa_id] = $abs->status;
+            }
+
+            // Merge enrolled students and any other recorded students
+            $allStudents = $enrolledStudents;
+            foreach ($existingAbsensi as $abs) {
+                if ($abs->siswa && !$allStudents->contains('id', $abs->siswa_id)) {
+                    $allStudents->push($abs->siswa);
+                }
+            }
+            $siswaList = $allStudents->sortBy('nama_lengkap')->values();
+
+            // Previous report for catch-up
+            if ($session->ekstrakurikuler_rombel_id) {
+                $previousReport = LaporanMengajar::whereIn('ekstrakurikuler_session_id', function ($query) use ($session) {
+                    $query->select('id')
+                        ->from('ekstrakurikuler_session')
+                        ->where('ekstrakurikuler_rombel_id', $session->ekstrakurikuler_rombel_id)
+                        ->where('id', '!=', $session->id);
+                })
+                ->with(['instruktur:id,nama_lengkap'])
+                ->latest('jadwal_mengajar')
+                ->latest('id')
+                ->first();
+            }
+        } else {
+            // For non-routine (Ad-Hoc) reports
+            if ($laporanMengajar->kategori_pengajaran) {
+                $materiList = \App\Models\RefMateri::where('kategori', $laporanMengajar->kategori_pengajaran)
+                    ->orderByRaw("CASE WHEN TRIM(materi) = 'Lain - Lain' THEN 1 ELSE 0 END")
+                    ->orderBy('id', 'asc')
+                    ->pluck('materi');
+            }
+
+            $existingAbsensi = \App\Models\Absensi::with('siswa')
+                ->where('laporan_mengajar_id', $laporanMengajar->id)
+                ->get();
+            if ($existingAbsensi->isNotEmpty()) {
+                $siswaList = $existingAbsensi->pluck('siswa')->filter()->sortBy('nama_lengkap')->values();
+                foreach ($existingAbsensi as $abs) {
+                    $absensiMap[$abs->siswa_id] = $abs->status;
+                }
+            }
+        }
+
+        $errors = session('errors') ?? new \Illuminate\Support\ViewErrorBag();
+
+        return view('laporan-mengajar.edit', compact(
+            'laporanMengajar', 
+            'instructors', 
+            'kategori',
+            'session',
+            'siswaList',
+            'absensiMap',
+            'materiList',
+            'previousReport',
+            'errors'
+        ));
     }
 
     public function update(Request $request, LaporanMengajar $laporanMengajar)
     {
         $this->authorize('update', $laporanMengajar);
 
-        $validated = $request->validate($this->validationRules());
+        $allowedKategori = array_unique(array_merge(
+            [
+                'Backup Pertemuan',
+                'Free Trial Class',
+                'Trial Class',
+                'Inkul Coding Scratch',
+                'Inkul LKPD Informatika SD',
+                'Inkul LKPD Informatika SMA',
+                'Inkul LKPD Informatika SMP',
+                'Inkul LMS Koding KA SD',
+                'Pameran',
+                'Pendampingan Lomba',
+                'Sosialisasi bersama Sales',
+                'ekstrakurikuler',
+                'Ekstrakurikuler',
+                'Reguler',
+            ],
+            \App\Models\RefMateri::distinct()->pluck('kategori')->toArray()
+        ));
+
+        $validated = $request->validate([
+            'total_pertemuan' => 'nullable|integer|min:1|max:200',
+            'user_id_assisten' => [
+                'nullable',
+                'integer',
+                \Illuminate\Validation\Rule::exists('users', 'id')->where(function ($query) {
+                    $query->where('role', 'instruktur');
+                }),
+            ],
+            'sekolah_kodlan' => 'sometimes|nullable|string|exists:sekolah,kodlan',
+            'pertemuan_ke' => 'required|integer|min:0|max:100',
+            'rombel' => 'required|string|max:50',
+            'kategori_pengajaran' => 'sometimes|nullable|string',
+            'jadwal_mengajar' => 'required',
+            'jam_mulai' => 'required',
+            'jam_selesai' => 'required',
+            'materi_pengajaran' => 'required|string|max:1000',
+            'foto_kegiatan' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'foto_absensi_siswa' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'file_project' => [
+                'nullable',
+                'file',
+                'max:10240',
+                function ($attribute, $value, $fail) {
+                    if ($value && method_exists($value, 'getClientOriginalExtension')) {
+                        $ext = strtolower($value->getClientOriginalExtension());
+                        $allowed = ['hex', 'sb3', 'zip', 'rar', '7z', 'py', 'ino', 'cpp', 'pdf', 'png', 'jpg', 'jpeg'];
+                        if (!in_array($ext, $allowed)) {
+                            $fail('Format file project tidak didukung. Ekstensi yang diperbolehkan: .hex, .sb3, .zip, .rar, .7z, .py, .ino, .pdf, .png, .jpg.');
+                        }
+                    }
+                }
+            ],
+            'absensi' => 'nullable|array',
+            'absensi.*' => ['nullable', \Illuminate\Validation\Rule::in([0, 1, '0', '1', 'hadir', 'alpha'])],
+            'refleksi_siswa' => 'nullable|string|max:2000',
+            'refleksi_capaian' => 'nullable|string|max:2000',
+            'keaktifan' => 'nullable|string|in:sangat_aktif,aktif,cukup,kurang',
+            'pemahaman_materi' => 'nullable|string|in:sangat_paham,paham,sedikit_paham,belum_paham',
+            'catatan' => 'nullable|string|max:2000',
+        ]);
+
+        // Format dates & times
+        if (isset($validated['jadwal_mengajar'])) {
+            try {
+                $validated['jadwal_mengajar'] = \Carbon\Carbon::parse($validated['jadwal_mengajar'])->format('Y-m-d');
+            } catch (\Exception $e) {}
+        }
+        if (isset($validated['jam_mulai'])) {
+            try {
+                $validated['jam_mulai'] = \Carbon\Carbon::parse($validated['jam_mulai'])->format('H:i');
+            } catch (\Exception $e) {}
+        }
+        if (isset($validated['jam_selesai'])) {
+            try {
+                $validated['jam_selesai'] = \Carbon\Carbon::parse($validated['jam_selesai'])->format('H:i');
+            } catch (\Exception $e) {}
+        }
 
         // Handle File Uploads (Foto Kegiatan)
         if ($request->hasFile('foto_kegiatan')) {
-            // Delete old file
             if ($laporanMengajar->foto_kegiatan) {
                 Storage::disk('public')->delete($laporanMengajar->foto_kegiatan);
             }
-            $validated['foto_kegiatan'] = $this->fileUploadService->upload(
-                $request->file('foto_kegiatan'), 
-                'reports', 
-                'activities'
-            );
+            $validated['foto_kegiatan'] = $request->file('foto_kegiatan')->store('laporan_kegiatan', 'public');
         } elseif ($request->has('hapus_foto_kegiatan') && $request->hapus_foto_kegiatan == 1) {
-             if ($laporanMengajar->foto_kegiatan) {
+            if ($laporanMengajar->foto_kegiatan) {
                 Storage::disk('public')->delete($laporanMengajar->foto_kegiatan);
             }
             $validated['foto_kegiatan'] = null;
         }
 
-        // Handle removed fields defaults if they are somehow missing in request but required in DB?
-        // Assuming DB columns are nullable or have defaults. If not, we might need to set them.
-        // Based on migration, they might be nullable. If not, we set them to existing values or defaults.
-        
+        // Handle File Uploads (Foto Absensi Siswa)
+        if ($request->hasFile('foto_absensi_siswa')) {
+            if ($laporanMengajar->foto_absensi_siswa) {
+                Storage::disk('public')->delete($laporanMengajar->foto_absensi_siswa);
+            }
+            $validated['foto_absensi_siswa'] = $request->file('foto_absensi_siswa')->store('laporan_absensi', 'public');
+        } elseif ($request->has('hapus_foto_absensi_siswa') && $request->hapus_foto_absensi_siswa == 1) {
+            if ($laporanMengajar->foto_absensi_siswa) {
+                Storage::disk('public')->delete($laporanMengajar->foto_absensi_siswa);
+            }
+            $validated['foto_absensi_siswa'] = null;
+        }
+
+        // Handle File Uploads (File Project)
+        if ($request->hasFile('file_project')) {
+            if ($laporanMengajar->file_project) {
+                Storage::disk('public')->delete($laporanMengajar->file_project);
+            }
+            $validated['file_project'] = $request->file('file_project')->store('laporan_project', 'public');
+        } elseif ($request->has('hapus_file_project') && $request->hapus_file_project == 1) {
+            if ($laporanMengajar->file_project) {
+                Storage::disk('public')->delete($laporanMengajar->file_project);
+            }
+            $validated['file_project'] = null;
+        }
+
+        // Handle Absensi Grid Updates
+        if ($request->has('absensi') && is_array($request->absensi)) {
+            $hadirCount = 0;
+            $alphaCount = 0;
+
+            foreach ($request->absensi as $siswaId => $status) {
+                $statusVal = ($status == 1 || $status === 'hadir' || $status === '1') ? 'hadir' : 'alpha';
+                if ($statusVal === 'hadir') {
+                    $hadirCount++;
+                } else {
+                    $alphaCount++;
+                }
+
+                \App\Models\Absensi::updateOrCreate(
+                    [
+                        'laporan_mengajar_id' => $laporanMengajar->id,
+                        'siswa_id' => $siswaId,
+                    ],
+                    [
+                        'status' => $statusVal,
+                    ]
+                );
+            }
+
+            $validated['jumlah_siswa_hadir'] = $hadirCount;
+            $validated['jumlah_siswa_tidak_hadir'] = $alphaCount;
+        }
+
+        // Clean & update Laporan
         $laporanMengajar->update($validated);
+
+        // Sync with EkstrakurikulerSession if linked
+        if ($laporanMengajar->ekstrakurikulerSession) {
+            $session = $laporanMengajar->ekstrakurikulerSession;
+            $sessionUpdates = [
+                'topik_materi' => $validated['materi_pengajaran'] ?? $session->topik_materi,
+            ];
+            if ($request->filled('catatan')) {
+                $sessionUpdates['catatan'] = $request->catatan;
+            }
+            $session->update($sessionUpdates);
+        }
 
         // Activity Log
         \App\Models\ActivityLog::create([
@@ -497,8 +714,8 @@ class LaporanMengajarController extends Controller
             'user_agent' => $request->userAgent(),
         ]);
 
-        return redirect()->route('laporan-mengajar.index')
-            ->with('success', 'Laporan berhasil diperbarui.');
+        return redirect()->route('laporan-mengajar.show', $laporanMengajar)
+            ->with('success', 'Laporan mengajar berhasil diperbarui.');
     }
 
     /**

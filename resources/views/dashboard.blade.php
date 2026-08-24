@@ -163,7 +163,7 @@
 @section('content')
 <div class="container-fluid py-4">
     <!-- Header Hero Banner -->
-    <div class="dashboard-hero mb-4">
+    <div class="dashboard-hero mb-4" id="tour-welcome-card">
         <div class="row align-items-center g-3">
             <div class="col-md-7">
                 <div class="d-flex align-items-center gap-2 mb-2">
@@ -282,7 +282,7 @@
 
     <!-- IMPORTANT: Report Usage Warning -->
     @if(Auth::user()->role === 'instruktur')
-    <div class="alert alert-danger border-0 shadow-sm mb-4 rounded-4" role="alert" style="background: #FEF2F2; border-left: 6px solid #EF4444 !important;">
+    <div class="alert alert-danger border-0 shadow-sm mb-4 rounded-4" role="alert" id="tour-instructor-late-request" style="background: #FEF2F2; border-left: 6px solid #EF4444 !important;">
         <div class="d-flex align-items-start p-2">
             <div class="bg-danger text-white rounded-circle p-2 me-3 align-self-start d-flex align-items-center justify-content-center shadow-xs" style="width: 44px; height: 44px; min-width: 44px;">
                 <i class="bi bi-megaphone-fill fs-5"></i>
@@ -359,7 +359,7 @@
 
     <!-- Special Rombel & Student Attendance Check Notification (Instructor Only) -->
     @if(isset($instructor_todo_list) && $instructor_todo_list->count() > 0)
-    <div class="card border-0 shadow-sm mb-4 overflow-hidden rounded-4" style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border-left: 6px solid #F59E0B !important;">
+    <div class="card border-0 shadow-sm mb-4 overflow-hidden rounded-4" id="tour-instructor-todo" style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border-left: 6px solid #F59E0B !important;">
         <div class="card-body p-4">
             <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3 pb-3 border-bottom border-warning-subtle">
                 <div class="d-flex align-items-center gap-3">
@@ -422,7 +422,7 @@
         <!-- Left/Main Column -->
         <div class="col-lg-8 col-12">
             <!-- Today's Schedule (Visible to ALL roles) -->
-            <div class="dashboard-card mb-4">
+            <div class="dashboard-card mb-4" id="tour-instructor-today">
                 <div class="dashboard-card-header p-3 px-4 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
                         <i class="bi bi-calendar2-week-fill text-primary"></i>
@@ -434,6 +434,23 @@
                     @endif
                 </div>
                 <div class="card-body p-0">
+                    @if(Auth::user()->role === 'instruktur')
+                    <div class="px-3 pt-3 pb-1">
+                        <div class="alert alert-primary border-0 rounded-3 p-3 mb-2 d-flex align-items-start gap-3 shadow-xs" style="background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); border-left: 4px solid #2563EB !important;">
+                            <div class="bg-primary text-white rounded-circle p-1.5 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+                                <i class="bi bi-geo-alt-fill" style="font-size: 0.9rem;"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark mb-1" style="font-size: 0.82rem;">
+                                    <i class="bi bi-info-circle-fill text-primary me-1"></i> ATURAN CHECK-IN: Lakukan SAAT TIBA di Sekolah (SEBELUM Mengajar)
+                                </div>
+                                <p class="text-secondary small mb-0" style="font-size: 0.75rem; line-height: 1.4;">
+                                    Check-in GPS mencatat <strong>jam kedatangan fisik Anda</strong>. Wajib check-in begitu sampai di lokasi sebelum kelas dimulai, <strong class="text-danger">BUKAN saat kelas selesai / saat buat laporan</strong> agar tidak tercatat terlambat oleh sistem.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                     @if(isset($todays_schedule) && $todays_schedule->count() > 0)
                         <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
                             <table class="table table-hover align-middle mb-0" style="font-size: 0.84rem;">
@@ -611,7 +628,7 @@
             @if(Auth::user()->role === 'admin_sistem' || Auth::user()->role === 'webmaster' || Auth::user()->role === 'admin')
                 <!-- Admin Monitoring: Pending Reports -->
                 @if(isset($admin_pending_reports) && $admin_pending_reports->count() > 0)
-                <div class="dashboard-card mb-4" style="border-left: 6px solid #0EA5E9 !important;">
+                <div class="dashboard-card mb-4" id="tour-admin-pending-reports" style="border-left: 6px solid #0EA5E9 !important;">
                     <div class="card-header bg-info-subtle text-info-emphasis fw-bold d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 p-3">
                         <span><i class="bi bi-clipboard-data me-2"></i>MONITORING: BELUM LAPOR ({{ $admin_pending_reports->count() }} Teratas)</span>
                         <small class="text-muted fst-italic">Urut Deadline</small>
@@ -668,7 +685,7 @@
                 </div>
                 @endif
 
-                <div class="dashboard-card mb-4">
+                <div class="dashboard-card mb-4" id="tour-admin-late-approval">
                     <div class="card-header bg-white py-3 border-bottom px-4">
                         <div class="d-flex align-items-center justify-content-between">
                             <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-shield-check me-2 text-primary"></i>Pusat Verifikasi</h5>
@@ -724,7 +741,7 @@
                 </div>
 
                 <!-- Warning QC Panel -->
-                <div class="dashboard-card mb-4">
+                <div class="dashboard-card mb-4" id="tour-admin-urgent-sessions">
                     <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 fw-bold text-dark">
                             <i class="bi bi-shield-fill-exclamation text-danger me-2"></i>Log Warning Quality Control

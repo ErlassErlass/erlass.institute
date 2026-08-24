@@ -1,4 +1,4 @@
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-4" id="tour-instructor-earnings">
     <!-- Total Hours -->
     <div class="col-6 col-md-6 col-xl-3">
         <div class="impeccable-stat-card h-100">
