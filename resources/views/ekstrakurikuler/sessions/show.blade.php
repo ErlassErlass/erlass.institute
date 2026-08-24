@@ -60,7 +60,7 @@
                             <button type="button"
                                 class="btn btn-outline-secondary w-100 w-sm-auto shadow-xs text-start text-sm-center"
                                 disabled
-                                title="Check-in dibuka 10 menit sebelum jadwal sesi">
+                                title="Check-in dibuka 30 menit sebelum jadwal sesi">
                                 <i class="bi bi-clock me-1"></i>
                                 Check-in dibuka {{ $session->waktu_buka_checkin ? $session->waktu_buka_checkin->format('H:i') : '-' }} WIB
                             </button>
@@ -996,7 +996,7 @@
                             Sistem akan secara otomatis menghitung jarak presisi titik Anda ke Sekolah (Radius Toleransi: &le; 500 meter).
                         </small>
                         <small class="text-secondary d-block mt-1" style="font-size: 0.75rem;">
-                            <i class="bi bi-clock-history text-primary me-1"></i>Check-in dibuka mulai 10 menit sebelum jam mulai sesi.
+                            <i class="bi bi-clock-history text-primary me-1"></i>Check-in dibuka mulai 30 menit sebelum jam mulai sesi.
                         </small>
                         <div id="desktopAccuracyNote" class="d-none mt-2">
                             <small class="text-warning fw-semibold d-block" style="font-size: 0.75rem;">

@@ -112,7 +112,7 @@ Instruktur bertugas melaksanakan kegiatan pengajaran dan pelaporan di sekolah mi
 *   **Lengkapi Profil**: Setelah login, instruktur wajib melengkapi data (Dokumen, Bank, Fisik) melalui menu "Lengkapi Profil".
 
 ### 2. Check-in GPS Real-Time di Sekolah (Skenario A)
-*   **Jendela Waktu Check-in (10 Menit Sebelum Sesi)**: Tombol check-in hanya aktif mulai **10 menit sebelum jam mulai sesi**. Sebelum waktu tersebut, tombol menampilkan status informatif nonaktif `[ 🕒 Check-in dibuka HH:ii WIB ]`.
+*   **Jendela Waktu Check-in (30 Menit Sebelum Sesi)**: Tombol check-in aktif mulai **30 menit sebelum jam mulai sesi**. Sebelum waktu tersebut, tombol menampilkan status informatif nonaktif `[ 🕒 Check-in dibuka HH:ii WIB ]`.
 *   **Kamera Live & Stempel Geotag (*Burn-In Canvas Watermark*)**: Sistem mengaktifkan kamera HP secara langsung (`capture="environment"`). Sistem otomatis mencetak stempel visual permanen di bagian bawah foto berisi: *Nama Sekolah, Nomor Pertemuan, Tanggal & Jam WIB, serta Koordinat GPS & Akurasi*.
 *   **Verifikasi Radius (500 Meter)**: Sistem menghitung koordinat GPS Anda ke titik sekolah. Berstatus **🟢 Terverifikasi (Valid)** jika berada dalam radius $\le 500$ meter dari sekolah.
 *   **Proteksi Anti-Fake GPS & Anti-Spoofing**: Sistem memverifikasi sinyal satelit GPS asli (`enableHighAccuracy: true`) dan mendeteksi anomali akurasi tiruan (`0m`) atau perpindahan mustahil (*teleportation*), yang akan otomatis ditandai untuk pemeriksaan tim QC Admin.

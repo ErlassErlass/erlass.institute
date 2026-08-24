@@ -492,7 +492,7 @@
                 <ol class="steps-list">
                     <li>Buka menu <strong>Jadwal Sesi &amp; Laporan</strong> di sidebar kiri atau tombol <strong>Buat Laporan</strong> pada tabel Jadwal Hari Ini di Dashboard.</li>
                     <li>Temukan Sesi Pertemuan hari ini, lalu klik tombol <strong>"Detail Sesi"</strong>.</li>
-                    <li>Saat tiba di sekolah (<strong>SEBELUM kelas dimulai</strong>), tekan tombol <strong>"📌 Check-in Hadir (GPS &amp; Camera)"</strong>. <span class="badge bg-danger text-white rounded-pill px-2 py-0.5" style="font-size: 0.68rem; font-weight: 600;">Wajib Sebelum Mengajar</span> <small class="text-muted d-block mt-0.5">(Tombol aktif mulai 10 menit sebelum jam mulai sesi)</small></li>
+                    <li>Saat tiba di sekolah (<strong>SEBELUM kelas dimulai</strong>), tekan tombol <strong>"📌 Check-in Hadir (GPS &amp; Camera)"</strong>. <span class="badge bg-danger text-white rounded-pill px-2 py-0.5" style="font-size: 0.68rem; font-weight: 600;">Wajib Sebelum Mengajar</span> <small class="text-muted d-block mt-0.5">(Tombol aktif mulai 30 menit sebelum jam mulai sesi)</small></li>
                     <li>Setelah selesai kegiatan mengajar, barulah klik tombol <strong>"Buat Laporan &amp; Absensi"</strong> (Batas submit: H+1).</li>
                     <li>Isi seluruh komponen wajib (materi, kehadiran siswa, foto kelas), lalu klik <strong>Simpan Laporan</strong>.</li>
                 </ol>
@@ -784,11 +784,11 @@
                 ],
                 [
                     'q' => 'Mengapa tombol "Check-in Hadir" nonaktif / berstatus "Check-in dibuka HH:ii WIB"?',
-                    'a' => 'Sistem menerapkan kebijakan jendela waktu check-in yang aman: tombol check-in baru akan <strong>aktif otomatis mulai 10 menit sebelum jam mulai sesi terjadwal</strong>. Contoh: jika kelas Anda dijadwalkan pukul 14:00, tombol check-in akan dapat diklik mulai pukul 13:50 WIB.',
+                    'a' => 'Sistem menerapkan kebijakan jendela waktu check-in yang aman: tombol check-in baru akan <strong>aktif otomatis mulai 30 menit sebelum jam mulai sesi terjadwal</strong>. Contoh: jika kelas Anda dijadwalkan pukul 14:00, tombol check-in akan dapat diklik mulai pukul 13:30 WIB.',
                 ],
                 [
                     'q' => 'Bagaimana cara kerja Check-in GPS & Stempel Geotag Kamera?',
-                    'a' => 'Saat tiba di sekolah (H - 10 menit), buka detail Sesi Ekstrakurikuler dan tekan tombol <strong>"📌 Check-in Hadir (GPS &amp; Camera)"</strong>. Sistem membuka kamera HP secara langsung dan mengambil titik koordinat GPS presisi. Sistem otomatis mencetak stempel visual permanen (Nama Sekolah, Pertemuan, Jam WIB, Koordinat GPS) di atas foto dan mengompres ukurannya menjadi ~150KB dalam hitungan milidetik.',
+                    'a' => 'Saat tiba di sekolah (H - 30 menit), buka detail Sesi Ekstrakurikuler dan tekan tombol <strong>"📌 Check-in Hadir (GPS &amp; Camera)"</strong>. Sistem membuka kamera HP secara langsung dan mengambil titik koordinat GPS presisi. Sistem otomatis mencetak stempel visual permanen (Nama Sekolah, Pertemuan, Jam WIB, Koordinat GPS) di atas foto dan mengompres ukurannya menjadi ~150KB dalam hitungan milidetik.',
                 ],
                 [
                     'q' => 'Mengapa foto check-in wajib menggunakan kamera HP langsung dan tidak bisa dari galeri?',

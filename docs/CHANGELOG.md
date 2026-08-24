@@ -32,8 +32,15 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
     * Pertemuan 1 (Sesi #29346) tetap berstatus `selesai` (dengan laporan #484).
     * Pertemuan 2 s.d. 32 (31 sesi) dialihkan statusnya menjadi `ditunda` karena Rombel 2 telah digabung ke Rombel 1.
     * Status Rombel 2 diperbarui menjadi `selesai` (Catatan: Digabung ke Rombel 1).
-  - **SDIT CITRA SAHABAT**:
+  - **SDIT CITRA SAHABAT (Kak Novita)**:
     * Menghapus sesi anomali duplikat P.33 (#21331) yang tidak berelasi dengan laporan, sehingga rekam jejak Kak Novita kembali 100% bersih.
+  - **SD MUHAMMADIYAH 49 JAKARTA (Kak Indri Esti Yuniarti)**:
+    * Menghapus sesi anomali duplikat P.33 (#21301) yang berstatus `selesai` tanpa laporan (`laporan_id = NULL`), mengembalikan rekam jejak Kak Indri menjadi 100% bersih dan akurat.
+
+- **Ekstensi Jendela Waktu Check-in Menjadi 30 Menit Sebelum Jadwal**:
+  - Memperluas waktu pembukaan tombol presensi dari **10 menit $\rightarrow$ 30 menit sebelum jam mulai sesi** (`CHECKIN_EARLY_WINDOW_MINUTES = 30`).
+  - Memungkinkan instruktur yang tiba lebih awal di sekolah (H - 30 menit) langsung melakukan check-in GPS & live camera sebelum mempersiapkan perangkat lab dan mengajar, mencegah kelupaan dan keterlambatan presensi.
+  - Menyelaraskan pesan validasi controller, tooltip tombol, modal camera info, halaman bantuan (`/help`), dan panduan resmi instruktur.
 
 - **WhatsApp Blast Pengingat Sesi Rutin Terlambat (Fonnte API)**:
   - Melakukan blast pesan pengingat personalisasi via Fonnte API ke seluruh **32 instruktur aktif** yang memiliki tunggakan sesi rutin dengan tingkat keberhasilan pengiriman **100% (32/32 sukses)**.

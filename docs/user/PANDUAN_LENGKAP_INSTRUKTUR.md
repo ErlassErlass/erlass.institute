@@ -99,14 +99,14 @@ Setelah tim Akademik menugaskan Anda ke suatu program ekstrakurikuler:
 Saat Anda tiba di lokasi sekolah mitra pada hari mengajar:
 
 ```
-[ Tiba di Sekolah ] ➔ [ Buka Sesi Hari Ini ] ➔ [ Buka 10 Mnt Sebelum Sesi ] ➔ [ Foto Live + Geotag Watermark ] ➔ [ Submit ]
+[ Tiba di Sekolah ] ➔ [ Buka Sesi Hari Ini ] ➔ [ Buka 30 Mnt Sebelum Sesi ] ➔ [ Foto Live + Geotag Watermark ] ➔ [ Submit ]
 ```
 
 ### Langkah-Langkah Check-in:
 1. **Nyalakan GPS HP**: Pastikan fitur lokasi di pengaturan HP telah aktif (Mode Akurasi Tinggi) dan browser diberikan izin mengakses lokasi (*Allow Location Access*).
 2. **Jendela Waktu Check-in**:
-   - Check-in **hanya dibuka mulai 10 menit sebelum jam mulai sesi** (contoh: untuk sesi pukul 14:00, tombol check-in aktif mulai pukul 13:50 WIB).
-   - Sebelum waktu tersebut, tombol menampilkan status pengingat: `[ 🕒 Check-in dibuka 13:50 WIB ]`.
+   - Check-in **sudah dibuka mulai 30 menit sebelum jam mulai sesi** (contoh: untuk sesi pukul 14:00, tombol check-in aktif mulai pukul 13:30 WIB).
+   - Sebelum waktu tersebut, tombol menampilkan status pengingat: `[ 🕒 Check-in dibuka 13:30 WIB ]`.
 3. **Klik Tombol "📌 Check-in Hadir (GPS & Camera)"**:
    - Sistem akan mengaktifkan kamera secara langsung (*live camera*).
    - Arahkan kamera untuk foto diri di lingkungan sekolah atau ruangan kelas.

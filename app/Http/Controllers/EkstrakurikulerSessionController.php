@@ -573,7 +573,7 @@ class EkstrakurikulerSessionController extends Controller
             $waktuBukaStr = $session->waktu_buka_checkin ? $session->waktu_buka_checkin->format('H:i') : '-';
             return response()->json([
                 'success' => false,
-                'message' => "Sesi belum dapat dimulai. Sesi baru dapat dimulai 10 menit sebelum jadwal (pukul {$waktuBukaStr} WIB).",
+                'message' => "Sesi belum dapat dimulai. Sesi baru dapat dimulai 30 menit sebelum jadwal (pukul {$waktuBukaStr} WIB).",
             ], 400);
         }
 
@@ -1197,7 +1197,7 @@ class EkstrakurikulerSessionController extends Controller
         $user = auth()->user();
         if (! $session->isCheckinWindowOpen($user)) {
             $waktuBukaStr = $session->waktu_buka_checkin ? $session->waktu_buka_checkin->format('H:i') : '-';
-            $errMsg = "Check-in belum dibuka. Anda baru dapat melakukan check-in mulai pukul {$waktuBukaStr} WIB (10 menit sebelum sesi dimulai).";
+            $errMsg = "Check-in belum dibuka. Anda baru dapat melakukan check-in mulai pukul {$waktuBukaStr} WIB (30 menit sebelum sesi dimulai).";
 
             if ($request->wantsJson()) {
                 return response()->json([

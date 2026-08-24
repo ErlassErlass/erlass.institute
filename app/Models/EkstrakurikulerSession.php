@@ -361,10 +361,10 @@ class EkstrakurikulerSession extends Model
     /**
      * Waktu paling awal check-in dibuka sebelum jam mulai sesi (dalam menit).
      */
-    public const CHECKIN_EARLY_WINDOW_MINUTES = 10;
+    public const CHECKIN_EARLY_WINDOW_MINUTES = 30;
 
     /**
-     * Dapatkan objek Carbon waktu kapan check-in mulai dibuka (10 menit sebelum jam mulai terjadwal).
+     * Dapatkan objek Carbon waktu kapan check-in mulai dibuka (30 menit sebelum jam mulai terjadwal).
      */
     public function getWaktuBukaCheckinAttribute(): ?Carbon
     {
@@ -380,7 +380,7 @@ class EkstrakurikulerSession extends Model
      * Cek apakah jendela waktu check-in sudah dibuka.
      * - Admin / Webmaster / Admin Sistem selalu diizinkan (bypass).
      * - Sesi lampau (kemarin atau sebelumnya) diizinkan jika statusnya terjadwal/berlangsung.
-     * - Sesi hari ini: hanya dibuka mulai dari H - 10 menit sebelum jam_mulai_terjadwal.
+     * - Sesi hari ini: hanya dibuka mulai dari H - 30 menit sebelum jam_mulai_terjadwal.
      * - Sesi masa depan (besok atau seterusnya): belum dibuka.
      */
     public function isCheckinWindowOpen(?User $user = null): bool
