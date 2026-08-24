@@ -36,6 +36,8 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
     * Menghapus sesi anomali duplikat P.33 (#21331) yang tidak berelasi dengan laporan, sehingga rekam jejak Kak Novita kembali 100% bersih.
   - **SD MUHAMMADIYAH 49 JAKARTA (Kak Indri Esti Yuniarti)**:
     * Menghapus sesi anomali duplikat P.33 (#21301) yang berstatus `selesai` tanpa laporan (`laporan_id = NULL`), mengembalikan rekam jejak Kak Indri menjadi 100% bersih dan akurat.
+  - **ERLASS POP (Ekstrakurikuler ID #271 - English Course)**:
+    * Menghapus program ekstrakurikuler ID #271 beserta Rombel 1 (#338) dan seluruh 24 sesi terkait (#21909 s.d. #21932) yang sebelumnya dipegang oleh akun dummy secara bersih dan aman.
 
 - **Ekstensi Jendela Waktu Check-in Menjadi 30 Menit Sebelum Jadwal**:
   - Memperluas waktu pembukaan tombol presensi dari **10 menit $\rightarrow$ 30 menit sebelum jam mulai sesi** (`CHECKIN_EARLY_WINDOW_MINUTES = 30`).
