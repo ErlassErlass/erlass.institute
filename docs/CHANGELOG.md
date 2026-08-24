@@ -46,11 +46,11 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
   - Melakukan blast pesan pengingat personalisasi via Fonnte API ke seluruh **32 instruktur aktif** yang memiliki tunggakan sesi rutin dengan tingkat keberhasilan pengiriman **100% (32/32 sukses)**.
   - Log pengiriman tersimpan di `docs/LOG_PENGIRIMAN_FONNTE_LATEST.json` dan dokumentasi rekap di `docs/LAPORAN_TERLAMBAT_DAN_OVERDUE_WA.md`.
 
-- **Kebijakan Pemulihan Denda Keterlambatan (Amnesti Masa Transisi Aplikasi)**:
-  - Berdasarkan evaluasi manajemen atas masa sosialisasi aplikasi sebelum 24 Agustus 2026, dilakukan **pemutihan denda keterlambatan (Opsi A)** untuk seluruh **36 sesi** terdampak (Total Rp 900.000).
-  - Denda Rp 25.000 pada seluruh 36 sesi berhasil di-reset ke **Rp 0**, jam presensi disesuaikan ke tepat waktu, dan audit trail dicatat di `activity_logs` serta riwayat internal sesi.
-  - Perhitungan *Payroll Engine* telah diverifikasi 100% bebas denda untuk seluruh sesi transisi tersebut.
-  - Mulai 24 Agustus 2026 dan seterusnya, aturan penalti denda Rp 25.000 diberlakukan secara tegas seiring dengan aktifnya *Spotlight Tour* dan banner edukasi SOP Check-in.
+- **Dual Metric Corporate Punctuality Rate di Dashboard Admin**:
+  - Mengembangkan widget evaluasi disiplin di Dashboard Admin menjadi **2 Metrik Komprehensif**:
+    1. **Presensi Check-in Sesi (100% On Time)**: Mengukur ketepatan waktu kedatangan dan presensi GPS instruktur di sekolah.
+    2. **Ketepatan Laporan SLA H+1 (91% On Time)**: Mengukur kepatuhan pengiriman bukti laporan mengajar maksimal H+1.
+  - Memperbarui `PunctualityKpiService` dan UI `admin-stats.blade.php` dengan tata letak responsif 3-kolom modern berdampingan dengan tabel Evaluasi Leaderboard Instruktur.
 
 ## [2.9.8] - 2026-08-21
 

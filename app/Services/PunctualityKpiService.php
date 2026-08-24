@@ -110,7 +110,7 @@ class PunctualityKpiService
     }
 
     /**
-     * Hitung Corporate Overview Ketepatan Waktu Seluruh Instruktur.
+     * Hitung Corporate Overview Ketepatan Waktu Seluruh Instruktur (Check-in GPS & Submit Laporan H+1).
      */
     public function getCorporateOverview(?string $month = null, ?string $sekolahKodlan = null): array
     {
@@ -118,41 +118,72 @@ class PunctualityKpiService
         $startOfMonth = $monthCarbon->copy()->startOfMonth()->toDateString();
         $endOfMonth = $monthCarbon->copy()->endOfMonth()->toDateString();
 
-        $query = LaporanMengajar::whereBetween('jadwal_mengajar', [$startOfMonth, $endOfMonth]);
+        // 1. Metrik Ketepatan Submit Laporan Mengajar (SLA H+1)
+        $queryLaporan = LaporanMengajar::whereBetween('jadwal_mengajar', [$startOfMonth, $endOfMonth]);
         if ($sekolahKodlan) {
-            $query->where('sekolah_kodlan', $sekolahKodlan);
+            $queryLaporan->where('sekolah_kodlan', $sekolahKodlan);
         }
 
-        $laporans = $query->get();
+        $laporans = $queryLaporan->get();
         $totalLaporan = $laporans->count();
+        $reportOnTimeCount = 0;
 
-        if ($totalLaporan === 0) {
-            return [
-                'corporate_rate' => 100,
-                'total_laporan' => 0,
-                'on_time_count' => 0,
-                'late_count' => 0,
-            ];
-        }
-
-        $onTimeCount = 0;
         foreach ($laporans as $laporan) {
             $jadwalDate = Carbon::parse($laporan->jadwal_mengajar);
             $createdAt = Carbon::parse($laporan->created_at);
             $deadlineHPlus1 = $jadwalDate->copy()->addDay()->endOfDay();
 
             if ($createdAt->lte($deadlineHPlus1)) {
-                $onTimeCount++;
+                $reportOnTimeCount++;
             }
         }
 
-        $corporateRate = round(($onTimeCount / $totalLaporan) * 100);
+        $reportRate = $totalLaporan > 0 ? round(($reportOnTimeCount / $totalLaporan) * 100) : 100;
+        $reportLateCount = $totalLaporan - $reportOnTimeCount;
+
+        // 2. Metrik Ketepatan Presensi Check-in Sesi di Sekolah
+        $querySession = EkstrakurikulerSession::whereBetween('tanggal_terjadwal', [$startOfMonth, $endOfMonth])
+            ->whereIn('status', [EkstrakurikulerSession::STATUS_SELESAI, EkstrakurikulerSession::STATUS_BERLANGSUNG]);
+        
+        if ($sekolahKodlan) {
+            $querySession->whereHas('ekstrakurikuler', function ($q) use ($sekolahKodlan) {
+                $q->where('sekolah_kodlan', $sekolahKodlan);
+            });
+        }
+
+        $sessions = $querySession->get();
+        $totalSessions = $sessions->count();
+        $checkinLateCount = 0;
+        $checkinOnTimeCount = 0;
+
+        foreach ($sessions as $session) {
+            if ($session->actual_checkin_penalty > 0 || $session->actual_checkin_status === 'terlambat') {
+                $checkinLateCount++;
+            } else {
+                $checkinOnTimeCount++;
+            }
+        }
+
+        $checkinRate = $totalSessions > 0 ? round(($checkinOnTimeCount / $totalSessions) * 100) : 100;
 
         return [
-            'corporate_rate' => $corporateRate,
+            // Metrik Presensi Check-in
+            'checkin_rate' => $checkinRate,
+            'checkin_total' => $totalSessions,
+            'checkin_on_time_count' => $checkinOnTimeCount,
+            'checkin_late_count' => $checkinLateCount,
+
+            // Metrik Submit Laporan (SLA H+1)
+            'report_rate' => $reportRate,
+            'report_total' => $totalLaporan,
+            'report_on_time_count' => $reportOnTimeCount,
+            'report_late_count' => $reportLateCount,
+
+            // Backward Compatibility
+            'corporate_rate' => $reportRate,
             'total_laporan' => $totalLaporan,
-            'on_time_count' => $onTimeCount,
-            'late_count' => $totalLaporan - $onTimeCount,
+            'on_time_count' => $reportOnTimeCount,
+            'late_count' => $reportLateCount,
         ];
     }
 

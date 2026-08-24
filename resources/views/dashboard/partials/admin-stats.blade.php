@@ -67,25 +67,44 @@
 
 @if(isset($corporate_punctuality))
 <div class="row g-3 mb-4">
-    <div class="col-md-4">
+    <!-- Metrik 1: Presensi Check-in Sesi -->
+    <div class="col-xl-3 col-md-6">
         <div class="card shadow-sm border-0 h-100 bg-white rounded-4 overflow-hidden" style="border-top: 4px solid #10b981 !important;">
             <div class="card-body p-4 text-center d-flex flex-column justify-content-center">
-                <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-xs" style="width: 56px; height: 56px;">
-                    <i class="bi bi-shield-check fs-2"></i>
+                <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-xs" style="width: 52px; height: 52px;">
+                    <i class="bi bi-geo-alt-fill fs-3"></i>
                 </div>
-                <h6 class="fw-bold text-dark mb-1">Corporate Punctuality Rate</h6>
-                <h2 class="display-6 fw-bold text-success mb-0">{{ $corporate_punctuality['corporate_rate'] }}%</h2>
-                <small class="text-muted mt-1">Rata-rata Disiplin Instruktur (Bulan Ini)</small>
-                <div class="mt-3 pt-3 border-top d-flex justify-content-center gap-2">
-                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-2 py-1">🟢 {{ $corporate_punctuality['on_time_count'] }} On Time</span>
-                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle px-2 py-1">🟡 {{ $corporate_punctuality['late_count'] }} Terlambat</span>
+                <h6 class="fw-bold text-dark mb-1">Presensi Check-in Sesi</h6>
+                <h2 class="display-6 fw-bold text-success mb-0">{{ $corporate_punctuality['checkin_rate'] ?? 100 }}%</h2>
+                <small class="text-muted mt-1">Disiplin Hadir di Sekolah (Bulan Ini)</small>
+                <div class="mt-3 pt-3 border-top d-flex flex-wrap justify-content-center gap-2">
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-2 py-1">🟢 {{ $corporate_punctuality['checkin_on_time_count'] ?? 0 }} On Time</span>
+                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle px-2 py-1">🟡 {{ $corporate_punctuality['checkin_late_count'] ?? 0 }} Terlambat</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metrik 2: Ketepatan Submit Laporan Mengajar (SLA H+1) -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card shadow-sm border-0 h-100 bg-white rounded-4 overflow-hidden" style="border-top: 4px solid #4f46e5 !important;">
+            <div class="card-body p-4 text-center d-flex flex-column justify-content-center">
+                <div class="p-3 rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-xs" style="width: 52px; height: 52px; background-color: rgba(79, 70, 229, 0.1);">
+                    <i class="bi bi-file-earmark-check-fill fs-3" style="color: #4f46e5;"></i>
+                </div>
+                <h6 class="fw-bold text-dark mb-1">Ketepatan Laporan (SLA H+1)</h6>
+                <h2 class="display-6 fw-bold mb-0" style="color: #4f46e5;">{{ $corporate_punctuality['report_rate'] ?? $corporate_punctuality['corporate_rate'] }}%</h2>
+                <small class="text-muted mt-1">Disiplin Lapor &le; H+1 (Bulan Ini)</small>
+                <div class="mt-3 pt-3 border-top d-flex flex-wrap justify-content-center gap-2">
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-2 py-1">🟢 {{ $corporate_punctuality['report_on_time_count'] ?? $corporate_punctuality['on_time_count'] }} On Time</span>
+                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle px-2 py-1">🟡 {{ $corporate_punctuality['report_late_count'] ?? $corporate_punctuality['late_count'] }} Susulan</span>
                 </div>
             </div>
         </div>
     </div>
 
     @if(isset($punctuality_leaderboard) && $punctuality_leaderboard->count() > 0)
-    <div class="col-md-8">
+    <div class="col-xl-6 col-md-12">
         <div class="card shadow-sm border-0 h-100 bg-white rounded-4 overflow-hidden" style="border-top: 4px solid #3b82f6 !important;">
             <div class="card-header bg-white py-3 px-4 d-flex align-items-center justify-content-between border-bottom">
                 <h6 class="fw-bold text-dark mb-0"><i class="bi bi-trophy-fill me-2 text-warning fs-5"></i> Evaluasi Disiplin Instruktur</h6>
