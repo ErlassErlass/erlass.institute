@@ -64,7 +64,15 @@
                                 <td>
                                     <div class="fw-bold text-dark">{{ $item->nama_salesman }}</div>
                                 </td>
-                                <td>{{ $item->group_leader ?? '-' }}</td>
+                                <td>
+                                    @if($item->group_leader)
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1 fw-semibold">
+                                            <i class="bi bi-person-badge me-1"></i>{{ $item->group_leader }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted small">-</span>
+                                    @endif
+                                </td>
                                 <td>
                                     <span class="badge bg-light text-dark border">{{ $item->area ?? '-' }}</span>
                                 </td>

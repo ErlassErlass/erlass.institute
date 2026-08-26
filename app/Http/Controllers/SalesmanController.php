@@ -28,8 +28,13 @@ class SalesmanController extends Controller
             ->when($search, function ($query) use ($search) {
                 return $query->where('nama_salesman', 'like', "%$search%")
                     ->orWhere('kode_salesman', 'like', "%$search%")
+                    ->orWhere('group_leader', 'like', "%$search%")
                     ->orWhere('area', 'like', "%$search%");
-            })->paginate(25);
+            })
+            ->orderByRaw("CASE WHEN group_leader IS NULL OR group_leader = '' THEN 1 ELSE 0 END")
+            ->orderBy('group_leader', 'asc')
+            ->orderBy('nama_salesman', 'asc')
+            ->paginate(50);
 
         return view('salesmen.index', compact('salesmen'));
     }
