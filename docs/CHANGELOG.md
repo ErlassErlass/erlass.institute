@@ -19,6 +19,9 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Audit Forensik Kesehatan Sistem & Perbaikan Engine Peringatan (`warnings:detect`)**:
   - Melakukan audit forensik mendalam terhadap 26 indikator ketahanan produksi (Redis Session/Cache, MySQL Latency, Failed Jobs 0, Anti-Deadlock, CORS, Cookie Security, Memory Safety, dan Anti-Duplicate Data).
   - Memperbarui skema kolom `warnings.warning_type` menjadi `VARCHAR(50) NOT NULL` untuk mendukung pendeteksian anomali `rombel_hold` (< 8 siswa) secara otomatis via console scheduler tanpa *data truncation error*.
+- **Penyempurnaan Istilah & Navigasi: `Laporan Khusus (Non-Jadwal)`**:
+  - Mengganti seluruh istilah rancu *"Laporan Ad-Hoc / Pengganti"* menjadi **"Laporan Khusus (Non-Jadwal)"** di sidebar navigasi, dashboard, form laporan, pusat bantuan (`/help`), dan dokumentasi operasional.
+  - Mempertegas aturan SOP agar instruktur yang menggantikan guru lain (*inval*) atau mengajar kelas susulan (*reschedule*) **tetap menggunakan Jalur Sesi Rutin** agar tidak merusak keutuhan data kehadiran dan rekap rapor rombel.
 
 ## [2.9.9] - 2026-08-24
 

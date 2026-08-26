@@ -223,8 +223,8 @@
                     <i class="bi bi-journal-plus"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-dark mb-0 small">Laporan Ad-Hoc</div>
-                    <small class="text-muted" style="font-size: 0.725rem;">Pameran / Sosialisasi</small>
+                    <div class="fw-bold text-dark mb-0 small">Laporan Khusus (Non-Jadwal)</div>
+                    <small class="text-muted" style="font-size: 0.725rem;">Event Khusus / Pameran</small>
                 </div>
             </a>
         </div>
@@ -293,12 +293,12 @@
                 <ul class="mb-0 mt-2 small text-dark ps-3">
                     <li class="mb-1">
                         <strong>Kelas Rutin / Terjadwal:</strong> WAJIB melalui menu 
-                        <a href="{{ route('ekstrakurikuler.sessions.index') }}" class="fw-bold text-decoration-underline text-danger">Jadwal Sesi &amp; Laporan</a> atau tombol <em>"Buat Laporan"</em> di tabel Jadwal Hari Ini. (Data siswa &amp; rombel terhubung otomatis).
+                        <a href="{{ route('ekstrakurikuler.sessions.index') }}" class="fw-bold text-decoration-underline text-danger">Jadwal Sesi &amp; Laporan</a> atau tombol <em>"Buat Laporan"</em> di tabel Jadwal Hari Ini (termasuk jika Anda menggantikan instruktur lain/inval atau kelas susulan/reschedule). Data siswa &amp; rombel terhubung otomatis.
                     </li>
                     <li>
-                        <strong>Kelas Tambahan / Ad-Hoc:</strong> Gunakan menu 
-                        <a href="{{ route('laporan-mengajar.create') }}" class="fw-bold text-decoration-underline text-danger">Laporan Ad-Hoc / Pengganti</a>. 
-                        (KHUSUS untuk Pameran, Lomba, Sosialisasi atau Sesi Pengganti di luar jadwal rutin).
+                        <strong>Kegiatan Khusus / Non-Jadwal:</strong> Gunakan menu 
+                        <a href="{{ route('laporan-mengajar.create') }}" class="fw-bold text-decoration-underline text-danger">Laporan Khusus (Non-Jadwal)</a> 
+                        HANYA untuk kegiatan khusus di luar program ekskul yang tidak memiliki rombel (seperti Workshop Kilat, Juri Lomba, Sosialisasi Sales, atau Pameran).
                     </li>
                 </ul>
             </div>
@@ -318,14 +318,14 @@
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <span class="badge bg-success text-white fw-bold px-2 py-1" style="font-size: 0.75rem;">
-                                <i class="bi bi-shield-check me-1"></i>PERMOHONAN AD-HOC DI-ACC ADMIN
+                                <i class="bi bi-shield-check me-1"></i>PERMOHONAN DI-ACC ADMIN
                             </span>
                             <small class="text-muted fw-semibold">
                                 {{ $approvedReq->updated_at ? $approvedReq->updated_at->diffForHumans() : 'Baru saja' }}
                             </small>
                         </div>
                         <h5 class="fw-bold text-dark mb-1">
-                            Permohonan Akses Laporan {{ $approvedReq->isAdhoc() ? 'Ad-Hoc Tanggal ' . ($approvedReq->adhoc_date ? $approvedReq->adhoc_date->format('d/m/Y') : '-') : 'Sesi ' . optional(optional(optional($approvedReq->session)->rombel)->ekstrakurikuler)->kategori_program }} Telah Disetujui!
+                            Permohonan Akses Laporan {{ $approvedReq->isAdhoc() ? 'Khusus Tanggal ' . ($approvedReq->adhoc_date ? $approvedReq->adhoc_date->format('d/m/Y') : '-') : 'Sesi ' . optional(optional(optional($approvedReq->session)->rombel)->ekstrakurikuler)->kategori_program }} Telah Disetujui!
                         </h5>
                         <p class="text-muted small mb-0">
                             <strong class="text-dark">Alasan Permohonan:</strong> "{{ $approvedReq->reason }}"
@@ -339,7 +339,7 @@
                 <div class="text-nowrap">
                     @if($approvedReq->isAdhoc())
                         <a href="{{ route('laporan-mengajar.create') }}?tanggal={{ $approvedReq->adhoc_date ? $approvedReq->adhoc_date->format('Y-m-d') : '' }}" class="btn btn-success text-white fw-bold px-3 py-2 rounded-3 shadow-sm">
-                            <i class="bi bi-pencil-square me-1"></i> Buat Laporan Ad-Hoc
+                            <i class="bi bi-pencil-square me-1"></i> Buat Laporan Khusus
                         </a>
                     @elseif($approvedReq->session)
                         <a href="{{ route('ekstrakurikuler.sessions.report.create', $approvedReq->session->id) }}" class="btn btn-success text-white fw-bold px-3 py-2 rounded-3 shadow-sm">

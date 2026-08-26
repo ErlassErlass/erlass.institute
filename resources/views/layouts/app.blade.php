@@ -640,7 +640,7 @@
                         <li class="sidebar-item">
                             <a class="sidebar-link {{ request()->routeIs('laporan-mengajar.create') ? 'active' : '' }}" href="{{ route('laporan-mengajar.create') }}">
                                 <i class="bi bi-lightning-charge"></i>
-                                <span>Laporan Ad-Hoc / Pengganti</span>
+                                <span>Laporan Khusus (Non-Jadwal)</span>
                             </a>
                         </li>
                     @endif

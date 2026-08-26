@@ -511,23 +511,23 @@
                 </div>
             </div>
 
-            {{-- Jalur Ad-Hoc --}}
+            {{-- Jalur Laporan Khusus (Non-Jadwal) --}}
             <div class="path-card path-card--amber">
                 <div class="path-badge path-badge--amber"><i class="bi bi-lightning-charge"></i> Jalur 2 — Khusus</div>
-                <h3>Sesi Ad-Hoc / Pengganti</h3>
-                <p class="desc">Untuk kegiatan mengajar <strong>di luar jadwal rutin</strong> — kelas pengganti, sesi tambahan, atau kegiatan insidental.</p>
+                <h3>Sesi Khusus (Non-Jadwal)</h3>
+                <p class="desc">Untuk kegiatan insidental <strong>di luar program ekskul rutin</strong> — seperti workshop kilat, pendampingan event sekolah, juri lomba, atau sosialisasi.</p>
 
                 <ol class="steps-list">
-                    <li>Buka menu <strong>Laporan Ad-Hoc / Pengganti</strong> di sidebar navigasi.</li>
-                    <li>Pada kolom kategori, pilih jenis <strong>"Ad-Hoc / Sesi Pengganti"</strong>.</li>
-                    <li>Pilih Sekolah, Rombel, dan tanggal pelaksanaan sesi <strong>secara manual</strong>.</li>
-                    <li>Isi seluruh detail materi pembelajaran, absensi kehadiran siswa, dan foto dokumentasi kegiatan.</li>
+                    <li>Buka menu <strong>Laporan Khusus (Non-Jadwal)</strong> di sidebar navigasi.</li>
+                    <li>Pada kolom kategori, pilih jenis kegiatan khusus / non-jadwal yang sesuai.</li>
+                    <li>Pilih Sekolah dan tanggal pelaksanaan kegiatan <strong>secara manual</strong>.</li>
+                    <li>Isi ringkasan materi, jumlah peserta hadir, evaluasi, dan foto dokumentasi kegiatan.</li>
                     <li>Tekan tombol <strong>Simpan Laporan</strong> untuk mengirim data.</li>
                 </ol>
 
                 <div class="path-tip path-tip--amber">
                     <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1"></i>
-                    <span>Gunakan hanya saat sesi <strong>tidak ditemukan</strong> di Agenda Sesi Rutin.</span>
+                    <span><strong>PENTING:</strong> Jika Anda menggantikan guru lain (inval) atau kelas susulan ekskul, <strong>tetap gunakan Jalur 1 (Agenda Sesi Rutin)</strong> agar rekap rombel tidak rusak.</span>
                 </div>
             </div>
 
@@ -787,8 +787,8 @@
                     'a' => '<strong>WAJIB SEBELUM KELAS DIMULAI (Saat Baru Tiba di Sekolah)</strong>.<br>Check-in bertujuan mencatat <em>jam kedatangan fisik</em> Anda di lokasi sekolah. <strong class="text-danger">Jangan melakukan check-in setelah kelas selesai atau bersamaan saat mengisi laporan</strong>, karena sistem akan membaca Anda terlambat hadir selama durasi kelas (misal terlambat 60–90 menit) dan otomatis memicu status penalti denda keterlambatan.',
                 ],
                 [
-                    'q' => 'Kapan saya harus menggunakan Jalur Rutin vs Jalur Ad-Hoc?',
-                    'a' => 'Gunakan <strong>Jalur Rutin</strong> (via menu <em>Jadwal Sesi &amp; Laporan</em> atau tombol langsung di Dashboard) untuk seluruh pertemuan yang sudah memiliki jadwal mingguan resmi. Gunakan <strong>Jalur Ad-Hoc</strong> (menu <em>Laporan Ad-Hoc / Pengganti</em>) hanya jika Anda mengajar kelas pengganti atau kegiatan insidental yang jadwalnya belum terdaftar di Agenda Sesi Rutin.',
+                    'q' => 'Kapan saya harus menggunakan Jalur Rutin vs Jalur Laporan Khusus (Non-Jadwal)?',
+                    'a' => 'Gunakan <strong>Jalur Rutin</strong> (via menu <em>Jadwal Sesi &amp; Laporan</em> atau tombol langsung di Dashboard) untuk seluruh pertemuan program ekskul resmi, <strong>termasuk jika Anda menggantikan instruktur lain (inval) atau mengajar kelas susulan/reschedule</strong> agar data kehadiran rombel tetap utuh.<br><br>Gunakan <strong>Jalur Laporan Khusus (Non-Jadwal)</strong> HANYA jika Anda ditugaskan mengajar kegiatan insidental yang memang tidak memiliki rombel resmi (contoh: Workshop Kilat, Juri Lomba, Sosialisasi Sales, atau Pameran).',
                 ],
                 [
                     'q' => 'Mengapa tombol "Check-in Hadir" nonaktif / berstatus "Check-in dibuka HH:ii WIB"?',

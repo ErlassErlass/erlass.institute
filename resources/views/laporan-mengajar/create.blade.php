@@ -37,17 +37,17 @@
                     <div class="d-flex align-items-start">
                         <i class="fas fa-info-circle fa-2x me-3 text-warning mt-1"></i>
                         <div>
-                            <h5 class="alert-heading fw-bold mb-1">Laporan Mengajar Tambahan / Ad-Hoc</h5>
+                            <h5 class="alert-heading fw-bold mb-1">Laporan Mengajar Khusus (Non-Jadwal)</h5>
                             <p class="mb-1">
-                                Halaman ini digunakan untuk mencatat kegiatan mengajar <strong>di luar jadwal rutin ekskul</strong>, seperti:
+                                Halaman ini digunakan khusus untuk mencatat penugasan kegiatan <strong>di luar program ekskul rutin</strong> yang tidak memiliki rombel resmi, seperti:
                             </p>
                             <ul class="mb-1">
                                 <li>Kegiatan <strong>Inkul</strong> (Inkul Coding Scratch, Inkul LMS, Inkul LKPD, dll.)</li>
-                                <li>Pameran, Trial Class, Pendampingan Lomba, Sosialisasi bersama Sales</li>
+                                <li>Pameran Sekolah, Workshop Kilat, Pendampingan Lomba, atau Sosialisasi bersama Sales</li>
                             </ul>
                             <p class="mb-0 text-muted small">
                                 <i class="fas fa-exclamation-triangle me-1"></i>
-                                Untuk laporan <strong>kelas ekskul terjadwal</strong>, silakan buka menu <strong>Jadwal Mengajar</strong> dari Dashboard.
+                                <strong>PENTING:</strong> Untuk seluruh program ekskul reguler (<strong>termasuk jika menggantikan instruktur lain/inval atau kelas susulan</strong>), silakan buka menu <strong>Jadwal Sesi &amp; Laporan</strong> agar rekap rombel tidak terpisah.
                             </p>
                         </div>
                     </div>
@@ -60,10 +60,10 @@
                             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                                 <div>
                                     <span class="fw-bold text-dark"><i class="bi bi-clock-history me-1 text-warning"></i> Tanggal Mengajar Lewat H+1?</span>
-                                    <p class="text-muted small mb-0">Ajukan permohonan buka akses Ad-Hoc tanggal lampau ke Admin (Kuota tersisa: <strong>{{ Auth::user()->monthly_late_report_quota }}x</strong> bulan ini).</p>
+                                    <p class="text-muted small mb-0">Ajukan permohonan buka akses kegiatan khusus tanggal lampau ke Admin (Kuota tersisa: <strong>{{ Auth::user()->monthly_late_report_quota }}x</strong> bulan ini).</p>
                                 </div>
                                 <button type="button" class="btn btn-sm btn-outline-warning fw-bold" data-bs-toggle="modal" data-bs-target="#adhocRequestModal">
-                                    <i class="bi bi-send me-1"></i> Minta Akses Ad-Hoc
+                                    <i class="bi bi-send me-1"></i> Minta Akses Khusus
                                 </button>
                             </div>
                         </div>
@@ -303,11 +303,11 @@ document.addEventListener('DOMContentLoaded', function() {
             <form action="{{ route('laporan-mengajar.adhoc-late-request.store') }}" method="POST">
                 @csrf
                 <div class="modal-header bg-warning text-dark border-0">
-                    <h5 class="modal-title fw-bold" id="adhocRequestModalLabel"><i class="bi bi-hourglass-split me-2"></i>Permohonan Buka Akses Ad-Hoc</h5>
+                    <h5 class="modal-title fw-bold" id="adhocRequestModalLabel"><i class="bi bi-hourglass-split me-2"></i>Permohonan Buka Akses Laporan Khusus</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <p class="small text-muted mb-3">Gunakan form ini untuk mengajukan permohonan ke Admin jika Anda perlu membuat <strong>Laporan Ad-Hoc (Luar Jadwal)</strong> untuk tanggal kegiatan yang telah melewati batas <strong>H+1</strong>.</p>
+                    <p class="small text-muted mb-3">Gunakan form ini untuk mengajukan permohonan ke Admin jika Anda perlu membuat <strong>Laporan Khusus (Non-Jadwal)</strong> untuk tanggal kegiatan yang telah melewati batas <strong>H+1</strong>.</p>
                     
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-muted">Tanggal Kegiatan</label>
@@ -315,7 +315,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span class="input-group-text bg-light"><i class="bi bi-calendar-date"></i></span>
                             <input type="text" name="adhoc_date" class="form-control datepicker @error('adhoc_date') is-invalid @enderror" placeholder="dd/mm/yyyy" required value="{{ old('adhoc_date', date('d/m/Y', strtotime('-2 days'))) }}">
                         </div>
-                        <div class="form-text">Pilih tanggal kegiatan Ad-Hoc yang telah lewat H+1.</div>
+                        <div class="form-text">Pilih tanggal kegiatan khusus yang telah lewat H+1.</div>
                     </div>
 
                     <div class="mb-3">

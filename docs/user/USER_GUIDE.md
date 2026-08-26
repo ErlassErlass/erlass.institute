@@ -118,8 +118,8 @@ Instruktur bertugas melaksanakan kegiatan pengajaran dan pelaporan di sekolah mi
 *   **Proteksi Anti-Fake GPS & Anti-Spoofing**: Sistem memverifikasi sinyal satelit GPS asli (`enableHighAccuracy: true`) dan mendeteksi anomali akurasi tiruan (`0m`) atau perpindahan mustahil (*teleportation*), yang akan otomatis ditandai untuk pemeriksaan tim QC Admin.
 
 ### 3. Pembuatan Laporan Mengajar & Absensi Sesi (Impeccable UI)
-*   **Jalur 1 — Sesi Rutin (Agenda Sesi)**: Masuk ke menu Agenda Kegiatan $\rightarrow$ Detail Sesi $\rightarrow$ Check-in GPS $\rightarrow$ Klik **"Buat Laporan & Absensi"** (`/ekstrakurikuler/sessions/{id}/report/create`).
-*   **Jalur 2 — Sesi Ad-Hoc / Pengganti**: Jika jadwal tidak ada di agenda rutin, buka menu *Buat Laporan Mengajar* $\rightarrow$ Pilih Kategori *Ad-Hoc / Sesi Pengganti* $\rightarrow$ Isi detail manual.
+*   **Jalur 1 — Sesi Rutin (Agenda Sesi)**: Masuk ke menu Agenda Kegiatan $\rightarrow$ Detail Sesi $\rightarrow$ Check-in GPS $\rightarrow$ Klik **"Buat Laporan & Absensi"** (`/ekstrakurikuler/sessions/{id}/report/create`). Wajib digunakan untuk seluruh kegiatan ekskul resmi, **termasuk jika menggantikan instruktur lain (inval) atau kelas susulan/reschedule**.
+*   **Jalur 2 — Sesi Khusus / Non-Jadwal**: Buka menu **Laporan Khusus (Non-Jadwal)** (`/laporan-mengajar/create`) $\rightarrow$ HANYA untuk penugasan insidental non-rombel (seperti Workshop Kilat, Juri Lomba, Pameran, atau Sosialisasi).
 *   **Tampilan & Alur Baru Impeccable**:
     *   **Glassmorphic Hero Banner**: Menampilkan ringkasan informasi sekolah, rombel, tanggal, dan jam mengajar secara kontras dan jelas.
     *   **Stepper Progress 4-Step**: Pemantau progresis bentuk langkah (*1. Detail Kegiatan → 2. Absensi Siswa → 3. Evaluasi → 4. Submit*).
