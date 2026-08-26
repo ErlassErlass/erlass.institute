@@ -941,8 +941,28 @@
     </div>
 </div>
 
+@php
+    $ekskulModel = $session->ekstrakurikuler ?: $session->rombel?->ekstrakurikuler;
+    $targetSchoolCoords = null;
+    if ($ekskulModel) {
+        $targetSchoolCoords = $ekskulModel->getOrExtractCoordinates();
+    }
+    if (!$targetSchoolCoords && $ekskulModel?->sekolah && !empty($ekskulModel->sekolah->latitude) && !empty($ekskulModel->sekolah->longitude)) {
+        $targetSchoolCoords = [
+            'lat' => (float) $ekskulModel->sekolah->latitude,
+            'lng' => (float) $ekskulModel->sekolah->longitude,
+        ];
+    }
+    $targetSchoolName = $ekskulModel?->sekolah?->namasekolah ?? 'Sekolah';
+    $targetSchoolLat = $targetSchoolCoords ? (float) $targetSchoolCoords['lat'] : null;
+    $targetSchoolLng = $targetSchoolCoords ? (float) $targetSchoolCoords['lng'] : null;
+@endphp
+
 <!-- Modal GPS Check-in (Live Camera & GPS Location) -->
-<div class="modal fade" id="gpsCheckinModal" tabindex="-1" aria-labelledby="gpsCheckinModalLabel" aria-hidden="true">
+<div class="modal fade" id="gpsCheckinModal" tabindex="-1" aria-labelledby="gpsCheckinModalLabel" aria-hidden="true"
+     data-school-lat="{{ $targetSchoolLat !== null ? $targetSchoolLat : '' }}"
+     data-school-lng="{{ $targetSchoolLng !== null ? $targetSchoolLng : '' }}"
+     data-school-name="{{ e($targetSchoolName) }}">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
             <div class="modal-header bg-primary text-white">
@@ -1209,66 +1229,205 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ─── GPS check-in modal ───
+    // ─── GPS Distance & Check-in Modal ───
+    function calculateHaversineDistanceMeters(lat1, lon1, lat2, lon2) {
+        const R = 6371000; // Radius bumi dalam meter
+        const toRad = deg => (deg * Math.PI) / 180;
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return Math.round(R * c);
+    }
+
+    window.triggerGpsDetection = function() {
+        const modalEl = document.getElementById('gpsCheckinModal');
+        if (!modalEl) return;
+
+        const statusAlert = document.getElementById('gpsStatusAlert');
+        const statusText = document.getElementById('gpsStatusText');
+        const spinner = document.getElementById('gpsSpinner');
+        const btnSubmit = document.getElementById('btnSubmitCheckin');
+
+        const schoolLatRaw = modalEl.dataset.schoolLat;
+        const schoolLngRaw = modalEl.dataset.schoolLng;
+        const schoolName = modalEl.dataset.schoolName || 'Sekolah';
+        const hasSchoolCoords = schoolLatRaw !== '' && schoolLngRaw !== '';
+        const schoolLat = hasSchoolCoords ? parseFloat(schoolLatRaw) : null;
+        const schoolLng = hasSchoolCoords ? parseFloat(schoolLngRaw) : null;
+
+        statusAlert.className = 'alert alert-info d-flex align-items-center gap-2 mb-3';
+        if (spinner) spinner.style.display = 'inline-block';
+        statusText.innerHTML = '<span class="small fw-semibold">Mendeteksi titik lokasi GPS HP Anda...</span>';
+        if (btnSubmit) btnSubmit.disabled = true;
+
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+
+                    document.getElementById('checkin_lat').value = lat;
+                    document.getElementById('checkin_lng').value = lng;
+                    document.getElementById('checkin_accuracy').value = accuracy ? accuracy.toFixed(2) : '';
+                    document.getElementById('checkin_device_info').value = navigator.userAgent;
+
+                    // Heuristik Deteksi Fake GPS
+                    let isMockSuspected = false;
+                    let mockReason = '';
+
+                    if (accuracy === 0) {
+                        isMockSuspected = true;
+                        mockReason = 'Akurasi GPS 0m (anomali)';
+                    }
+
+                    if (isMockSuspected) {
+                        document.getElementById('checkin_mock_suspected').value = '1';
+                    }
+
+                    const acc = accuracy ? Math.round(accuracy) + 'm' : '?';
+                    const accBadge = `<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle" style="font-size:.7rem;"><i class="bi bi-broadcast me-1"></i>Akurasi: ±${acc}</span>`;
+
+                    if (spinner) spinner.style.display = 'none';
+
+                    let distance = null;
+                    let distanceFormatted = '';
+                    let isWithinRadius = true;
+
+                    if (schoolLat !== null && schoolLng !== null && !isNaN(schoolLat) && !isNaN(schoolLng)) {
+                        distance = calculateHaversineDistanceMeters(lat, lng, schoolLat, schoolLng);
+                        if (distance < 1000) {
+                            distanceFormatted = `${distance} meter`;
+                        } else {
+                            distanceFormatted = `${(distance / 1000).toFixed(2)} km (${distance.toLocaleString('id-ID')} m)`;
+                        }
+                        isWithinRadius = distance <= 500;
+                    }
+
+                    let statusHtml = '';
+
+                    if (schoolLat !== null && schoolLng !== null && !isNaN(schoolLat) && !isNaN(schoolLng)) {
+                        if (isWithinRadius) {
+                            statusAlert.className = 'alert alert-success border border-success border-opacity-25 rounded-3 p-3 mb-3 shadow-sm';
+                            statusHtml = `
+                                <div class="w-100">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                                        <div class="fw-bold text-success d-flex align-items-center gap-1.5">
+                                            <i class="bi bi-geo-alt-fill text-success fs-5"></i>
+                                            <span>Dalam Radius Sekolah (🟢 Terverifikasi)</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-1.5">
+                                            <span class="badge bg-success text-white px-2 py-1 rounded-pill" style="font-size: 0.72rem;">
+                                                <i class="bi bi-check2-circle me-1"></i>Radius Aman (&le; 500m)
+                                            </span>
+                                            <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill" onclick="triggerGpsDetection()" title="Refresh Lokasi GPS" style="font-size: 0.72rem;">
+                                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="p-2.5 rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25 mt-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-secondary small"><i class="bi bi-building me-1"></i>Tujuan: <strong>${schoolName}</strong></span>
+                                            <span class="fw-bold text-success fs-6"><i class="bi bi-signpost-2 me-1"></i>${distanceFormatted}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center text-muted mt-1.5 pt-1.5 border-top border-success border-opacity-25" style="font-size: 0.74rem;">
+                                            <span><i class="bi bi-pin-map me-1"></i>Titik Anda: ${lat.toFixed(5)}, ${lng.toFixed(5)}</span>
+                                            ${accBadge}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            statusAlert.className = 'alert alert-warning border border-warning border-opacity-50 rounded-3 p-3 mb-3 shadow-sm';
+                            statusHtml = `
+                                <div class="w-100">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                                        <div class="fw-bold text-warning-emphasis d-flex align-items-center gap-1.5">
+                                            <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+                                            <span>Di Luar Radius Sekolah (⚠️ ${distanceFormatted})</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-1.5">
+                                            <span class="badge bg-warning text-dark px-2 py-1 rounded-pill" style="font-size: 0.72rem;">
+                                                > 500m dari Titik
+                                            </span>
+                                            <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2 rounded-pill" onclick="triggerGpsDetection()" title="Refresh Lokasi GPS" style="font-size: 0.72rem;">
+                                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="p-2.5 rounded-3 bg-warning bg-opacity-10 border border-warning border-opacity-25 mt-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-secondary small"><i class="bi bi-building me-1"></i>Tujuan: <strong>${schoolName}</strong></span>
+                                            <span class="fw-bold text-danger fs-6"><i class="bi bi-signpost-2 me-1"></i>${distanceFormatted}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center text-muted mt-1.5 pt-1.5 border-top border-warning border-opacity-25" style="font-size: 0.74rem;">
+                                            <span><i class="bi bi-pin-map me-1"></i>Titik Anda: ${lat.toFixed(5)}, ${lng.toFixed(5)}</span>
+                                            ${accBadge}
+                                        </div>
+                                        <div class="small text-muted mt-1.5 pt-1 border-top border-warning border-opacity-25" style="font-size: 0.72rem; line-height: 1.35;">
+                                            <i class="bi bi-info-circle me-1 text-warning"></i>Jika Anda sudah berada di lokasi sekolah, titik sekolah mungkin bergeser dan akan dikalibrasi Admin. Presensi tetap dapat dikirim.
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        statusAlert.className = 'alert alert-info border border-info border-opacity-25 rounded-3 p-3 mb-3 shadow-sm';
+                        statusHtml = `
+                            <div class="w-100">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                                    <div class="fw-bold text-info-emphasis d-flex align-items-center gap-1.5">
+                                        <i class="bi bi-check-circle-fill text-info fs-5"></i>
+                                        <span>Lokasi GPS Anda Terdeteksi!</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-info py-0 px-2 rounded-pill" onclick="triggerGpsDetection()" title="Refresh Lokasi GPS" style="font-size: 0.72rem;">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                                    </button>
+                                </div>
+                                <div class="small text-muted mt-1">Titik Anda: Lat ${lat.toFixed(5)}, Lng ${lng.toFixed(5)} ${accBadge}</div>
+                                <div class="small text-secondary mt-1" style="font-size: 0.74rem;"><i class="bi bi-info-circle me-1"></i>Titik koordinat sekolah belum diset oleh Admin. Presensi Anda tetap akan tercatat.</div>
+                            </div>
+                        `;
+                    }
+
+                    if (isMockSuspected) {
+                        statusHtml += `<div class="small text-danger mt-2 fw-semibold p-2 bg-danger bg-opacity-10 rounded-2 border border-danger border-opacity-25"><i class="bi bi-shield-slash me-1"></i>Perhatian: Terdeteksi sinyal anomali (${mockReason}).</div>`;
+                    }
+
+                    statusText.innerHTML = statusHtml;
+                    if (btnSubmit) btnSubmit.disabled = false;
+                },
+                function (error) {
+                    if (spinner) spinner.style.display = 'none';
+                    statusAlert.className = 'alert alert-warning border border-warning border-opacity-50 rounded-3 p-3 mb-3 shadow-sm';
+                    statusText.innerHTML = `
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 w-100">
+                            <div class="small text-dark fw-semibold">
+                                <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> Gagal Membaca GPS: ${error.message}. Pastikan izin lokasi aktif.
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2 rounded-pill" onclick="triggerGpsDetection()" style="font-size: 0.72rem;">
+                                <i class="bi bi-arrow-clockwise"></i> Coba Lagi
+                            </button>
+                        </div>
+                    `;
+                    if (btnSubmit) btnSubmit.disabled = false;
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            );
+        } else {
+            if (spinner) spinner.style.display = 'none';
+            statusAlert.className = 'alert alert-danger border border-danger border-opacity-50 rounded-3 p-3 mb-3 shadow-sm';
+            statusText.innerHTML = 'Browser Anda tidak mendukung Geolocation GPS.';
+        }
+    };
+
     const modalEl = document.getElementById('gpsCheckinModal');
     if (modalEl) {
         modalEl.addEventListener('shown.bs.modal', function () {
-            const statusAlert = document.getElementById('gpsStatusAlert');
-            const statusText = document.getElementById('gpsStatusText');
-            const spinner = document.getElementById('gpsSpinner');
-
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(
-                    function (position) {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        const accuracy = position.coords.accuracy;
-
-                        document.getElementById('checkin_lat').value = lat;
-                        document.getElementById('checkin_lng').value = lng;
-                        document.getElementById('checkin_accuracy').value = accuracy ? accuracy.toFixed(2) : '';
-                        document.getElementById('checkin_device_info').value = navigator.userAgent;
-
-                        // Heuristik Deteksi Fake GPS
-                        let isMockSuspected = false;
-                        let mockReason = '';
-
-                        if (accuracy === 0) {
-                            isMockSuspected = true;
-                            mockReason = 'Akurasi GPS 0m (anomali)';
-                        }
-
-                        if (isMockSuspected) {
-                            document.getElementById('checkin_mock_suspected').value = '1';
-                        }
-
-                        const acc = accuracy ? Math.round(accuracy) + 'm' : '?';
-                        const accBadge = ` <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:.7rem;"><i class="bi bi-broadcast me-1"></i>Akurasi: ±${acc}</span>`;
-
-                        statusAlert.className = isMockSuspected ? 'alert alert-warning d-flex align-items-center gap-2 mb-3' : 'alert alert-success d-flex align-items-center gap-2 mb-3';
-                        spinner.style.display = 'none';
-
-                        let statusHtml = '<div class="w-100"><div class="fw-bold"><i class="bi bi-check-circle-fill text-success me-1"></i> Lokasi GPS Terdeteksi!</div><div class="small text-muted mt-0.5">Lat: ' + lat.toFixed(5) + ', Lng: ' + lng.toFixed(5) + accBadge + '</div>';
-                        if (isMockSuspected) {
-                            statusHtml += `<div class="small text-danger mt-1 fw-semibold"><i class="bi bi-shield-slash me-1"></i>Perhatian: Terdeteksi sinyal anomali (${mockReason}).</div>`;
-                        }
-                        statusHtml += '</div>';
-                        statusText.innerHTML = statusHtml;
-                        btnSubmit.disabled = false;
-                    },
-                    function (error) {
-                        spinner.style.display = 'none';
-                        statusAlert.className = 'alert alert-warning d-flex align-items-center gap-2 mb-3';
-                        statusText.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Gagal GPS: ' + error.message + '. Silakan pastikan GPS HP aktif.';
-                        btnSubmit.disabled = false;
-                    },
-                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-                );
-            } else {
-                spinner.style.display = 'none';
-                statusAlert.className = 'alert alert-danger d-flex align-items-center gap-2 mb-3';
-                statusText.innerHTML = 'Browser Anda tidak mendukung Geolocation GPS.';
-            }
+            window.triggerGpsDetection();
         });
     }
 });
