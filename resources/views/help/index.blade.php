@@ -450,9 +450,17 @@
         <h1>Cara Membuat Laporan Mengajar</h1>
         <p>Panduan langkah demi langkah untuk seluruh instruktur Erlass Institute — jalur Rutin via Agenda Sesi, jalur Ad-Hoc, detail komponen wajib laporan, dan jawaban atas pertanyaan yang paling sering diajukan.</p>
 
-        <div class="help-search-wrap">
-            <i class="bi bi-search"></i>
-            <input type="text" id="faqSearchInput" placeholder="Cari di FAQ (misal: GPS, terlambat, foto, gaji...)" autocomplete="off" aria-label="Cari FAQ">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <div class="help-search-wrap flex-grow-1" style="max-width: 480px;">
+                <i class="bi bi-search"></i>
+                <input type="text" id="faqSearchInput" placeholder="Cari di FAQ (misal: GPS, terlambat, foto, gaji, KPI...)" autocomplete="off" aria-label="Cari FAQ">
+            </div>
+            @if(Auth::check())
+            <a href="{{ route('dashboard') }}?trigger_tour=1" class="btn btn-primary d-inline-flex align-items-center gap-2 px-3 py-2 fw-bold text-white rounded-3 shadow-sm border-0" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); height: 42px;">
+                <i class="bi bi-compass-fill"></i>
+                <span>Mulai Tur Interaktif</span>
+            </a>
+            @endif
         </div>
     </div>
 
@@ -568,8 +576,8 @@
             <div class="comp-item">
                 <div class="comp-icon" style="background:#fdf4ff;color:#7e22ce;"><i class="bi bi-file-earmark-zip-fill"></i></div>
                 <div>
-                    <h6>File Project <span class="comp-required">Wajib</span></h6>
-                    <p>Unggah file karya siswa (.sb3 Scratch, Micro:bit, Python, PDF) di akhir setiap pertemuan sebagai bukti hasil kegiatan belajar.</p>
+                    <h6>File Project Siswa <span class="comp-required">Wajib</span></h6>
+                    <p>Unggah file hasil karya siswa per sesi (Scratch <code>.sb3</code>, Micro:bit <code>.hex</code>, Python <code>.py</code>, atau <code>.pdf</code>/<code>.zip</code>, maks 20 MB) sebagai bukti artefak portofolio belajar siswa.</p>
                 </div>
             </div>
             <div class="comp-item">
@@ -833,6 +841,23 @@
                 [
                     'q' => 'Berapa batas maksimal siswa per rombel dan kapan wajib menggunakan asisten?',
                     'a' => 'Setiap rombel ekstrakurikuler memiliki kapasitas maksimal <strong>30 orang siswa</strong>. Apabila jumlah siswa dalam satu rombel mencapai <strong>24 orang atau lebih (≥ 24 siswa)</strong>, maka kegiatan mengajar <strong>wajib didampingi oleh 1 orang Asisten Instruktur</strong> guna menjaga efektivitas kelas, bimbingan teknis, dan keamanan belajar.',
+                ],
+                [
+                    'q' => 'Bagaimana sistem menghitung Skor KPI Ketepatan Waktu (Punctuality KPI) di Dashboard?',
+                    'a' => 'Sistem menggunakan evaluasi terpisah yang adil dan transparan antara kehadiran fisik dan administrasi:<br>' .
+                           '1. <strong>Kehadiran di Lokasi (Presensi Check-in GPS)</strong>: Dihitung tepat waktu jika check-in GPS dilakukan antara <em>30 menit sebelum jadwal sesi</em> hingga <em>toleransi 14 menit</em> setelah jam mulai sesi.<br>' .
+                           '2. <strong>Ketepatan Submit Laporan (SLA H+1)</strong>: Laporan wajib diisi maksimal 24 jam (H+1) setelah sesi selesai.<br>' .
+                           '<strong class="text-success">Catatan Penting:</strong> Mengisi dan menyimpan laporan mengajar di sore atau malam hari setelah kelas usai <u>TIDAK AKAN</u> membuat Anda dicap <em>Late Arrival</em>, karena waktu check-in fisik di sekolah dicatat secara independen saat Anda baru tiba di sekolah.<br>' .
+                           '<strong>Kategori Skor KPI</strong>: <code>≥ 90%</code> (Sangat Disiplin 🟢), <code>75–89%</code> (Disiplin 🔵), <code>60–74%</code> (Cukup Disiplin 🟡), dan <code>&lt; 60%</code> (Perlu Evaluasi 🔴).',
+                ],
+                [
+                    'q' => 'Apa saja format dan batasan ukuran file karya siswa (File Project) yang didukung?',
+                    'a' => 'Sistem mendukung berbagai format file karya ekstrakurikuler dengan batas maksimal <strong>20 MB per file</strong>:<br>' .
+                           '• <strong>Coding Scratch</strong>: <code>.sb3</code><br>' .
+                           '• <strong>Robotic / Micro:bit / Arduino</strong>: <code>.hex</code>, <code>.ino</code>, <code>.cpp</code><br>' .
+                           '• <strong>Python / Web / AI</strong>: <code>.py</code>, <code>.ipynb</code>, <code>.html</code>, <code>.zip</code><br>' .
+                           '• <strong>English Course / Desain / Karya Lain</strong>: <code>.pdf</code>, <code>.docx</code>, <code>.png</code>, <code>.jpg</code>, <code>.zip</code><br>' .
+                           'File tersimpan otomatis secara aman di cloud storage Erlass dan langsung tertaut di lembar portofolio digital sekolah mitra.',
                 ],
             ];
             @endphp

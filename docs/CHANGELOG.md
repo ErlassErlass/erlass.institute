@@ -9,7 +9,10 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Perbaikan Bug Fatal Kalkulasi Ketepatan Kehadiran (*Late Arrival Bug*) di `PunctualityKpiService`**:
   - **Akar Masalah**: Sistem sebelumnya mengevaluasi waktu kedatangan di sekolah dengan membandingkan jam pembuatan laporan mengajar (`$laporan->created_at->format('H:i:s')`) dengan jam mulai sesi terjadwal (`$session->jam_mulai_terjadwal + 15 menit`). Karena seluruh instruktur baru mengisi dan menyimpan laporan setelah kelas usai (misal pukul 12:00, 16:00, atau malam hari), seluruh laporan valid secara keliru terdeteksi sebagai *"Late Arrival"*, mengakibatkan skor KPI personal dan leaderboard anjlok menjadi `0% (Perlu Evaluasi)`.
   - **Solusi & Sinkronisasi Data**: Memperbaiki logika evaluasi kehadiran di `getPersonalKpi()` agar membaca langsung data check-in GPS aktual dari sesi (`$session->actual_checkin_status`, `$session->jam_mulai_aktual`, dan `$session->actual_checkin_penalty`).
-  - **Hasil**: Skor KPI instruktur (seperti Kak Abu Anip pada Tiket `TCK-202608-0003`) langsung pulih dari **0% $\rightarrow$ 95% (Sangat Disiplin)** dengan 21 sesi Sempurna / On Time dan 0 Late Arrival, serta seluruh leaderboard instruktur kembali 100% akurat dan proporsional.
+- **Penyempurnaan Pusat Bantuan & FAQ (`/help`)**:
+  - **Tombol Spotlight Tour**: Menambahkan tombol pemicu *"🎯 Mulai Tur Interaktif"* di Hero banner untuk akses cepat memulai tur visual aplikasi langkah demi langkah.
+  - **FAQ Evaluasi KPI Personal**: Menambahkan penjelasan transparan mengenai formula skor kedisiplinan (memisahkan waktu check-in fisik di sekolah dan SLA submit laporan H+1).
+  - **Spesifikasi Berkas Proyek Siswa**: Menjelaskan batasan ukuran file (maksimal 20 MB) dan format ekstensi yang didukung (`.sb3`, `.hex`, `.py`, `.ipynb`, `.pdf`, `.zip`).
 
 ## [2.9.9] - 2026-08-24
 
