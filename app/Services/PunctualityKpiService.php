@@ -55,19 +55,22 @@ class PunctualityKpiService
             $deadlineHPlus1 = $jadwalDate->copy()->addDay()->endOfDay();
             $isReportOnTime = $createdAt->lte($deadlineHPlus1);
 
-            // Indikator 1: Kehadiran di sekolah (Jam Mulai + 15 mins tolerance)
+            // Indikator 1: Kehadiran di sekolah (Presensi Check-in GPS Sesi)
             $isArrivalOnTime = true;
-            if ($session && $session->jam_mulai_terjadwal) {
-                try {
-                    $jamMulai = Carbon::parse($session->jam_mulai_terjadwal);
-                    $checkInTime = $laporan->created_at->format('H:i:s'); // Or arrival check-in timestamp if recorded
-                    // Toleransi 15 menit
-                    $maxArrival = $jamMulai->copy()->addMinutes(15);
-                    $actualArrival = Carbon::parse($checkInTime);
-                    if ($actualArrival->gt($maxArrival) && $createdAt->isSameDay($jadwalDate)) {
-                        $isArrivalOnTime = false;
-                    }
-                } catch (\Throwable $e) {}
+            if ($session) {
+                if ($session->actual_checkin_penalty > 0 || $session->actual_checkin_status === 'terlambat') {
+                    $isArrivalOnTime = false;
+                } elseif ($session->jam_mulai_aktual && $session->jam_mulai_terjadwal) {
+                    try {
+                        $sched = Carbon::parse($session->jam_mulai_terjadwal);
+                        $act = Carbon::parse($session->jam_mulai_aktual);
+                        $diffMinutes = $sched->diffInMinutes($act, false);
+                        // Toleransi 15 menit dari jam mulai sesi
+                        if ($diffMinutes > 15) {
+                            $isArrivalOnTime = false;
+                        }
+                    } catch (\Throwable $e) {}
+                }
             }
 
             if ($isReportOnTime && $isArrivalOnTime) {

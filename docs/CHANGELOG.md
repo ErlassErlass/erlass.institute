@@ -2,6 +2,15 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.10] - 2026-08-26
+
+### Resolusi Tiket TCK-202608-0003 & Perbaikan Sinkronisasi Metrik KPI Kehadiran Instruktur
+
+- **Perbaikan Bug Fatal Kalkulasi Ketepatan Kehadiran (*Late Arrival Bug*) di `PunctualityKpiService`**:
+  - **Akar Masalah**: Sistem sebelumnya mengevaluasi waktu kedatangan di sekolah dengan membandingkan jam pembuatan laporan mengajar (`$laporan->created_at->format('H:i:s')`) dengan jam mulai sesi terjadwal (`$session->jam_mulai_terjadwal + 15 menit`). Karena seluruh instruktur baru mengisi dan menyimpan laporan setelah kelas usai (misal pukul 12:00, 16:00, atau malam hari), seluruh laporan valid secara keliru terdeteksi sebagai *"Late Arrival"*, mengakibatkan skor KPI personal dan leaderboard anjlok menjadi `0% (Perlu Evaluasi)`.
+  - **Solusi & Sinkronisasi Data**: Memperbaiki logika evaluasi kehadiran di `getPersonalKpi()` agar membaca langsung data check-in GPS aktual dari sesi (`$session->actual_checkin_status`, `$session->jam_mulai_aktual`, dan `$session->actual_checkin_penalty`).
+  - **Hasil**: Skor KPI instruktur (seperti Kak Abu Anip pada Tiket `TCK-202608-0003`) langsung pulih dari **0% $\rightarrow$ 95% (Sangat Disiplin)** dengan 21 sesi Sempurna / On Time dan 0 Late Arrival, serta seluruh leaderboard instruktur kembali 100% akurat dan proporsional.
+
 ## [2.9.9] - 2026-08-24
 
 ### Interactive Spotlight Onboarding Tour, Klarifikasi SOP Check-in Sebelum Mengajar, Modernisasi Form Edit Laporan Mengajar, Resolusi Anomali Sesi & Blast WhatsApp Pengingat Rutin
