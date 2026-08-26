@@ -16,6 +16,9 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Penyelarasan Metrik Statistik Dashboard (`total_rombel` & `total_sekolah`)**:
   - Menyempurnakan filter statistik di `DashboardController.php` agar secara ketat hanya menghitung **Program Ekstrakurikuler Resmi yang Aktif (`Ekskul %`)** (`336 Rombel` & `180 Sekolah Mitra`).
   - Mengeliminasi polusi data dari event non-ekskul seperti *Free Trial Class*, *Sosialisasi Sales*, dan *Laporan Ad-hoc* dari kartu ringkasan utama.
+- **Audit Forensik Kesehatan Sistem & Perbaikan Engine Peringatan (`warnings:detect`)**:
+  - Melakukan audit forensik mendalam terhadap 26 indikator ketahanan produksi (Redis Session/Cache, MySQL Latency, Failed Jobs 0, Anti-Deadlock, CORS, Cookie Security, Memory Safety, dan Anti-Duplicate Data).
+  - Memperbarui skema kolom `warnings.warning_type` menjadi `VARCHAR(50) NOT NULL` untuk mendukung pendeteksian anomali `rombel_hold` (< 8 siswa) secara otomatis via console scheduler tanpa *data truncation error*.
 
 ## [2.9.9] - 2026-08-24
 

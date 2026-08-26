@@ -248,11 +248,12 @@ Hasil build akan masuk ke folder `public/build/`.
     *   Sertifikat hanya diterbitkan jika siswa memiliki tingkat kehadiran &ge; 75% saat kelas difinalisasi (`finalized_at`).
     *   Setiap sertifikat memiliki kode unik dan QR Code publik yang diverifikasi melalui rute `/verify/certificate/{code}` tanpa perlu login.
 
-### 10. Warning QC Engine (Fase 3)
+### 10. Warning QC Engine (Fase 3 & Updated v2.9.10)
 *   **Console Command**: `App\Console\Commands\DetectWarnings` (`warnings:detect`)
-*   **Logic**: Berjalan otomatis via scheduler untuk mendeteksi 6 jenis anomali akademik:
-    *   Merah: Jadwal besok tanpa instruktur utama, jadwal hari ini belum terkonfirmasi, kelas selesai tapi belum dilaporkan > 24 jam.
-    *   Kuning: Kehadiran siswa < 70%, request reschedule rombel > 3 kali, progres belajar tertinggal dari time-frame.
+*   **Database Schema**: Tabel `warnings.warning_type` dikonfigurasi sebagai `VARCHAR(50) NOT NULL` untuk fleksibilitas tipe anomali tanpa risiko *data truncation*.
+*   **Logic**: Berjalan otomatis via scheduler (pukul 14:00 WIB) untuk mendeteksi anomali akademik:
+    *   **Merah**: Jadwal besok tanpa instruktur utama (`no_instructor`), jadwal hari ini belum terkonfirmasi (`not_confirmed`), kelas selesai tapi belum dilaporkan > 24 jam (`missing_report`).
+    *   **Kuning**: Kehadiran siswa < 70% (`low_attendance`), request reschedule rombel > 3 kali (`reschedule_limit`), progres belajar tertinggal dari time-frame (`behind_target`), dan kelas rombel di-hold karena jumlah siswa < 8 (`rombel_hold`).
 *   **Aksi Resolusi**: Log warning disimpan ke tabel `warnings` dan dapat di-resolve manual oleh Admin via dasbor.
 
 ### 11. Kompensasi & Payroll Instruktur (Fase 4)
@@ -286,6 +287,12 @@ Hasil build akan masuk ke folder `public/build/`.
 *   **Controller**: `App\Http\Controllers\AbsensiController::printSession`
 *   **Tujuan**: Mengizinkan pemangku kepentingan sekolah (Kepala Sekolah, PIC Mitra) untuk langsung 1-klik mencetak lembar presensi resmi (A4 portrait) dari tabel publik `/rekap-pertemuan-ekskul`.
 *   **Keamanan & Data**: View hanya menyajikan nama siswa, rombel, materi, tanggal, dan status kehadiran. Data finansial (honor/rekening) dan data pribadi (NIK) tidak disertakan. Nama instruktur pengajar diselesaikan secara dinamis melalui `$session->instruktur->nama_lengkap`.
+
+### 16. Audit Ketahanan Sistem & 26 Indikator Produksi (v2.9.10 - 2026-08-26)
+*   **Redis Cache & Session**: Driver Redis aktif, session TTL 7 hari (10.080 menit) dengan polling keep-alive 10 menit.
+*   **Database & Duplicate Guard**: Foreign key cascade aman, 0 sesi duplikat per rombel, 0 pendaftaran ganda siswa per rombel.
+*   **Async Scheduler & Queue**: Queue 0 failed jobs, cron WhatsApp pengingat jam 18:00 WIB dan deteksi QC jam 14:00 WIB beroperasi normal.
+*   **Keamanan & Network**: SameSite Lax, HttpOnly Cookie, CORS credentials whitelist, SSL Cloudflare HTTPS edge proxy.
 
 
 
