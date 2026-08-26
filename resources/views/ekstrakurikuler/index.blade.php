@@ -229,7 +229,7 @@
                         <div class="row">
                             <div class="col-12 d-flex gap-2 justify-content-end align-items-center mt-1">
                                 <button type="submit" class="btn btn-primary px-4 py-2" style="border-radius: 10px;"><i class="fas fa-search me-1"></i> Terapkan Filter</button>
-                                <a href="{{ route('ekstrakurikuler.index') }}" class="btn btn-outline-secondary px-3 py-2" style="border-radius: 10px;" title="Reset Filter"><i class="fas fa-undo me-1"></i> Reset</a>
+                                <a href="{{ route('ekstrakurikuler.index', ['reset' => 1]) }}" class="btn btn-outline-secondary px-3 py-2" style="border-radius: 10px;" title="Reset Filter"><i class="fas fa-undo me-1"></i> Reset</a>
                             </div>
                         </div>
                     </form>

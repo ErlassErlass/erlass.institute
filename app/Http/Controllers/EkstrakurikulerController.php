@@ -50,6 +50,50 @@ class EkstrakurikulerController extends Controller
      */
     public function index(Request $request)
     {
+        // 1. Tangani aksi reset filter eksplisit dari user
+        if ($request->has('reset') || $request->has('reset_filter')) {
+            session()->forget('ekstrakurikuler_last_filter');
+            return redirect()->route('ekstrakurikuler.index');
+        }
+
+        // Daftar key parameter filter yang valid
+        $filterKeys = [
+            'search', 'kategori_program', 'status', 'approval_status', 
+            'region', 'kota', 'sekolah_kodlan', 'user_id_instruktur', 
+            'user_id_sales', 'sort', 'sort_by', 'sort_direction', 'page', 'per_page', 'include_adhoc'
+        ];
+
+        // Cek apakah request saat ini membawa parameter query (misal saat form di-submit atau pagination diklik)
+        $hasQueryKeys = false;
+        $activeFilters = [];
+
+        foreach ($filterKeys as $key) {
+            if ($request->has($key)) {
+                $hasQueryKeys = true;
+                $val = $request->input($key);
+                if ($val !== null && $val !== '') {
+                    $activeFilters[$key] = $val;
+                }
+            }
+        }
+
+        if ($hasQueryKeys) {
+            if (!empty($activeFilters)) {
+                // Simpan filter aktif ke session
+                session(['ekstrakurikuler_last_filter' => $activeFilters]);
+            } else {
+                // Jika user submit form kosong (semua input blank), bersihkan session
+                session()->forget('ekstrakurikuler_last_filter');
+            }
+        } else {
+            // Jika user masuk tanpa parameter query (misal: klik "Kembali" dari detail, breadcrumb, atau navigasi lain)
+            $lastFilter = session('ekstrakurikuler_last_filter');
+            if (!empty($lastFilter) && is_array($lastFilter) && !$request->ajax() && !$request->wantsJson()) {
+                // Redirect otomatis ke URL dengan filter terakhir
+                return redirect()->route('ekstrakurikuler.index', $lastFilter);
+            }
+        }
+
         // Normalisasi & Validasikan keselarasan filter silang (Region, Kota, Sekolah)
         if ($request->filled('region')) {
             $citiesInRegion = $this->regionService->getCitiesByRegion($request->region);

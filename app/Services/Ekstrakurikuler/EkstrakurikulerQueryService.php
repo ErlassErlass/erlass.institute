@@ -21,7 +21,7 @@ class EkstrakurikulerQueryService
         // Filter out Ad-Hoc / Special Activity programs (Trial Class, Sosialisasi Sales, Pameran, Event, Backup Pertemuan, Remedial, Inkul)
         // Main /ekstrakurikuler page should only display official regular contract programs
         if (! $request->filled('include_adhoc')) {
-            $query->whereNotIn('kategori_program', [
+            $query->whereNotIn('ekstrakurikuler.kategori_program', [
                 'Trial Class',
                 'Sosialisasi bersama Sales',
                 'Sosialisasi',
@@ -36,11 +36,11 @@ class EkstrakurikulerQueryService
                 'In-Kurikuler',
                 'Inkul Coding Scratch',
             ])
-            ->where('kategori_program', 'not like', '%Trial%')
-            ->where('kategori_program', 'not like', '%Sosialisasi%')
-            ->where('kategori_program', 'not like', '%Backup%')
-            ->where('kategori_program', 'not like', '%Remedial%')
-            ->where('kategori_program', 'not like', '%Inkul%');
+            ->where('ekstrakurikuler.kategori_program', 'not like', '%Trial%')
+            ->where('ekstrakurikuler.kategori_program', 'not like', '%Sosialisasi%')
+            ->where('ekstrakurikuler.kategori_program', 'not like', '%Backup%')
+            ->where('ekstrakurikuler.kategori_program', 'not like', '%Remedial%')
+            ->where('ekstrakurikuler.kategori_program', 'not like', '%Inkul%');
         }
 
         // Filter by user role
@@ -64,13 +64,13 @@ class EkstrakurikulerQueryService
     protected function applyFilters($query, Request $request)
     {
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('ekstrakurikuler.status', $request->status);
         }
 
         if ($request->filled('region')) {
             $cities = app(\App\Services\Ekstrakurikuler\RegionMappingService::class)->getCitiesByRegion($request->region);
             $query->where(function ($q) use ($request, $cities) {
-                $q->where('region', $request->region)
+                $q->where('ekstrakurikuler.region', $request->region)
                   ->orWhereHas('sekolah', function ($subQ) use ($cities) {
                       $subQ->whereIn('kota', $cities->toArray());
                   });
@@ -84,7 +84,7 @@ class EkstrakurikulerQueryService
         }
 
         if ($request->filled('sekolah_kodlan')) {
-            $query->where('sekolah_kodlan', $request->sekolah_kodlan);
+            $query->where('ekstrakurikuler.sekolah_kodlan', $request->sekolah_kodlan);
         }
 
         $this->applySearchFilter($query, $request);
@@ -101,7 +101,7 @@ class EkstrakurikulerQueryService
 
         switch ($sort) {
             case 'oldest':
-                $query->orderBy('created_at', 'asc');
+                $query->orderBy('ekstrakurikuler.created_at', 'asc');
                 break;
             case 'school_asc':
                 $query->join('sekolah', 'ekstrakurikuler.sekolah_kodlan', '=', 'sekolah.kodlan')
@@ -114,13 +114,13 @@ class EkstrakurikulerQueryService
                       ->select('ekstrakurikuler.*');
                 break;
             case 'program_asc':
-                $query->orderBy('kategori_program', 'asc');
+                $query->orderBy('ekstrakurikuler.kategori_program', 'asc');
                 break;
             case 'status_asc':
-                $query->orderBy('status', 'asc');
+                $query->orderBy('ekstrakurikuler.status', 'asc');
                 break;
             case 'latest_created':
-                $query->orderBy('created_at', 'desc');
+                $query->orderBy('ekstrakurikuler.created_at', 'desc');
                 break;
             case 'priority':
             case 'latest':
@@ -148,7 +148,7 @@ class EkstrakurikulerQueryService
         if ($request->filled('search')) {
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
-                $q->where('kategori_program', 'like', "%{$searchTerm}%")
+                $q->where('ekstrakurikuler.kategori_program', 'like', "%{$searchTerm}%")
                     ->orWhereHas('sekolah', function ($subQuery) use ($searchTerm) {
                         $subQuery->where('namasekolah', 'like', "%{$searchTerm}%");
                     });
