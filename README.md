@@ -1,4 +1,4 @@
-# 🏫 Erlass Portal — Web Apperlass (v2.9.6)
+# 🏫 Erlass Portal — Web Apperlass (v2.9.10)
 
 **Dashboard Manajemen Sistem & Portal Operasional Terpadu untuk Erlass Institute (Pendidikan & Ekstrakurikuler)**
 
@@ -6,6 +6,7 @@
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue.svg)](https://php.net)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple.svg)](https://getbootstrap.com)
 [![PWA](https://img.shields.io/badge/PWA-v3%20Active-green.svg)](https://w3c.github.io/manifest/)
+[![DriverJS](https://img.shields.io/badge/Onboarding-Spotlight%20Tour-blueviolet.svg)](https://erlass.institute/help)
 [![Tickets](https://img.shields.io/badge/Helpdesk-Tickets%20System-blue.svg)](https://erlass.institute/tickets)
 [![GPS](https://img.shields.io/badge/GPS-Google%20Maps%20Auto--Extract-orange.svg)](https://erlass.institute)
 [![Status](https://img.shields.io/badge/Production-Active-success.svg)](https://erlass.institute)
@@ -28,42 +29,45 @@ Erlass Portal dibangun berdasarkan **Blueprint AOQCS (Academic Operations, Quali
 
 ---
 
-## 🌟 Fitur Unggulan Sistem (v2.9.6)
+## 🌟 Fitur Unggulan Sistem (v2.9.10)
 
-- 🎫 **Sistem Tiket Bantuan & Helpdesk Terpadu (`/tickets`) (v2.9.6)**:
-  - Modul pengaduan dan bantuan operasional lengkap untuk Instruktur dan Tim Manajemen Admin.
-  - Kategori tiket: `Jadwal / Honor`, `Keluhan Lain`, `Teknis / Error`.
-  - Format pesan berulir (*threaded reply*), badge status interaktif, serta penghitung notifikasi belum dibaca (*unread badge counter*) di sidebar.
-- ⚡ **Auto Client-Side Photo Compression GPS Check-in (v2.9.6)**:
-  - Kompresi foto otomatis di browser mobile instruktur berbasis HTML5 Canvas: mereduksi foto resolusi tinggi kamera HP (10MB–15MB) menjadi ~150–250KB secara instan sebelum diunggah ke server. Mengeliminasi timeout dan kegagalan check-in di jaringan seluler sekolah.
-- ⏳ **Sesi Login Panjang 7 Hari & Keep-Alive CSRF (Anti-419) (v2.9.6)**:
-  - Masa aktif sesi login server diperpanjang menjadi 7 hari (10.080 menit) dengan mekanisme auto-refresh token CSRF saat instruktur membuka kembali portal di HP setelah layar terkunci lama.
-- 🧹 **Pembersihan & Filtrasi Katalog Program Ad-Hoc / In-Kurikuler (v2.9.6)**:
-  - Saringan otomatis katalog program ekskul (`/ekstrakurikuler`) untuk mengecualikan program ad-hoc, in-kurikuler, dan trial class agar katalog kontrak ekskul reguler tetap rapi.
-- 📄 **Akses Publik Cetak PDF Presensi Tanpa Login (v2.9.6)**:
-  - Pembukaan akses cetak PDF lembar presensi sesi (`/ekstrakurikuler-session/{session}/print`) untuk publik tanpa harus login. Kepala Sekolah dan PIC Mitra di portal [`/rekap-pertemuan-ekskul`](https://erlass.institute/rekap-pertemuan-ekskul) dapat langsung 1-klik mengunduh dokumen presensi resmi.
-- 📍 **Presisi GPS Check-in & Auto-Extract Google Maps (v2.9.5)**:
-  - Ekstraksi otomatis titik koordinat presisi sekolah (`latitude` & `longitude`) dari link Google Maps pendek (`maps.app.goo.gl`) maupun panjang.
-  - Perhitungan jarak real-time dengan rumus **Haversine** (toleransi radius $\le 500$m) serta unggah foto live kamera untuk mencegah kecurangan presensi.
-  - Penanganan status toleransi (`valid` 🟢, `out_of_bounds` 🟡, dan `unverified` ⚪) untuk melindungi instruktur jika koordinat belum disetel.
-- 🖨️ **Format Cetak Presensi A4 Portrait 30 Siswa (v2.9.4)**:
-  - Generator lembar absensi cetak padat presisi 1 lembar A4 portrait dengan kapasitas hingga 30 siswa (termasuk baris kosong otomatis untuk siswa susulan).
-- 🎨 **Redesign Antarmuka Impeccable (v2.9.3)**:
-  - Desain modern dengan Hero banner glassmorphism, counter kehadiran real-time (*Hadir/Absen*), live search filter siswa, dan tinting warna dinamis.
-- 🔒 **Proteksi Keamanan Honor & Manipulasi Absensi (v2.9.2)**:
-  - Penguncian otomatis penambahan siswa pasca-laporan disubmit untuk role Instruktur guna menjaga integritas data perhitungan honor mengajar.
-- 📱 **Progressive Web App (PWA v3) & iOS Safari Support (v2.9.1)**:
-  - Service Worker v3 dengan dynamic cache trim & kesiapan Web Push Notification.
-  - Modal panduan instalasi visual khusus iOS Safari (*Share ⎋ → Add to Home Screen ➕*) dan toast notifikasi update rilis otomatis.
-- 🔀 **Relokasi Laporan Mengajar Antar-Pertemuan**:
-  - Kemampuan memindahkan laporan mengajar yang salah pilih pertemuan ke nomor sesi yang benar dengan database transaction dan activity log audit.
-- 📊 **Manajemen Payroll & Kompensasi Instruktur**:
-  - Pembuatan batch honor bulanan otomatis dengan rentang cutoff (tgl 11 s/d tgl 10 bulan berikutnya).
-  - Ekspor Akuntansi Multisheet (.xlsx), CSV Mass Transfer Internet Banking (BCA/Mandiri/BRI/BNI), dan Print PDF Kop Surat Resmi.
-- ⏰ **Permohonan Akses Ad-Hoc / Susulan (Late Report Request)**:
-  - Pengajuan buka akses laporan Ad-Hoc / tanggal lampau (H+1) dengan kuota 3x bulanan dan notifikasi emas di Dashboard Instruktur.
-- 🌐 **Dual-Stack IPv6 / IPv4 Native**:
-  - Konfigurasi Nginx Dual-Stack untuk aksesibilitas super lancar dari seluruh ISP seluler & serat optik (MyRepublic, Telkomsel, XL, Indosat).
+- 🎯 **Interactive Spotlight Onboarding Tour (`driver.js`) (v2.9.9 - v2.9.10)**:
+  - Tur visual terarah langkah demi langkah menggunakan library modern `driver.js` dengan tema desain kustom Erlass (`onboarding-driver.css`) dan engine tur modular (`onboarding-engine.js`).
+  - Menyediakan 2 skenario tur interaktif: **Tur Instruktur** (alur harian dari check-in GPS hingga submit laporan) dan **Tur Admin** (monitoring operasional & verifikasi).
+  - Tombol pemanggil tur mandiri (**"🎯 Panduan Tur"**) tersedia di navbar, menu profil, dan banner Pusat Bantuan (`/help`).
+
+- ⏱️ **Jendela Waktu Check-in 30 Menit & Edukasi SOP Presensi (v2.9.9)**:
+  - Waktu pembukaan tombol presensi diperluas dari **10 menit $\rightarrow$ 30 menit sebelum jam mulai sesi** (`CHECKIN_EARLY_WINDOW_MINUTES = 30`).
+  - Memungkinkan instruktur yang tiba lebih awal langsung melakukan check-in GPS & live camera sebelum mempersiapkan lab dan mengajar.
+  - Edukasi tegas bahwa check-in wajib dilakukan saat tiba di sekolah **SEBELUM mengajar**, bukan setelah kelas selesai.
+
+- 📊 **Dual Metric Corporate & Personal Punctuality KPI (v2.9.9 - v2.9.10)**:
+  - Dashboard Admin menampilkan 2 metrik terpisah: **Presensi Check-in Sesi** vs **Ketepatan Laporan SLA H+1** serta Leaderboard Disiplin Instruktur.
+  - Perbaikan tuntas kalkulasi KPI personal instruktur yang memisahkan waktu check-in fisik di sekolah dari waktu submit laporan administrasi.
+
+- 🎨 **Modernisasi Form Edit Laporan Mengajar (`/laporan-mengajar/{id}/edit`) (v2.9.9)**:
+  - Tampilan grid absensi siswa interaktif dengan avatar inisial, gender styling, tombol cepat *"Semua Hadir"*, dan live counter kehadiran.
+  - Integrasi silabus kurikulum (`RefMateri`), refleksi respon siswa, rating keaktifan kelas, serta manajemen preview foto & file project siswa.
+
+- 💰 **Engine Kompensasi & Transportasi Resmi (SK Direksi No. 536/EPI/V/2025)**:
+  - Skala honor berdasarkan siswa hadir: $\ge 15$ siswa (Rp 150.000), 12–14 siswa (Rp 115.000), 10–11 siswa (Rp 100.000), 8–9 siswa (Rp 75.000), $<8$ siswa (HOLD).
+  - Formula bensin 2x PP untuk jarak $\ge 10\text{ KM}$: `(Jarak KM × Rp 350 × 2) + Rp 7.500 (Sewa Kendaraan)`.
+  - Ketentuan asisten wajib untuk rombel $\ge 24$ siswa (Honor asisten Rp 100.000/sesi).
+
+- 🎫 **Sistem Tiket Bantuan & Helpdesk Terpadu (`/tickets`)**:
+  - Modul pengaduan operasional lengkap untuk Instruktur dan Tim Manajemen Admin dengan percakapan berulir (*threaded reply*), badge status, dan unread notification counter.
+
+- ⚡ **Auto Client-Side Photo Compression GPS Check-in**:
+  - Kompresi foto otomatis di browser mobile instruktur berbasis HTML5 Canvas: mereduksi foto kamera HP (10MB–15MB) menjadi ~150–250KB secara instan sebelum diunggah ke server.
+
+- ⏳ **Sesi Login Panjang 7 Hari & Keep-Alive CSRF (Anti-419)**:
+  - Masa aktif sesi login server 7 hari (10.080 menit) dengan auto-refresh token CSRF saat instruktur membuka kembali portal di HP.
+
+- 📄 **Akses Publik Cetak PDF Presensi Tanpa Login**:
+  - Portal publik [`/rekap-pertemuan-ekskul`](https://erlass.institute/rekap-pertemuan-ekskul) memungkinkan Kepala Sekolah dan PIC Mitra langsung 1-klik mengunduh dokumen presensi resmi A4 portrait.
+
+- 📍 **Presisi GPS Check-in & Auto-Extract Google Maps**:
+  - Ekstraksi otomatis titik koordinat presisi sekolah (`latitude` & `longitude`) dari link Google Maps pendek (`maps.app.goo.gl`) maupun panjang dengan perhitungan radius Haversine $\le 500$m.
 
 ---
 
