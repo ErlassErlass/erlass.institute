@@ -13,6 +13,9 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
   - **Tombol Spotlight Tour**: Menambahkan tombol pemicu *"🎯 Mulai Tur Interaktif"* di Hero banner untuk akses cepat memulai tur visual aplikasi langkah demi langkah.
   - **FAQ Evaluasi KPI Personal**: Menambahkan penjelasan transparan mengenai formula skor kedisiplinan (memisahkan waktu check-in fisik di sekolah dan SLA submit laporan H+1).
   - **Spesifikasi Berkas Proyek Siswa**: Menjelaskan batasan ukuran file (maksimal 20 MB) dan format ekstensi yang didukung (`.sb3`, `.hex`, `.py`, `.ipynb`, `.pdf`, `.zip`).
+- **Penyelarasan Metrik Statistik Dashboard (`total_rombel` & `total_sekolah`)**:
+  - Menyempurnakan filter statistik di `DashboardController.php` agar secara ketat hanya menghitung **Program Ekstrakurikuler Resmi yang Aktif (`Ekskul %`)** (`336 Rombel` & `180 Sekolah Mitra`).
+  - Mengeliminasi polusi data dari event non-ekskul seperti *Free Trial Class*, *Sosialisasi Sales*, dan *Laporan Ad-hoc* dari kartu ringkasan utama.
 
 ## [2.9.9] - 2026-08-24
 

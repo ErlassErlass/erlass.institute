@@ -29,9 +29,13 @@ class DashboardController extends Controller
         // Statistik bersama — disimpan di cache 5 menit
         $data = Cache::remember($cachePrefix . 'shared_stats', self::CACHE_TTL_STATS, function () {
             return [
-                'total_sekolah' => Sekolah::has('ekstrakurikuler')->count(),
+                'total_sekolah' => Sekolah::whereHas('ekstrakurikuler', function ($q) {
+                    $q->where('kategori_program', 'LIKE', 'Ekskul %')->where('status', 'aktif');
+                })->count(),
                 'total_siswa' => Siswa::count(),
-                'total_rombel' => \App\Models\EkstrakurikulerRombel::count(),
+                'total_rombel' => \App\Models\EkstrakurikulerRombel::whereHas('ekstrakurikuler', function ($q) {
+                    $q->where('kategori_program', 'LIKE', 'Ekskul %')->where('status', 'aktif');
+                })->count(),
                 'laporan_hari_ini' => \App\Models\LaporanMengajar::whereDate('created_at', Carbon::today())->count(),
                 'total_instruktur' => User::where('role', 'instruktur')->where('verification_status', 'approved')->count(),
                 'total_laporan' => \App\Models\LaporanMengajar::count(),
