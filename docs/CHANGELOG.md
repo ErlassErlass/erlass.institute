@@ -2,6 +2,26 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.11] - 2026-08-27
+
+### Matriks Ketersediaan Instruktur Mingguan (Weekly Availability Matrix) & Interactive Week Picker di Distribusi Jadwal
+
+- **Modul Ketersediaan Instruktur Mingguan (`/admin/analytics/schedule-distribution`)**:
+  - **Tab Navigasi Baru**: Menambahkan tab *"🗓️ Ketersediaan Mingguan"* di samping tab *"📊 Distribusi Sesi"* untuk mempermudah koordinator dan admin dalam meninjau slot ketersediaan waktu seluruh 119 instruktur.
+  - **Matriks Hari (Senin – Sabtu)**: Menampilkan preferensi `waktu_mengajar` instruktur dalam format rentang jam (contoh: `08:00 – 15:00`) dengan penyatuan slot cerdas (*gap consolidation*).
+  - **Filter Kota Domisili & Live Search**: Menyediakan dropdown dinamis untuk memfilter instruktur berdasarkan kota domisili (`kota_domisili`) serta live text search nama instruktur secara instan tanpa reload halaman.
+- **Engine Pemeriksaan Ketersediaan vs Jadwal Aktual (`/admin/analytics/availability-check`)**:
+  - **Interactive ISO Week Picker**: Memungkinkan pemilihan minggu spesifik (contoh: `2026-W35` / `24–29 Agt 2026`).
+  - **Pengecekan Konflik & Utilisasi Otomatis**:
+    * 🟢 **Free**: Instruktur tersedia pada hari tersebut dan belum ada sesi ekskul yang ditugaskan.
+    * 🟡 **Sebagian Terisi**: Instruktur memiliki jadwal mengajar namun masih memiliki sisa slot waktu luang.
+    * 🔴 **Penuh / Busy**: Seluruh slot jam ketersediaan telah terisi penuh oleh sesi mengajar.
+    * ⬜ **Tidak Tersedia / Libur**: Instruktur tidak membuka preferensi mengajar pada hari tersebut.
+    * ⚠️ **Belum Isi Jadwal**: Instruktur belum melengkapi preferensi ketersediaan mengajar pada profilnya.
+  - **Kartu Sesi Terjadwal Detail**: Menampilkan jam mulai-selesai akurat (`jam_mulai_terjadwal`), kategori program ekskul, dan nama sekolah mitra secara terstruktur di dalam sel matriks.
+- **Penyempurnaan Desain UI/UX & Kontras Hero Card**:
+  - Memperbaiki kontras styling badge *"Analytics & Penjadwalan"* pada hero header menggunakan `rgba(255, 255, 255, 0.18)` dan border semi-transparan untuk menjamin keterbacaan teks di semua resolusi dan browser.
+
 ## [2.9.10] - 2026-08-26
 
 ### Resolusi Tiket TCK-202608-0003 & Perbaikan Sinkronisasi Metrik KPI Kehadiran Instruktur

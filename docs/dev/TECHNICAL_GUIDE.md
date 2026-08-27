@@ -71,11 +71,20 @@ Menggunakan `spatie/laravel-permission`.
   - Lightweight endpoint `/session/ping` coupled with client-side visibility change listener (`document.addEventListener('visibilitychange')`) to automatically keep Redis sessions alive and refresh CSRF tokens when mobile users wake their devices.
   - Custom `TokenMismatchException` renderer in `bootstrap/app.php` redirecting with a warning alert instead of displaying a hard HTTP 419 error page.
 
-### 8. Analytics Distribusi Jadwal & Batch Payroll
+### 8. Analytics Distribusi Jadwal, Matriks Ketersediaan & Batch Payroll
 - **Schedule Distribution (`/admin/analytics/schedule-distribution`)**:
   - **Controller**: `DashboardAnalyticsController@scheduleDistribution`.
   - **Period Modes**: `honor_current` (Cut-off 11-10), `honor_prev`, `honor_prev2`, `all`, `month`, `custom`.
   - **Dynamic Export**: `DashboardAnalyticsController@exportScheduleDistribution` maps `ScheduleDistributionExport` class according to active filter date boundaries.
+- **Weekly Instructor Availability Matrix (`/admin/analytics/availability-check`)**:
+  - **Controller**: `DashboardAnalyticsController@availabilityCheck` (AJAX Endpoint).
+  - **Query & Formatting**:
+    * Menerima parameter `week` bertipe format ISO (`YYYY-Www`).
+    * Menghitung tanggal Senin–Sabtu dari minggu tersebut via `Carbon::setISODate()`.
+    * Memuat seluruh instruktur pengajar dengan relasi `instructorProfile` dan `ekstrakurikulerSessions` pada rentang tanggal terkait.
+    * Mengonsolidasikan slot jam berurutan menjadi format rentang waktu via `DashboardAnalyticsController::parseAvailabilityToRanges()`.
+    * Mengklasifikasikan status per-hari menjadi: `free`, `partial`, `busy`, `unavailable`, atau `no_data`.
+    * Mengembalikan detail sesi mencakup `jam_mulai_terjadwal` - `jam_selesai_terjadwal`, `kategori_program`, dan `sekolah.namasekolah`.
 - **Payroll Batch Export (`/admin/payroll/batches/{batch}/export-excel`)**:
   - **Controller**: `PayrollController` (`exportExcel`, `exportCsv`, `exportPdf`, `showBatch`, `processBatch`, `payBatch`, `destroyBatch`).
   - **Instructor Role Breakdown**: Detailed distinction between **Instruktur Utama** and **Asisten Instruktur** across CSV and multi-sheet accounting exports.

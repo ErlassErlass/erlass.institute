@@ -46,11 +46,20 @@ Fitur notifikasi WhatsApp (Fonnte) sudah terintegrasi secara cerdas:
 *   **Pengingat Instruktur**: Mengirim reminder manual jadwal mengajar kepada Instruktur.
 
 ### 5. Analisis Jadwal & Beban Kerja (`/admin/analytics/schedule-distribution`)
-*   **Distribusi Jadwal**: Melihat grafik beban kerja instruktur untuk memastikan pembagian jam mengajar yang adil.
+*   **Tab 1: Distribusi Sesi**: Melihat grafik beban kerja instruktur untuk memastikan pembagian jam mengajar yang adil.
     *   **Filter Multi-Periode**: Admin dapat memilih tampilan data berdasarkan *Periode Honor Berjalan (Siklus 11-10)*, *Periode Lalu*, *2 Bulan Lalu*, *Seluruh Waktu (All Time)*, *Bulan & Tahun*, atau *Custom Date Range*.
     *   **Grafik Visual**: Membandingkan jumlah sesi antar instruktur secara real-time.
     *   **Rekomendasi Penambahan Sesi**: Sistem otomatis menyarankan instruktur yang masih memiliki jam mengajar di bawah rata-rata.
     *   **Pencarian Live Instruktur**: Menyaring nama instruktur secara instan pada tabel data.
+*   **Tab 2: Ketersediaan Mingguan (Availability Matrix)**:
+    *   **Matriks Jam Mengajar**: Menampilkan preferensi waktu mengajar seluruh instruktur dari hari Senin hingga Sabtu.
+    *   **Interactive Week Picker**: Pilih minggu tertentu (misal: Minggu ke-35) lalu klik **`Cek Ketersediaan`** untuk melihat jadwal aktual yang sudah ter-assign vs waktu luang.
+    *   **Indikator Warna Ketersediaan**:
+        *   🟢 **Free**: Instruktur tersedia dan belum memiliki jadwal mengajar di hari tersebut.
+        *   🟡 **Sebagian Terisi**: Sudah ada sesi mengajar, namun masih memiliki sisa jam luang.
+        *   🔴 **Penuh / Busy**: Jam ketersediaan telah terisi penuh.
+        *   ⬜ **Tidak Tersedia / Libur**: Instruktur tidak membuka jadwal pada hari tersebut.
+    *   **Filter Kota Domisili**: Memfilter instruktur berdasarkan kota tempat tinggal untuk memudahkan penugasan ke sekolah terdekat.
 5. **Fitur Relokasi Laporan Mengajar Antar-Pertemuan Sesi**:
    * Jika Instruktur secara tidak sengaja salah mengisi laporan di Pertemuan 2 padahal seharusnya untuk Pertemuan 1:
    * Login sebagai **Admin / Webmaster**.

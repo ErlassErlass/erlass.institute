@@ -341,6 +341,8 @@ Route::middleware(['auth'])->group(function () {
             ->name('analytics.schedule-distribution.export');
         Route::get('analytics/schedule-distribution', [\App\Http\Controllers\DashboardAnalyticsController::class, 'scheduleDistribution'])
             ->name('analytics.schedule-distribution');
+        Route::get('analytics/availability-check', [\App\Http\Controllers\DashboardAnalyticsController::class, 'availabilityCheck'])
+            ->name('analytics.availability-check');
 
         // Broadcast Routes
         Route::get('broadcast', [\App\Http\Controllers\Admin\BroadcastController::class, 'create'])->name('broadcast.create');

@@ -156,17 +156,19 @@
     <div class="sd-hero">
         <div class="row align-items-center g-3">
             <div class="col-lg-7">
-                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white bg-opacity-15 border border-white border-opacity-20 text-white small fw-bold mb-3">
-                    <i class="bi bi-bar-chart-steps"></i> Analytics &amp; Penjadwalan
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill small fw-bold mb-3"
+                     style="background: rgba(255, 255, 255, 0.18); border: 1px solid rgba(255, 255, 255, 0.3); color: #ffffff; letter-spacing: .02em;">
+                    <i class="bi bi-bar-chart-steps text-info"></i> Analytics &amp; Penjadwalan
                 </div>
                 <h1 class="h2 fw-bold text-white mb-2" style="letter-spacing: -.02em;">Distribusi Jadwal Instruktur</h1>
-                <p class="mb-0 text-white-50" style="font-size: .95rem; line-height: 1.6;">
+                <p class="mb-0" style="color: rgba(255, 255, 255, 0.85); font-size: .95rem; line-height: 1.6;">
                     Analisis pemerataan beban mengajar &amp; alokasi sesi mengajar seluruh instruktur Erlass Institute.
                 </p>
             </div>
             <div class="col-lg-5 text-lg-end">
-                <div class="d-inline-block text-start p-3 rounded-3 bg-white bg-opacity-10 border border-white border-opacity-25 backdrop-blur">
-                    <small class="text-white-50 d-block fw-semibold text-uppercase" style="font-size: .7rem; letter-spacing: .05em;">Periode Terpilih</small>
+                <div class="d-inline-block text-start p-3 rounded-3"
+                     style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(8px);">
+                    <small class="d-block fw-semibold text-uppercase" style="color: rgba(255, 255, 255, 0.75); font-size: .7rem; letter-spacing: .05em;">Periode Terpilih</small>
                     <div class="fw-bold text-white fs-6 mt-1 me-2">
                         <i class="bi bi-calendar-event me-1 text-info"></i> {{ $period_label }}
                     </div>
@@ -273,6 +275,30 @@
             </form>
         </div>
     </div>
+
+    {{-- ═══ TAB NAVIGATION ═══ --}}
+    <ul class="nav nav-tabs mb-4 border-bottom" id="mainTabs" role="tablist" style="gap: .25rem;">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-semibold px-4 py-2" id="tab-distribusi" data-bs-toggle="tab"
+                    data-bs-target="#pane-distribusi" type="button" role="tab" aria-selected="true">
+                <i class="bi bi-bar-chart-steps me-1"></i> Distribusi Sesi
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold px-4 py-2" id="tab-ketersediaan" data-bs-toggle="tab"
+                    data-bs-target="#pane-ketersediaan" type="button" role="tab" aria-selected="false">
+                <i class="bi bi-calendar2-week me-1"></i> Ketersediaan Mingguan
+                <span class="badge rounded-pill ms-1" style="background:#2563eb;font-size:.7rem;">
+                    {{ $availability_instructors->count() }}
+                </span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="mainTabContent">
+
+    {{-- ═══ TAB 1: DISTRIBUSI SESI ═══ --}}
+    <div class="tab-pane fade show active" id="pane-distribusi" role="tabpanel">
 
     {{-- ═══ KPI SUMMARY CARDS ═══ --}}
     <div class="row g-3 mb-4">
@@ -493,7 +519,201 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </div>{{-- /sd-table-card --}}
+
+    </div>{{-- /tab-pane #pane-distribusi --}}
+
+    {{-- ═══ TAB 2: KETERSEDIAAN MINGGUAN ═══ --}}
+    <div class="tab-pane fade" id="pane-ketersediaan" role="tabpanel">
+
+        {{-- Toolbar baris 1: week picker --}}
+        <div class="card border-0 shadow-sm rounded-3 mb-3 p-3" style="background:#f8fafc;">
+            <div class="d-flex flex-wrap align-items-end gap-3">
+
+                {{-- Week Picker --}}
+                <div>
+                    <label class="form-label small fw-bold text-muted mb-1" for="weekPicker">
+                        <i class="bi bi-calendar-week me-1 text-primary"></i> Pilih Minggu
+                    </label>
+                    <input type="week" id="weekPicker" class="form-control form-control-sm"
+                           style="min-width:180px;"
+                           value="{{ now()->format('Y') }}-W{{ now()->format('W') }}">
+                </div>
+
+                {{-- Load Button --}}
+                <div>
+                    <button id="loadWeekBtn" class="btn btn-primary btn-sm fw-bold px-4" style="height:32px;">
+                        <i class="bi bi-search me-1"></i> Cek Ketersediaan
+                    </button>
+                </div>
+
+                {{-- Week label result --}}
+                <div id="weekLabelDisplay" class="d-none align-items-center gap-2 ms-1">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2" style="font-size:.82rem;">
+                        <i class="bi bi-calendar-check me-1"></i>
+                        <span id="weekLabelText"></span>
+                    </span>
+                </div>
+
+                <div class="ms-auto d-flex align-items-center gap-3 flex-wrap">
+                    {{-- Filter Kota --}}
+                    <div>
+                        <label class="form-label small fw-bold text-muted mb-1" for="kotaFilter">
+                            <i class="bi bi-geo-alt-fill me-1 text-secondary"></i> Kota
+                        </label>
+                        <select id="kotaFilter" class="form-select form-select-sm" style="min-width:160px;">
+                            <option value="">— Semua Kota —</option>
+                            @foreach($kota_list as $kota)
+                                <option value="{{ strtolower($kota) }}">{{ $kota }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    {{-- Cari nama --}}
+                    <div>
+                        <label class="form-label small fw-bold text-muted mb-1">
+                            <i class="bi bi-search me-1"></i> Cari
+                        </label>
+                        <input type="text" id="availSearchInput" class="form-control form-control-sm"
+                               placeholder="Nama instruktur..." style="min-width:170px;">
+                    </div>
+                </div>
+            </div>
+
+            {{-- Legend --}}
+            <div class="d-flex align-items-center gap-3 flex-wrap mt-2 pt-2 border-top">
+                <span class="small text-muted fw-semibold">Keterangan:</span>
+                <span class="d-inline-flex align-items-center gap-1">
+                    <span style="width:13px;height:13px;border-radius:3px;background:#dcfce7;border:1px solid #86efac;display:inline-block;"></span>
+                    <span class="small text-muted">🟢 Free (belum ada sesi)</span>
+                </span>
+                <span class="d-inline-flex align-items-center gap-1">
+                    <span style="width:13px;height:13px;border-radius:3px;background:#fef3c7;border:1px solid #fcd34d;display:inline-block;"></span>
+                    <span class="small text-muted">🟡 Sebagian Terisi</span>
+                </span>
+                <span class="d-inline-flex align-items-center gap-1">
+                    <span style="width:13px;height:13px;border-radius:3px;background:#fee2e2;border:1px solid #fca5a5;display:inline-block;"></span>
+                    <span class="small text-muted">🔴 Penuh / Busy</span>
+                </span>
+                <span class="d-inline-flex align-items-center gap-1">
+                    <span style="width:13px;height:13px;border-radius:3px;background:#f1f5f9;border:1px solid #cbd5e1;display:inline-block;"></span>
+                    <span class="small text-muted">⬜ Tidak Tersedia</span>
+                </span>
+                <span class="d-inline-flex align-items-center gap-1">
+                    <span style="width:13px;height:13px;border-radius:3px;background:#fef3c7;border:1px solid #fcd34d;display:inline-block;opacity:.6;"></span>
+                    <span class="small text-muted">— Belum Isi Jadwal</span>
+                </span>
+                <span id="loadingBadge" class="d-none ms-2">
+                    <span class="spinner-border spinner-border-sm text-primary me-1" style="width:.85rem;height:.85rem;"></span>
+                    <span class="small text-muted">Memuat data minggu ini...</span>
+                </span>
+            </div>
+        </div>
+
+        {{-- Availability Matrix Table --}}
+        <div class="sd-table-card">
+            <div class="p-3 px-4 border-bottom bg-white d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="mb-0 fw-bold text-dark" style="font-size:1rem;">
+                        <i class="bi bi-calendar2-week me-2 text-primary"></i>Ketersediaan Instruktur per Hari (Mingguan)
+                    </h5>
+                    <small class="text-muted" id="tableSubtitle">Pilih minggu di atas lalu klik "Cek Ketersediaan" untuk melihat slot aktual vs jadwal terjadwal.</small>
+                </div>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1" style="font-size:.8rem;">
+                    {{ $availability_instructors->count() }} Instruktur
+                </span>
+            </div>
+            <div class="table-responsive">
+                <table class="table sd-table mb-0 align-middle" id="availabilityTable">
+                    <thead>
+                        <tr>
+                            <th style="width:44px;">No</th>
+                            <th style="min-width:180px;">Instruktur</th>
+                            <th style="min-width:120px;">Domisili</th>
+                            <th class="text-center day-header" data-day="Senin" style="min-width:115px;">Senin</th>
+                            <th class="text-center day-header" data-day="Selasa" style="min-width:115px;">Selasa</th>
+                            <th class="text-center day-header" data-day="Rabu" style="min-width:115px;">Rabu</th>
+                            <th class="text-center day-header" data-day="Kamis" style="min-width:115px;">Kamis</th>
+                            <th class="text-center day-header" data-day="Jumat" style="min-width:115px;">Jumat</th>
+                            <th class="text-center day-header" data-day="Sabtu" style="min-width:115px;">Sabtu</th>
+                            <th class="text-center" style="min-width:90px;">Sesi Bln Ini</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($availability_instructors as $idx => $instr)
+                            @php
+                                $hasSchedule = !empty($instr->instructorProfile?->waktu_mengajar);
+                                $days = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+                            @endphp
+                            <tr class="avail-row"
+                                data-name="{{ strtolower($instr->nama_lengkap) }}"
+                                data-kota="{{ strtolower($instr->kota_domisili) }}"
+                                data-instr-id="{{ $instr->id }}">
+                                <td class="fw-bold text-muted small">{{ $idx + 1 }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="sd-avatar" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;">
+                                            {{ strtoupper(substr($instr->nama_lengkap, 0, 2)) }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark" style="font-size:.875rem;">
+                                                {{ $instr->nama_lengkap }}
+                                            </div>
+                                            <small class="text-muted" style="font-size:.725rem;">{{ $instr->email }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if($instr->kota_domisili)
+                                        <span class="badge bg-light text-dark border fw-normal">
+                                            <i class="bi bi-geo-alt me-1 text-secondary"></i>{{ $instr->kota_domisili }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted small">—</span>
+                                    @endif
+                                </td>
+                                @if(!$hasSchedule)
+                                    {{-- No waktu_mengajar: span all 6 day columns --}}
+                                    <td colspan="6" class="text-center" style="background:#fffbeb;">
+                                        <span class="badge fw-normal" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;font-size:.75rem;">
+                                            <i class="bi bi-exclamation-triangle me-1"></i> Belum mengisi jadwal ketersediaan
+                                        </span>
+                                    </td>
+                                @else
+                                    @foreach($days as $day)
+                                        @php $range = $instr->availability_by_day[$day] ?? null; @endphp
+                                        <td class="text-center p-1" style="{{ $range ? 'background:#f0fdf4;' : 'background:#f8fafc;' }}">
+                                            @if($range)
+                                                <span class="badge fw-normal d-inline-block"
+                                                      style="background:#dcfce7;color:#166534;border:1px solid #86efac;font-size:.72rem;line-height:1.4;white-space:normal;">
+                                                    {{ $range }}
+                                                </span>
+                                            @else
+                                                <span class="text-muted" style="font-size:.8rem;">—</span>
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                @endif
+                                <td class="text-center">
+                                    <span class="badge {{ $instr->sesi_aktif_bulan_ini > 0 ? 'bg-primary' : 'bg-secondary' }} rounded-pill px-2 py-1">
+                                        {{ $instr->sesi_aktif_bulan_ini }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="10" class="text-center py-4 text-muted">
+                                    Tidak ada data instruktur.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>{{-- /tab-pane #pane-ketersediaan --}}
+
+    </div>{{-- /tab-content --}}
 
 </div>
 
@@ -506,7 +726,7 @@
         document.querySelectorAll('.filter-field-custom').forEach(el => el.classList.toggle('d-none', mode !== 'custom'));
     }
 
-    // Live Table Search
+    // Live Table Search (Tab 1)
     document.getElementById('tableSearchInput')?.addEventListener('input', function() {
         const query = this.value.toLowerCase().trim();
         document.querySelectorAll('.instructor-row').forEach(row => {
@@ -514,6 +734,167 @@
             row.style.display = name.includes(query) ? '' : 'none';
         });
     });
+
+    // Tab 2: Kota filter
+    document.getElementById('kotaFilter')?.addEventListener('change', function() {
+        applyAvailabilityFilters();
+    });
+
+    // Tab 2: Name search
+    document.getElementById('availSearchInput')?.addEventListener('input', function() {
+        applyAvailabilityFilters();
+    });
+
+    function applyAvailabilityFilters() {
+        const kota  = (document.getElementById('kotaFilter')?.value  || '').toLowerCase().trim();
+        const query = (document.getElementById('availSearchInput')?.value || '').toLowerCase().trim();
+        document.querySelectorAll('.avail-row').forEach(row => {
+            const rowKota = row.dataset.kota || '';
+            const rowName = row.dataset.name || '';
+            const kotaOk  = !kota  || rowKota === kota;
+            const nameOk  = !query || rowName.includes(query);
+            row.style.display = (kotaOk && nameOk) ? '' : 'none';
+        });
+    }
+
+    // ─── Week Picker AJAX Load ───────────────────────────────────────────────
+    const DAYS = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+
+    // Helper: render a single cell based on day data from AJAX
+    function renderDayCell(dayData) {
+        if (!dayData) {
+            // Static mode (no week loaded yet)
+            return null;
+        }
+
+        const { status, available, sessions } = dayData;
+
+        const bgColor = {
+            free:        '#f0fdf4',
+            partial:     '#fffbeb',
+            busy:        '#fef2f2',
+            unavailable: '#f8fafc',
+            no_data:     '#fffbeb',
+        }[status] || '#f8fafc';
+
+        const badgeStyle = {
+            free:        'background:#dcfce7;color:#166534;border:1px solid #86efac;',
+            partial:     'background:#fef3c7;color:#92400e;border:1px solid #fcd34d;',
+            busy:        'background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;',
+            unavailable: 'background:#f1f5f9;color:#94a3b8;border:1px solid #cbd5e1;',
+            no_data:     'background:#fef3c7;color:#92400e;border:1px solid #fcd34d;opacity:.7;',
+        }[status] || '';
+
+        const icon = {
+            free: '🟢', partial: '🟡', busy: '🔴', unavailable: '⬜', no_data: '⚠️',
+        }[status] || '';
+
+        const label = {
+            free: 'Free',
+            partial: 'Sebagian',
+            busy: 'Penuh',
+            unavailable: 'Libur',
+            no_data: 'Blm isi',
+        }[status] || status;
+
+        let html = `<div style="background:${bgColor};border-radius:6px;padding:4px;min-height:38px;">`;
+        html += `<span class="badge fw-semibold d-block mb-1" style="${badgeStyle}font-size:.7rem;">${icon} ${label}</span>`;
+
+        if (available && status !== 'unavailable' && status !== 'no_data') {
+            html += `<div style="font-size:.68rem;color:#64748b;margin-bottom:2px;">${available}</div>`;
+        }
+
+        if (sessions && sessions.length > 0) {
+            sessions.forEach(s => {
+                const schoolInfo = s.school && s.school !== '—' ? ` @ ${s.school}` : '';
+                html += `<div title="${s.time} ${s.ekskul}${schoolInfo}" style="font-size:.68rem;color:#1e293b;background:#ffffff;border-radius:4px;padding:3px 5px;margin-top:3px;border-left:2.5px solid #f59e0b;box-shadow:0 1px 2px rgba(0,0,0,0.05);line-height:1.25;text-align:left;">`;
+                html += `<div style="font-weight:700;color:#0f172a;">${s.time}</div>`;
+                html += `<div style="font-size:.65rem;color:#334155;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.ekskul}</div>`;
+                if (s.school && s.school !== '—') {
+                    html += `<div style="font-size:.62rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.school}</div>`;
+                }
+                html += `</div>`;
+            });
+        }
+
+        html += '</div>';
+        return html;
+    }
+
+    document.getElementById('loadWeekBtn')?.addEventListener('click', function() {
+        const weekVal = document.getElementById('weekPicker')?.value;
+        if (!weekVal) { alert('Pilih minggu terlebih dahulu'); return; }
+
+        const btn     = this;
+        const loading = document.getElementById('loadingBadge');
+        const label   = document.getElementById('weekLabelDisplay');
+
+        btn.disabled  = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memuat...';
+        loading?.classList.remove('d-none');
+
+        fetch(`{{ route('admin.analytics.availability-check') }}?week=${weekVal}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) { alert(data.error); return; }
+
+            // Update header labels with actual dates
+            const monday = new Date(data.monday_date + 'T00:00:00');
+            document.querySelectorAll('.day-header').forEach((th, idx) => {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + idx);
+                const dd = String(d.getDate()).padStart(2,'0');
+                const mm = String(d.getMonth()+1).padStart(2,'0');
+                th.innerHTML = `${DAYS[idx]}<br><small style="font-weight:400;font-size:.68rem;color:#64748b;">${dd}/${mm}</small>`;
+            });
+
+            // Update table subtitle
+            const subtitle = document.getElementById('tableSubtitle');
+            if (subtitle) subtitle.textContent = `Jadwal aktual minggu ${data.week_label} vs ketersediaan instruktur.`;
+
+            // Update week label badge
+            const labelText = document.getElementById('weekLabelText');
+            if (labelText) labelText.textContent = data.week_label;
+            label?.classList.remove('d-none');
+            label?.classList.add('d-flex');
+
+            // Update each avail-row cells
+            document.querySelectorAll('.avail-row').forEach(row => {
+                const instrId = row.dataset.instrId;
+                const instrData = data.availability[instrId];
+                if (!instrData) return;
+
+                DAYS.forEach((day, idx) => {
+                    // day cell index: 3 = Senin, 4=Selasa, ... (after No, Nama, Domisili cols)
+                    const cellIdx = 3 + idx;
+                    const cell = row.cells[cellIdx];
+                    if (!cell) return;
+
+                    // Handle colspan=6 (no waktu_mengajar)
+                    if (row.querySelector('td[colspan="6"]')) return;
+
+                    const rendered = renderDayCell(instrData[day]);
+                    if (rendered !== null) {
+                        cell.innerHTML = rendered;
+                        cell.style.padding = '4px';
+                        cell.style.verticalAlign = 'top';
+                    }
+                });
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Gagal memuat data. Cek koneksi atau coba lagi.');
+        })
+        .finally(() => {
+            btn.disabled  = false;
+            btn.innerHTML = '<i class="bi bi-search me-1"></i> Cek Ketersediaan';
+            loading?.classList.add('d-none');
+        });
+    });
+
 
     // Chart JS Initialization
     document.addEventListener('DOMContentLoaded', function() {
