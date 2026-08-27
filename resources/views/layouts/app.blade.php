@@ -703,6 +703,24 @@
 
                     @if(Auth::user()?->hasAdminAccess())
                         <li class="sidebar-section-title">Sistem & Pengaturan</li>
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs('admin.late-reports.*') ? 'active' : '' }}" href="{{ route('admin.late-reports.index') }}">
+                                <i class="bi bi-shield-check text-warning"></i>
+                                <span>Audit Lap. Terlambat</span>
+                                @php
+                                    $pendingAuditCount = \App\Models\LaporanMengajar::where(function ($q) {
+                                        $q->where('metadata_json->is_severe_late', true)
+                                          ->orWhereNotNull('metadata_json->alasan_kendala_keterlambatan');
+                                    })->where(function ($q) {
+                                        $q->where('metadata_json->status_approval_kendala', 'pending_approval')
+                                          ->orWhereNull('metadata_json->status_approval_kendala');
+                                    })->count();
+                                @endphp
+                                @if($pendingAuditCount > 0)
+                                    <span class="badge bg-danger rounded-pill ms-auto fw-bold" style="font-size: 0.7rem;">{{ $pendingAuditCount }}</span>
+                                @endif
+                            </a>
+                        </li>
 
                         @if(Auth::user()?->canManageUsers())
                             <li class="sidebar-item">

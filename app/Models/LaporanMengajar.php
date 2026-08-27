@@ -399,4 +399,65 @@ class LaporanMengajar extends Model
             || str_contains($catLower, 'inkul')
             || str_contains($catLower, 'mandiri');
     }
+
+    /**
+     * Cek apakah laporan ini mengalami keterlambatan berat (> 3 hari atau lewat cutoff).
+     */
+    public function isSevereLate(): bool
+    {
+        $meta = $this->metadata_json;
+        if (is_array($meta) && isset($meta['is_severe_late'])) {
+            return (bool) $meta['is_severe_late'];
+        }
+
+        if ($this->jadwal_mengajar && $this->created_at) {
+            $scheduleDate = \Carbon\Carbon::parse($this->jadwal_mengajar)->startOfDay();
+            $createdAt = $this->created_at;
+            $diffDays = $scheduleDate->diffInDays($createdAt, false);
+            return $diffDays >= 3;
+        }
+
+        return false;
+    }
+
+    /**
+     * Ambil status approval kendala keterlambatan ('pending_approval', 'approved', 'rejected').
+     */
+    public function getKendalaApprovalStatusAttribute(): string
+    {
+        $meta = $this->metadata_json;
+        if (is_array($meta) && isset($meta['status_approval_kendala'])) {
+            return $meta['status_approval_kendala'];
+        }
+
+        return $this->isSevereLate() ? 'pending_approval' : 'approved';
+    }
+
+    public function isKendalaPendingApproval(): bool
+    {
+        return $this->kendala_approval_status === 'pending_approval';
+    }
+
+    public function isKendalaApproved(): bool
+    {
+        return $this->kendala_approval_status === 'approved';
+    }
+
+    public function isKendalaRejected(): bool
+    {
+        return $this->kendala_approval_status === 'rejected';
+    }
+
+    public function getAlasanKendalaAttribute(): ?string
+    {
+        $meta = $this->metadata_json;
+        return is_array($meta) ? ($meta['alasan_kendala_keterlambatan'] ?? null) : null;
+    }
+
+    public function getApprovedByAdminAttribute(): ?User
+    {
+        $meta = $this->metadata_json;
+        $adminId = is_array($meta) ? ($meta['approved_by'] ?? null) : null;
+        return $adminId ? User::find($adminId) : null;
+    }
 }

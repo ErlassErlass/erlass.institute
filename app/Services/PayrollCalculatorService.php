@@ -251,7 +251,13 @@ class PayrollCalculatorService
                                  });
                       });
                 })
-                ->whereHas('laporanMengajar') // Wajib memiliki bukti Laporan Mengajar
+                ->whereHas('laporanMengajar', function ($lq) {
+                    // Hanya sertakan laporan yang sudah disetujui kendalanya (atau laporan normal yang tidak pending/rejected)
+                    $lq->where(function ($sub) {
+                        $sub->whereNull('metadata_json->status_approval_kendala')
+                            ->orWhere('metadata_json->status_approval_kendala', 'approved');
+                    });
+                })
                 ->whereNotNull('user_id_instruktur')
                 ->get();
 

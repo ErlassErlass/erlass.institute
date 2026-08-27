@@ -443,11 +443,11 @@ Route::middleware(['auth'])->group(function () {
         ->name('laporan-mengajar.adhoc-late-request.store');
 
     Route::middleware(['role:admin,admin_sistem,webmaster'])->prefix('admin')->name('admin.')->group(function () {
-        Route::get('late-report-requests', [App\Http\Controllers\LateReportRequestController::class, 'index'])
+        Route::get('late-reports', [App\Http\Controllers\LateReportRequestController::class, 'index'])
             ->name('late-reports.index');
-        Route::post('late-report-requests/{lateReportRequest}/approve', [App\Http\Controllers\LateReportRequestController::class, 'approve'])
+        Route::post('late-reports/{lateReportRequest}/approve', [App\Http\Controllers\LateReportRequestController::class, 'approve'])
             ->name('late-reports.approve');
-        Route::post('late-report-requests/{lateReportRequest}/reject', [App\Http\Controllers\LateReportRequestController::class, 'reject'])
+        Route::post('late-reports/{lateReportRequest}/reject', [App\Http\Controllers\LateReportRequestController::class, 'reject'])
             ->name('late-reports.reject');
     });
 });

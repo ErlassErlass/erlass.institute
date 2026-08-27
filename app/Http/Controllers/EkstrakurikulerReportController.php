@@ -332,6 +332,10 @@ class EkstrakurikulerReportController extends Controller
                     'program' => $session->rombel->ekstrakurikuler->kategori_program,
                     'is_severe_late' => $isSevereLate,
                     'alasan_kendala_keterlambatan' => $alasanKendalaClean,
+                    'status_approval_kendala' => $isSevereLate ? 'pending_approval' : 'approved',
+                    'approved_by' => $isSevereLate ? null : Auth::id(),
+                    'approved_at' => $isSevereLate ? null : now()->toDateTimeString(),
+                    'admin_notes' => null,
                 ]
             ]);
 

@@ -4,7 +4,7 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
 ## [2.9.12] - 2026-08-27
 
-### Reformasi Sistem Pelaporan Mengajar: Penghapusan Permohonan Buka Akses, Aturan Tunggakan Global FIFO (Maks. 1x), Deadline Akhir Bulan Hari H, & Catatan Kendala Keterlambatan Berat
+### Reformasi Sistem Pelaporan Mengajar: Penghapusan Permohonan Buka Akses, Aturan Tunggakan Global FIFO (Maks. 1x), Deadline Akhir Bulan Hari H, Catatan Kendala Keterlambatan Berat, & Dashboard Audit Admin (Opsi A)
 
 - **Penghapusan Antrean Permohonan Buka Akses Manual (`LateReportRequest`)**:
   - Mengeliminasi alur persetujuan permohonan buka akses manual oleh admin (`LateReportRequest`).
@@ -21,10 +21,14 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 - **Validasi Wajib Catatan Kendala Keterlambatan Berat (*Severe Late* > 3 Hari / Lewat Cut-off)**:
   - Jika sesi dilaporkan terlambat berat (> 3 hari kalender setelah tanggal jadwal atau telah melewati batas cutoff penggajian tanggal 10), form laporan secara interaktif memunculkan kolom **Catatan Kendala Keterlambatan** (`alasan_kendala_keterlambatan`, minimal 10 karakter).
   - Penjelasan kendala keterlambatan otomatis tersimpan ke catatan laporan dan metadata audit sistem (`metadata_json`).
-- **Otomatisasi Carry-over Payroll untuk Laporan Susulan (`PayrollCalculatorService`)**:
-  - Sesi mengajar yang dilaporkan melewati tanggal cut-off (tanggal 10) secara otomatis terhitung dan terbawa (*carry-over*) ke dalam batch penggajian periode cutoff berikutnya.
-- **Pembersihan Antarmuka & Pembaruan Pusat Bantuan (`/help`)**:
-  - Menghapus kartu notifikasi approval dan tautan sidebar menu permohonan buka akses.
+- **Dashboard Audit Laporan Terlambat & Persetujuan Kendala Admin (`/admin/late-reports`) [Opsi A]**:
+  - **Menu Terpusat & Live Badge**: Menghadirkan kembali menu **"Audit Lap. Terlambat"** di sidebar Admin dengan badge indikator jumlah laporan yang menunggu review (*pending approval*).
+  - **Tampilan Audit Modern**: Menampilkan kartu metrik statistik, filter tab (*Menunggu Review*, *Disetujui*, *Ditolak*, *Semua*), ringkasan keterlambatan dalam hari, dan kotak kutipan kendala instruktur.
+  - **Aksi Persetujuan Kendala (ACC / Tolak)**: Admin dapat menyetujui kendala keterlambatan (ACC) untuk mencairkan honor sesi pada cutoff berjalan/berikutnya, atau menolak kendala dengan catatan evaluasi khusus.
+- **Otomatisasi Gating & Carry-over Payroll (`PayrollCalculatorService`)**:
+  - Sesi yang mengalami keterlambatan berat otomatis ditahan (*on-hold*) dari batch payroll sampai status approval kendalanya disetujui (ACC) oleh Admin.
+  - Sesi yang dilaporkan melewati tanggal cut-off (tanggal 10) setelah di-ACC secara otomatis terhitung dan terbawa (*carry-over*) ke dalam batch penggajian periode cutoff berikutnya.
+- **Pembaruan Pusat Bantuan (`/help`)**:
   - Memperbarui panduan langkah pelaporan serta FAQ penguncian form laporan di `/help`.
 
 ## [2.9.11] - 2026-08-27
