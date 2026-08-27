@@ -25,6 +25,7 @@ class GoogleSheetsService
     const TAB_JADWAL = 'Jadwal_Sesi_Ekskul';
     const TAB_ABSENSI = 'Absensi_Siswa';
     const TAB_HONOR = 'Rekap_Honor';
+    const TAB_REKAP_PERTEMUAN = 'Rekap_Pertemuan_Ekskul';
 
     public function __construct()
     {
@@ -169,6 +170,7 @@ class GoogleSheetsService
                 self::TAB_JADWAL,
                 self::TAB_ABSENSI,
                 self::TAB_HONOR,
+                self::TAB_REKAP_PERTEMUAN,
             ];
 
             $requests = [];
@@ -204,7 +206,7 @@ class GoogleSheetsService
     }
 
     /**
-     * Execute a Full Initial Sync of all 5 tabs.
+     * Execute a Full Initial Sync of all 6 tabs.
      */
     public function syncAllData(): array
     {
@@ -217,6 +219,7 @@ class GoogleSheetsService
             self::TAB_JADWAL => $this->syncTabJadwal($token),
             self::TAB_ABSENSI => $this->syncTabAbsensi($token),
             self::TAB_HONOR => $this->syncTabHonor($token),
+            self::TAB_REKAP_PERTEMUAN => $this->syncTabRekapPertemuan($token),
         ];
 
         Cache::put('google_sheets_last_sync', now()->toDateTimeString(), 86400 * 30);
@@ -475,6 +478,65 @@ class GoogleSheetsService
     }
 
     /**
+     * Tab 6: Rekap Pertemuan Ekskul (Public Portal Feed https://erlass.institute/rekap-pertemuan-ekskul)
+     */
+    public function syncTabRekapPertemuan(?string $token = null): array
+    {
+        $headers = [
+            'ID Sesi', 'Nama Sekolah', 'Kota / Wilayah', 'Program Ekskul', 
+            'Rombel', 'Pertemuan Ke', 'Tanggal Pelaksanaan', 'Nama Instruktur', 
+            'Topik / Materi Pengajaran', 'Jml Siswa Hadir', 'Link Cetak Presensi', 
+            'Link Foto Kegiatan', 'Link Foto Absensi', 'Link File Project'
+        ];
+
+        $sessions = EkstrakurikulerSession::with([
+            'rombel.ekstrakurikuler.sekolah',
+            'instruktur',
+            'laporanMengajar'
+        ])
+        ->where('status', 'selesai')
+        ->orderByDesc('tanggal_pelaksanaan')
+        ->orderBy('nomor_pertemuan')
+        ->get();
+
+        $rows = [$headers];
+
+        foreach ($sessions as $session) {
+            $rombel = $session->rombel;
+            $ekskul = $rombel?->ekstrakurikuler;
+            $sekolah = $ekskul?->sekolah;
+            $laporan = $session->laporanMengajar;
+            $instruktur = $session->instruktur;
+
+            $fotoKegiatanUrl = $laporan?->foto_kegiatan ? url('storage/' . ltrim($laporan->foto_kegiatan, '/')) : '-';
+            $fotoAbsensiUrl = $laporan?->foto_absensi_siswa ? url('storage/' . ltrim($laporan->foto_absensi_siswa, '/')) : '-';
+            $projectUrl = $laporan?->file_project ? url('storage/' . ltrim($laporan->file_project, '/')) : '-';
+            $printUrl = route('ekstrakurikuler-session.print-session', ['session' => $session->id]);
+
+            $tanggal = $session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal;
+
+            $rows[] = [
+                $session->id,
+                $sekolah?->namasekolah ?? '—',
+                $sekolah?->kota ?? '—',
+                $ekskul?->nama_ekskul ?: ($ekskul?->kategori_program ?? '—'),
+                $rombel?->nama_rombel ?? '—',
+                $session->nomor_pertemuan ?? '—',
+                $tanggal ? $tanggal->format('Y-m-d') : '-',
+                $instruktur?->nama_lengkap ?? $instruktur?->name ?? '—',
+                $laporan?->materi_pengajaran ?? '—',
+                $laporan?->jumlah_siswa_hadir ?? 0,
+                $printUrl,
+                $fotoKegiatanUrl,
+                $fotoAbsensiUrl,
+                $projectUrl,
+            ];
+        }
+
+        return $this->writeTab(self::TAB_REKAP_PERTEMUAN, $rows, $token);
+    }
+
+    /**
      * Append a single Laporan row in Realtime.
      */
     public function appendLaporanRealtime(LaporanMengajar $r): bool
@@ -609,6 +671,7 @@ class GoogleSheetsService
                 self::TAB_JADWAL => $this->syncTabJadwal(),
                 self::TAB_ABSENSI => $this->syncTabAbsensi(),
                 self::TAB_HONOR => $this->syncTabHonor(),
+                self::TAB_REKAP_PERTEMUAN => $this->syncTabRekapPertemuan(),
                 default => null,
             };
             $data = Cache::get("google_sheets_data_{$tabTitle}", []);
@@ -626,7 +689,7 @@ class GoogleSheetsService
     }
 
     /**
-     * Get array data of all 5 tabs.
+     * Get array data of all 6 tabs.
      */
     public function getAllTabsData(): array
     {
@@ -635,6 +698,7 @@ class GoogleSheetsService
         $this->syncTabJadwal();
         $this->syncTabAbsensi();
         $this->syncTabHonor();
+        $this->syncTabRekapPertemuan();
 
         return [
             self::TAB_KPI => Cache::get("google_sheets_data_" . self::TAB_KPI, []),
@@ -642,6 +706,7 @@ class GoogleSheetsService
             self::TAB_JADWAL => Cache::get("google_sheets_data_" . self::TAB_JADWAL, []),
             self::TAB_ABSENSI => Cache::get("google_sheets_data_" . self::TAB_ABSENSI, []),
             self::TAB_HONOR => Cache::get("google_sheets_data_" . self::TAB_HONOR, []),
+            self::TAB_REKAP_PERTEMUAN => Cache::get("google_sheets_data_" . self::TAB_REKAP_PERTEMUAN, []),
         ];
     }
 }

@@ -65,6 +65,13 @@ class GoogleSheetsController extends Controller
                 'icon' => 'bi-cash-coin text-danger',
                 'cached_rows' => count(Cache::get('google_sheets_data_' . GoogleSheetsService::TAB_HONOR, [])),
             ],
+            [
+                'key' => GoogleSheetsService::TAB_REKAP_PERTEMUAN,
+                'name' => '6. Rekap Pertemuan Ekskul',
+                'description' => 'Rekapitulasi seluruh sesi pertemuan ekskul publik, materi, link foto, dan link cetak presensi.',
+                'icon' => 'bi-journal-check text-purple',
+                'cached_rows' => count(Cache::get('google_sheets_data_' . GoogleSheetsService::TAB_REKAP_PERTEMUAN, [])),
+            ],
         ];
 
         return view('admin.google-sheets.index', compact(
@@ -142,6 +149,8 @@ class GoogleSheetsController extends Controller
             'jadwal' => GoogleSheetsService::TAB_JADWAL,
             'absensi' => GoogleSheetsService::TAB_ABSENSI,
             'honor' => GoogleSheetsService::TAB_HONOR,
+            'rekap_pertemuan' => GoogleSheetsService::TAB_REKAP_PERTEMUAN,
+            'Rekap_Pertemuan_Ekskul' => GoogleSheetsService::TAB_REKAP_PERTEMUAN,
         ];
 
         $tabKey = $validTabs[$tab] ?? $tab;

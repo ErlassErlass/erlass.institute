@@ -47,6 +47,7 @@ class SyncGoogleSheetsCommand extends Command
                 'jadwal', 'Jadwal_Sesi_Ekskul' => $sheetsService->syncTabJadwal($token),
                 'absensi', 'Absensi_Siswa' => $sheetsService->syncTabAbsensi($token),
                 'honor', 'Rekap_Honor' => $sheetsService->syncTabHonor($token),
+                'rekap_pertemuan', 'Rekap_Pertemuan_Ekskul' => $sheetsService->syncTabRekapPertemuan($token),
                 default => null,
             };
 

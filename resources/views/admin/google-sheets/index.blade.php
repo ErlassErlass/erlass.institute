@@ -118,7 +118,7 @@
                 </div>
                 <h2 class="fw-bold mb-2">Sinkronisasi Data Otomatis & Real-time</h2>
                 <p class="mb-3 text-white text-opacity-90 lead fs-6">
-                    Seluruh data <strong>Laporan Mengajar, Sesi Ekskul, Absensi Siswa, Rekap Honor, dan KPI</strong> terhubung langsung ke dokumen Google Spreadsheet target untuk kemudahan analisis dan pivot table manajemen.
+                    Seluruh data <strong>Laporan Mengajar, Jadwal Ekskul, Absensi Siswa, Rekap Honor, Rekap Pertemuan Ekskul, dan KPI</strong> terhubung langsung ke dokumen Google Spreadsheet target untuk kemudahan analisis dan pivot table manajemen.
                 </p>
                 <div class="d-flex flex-wrap align-items-center gap-3 pt-2">
                     <div class="bg-white bg-opacity-10 rounded-pill px-3 py-1 text-white small d-flex align-items-center gap-2">
@@ -146,9 +146,9 @@
         </div>
     </div>
 
-    <!-- 5 Standard Sheets Tabs Grid -->
+    <!-- 6 Standard Sheets Tabs Grid -->
     <h5 class="fw-bold mb-3 text-dark">
-        <i class="bi bi-folder2-open text-primary me-2"></i>Struktur 5 Tab Google Spreadsheet
+        <i class="bi bi-folder2-open text-primary me-2"></i>Struktur 6 Tab Google Spreadsheet
     </h5>
 
     <div class="row g-3 mb-4">
@@ -297,7 +297,8 @@ function SINKRONKAN_SEMUA_DATA() {
     'Laporan_Mengajar': '#059669',
     'Jadwal_Sesi_Ekskul': '#d97706',
     'Absensi_Siswa': '#0891b2',
-    'Rekap_Honor': '#dc2626'
+    'Rekap_Honor': '#dc2626',
+    'Rekap_Pertemuan_Ekskul': '#7c3aed'
   };
 
   for (var tabName in tabs) {
