@@ -260,7 +260,7 @@
                         <i class="bi bi-calendar-x text-danger"></i> 4. Libur, Reschedule &amp; Reset
                     </a>
                     <a href="#section-instruktur" class="toc-link">
-                        <i class="bi bi-person-badge text-info"></i> 5. Instruktur &amp; Laporan
+                        <i class="bi bi-person-badge text-info"></i> 5. Instruktur &amp; Audit Laporan
                     </a>
                     <a href="#section-payroll" class="toc-link">
                         <i class="bi bi-wallet2 text-primary"></i> 6. Master Tarif &amp; Payroll
@@ -448,70 +448,89 @@
                 </div>
             </div>
 
-            <!-- 5. INSTRUKTUR & LAPORAN MENGAJAR -->
+            <!-- 5. INSTRUKTUR, TERTIB PELAPORAN & AUDIT KENDALA -->
             <div class="guide-card" id="section-instruktur">
                 <div class="d-flex align-items-center mb-3">
                     <div class="guide-header-icon bg-info bg-opacity-10 text-info">
                         <i class="bi bi-person-badge-fill"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0 text-dark">5. Verifikasi Instruktur &amp; Laporan Mengajar</h4>
-                        <small class="text-muted">Prosedur verifikasi akun instruktur dan persetujuan laporan terlambat.</small>
+                        <h4 class="fw-bold mb-0 text-dark">5. Instruktur, Tertib Pelaporan &amp; Audit Kendala Terlambat</h4>
+                        <small class="text-muted">Prosedur verifikasi akun, aturan tunggakan FIFO, dan SOP audit kendala keterlambatan berat.</small>
                     </div>
                 </div>
 
-                <div class="row g-3">
+                <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <div class="step-box h-100">
-                            <div class="step-number">Verifikasi Akun</div>
-                            <h6 class="fw-bold mb-1">Verifikasi Profil Instruktur</h6>
+                            <div class="step-number">SOP 1 — Verifikasi Akun</div>
+                            <h6 class="fw-bold mb-1">Verifikasi Profil &amp; Legalitas Instruktur</h6>
                             <p class="small text-muted mb-0">
-                                Menu <strong>Verifikasi Instruktur</strong> menampilkan calon instruktur yang baru mendaftar. Admin memeriksa kelengkapan KTP, NPWP, nomor rekening bank, dan portofolio keahlian sebelum menyetujui akun menjadi aktif.
+                                Menu <strong>Verifikasi Instruktur</strong> menampilkan calon instruktur baru. Tim Admin memvalidasi kelengkapan KTP, NPWP, nomor rekening bank, serta kompetensi sebelum mengaktifkan akun.
                             </p>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="step-box h-100">
-                            <div class="step-number">Approval Laporan</div>
-                            <h6 class="fw-bold mb-1">Request Laporan Terlambat (Late Report)</h6>
+                            <div class="step-number">SOP 2 — Sistem Pelaporan Mandiri</div>
+                            <h6 class="fw-bold mb-1">Aturan Tunggakan Global FIFO (Maks. 1x)</h6>
                             <p class="small text-muted mb-0">
-                                Instruktur memiliki batas waktu pengisian laporan (maksimal 24 jam). Jika terlewat, instruktur harus mengajukan permohonan isi laporan terlambat di menu <strong>Request Laporan</strong> untuk di-approve oleh Admin.
+                                Instruktur dapat mengisi laporan sesi secara mandiri (*self-service*). Toleransi tunggakan maksimal adalah <strong>1 sesi lampau</strong>. Jika ada &ge; 2 tunggakan, form sesi baru otomatis terkunci dan wajib diisi berurutan (FIFO).
                             </p>
                         </div>
                     </div>
+                </div>
+
+                <div class="p-3.5 rounded-3 mb-3" style="background: #eff6ff; border: 1.5px solid #bfdbfe;">
+                    <h6 class="fw-bold text-primary mb-2">
+                        <i class="bi bi-shield-check me-1"></i> SOP Menu: Audit Laporan Terlambat (<code>/admin/late-reports</code>)
+                    </h6>
+                    <p class="small text-muted mb-2">
+                        Laporan yang disubmit terlambat berat (<strong>&gt; 3 hari kalender</strong> setelah tanggal jadwal atau telah melewati batas cut-off bulanan tanggal 10) wajib mencantumkan <em>Catatan Kendala Keterlambatan</em> dan otomatis masuk ke antrean audit admin:
+                    </p>
+                    <ol class="small text-secondary mb-0 ps-3">
+                        <li class="mb-1.5">
+                            <strong>Periksa Alasan &amp; Bukti:</strong> Admin meninjau data sesi, durasi keterlambatan, foto absensi fisik bertandatangan, serta penjelasan kendala dari instruktur.
+                        </li>
+                        <li class="mb-1.5">
+                            <strong>Setujui Kendala (ACC):</strong> Klik tombol hijau <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Setujui Kendala</span>. Status berubah menjadi <em>Approved</em> dan honor sesi secara otomatis diizinkan masuk ke batch payroll (atau <em>carry-over</em> ke periode cutoff berikutnya jika disubmit lewat tanggal 10).
+                        </li>
+                        <li>
+                            <strong>Tolak Kendala:</strong> Klik tombol merah <span class="badge bg-danger"><i class="bi bi-x-lg me-1"></i>Tolak Kendala</span> dan masukkan catatan evaluasi tertulis. Honor sesi akan ditahan (*on-hold*) dari batch penggajian.
+                        </li>
+                    </ol>
                 </div>
             </div>
 
-            <!-- 6. MASTER TARIF & PAYROLL -->
+            <!-- 6. MASTER TARIF, PAYROLL & CARRY-OVER -->
             <div class="guide-card" id="section-payroll">
                 <div class="d-flex align-items-center mb-3">
                     <div class="guide-header-icon bg-primary bg-opacity-10 text-primary">
                         <i class="bi bi-wallet2"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0 text-dark">6. Master Tarif &amp; Pencairan Payroll</h4>
-                        <small class="text-muted">Kalkulasi honor instruktur, pembuatan batch payroll bulanan, dan cetak slip gaji.</small>
+                        <h4 class="fw-bold mb-0 text-dark">6. Master Tarif, Penggajian &amp; Kebijakan Carry-Over</h4>
+                        <small class="text-muted">Kalkulasi honor instruktur, pencairan batch payroll bulanan, dan mekanisme carry-over laporan susulan.</small>
                     </div>
                 </div>
 
                 <div class="step-box">
-                    <div class="step-number">SOP 1</div>
-                    <h6 class="fw-bold mb-1">Konfigurasi Master Tarif (Salary Rates)</h6>
+                    <div class="step-number">SOP 1 — Konfigurasi Tarif</div>
+                    <h6 class="fw-bold mb-1">Master Tarif (Salary Rates)</h6>
                     <p class="small text-muted mb-0">
-                        Menu <strong>Master Tarif</strong> digunakan untuk menentukan honor standar per pertemuan atau per jam bagi Instruktur Utama, Asisten Instruktur, atau tarif khusus per institusi sekolah mitra.
+                        Menu <strong>Master Tarif</strong> digunakan untuk mengatur nominal honor standar per pertemuan bagi Instruktur Utama, Asisten Instruktur, serta penyesuaian khusus per sekolah mitra.
                     </p>
                 </div>
 
                 <div class="step-box">
-                    <div class="step-number">SOP 2</div>
-                    <h6 class="fw-bold mb-1">Proses Pembuatan Batch Payroll Bulanan</h6>
-                    <p class="small text-muted mb-2">Pada akhir periode (cut-off bulanan):</p>
+                    <div class="step-number">SOP 2 — Pembuatan Batch Payroll Bulanan</div>
+                    <h6 class="fw-bold mb-1">Proses Cut-off &amp; Pencairan Payroll</h6>
+                    <p class="small text-muted mb-2">Pada setiap periode tutup buku penggajian:</p>
                     <ol class="small text-secondary mb-0 ps-3">
-                        <li>Buka menu <strong>Pencairan Payroll &gt; Buat Batch Baru</strong>.</li>
-                        <li>Pilih rentang tanggal cut-off (misal: 01 s.d. 30 bulan berjalan).</li>
-                        <li>Sistem otomatis mengumpulkan seluruh laporan mengajar berstatus <em>Disetujui</em> dan menghitung total honor per instruktur beserta rincian sesinya.</li>
-                        <li>Periksa nominal dan klik <strong>Lock / Kunci Batch</strong> untuk memfinalkan pembayaran.</li>
-                        <li>Ekspor data ke format Excel/PDF atau cetak <strong>Slip Gaji</strong> resmi per instruktur.</li>
+                        <li class="mb-1">Buka menu <strong>Pencairan Payroll &gt; Buat Batch Baru</strong> dan tentukan rentang tanggal cut-off.</li>
+                        <li class="mb-1">Sistem otomatis menarik sesi-sesi selesai yang memiliki laporan valid dan disetujui (termasuk sesi terlambat yang sudah di-ACC kendalanya).</li>
+                        <li class="mb-1"><strong>Mekanisme Carry-over:</strong> Sesi lampau yang baru dilaporkan dan disetujui setelah tanggal cutoff bulan sebelumnya akan otomatis ditarik (*carry-over*) ke batch cutoff aktif bulan ini.</li>
+                        <li>Klik <strong>Lock / Kunci Batch</strong> untuk memfinalkan pembayaran, cetak slip gaji resmi, dan ekspor rekap ke format Excel/PDF.</li>
                     </ol>
                 </div>
             </div>

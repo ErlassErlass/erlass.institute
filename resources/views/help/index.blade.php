@@ -590,35 +590,102 @@
         </div>
 
         {{-- Section 3: Deadline & Aturan Pelaporan --}}
-        <p class="section-label"><i class="bi bi-clock me-1"></i>Langkah 3 dari 3 — Kirim Tepat Waktu & Tertib Sesi</p>
+        <p class="section-label"><i class="bi bi-clock-history me-1"></i>Langkah 3 dari 3 — Kirim Tepat Waktu & Tertib Sesi</p>
         <h2 class="section-heading">Batas Waktu Laporan & Aturan Tunggakan Sesi</h2>
 
         <div class="row g-3 mb-4">
+            {{-- Card 1: Reguler 1-27 --}}
             <div class="col-md-6">
-                <div class="p-3.5 rounded-3 h-100" style="background:#eff6ff; border: 1.5px solid #bfdbfe;">
-                    <h6 class="fw-bold text-primary mb-1"><i class="bi bi-calendar-event me-1"></i> Tanggal 1 s.d. 27: Batas H+1 (23:59)</h6>
-                    <p class="small text-muted mb-0">
-                        Untuk sesi yang terlaksana pada tanggal 1 s.d. 27, batas pengisian laporan adalah hingga <strong>H+1 pukul 23:59 WIB</strong>.
-                    </p>
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative" style="background: linear-gradient(135deg, #FFFFFF 0%, #F0F7FF 100%); border: 1.5px solid #BFDBFE !important;">
+                    <div class="position-absolute top-0 start-0 h-100" style="width: 5px; background: #2563EB;"></div>
+                    <div class="card-body p-4 ps-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="badge px-3 py-1.5 rounded-pill fw-bold" style="background: #DBEAFE; color: #1E40AF; font-size: 0.78rem;">
+                                <i class="bi bi-calendar-event me-1"></i> Tanggal 1 s.d. 27
+                            </span>
+                            <span class="badge bg-primary bg-opacity-10 text-primary fw-semibold px-2.5 py-1 rounded-pill" style="font-size: 0.72rem;">
+                                <i class="bi bi-hourglass-split me-1"></i> Toleransi Standar
+                            </span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2" style="font-size: 1.05rem;">
+                            Batas Waktu Submit: <span class="text-primary">H+1 (23:59 WIB)</span>
+                        </h5>
+                        <p class="small text-muted mb-0" style="line-height: 1.6;">
+                            Untuk sesi mengajar yang terlaksana pada tanggal 1 s.d. 27 setiap bulannya, laporan dapat disubmit hingga <strong>maksimal 24 jam (H+1 pukul 23:59 WIB)</strong> setelah kegiatan kelas selesai.
+                        </p>
+                    </div>
                 </div>
             </div>
+
+            {{-- Card 2: Akhir Bulan 28-31 --}}
             <div class="col-md-6">
-                <div class="p-3.5 rounded-3 h-100" style="background:#fef2f2; border: 1.5px solid #fca5a5;">
-                    <h6 class="fw-bold text-danger mb-1"><i class="bi bi-exclamation-octagon-fill me-1"></i> Tanggal 28, 29, 30, 31: Wajib Hari H</h6>
-                    <p class="small text-muted mb-0">
-                        Khusus penutupan akhir bulan (tgl 28–31), laporan <strong>wajib di-submit pada Hari H (maksimal 23:59 WIB)</strong> untuk keperluan tutup buku administrasi.
-                    </p>
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative" style="background: linear-gradient(135deg, #FFFFFF 0%, #FEF2F2 100%); border: 1.5px solid #FECACA !important;">
+                    <div class="position-absolute top-0 start-0 h-100" style="width: 5px; background: #EF4444;"></div>
+                    <div class="card-body p-4 ps-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="badge px-3 py-1.5 rounded-pill fw-bold" style="background: #FEE2E2; color: #991B1B; font-size: 0.78rem;">
+                                <i class="bi bi-exclamation-octagon-fill me-1 text-danger"></i> Tanggal 28, 29, 30, 31
+                            </span>
+                            <span class="badge bg-danger bg-opacity-10 text-danger fw-bold px-2.5 py-1 rounded-pill" style="font-size: 0.72rem;">
+                                <i class="bi bi-shield-exclamation me-1"></i> Wajib Tutup Buku
+                            </span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2" style="font-size: 1.05rem;">
+                            Batas Waktu Submit: <span class="text-danger">Hari H (23:59 WIB)</span>
+                        </h5>
+                        <p class="small text-muted mb-0" style="line-height: 1.6;">
+                            Khusus penutupan akhir bulan (tgl 28–31), laporan <strong>wajib disubmit pada Hari H (maksimal 23:59 WIB)</strong> tanpa perpanjangan H+1 demi kelancaran rekonsiliasi dan tutup buku administrasi bulanan.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="deadline-banner" style="background:#f8fafc; border: 1.5px solid #cbd5e1;">
-            <i class="bi bi-shield-lock-fill text-dark"></i>
-            <div>
-                <h6 class="text-dark">Aturan Tunggakan Laporan Maksimal 1x (Pengisian Berurutan)</h6>
-                <p class="text-muted mb-0">
-                    Instruktur hanya memiliki toleransi maksimal <strong>1 laporan sesi lampau yang belum selesai</strong>. Jika Anda memiliki <strong>&ge; 2 tunggakan</strong>, form sesi baru otomatis terkunci dan Anda <strong>wajib menyelesaikan laporan sesi terdahulu secara berurutan</strong> dari pertemuan paling awal. Jika laporan diisi terlambat &gt; 3 hari / lewat cutoff, Anda wajib mengisi <strong>Catatan Kendala Keterlambatan</strong> dan honor sesi otomatis masuk ke <strong>periode cutoff berikutnya</strong>.
-                </p>
+        {{-- Card 3: Backlog FIFO Rule & Severe Delay Guidance --}}
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4" style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: #FFFFFF;">
+            <div class="card-body p-4 p-md-4.5">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 44px; height: 44px; min-width: 44px; font-size: 1.25rem;">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-white mb-0.5">Aturan Tunggakan Global (Maks. 1x) &amp; Keterlambatan Berat</h5>
+                        <small class="text-white text-opacity-75">Kebijakan antrean laporan berurutan (FIFO) dan persetujuan kendala keterlambatan.</small>
+                    </div>
+                </div>
+
+                <div class="row g-3 pt-2">
+                    <div class="col-md-4">
+                        <div class="p-3 rounded-3 h-100" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12);">
+                            <div class="fw-bold text-warning mb-1" style="font-size: 0.88rem;">
+                                <i class="bi bi-1-circle-fill me-1"></i> Toleransi Maksimal 1x
+                            </div>
+                            <p class="small text-white text-opacity-80 mb-0" style="font-size: 0.8rem; line-height: 1.55;">
+                                Instruktur hanya diperbolehkan memiliki maksimal <strong>1 laporan sesi lampau yang belum selesai</strong> lintas seluruh sekolah dan rombel.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 rounded-3 h-100" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12);">
+                            <div class="fw-bold text-info mb-1" style="font-size: 0.88rem;">
+                                <i class="bi bi-2-circle-fill me-1"></i> Antrean Berurutan (FIFO)
+                            </div>
+                            <p class="small text-white text-opacity-80 mb-0" style="font-size: 0.8rem; line-height: 1.55;">
+                                Jika menunggak <strong>&ge; 2 sesi</strong>, form sesi baru terkunci. Anda wajib menyelesaikan laporan sesi terdahulu secara berurutan mulai dari pertemuan paling awal.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 rounded-3 h-100" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12);">
+                            <div class="fw-bold text-success mb-1" style="font-size: 0.88rem;">
+                                <i class="bi bi-3-circle-fill me-1"></i> Kendala &gt; 3 Hari (Audit)
+                            </div>
+                            <p class="small text-white text-opacity-80 mb-0" style="font-size: 0.8rem; line-height: 1.55;">
+                                Jika terlambat &gt; 3 hari / lewat cutoff, wajib mencantumkan <strong>Catatan Kendala</strong>. Setelah disetujui (ACC) Admin, honor dicairkan pada cutoff berikutnya.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
