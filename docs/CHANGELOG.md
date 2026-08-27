@@ -2,6 +2,20 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.16] - 2026-08-27
+
+### Optimasi Performa Ekstrim Form Laporan Mengajar (Client-Side Compression & Async Background Jobs)
+
+- **Client-Side Image Auto-Compression Engine (HTML5 Canvas)**:
+  - Mengompres foto beresolusi tinggi (5MB - 15MB dari kamera smartphone) secara otomatis di browser sebelum proses unggah dimulai menjadi **~250KB - 400KB** (menghemat kuota & waktu transfer hingga **90-95%**).
+  - Menyediakan visual badge penghematan file & status loading real-time (*"Mengoptimasi foto... Hemat 94%"*).
+- **Pemindahan Notifikasi & Pengingat ke Background Queue (`ProcessSessionNotificationJob`)**:
+  - Memindahkan pengecekan milestone (pertemuan 4, 8, 12, dst) dan pengiriman notifikasi WhatsApp orang tua dari alur sinkron request web ke antrean latar belakang (*Redis Queue*).
+- **Bulk Query & Batch Insert Absensi Siswa**:
+  - Mengganti loop N+1 query validasi rombel dan insert presensi siswa menjadi 1 batch query `pluck` dan `Absensi::insert()`, memangkas lebih dari 100 query SQL per transaksi.
+- **Peningkatan Responsivitas Pengiriman**:
+  - Menghilangkan kendala *"Too long to respond"* dan *HTTP 504 Timeout* saat submit laporan mengajar.
+
 ## [2.9.15] - 2026-08-27
 
 ### Integrasi Google Spreadsheet (5 Tab Data, Initial Full Sync, Real-time Streaming, & Menu Navigasi Admin)

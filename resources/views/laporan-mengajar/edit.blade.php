@@ -736,20 +736,89 @@
         }
     }
 
-    // Preview File Selection
-    function previewUpload(input, targetId) {
+    // Client-Side Image Auto-Compression Engine
+    async function compressImageFile(file, maxWidth = 1600, maxHeight = 1600, quality = 0.82) {
+        if (!file || !file.type.startsWith('image/')) return file;
+        if (file.size <= 350 * 1024) return file;
+
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth || height > maxHeight) {
+                        if (width > height) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        } else {
+                            width = Math.round((width * maxHeight) / height);
+                            height = maxHeight;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (!blob || blob.size >= file.size) {
+                            resolve(file);
+                            return;
+                        }
+                        const cleanName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+                        const compressedFile = new File([blob], cleanName, {
+                            type: 'image/jpeg',
+                            lastModified: Date.now()
+                        });
+                        resolve(compressedFile);
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = () => resolve(file);
+            };
+            reader.onerror = () => resolve(file);
+        });
+    }
+
+    // Preview File Selection with Automatic Auto-Compression
+    async function previewUpload(input, targetId) {
         const target = document.getElementById(targetId);
         if (input.files && input.files[0]) {
-            const file = input.files[0];
-            target.textContent = `✓ File terpilih: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-            target.classList.remove('d-none');
+            let file = input.files[0];
+            const originalSize = file.size;
+
+            if (file.type.startsWith('image/')) {
+                target.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Mengoptimasi foto...`;
+                target.classList.remove('d-none');
+
+                file = await compressImageFile(file);
+
+                try {
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    input.files = dt.files;
+                } catch(e) {}
+
+                const savedText = originalSize > file.size ? ` (Hemat ${Math.round((1 - file.size/originalSize)*100)}%)` : '';
+                target.textContent = `✓ Foto siap: ${file.name} (${(file.size / 1024).toFixed(1)} KB)${savedText}`;
+                target.classList.remove('d-none');
+            } else {
+                target.textContent = `✓ File terpilih: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                target.classList.remove('d-none');
+            }
         } else {
             target.classList.add('d-none');
         }
     }
 
     // Submit Guard
-    document.getElementById('editLaporanForm').addEventListener('submit', function(e) {
+    document.getElementById('editLaporanForm').addEventListener('submit', async function(e) {
         const btn = document.getElementById('btnSubmit');
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Menyimpan...';

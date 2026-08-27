@@ -269,6 +269,55 @@
 </div>
 
 <script>
+async function compressImageFile(file, maxWidth = 1600, maxHeight = 1600, quality = 0.82) {
+    if (!file || !file.type.startsWith('image/')) return file;
+    if (file.size <= 350 * 1024) return file;
+
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxWidth || height > maxHeight) {
+                    if (width > height) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    } else {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    if (!blob || blob.size >= file.size) {
+                        resolve(file);
+                        return;
+                    }
+                    const cleanName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+                    const compressedFile = new File([blob], cleanName, {
+                        type: 'image/jpeg',
+                        lastModified: Date.now()
+                    });
+                    resolve(compressedFile);
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = () => resolve(file);
+        };
+        reader.onerror = () => resolve(file);
+    });
+}
+
 function toggleFreeTrialFields() {
     var select = document.getElementById('kategori_pengajaran');
     var wrapper = document.getElementById('freeTrialStudentCountWrapper');
@@ -290,6 +339,21 @@ function toggleFreeTrialFields() {
 
 document.addEventListener('DOMContentLoaded', function() {
     toggleFreeTrialFields();
+
+    const fotoInput = document.getElementById('foto_kegiatan');
+    if (fotoInput) {
+        fotoInput.addEventListener('change', async function() {
+            if (this.files && this.files[0] && this.files[0].type.startsWith('image/')) {
+                const originalSize = this.files[0].size;
+                const compressed = await compressImageFile(this.files[0]);
+                try {
+                    const dt = new DataTransfer();
+                    dt.items.add(compressed);
+                    this.files = dt.files;
+                } catch(e) {}
+            }
+        });
+    }
 });
 </script>
 @endsection

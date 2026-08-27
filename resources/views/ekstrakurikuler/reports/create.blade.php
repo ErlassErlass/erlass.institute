@@ -1069,6 +1069,56 @@
         const currentRombelNama = "{{ $session->rombel->nama_rombel }}";
         const ekskulId = "{{ $session->rombel->ekstrakurikuler_id }}";
 
+        // ═══ Client-Side Image Auto-Compression Engine ═══
+        async function compressImageFile(file, maxWidth = 1600, maxHeight = 1600, quality = 0.82) {
+            if (!file || !file.type.startsWith('image/')) return file;
+            if (file.size <= 350 * 1024) return file; // Skip if already very small
+
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxWidth || height > maxHeight) {
+                            if (width > height) {
+                                height = Math.round((height * maxWidth) / width);
+                                width = maxWidth;
+                            } else {
+                                width = Math.round((width * maxHeight) / height);
+                                height = maxHeight;
+                            }
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob((blob) => {
+                            if (!blob || blob.size >= file.size) {
+                                resolve(file);
+                                return;
+                            }
+                            const cleanName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+                            const compressedFile = new File([blob], cleanName, {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            });
+                            resolve(compressedFile);
+                        }, 'image/jpeg', quality);
+                    };
+                    img.onerror = () => resolve(file);
+                };
+                reader.onerror = () => resolve(file);
+            });
+        }
+
         // ═══ Upload Zone Logic ═══
         document.querySelectorAll('.upload-zone').forEach(zone => {
             const input = zone.querySelector('input[type="file"]');
@@ -1085,12 +1135,13 @@
                 }
             });
             
-            input.addEventListener('change', function() {
+            input.addEventListener('change', async function() {
                 if (this.files && this.files[0]) {
-                    const file = this.files[0];
+                    let file = this.files[0];
+                    const originalSize = file.size;
                     const maxSize = parseInt(this.dataset.maxSize || 10485760);
                     
-                    if (file.size > maxSize) {
+                    if (originalSize > maxSize && !file.type.startsWith('image/')) {
                         alert(`File terlalu besar. Maksimal ${Math.round(maxSize/1048576)}MB.`);
                         this.value = '';
                         previewDiv.style.display = 'none';
@@ -1099,14 +1150,34 @@
                     
                     previewDiv.style.display = 'block';
                     if (file.type.startsWith('image/')) {
+                        previewDiv.innerHTML = `
+                            <div class="d-flex align-items-center gap-2 p-2">
+                                <span class="spinner-border spinner-border-sm text-primary"></span>
+                                <span class="small text-muted">Mengoptimasi ukuran foto...</span>
+                            </div>`;
+
+                        file = await compressImageFile(file);
+
+                        // Attach compressed file to input via DataTransfer if supported
+                        try {
+                            const dt = new DataTransfer();
+                            dt.items.add(file);
+                            this.files = dt.files;
+                        } catch (err) {
+                            console.warn('DataTransfer fallback', err);
+                        }
+
                         const reader = new FileReader();
                         reader.onload = (e) => {
+                            const savedBadge = originalSize > file.size 
+                                ? ` <span class="badge bg-success bg-opacity-10 text-success rounded-pill ms-1 fw-bold">Hemat ${Math.round((1 - file.size/originalSize)*100)}%</span>` 
+                                : '';
                             previewDiv.innerHTML = `
                                 <div class="d-flex align-items-center gap-3">
-                                    <img src="${e.target.result}" alt="Preview">
+                                    <img src="${e.target.result}" alt="Preview" style="max-height: 100px; border-radius: 8px; object-fit: cover;">
                                     <div>
                                         <div class="fw-semibold small" style="color: var(--imp-navy);">${file.name}</div>
-                                        <div class="file-info">${(file.size / 1024).toFixed(1)} KB</div>
+                                        <div class="file-info">${(file.size / 1024).toFixed(1)} KB ${savedBadge}</div>
                                     </div>
                                 </div>`;
                         };
@@ -1232,11 +1303,27 @@
         }
         
         if (btnFinalSubmit) {
-            btnFinalSubmit.addEventListener('click', function() {
+            btnFinalSubmit.addEventListener('click', async function() {
                 this.disabled = true;
-                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Menyimpan...';
-                btnConfirm.classList.add('loading');
-                btnConfirm.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Menyimpan...';
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Mengunggah Laporan...';
+                if (btnConfirm) {
+                    btnConfirm.classList.add('loading');
+                    btnConfirm.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Mengunggah...';
+                }
+
+                // Final safety check: ensure all image inputs are compressed before submit
+                const fileInputs = document.querySelectorAll('#reportForm input[type="file"]');
+                for (const input of fileInputs) {
+                    if (input.files && input.files[0] && input.files[0].type.startsWith('image/')) {
+                        const compressed = await compressImageFile(input.files[0]);
+                        try {
+                            const dt = new DataTransfer();
+                            dt.items.add(compressed);
+                            input.files = dt.files;
+                        } catch(e) {}
+                    }
+                }
+
                 document.getElementById('reportForm').submit();
             });
         }

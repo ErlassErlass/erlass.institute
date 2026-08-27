@@ -381,27 +381,31 @@ class EkstrakurikulerReportController extends Controller
                 ]
             ]);
 
-            // 3. Create Attendance Records & Auto-Enroll Ad-hoc Students
+            // 3. Create Attendance Records & Auto-Enroll Ad-hoc Students (Optimized Bulk Execution)
             $rombel = $session->rombel;
+            $allSubmittedSiswaIds = array_map('intval', array_keys($request->absensi));
             
-            foreach ($request->absensi as $siswaId => $status) {
-                // Check if student is enrolled, if not, enroll them
-                $isEnrolled = $rombel->siswa()->where('siswa_id', $siswaId)->exists();
-                if (!$isEnrolled) {
-                    $rombel->siswa()->attach($siswaId, [
+            // Get enrolled students in 1 single fast query
+            $enrolledStudentIds = $rombel->siswa()->whereIn('siswa_id', $allSubmittedSiswaIds)->pluck('siswa.id')->toArray();
+            $missingStudentIds = array_values(array_diff($allSubmittedSiswaIds, $enrolledStudentIds));
+
+            if (!empty($missingStudentIds)) {
+                $attachData = [];
+                foreach ($missingStudentIds as $missingId) {
+                    $attachData[$missingId] = [
                         'ekstrakurikuler_id' => $rombel->ekstrakurikuler_id,
                         'status' => 'aktif',
                         'tanggal_daftar' => now(),
-                        'catatan' => 'Auto-enrolled via Session Report #' . $session->id
-                    ]);
-
-                    // Dispatch Welcome Notification
-                    $siswa = Siswa::find($siswaId);
-                    if ($siswa && $siswa->no_hp_orangtua) {
-                        $siswa->notify(new \App\Notifications\WelcomeParentNotification($siswa, $rombel));
-                    }
+                        'catatan' => 'Auto-enrolled via Session Report #' . $session->id,
+                    ];
                 }
+                $rombel->siswa()->attach($attachData);
+            }
 
+            // Bulk Insert Absensi records in 1 query
+            $absensiData = [];
+            $now = now();
+            foreach ($request->absensi as $siswaId => $status) {
                 $statusVal = $status;
                 if ($statusVal == 1 || $statusVal === 'hadir' || $statusVal === '1') {
                     $statusVal = 'hadir';
@@ -409,11 +413,17 @@ class EkstrakurikulerReportController extends Controller
                     $statusVal = 'alpha';
                 }
 
-                Absensi::create([
+                $absensiData[] = [
                     'laporan_mengajar_id' => $laporan->id,
-                    'siswa_id' => $siswaId,
-                    'status' => $statusVal
-                ]);
+                    'siswa_id' => (int) $siswaId,
+                    'status' => $statusVal,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+
+            if (!empty($absensiData)) {
+                Absensi::insert($absensiData);
             }
 
             // 4. Complete the Session
@@ -422,54 +432,6 @@ class EkstrakurikulerReportController extends Controller
                 'catatan' => $catatanClean,
                 'auto_create_laporan' => false // We just created it manually
             ]);
-
-            // 4.6. Trigger Admin Milestone Notification (Meeting 4, 8, 12, 16, 20, 24, 28, 32)
-            try {
-                app(\App\Services\MilestoneNotificationService::class)->checkAndTriggerMilestoneNotification($session, $laporan);
-            } catch (\Exception $e) {
-                Log::error("Admin Milestone Notification Error for session {$session->id}: " . $e->getMessage());
-            }
-
-            // 4.5. Trigger WhatsApp Progress Reminder
-            try {
-                $studentsToNotify = Siswa::whereIn('id', array_keys($request->absensi))
-                                         ->whereNotNull('no_hp_orangtua')
-                                         ->get();
-
-                foreach ($studentsToNotify as $student) {
-                    $isPresent = isset($request->absensi[$student->id]) && $request->absensi[$student->id] == 1;
-                    if ($isPresent) {
-                        try {
-                            $rombelReports = $rombel->sessions()
-                                ->has('laporanMengajar')
-                                ->with('laporanMengajar') 
-                                ->get()
-                                ->pluck('laporanMengajar')
-                                ->filter();
-
-                            $attendanceRecords = Absensi::whereIn('laporan_mengajar_id', $rombelReports->pluck('id'))
-                                ->where('siswa_id', $student->id)
-                                ->where('status', 'hadir')
-                                ->get();
-
-                            $totalPresent = $attendanceRecords->count();
-
-                            if ($totalPresent > 0 && $totalPresent % 4 == 0) {
-                                $last4ReportIds = $attendanceRecords->sortByDesc('created_at')->take(4)->pluck('laporan_mengajar_id');
-                                $last4Reports = LaporanMengajar::whereIn('id', $last4ReportIds)
-                                    ->orderBy('jadwal_mengajar', 'asc')
-                                    ->get();
-
-                                $student->notify(new \App\Notifications\ProgressReminderNotification($student, $rombel, $last4Reports));
-                            }
-                        } catch (\Exception $e) {
-                            Log::error("ProgressReminder Error for student {$student->id}: " . $e->getMessage());
-                        }
-                    }
-                }
-            } catch (\Exception $e) {
-                Log::error("Notification Batch Error in ReportController: " . $e->getMessage());
-            }
 
             // 5. Activity Log
             ActivityLog::create([
@@ -485,7 +447,19 @@ class EkstrakurikulerReportController extends Controller
 
             DB::commit();
 
-            // 6. Real-time Async Sync to Google Spreadsheet
+            // 6. Async Background Processing for WhatsApp Reminders & Milestones
+            try {
+                \App\Jobs\ProcessSessionNotificationJob::dispatch(
+                    $session->id, 
+                    $laporan->id, 
+                    $request->absensi ?? [], 
+                    $missingStudentIds
+                );
+            } catch (\Throwable $e) {
+                Log::warning('ProcessSessionNotificationJob dispatch error: ' . $e->getMessage());
+            }
+
+            // 7. Real-time Async Sync to Google Spreadsheet
             try {
                 \App\Jobs\SyncGoogleSheetJob::dispatch('laporan', $laporan->id);
             } catch (\Throwable $e) {
