@@ -451,5 +451,15 @@ Route::middleware(['auth'])->group(function () {
             ->name('late-reports.approve');
         Route::post('late-reports/{lateReportRequest}/reject', [App\Http\Controllers\LateReportRequestController::class, 'reject'])
             ->name('late-reports.reject');
+
+        // Google Sheets Integration Routes
+        Route::get('google-sheets', [App\Http\Controllers\Admin\GoogleSheetsController::class, 'index'])
+            ->name('google-sheets.index');
+        Route::post('google-sheets/sync', [App\Http\Controllers\Admin\GoogleSheetsController::class, 'syncNow'])
+            ->name('google-sheets.sync');
+        Route::post('google-sheets/config', [App\Http\Controllers\Admin\GoogleSheetsController::class, 'updateConfig'])
+            ->name('google-sheets.config');
+        Route::get('google-sheets/export/{tab}', [App\Http\Controllers\Admin\GoogleSheetsController::class, 'exportCsv'])
+            ->name('google-sheets.export');
     });
 });

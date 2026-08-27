@@ -485,6 +485,13 @@ class EkstrakurikulerReportController extends Controller
 
             DB::commit();
 
+            // 6. Real-time Async Sync to Google Spreadsheet
+            try {
+                \App\Jobs\SyncGoogleSheetJob::dispatch('laporan', $laporan->id);
+            } catch (\Throwable $e) {
+                Log::warning('Google Sheet async dispatch error: ' . $e->getMessage());
+            }
+
             return redirect()->route('ekstrakurikuler.sessions.show', $session)
                 ->with('success', 'Sesi berhasil diselesaikan dan laporan tersimpan.');
 

@@ -366,6 +366,13 @@ class LaporanMengajarController extends Controller
             }
         }
 
+        // Real-time Async Sync to Google Spreadsheet
+        try {
+            \App\Jobs\SyncGoogleSheetJob::dispatch('laporan', $laporan->id);
+        } catch (\Throwable $e) {
+            \Log::warning('Google Sheet async dispatch error: ' . $e->getMessage());
+        }
+
         // For Ad-Hoc / Special event reports, skip individual student attendance and redirect to show.
         if ($laporan->isAdHoc()) {
             return redirect()->route('laporan-mengajar.show', $laporan)

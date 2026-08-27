@@ -722,6 +722,14 @@
                             </a>
                         </li>
 
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs('admin.google-sheets.*') ? 'active' : '' }}" href="{{ route('admin.google-sheets.index') }}">
+                                <i class="bi bi-file-earmark-spreadsheet text-success"></i>
+                                <span>Integrasi Google Sheets</span>
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill ms-auto fw-bold" style="font-size: 0.65rem;">LIVE</span>
+                            </a>
+                        </li>
+
                         @if(Auth::user()?->canManageUsers())
                             <li class="sidebar-item">
                                 <a class="sidebar-link {{ request()->routeIs('admin.verification.index') ? 'active' : '' }}" href="{{ route('admin.verification.index') }}">

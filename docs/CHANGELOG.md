@@ -2,7 +2,32 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
-## [2.9.13] - 2026-08-27
+## [2.9.15] - 2026-08-27
+
+### Integrasi Google Spreadsheet (5 Tab Data, Initial Full Sync, Real-time Streaming, & Menu Navigasi Admin)
+
+- **Menu Baru di Sidebar Kiri Admin (`Sistem & Pengaturan` -> `Integrasi Google Sheets`)**:
+  - Menyediakan dashboard monitoring integrasi dengan status live, tombol eksekusi **Full Sync**, direct link ke Google Spreadsheet, dan kartu ringkasan 5 Tab.
+- **5 Tab Google Spreadsheet Terstruktur**:
+  - 📊 **`Ringkasan_KPI`**: Matriks performa seluruh instruktur, sesi selesai, ketepatan waktu, dan status kedisiplinan.
+  - 📝 **`Laporan_Mengajar`**: Seluruh riwayat laporan mengajar, sekolah, ekskul, rombel, alasan kendala, dan status approval admin.
+  - 🏫 **`Jadwal_Sesi_Ekskul`**: Seluruh jadwal sesi ekskul terdata, jam jadwal, jam check-in aktual, dan status pelaksanaan.
+  - 👥 **`Absensi_Siswa`**: Rekap absensi siswa per sesi (Hadir/Sakit/Izin/Alpha) serta rombel asal/pindahan.
+  - 💰 **`Rekap_Honor`**: Rekap estimasi honor kotor, potongan denda, status ACC kendala, dan honor bersih cair.
+- **Dukungan Sinkronisasi Lengkap**:
+  - **Initial Full Sync**: Menyapu seluruh ribuan data historis yang sudah ada di database ke spreadsheet dalam 1 klik.
+  - **Real-time Async Streaming**: Menggunakan Laravel Queue Job (`SyncGoogleSheetJob`) untuk meng-append baris laporan baru secara instan saat disubmit tanpa memperlambat pengalaman pengguna.
+  - **Artisan Command**: Disediakan perintah `php artisan sheets:sync` untuk integrasi CLI/Cron server.
+  - **Unduh CSV Mandiri**: Disediakan tombol ekspor CSV langsung per tab untuk analisis offline.
+
+## [2.9.14] - 2026-08-27
+
+### Perbaikan Form Edit Ekstrakurikuler (Jam Selesai & Sinkronisasi Sesi Terjadwal)
+
+- Menambahkan aturan validasi `rombel.*.jam_selesai` pada `UpdateEkstrakurikulerRequest` agar nilai jam selesai tidak ter-drop otomatis oleh Laravel.
+- Memperbaiki penataan nilai di `EkstrakurikulerFormService` dan otomatis mensinkronkan sesi terjadwal di masa depan.
+- Menyelaraskan status ACC kendala keterlambatan ke dalam kalkulasi `PunctualityKpiService`.
+
 
 ### Manajemen Kehadiran Lintas Rombel, Visualisasi Baris Abu-Abu (*Grayed Out*), & Kolom Badge Rombel di Form Laporan Mengajar
 
