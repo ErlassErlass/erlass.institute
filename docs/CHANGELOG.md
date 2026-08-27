@@ -19,6 +19,10 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
     * ⬜ **Tidak Tersedia / Libur**: Instruktur tidak membuka preferensi mengajar pada hari tersebut.
     * ⚠️ **Belum Isi Jadwal**: Instruktur belum melengkapi preferensi ketersediaan mengajar pada profilnya.
   - **Kartu Sesi Terjadwal Detail**: Menampilkan jam mulai-selesai akurat (`jam_mulai_terjadwal`), kategori program ekskul, dan nama sekolah mitra secara terstruktur di dalam sel matriks.
+- **Penyelarasan Dashboard Instruktur (Fokus Murni Akademik & Jam Mengajar)**:
+  - **Penghapusan Nominal Rupiah & Penalti Uang dari Dashboard Instruktur**: Mengganti kartu *"Estimasi Honor"* dengan kartu **"Sesi Selesai"** (`total_sesi_selesai`) untuk menjaga fokus instruktur pada kuantitas jam terbang, kualitas mengajar, dan ketepatan waktu laporan.
+  - **Optimalisasi Performa Controller (`DashboardController.php`)**: Mengeliminasi pemanggilan loop kalkulator payroll di dashboard instruktur sehingga waktu render halaman dashboard menjadi jauh lebih cepat.
+  - **Pembaruan Tur Onboarding (`instructor-tour.js`)**: Menyesuaikan langkah ke-5 panduan tur untuk menjelaskan ringkasan jam mengajar, laporan terkirim, dan sesi selesai.
 - **Penyempurnaan Desain UI/UX & Kontras Hero Card**:
   - Memperbaiki kontras styling badge *"Analytics & Penjadwalan"* pada hero header menggunakan `rgba(255, 255, 255, 0.18)` dan border semi-transparan untuk menjamin keterbacaan teks di semua resolusi dan browser.
 

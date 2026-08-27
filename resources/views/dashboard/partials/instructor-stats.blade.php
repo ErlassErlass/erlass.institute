@@ -27,27 +27,21 @@
         </div>
     </div>
 
-    <!-- Estimated Earnings (AOQCS Pillar 6) -->
+    <!-- Sesi Selesai (Completed Sessions) -->
     <div class="col-12 col-md-6 col-xl-3">
         <div class="impeccable-stat-card accent-amber h-100">
             <div class="d-flex align-items-center mb-2">
                 <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning me-2">
-                    <i class="bi bi-wallet2"></i>
+                    <i class="bi bi-calendar-check-fill"></i>
                 </div>
-                <h6 class="text-muted mb-0 small fw-bold">Estimasi Honor</h6>
+                <h6 class="text-muted mb-0 small fw-bold">Sesi Selesai</h6>
             </div>
-            <h3 class="fw-bold mb-1 text-dark">Rp {{ number_format($estimated_earnings, 0, ',', '.') }}</h3>
+            <h3 class="fw-bold mb-1 text-dark">{{ $total_sesi_selesai ?? $total_laporan_bulan_ini }} Sesi</h3>
             <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                <small class="text-muted">Cutoff: {{ $cutoff_label ?? 'Bulan Ini' }}</small>
-                @if($total_penalties > 0)
-                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle small" data-bs-toggle="tooltip" title="Potongan keterlambatan">
-                        -Rp {{ number_format($total_penalties, 0, ',', '.') }}
-                    </span>
-                @else
-                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle small">
-                        <i class="bi bi-shield-check me-1"></i>Aman
-                    </span>
-                @endif
+                <small class="text-muted fw-semibold">Cutoff: {{ $cutoff_label ?? 'Bulan Ini' }}</small>
+                <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle small">
+                    <i class="bi bi-check2-all me-1"></i>Terlaksana
+                </span>
             </div>
         </div>
     </div>

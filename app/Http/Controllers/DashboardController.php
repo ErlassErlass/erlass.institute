@@ -264,26 +264,12 @@ class DashboardController extends Controller
             ->selectRaw('COUNT(*) as total_count, SUM(TIMESTAMPDIFF(MINUTE, jam_mulai, jam_selesai)) as total_minutes')
             ->first();
 
-        // Hitung estimasi pendapatan periode cutoff (Integrasi Pilar 6 AOQCS)
-        $currentMonthSessions = \App\Models\EkstrakurikulerSession::where('user_id_instruktur', $user->id)
+        // Hitung total sesi selesai periode cutoff
+        $totalSesiSelesai = \App\Models\EkstrakurikulerSession::where('user_id_instruktur', $user->id)
             ->where('status', \App\Models\EkstrakurikulerSession::STATUS_SELESAI)
             ->whereBetween('tanggal_pelaksanaan', [$cutoffStart, $cutoffEnd])
-            ->whereHas('laporanMengajar') // Hanya sesi selesai yang memiliki laporan mengajar yang dihitung
-            ->get();
-
-        $calculator = app(\App\Services\PayrollCalculatorService::class);
-        $estimatedEarnings = 0.00;
-        $totalPenalties = 0.00;
-        $totalTransport = 0.00;
-
-        foreach ($currentMonthSessions as $session) {
-            $calc = $calculator->calculateSessionFee($session);
-            $base = $session->override_fee !== null ? (float)$session->override_fee : (float)$calc['calculated_fee'];
-            $sessionNet = max(0.00, $base + $calc['transport_fee'] - $calc['actual_checkin_penalty']);
-            $estimatedEarnings += $sessionNet;
-            $totalPenalties += $calc['actual_checkin_penalty'];
-            $totalTransport += $calc['transport_fee'];
-        }
+            ->whereHas('laporanMengajar') // Hanya sesi selesai yang memiliki laporan mengajar
+            ->count();
 
         return [
             'total_laporan_instruktur' => \App\Models\LaporanMengajar::where('user_id_instruktur', $user->id)->count(),
@@ -291,9 +277,7 @@ class DashboardController extends Controller
             'missing_fields' => $missing_fields,
             'total_laporan_bulan_ini' => $monthlyStats->total_count ?? 0,
             'total_jam_mengajar' => round(($monthlyStats->total_minutes ?? 0) / 60, 1),
-            'estimated_earnings' => $estimatedEarnings,
-            'total_penalties' => $totalPenalties,
-            'total_transport' => $totalTransport,
+            'total_sesi_selesai' => $totalSesiSelesai,
             'cutoff_label' => $cutoffStart->format('d M') . ' - ' . $cutoffEnd->format('d M Y'),
             'next_class' => \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah:kodlan,namasekolah'])
                 ->where('user_id_instruktur', $user->id)

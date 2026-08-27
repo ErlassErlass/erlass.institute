@@ -43,8 +43,8 @@ export const instructorTourSteps = [
     {
         element: '#tour-instructor-earnings',
         popover: {
-            title: '💰 Estimasi Honor & Kedisiplinan',
-            description: '<span class="badge-step-pill">Langkah 5 dari 5</span><br>Pantau estimasi honor berjalan periode cutoff (tgl 11 s.d. 10) serta evaluasi kedisiplinan ketepatan waktu check-in & pelaporan Anda secara transparan.',
+            title: '📊 Statistik Jam & Aktivitas Mengajar',
+            description: '<span class="badge-step-pill">Langkah 5 dari 5</span><br>Pantau akumulasi jam mengajar, laporan terkirim, dan sesi selesai periode cutoff (tgl 11 s.d. 10) serta evaluasi kedisiplinan ketepatan waktu check-in & pelaporan Anda secara transparan.',
             side: 'top',
             align: 'end'
         }
