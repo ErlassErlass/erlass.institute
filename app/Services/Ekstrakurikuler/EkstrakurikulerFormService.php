@@ -749,8 +749,10 @@ class EkstrakurikulerFormService
                 foreach ($rombelData as $rombelId => $data) {
                     $rombel = $ekstrakurikuler->rombels()->find($rombelId);
                     if ($rombel) {
-                        // Jika jam_selesai tidak diinput, otomatis hitung +90 menit dari jam_mulai
-                        $jamSelesai = $data['jam_selesai'] ?? \Carbon\Carbon::parse($data['jam_mulai'])->addMinutes(90)->format('H:i');
+                        // Jika jam_selesai diinput gunakan nilai tersebut, jika tidak otomatis hitung +90 menit dari jam_mulai
+                        $jamSelesai = !empty($data['jam_selesai']) 
+                            ? $data['jam_selesai'] 
+                            : \Carbon\Carbon::parse($data['jam_mulai'])->addMinutes(90)->format('H:i');
 
                         $rombel->update([
                             'jumlah_siswa' => $data['jumlah_siswa'],

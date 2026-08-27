@@ -66,6 +66,7 @@ class UpdateEkstrakurikulerRequest extends FormRequest
             'rombel.*.keterangan_ruangan' => 'nullable|string|max:255',
             'rombel.*.hari' => 'required_with:rombel|string|in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
             'rombel.*.jam_mulai' => 'required_with:rombel|date_format:H:i',
+            'rombel.*.jam_selesai' => 'nullable|date_format:H:i|after:rombel.*.jam_mulai',
             'rombel.*.tanggal_mulai' => 'required_with:rombel|date',
             'rombel.*.tanggal_selesai' => 'required_with:rombel|date|after:rombel.*.tanggal_mulai',
         ];
@@ -218,6 +219,9 @@ class UpdateEkstrakurikulerRequest extends FormRequest
 
             'rombel.*.jam_mulai.required_with' => 'Jam mulai rombel wajib diisi.',
             'rombel.*.jam_mulai.date_format' => 'Format jam mulai tidak valid (HH:MM).',
+
+            'rombel.*.jam_selesai.date_format' => 'Format jam selesai tidak valid (HH:MM).',
+            'rombel.*.jam_selesai.after' => 'Jam selesai harus setelah jam mulai.',
 
             'rombel.*.tanggal_mulai.required_with' => 'Tanggal mulai rombel wajib diisi.',
             'rombel.*.tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
