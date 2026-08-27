@@ -51,9 +51,9 @@ class PunctualityKpiService
             $jadwalDate = Carbon::parse($laporan->jadwal_mengajar);
             $createdAt = Carbon::parse($laporan->created_at);
 
-            // Indikator 2: Report submission H+1 (23:59:59)
+            // Indikator 2: Report submission H+1 (23:59:59) atau kendala telah disetujui (ACC) admin
             $deadlineHPlus1 = $jadwalDate->copy()->addDay()->endOfDay();
-            $isReportOnTime = $createdAt->lte($deadlineHPlus1);
+            $isReportOnTime = $createdAt->lte($deadlineHPlus1) || (($laporan->metadata_json['status_approval_kendala'] ?? null) === 'approved');
 
             // Indikator 1: Kehadiran di sekolah (Presensi Check-in GPS Sesi)
             $isArrivalOnTime = true;
