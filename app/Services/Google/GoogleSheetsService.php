@@ -624,4 +624,24 @@ class GoogleSheetsService
 
         return $csv;
     }
+
+    /**
+     * Get array data of all 5 tabs.
+     */
+    public function getAllTabsData(): array
+    {
+        $this->syncTabKpi();
+        $this->syncTabLaporan();
+        $this->syncTabJadwal();
+        $this->syncTabAbsensi();
+        $this->syncTabHonor();
+
+        return [
+            self::TAB_KPI => Cache::get("google_sheets_data_" . self::TAB_KPI, []),
+            self::TAB_LAPORAN => Cache::get("google_sheets_data_" . self::TAB_LAPORAN, []),
+            self::TAB_JADWAL => Cache::get("google_sheets_data_" . self::TAB_JADWAL, []),
+            self::TAB_ABSENSI => Cache::get("google_sheets_data_" . self::TAB_ABSENSI, []),
+            self::TAB_HONOR => Cache::get("google_sheets_data_" . self::TAB_HONOR, []),
+        ];
+    }
 }

@@ -243,6 +243,98 @@
             </form>
         </div>
     </div>
+
+    <!-- Google Apps Script Quick Setup Guide -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: #f0fdf4; border: 1px solid #bbf7d0 !important;">
+        <div class="card-header bg-transparent border-bottom-0 p-4 pb-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-success rounded-pill px-3 py-1 mb-2 fw-bold">Paling Mudah & Instan</span>
+                    <h5 class="fw-bold text-dark mb-1">
+                        <i class="bi bi-code-square text-success me-2"></i>Pasang Menu Sync Otomatis di Google Sheets
+                    </h5>
+                    <p class="text-muted small mb-0">Cukup salin script berikut ke <strong>Ekstensi (Extensions) &gt; Apps Script</strong> di Google Spreadsheet Anda untuk mengisi seluruh 5 tab secara otomatis dan membuat tombol menu sinkronisasi.</p>
+                </div>
+                <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="copyAppsScript()">
+                    <i class="bi bi-clipboard-check me-1"></i> Salin Script
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <div class="position-relative">
+                <pre class="bg-dark text-light p-3 rounded-4 small mb-0" style="max-height: 250px; overflow-y: auto;" id="appsScriptCode"><code>/**
+ * ERLASS INSTITUTE - GOOGLE SPREADSHEETS AUTO-SYNC
+ * Mengisi & menyinkronkan seluruh 5 Tab Data secara otomatis.
+ */
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('🚀 Erlass Sync')
+    .addItem('🔄 Sinkronkan Seluruh Data Sekarang', 'SINKRONKAN_SEMUA_DATA')
+    .addToUi();
+}
+
+function SINKRONKAN_SEMUA_DATA() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var url = 'https://erlass.institute/api/google-sheets/feed?token=erlass_sheets_sync_2026';
+  
+  SpreadsheetApp.getActiveSpreadsheet().toast('Sedang mengambil data dari sistem Erlass...', 'Sinkronisasi', 10);
+  
+  var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  if (response.getResponseCode() !== 200) {
+    SpreadsheetApp.getUi().alert('Gagal mengambil data: ' + response.getContentText());
+    return;
+  }
+  
+  var json = JSON.parse(response.getContentText());
+  if (!json.success || !json.tabs) {
+    SpreadsheetApp.getUi().alert('Format data tidak valid.');
+    return;
+  }
+  
+  var tabs = json.tabs;
+  var tabColors = {
+    'Ringkasan_KPI': '#0284c7',
+    'Laporan_Mengajar': '#059669',
+    'Jadwal_Sesi_Ekskul': '#d97706',
+    'Absensi_Siswa': '#0891b2',
+    'Rekap_Honor': '#dc2626'
+  };
+
+  for (var tabName in tabs) {
+    var rows = tabs[tabName];
+    if (!rows || rows.length === 0) continue;
+    
+    var sheet = ss.getSheetByName(tabName);
+    if (!sheet) {
+      sheet = ss.insertSheet(tabName);
+    }
+    
+    sheet.clear();
+    
+    // Write data
+    var numRows = rows.length;
+    var numCols = rows[0].length;
+    sheet.getRange(1, 1, numRows, numCols).setValues(rows);
+    
+    // Style Header
+    var headerRange = sheet.getRange(1, 1, 1, numCols);
+    headerRange.setFontWeight('bold');
+    headerRange.setBackground(tabColors[tabName] || '#0f766e');
+    headerRange.setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+  }
+  
+  // Hapus Sheet1 default jika kosong
+  var sheet1 = ss.getSheetByName('Sheet1');
+  if (sheet1 && ss.getSheets().length > 1) {
+    try { ss.deleteSheet(sheet1); } catch(e) {}
+  }
+  
+  SpreadsheetApp.getActiveSpreadsheet().toast('✅ Sukses! Seluruh 5 Tab telah terisi lengkap.', 'Selesai', 5);
+}</code></pre>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -251,6 +343,13 @@
 function copySpreadsheetId(id) {
     navigator.clipboard.writeText(id).then(function() {
         alert('Spreadsheet ID berhasil disalin ke clipboard!');
+    });
+}
+
+function copyAppsScript() {
+    const text = document.getElementById('appsScriptCode').innerText;
+    navigator.clipboard.writeText(text).then(function() {
+        alert('Apps Script berhasil disalin! Silakan tempel di Google Spreadsheet (Ekstensi > Apps Script).');
     });
 }
 

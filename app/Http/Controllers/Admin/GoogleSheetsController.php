@@ -152,4 +152,25 @@ class GoogleSheetsController extends Controller
             ->header('Content-Type', 'text/csv')
             ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
     }
+
+    /**
+     * API Feed for Google Apps Script / Webhook Sync.
+     */
+    public function feed(Request $request)
+    {
+        $token = $request->query('token');
+        $expectedToken = config('services.google.feed_token', 'erlass_sheets_sync_2026');
+
+        if ($token !== $expectedToken) {
+            return response()->json(['error' => 'Unauthorized token'], 403);
+        }
+
+        $allData = $this->sheetsService->getAllTabsData();
+
+        return response()->json([
+            'success' => true,
+            'timestamp' => now()->toDateTimeString(),
+            'tabs' => $allData,
+        ]);
+    }
 }

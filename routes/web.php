@@ -463,3 +463,7 @@ Route::middleware(['auth'])->group(function () {
             ->name('google-sheets.export');
     });
 });
+
+// Google Apps Script Feed Endpoint (Token Protected)
+Route::get('api/google-sheets/feed', [App\Http\Controllers\Admin\GoogleSheetsController::class, 'feed'])
+    ->name('api.google-sheets.feed');
