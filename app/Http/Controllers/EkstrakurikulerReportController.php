@@ -135,7 +135,49 @@ class EkstrakurikulerReportController extends Controller
         $isEndOfMonth = $session->tanggal_terjadwal ? Carbon::parse($session->tanggal_terjadwal)->day >= 28 : false;
 
         $session->load(['rombel.siswaAktif', 'rombel.ekstrakurikuler.sekolah']);
-        $siswaList = $session->rombel->siswaAktif()->orderBy('nama_lengkap')->get();
+        $rombel = $session->rombel;
+        $ekskulId = $rombel->ekstrakurikuler_id;
+
+        // 1. Siswa Aktif di Rombel ini
+        $siswaList = $rombel->siswaAktif()->orderBy('nama_lengkap')->get();
+
+        // 2. Siswa yang pernah terdaftar di Rombel ini namun telah Pindah ke rombel lain (Baris Abu-Abu)
+        $transferredEnrollments = \App\Models\SiswaEkstrakurikuler::with('siswa')
+            ->where('ekstrakurikuler_rombel_id', $rombel->id)
+            ->where('status', \App\Models\SiswaEkstrakurikuler::STATUS_PINDAH)
+            ->get();
+
+        $transferredStudents = [];
+        foreach ($transferredEnrollments as $enrollment) {
+            if ($enrollment->siswa) {
+                // Cari rombel aktif siswa saat ini di program ekskul yang sama
+                $activeEnrollment = \App\Models\SiswaEkstrakurikuler::with('rombel')
+                    ->where('siswa_id', $enrollment->siswa_id)
+                    ->where('ekstrakurikuler_id', $ekskulId)
+                    ->where('status', \App\Models\SiswaEkstrakurikuler::STATUS_AKTIF)
+                    ->first();
+
+                // Hanya tampilkan jika sekarang sudah aktif di rombel lain
+                if ($activeEnrollment && $activeEnrollment->ekstrakurikuler_rombel_id !== $rombel->id) {
+                    $targetRombelNama = $activeEnrollment->rombel?->nama_rombel ?? 'Rombel Lain';
+
+                    $transferredStudents[] = [
+                        'id' => $enrollment->siswa->id,
+                        'nama_lengkap' => $enrollment->siswa->nama_lengkap,
+                        'jenis_kelamin' => $enrollment->siswa->jenis_kelamin,
+                        'kelas' => $enrollment->siswa->kelas ?? $enrollment->siswa->rombel ?? '-',
+                        'target_rombel_id' => $activeEnrollment->ekstrakurikuler_rombel_id,
+                        'target_rombel_nama' => $targetRombelNama,
+                        'tanggal_pindah' => $enrollment->tanggal_keluar ? Carbon::parse($enrollment->tanggal_keluar)->format('d/m/Y') : null,
+                    ];
+                }
+            }
+        }
+
+        // 3. Jumlah rombel paralel lain di program ekstrakurikuler ini
+        $parallelRombelsCount = \App\Models\EkstrakurikulerRombel::where('ekstrakurikuler_id', $ekskulId)
+            ->where('id', '!=', $rombel->id)
+            ->count();
         
         // Pre-fill data
         $defaults = [
@@ -168,7 +210,7 @@ class EkstrakurikulerReportController extends Controller
         $errors = session('errors') ?? new \Illuminate\Support\ViewErrorBag();
 
         return view('ekstrakurikuler.reports.create', compact(
-            'session', 'siswaList', 'defaults', 'materiList', 'previousReport', 'errors',
+            'session', 'siswaList', 'transferredStudents', 'parallelRombelsCount', 'defaults', 'materiList', 'previousReport', 'errors',
             'deadline', 'isSevereLate', 'isEndOfMonth'
         ));
     }

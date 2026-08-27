@@ -354,10 +354,49 @@
         color: var(--imp-navy);
         font-size: 0.9rem;
         flex: 1;
+        min-width: 140px;
     }
     .student-row.new-student {
         background: rgba(59, 130, 246, 0.05);
         border-left: 3px solid var(--imp-blue);
+    }
+    .student-row.transferred-student {
+        background: #f8fafc;
+        opacity: 0.72;
+        border-left: 3px solid #f59e0b;
+    }
+    .student-row.transferred-student:hover {
+        opacity: 0.95;
+        background: #f1f5f9;
+    }
+
+    /* Rombel tag in attendance table */
+    .student-rombel-col {
+        min-width: 120px;
+    }
+    .student-rombel-tag {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.28rem 0.65rem;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        white-space: nowrap;
+    }
+    .student-rombel-tag.current {
+        background: rgba(37, 99, 235, 0.08);
+        color: #2563eb;
+        border: 1px solid rgba(37, 99, 235, 0.2);
+    }
+    .student-rombel-tag.transferred {
+        background: rgba(217, 119, 6, 0.12);
+        color: #b45309;
+        border: 1px solid rgba(217, 119, 6, 0.28);
+    }
+    .student-action-col {
+        min-width: 32px;
+        text-align: right;
     }
 
     /* Search Bar in Attendance */
@@ -663,7 +702,7 @@
                     <div class="imp-card-header">
                         <h5><i class="bi bi-people-fill"></i> 2. Absensi Siswa</h5>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <div class="attendance-counter">
+                            <div class="attendance-counter me-md-1">
                                 <span class="att-badge total-badge">
                                     <i class="bi bi-people"></i> Total: <span id="totalStudents">{{ $siswaList->count() }}</span>
                                 </span>
@@ -674,8 +713,11 @@
                                     <i class="bi bi-x-circle-fill"></i> A: <span id="absenCount">0</span>
                                 </span>
                             </div>
+                            <button type="button" class="btn btn-sm fw-bold px-3 py-1 rounded-pill shadow-sm" style="background: var(--imp-blue); color: white; border: none;" data-bs-toggle="modal" data-bs-target="#transferStudentModal">
+                                <i class="bi bi-arrow-left-right me-1"></i> Ambil Siswa dari Rombel Lain
+                            </button>
                             <button type="button" class="btn btn-sm fw-bold px-3 py-1 rounded-pill shadow-sm" style="background: var(--imp-green); color: white; border: none;" data-bs-toggle="modal" data-bs-target="#addStudentModal">
-                                <i class="bi bi-person-plus-fill me-1"></i> Tambah Siswa
+                                <i class="bi bi-person-plus-fill me-1"></i> Tambah Siswa Baru Masuk
                             </button>
                         </div>
                     </div>
@@ -690,13 +732,22 @@
 
                     {{-- Student List --}}
                     <div id="studentListContainer">
+                        {{-- 1. Active Students in this Rombel --}}
                         @foreach($siswaList as $index => $siswa)
-                        <div class="student-row" data-student-name="{{ strtolower($siswa->nama_lengkap) }}">
+                        <div class="student-row" id="student_row_{{ $siswa->id }}" data-student-id="{{ $siswa->id }}" data-student-name="{{ strtolower($siswa->nama_lengkap) }}">
                             <span class="student-num">{{ $index + 1 }}</span>
                             <div class="student-avatar {{ $siswa->jenis_kelamin == 'L' ? 'avatar-male' : ($siswa->jenis_kelamin == 'P' ? 'avatar-female' : 'avatar-default') }}">
                                 {{ strtoupper(substr($siswa->nama_lengkap, 0, 1)) }}
                             </div>
-                            <div class="student-name">{{ $siswa->nama_lengkap }}</div>
+                            <div class="student-name">
+                                <div class="fw-bold text-dark">{{ $siswa->nama_lengkap }}</div>
+                                <small class="text-muted">{{ $siswa->kelas ?? $siswa->rombel ?? 'Siswa' }}</small>
+                            </div>
+                            <div class="student-rombel-col">
+                                <span class="student-rombel-tag current">
+                                    <i class="bi bi-people-fill"></i> {{ $session->rombel->nama_rombel }}
+                                </span>
+                            </div>
                             <div class="att-toggle-group">
                                 <input type="radio" class="btn-check att-radio" name="absensi[{{ $siswa->id }}]" id="hadir_{{ $siswa->id }}" value="1" checked required>
                                 <label class="att-toggle-btn hadir-btn" for="hadir_{{ $siswa->id }}">
@@ -708,14 +759,58 @@
                                     <i class="bi bi-x-circle"></i> Absen
                                 </label>
                             </div>
+                            <div class="student-action-col">
+                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill btn-withdraw-action px-2 py-0.5" 
+                                        data-student-id="{{ $siswa->id }}" 
+                                        data-student-name="{{ $siswa->nama_lengkap }}" 
+                                        title="Keluarkan Siswa dari Rombel">
+                                    <i class="bi bi-box-arrow-right"></i> <span class="d-none d-md-inline small">Keluar</span>
+                                </button>
+                            </div>
                         </div>
                         @endforeach
                         
-                        @if($siswaList->isEmpty())
-                        <div class="text-center py-5" style="color: var(--imp-slate);">
+                        {{-- 2. Transferred Students (Baris Abu-Abu) --}}
+                        @if(isset($transferredStudents) && count($transferredStudents) > 0)
+                            @foreach($transferredStudents as $tSiswa)
+                            <div class="student-row transferred-student" id="student_row_{{ $tSiswa['id'] }}" data-student-id="{{ $tSiswa['id'] }}" data-student-name="{{ strtolower($tSiswa['nama_lengkap']) }}">
+                                <span class="student-num"><i class="bi bi-arrow-right-short text-warning fs-5"></i></span>
+                                <div class="student-avatar avatar-default" style="opacity: 0.6;">
+                                    {{ strtoupper(substr($tSiswa['nama_lengkap'], 0, 1)) }}
+                                </div>
+                                <div class="student-name" style="opacity: 0.75;">
+                                    <div class="fw-semibold text-secondary text-decoration-line-through">{{ $tSiswa['nama_lengkap'] }}</div>
+                                    <small class="text-muted">{{ $tSiswa['kelas'] }}</small>
+                                </div>
+                                <div class="student-rombel-col">
+                                    <span class="student-rombel-tag transferred" title="Pindah sejak {{ $tSiswa['tanggal_pindah'] ?? '-' }}">
+                                        <i class="bi bi-arrow-right-circle-fill"></i> Pindah ke {{ $tSiswa['target_rombel_nama'] }}
+                                    </span>
+                                </div>
+                                <div class="att-toggle-group" style="opacity: 0.7;">
+                                    <span class="badge bg-light text-muted border py-1.5 px-2.5 rounded-pill" style="font-size: 0.75rem;">
+                                        <i class="bi bi-slash-circle me-1"></i> Non-aktif di Sesi Ini
+                                    </span>
+                                </div>
+                                <div class="student-action-col">
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill btn-restore-action px-2 py-0.5"
+                                            data-student-id="{{ $tSiswa['id'] }}"
+                                            data-student-name="{{ $tSiswa['nama_lengkap'] }}"
+                                            data-target-rombel-id="{{ $session->ekstrakurikuler_rombel_id }}"
+                                            data-from-rombel="{{ $tSiswa['target_rombel_nama'] }}"
+                                            title="Tarik kembali siswa ke rombel ini">
+                                        <i class="bi bi-arrow-counterclockwise"></i> <span class="d-none d-md-inline small">Tarik Kembali</span>
+                                    </button>
+                                </div>
+                            </div>
+                            @endforeach
+                        @endif
+
+                        @if($siswaList->isEmpty() && (!isset($transferredStudents) || count($transferredStudents) === 0))
+                        <div class="text-center py-5" style="color: var(--imp-slate);" id="emptyStudentPlaceholder">
                             <i class="bi bi-info-circle fs-4 d-block mb-2"></i>
                             <span class="fw-semibold">Belum ada siswa di rombel ini.</span><br>
-                            <small>Klik "Tambah Siswa" untuk menambahkan siswa baru.</small>
+                            <small>Klik "Ambil Siswa dari Rombel Lain" atau "Tambah Siswa Baru Masuk".</small>
                         </div>
                         @endif
                     </div>
@@ -830,80 +925,126 @@
     </div>
 </div>
 
-{{-- ═══ Modal Tambah Siswa ═══ --}}
-<div class="modal fade" id="addStudentModal" tabindex="-1">
-    <div class="modal-dialog">
+{{-- ═══ Modal 1: Ambil Siswa dari Rombel Lain ═══ --}}
+<div class="modal fade" id="transferStudentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content" style="border-radius: var(--imp-radius); border: none; box-shadow: var(--imp-shadow-lg);">
-            <div class="modal-header" style="border-bottom: 1px solid var(--imp-border);">
-                <h5 class="modal-title fw-bold" style="color: var(--imp-navy);">
-                    <i class="bi bi-person-plus-fill me-2" style="color: var(--imp-green);"></i>Tambah Siswa ke Daftar Hadir
+            <div class="modal-header" style="border-bottom: 1px solid var(--imp-border); padding: 1.25rem 1.5rem;">
+                <div>
+                    <h5 class="modal-title fw-bold" style="color: var(--imp-navy);">
+                        <i class="bi bi-arrow-left-right me-2 text-primary"></i>Ambil Siswa dari Rombel Lain
+                    </h5>
+                    <small class="text-muted">Pindahkan siswa dari rombel paralel di program ekskul yang sama ke <strong>{{ $session->rombel->nama_rombel }}</strong>.</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0" id="parallelStudentSearchInput" placeholder="Cari nama siswa di rombel lain...">
+                    </div>
+                </div>
+
+                <div id="parallelStudentsLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <div class="small text-muted mt-2">Memuat daftar siswa rombel lain...</div>
+                </div>
+
+                <div id="parallelStudentsContainer" style="max-height: 380px; overflow-y: auto;">
+                    {{-- Populated via AJAX --}}
+                </div>
+            </div>
+            <div class="modal-footer border-0 bg-light p-3">
+                <button type="button" class="btn btn-light rounded-3 px-4" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ═══ Modal 2: Tambah Siswa Baru Masuk ═══ --}}
+<div class="modal fade" id="addStudentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: var(--imp-radius); border: none; box-shadow: var(--imp-shadow-lg);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--imp-border); padding: 1.25rem 1.5rem;">
+                <div>
+                    <h5 class="modal-title fw-bold" style="color: var(--imp-navy);">
+                        <i class="bi bi-person-plus-fill me-2 text-success"></i>Tambah Siswa Baru Masuk
+                    </h5>
+                    <small class="text-muted">Pendaftaran siswa yang baru pertama kali bergabung ke <strong>{{ $session->rombel->nama_rombel }}</strong>.</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="quickAddStudentForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-dark">Nama Lengkap Siswa <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="newStudentName" required placeholder="Contoh: Muhammad Rizky" style="border-radius: 10px;">
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-dark">Jenis Kelamin <span class="text-danger">*</span></label>
+                            <select class="form-select" id="newStudentGender" required style="border-radius: 10px;">
+                                <option value="L">Laki-laki</option>
+                                <option value="P">Perempuan</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-dark">Kelas Sekolah <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="newStudentClass" placeholder="Contoh: 7A / 8B" required style="border-radius: 10px;">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-dark">No. WhatsApp Orang Tua <span class="text-muted fw-normal">(Opsional)</span></label>
+                        <input type="text" class="form-control" id="newStudentPhone" placeholder="08xxxxxxxxxx" maxlength="20" style="border-radius: 10px;">
+                        <div class="form-text" style="font-size: 0.72rem;">Digunakan untuk pengiriman notifikasi kemajuan & rapor belajar siswa.</div>
+                    </div>
+                    <input type="hidden" id="schoolKodlan" value="{{ $session->rombel->ekstrakurikuler->sekolah_kodlan }}">
+                    <input type="hidden" id="rombelId" value="{{ $session->ekstrakurikuler_rombel_id }}">
+                    <input type="hidden" id="ekskulId" value="{{ $session->rombel->ekstrakurikuler_id }}">
+                    <button type="submit" class="btn w-100 fw-bold py-2.5 rounded-3" style="background: var(--imp-green); color: white;" id="btnSubmitNewStudent">
+                        <i class="bi bi-person-check-fill me-1"></i> Simpan & Daftarkan ke Rombel Ini
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ═══ Modal 3: Keluarkan Siswa dari Rombel ═══ --}}
+<div class="modal fade" id="withdrawStudentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: var(--imp-radius); border: none; box-shadow: var(--imp-shadow-lg);">
+            <div class="modal-header border-0 pb-0" style="padding: 1.5rem 1.5rem 0.5rem;">
+                <h5 class="modal-title fw-bold text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>Keluarkan Siswa dari Rombel
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <ul class="nav nav-tabs mb-3" id="studentTabs" role="tablist">
-                         <li class="nav-item">
-                            <button class="nav-link active fw-semibold" id="search-tab" data-bs-toggle="tab" data-bs-target="#search-pane" type="button">
-                                <i class="bi bi-search me-1"></i> Cari Siswa
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link fw-semibold" id="create-tab" data-bs-toggle="tab" data-bs-target="#create-pane" type="button">
-                                <i class="bi bi-plus-circle me-1"></i> Buat Baru
-                            </button>
-                        </li>
-                    </ul>
-
-                    <div class="tab-content" id="myTabContent">
-                        <div class="tab-pane fade show active" id="search-pane" role="tabpanel">
-                            <label class="form-label fw-semibold">Cari Nama Siswa</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="studentSearchInput" placeholder="Ketik minimal 3 huruf..." style="border-radius: 10px 0 0 10px;">
-                                <button class="btn btn-outline-primary" type="button" id="btnSearchStudent" style="border-radius: 0 10px 10px 0;">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="tab-pane fade" id="create-pane" role="tabpanel">
-                            <div class="alert alert-warning py-2 small rounded-3">
-                                <i class="bi bi-exclamation-circle me-1"></i> Data siswa baru akan dicatat dan diverifikasi oleh admin.
-                            </div>
-                            <form id="quickAddStudentForm">
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">Nama Lengkap <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="newStudentName" required style="border-radius: 10px;">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">Jenis Kelamin <span class="text-danger">*</span></label>
-                                    <select class="form-select" id="newStudentGender" required style="border-radius: 10px;">
-                                        <option value="L">Laki-laki</option>
-                                        <option value="P">Perempuan</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">Kelas <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="newStudentClass" placeholder="Contoh: 7A, 8B, X-1" required style="border-radius: 10px;">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">No. WA Orang Tua <span class="text-muted small">(Opsional)</span></label>
-                                    <input type="text" class="form-control" id="newStudentPhone" placeholder="08xxxx (opsional)" maxlength="20" style="border-radius: 10px;">
-                                    <div class="form-text" style="font-size: 0.7rem;">Opsional — Digunakan untuk pengiriman notifikasi.</div>
-                                </div>
-                                <input type="hidden" id="schoolKodlan" value="{{ $session->rombel->ekstrakurikuler->sekolah_kodlan }}">
-                                <input type="hidden" id="rombelId" value="{{ $session->ekstrakurikuler_rombel_id }}">
-                                <button type="submit" class="btn w-100 fw-bold rounded-3" style="background: var(--imp-blue); color: white;">
-                                    <i class="bi bi-person-plus me-1"></i> Simpan & Tambahkan
-                                </button>
-                            </form>
-                        </div>
+            <div class="modal-body" style="padding: 1rem 1.5rem;">
+                <p class="small text-muted mb-3">
+                    Apakah Anda yakin ingin mengeluarkan siswa <strong id="withdrawStudentName" class="text-dark">Siswa</strong> dari rombel <strong>{{ $session->rombel->nama_rombel }}</strong>? Siswa tidak akan muncul di absensi sesi mendatang.
+                </p>
+                <form id="withdrawStudentForm">
+                    <input type="hidden" id="withdrawStudentId" value="">
+                    <input type="hidden" id="withdrawRombelId" value="{{ $session->ekstrakurikuler_rombel_id }}">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-dark">Alasan Keluar <span class="text-danger">*</span></label>
+                        <select class="form-select mb-2" id="withdrawReasonSelect" required style="border-radius: 10px;">
+                            <option value="Berhenti mengikuti ekstrakurikuler">Berhenti mengikuti ekstrakurikuler</option>
+                            <option value="Pindah sekolah">Pindah sekolah</option>
+                            <option value="Jadwal bentrok permanen">Jadwal bentrok permanen</option>
+                            <option value="Lainnya">Lainnya (Tuliskan di bawah)</option>
+                        </select>
+                        <textarea class="form-control" id="withdrawReasonText" rows="2" placeholder="Catatan tambahan alasan keluar..." style="border-radius: 10px; font-size: 0.85rem;"></textarea>
                     </div>
-                </div>
-                <div class="list-group" id="studentSearchResults">
-                    <div class="text-center py-3" style="color: var(--imp-slate);" id="searchPlaceholder">
-                        Silakan cari siswa...
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-light px-4 rounded-3" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger px-4 rounded-3 fw-bold" id="btnConfirmWithdraw">
+                            <i class="bi bi-box-arrow-right me-1"></i> Ya, Keluarkan Siswa
+                        </button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -923,6 +1064,11 @@
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        const currentRombelId = "{{ $session->ekstrakurikuler_rombel_id }}";
+        const currentRombelNama = "{{ $session->rombel->nama_rombel }}";
+        const ekskulId = "{{ $session->rombel->ekstrakurikuler_id }}";
+
         // ═══ Upload Zone Logic ═══
         document.querySelectorAll('.upload-zone').forEach(zone => {
             const input = zone.querySelector('input[type="file"]');
@@ -985,7 +1131,7 @@
         const totalCountEl = document.getElementById('totalStudents');
         
         function updateAttendanceCounters() {
-            const allRadios = document.querySelectorAll('.att-radio:checked');
+            const allRadios = document.querySelectorAll('.student-row:not(.transferred-student) .att-radio:checked');
             let hadir = 0, absen = 0;
             allRadios.forEach(r => {
                 if (r.value === '1') hadir++;
@@ -1025,9 +1171,11 @@
             
             let activeIdx = 0;
             sections.forEach((section, i) => {
-                const rect = section.getBoundingClientRect();
-                if (rect.top < window.innerHeight * 0.5) {
-                    activeIdx = i;
+                if (section) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top < window.innerHeight * 0.5) {
+                        activeIdx = i;
+                    }
                 }
             });
             
@@ -1045,158 +1193,55 @@
         const btnConfirm = document.getElementById('btnConfirmSubmit');
         const btnFinalSubmit = document.getElementById('btnFinalSubmit');
         
-        btnConfirm.addEventListener('click', function() {
-            // Build summary
-            const topik = document.querySelector('[name="topik_materi"]');
-            const topikText = topik ? (topik.options ? topik.options[topik.selectedIndex]?.text : topik.value) : '-';
-            const keaktifan = document.querySelector('[name="keaktifan"]');
-            const keaktifanText = keaktifan ? keaktifan.options[keaktifan.selectedIndex]?.text : '-';
-            const pemahaman = document.querySelector('[name="pemahaman_materi"]');
-            const pemahamanText = pemahaman ? pemahaman.options[pemahaman.selectedIndex]?.text : '-';
-            
-            const summaryHtml = `
-                <div class="confirm-summary-item">
-                    <span class="label">Topik Materi</span>
-                    <span class="value">${topikText}</span>
-                </div>
-                <div class="confirm-summary-item">
-                    <span class="label">Siswa Hadir</span>
-                    <span class="value" style="color: var(--imp-green);">${hadirCountEl.textContent} siswa</span>
-                </div>
-                <div class="confirm-summary-item">
-                    <span class="label">Siswa Absen</span>
-                    <span class="value" style="color: var(--imp-red);">${absenCountEl.textContent} siswa</span>
-                </div>
-                <div class="confirm-summary-item">
-                    <span class="label">Keaktifan Kelas</span>
-                    <span class="value">${keaktifanText}</span>
-                </div>
-                <div class="confirm-summary-item">
-                    <span class="label">Pemahaman Materi</span>
-                    <span class="value">${pemahamanText}</span>
-                </div>
-            `;
-            
-            document.getElementById('confirmSummaryContent').innerHTML = summaryHtml;
-            
-            const modal = new bootstrap.Modal(document.getElementById('confirmSubmitModal'));
-            modal.show();
-        });
-        
-        btnFinalSubmit.addEventListener('click', function() {
-            // Show loading state
-            this.disabled = true;
-            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Menyimpan...';
-            btnConfirm.classList.add('loading');
-            btnConfirm.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Menyimpan...';
-            
-            document.getElementById('reportForm').submit();
-        });
-
-        // ═══ Add Student Modal Logic ═══
-        const studentSearchInput = document.getElementById('studentSearchInput');
-        const searchBtn = document.getElementById('btnSearchStudent');
-        const resultsContainer = document.getElementById('studentSearchResults');
-        const studentListContainer = document.getElementById('studentListContainer');
-
-        function performSearch() {
-            const query = studentSearchInput.value.trim();
-            if (query.length < 3) {
-                resultsContainer.innerHTML = '<div class="text-center p-3 small" style="color: var(--imp-amber);"><i class="bi bi-exclamation-circle me-1"></i> Ketik minimal 3 huruf</div>';
-                return;
-            }
-
-            resultsContainer.innerHTML = '<div class="text-center p-3"><div class="spinner-border text-primary" role="status"></div></div>';
-
-            fetch(`{{ route('api.ekstrakurikuler.search-student') }}?q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(res => {
-                    resultsContainer.innerHTML = '';
-                    if (!res.success || res.data.length === 0) {
-                        resultsContainer.innerHTML = '<div class="text-center p-3 small" style="color: var(--imp-slate);">Tidak ditemukan siswa</div>';
-                        return;
-                    }
-
-                    res.data.forEach(student => {
-                        const item = document.createElement('button');
-                        item.type = 'button';
-                        item.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
-                        item.innerHTML = `
-                            <div>
-                                <div class="fw-bold">${student.nama_lengkap}</div>
-                                <small style="color: var(--imp-slate);">${student.sekolah_nama || '-'} | ${student.rombel || '-'}</small>
-                            </div>
-                            <span class="badge rounded-pill px-3 py-1" style="background: var(--imp-green); color: white;"><i class="bi bi-plus"></i> Tambah</span>
-                        `;
-                        item.onclick = () => addStudentParam(student);
-                        resultsContainer.appendChild(item);
-                    });
-                })
-                .catch(err => {
-                    console.error(err);
-                    resultsContainer.innerHTML = '<div class="text-center p-3 small text-danger">Error fetching data</div>';
-                });
-        }
-
-        searchBtn.addEventListener('click', performSearch);
-        studentSearchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); performSearch(); }
-        });
-
-        function addStudentParam(student) {
-            // Check if already in list
-            if (document.getElementById(`hadir_${student.id}`)) {
-                alert('Siswa sudah ada di daftar.');
-                return;
-            }
-
-            // Remove empty placeholder
-            const emptyPlaceholder = studentListContainer.querySelector('.text-center.py-5');
-            if (emptyPlaceholder) emptyPlaceholder.remove();
-
-            const rowCount = studentListContainer.querySelectorAll('.student-row').length + 1;
-            const initial = student.nama_lengkap ? student.nama_lengkap.charAt(0).toUpperCase() : '?';
-            const gender = student.jenis_kelamin;
-            const avatarClass = gender === 'L' ? 'avatar-male' : (gender === 'P' ? 'avatar-female' : 'avatar-default');
-            
-            const div = document.createElement('div');
-            div.className = 'student-row new-student';
-            div.dataset.studentName = student.nama_lengkap.toLowerCase();
-            div.innerHTML = `
-                <span class="student-num">${rowCount}</span>
-                <div class="student-avatar ${avatarClass}">${initial}</div>
-                <div class="student-name">
-                    ${student.nama_lengkap}
-                    <div class="small" style="color: var(--imp-blue); font-weight: 500; font-size: 0.72rem;">
-                        <i class="bi bi-plus-circle me-1"></i>Ditambahkan manual
+        if (btnConfirm) {
+            btnConfirm.addEventListener('click', function() {
+                const topik = document.querySelector('[name="topik_materi"]');
+                const topikText = topik ? (topik.options ? topik.options[topik.selectedIndex]?.text : topik.value) : '-';
+                const keaktifan = document.querySelector('[name="keaktifan"]');
+                const keaktifanText = keaktifan ? keaktifan.options[keaktifan.selectedIndex]?.text : '-';
+                const pemahaman = document.querySelector('[name="pemahaman_materi"]');
+                const pemahamanText = pemahaman ? pemahaman.options[pemahaman.selectedIndex]?.text : '-';
+                
+                const summaryHtml = `
+                    <div class="confirm-summary-item">
+                        <span class="label">Topik Materi</span>
+                        <span class="value">${topikText}</span>
                     </div>
-                </div>
-                <div class="att-toggle-group">
-                    <input type="radio" class="btn-check att-radio" name="absensi[${student.id}]" id="hadir_${student.id}" value="1" checked required>
-                    <label class="att-toggle-btn hadir-btn" for="hadir_${student.id}">
-                        <i class="bi bi-check-circle"></i> Hadir
-                    </label>
-                    <input type="radio" class="btn-check att-radio" name="absensi[${student.id}]" id="absen_${student.id}" value="0">
-                    <label class="att-toggle-btn absen-btn" for="absen_${student.id}">
-                        <i class="bi bi-x-circle"></i> Absen
-                    </label>
-                </div>
-            `;
-
-            studentListContainer.appendChild(div);
-            updateAttendanceCounters();
-            
-            // Close modal
-            const modalEl = document.getElementById('addStudentModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            modal.hide();
-
-            // Clear search
-            studentSearchInput.value = '';
-            resultsContainer.innerHTML = '';
+                    <div class="confirm-summary-item">
+                        <span class="label">Siswa Hadir</span>
+                        <span class="value" style="color: var(--imp-green);">${hadirCountEl.textContent} siswa</span>
+                    </div>
+                    <div class="confirm-summary-item">
+                        <span class="label">Siswa Absen</span>
+                        <span class="value" style="color: var(--imp-red);">${absenCountEl.textContent} siswa</span>
+                    </div>
+                    <div class="confirm-summary-item">
+                        <span class="label">Keaktifan Kelas</span>
+                        <span class="value">${keaktifanText}</span>
+                    </div>
+                    <div class="confirm-summary-item">
+                        <span class="label">Pemahaman Materi</span>
+                        <span class="value">${pemahamanText}</span>
+                    </div>
+                `;
+                
+                document.getElementById('confirmSummaryContent').innerHTML = summaryHtml;
+                const modal = new bootstrap.Modal(document.getElementById('confirmSubmitModal'));
+                modal.show();
+            });
+        }
+        
+        if (btnFinalSubmit) {
+            btnFinalSubmit.addEventListener('click', function() {
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Menyimpan...';
+                btnConfirm.classList.add('loading');
+                btnConfirm.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Menyimpan...';
+                document.getElementById('reportForm').submit();
+            });
         }
 
-        // Quick Add Student Logic
+        // ═══ Quick Add Student (New Student) Logic ═══
         const quickAddForm = document.getElementById('quickAddStudentForm');
         if (quickAddForm) {
             quickAddForm.addEventListener('submit', function(e) {
@@ -1206,17 +1251,17 @@
                 const gender = document.getElementById('newStudentGender').value;
                 const studentClass = document.getElementById('newStudentClass').value;
                 const kodlan = document.getElementById('schoolKodlan').value;
-                const btn = quickAddForm.querySelector('button[type="submit"]');
+                const btn = document.getElementById('btnSubmitNewStudent');
                 
                 const originalText = btn.innerHTML;
                 btn.disabled = true;
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Menyimpan...';
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Mendaftarkan...';
                 
                 fetch('{{ route('api.ekstrakurikuler.store-quick-student') }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        'X-CSRF-TOKEN': csrfToken
                     },
                     body: JSON.stringify({
                         nama_lengkap: name,
@@ -1224,19 +1269,29 @@
                         kelas: studentClass,
                         no_hp_orangtua: document.getElementById('newStudentPhone').value,
                         sekolah_kodlan: kodlan,
-                        ekstrakurikuler_rombel_id: document.getElementById('rombelId') ? document.getElementById('rombelId').value : null
+                        ekstrakurikuler_rombel_id: currentRombelId
                     })
                 })
                 .then(response => response.json())
                 .then(res => {
                     if (res.success) {
-                        addStudentParam(res.data);
+                        renderNewStudentRow({
+                            id: res.data.id,
+                            nama_lengkap: res.data.nama_lengkap,
+                            jenis_kelamin: gender,
+                            kelas: studentClass,
+                            rombel_nama: currentRombelNama
+                        });
+
                         document.getElementById('newStudentName').value = '';
                         document.getElementById('newStudentClass').value = '';
                         document.getElementById('newStudentPhone').value = '';
-                        alert('Siswa berhasil ditambahkan dan langsung terdaftar dalam Rombel & Program Ekstrakurikuler ini.');
+                        
+                        const modalEl = document.getElementById('addStudentModal');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
                     } else {
-                        alert('Gagal: ' + (res.message || 'Unknown error'));
+                        alert('Gagal: ' + (res.message || 'Terjadi kesalahan'));
                     }
                 })
                 .catch(err => {
@@ -1248,6 +1303,403 @@
                     btn.innerHTML = originalText;
                 });
             });
+        }
+
+        // ═══ Parallel Students (Ambil dari Rombel Lain) Modal Logic ═══
+        const transferModalEl = document.getElementById('transferStudentModal');
+        const parallelLoading = document.getElementById('parallelStudentsLoading');
+        const parallelContainer = document.getElementById('parallelStudentsContainer');
+        const parallelSearchInput = document.getElementById('parallelStudentSearchInput');
+
+        if (transferModalEl) {
+            transferModalEl.addEventListener('show.bs.modal', function () {
+                loadParallelStudents();
+            });
+        }
+
+        function loadParallelStudents() {
+            parallelLoading.style.display = 'block';
+            parallelContainer.innerHTML = '';
+            
+            fetch(`{{ route('api.ekstrakurikuler.parallel-students') }}?ekstrakurikuler_id=${ekskulId}&current_rombel_id=${currentRombelId}`)
+                .then(res => res.json())
+                .then(res => {
+                    parallelLoading.style.display = 'none';
+                    if (!res.success || res.data.length === 0) {
+                        parallelContainer.innerHTML = `
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-info-circle fs-4 d-block mb-1"></i>
+                                Tidak ada rombel paralel lain di program ekstrakurikuler ini.
+                            </div>`;
+                        return;
+                    }
+
+                    let html = '';
+                    let totalStudentsCount = 0;
+
+                    res.data.forEach(rombel => {
+                        totalStudentsCount += rombel.students.length;
+                        html += `
+                            <div class="card mb-3 border shadow-none rounded-3 parallel-rombel-block">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center py-2 px-3">
+                                    <div class="fw-bold text-dark small">
+                                        <i class="bi bi-people-fill text-primary me-1"></i> ${rombel.nama_rombel}
+                                        <span class="badge bg-secondary bg-opacity-25 text-dark rounded-pill ms-1">${rombel.students.length} Siswa</span>
+                                    </div>
+                                    <small class="text-muted">${rombel.hari} • ${rombel.jam}</small>
+                                </div>
+                                <div class="list-group list-group-flush">
+                        `;
+
+                        if (rombel.students.length === 0) {
+                            html += `<div class="p-3 text-center text-muted small">Tidak ada siswa aktif di rombel ini.</div>`;
+                        } else {
+                            rombel.students.forEach(st => {
+                                const isAlreadyInCurrent = document.getElementById(`student_row_${st.siswa_id}`) && !document.getElementById(`student_row_${st.siswa_id}`).classList.contains('transferred-student');
+                                const btnDisabled = isAlreadyInCurrent ? 'disabled' : '';
+                                const btnText = isAlreadyInCurrent ? '<i class="bi bi-check2"></i> Sudah di Rombel Ini' : `<i class="bi bi-plus-lg me-1"></i> Pindahkan ke ${currentRombelNama}`;
+                                const btnClass = isAlreadyInCurrent ? 'btn-light border text-muted' : 'btn-primary';
+
+                                html += `
+                                    <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3 parallel-student-item" data-student-name="${st.nama_lengkap.toLowerCase()}">
+                                        <div>
+                                            <div class="fw-semibold text-dark">${st.nama_lengkap}</div>
+                                            <small class="text-muted">Kelas: ${st.kelas} • Asal: ${st.source_rombel_nama}</small>
+                                        </div>
+                                        <button type="button" class="btn btn-sm ${btnClass} rounded-pill px-3 py-1 fw-bold btn-transfer-now" 
+                                                data-student-id="${st.siswa_id}" 
+                                                data-student-name="${st.nama_lengkap}"
+                                                data-student-gender="${st.jenis_kelamin}"
+                                                data-student-class="${st.kelas}"
+                                                data-source-rombel="${st.source_rombel_nama}"
+                                                ${btnDisabled}>
+                                            ${btnText}
+                                        </button>
+                                    </div>
+                                `;
+                            });
+                        }
+
+                        html += `</div></div>`;
+                    });
+
+                    if (totalStudentsCount === 0) {
+                        parallelContainer.innerHTML = `
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-people fs-4 d-block mb-1"></i>
+                                Belum ada siswa yang terdaftar di rombel paralel lain.
+                            </div>`;
+                    } else {
+                        parallelContainer.innerHTML = html;
+                        attachTransferButtons();
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    parallelLoading.style.display = 'none';
+                    parallelContainer.innerHTML = '<div class="text-center text-danger py-4">Gagal memuat data rombel lain.</div>';
+                });
+        }
+
+        // Live Search parallel students in modal
+        if (parallelSearchInput) {
+            parallelSearchInput.addEventListener('input', function() {
+                const q = this.value.toLowerCase();
+                document.querySelectorAll('.parallel-student-item').forEach(item => {
+                    const name = item.dataset.studentName || '';
+                    item.style.display = name.includes(q) ? '' : 'none';
+                });
+            });
+        }
+
+        function attachTransferButtons() {
+            document.querySelectorAll('.btn-transfer-now:not(:disabled)').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const siswaId = this.dataset.studentId;
+                    const studentName = this.dataset.studentName;
+                    const gender = this.dataset.studentGender;
+                    const studentClass = this.dataset.studentClass;
+                    const sourceRombel = this.dataset.sourceRombel;
+
+                    const originalText = this.innerHTML;
+                    this.disabled = true;
+                    this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Memindahkan...';
+
+                    fetch('{{ route('api.ekstrakurikuler.transfer-student') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({
+                            siswa_id: siswaId,
+                            target_rombel_id: currentRombelId,
+                            ekstrakurikuler_id: ekskulId,
+                            alasan: `Pindahan dari ${sourceRombel}`
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.success) {
+                            renderNewStudentRow({
+                                id: siswaId,
+                                nama_lengkap: studentName,
+                                jenis_kelamin: gender,
+                                kelas: studentClass,
+                                rombel_nama: `${currentRombelNama} (Pindahan)`
+                            });
+
+                            const modal = bootstrap.Modal.getInstance(transferModalEl);
+                            if (modal) modal.hide();
+                        } else {
+                            alert('Gagal: ' + (res.message || 'Terjadi kesalahan'));
+                            this.disabled = false;
+                            this.innerHTML = originalText;
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Terjadi kesalahan sistem.');
+                        this.disabled = false;
+                        this.innerHTML = originalText;
+                    });
+                });
+            });
+        }
+
+        // ═══ Restore Student Action (Tarik Kembali Siswa dari Baris Abu-Abu) ═══
+        document.addEventListener('click', function(e) {
+            const restoreBtn = e.target.closest('.btn-restore-action');
+            if (restoreBtn) {
+                const siswaId = restoreBtn.dataset.studentId;
+                const studentName = restoreBtn.dataset.studentName;
+                const fromRombel = restoreBtn.dataset.fromRombel;
+
+                if (!confirm(`Tarik kembali ${studentName} dari ${fromRombel} ke ${currentRombelNama}?`)) {
+                    return;
+                }
+
+                const originalHtml = restoreBtn.innerHTML;
+                restoreBtn.disabled = true;
+                restoreBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+                fetch('{{ route('api.ekstrakurikuler.transfer-student') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        siswa_id: siswaId,
+                        target_rombel_id: currentRombelId,
+                        ekstrakurikuler_id: ekskulId,
+                        alasan: `Ditarik kembali ke ${currentRombelNama}`
+                    })
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success) {
+                        const row = document.getElementById(`student_row_${siswaId}`);
+                        if (row) {
+                            row.classList.remove('transferred-student');
+                            
+                            // Restore Avatar
+                            const avatar = row.querySelector('.student-avatar');
+                            if (avatar) avatar.style.opacity = '1';
+
+                            // Restore Name
+                            const nameDiv = row.querySelector('.student-name');
+                            if (nameDiv) {
+                                nameDiv.style.opacity = '1';
+                                const boldName = nameDiv.querySelector('.fw-semibold');
+                                if (boldName) {
+                                    boldName.className = 'fw-bold text-dark';
+                                }
+                            }
+
+                            // Restore Rombel Tag
+                            const rombelCol = row.querySelector('.student-rombel-col');
+                            if (rombelCol) {
+                                rombelCol.innerHTML = `
+                                    <span class="student-rombel-tag current">
+                                        <i class="bi bi-people-fill"></i> ${currentRombelNama}
+                                    </span>
+                                `;
+                            }
+
+                            // Restore Toggle Group
+                            const toggleCol = row.querySelector('.att-toggle-group');
+                            if (toggleCol) {
+                                toggleCol.style.opacity = '1';
+                                toggleCol.innerHTML = `
+                                    <input type="radio" class="btn-check att-radio" name="absensi[${siswaId}]" id="hadir_${siswaId}" value="1" checked required>
+                                    <label class="att-toggle-btn hadir-btn" for="hadir_${siswaId}">
+                                        <i class="bi bi-check-circle"></i> Hadir
+                                    </label>
+                                    <input type="radio" class="btn-check att-radio" name="absensi[${siswaId}]" id="absen_${siswaId}" value="0">
+                                    <label class="att-toggle-btn absen-btn" for="absen_${siswaId}">
+                                        <i class="bi bi-x-circle"></i> Absen
+                                    </label>
+                                `;
+                            }
+
+                            // Restore Action Col
+                            const actionCol = row.querySelector('.student-action-col');
+                            if (actionCol) {
+                                actionCol.innerHTML = `
+                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill btn-withdraw-action px-2 py-0.5" 
+                                            data-student-id="${siswaId}" 
+                                            data-student-name="${studentName}" 
+                                            title="Keluarkan Siswa dari Rombel">
+                                        <i class="bi bi-box-arrow-right"></i> <span class="d-none d-md-inline small">Keluar</span>
+                                    </button>
+                                `;
+                            }
+
+                            updateAttendanceCounters();
+                        }
+                    } else {
+                        alert('Gagal menarik kembali: ' + (res.message || 'Terjadi kesalahan'));
+                        restoreBtn.disabled = false;
+                        restoreBtn.innerHTML = originalHtml;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Terjadi kesalahan sistem.');
+                    restoreBtn.disabled = false;
+                    restoreBtn.innerHTML = originalHtml;
+                });
+            }
+        });
+
+        // ═══ Withdraw Student Action ═══
+        const withdrawModalEl = document.getElementById('withdrawStudentModal');
+        const withdrawStudentForm = document.getElementById('withdrawStudentForm');
+        let activeWithdrawRow = null;
+
+        document.addEventListener('click', function(e) {
+            const withdrawBtn = e.target.closest('.btn-withdraw-action');
+            if (withdrawBtn) {
+                const siswaId = withdrawBtn.dataset.studentId;
+                const studentName = withdrawBtn.dataset.studentName;
+
+                document.getElementById('withdrawStudentId').value = siswaId;
+                document.getElementById('withdrawStudentName').textContent = studentName;
+                document.getElementById('withdrawReasonText').value = '';
+
+                activeWithdrawRow = document.getElementById(`student_row_${siswaId}`);
+
+                const modal = new bootstrap.Modal(withdrawModalEl);
+                modal.show();
+            }
+        });
+
+        if (withdrawStudentForm) {
+            withdrawStudentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const siswaId = document.getElementById('withdrawStudentId').value;
+                const reasonSelect = document.getElementById('withdrawReasonSelect').value;
+                const reasonText = document.getElementById('withdrawReasonText').value.trim();
+                const combinedReason = reasonText ? `${reasonSelect}: ${reasonText}` : reasonSelect;
+
+                const btn = document.getElementById('btnConfirmWithdraw');
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Memproses...';
+
+                fetch('{{ route('api.ekstrakurikuler.withdraw-student') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        siswa_id: siswaId,
+                        rombel_id: currentRombelId,
+                        alasan_keluar: combinedReason
+                    })
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success) {
+                        if (activeWithdrawRow) {
+                            activeWithdrawRow.remove();
+                        }
+                        updateAttendanceCounters();
+
+                        const modal = bootstrap.Modal.getInstance(withdrawModalEl);
+                        if (modal) modal.hide();
+                    } else {
+                        alert('Gagal: ' + (res.message || 'Terjadi kesalahan'));
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Terjadi kesalahan sistem.');
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                });
+            });
+        }
+
+        // ═══ Helper: Append New Active Student Row ═══
+        function renderNewStudentRow(student) {
+            const emptyPlaceholder = document.getElementById('emptyStudentPlaceholder');
+            if (emptyPlaceholder) emptyPlaceholder.remove();
+
+            // If already exists (e.g. was transferred), remove existing row first
+            const existingRow = document.getElementById(`student_row_${student.id}`);
+            if (existingRow) existingRow.remove();
+
+            const studentListContainer = document.getElementById('studentListContainer');
+            const rowCount = studentListContainer.querySelectorAll('.student-row').length + 1;
+            const initial = student.nama_lengkap ? student.nama_lengkap.charAt(0).toUpperCase() : '?';
+            const gender = student.jenis_kelamin;
+            const avatarClass = gender === 'L' ? 'avatar-male' : (gender === 'P' ? 'avatar-female' : 'avatar-default');
+            
+            const div = document.createElement('div');
+            div.className = 'student-row new-student';
+            div.id = `student_row_${student.id}`;
+            div.dataset.studentId = student.id;
+            div.dataset.studentName = student.nama_lengkap.toLowerCase();
+            div.innerHTML = `
+                <span class="student-num">${rowCount}</span>
+                <div class="student-avatar ${avatarClass}">${initial}</div>
+                <div class="student-name">
+                    <div class="fw-bold text-dark">${student.nama_lengkap}</div>
+                    <small class="text-muted">${student.kelas || 'Siswa'}</small>
+                </div>
+                <div class="student-rombel-col">
+                    <span class="student-rombel-tag current">
+                        <i class="bi bi-people-fill"></i> ${student.rombel_nama || currentRombelNama}
+                    </span>
+                </div>
+                <div class="att-toggle-group">
+                    <input type="radio" class="btn-check att-radio" name="absensi[${student.id}]" id="hadir_${student.id}" value="1" checked required>
+                    <label class="att-toggle-btn hadir-btn" for="hadir_${student.id}">
+                        <i class="bi bi-check-circle"></i> Hadir
+                    </label>
+                    <input type="radio" class="btn-check att-radio" name="absensi[${student.id}]" id="absen_${student.id}" value="0">
+                    <label class="att-toggle-btn absen-btn" for="absen_${student.id}">
+                        <i class="bi bi-x-circle"></i> Absen
+                    </label>
+                </div>
+                <div class="student-action-col">
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill btn-withdraw-action px-2 py-0.5" 
+                            data-student-id="${student.id}" 
+                            data-student-name="${student.nama_lengkap}" 
+                            title="Keluarkan Siswa dari Rombel">
+                        <i class="bi bi-box-arrow-right"></i> <span class="d-none d-md-inline small">Keluar</span>
+                    </button>
+                </div>
+            `;
+
+            studentListContainer.prepend(div);
+            updateAttendanceCounters();
         }
     });
 </script>

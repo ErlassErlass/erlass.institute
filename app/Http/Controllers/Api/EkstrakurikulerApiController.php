@@ -483,7 +483,245 @@ class EkstrakurikulerApiController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menambahkan siswa',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get active students from other parallel rombels within the same extracurricular program.
+     */
+    public function getParallelRombelStudents(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'ekstrakurikuler_id' => 'required|exists:ekstrakurikuler,id',
+                'current_rombel_id' => 'required|exists:ekstrakurikuler_rombel,id',
+            ]);
+
+            $ekskulId = $request->ekstrakurikuler_id;
+            $currentRombelId = $request->current_rombel_id;
+
+            // Fetch parallel rombels in the same program
+            $parallelRombels = \App\Models\EkstrakurikulerRombel::where('ekstrakurikuler_id', $ekskulId)
+                ->where('id', '!=', $currentRombelId)
+                ->with(['activeEnrollments.siswa' => function($q) {
+                    $q->select('id', 'nama_lengkap', 'jenis_kelamin', 'kelas', 'rombel');
+                }])
+                ->get();
+
+            $result = [];
+            foreach ($parallelRombels as $rombel) {
+                $students = [];
+                foreach ($rombel->activeEnrollments as $enrollment) {
+                    if ($enrollment->siswa) {
+                        $students[] = [
+                            'siswa_id' => $enrollment->siswa->id,
+                            'nama_lengkap' => $enrollment->siswa->nama_lengkap,
+                            'jenis_kelamin' => $enrollment->siswa->jenis_kelamin,
+                            'kelas' => $enrollment->siswa->kelas ?? $enrollment->siswa->rombel ?? '-',
+                            'source_rombel_id' => $rombel->id,
+                            'source_rombel_nama' => $rombel->nama_rombel,
+                        ];
+                    }
+                }
+
+                $result[] = [
+                    'rombel_id' => $rombel->id,
+                    'nama_rombel' => $rombel->nama_rombel,
+                    'hari' => ucfirst($rombel->hari ?? '-'),
+                    'jam' => ($rombel->jam_mulai ? \Carbon\Carbon::parse($rombel->jam_mulai)->format('H:i') : '-') . ' - ' . ($rombel->jam_selesai ? \Carbon\Carbon::parse($rombel->jam_selesai)->format('H:i') : '-'),
+                    'total_siswa' => count($students),
+                    'students' => $students,
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $result,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching parallel students', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat daftar siswa rombel lain',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Transfer student to target rombel (multi-rombel, vice-versa, with grayed-out handling).
+     */
+    public function transferStudentToRombel(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'siswa_id' => 'required|exists:siswa,id',
+                'target_rombel_id' => 'required|exists:ekstrakurikuler_rombel,id',
+                'ekstrakurikuler_id' => 'required|exists:ekstrakurikuler,id',
+                'alasan' => 'nullable|string|max:500',
+            ]);
+
+            $siswaId = $request->siswa_id;
+            $targetRombelId = $request->target_rombel_id;
+            $ekskulId = $request->ekstrakurikuler_id;
+            $alasan = $request->alasan ?? 'Pindah rombel saat sesi mengajar';
+
+            $targetRombel = \App\Models\EkstrakurikulerRombel::findOrFail($targetRombelId);
+            $siswa = \App\Models\Siswa::findOrFail($siswaId);
+
+            \Illuminate\Support\Facades\DB::transaction(function () use ($siswaId, $targetRombelId, $ekskulId, $alasan, $targetRombel) {
+                // 1. Cari seluruh enrollment aktif siswa di ekskul ini dan ubah statusnya menjadi pindah
+                $activeEnrollments = \App\Models\SiswaEkstrakurikuler::where('siswa_id', $siswaId)
+                    ->where('ekstrakurikuler_id', $ekskulId)
+                    ->where('ekstrakurikuler_rombel_id', '!=', $targetRombelId)
+                    ->where('status', \App\Models\SiswaEkstrakurikuler::STATUS_AKTIF)
+                    ->get();
+
+                foreach ($activeEnrollments as $oldEnrollment) {
+                    $oldEnrollment->update([
+                        'status' => \App\Models\SiswaEkstrakurikuler::STATUS_PINDAH,
+                        'tanggal_keluar' => now(),
+                        'alasan_keluar' => "Pindah ke {$targetRombel->nama_rombel}",
+                        'catatan' => "Pindah ke Rombel ID: {$targetRombelId}. {$alasan}",
+                        'updated_by' => \Illuminate\Support\Facades\Auth::id(),
+                    ]);
+                }
+
+                // 2. Aktifkan atau buat enrollment di target rombel
+                $targetEnrollment = \App\Models\SiswaEkstrakurikuler::where('siswa_id', $siswaId)
+                    ->where('ekstrakurikuler_id', $ekskulId)
+                    ->where('ekstrakurikuler_rombel_id', $targetRombelId)
+                    ->first();
+
+                if ($targetEnrollment) {
+                    $targetEnrollment->update([
+                        'status' => \App\Models\SiswaEkstrakurikuler::STATUS_AKTIF,
+                        'tanggal_daftar' => now(),
+                        'tanggal_keluar' => null,
+                        'alasan_keluar' => null,
+                        'catatan' => "Dipindahkan/Diaktifkan kembali di {$targetRombel->nama_rombel}. {$alasan}",
+                        'updated_by' => \Illuminate\Support\Facades\Auth::id(),
+                    ]);
+                } else {
+                    \App\Models\SiswaEkstrakurikuler::create([
+                        'siswa_id' => $siswaId,
+                        'ekstrakurikuler_id' => $ekskulId,
+                        'ekstrakurikuler_rombel_id' => $targetRombelId,
+                        'status' => \App\Models\SiswaEkstrakurikuler::STATUS_AKTIF,
+                        'tanggal_daftar' => now(),
+                        'catatan' => "Pindahan ke {$targetRombel->nama_rombel}. {$alasan}",
+                        'created_by' => \Illuminate\Support\Facades\Auth::id(),
+                    ]);
+                }
+            });
+
+            // Activity Log
+            \App\Models\ActivityLog::create([
+                'user_id' => \Illuminate\Support\Facades\Auth::id(),
+                'action' => 'transfer_student_rombel',
+                'description' => "Memindahkan siswa {$siswa->nama_lengkap} ke {$targetRombel->nama_rombel}",
+                'subject_type' => \App\Models\Siswa::class,
+                'subject_id' => $siswa->id,
+                'properties' => [
+                    'target_rombel_id' => $targetRombelId,
+                    'target_rombel_nama' => $targetRombel->nama_rombel,
+                    'alasan' => $alasan
+                ]
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Siswa {$siswa->nama_lengkap} berhasil dipindahkan ke {$targetRombel->nama_rombel}",
+                'data' => [
+                    'siswa_id' => $siswa->id,
+                    'nama_lengkap' => $siswa->nama_lengkap,
+                    'jenis_kelamin' => $siswa->jenis_kelamin,
+                    'target_rombel_id' => $targetRombel->id,
+                    'target_rombel_nama' => $targetRombel->nama_rombel,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error transferring student to rombel', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memindahkan siswa',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Withdraw student from current rombel (quick exit).
+     */
+    public function withdrawStudent(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'siswa_id' => 'required|exists:siswa,id',
+                'rombel_id' => 'required|exists:ekstrakurikuler_rombel,id',
+                'alasan_keluar' => 'required|string|max:500',
+            ]);
+
+            $siswaId = $request->siswa_id;
+            $rombelId = $request->rombel_id;
+            $alasan = $request->alasan_keluar;
+
+            $rombel = \App\Models\EkstrakurikulerRombel::findOrFail($rombelId);
+            $siswa = \App\Models\Siswa::findOrFail($siswaId);
+
+            $enrollment = \App\Models\SiswaEkstrakurikuler::where('siswa_id', $siswaId)
+                ->where('ekstrakurikuler_rombel_id', $rombelId)
+                ->where('status', \App\Models\SiswaEkstrakurikuler::STATUS_AKTIF)
+                ->first();
+
+            if (!$enrollment) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Siswa tidak ditemukan atau sudah tidak aktif di rombel ini.'
+                ], 404);
+            }
+
+            $enrollment->update([
+                'status' => \App\Models\SiswaEkstrakurikuler::STATUS_KELUAR,
+                'tanggal_keluar' => now(),
+                'alasan_keluar' => $alasan,
+                'updated_by' => \Illuminate\Support\Facades\Auth::id(),
+            ]);
+
+            // Activity Log
+            \App\Models\ActivityLog::create([
+                'user_id' => \Illuminate\Support\Facades\Auth::id(),
+                'action' => 'withdraw_student_rombel',
+                'description' => "Mengeluarkan siswa {$siswa->nama_lengkap} dari {$rombel->nama_rombel} (Alasan: {$alasan})",
+                'subject_type' => \App\Models\Siswa::class,
+                'subject_id' => $siswa->id,
+                'properties' => [
+                    'rombel_id' => $rombelId,
+                    'alasan' => $alasan
+                ]
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Siswa {$siswa->nama_lengkap} berhasil dikeluarkan dari {$rombel->nama_rombel}",
+                'data' => [
+                    'siswa_id' => $siswa->id,
+                    'nama_lengkap' => $siswa->nama_lengkap,
+                    'rombel_id' => $rombel->id,
+                    'rombel_nama' => $rombel->nama_rombel,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error withdrawing student', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengeluarkan siswa',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

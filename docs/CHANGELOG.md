@@ -2,6 +2,28 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.13] - 2026-08-27
+
+### Manajemen Kehadiran Lintas Rombel, Visualisasi Baris Abu-Abu (*Grayed Out*), & Kolom Badge Rombel di Form Laporan Mengajar
+
+- **Pemisahan 2 Tombol Terpisah di Atas Tabel Absensi (`reports/create.blade.php`)**:
+  - **`[ 🔄 Ambil Siswa dari Rombel Lain ]`**: Membuka modal cepat untuk memindahkan siswa dari rombel paralel lain di ekstrakurikuler & sekolah yang sama dalam 1 klik.
+  - **`[ ➕ Tambah Siswa Baru Masuk ]`**: Membuka form pendaftaran siswa baru yang baru pertama kali bergabung ke rombel tersebut.
+- **Penambahan Kolom / Badge Rombel**:
+  - Menampilkan badge nama rombel aktif (contoh: `Rombel 1` atau `Rombel 2 (Pindahan)`) di setiap baris siswa, diposisikan secara konsisten di sebelah kiri checklist tombol `[ Hadir | Absen ]`.
+- **Visualisasi Baris Abu-Abu (*Grayed Out*) di Rombel Asal**:
+  - Siswa yang dipindahkan ke rombel lain tidak hilang secara membingungkan dari rombel sebelumnya, melainkan tetap ditampilkan sebagai **1 baris abu-abu (*muted/disabled*)**.
+  - Dilengkapi badge keterangan rombel tujuan (`🔄 Pindah ke Rombel 2`), status non-aktif pada sesi berjalan, dan tombol cepat **`[ ↩️ Tarik Kembali ]`**.
+- **Fleksibilitas Perpindahan Lintas Rombel Tanpa Batas (*Multi-Rombel & Vice-Versa*)**:
+  - Mendukung perpindahan siswa antar rombel manapun berkali-kali tanpa batas (*vice versa*), dengan sistem penataan status enrollment otomatis di database (`SiswaEkstrakurikuler`).
+  - Mempertahankan integritas riwayat absensi sesi lampau agar nilai rapor & sertifikat tetap terakumulasi utuh 100%.
+- **Tombol Cepat "🚪 Keluar Rombel"**:
+  - Disediakan tombol aksi cepat di setiap baris siswa aktif dengan modal konfirmasi dan pilihan alasan keluar (*Berhenti*, *Pindah Sekolah*, *Jadwal Bentrok*, dsb.).
+- **Endpoint API Manajemen Siswa (`EkstrakurikulerApiController`)**:
+  - `GET /api/ekstrakurikuler/parallel-students`: Mengambil daftar siswa dari rombel paralel lain di program ekstrakurikuler yang sama.
+  - `POST /api/ekstrakurikuler/transfer-student`: Memindahkan siswa antar rombel secara transactional.
+  - `POST /api/ekstrakurikuler/withdraw-student`: Mengeluarkan siswa dari rombel aktif.
+
 ## [2.9.12] - 2026-08-27
 
 ### Reformasi Sistem Pelaporan Mengajar: Penghapusan Permohonan Buka Akses, Aturan Tunggakan Global FIFO (Maks. 1x), Deadline Akhir Bulan Hari H, Catatan Kendala Keterlambatan Berat, & Dashboard Audit Admin (Opsi A)

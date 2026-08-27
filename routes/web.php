@@ -257,9 +257,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('validate-step', [EkstrakurikulerApiController::class, 'validateStep'])->name('validate-step');
         Route::get('dropdown-data', [EkstrakurikulerApiController::class, 'getDropdownData'])->name('dropdown-data');
         Route::post('save-step', [EkstrakurikulerApiController::class, 'saveStepData'])->name('save-step');
-        Route::get('form-progress', [EkstrakurikulerApiController::class, 'getFormProgress'])->name('form-progress');
         Route::get('search-student', [EkstrakurikulerApiController::class, 'searchStudent'])->name('search-student');
-        Route::post('store-quick-student', [EkstrakurikulerApiController::class, 'storeQuickStudent'])->name('store-quick-student'); // NEW
+        Route::post('store-quick-student', [EkstrakurikulerApiController::class, 'storeQuickStudent'])->name('store-quick-student');
+        Route::get('parallel-students', [EkstrakurikulerApiController::class, 'getParallelRombelStudents'])->name('parallel-students');
+        Route::post('transfer-student', [EkstrakurikulerApiController::class, 'transferStudentToRombel'])->name('transfer-student');
+        Route::post('withdraw-student', [EkstrakurikulerApiController::class, 'withdrawStudent'])->name('withdraw-student');
     });
 
 
