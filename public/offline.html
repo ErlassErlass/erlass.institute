@@ -179,7 +179,7 @@
             if (navigator.onLine) {
                 statusBadge.className = 'status-badge online';
                 statusBadge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Terhubung Kembali! Memuat...';
-                setTimeout(() => window.location.reload(), 1000);
+                setTimeout(() => window.location.reload(), 800);
             } else {
                 statusBadge.className = 'status-badge';
                 statusBadge.innerHTML = '<i class="bi bi-exclamation-circle-fill me-1"></i> Sinyal Terputus';
@@ -188,6 +188,15 @@
 
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
+
+        // If page loaded but navigator is actually online (e.g. temporary timeout glitch), auto reload!
+        if (navigator.onLine) {
+            setTimeout(() => {
+                if (navigator.onLine) {
+                    window.location.reload();
+                }
+            }, 1200);
+        }
 
         btnReload.addEventListener('click', () => {
             btnReload.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memeriksa Sinyal...';
@@ -200,7 +209,7 @@
                 } else {
                     window.location.reload();
                 }
-            }, 1200);
+            }, 800);
         });
     </script>
 </body>

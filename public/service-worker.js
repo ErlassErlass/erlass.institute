@@ -1,4 +1,4 @@
-const CACHE_NAME = 'erlass-ekskul-cache-v4';
+const CACHE_NAME = 'erlass-ekskul-cache-v5';
 const OFFLINE_URL = '/offline.html';
 const CORE_ASSETS = [
     OFFLINE_URL,
@@ -52,20 +52,20 @@ self.addEventListener('message', (event) => {
     }
 });
 
-// Fetch event: Network-First for HTML navigation with 2.5s Timeout & Stale-While-Revalidate for Static Assets
+// Fetch event: Network-First for HTML navigation with 12s Timeout & Stale-While-Revalidate for Static Assets
 self.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') return;
 
     const requestUrl = new URL(event.request.url);
 
-    // 1. Document request (HTML Page navigation): Network-First with 2.5s Timeout
+    // 1. Document request (HTML Page navigation): Network-First with 12s Timeout
     if (event.request.mode === 'navigate') {
         event.respondWith(
             new Promise((resolve) => {
                 let isTimedOut = false;
                 const timeoutId = setTimeout(() => {
                     isTimedOut = true;
-                    // Fallback to cache on network timeout (2.5s)
+                    // Fallback on network timeout (12s)
                     caches.match(event.request).then((cachedResponse) => {
                         if (cachedResponse) {
                             resolve(cachedResponse);
@@ -73,7 +73,7 @@ self.addEventListener('fetch', (event) => {
                             caches.match(OFFLINE_URL).then((offlineRes) => resolve(offlineRes));
                         }
                     });
-                }, 2500);
+                }, 12000);
 
                 fetch(event.request)
                     .then((networkResponse) => {
