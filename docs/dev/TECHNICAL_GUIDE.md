@@ -303,5 +303,19 @@ Hasil build akan masuk ke folder `public/build/`.
 *   **Async Scheduler & Queue**: Queue 0 failed jobs, cron WhatsApp pengingat jam 18:00 WIB dan deteksi QC jam 14:00 WIB beroperasi normal.
 *   **Keamanan & Network**: SameSite Lax, HttpOnly Cookie, CORS credentials whitelist, SSL Cloudflare HTTPS edge proxy.
 
+### 17. Reformasi Sistem Pelaporan & Deadline Engine (v2.9.12 - 2026-08-27)
+*   **Controller**: `App\Http\Controllers\EkstrakurikulerReportController`
+*   **Engine Deadline**: `calculateReportDeadline(Carbon $scheduleDate)`
+    *   Tanggal $\ge 28$: Deadline pukul 23:59:59 pada Hari H pelaksanaan.
+    *   Tanggal $< 28$: Deadline pukul 23:59:59 pada H+1 pelaksanaan.
+*   **Global Backlog FIFO Guard**: `getBacklogUnreportedSessions(User $user)`
+    *   Memeriksa seluruh sesi lampau milik instruktur di semua sekolah mitra (`tanggal_terjadwal <= today` tanpa `laporanMengajar`).
+    *   Toleransi maksimal: 1 sesi lampau. Jika tunggakan $\ge 2$ sesi, pembuatan laporan untuk sesi lain diblokir dengan redirect ke sesi tertua (`oldest_unreported_session_id`).
+*   **Pendeteksian Keterlambatan Berat (*Severe Late*)**: `isSevereLate(EkstrakurikulerSession $session)`
+    *   Mendeteksi keterlambatan $> 3$ hari dari deadline atau melewati batas tanggal cutoff penggajian (tanggal 10).
+    *   Memvalidasi input wajib `alasan_kendala_keterlambatan` (min: 10 karakter) pada `store()` dan menyimpannya ke `metadata_json['alasan_kendala_keterlambatan']` serta kolom `catatan`.
+*   **Otomatisasi Carry-over Payroll**: `App\Services\PayrollCalculatorService::generateMonthlyPayroll`
+    *   Mencakup sesi lampau yang baru dilaporkan pada rentang cutoff berjalan (`whereHas('laporanMengajar', whereBetween('created_at', [$startDate, $endDate]))`) agar otomatis dibayarkan pada batch payroll aktif.
+
 
 

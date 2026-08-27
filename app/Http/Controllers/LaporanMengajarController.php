@@ -310,33 +310,6 @@ class LaporanMengajarController extends Controller
     {
         $validated = $request->validated();
 
-        // Enforce H+1 Restriction for Instructors (Manual Input)
-        if (Auth::user()->role === 'instruktur') {
-             try {
-                $inputDate = \Carbon\Carbon::parse($validated['jadwal_mengajar'])->startOfDay();
-                
-                // Jika input date adalah masa lalu lebih dari 1 hari dari sekarang
-                if ($inputDate->copy()->addDay()->endOfDay()->isBefore(now())) {
-                    $formattedDbDate = $inputDate->format('Y-m-d');
-                    
-                    // Cek apakah ada permohonan Ad-Hoc yang sudah disetujui untuk tanggal ini
-                    $hasApprovedRequest = \App\Models\LateReportRequest::where('user_id', Auth::id())
-                        ->whereNull('session_id')
-                        ->where('adhoc_date', $formattedDbDate)
-                        ->where('status', 'approved')
-                        ->exists();
-
-                    if (!$hasApprovedRequest) {
-                         return redirect()->back()
-                            ->withInput()
-                            ->with('error', 'Tanggal kegiatan (' . $inputDate->format('d/m/Y') . ') telah melewati batas H+1. Silakan kirimkan permohonan buka akses Ad-Hoc.');
-                    }
-                }
-             } catch (\Exception $e) {
-                 // Date parsing validasi sudah di handle request validator
-             }
-        }
-
         if (! isset($validated['kategori_pengajaran'])) {
             $validated['kategori_pengajaran'] = $request->kategori_pengajaran;
         }

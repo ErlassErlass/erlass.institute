@@ -302,24 +302,6 @@ class DashboardController extends Controller
                 ->whereIn('status', ['terjadwal', 'berlangsung', 'selesai']) 
                 ->orderBy('tanggal_terjadwal', 'asc') 
                 ->get(),
-            'approved_adhoc_requests' => \App\Models\LateReportRequest::with(['session.rombel.ekstrakurikuler.sekolah', 'admin:id,nama_lengkap'])
-                ->where('user_id', $user->id)
-                ->where('status', 'approved')
-                ->latest()
-                ->get()
-                ->filter(function ($requestItem) use ($user) {
-                    if ($requestItem->session_id) {
-                        return !optional($requestItem->session)->laporanMengajar;
-                    }
-                    if ($requestItem->adhoc_date) {
-                        $formattedDate = $requestItem->adhoc_date->format('Y-m-d');
-                        $hasReport = \App\Models\LaporanMengajar::where('user_id_instruktur', $user->id)
-                            ->whereDate('jadwal_mengajar', $formattedDate)
-                            ->exists();
-                        return !$hasReport;
-                    }
-                    return true;
-                })
         ];
     }
 

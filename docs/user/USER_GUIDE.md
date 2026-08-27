@@ -137,7 +137,12 @@ Instruktur bertugas melaksanakan kegiatan pengajaran dan pelaporan di sekolah mi
     *   **Tabel Absensi Touch-Friendly**: Dilengkapi avatar inisial warna-warni, tombol toggle *Hadir/Absen* besar, penghitung real-time jumlah siswa hadir vs absen, serta kotak pencarian nama siswa di tabel.
     *   **Tambah Siswa Fast-Add**: Tambahkan siswa baru yang belum terdaftar langsung ke daftar hadir melalui modal *Cari Siswa* atau *Buat Baru*.
     *   **Modal Konfirmasi Submit**: Sebelum laporan disimpan, sistem menampilkan modal ringkasan untuk verifikasi ulang data.
-*   **Batas Waktu H+1**: Pengisian wajib dilakukan maksimal **H+1 akhir hari**. Jika melebihi batas waktu, instruktur harus mengajukan izin ke Admin.
+*   **Batas Waktu Pelaporan & Aturan Tunggakan Sesi**:
+    *   **Tanggal 1 s.d. 27**: Batas waktu pelaporan adalah **H+1 (23:59 WIB)**.
+    *   **Tanggal 28, 29, 30, 31 (Akhir Bulan)**: Wajib di-submit pada **Hari H (23:59 WIB)** untuk kelancaran tutup buku bulanan.
+    *   **Toleransi Tunggakan Maksimal 1x (Global FIFO)**: Instruktur hanya diperbolehkan menunggak maksimal 1 laporan sesi lampau di seluruh sekolah/rombel. Jika memiliki $\ge 2$ tunggakan, sesi baru akan terkunci dan wajib diselesaikan berurutan dari pertemuan paling awal.
+    *   **Keterlambatan Berat (> 3 Hari / Lewat Cutoff)**: Form mewajibkan pengisian *Catatan Kendala Keterlambatan* dan hak honor otomatis masuk ke batch penggajian periode cutoff berikutnya.
+    *   **Tanpa Permohonan Buka Akses Manual**: Instruktur dapat langsung mengisi laporan sesi lampau secara mandiri tanpa menunggu approval Admin.
 
 ### 4. Pusat Bantuan, FAQ 101 & Tiket Bantuan (`/tickets`)
 *   **Panduan & FAQ 101 (`/help`)**: Mempelajari SOP pengisian laporan, penanganan masalah lokasi GPS, toleransi keterlambatan check-in 14 menit, dan rincian slip gaji.

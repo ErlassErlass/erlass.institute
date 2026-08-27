@@ -6,7 +6,16 @@
 
 @if(session()->has('error'))
     <x-alert type="error" dismissible="true">
-        <strong>Error!</strong> {{ session('error') }}
+        <div>
+            <strong>Pemberitahuan:</strong> {{ session('error') }}
+            @if(session()->has('oldest_unreported_session_id'))
+                <div class="mt-2">
+                    <a href="{{ route('ekstrakurikuler.sessions.report.create', session('oldest_unreported_session_id')) }}" class="btn btn-sm btn-danger text-white fw-bold px-3 py-1.5 rounded-pill shadow-xs">
+                        <i class="bi bi-arrow-right-circle me-1"></i> Isi Laporan Sesi Terdahulu Sekarang
+                    </a>
+                </div>
+            @endif
+        </div>
     </x-alert>
 @endif
 

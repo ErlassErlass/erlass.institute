@@ -703,18 +703,7 @@
 
                     @if(Auth::user()?->hasAdminAccess())
                         <li class="sidebar-section-title">Sistem & Pengaturan</li>
-                        <li class="sidebar-item">
-                            <a class="sidebar-link {{ request()->routeIs('admin.late-reports.index') ? 'active' : '' }}" href="{{ route('admin.late-reports.index') }}">
-                                <i class="bi bi-hourglass-split"></i>
-                                <span>Request Laporan</span>
-                                @php
-                                    $pendingCount = \App\Models\LateReportRequest::where('status', 'pending')->count();
-                                @endphp
-                                @if($pendingCount > 0)
-                                    <span class="badge bg-warning text-dark rounded-pill ms-auto fw-bold" style="font-size: 0.7rem;">{{ $pendingCount }}</span>
-                                @endif
-                            </a>
-                        </li>
+
                         @if(Auth::user()?->canManageUsers())
                             <li class="sidebar-item">
                                 <a class="sidebar-link {{ request()->routeIs('admin.verification.index') ? 'active' : '' }}" href="{{ route('admin.verification.index') }}">

@@ -589,15 +589,36 @@
             </div>
         </div>
 
-        {{-- Section 3: Deadline --}}
-        <p class="section-label"><i class="bi bi-clock me-1"></i>Langkah 3 dari 3 — Kirim Tepat Waktu</p>
-        <h2 class="section-heading">Batas Waktu H+1</h2>
+        {{-- Section 3: Deadline & Aturan Pelaporan --}}
+        <p class="section-label"><i class="bi bi-clock me-1"></i>Langkah 3 dari 3 — Kirim Tepat Waktu & Tertib Sesi</p>
+        <h2 class="section-heading">Batas Waktu Laporan & Aturan Tunggakan Sesi</h2>
 
-        <div class="deadline-banner">
-            <i class="bi bi-exclamation-octagon-fill"></i>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="p-3.5 rounded-3 h-100" style="background:#eff6ff; border: 1.5px solid #bfdbfe;">
+                    <h6 class="fw-bold text-primary mb-1"><i class="bi bi-calendar-event me-1"></i> Tanggal 1 s.d. 27: Batas H+1 (23:59)</h6>
+                    <p class="small text-muted mb-0">
+                        Untuk sesi yang terlaksana pada tanggal 1 s.d. 27, batas pengisian laporan adalah hingga <strong>H+1 pukul 23:59 WIB</strong>.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3.5 rounded-3 h-100" style="background:#fef2f2; border: 1.5px solid #fca5a5;">
+                    <h6 class="fw-bold text-danger mb-1"><i class="bi bi-exclamation-octagon-fill me-1"></i> Tanggal 28, 29, 30, 31: Wajib Hari H</h6>
+                    <p class="small text-muted mb-0">
+                        Khusus penutupan akhir bulan (tgl 28–31), laporan <strong>wajib di-submit pada Hari H (maksimal 23:59 WIB)</strong> untuk keperluan tutup buku administrasi.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="deadline-banner" style="background:#f8fafc; border: 1.5px solid #cbd5e1;">
+            <i class="bi bi-shield-lock-fill text-dark"></i>
             <div>
-                <h6>Laporan wajib di-submit maksimal 24 jam (H+1) setelah kelas selesai.</h6>
-                <p>Jika melewati batas H+1, laporan akan otomatis berlabel <strong>Terlambat (H+X)</strong>. Pengisian susulan memerlukan persetujuan khusus dari Admin melalui fitur <strong>Request Laporan Susulan</strong>.</p>
+                <h6 class="text-dark">Aturan Tunggakan Laporan Maksimal 1x (Pengisian Berurutan)</h6>
+                <p class="text-muted mb-0">
+                    Instruktur hanya memiliki toleransi maksimal <strong>1 laporan sesi lampau yang belum selesai</strong>. Jika Anda memiliki <strong>&ge; 2 tunggakan</strong>, form sesi baru otomatis terkunci dan Anda <strong>wajib menyelesaikan laporan sesi terdahulu secara berurutan</strong> dari pertemuan paling awal. Jika laporan diisi terlambat &gt; 3 hari / lewat cutoff, Anda wajib mengisi <strong>Catatan Kendala Keterlambatan</strong> dan honor sesi otomatis masuk ke <strong>periode cutoff berikutnya</strong>.
+                </p>
             </div>
         </div>
 
@@ -831,8 +852,11 @@
                     'a' => 'Ya. Pihak sekolah (Kepala Sekolah / Guru Pendamping) dapat membuka portal publik di <code>https://erlass.institute/rekap-pertemuan-ekskul</code> dan langsung mengklik tombol <strong>[PDF]</strong> pada pertemuan yang bersangkutan untuk mengunduh lembar presensi resmi berformat A4 portrait.',
                 ],
                 [
-                    'q' => 'Kapan form laporan terkunci dan tidak bisa diisi lagi?',
-                    'a' => 'Form laporan mengajar terkunci otomatis setelah melewati batas <strong>H+1 (24 jam)</strong>. Jika sudah terkunci, Anda perlu mengajukan <strong>Request Laporan Susulan</strong> kepada Admin untuk membuka aksesnya kembali.',
+                    'q' => 'Kapan form laporan terkunci dan bagaimana jika saya terlambat mengisi?',
+                    'a' => 'Sistem menerapkan aturan <strong>Toleransi Tunggakan Maksimal 1 Sesi Lampau</strong>:<br>' .
+                           '1. <strong>Tunggakan $\ge 2$ Sesi</strong>: Form untuk sesi baru akan terkunci otomatis jika Anda memiliki 2 atau lebih laporan sesi lampau yang belum selesai. Anda wajib menyelesaikan laporan sesi terdahulu secara berurutan (<em>FIFO</em>) dari pertemuan paling awal.<br>' .
+                           '2. <strong>Tidak Perlu Request Izin Admin</strong>: Instruktur dapat langsung mengisi laporan sesi lampau secara mandiri tanpa menunggu persetujuan manual Admin.<br>' .
+                           '3. <strong>Keterlambatan Berat (> 3 Hari / Lewat Cutoff)</strong>: Wajib mengisi <em>Catatan Kendala Keterlambatan</em> pada form laporan, dan honor sesi tersebut otomatis masuk ke perhitungan cutoff bulan berikutnya.',
                 ],
                 [
                     'q' => 'Bagaimana cara menambah siswa baru yang belum ada di daftar absensi?',

@@ -82,40 +82,7 @@ class LaporanMengajarPolicy
                 return false;
             }
 
-            if ($user->id !== $laporanMengajar->user_id_instruktur) {
-                return false;
-            }
-
-            // Batas waktu H+1 untuk edit laporan oleh instruktur
-            if ($laporanMengajar->jadwal_mengajar) {
-                $scheduleDate = \Carbon\Carbon::parse($laporanMengajar->jadwal_mengajar)->startOfDay();
-                $deadline = $scheduleDate->copy()->addDay()->endOfDay();
-                
-                if (now()->greaterThan($deadline)) {
-                    // Cek permohonan keterlambatan yang disetujui
-                    $session = $laporanMengajar->ekstrakurikulerSession;
-                    $hasApproved = false;
-                    
-                    if ($session) {
-                        $hasApproved = $session->lateReportRequests()
-                            ->where('user_id', $user->id)
-                            ->where('status', 'approved')
-                            ->exists();
-                    } else {
-                        $hasApproved = \App\Models\LateReportRequest::where('user_id', $user->id)
-                            ->whereNull('session_id')
-                            ->where('adhoc_date', $scheduleDate->format('Y-m-d'))
-                            ->where('status', 'approved')
-                            ->exists();
-                    }
-
-                    if (!$hasApproved) {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
+            return $user->id === $laporanMengajar->user_id_instruktur;
         }
 
         return false;

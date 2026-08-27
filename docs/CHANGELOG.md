@@ -2,6 +2,31 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.12] - 2026-08-27
+
+### Reformasi Sistem Pelaporan Mengajar: Penghapusan Permohonan Buka Akses, Aturan Tunggakan Global FIFO (Maks. 1x), Deadline Akhir Bulan Hari H, & Catatan Kendala Keterlambatan Berat
+
+- **Penghapusan Antrean Permohonan Buka Akses Manual (`LateReportRequest`)**:
+  - Mengeliminasi alur persetujuan permohonan buka akses manual oleh admin (`LateReportRequest`).
+  - Instruktur kini dapat langsung mengisi laporan sesi mengajar yang telah lampau secara mandiri (*self-service*) tanpa harus menunggu approval admin.
+- **Aturan Tunggakan Global FIFO (Maksimal 1 Sesi Lampau)**:
+  - Menerapkan batasan toleransi maksimal **1 laporan sesi lampau yang belum diisi** yang berlaku secara global di seluruh sekolah mitra dan rombel binaan instruktur.
+  - Apabila instruktur memiliki $\ge 2$ sesi lampau yang belum dilaporkan, akses pembuatan laporan untuk sesi baru otomatis terkunci.
+  - Sistem mewajibkan penyelesaian laporan secara berurutan (*First In First Out / FIFO*) mulai dari sesi pertemuan paling awal.
+  - Menyediakan tombol pintas langsung (*"Isi Laporan Sesi Terdahulu Sekarang"*) pada flash alert navigasi.
+- **Ketentuan Deadline Akhir Bulan (Tgl 28–31) vs Reguler (Tgl 1–27)**:
+  - **Tanggal 1 s.d. 27**: Batas waktu pelaporan berlaku standar **H+1 (23:59 WIB)** setelah sesi terlaksana.
+  - **Tanggal 28, 29, 30, 31**: Khusus penutupan akhir bulan, batas laporan **wajib di Hari H (23:59 WIB)** tanpa toleransi H+1 demi tertib tutup buku administrasi bulanan.
+  - Badge indikator deadline otomatis menyesuaikan pada kartu detail sesi dan form pembuatan laporan (`reports/create.blade.php`).
+- **Validasi Wajib Catatan Kendala Keterlambatan Berat (*Severe Late* > 3 Hari / Lewat Cut-off)**:
+  - Jika sesi dilaporkan terlambat berat (> 3 hari kalender setelah tanggal jadwal atau telah melewati batas cutoff penggajian tanggal 10), form laporan secara interaktif memunculkan kolom **Catatan Kendala Keterlambatan** (`alasan_kendala_keterlambatan`, minimal 10 karakter).
+  - Penjelasan kendala keterlambatan otomatis tersimpan ke catatan laporan dan metadata audit sistem (`metadata_json`).
+- **Otomatisasi Carry-over Payroll untuk Laporan Susulan (`PayrollCalculatorService`)**:
+  - Sesi mengajar yang dilaporkan melewati tanggal cut-off (tanggal 10) secara otomatis terhitung dan terbawa (*carry-over*) ke dalam batch penggajian periode cutoff berikutnya.
+- **Pembersihan Antarmuka & Pembaruan Pusat Bantuan (`/help`)**:
+  - Menghapus kartu notifikasi approval dan tautan sidebar menu permohonan buka akses.
+  - Memperbarui panduan langkah pelaporan serta FAQ penguncian form laporan di `/help`.
+
 ## [2.9.11] - 2026-08-27
 
 ### Matriks Ketersediaan Instruktur Mingguan (Weekly Availability Matrix) & Interactive Week Picker di Distribusi Jadwal

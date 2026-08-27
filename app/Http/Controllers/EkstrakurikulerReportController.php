@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
+use App\Models\User;
 use App\Models\EkstrakurikulerReport;
 use App\Models\EkstrakurikulerSession;
 use App\Models\LaporanMengajar;
@@ -20,6 +22,68 @@ use App\Notifications\ProgressReminderNotification;
 
 class EkstrakurikulerReportController extends Controller
 {
+    /**
+     * Hitung batas akhir (deadline) submit laporan sesi.
+     * Aturan:
+     * - Tanggal 28, 29, 30, 31 (akhir bulan): Hari H (23:59:59)
+     * - Tanggal 1 s.d. 27: H+1 (23:59:59)
+     */
+    public function calculateReportDeadline($scheduleDate): Carbon
+    {
+        $date = Carbon::parse($scheduleDate);
+        if ($date->day >= 28) {
+            return $date->copy()->endOfDay();
+        }
+        return $date->copy()->addDay()->endOfDay();
+    }
+
+    /**
+     * Ambil daftar seluruh sesi lampau milik instruktur yang belum dibuatkan laporan.
+     */
+    public function getBacklogUnreportedSessions(User $user)
+    {
+        return EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah'])
+            ->where('user_id_instruktur', $user->id)
+            ->whereDate('tanggal_terjadwal', '<=', Carbon::today())
+            ->whereIn('status', ['terjadwal', 'berlangsung', 'selesai'])
+            ->doesntHave('laporanMengajar')
+            ->orderBy('tanggal_terjadwal', 'asc')
+            ->orderBy('jam_mulai_terjadwal', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+    }
+
+    /**
+     * Cek apakah laporan tergolong keterlambatan berat / fatal (Skenario C):
+     * Terlambat > 3 hari dari deadline atau melewati tanggal cut-off (tanggal 10).
+     */
+    public function isSevereLate(EkstrakurikulerSession $session): bool
+    {
+        if (!$session->tanggal_terjadwal) {
+            return false;
+        }
+
+        $deadline = $this->calculateReportDeadline($session->tanggal_terjadwal);
+        if (now()->lessThanOrEqualTo($deadline)) {
+            return false;
+        }
+
+        // Jika sekarang sudah lebih dari 3 hari setelah deadline
+        $diffDays = $deadline->diffInDays(now(), false);
+        if ($diffDays >= 3) {
+            return true;
+        }
+
+        // Atau jika sesi berada di periode cutoff sebelumnya (melewati tgl 10 cutoff)
+        $scheduleDate = Carbon::parse($session->tanggal_terjadwal);
+        $currentCutoffDay = 10;
+        if ($scheduleDate->month !== now()->month || ($scheduleDate->day <= $currentCutoffDay && now()->day > $currentCutoffDay)) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * Show the form for creating a new report and attendance for a session.
      */
@@ -41,22 +105,21 @@ class EkstrakurikulerReportController extends Controller
                 ->with('error', 'Akses Ditolak: Anda bukan instruktur yang ditugaskan untuk sesi ini.');
         }
 
-        // Enforce H+1 Restriction for Instructors
-        $user = Auth::user();
+        // Global Backlog Checking (Maksimal 1x Hutang Laporan)
         if ($user->role === 'instruktur') {
-            $scheduleDate = $session->tanggal_terjadwal; // Asumsi field ini Carbon/Date
-            // Toleransi: Sampai akhir hari H+1 (misal jadwal tgl 1, batas tgl 2 jam 23:59)
-            $deadline = $scheduleDate->copy()->addDay()->endOfDay();
-            
-            // Cek apakah ada request yang sudah disetujui untuk sesi ini
-            $hasApprovedRequest = $session->lateReportRequests()
-                ->where("user_id", $user->id)
-                ->where("status", "approved")
-                ->exists();
+            $backlog = $this->getBacklogUnreportedSessions($user);
+            if ($backlog->count() > 1) {
+                $oldest = $backlog->first();
+                if ($session->id !== $oldest->id) {
+                    $oldestDate = $oldest->tanggal_terjadwal ? Carbon::parse($oldest->tanggal_terjadwal)->format('d/m/Y') : '-';
+                    $oldestSchool = $oldest->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah';
+                    $oldestRombel = $oldest->rombel?->nama_rombel ?? 'Rombel';
+                    $oldestPertemuan = $oldest->nomor_pertemuan ?? 1;
 
-            if (now()->greaterThan($deadline) && !$hasApprovedRequest) {
-                 return redirect()->route('ekstrakurikuler.sessions.show', $session)
-                    ->with('error', 'Batas waktu pembuatan laporan (H+1) telah habis. Silakan hubungi Admin untuk bantuan.');
+                    return redirect()->route('ekstrakurikuler.sessions.show', $session)
+                        ->with('error', "Anda memiliki {$backlog->count()} tunggakan laporan sesi lampau. Sesuai aturan sistem, Anda wajib menyelesaikan laporan sesi terdahulu (Pertemuan ke-{$oldestPertemuan} {$oldestRombel} di {$oldestSchool} tgl {$oldestDate}) terlebih dahulu secara berurutan.")
+                        ->with('oldest_unreported_session_id', $oldest->id);
+                }
             }
         }
 
@@ -65,6 +128,11 @@ class EkstrakurikulerReportController extends Controller
             return redirect()->route('laporan-mengajar.show', $existingLaporan->id)
                 ->with('info', 'Laporan sudah ada untuk sesi ini.');
         }
+
+        // Cek status keterlambatan & batas waktu
+        $deadline = $session->tanggal_terjadwal ? $this->calculateReportDeadline($session->tanggal_terjadwal) : now()->endOfDay();
+        $isSevereLate = $this->isSevereLate($session);
+        $isEndOfMonth = $session->tanggal_terjadwal ? Carbon::parse($session->tanggal_terjadwal)->day >= 28 : false;
 
         $session->load(['rombel.siswaAktif', 'rombel.ekstrakurikuler.sekolah']);
         $siswaList = $session->rombel->siswaAktif()->orderBy('nama_lengkap')->get();
@@ -99,7 +167,10 @@ class EkstrakurikulerReportController extends Controller
 
         $errors = session('errors') ?? new \Illuminate\Support\ViewErrorBag();
 
-        return view('ekstrakurikuler.reports.create', compact('session', 'siswaList', 'defaults', 'materiList', 'previousReport', 'errors'));
+        return view('ekstrakurikuler.reports.create', compact(
+            'session', 'siswaList', 'defaults', 'materiList', 'previousReport', 'errors',
+            'deadline', 'isSevereLate', 'isEndOfMonth'
+        ));
     }
 
     /**
@@ -129,24 +200,18 @@ class EkstrakurikulerReportController extends Controller
                 ->with('info', 'Laporan sudah dibuat sebelumnya untuk sesi ini.');
         }
 
-        // Guard Check 3: Enforce H+1 Restriction for Instructors
+        // Global Backlog Checking (Maksimal 1x Hutang Laporan)
         if ($user->role === 'instruktur') {
-            $scheduleDate = $session->tanggal_terjadwal;
-            if ($scheduleDate) {
-                $deadline = \Carbon\Carbon::parse($scheduleDate)->addDay()->endOfDay();
-                $hasApprovedRequest = $session->lateReportRequests()
-                    ->where("user_id", $user->id)
-                    ->where("status", "approved")
-                    ->exists();
-
-                if (now()->greaterThan($deadline) && !$hasApprovedRequest) {
-                    return redirect()->route('ekstrakurikuler.sessions.show', $session)
-                        ->with('error', 'Batas waktu pembuatan laporan (H+1) telah habis. Silakan hubungi Admin untuk bantuan.');
-                }
+            $backlog = $this->getBacklogUnreportedSessions($user);
+            if ($backlog->count() > 1 && $session->id !== $backlog->first()->id) {
+                return redirect()->route('ekstrakurikuler.sessions.show', $session)
+                    ->with('error', 'Anda memiliki tunggakan laporan sesi sebelumnya. Selesaikan laporan sesi terdahulu terlebih dahulu secara berurutan.');
             }
         }
 
-        $request->validate([
+        $isSevereLate = $this->isSevereLate($session);
+
+        $rules = [
             'foto_kegiatan' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB max
             'topik_materi' => [
                 'required',
@@ -180,15 +245,24 @@ class EkstrakurikulerReportController extends Controller
                         }
                     }
                 }
-            ], // Wajib upload file project (Max 10MB: .hex, .sb3, .zip, .rar, .py, .ino, .pdf)
+            ], // Wajib upload file project (Max 10MB)
             'deskripsi' => 'nullable|string|max:2000',
             'refleksi_siswa' => 'nullable|string|max:2000',
             'refleksi_capaian' => 'nullable|string|max:2000',
             'catatan' => 'nullable|string|max:2000',
-        ], [
+        ];
+
+        // Skenario C: Keterlambatan Berat / Fatal wajib mengisi catatan kendala
+        if ($isSevereLate) {
+            $rules['alasan_kendala_keterlambatan'] = 'required|string|min:10|max:2000';
+        }
+
+        $request->validate($rules, [
             'keaktifan.in' => 'Pilihan keaktifan kelas tidak valid.',
             'pemahaman_materi.in' => 'Pilihan pemahaman materi tidak valid.',
             'absensi.*.in' => 'Status kehadiran siswa tidak valid.',
+            'alasan_kendala_keterlambatan.required' => 'Karena laporan ini melewati batas toleransi (>3 hari / lewat cutoff), Anda wajib mengisi Catatan Kendala Keterlambatan.',
+            'alasan_kendala_keterlambatan.min' => 'Catatan kendala keterlambatan minimal 10 karakter.',
         ]);
 
         // Validate that all student IDs in absensi array are valid integers and exist in database
@@ -204,6 +278,11 @@ class EkstrakurikulerReportController extends Controller
         $refleksiSiswaClean = $request->filled('refleksi_siswa') ? trim(strip_tags($request->refleksi_siswa)) : '-';
         $refleksiCapaianClean = $request->filled('refleksi_capaian') ? trim(strip_tags($request->refleksi_capaian)) : '-';
         $catatanClean = $request->filled('catatan') ? trim(strip_tags($request->catatan)) : null;
+        $alasanKendalaClean = $request->filled('alasan_kendala_keterlambatan') ? trim(strip_tags($request->alasan_kendala_keterlambatan)) : null;
+
+        if ($alasanKendalaClean) {
+            $catatanClean = ($catatanClean ? $catatanClean . "\n\n" : '') . "[Catatan Kendala Keterlambatan]: " . $alasanKendalaClean;
+        }
 
         DB::beginTransaction();
         try {
@@ -251,6 +330,8 @@ class EkstrakurikulerReportController extends Controller
                     'source' => 'ekstrakurikuler',
                     'session_id' => $session->id,
                     'program' => $session->rombel->ekstrakurikuler->kategori_program,
+                    'is_severe_late' => $isSevereLate,
+                    'alasan_kendala_keterlambatan' => $alasanKendalaClean,
                 ]
             ]);
 

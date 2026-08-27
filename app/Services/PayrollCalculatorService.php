@@ -233,14 +233,22 @@ class PayrollCalculatorService
                 ->whereDoesntHave('payrollItem')
                 ->update(['payment_status' => 'unpaid', 'payroll_item_id' => null]);
 
-            // Ambil seluruh sesi mengajar selesai yang berstatus unpaid dan memiliki laporan lengkap di rentang cutoff
+            // Ambil seluruh sesi mengajar selesai yang berstatus unpaid dan memiliki laporan lengkap di rentang cutoff (termasuk carry-over)
             $sessions = EkstrakurikulerSession::where('payment_status', 'unpaid')
                 ->where('status', EkstrakurikulerSession::STATUS_SELESAI)
                 ->where(function ($q) use ($startDate, $endDate) {
+                    // Sesi dalam rentang cutoff normal
                     $q->whereBetween('tanggal_pelaksanaan', [$startDate, $endDate])
                       ->orWhere(function ($subQ) use ($startDate, $endDate) {
                           $subQ->whereNull('tanggal_pelaksanaan')
                                ->whereBetween('tanggal_terjadwal', [$startDate, $endDate]);
+                      })
+                      // Carry-over: Sesi lampau yang baru dibuatkan laporannya pada rentang cutoff berjalan
+                      ->orWhere(function ($carryQ) use ($startDate, $endDate) {
+                          $carryQ->where('tanggal_pelaksanaan', '<', $startDate)
+                                 ->whereHas('laporanMengajar', function ($lq) use ($startDate, $endDate) {
+                                     $lq->whereBetween('created_at', [$startDate, $endDate]);
+                                 });
                       });
                 })
                 ->whereHas('laporanMengajar') // Wajib memiliki bukti Laporan Mengajar

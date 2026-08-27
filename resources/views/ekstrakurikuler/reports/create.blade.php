@@ -491,6 +491,15 @@
                                 <i class="bi bi-clock"></i>
                                 {{ \Carbon\Carbon::parse($session->jam_mulai_terjadwal)->format('H:i') }} - {{ \Carbon\Carbon::parse($session->jam_selesai_terjadwal)->format('H:i') }}
                             </span>
+                            @if(isset($isEndOfMonth) && $isEndOfMonth)
+                                <span class="hero-meta-chip" style="background: rgba(239, 68, 68, 0.4); border-color: rgba(239, 68, 68, 0.6);">
+                                    <i class="bi bi-exclamation-octagon-fill text-warning"></i> Akhir Bulan: Wajib Submit Hari H (23:59)
+                                </span>
+                            @elseif(isset($deadline))
+                                <span class="hero-meta-chip">
+                                    <i class="bi bi-hourglass-split"></i> Batas Submit: {{ \Carbon\Carbon::parse($deadline)->translatedFormat('d M, H:i') }}
+                                </span>
+                            @endif
                         </div>
                     </div>
                     <a href="{{ route('ekstrakurikuler.sessions.show', $session) }}" class="btn btn-sm px-3 py-2 fw-bold" style="background: rgba(255,255,255,0.15); color: white; border-radius: 10px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2);">
@@ -762,6 +771,22 @@
                                 <label class="form-label fw-bold" style="color: var(--imp-navy);">Capaian & Evaluasi</label>
                                 <textarea name="refleksi_capaian" class="form-control" rows="2" placeholder="Apa yang sudah dicapai dan perlu diperbaiki?" style="border-radius: 10px; border-color: var(--imp-border);"></textarea>
                             </div>
+                            @if(isset($isSevereLate) && $isSevereLate)
+                            <div class="col-12 mt-3">
+                                <div class="p-3 rounded-3" style="background: #FEF2F2; border: 1.5px solid #FCA5A5;">
+                                    <label class="form-label fw-bold text-danger d-flex align-items-center gap-1 mb-1">
+                                        <i class="bi bi-exclamation-triangle-fill"></i> Catatan Kendala Keterlambatan <span class="badge bg-danger text-white ms-1">Wajib Diisi</span>
+                                    </label>
+                                    <p class="small text-muted mb-2">
+                                        Laporan sesi ini dibuat melewati batas toleransi (> 3 hari setelah tanggal jadwal atau melewati batas cutoff). Mohon jelaskan alasan/kendala keterlambatan pelaporan secara rinci (minimal 10 karakter).
+                                    </p>
+                                    <textarea name="alasan_kendala_keterlambatan" required minlength="10" class="form-control @error('alasan_kendala_keterlambatan') is-invalid @enderror" rows="3" placeholder="Contoh: Mengalami kendala koneksi internet saat upload foto dokumentasi dan konfirmasi PIC sekolah baru didapatkan kemarin..." style="border-radius: 10px; border-color: #F87171;">{{ old('alasan_kendala_keterlambatan') }}</textarea>
+                                    @error('alasan_kendala_keterlambatan')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
