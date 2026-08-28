@@ -267,6 +267,9 @@
                     <a href="#section-tiket" class="toc-link">
                         <i class="bi bi-ticket-detailed text-warning"></i> 8. Helpdesk &amp; Audit Log
                     </a>
+                    <a href="#section-reset-manual" class="toc-link">
+                        <i class="bi bi-arrow-counterclockwise text-danger"></i> 9. Reset Manual &amp; Bypass
+                    </a>
                 </nav>
 
                 <hr class="my-3">
@@ -635,6 +638,85 @@
                             </p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- 9. RESET MANUAL & BYPASS KEHADIRAN -->
+            <div class="guide-card" id="section-reset-manual">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="guide-header-icon bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-dark">9. Prosedur Reset Manual Sesi, Laporan &amp; Bypass Kehadiran</h4>
+                        <small class="text-muted">Tata cara pemulihan sesi yang keliru dimulai, reset laporan yang salah unggah, dan aktivasi sesi lampau.</small>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <!-- Skenario 1: Reset Sesi Berlangsung ke Terjadwal -->
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-light h-100">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge bg-danger rounded-pill px-2.5 py-1 fw-bold">Skenario 1</span>
+                                <h6 class="fw-bold text-dark mb-0">Reset Sesi "Berlangsung" &rarr; "Terjadwal"</h6>
+                            </div>
+                            <p class="small text-muted mb-2">
+                                <em>Gunakan jika instruktur salah klik "Mulai Sesi", salah check-in GPS, atau sesi batal berjalan di hari tersebut:</em>
+                            </p>
+                            <ol class="small text-secondary ps-3 mb-0">
+                                <li>Buka halaman detail sesi terkait: <code>/ekstrakurikuler/sessions/{id}</code>.</li>
+                                <li>Pada panel kanan <strong>Aksi Administrator</strong>, klik tombol <strong>`[ 🔄 Reset ke Terjadwal ]`</strong>.</li>
+                                <li>Ketikkan alasan reset (contoh: <em>"Sesi tidak sengaja dimulai"</em>), lalu klik <strong>OK</strong>.</li>
+                                <li><strong>Efek Sistem:</strong> Jam mulai/selesai aktual dan koordinat GPS dikosongkan kembali, status kembali ke <code>Terjadwal</code>.</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- Skenario 2: Reset / Hapus Laporan Mengajar -->
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-light h-100">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1 fw-bold">Skenario 2</span>
+                                <h6 class="fw-bold text-dark mb-0">Reset Laporan yang Sudah Terkirim</h6>
+                            </div>
+                            <p class="small text-muted mb-2">
+                                <em>Gunakan jika instruktur salah memilih foto kegiatan/absensi atau salah input rombel dan perlu mengisi ulang dari nol:</em>
+                            </p>
+                            <ol class="small text-secondary ps-3 mb-0">
+                                <li>Buka laporan di <code>/laporan-mengajar/{id}</code> lalu klik <strong>`[ 🗑️ Hapus Laporan ]`</strong>.</li>
+                                <li>Buka sesi terkait di <code>/ekstrakurikuler/sessions/{session_id}</code>.</li>
+                                <li>Klik <strong>`[ 🔄 Reset ke Terjadwal ]`</strong> jika ingin dikosongkan, atau klik <strong>`[ Mulai Sesi ]`</strong> agar instruktur bisa langsung menginput form laporan baru.</li>
+                                <li><em>Catatan:</em> Data absensi siswa lama akan otomatis dibersihkan agar tidak terjadi duplikasi.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skenario 3: Bypass GPS & Amnesti Kehadiran -->
+                <div class="p-3.5 rounded-3 border" style="background: #F0FDF4; border-color: #BBF7D0 !important;">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge bg-success rounded-pill px-2.5 py-1 fw-bold">Skenario 3</span>
+                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-geo-alt-fill text-success me-1"></i> Mengaktifkan Sesi Lampau ("Terjadwal" &rarr; "Berlangsung")</h6>
+                    </div>
+                    <p class="small text-muted mb-2">
+                        Jika kegiatan mengajar di masa lampau telah terlaksana namun instruktur lupa melakukan GPS Check-in sehingga tombol lapor terkunci:
+                    </p>
+                    <div class="row g-2 small text-secondary">
+                        <div class="col-md-6">
+                            <div class="p-2 bg-white rounded border">
+                                <strong>Langkah 1:</strong> Buka detail sesi di <code>/ekstrakurikuler/sessions/{id}</code>.
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-2 bg-white rounded border">
+                                <strong>Langkah 2:</strong> Klik tombol <strong>`[ Mulai Sesi (Bypass Admin) ]`</strong> atau <strong>`[ Berikan Amnesti ]`</strong>.
+                            </div>
+                        </div>
+                    </div>
+                    <p class="small text-success fw-semibold mt-2 mb-0">
+                        <i class="bi bi-check-circle-fill me-1"></i> Setelah status berubah menjadi <code>Berlangsung</code>, instruktur dapat langsung membuat Laporan Mengajar di aplikasi tanpa terblokir aturan FIFO.
+                    </p>
                 </div>
             </div>
 
