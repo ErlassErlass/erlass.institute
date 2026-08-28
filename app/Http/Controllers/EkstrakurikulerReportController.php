@@ -105,22 +105,23 @@ class EkstrakurikulerReportController extends Controller
                 ->with('error', 'Akses Ditolak: Anda bukan instruktur yang ditugaskan untuk sesi ini.');
         }
 
-        // Global Backlog Checking (Maksimal 1x Hutang Laporan)
-        if ($user->role === 'instruktur') {
-            $backlog = $this->getBacklogUnreportedSessions($user);
-            if ($backlog->count() > 1) {
-                $oldest = $backlog->first();
-                if ($session->id !== $oldest->id) {
-                    $oldestDate = $oldest->tanggal_terjadwal ? Carbon::parse($oldest->tanggal_terjadwal)->format('d/m/Y') : '-';
-                    $oldestSchool = $oldest->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah';
-                    $oldestRombel = $oldest->rombel?->nama_rombel ?? 'Rombel';
-                    $oldestPertemuan = $oldest->nomor_pertemuan ?? 1;
+        // Sequential Reporting Lock: Tidak bisa laporan di sesi baru jika sesi lama/sebelumnya belum laporan
+        $blockingSession = $session->getBlockingPriorSession($user);
+        if ($blockingSession) {
+            $priorDate = $blockingSession->tanggal_terjadwal ? Carbon::parse($blockingSession->tanggal_terjadwal)->locale('id')->translatedFormat('d F Y') : '-';
+            $priorSchool = $blockingSession->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah';
+            $priorRombel = $blockingSession->rombel?->nama_rombel ?? 'Rombel';
+            $priorPertemuan = $blockingSession->nomor_pertemuan ?? 1;
 
-                    return redirect()->route('ekstrakurikuler.sessions.show', $session)
-                        ->with('error', "Anda memiliki {$backlog->count()} tunggakan laporan sesi lampau. Sesuai aturan sistem, Anda wajib menyelesaikan laporan sesi terdahulu (Pertemuan ke-{$oldestPertemuan} {$oldestRombel} di {$oldestSchool} tgl {$oldestDate}) terlebih dahulu secara berurutan.")
-                        ->with('oldest_unreported_session_id', $oldest->id);
-                }
-            }
+            $isSameRombel = ($blockingSession->ekstrakurikuler_rombel_id === $session->ekstrakurikuler_rombel_id);
+
+            $errorMsg = $isSameRombel
+                ? "Anda belum dapat membuat laporan untuk Pertemuan ke-{$session->nomor_pertemuan} karena sesi sebelumnya (Pertemuan ke-{$priorPertemuan} tgl {$priorDate}) belum dibuat laporannya. Sesuai aturan sistem, silakan selesaikan laporan sesi lama terlebih dahulu."
+                : "Anda belum dapat membuat laporan untuk sesi ini karena masih memiliki sesi lampau yang belum dilaporkan (Pertemuan ke-{$priorPertemuan} {$priorRombel} di {$priorSchool} tgl {$priorDate}). Sesuai aturan sistem, silakan selesaikan laporan sesi lama terlebih dahulu.";
+
+            return redirect()->route('ekstrakurikuler.sessions.show', $session)
+                ->with('error', $errorMsg)
+                ->with('oldest_unreported_session_id', $blockingSession->id);
         }
 
         $existingLaporan = $session->laporanMengajar;
@@ -242,13 +243,14 @@ class EkstrakurikulerReportController extends Controller
                 ->with('info', 'Laporan sudah dibuat sebelumnya untuk sesi ini.');
         }
 
-        // Global Backlog Checking (Maksimal 1x Hutang Laporan)
-        if ($user->role === 'instruktur') {
-            $backlog = $this->getBacklogUnreportedSessions($user);
-            if ($backlog->count() > 1 && $session->id !== $backlog->first()->id) {
-                return redirect()->route('ekstrakurikuler.sessions.show', $session)
-                    ->with('error', 'Anda memiliki tunggakan laporan sesi sebelumnya. Selesaikan laporan sesi terdahulu terlebih dahulu secara berurutan.');
-            }
+        // Sequential Reporting Lock: Tidak bisa laporan di sesi baru jika sesi lama/sebelumnya belum laporan
+        $blockingSession = $session->getBlockingPriorSession($user);
+        if ($blockingSession) {
+            $priorDate = $blockingSession->tanggal_terjadwal ? Carbon::parse($blockingSession->tanggal_terjadwal)->locale('id')->translatedFormat('d F Y') : '-';
+            $priorPertemuan = $blockingSession->nomor_pertemuan ?? 1;
+            return redirect()->route('ekstrakurikuler.sessions.show', $session)
+                ->with('error', "Anda tidak dapat mengirimkan laporan untuk sesi ini sebelum laporan sesi sebelumnya (Pertemuan ke-{$priorPertemuan} tgl {$priorDate}) diselesaikan.")
+                ->with('oldest_unreported_session_id', $blockingSession->id);
         }
 
         $isSevereLate = $this->isSevereLate($session);

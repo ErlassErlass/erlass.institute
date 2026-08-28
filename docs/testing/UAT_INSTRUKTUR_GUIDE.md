@@ -144,7 +144,7 @@ graph TD
 2. Periksa rincian pendapatan pada Batch Payroll yang telah diterbitkan:
    - Banner transparansi ketentuan honorarium & periode cutoff.
    - Jumlah Sesi Mengajar & Honorarium Dasar (Rp 150rb / Rp 115rb / Rp 100rb / Rp 75rb per sesi).
-   - Biaya Transportasi Operasional (Rp 350/KM + Rp 7.500 sewa kendaraan untuk jarak $\ge 10\text{ KM}$).
+   - Biaya Transportasi Operasional (Bensin 2x PP + Rp 7.500 sewa kendaraan untuk jarak $\ge 10\text{ KM}$, atau Rp 7.500 sewa kendaraan saja untuk jarak $< 10\text{ KM}$).
    - Status Kedisiplinan (*Excellent* / *On Time* / *Penalty*).
    - Honorarium Bersih (*Net Salary*).
 3. Klik tombol **Detail Slip** (`/payroll/slip/{id}`) untuk melihat rincian per pertemuan.

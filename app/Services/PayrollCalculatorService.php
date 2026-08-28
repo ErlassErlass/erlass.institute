@@ -25,12 +25,9 @@ class PayrollCalculatorService
      * Menghitung honorarium, biaya transport, dan status kedisiplinan untuk satu sesi mengajar
      * berdasarkan ketentuan Memo Resmi No. 536/EPI/V/2025 (TAB 2025/2026).
      */
-    public function calculateSessionFee(EkstrakurikulerSession $session): array
+    public function calculateSessionFee(EkstrakurikulerSession $session, string $role = 'utama'): array
     {
         // 1. Tentukan jumlah siswa HADIR (bukan jumlah siswa terdaftar/rombel).
-        //    Kebijakan: Honor dihitung berdasarkan jumlah siswa yang HADIR pada sesi tersebut,
-        //    diambil dari data absensi laporan mengajar (status = 'hadir').
-        //    Fallback ke jumlah_siswa rombel jika data absensi belum tersedia.
         $studentCount = 0;
 
         // Prioritas 1: Jumlah siswa HADIR dari absensi laporan mengajar
@@ -57,7 +54,26 @@ class PayrollCalculatorService
             $studentCount = $session->laporanMengajar->absensi()->count();
         }
 
-        // 2. Perhitungan Honorarium Dasar berdasarkan Memo Resmi No. 536/EPI/V/2025
+        // Jika peran adalah Asisten Instruktur: Flat Rp 100.000 / sesi, Transport Rp 0, Denda Rp 0
+        if ($role === 'asisten') {
+            $baseRate = 100000.00;
+            $productBonus = 0.00;
+            $calculatedFee = 100000.00;
+            $finalFee = $session->override_fee !== null ? (float) $session->override_fee : $calculatedFee;
+
+            return [
+                'student_count' => $studentCount,
+                'base_rate' => $baseRate,
+                'product_bonus' => $productBonus,
+                'calculated_fee' => $calculatedFee,
+                'transport_fee' => 0.00,
+                'actual_checkin_status' => $session->actual_checkin_status ?? 'on_time',
+                'actual_checkin_penalty' => 0.00,
+                'net_fee' => max(0.00, $finalFee)
+            ];
+        }
+
+        // 2. Perhitungan Honorarium Dasar Instruktur Utama berdasarkan Memo Resmi No. 536/EPI/V/2025
         $category = '';
         if ($session->laporanMengajar && $session->laporanMengajar->kategori_pengajaran) {
             $category = strtolower($session->laporanMengajar->kategori_pengajaran);
@@ -153,14 +169,7 @@ class PayrollCalculatorService
         // 5. Total Honorarium (Honor Dasar + Bonus Produk)
         $calculatedFee = $baseRate + $productBonus;
 
-        // 6. Perhitungan Biaya Transportasi Operasional sesuai Memo No. 536/EPI/V/2025:
-        // - Instruktur Guru Internal Sekolah / Kegiatan di Kantor Erlass: Transport = Rp 0
-        // - Jarak >= 10 KM dari Pejaten: (Jarak KM * Rp 350) + Rp 7.500 (sewa kendaraan)
-        // - Jarak < 10 KM: Tarif minimal flat Rp 20.000 / Custom Transport Fee Sekolah
-        //
-        // KEBIJAKAN BARU: Transport dihitung 2x Pulang-Pergi (PP).
-        //   Tarif transport satu arah dikalikan 2.
-        //   Deduplikasi per sekolah per hari dilakukan di generateMonthlyPayroll().
+        // 6. Perhitungan Biaya Transportasi Operasional sesuai Memo No. 536/EPI/V/2025 & Kebijakan Baru:
         $transportFee = 0.00;
         $ekskul = $session->ekstrakurikuler;
         $sekolah = $ekskul ? $ekskul->sekolah : null;
@@ -175,8 +184,8 @@ class PayrollCalculatorService
         if ($isGuruInternal || $isKantorErlass) {
             $transportFee = 0.00;
         } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km < 10.0 && (float)$ekskul->jarak_km > 0) {
-            // Sekolah berjarak < 10 KM dari Pejaten: Uang Transport = Rp 0
-            $transportFee = 0.00;
+            // Sekolah berjarak < 10 KM dari Pejaten: Sewa Kendaraan saja = Rp 7.500 (tanpa komponen bensin)
+            $transportFee = 7500.00;
         } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km >= 10.0) {
             // Sekolah berjarak >= 10 KM dari Pejaten: (Jarak KM x Rp 350 x 2 PP) + Rp 7.500 (Sewa Kendaraan)
             $distKm = (float) $ekskul->jarak_km;
@@ -231,6 +240,7 @@ class PayrollCalculatorService
             // Clean up any orphaned processing sessions without batch items
             EkstrakurikulerSession::where('payment_status', 'processing')
                 ->whereDoesntHave('payrollItem')
+                ->whereDoesntHave('payrollItemSessions')
                 ->update(['payment_status' => 'unpaid', 'payroll_item_id' => null]);
 
             // Ambil seluruh sesi mengajar selesai yang berstatus unpaid dan memiliki laporan lengkap di rentang cutoff (termasuk carry-over)
@@ -258,59 +268,66 @@ class PayrollCalculatorService
                             ->orWhere('metadata_json->status_approval_kendala', 'approved');
                     });
                 })
-                ->whereNotNull('user_id_instruktur')
+                ->where(function ($q) {
+                    $q->whereNotNull('user_id_instruktur')
+                      ->orWhereNotNull('user_id_asisten');
+                })
                 ->get();
 
             if ($sessions->isEmpty()) {
                 return 0;
             }
 
-            // Kelompokkan sesi mengajar berdasarkan ID Instruktur
-            $groupedSessions = $sessions->groupBy('user_id_instruktur');
-            $itemsCount = 0;
+            // Kumpulkan penugasan (duties) per instruktur: role 'utama' dan role 'asisten'
+            $instructorDuties = collect();
 
-            foreach ($groupedSessions as $instructorId => $instructorSessions) {
-                $totalSessions = $instructorSessions->count();
-                $totalBaseFee = 0.00;
-                $totalProductBonus = 0.00;
-                $totalPenalty = 0.00;
-                $totalBonus = 0.00;
-                $totalTransportFee = 0.00;
-
-                // Proses setiap sesi untuk menyimpan rincian kalkulasinya
-                foreach ($instructorSessions as $session) {
-                    $calc = $this->calculateSessionFee($session);
-                    
-                    // Update kolom-kolom kalkulasi pada sesi
-                    $session->update([
-                        'actual_checkin_status' => $calc['actual_checkin_status'],
-                        'actual_checkin_penalty' => $calc['actual_checkin_penalty'],
-                        'calculated_fee' => $calc['calculated_fee'],
-                        'transport_fee' => $calc['transport_fee'],
-                        'payment_status' => 'processing',
+            foreach ($sessions as $session) {
+                // Instruktur Utama
+                if ($session->user_id_instruktur) {
+                    $instructorDuties->push([
+                        'user_id' => $session->user_id_instruktur,
+                        'role' => 'utama',
+                        'session' => $session,
                     ]);
-
-                    $totalBaseFee += $calc['base_rate'];
-                    $totalProductBonus += $calc['product_bonus'];
-                    $totalPenalty += $calc['actual_checkin_penalty'];
                 }
 
-                // Hitung total honor dasar (termasuk nilai override fee) dan total biaya transportasi
-                // KEBIJAKAN BARU: Transport hanya dibayar 1x per sekolah per hari.
-                //   Jika instruktur mengajar >1 sesi di sekolah yang sama pada hari yang sama,
-                //   hanya sesi pertama yang mendapatkan transport, sesi berikutnya = Rp 0.
-                $actualTotalBase = 0.00;
+                // Asisten Instruktur
+                if ($session->user_id_asisten) {
+                    $instructorDuties->push([
+                        'user_id' => $session->user_id_asisten,
+                        'role' => 'asisten',
+                        'session' => $session,
+                    ]);
+                }
+            }
+
+            // Kelompokkan penugasan berdasarkan ID Pengajar
+            $groupedDuties = $instructorDuties->groupBy('user_id');
+            $itemsCount = 0;
+
+            foreach ($groupedDuties as $userId => $duties) {
+                $utamaDuties = $duties->where('role', 'utama');
+                $asistenDuties = $duties->where('role', 'asisten');
+
+                $totalUtamaSessions = $utamaDuties->count();
+                $totalAsistenSessions = $asistenDuties->count();
+                $totalSessions = $totalUtamaSessions + $totalAsistenSessions;
+
+                $totalBaseFee = 0.00;
+                $totalAsistenFee = 0.00;
+                $totalProductBonus = 0.00;
+                $totalPenalty = 0.00;
                 $totalTransportFee = 0.00;
-                $transportPaidKeys = []; // Track: "sekolah_kodlan|tanggal" => true
 
-                foreach ($instructorSessions as $session) {
-                    if ($session->override_fee !== null) {
-                        $actualTotalBase += (float) $session->override_fee;
-                    } else {
-                        $actualTotalBase += (float) $session->calculated_fee;
-                    }
+                $processedUtama = [];
+                $processedAsisten = [];
+                $transportPaidKeys = []; // Track deduplikasi transport: "sekolah_kodlan|tanggal" => true
 
-                    // Deduplikasi transport per sekolah per hari
+                // 1. Proses Penugasan Instruktur Utama
+                foreach ($utamaDuties as $duty) {
+                    $session = $duty['session'];
+                    $calc = $this->calculateSessionFee($session, 'utama');
+
                     $sessionDate = $session->tanggal_pelaksanaan
                         ? Carbon::parse($session->tanggal_pelaksanaan)->toDateString()
                         : ($session->tanggal_terjadwal
@@ -323,41 +340,129 @@ class PayrollCalculatorService
                     }
 
                     $transportKey = $sekolahKey . '|' . $sessionDate;
+                    $sessionTransport = 0.00;
 
                     if (!isset($transportPaidKeys[$transportKey])) {
-                        // Pertama kali di sekolah ini pada tanggal ini → bayar transport
-                        $totalTransportFee += (float) $session->transport_fee;
+                        $sessionTransport = (float) $calc['transport_fee'];
                         $transportPaidKeys[$transportKey] = true;
-                    } else {
-                        // Sudah dibayar transport di sekolah ini hari ini → set transport sesi ini = 0
-                        $session->update(['transport_fee' => 0.00]);
                     }
+
+                    $sessionBaseFee = $session->override_fee !== null ? (float) $session->override_fee : (float) $calc['calculated_fee'];
+
+                    $session->update([
+                        'actual_checkin_status' => $calc['actual_checkin_status'],
+                        'actual_checkin_penalty' => $calc['actual_checkin_penalty'],
+                        'calculated_fee' => $calc['calculated_fee'],
+                        'transport_fee' => $sessionTransport,
+                        'payment_status' => 'processing',
+                    ]);
+
+                    $totalBaseFee += $sessionBaseFee;
+                    $totalProductBonus += (float) $calc['product_bonus'];
+                    $totalPenalty += (float) $calc['actual_checkin_penalty'];
+                    $totalTransportFee += $sessionTransport;
+
+                    $processedUtama[] = [
+                        'session' => $session,
+                        'base_fee' => $sessionBaseFee,
+                        'transport_fee' => $sessionTransport,
+                        'penalty_fee' => (float) $calc['actual_checkin_penalty'],
+                        'bonus_fee' => (float) $calc['product_bonus'],
+                        'net_fee' => max(0.00, $sessionBaseFee + $sessionTransport - (float) $calc['actual_checkin_penalty']),
+                        'override_fee' => $session->override_fee,
+                    ];
                 }
 
-                // Gaji Bersih (Net Salary) = Honor Dasar + Total Transport + Bonus - Total Denda
-                $netSalary = max(0.00, $actualTotalBase + $totalTransportFee + $totalBonus - $totalPenalty);
+                // 2. Proses Penugasan Asisten Instruktur (Flat Rp 100.000 / sesi, Transport Rp 0)
+                foreach ($asistenDuties as $duty) {
+                    $session = $duty['session'];
+                    $asistenFee = 100000.00;
+                    $totalAsistenFee += $asistenFee;
 
-                // Buat entri rincian Payroll Item per Instruktur
+                    $session->update([
+                        'payment_status' => 'processing',
+                    ]);
+
+                    $processedAsisten[] = [
+                        'session' => $session,
+                        'base_fee' => $asistenFee,
+                        'transport_fee' => 0.00,
+                        'penalty_fee' => 0.00,
+                        'bonus_fee' => 0.00,
+                        'net_fee' => $asistenFee,
+                        'override_fee' => null,
+                    ];
+                }
+
+                // Total Penerimaan Kotor (Gross) Sesuai Slip Resmi Erlass
+                $totalGrossSalary = $totalBaseFee + $totalAsistenFee + $totalProductBonus + $totalTransportFee;
+
+                // Potongan Pajak 2.5% dari Total Penerimaan Kotor
+                $taxRate = 2.50;
+                $taxAmount = round($totalGrossSalary * 0.025);
+
+                // Gaji Bersih = Penerimaan Bersih (Gross * 0.975) - Total Denda Keterlambatan
+                $netSalary = max(0.00, round($totalGrossSalary * 0.975) - $totalPenalty);
+
+                // Buat entri PayrollItem untuk instruktur/asisten ini
                 $payrollItem = PayrollItem::create([
                     'payroll_batch_id' => $batch->id,
-                    'user_id_instruktur' => $instructorId,
+                    'user_id_instruktur' => $userId,
                     'total_sessions' => $totalSessions,
-                    'total_base_fee' => $instructorSessions->sum(function($s) {
-                        return $s->override_fee !== null ? (float)$s->override_fee : (float)$s->calculated_fee;
-                    }),
+                    'total_sessions_utama' => $totalUtamaSessions,
+                    'total_sessions_asisten' => $totalAsistenSessions,
+                    'total_base_fee' => $totalBaseFee,
+                    'total_asisten_fee' => $totalAsistenFee,
                     'total_product_bonus' => $totalProductBonus,
-                    'total_penalty' => $totalPenalty,
-                    'total_bonus' => $totalBonus,
                     'total_transport_fee' => $totalTransportFee,
+                    'total_gross_salary' => $totalGrossSalary,
+                    'tax_rate' => $taxRate,
+                    'tax_amount' => $taxAmount,
+                    'total_penalty' => $totalPenalty,
+                    'total_bonus' => 0.00,
                     'net_salary' => $netSalary,
                     'status' => 'pending',
                 ]);
 
-                // Hubungkan sesi-sesi mengajar ke Payroll Item ini
-                foreach ($instructorSessions as $session) {
-                    $session->update([
-                        'payroll_item_id' => $payrollItem->id
+                // Simpan rincian sesi ke tabel pivot payroll_item_session
+                foreach ($processedUtama as $itemData) {
+                    \App\Models\PayrollItemSession::create([
+                        'payroll_item_id' => $payrollItem->id,
+                        'ekstrakurikuler_session_id' => $itemData['session']->id,
+                        'user_id' => $userId,
+                        'role' => 'utama',
+                        'base_fee' => $itemData['base_fee'],
+                        'transport_fee' => $itemData['transport_fee'],
+                        'penalty_fee' => $itemData['penalty_fee'],
+                        'bonus_fee' => $itemData['bonus_fee'],
+                        'net_fee' => $itemData['net_fee'],
+                        'override_fee' => $itemData['override_fee'],
                     ]);
+
+                    // Update legacy single foreign key if null
+                    if (!$itemData['session']->payroll_item_id) {
+                        $itemData['session']->update(['payroll_item_id' => $payrollItem->id]);
+                    }
+                }
+
+                foreach ($processedAsisten as $itemData) {
+                    \App\Models\PayrollItemSession::create([
+                        'payroll_item_id' => $payrollItem->id,
+                        'ekstrakurikuler_session_id' => $itemData['session']->id,
+                        'user_id' => $userId,
+                        'role' => 'asisten',
+                        'base_fee' => $itemData['base_fee'],
+                        'transport_fee' => 0.00,
+                        'penalty_fee' => 0.00,
+                        'bonus_fee' => 0.00,
+                        'net_fee' => $itemData['net_fee'],
+                        'override_fee' => null,
+                    ]);
+
+                    // Update legacy single foreign key if null
+                    if (!$itemData['session']->payroll_item_id) {
+                        $itemData['session']->update(['payroll_item_id' => $payrollItem->id]);
+                    }
                 }
 
                 $itemsCount++;
@@ -367,3 +472,4 @@ class PayrollCalculatorService
         });
     }
 }
+

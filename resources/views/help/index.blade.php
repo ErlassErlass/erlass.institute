@@ -716,27 +716,27 @@
                     <tr>
                         <td class="ps-3 fw-bold text-dark">≥ 15 Orang Siswa</td>
                         <td class="text-center fw-bold text-success">Rp 150.000</td>
-                        <td class="text-center"><span class="badge bg-success">Penuh (Standar)</span></td>
+                        <td class="text-center"><span class="badge bg-success">Berjalan</span></td>
                     </tr>
                     <tr>
                         <td class="ps-3 fw-semibold text-dark">12 – 14 Orang Siswa</td>
                         <td class="text-center fw-semibold text-primary">Rp 115.000</td>
-                        <td class="text-center"><span class="badge bg-info text-dark">Berjalan</span></td>
+                        <td class="text-center"><span class="badge bg-success">Berjalan</span></td>
                     </tr>
                     <tr>
                         <td class="ps-3 fw-semibold text-dark">10 – 11 Orang Siswa</td>
                         <td class="text-center fw-semibold text-dark">Rp 100.000</td>
-                        <td class="text-center"><span class="badge bg-secondary">Berjalan</span></td>
+                        <td class="text-center"><span class="badge bg-success">Berjalan</span></td>
                     </tr>
                     <tr>
                         <td class="ps-3 text-dark">8 – 9 Orang Siswa</td>
                         <td class="text-center text-dark">Rp 75.000</td>
-                        <td class="text-center"><span class="badge bg-warning text-dark">Disesuaikan</span></td>
+                        <td class="text-center"><span class="badge bg-warning text-dark">Minimum</span></td>
                     </tr>
                     <tr class="table-danger bg-opacity-10">
                         <td class="ps-3 text-danger fw-bold">&lt; 8 Orang Siswa</td>
                         <td class="text-center text-danger fw-bold">Rp 0</td>
-                        <td class="text-center"><span class="badge bg-danger">HOLD (Ditunda)</span></td>
+                        <td class="text-center"><span class="badge bg-danger">Hold (Ditunda)</span></td>
                     </tr>
                 </tbody>
             </table>
@@ -746,16 +746,21 @@
         <div class="row g-3 mb-4">
             <div class="col-md-6">
                 <div class="p-3 bg-white rounded border h-100" style="font-size:.88rem;">
-                    <div class="fw-bold text-primary mb-2"><i class="bi bi-truck me-1"></i> Formula Transportasi</div>
+                    <div class="fw-bold text-primary mb-2"><i class="bi bi-truck me-1"></i> Formula Transportasi &amp; Sewa Kendaraan</div>
                     <ul class="list-unstyled mb-0 d-flex flex-column gap-2 text-muted">
                         <li>
                             <i class="bi bi-check-circle-fill text-success me-1"></i>
-                            <strong>Jarak ≥ 10 KM dari Pejaten (2x PP Bensin):</strong><br>
+                            <strong>Jarak ≥ 10 KM dari Pejaten (Bensin 2x PP + Sewa Kendaraan):</strong><br>
                             <code class="text-dark bg-light px-2 py-1 rounded d-inline-block mt-1">(Jarak KM × Rp 350 × 2) + Rp 7.500</code>
                         </li>
                         <li>
                             <i class="bi bi-check-circle-fill text-success me-1"></i>
-                            <strong>Jarak &lt; 10 KM / Guru Internal / Sesi Kantor Erlass:</strong><br>
+                            <strong>Jarak &lt; 10 KM dari Pejaten (Sewa Kendaraan Saja):</strong><br>
+                            <code class="text-dark bg-light px-2 py-1 rounded d-inline-block mt-1">Rp 7.500 (Flat Sewa Kendaraan)</code>
+                        </li>
+                        <li>
+                            <i class="bi bi-check-circle-fill text-success me-1"></i>
+                            <strong>Guru Internal &amp; Sesi Kantor Erlass:</strong><br>
                             Uang transport = <strong class="text-dark">Rp 0</strong>.
                         </li>
                     </ul>
@@ -856,6 +861,165 @@
                 </div>
             </div>
         </div>
+
+        {{-- ─── Kontak Langsung Tim Erlass ─── --}}
+        <h2 class="section-heading mt-2">📞 Kontak Langsung Tim Erlass</h2>
+        <p class="text-muted mb-4" style="font-size:.9rem;">Tidak menemukan jawaban? Hubungi PIC yang sesuai dengan topik Anda melalui WhatsApp.</p>
+
+        <div class="row g-3 mb-2">
+
+            {{-- Honorarium --}}
+            <div class="col-md-6">
+                <div class="p-3 bg-white rounded-4 border h-100 shadow-sm" style="border-top: 3px solid #2563eb !important;">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#eff6ff;color:#2563eb;font-size:1rem;">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size:.9rem;">💰 Honorarium</div>
+                            <div class="text-muted" style="font-size:.75rem;">Pertanyaan gaji, rekap honor, rekening bank</div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="https://wa.me/6285695639083?text=Halo+Kak+Andi%2C+saya+ingin+bertanya+mengenai+honorarium+saya+di+Erlass+Institute."
+                           target="_blank" rel="noopener"
+                           class="d-flex align-items-center justify-content-between text-decoration-none p-2 rounded-3"
+                           style="background:#f8fafc;border:1px solid #e2e8f0;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-person-circle text-primary"></i>
+                                <div>
+                                    <div class="fw-semibold text-dark" style="font-size:.82rem;">Andi Kristian</div>
+                                    <div class="text-muted" style="font-size:.73rem;">+62 856-9563-9083</div>
+                                </div>
+                            </div>
+                            <span class="badge rounded-pill" style="background:#25D366;color:#fff;font-size:.7rem;"><i class="bi bi-whatsapp me-1"></i>Chat</span>
+                        </a>
+                        <a href="https://wa.me/6287717711963?text=Halo+Kak+Cornelis%2C+saya+ingin+bertanya+mengenai+honorarium+saya+di+Erlass+Institute."
+                           target="_blank" rel="noopener"
+                           class="d-flex align-items-center justify-content-between text-decoration-none p-2 rounded-3"
+                           style="background:#f8fafc;border:1px solid #e2e8f0;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-person-circle text-primary"></i>
+                                <div>
+                                    <div class="fw-semibold text-dark" style="font-size:.82rem;">Cornelis Banu</div>
+                                    <div class="text-muted" style="font-size:.73rem;">+62 877-1771-1963</div>
+                                </div>
+                            </div>
+                            <span class="badge rounded-pill" style="background:#25D366;color:#fff;font-size:.7rem;"><i class="bi bi-whatsapp me-1"></i>Chat</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Instruktur & Penjadwalan --}}
+            <div class="col-md-6">
+                <div class="p-3 bg-white rounded-4 border h-100 shadow-sm" style="border-top: 3px solid #d97706 !important;">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#fffbeb;color:#d97706;font-size:1rem;">
+                            <i class="bi bi-calendar2-week"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size:.9rem;">📅 Instruktur & Penjadwalan</div>
+                            <div class="text-muted" style="font-size:.75rem;">Jadwal sesi, penggantian instruktur, kehadiran</div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="https://wa.me/6282118302927?text=Halo+Kak+Adinda%2C+saya+ingin+bertanya+mengenai+jadwal+mengajar+saya+di+Erlass+Institute."
+                           target="_blank" rel="noopener"
+                           class="d-flex align-items-center justify-content-between text-decoration-none p-2 rounded-3"
+                           style="background:#f8fafc;border:1px solid #e2e8f0;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-person-circle" style="color:#d97706;"></i>
+                                <div>
+                                    <div class="fw-semibold text-dark" style="font-size:.82rem;">Adinda Wardania</div>
+                                    <div class="text-muted" style="font-size:.73rem;">+62 821-1830-2927</div>
+                                </div>
+                            </div>
+                            <span class="badge rounded-pill" style="background:#25D366;color:#fff;font-size:.7rem;"><i class="bi bi-whatsapp me-1"></i>Chat</span>
+                        </a>
+                        <a href="https://wa.me/6289671129523?text=Halo+Kak+Putro%2C+saya+ingin+bertanya+mengenai+jadwal+mengajar+saya+di+Erlass+Institute."
+                           target="_blank" rel="noopener"
+                           class="d-flex align-items-center justify-content-between text-decoration-none p-2 rounded-3"
+                           style="background:#f8fafc;border:1px solid #e2e8f0;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-person-circle" style="color:#d97706;"></i>
+                                <div>
+                                    <div class="fw-semibold text-dark" style="font-size:.82rem;">Putro Bagus</div>
+                                    <div class="text-muted" style="font-size:.73rem;">+62 896-7112-9523</div>
+                                </div>
+                            </div>
+                            <span class="badge rounded-pill" style="background:#25D366;color:#fff;font-size:.7rem;"><i class="bi bi-whatsapp me-1"></i>Chat</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Teknis / Error Sistem --}}
+            <div class="col-md-6">
+                <div class="p-3 bg-white rounded-4 border h-100 shadow-sm" style="border-top: 3px solid #dc2626 !important;">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#fef2f2;color:#dc2626;font-size:1rem;">
+                            <i class="bi bi-bug"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size:.9rem;">🛠️ Teknis / Error Sistem</div>
+                            <div class="text-muted" style="font-size:.75rem;">GPS error, login gagal, bug aplikasi</div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="https://wa.me/6282117071800?text=Halo+Kak+Isa%2C+saya+mengalami+kendala+teknis+di+sistem+Erlass+Institute."
+                           target="_blank" rel="noopener"
+                           class="d-flex align-items-center justify-content-between text-decoration-none p-2 rounded-3"
+                           style="background:#f8fafc;border:1px solid #e2e8f0;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-person-circle" style="color:#dc2626;"></i>
+                                <div>
+                                    <div class="fw-semibold text-dark" style="font-size:.82rem;">Isa Herdyanto</div>
+                                    <div class="text-muted" style="font-size:.73rem;">+62 821-1707-1800</div>
+                                </div>
+                            </div>
+                            <span class="badge rounded-pill" style="background:#25D366;color:#fff;font-size:.7rem;"><i class="bi bi-whatsapp me-1"></i>Chat</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Kurikulum / Pengajaran --}}
+            <div class="col-md-6">
+                <div class="p-3 bg-white rounded-4 border h-100 shadow-sm" style="border-top: 3px solid #059669 !important;">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#f0fdf4;color:#059669;font-size:1rem;">
+                            <i class="bi bi-book"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size:.9rem;">📚 Kurikulum & Pengajaran</div>
+                            <div class="text-muted" style="font-size:.75rem;">Materi, modul, metode pembelajaran</div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="https://wa.me/6282312391563?text=Halo+Kak+Yusril%2C+saya+ingin+bertanya+mengenai+kurikulum%2Fpengajaran+di+Erlass+Institute."
+                           target="_blank" rel="noopener"
+                           class="d-flex align-items-center justify-content-between text-decoration-none p-2 rounded-3"
+                           style="background:#f8fafc;border:1px solid #e2e8f0;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-person-circle" style="color:#059669;"></i>
+                                <div>
+                                    <div class="fw-semibold text-dark" style="font-size:.82rem;">Ahmad Yusril Firdaus</div>
+                                    <div class="text-muted" style="font-size:.73rem;">+62 823-1239-1563</div>
+                                </div>
+                            </div>
+                            <span class="badge rounded-pill" style="background:#25D366;color:#fff;font-size:.7rem;"><i class="bi bi-whatsapp me-1"></i>Chat</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <p class="text-muted mb-0" style="font-size:.78rem;">
+            <i class="bi bi-info-circle me-1"></i>
+            Jam operasional tim: <strong>Senin–Jumat 08.00–17.00 WIB</strong>. Di luar jam tersebut, gunakan sistem tiket untuk respons terdokumentasi.
+        </p>
 
     </div>
 

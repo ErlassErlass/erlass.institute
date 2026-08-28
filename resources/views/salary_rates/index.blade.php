@@ -52,27 +52,27 @@
                                 <tr>
                                     <td class="ps-3 fw-bold text-dark">≥ 15 Orang Siswa</td>
                                     <td class="text-center fw-bold text-success">Rp 150.000</td>
-                                    <td class="text-center"><span class="badge bg-success">Penuh (Standar)</span></td>
+                                    <td class="text-center"><span class="badge bg-success">Berjalan</span></td>
                                 </tr>
                                 <tr>
                                     <td class="ps-3 fw-semibold text-dark">12 - 14 Orang Siswa</td>
                                     <td class="text-center fw-semibold text-primary">Rp 115.000</td>
-                                    <td class="text-center"><span class="badge bg-info text-dark">Berjalan</span></td>
+                                    <td class="text-center"><span class="badge bg-success">Berjalan</span></td>
                                 </tr>
                                 <tr>
                                     <td class="ps-3 fw-semibold text-dark">10 - 11 Orang Siswa</td>
                                     <td class="text-center fw-semibold text-dark">Rp 100.000</td>
-                                    <td class="text-center"><span class="badge bg-secondary">Berjalan</span></td>
+                                    <td class="text-center"><span class="badge bg-success">Berjalan</span></td>
                                 </tr>
                                 <tr>
                                     <td class="ps-3 text-dark">8 - 9 Orang Siswa</td>
                                     <td class="text-center text-dark">Rp 75.000</td>
-                                    <td class="text-center"><span class="badge bg-warning text-dark">Disesuaikan</span></td>
+                                    <td class="text-center"><span class="badge bg-warning text-dark">Minimum</span></td>
                                 </tr>
                                 <tr class="table-danger bg-opacity-10">
                                     <td class="ps-3 text-danger fw-bold">&lt; 8 Orang Siswa</td>
                                     <td class="text-center text-danger fw-bold">Rp 0</td>
-                                    <td class="text-center"><span class="badge bg-danger">HOLD (Ditunda)</span></td>
+                                    <td class="text-center"><span class="badge bg-danger">Hold (Ditunda)</span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -89,12 +89,17 @@
                             <ul class="list-unstyled mb-3 d-flex flex-column gap-2 text-muted">
                                 <li>
                                     <i class="bi bi-check-circle-fill text-success me-1"></i>
-                                    <strong>Jarak ≥ 10 KM dari Pejaten (2x PP Bensin)</strong>:<br>
+                                    <strong>Jarak ≥ 10 KM dari Pejaten (Bensin 2x PP + Sewa)</strong>:<br>
                                     <code class="text-dark bg-light px-2 py-1 rounded d-inline-block mt-1">(Jarak KM × Rp 350 × 2) + Rp 7.500</code>
                                 </li>
                                 <li>
                                     <i class="bi bi-check-circle-fill text-success me-1"></i>
-                                    <strong>Jarak &lt; 10 KM, Guru Internal &amp; Sesi Kantor Erlass</strong>:<br>
+                                    <strong>Jarak &lt; 10 KM dari Pejaten (Sewa Kendaraan Saja)</strong>:<br>
+                                    <code class="text-dark bg-light px-2 py-1 rounded d-inline-block mt-1">Rp 7.500 (Flat Sewa Kendaraan)</code>
+                                </li>
+                                <li>
+                                    <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                    <strong>Guru Internal &amp; Sesi Kantor Erlass</strong>:<br>
                                     Uang transport = <strong class="text-dark">Rp 0</strong>.
                                 </li>
                                 <li>
@@ -131,20 +136,27 @@
             </p>
 
             <div class="row g-3">
-                <!-- Policy 1: Transport 2x PP -->
+                <!-- Policy 1: Transportasi & Sewa Kendaraan -->
                 <div class="col-md-4">
                     <div class="p-3 bg-light rounded border h-100" style="font-size: 0.88rem;">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-arrow-left-right text-white"></i></span>
-                            <span class="fw-bold text-dark">Transport 2x PP (Jarak ≥ 10 KM)</span>
+                            <span class="fw-bold text-dark">Transport &amp; Sewa Kendaraan</span>
                         </div>
-                        <p class="text-muted mb-2">Biaya transportasi dihitung <strong>2x PP</strong> untuk sekolah berjarak <strong>≥ 10 KM</strong> dari Pejaten. Sekolah berjarak <strong>&lt; 10 KM</strong> transport = <strong>Rp 0</strong>.</p>
+                        <p class="text-muted mb-2">
+                            Sekolah <strong>≥ 10 KM</strong>: Bensin 2x PP + Sewa Rp 7.500.<br>
+                            Sekolah <strong>&lt; 10 KM</strong>: Flat Sewa Kendaraan <strong>Rp 7.500</strong> (tanpa bensin).
+                        </p>
                         <div class="bg-white p-2 rounded border small">
-                            <div class="text-muted mb-1">Contoh Jarak 15 KM:</div>
+                            <div class="text-muted mb-1">Contoh Jarak 15 KM (≥ 10 KM):</div>
                             <code class="text-dark d-block">Bensin 2x PP = (15 × Rp 350) × 2 = Rp 10.500</code>
                             <code class="text-dark d-block">Sewa Kendaraan = Rp 7.500</code>
-                            <hr class="my-1">
                             <code class="text-success fw-bold d-block">Total Transport = Rp 18.000</code>
+                            <hr class="my-1">
+                            <div class="text-muted mb-1">Contoh Jarak 5 KM (&lt; 10 KM):</div>
+                            <code class="text-dark d-block">Bensin = Rp 0</code>
+                            <code class="text-dark d-block">Sewa Kendaraan = Rp 7.500</code>
+                            <code class="text-success fw-bold d-block">Total Transport = Rp 7.500</code>
                         </div>
                     </div>
                 </div>

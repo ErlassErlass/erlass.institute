@@ -68,10 +68,21 @@
                     @endif
 
                     @if($session->canComplete())
-                        <a href="{{ route('ekstrakurikuler.sessions.report.create', $session) }}" 
-                           class="btn btn-primary w-100 w-sm-auto">
-                            <i class="bi bi-file-earmark-check me-1"></i> Buat Laporan & Absensi
-                        </a>
+                        @php
+                            $blockingPrior = $session->getBlockingPriorSession(Auth::user());
+                        @endphp
+                        @if($blockingPrior)
+                            <a href="{{ route('ekstrakurikuler.sessions.report.create', $blockingPrior->id) }}" 
+                               class="btn btn-warning text-dark fw-bold w-100 w-sm-auto shadow-xs"
+                               title="Selesaikan laporan Pertemuan ke-{{ $blockingPrior->nomor_pertemuan }} terlebih dahulu">
+                                <i class="bi bi-lock-fill me-1"></i> Isi Laporan Sesi P.{{ $blockingPrior->nomor_pertemuan }} Dulu
+                            </a>
+                        @else
+                            <a href="{{ route('ekstrakurikuler.sessions.report.create', $session) }}" 
+                               class="btn btn-primary w-100 w-sm-auto">
+                                <i class="bi bi-file-earmark-check me-1"></i> Buat Laporan & Absensi
+                            </a>
+                        @endif
                     @endif
                     
                     @can('update', $session)
@@ -95,6 +106,25 @@
             </div>
         </div>
     </div>
+
+    @if(isset($blockingPrior) && $blockingPrior)
+    <div class="alert alert-warning border-0 rounded-4 shadow-sm p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle-fill text-warning fs-4"></i>
+            <div>
+                <strong class="d-block text-dark">Laporan Sesi Terdahulu Belum Selesai</strong>
+                <span class="small text-muted">
+                    Sesuai aturan sistem, Anda tidak dapat membuat laporan di sesi baru sebelum laporan <strong>Pertemuan ke-{{ $blockingPrior->nomor_pertemuan }}</strong> 
+                    ({{ $blockingPrior->rombel?->nama_rombel ?? 'Rombel' }} &bull; {{ $blockingPrior->tanggal_terjadwal ? \Carbon\Carbon::parse($blockingPrior->tanggal_terjadwal)->locale('id')->translatedFormat('d F Y') : '-' }}) 
+                    selesai dibuat.
+                </span>
+            </div>
+        </div>
+        <a href="{{ route('ekstrakurikuler.sessions.report.create', $blockingPrior->id) }}" class="btn btn-warning text-dark fw-bold btn-sm rounded-pill px-3 shadow-xs">
+            <i class="bi bi-arrow-right-circle me-1"></i> Buat Laporan Sesi P.{{ $blockingPrior->nomor_pertemuan }} Sekarang
+        </a>
+    </div>
+    @endif
 
     <!-- Widget Laporan Sebelumnya (Catch-Up Materi Instruktur Pengganti) -->
     @if(isset($previousReport) && $previousReport)

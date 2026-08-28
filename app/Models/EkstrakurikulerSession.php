@@ -136,12 +136,42 @@ class EkstrakurikulerSession extends Model
     }
 
     /**
-     * Relasi ke PayrollItem.
+     * Relasi ke PayrollItem (legacy single-link).
      */
     public function payrollItem(): BelongsTo
     {
         return $this->belongsTo(PayrollItem::class, 'payroll_item_id');
     }
+
+    /**
+     * Relasi ke PayrollItemSession pivot records.
+     */
+    public function payrollItemSessions()
+    {
+        return $this->hasMany(PayrollItemSession::class, 'ekstrakurikuler_session_id');
+    }
+
+    /**
+     * Relasi many-to-many ke PayrollItem.
+     */
+    public function payrollItems()
+    {
+        return $this->belongsToMany(
+            PayrollItem::class,
+            'payroll_item_session',
+            'ekstrakurikuler_session_id',
+            'payroll_item_id'
+        )->withPivot([
+            'role',
+            'base_fee',
+            'transport_fee',
+            'penalty_fee',
+            'bonus_fee',
+            'net_fee',
+            'override_fee'
+        ])->withTimestamps();
+    }
+
 
     /**
      * Relasi ke LaporanMengajar jika sudah terintegrasi.
@@ -434,11 +464,66 @@ class EkstrakurikulerSession extends Model
      * Cek apakah session dapat diselesaikan.
      */
     /**
-     * Cek apakah session dapat diselesaikan.
+     * Cek apakah session dapat diselesaikan (membuat laporan).
      */
     public function canComplete(): bool
     {
         return in_array($this->status, [self::STATUS_BERLANGSUNG, self::STATUS_TERJADWAL]);
+    }
+
+    /**
+     * Cek apakah ada sesi terdahulu yang belum dilaporkan sehingga memblokir sesi ini.
+     * Mengembalikan model EkstrakurikulerSession terdahulu yang wajib dilaporkan terlebih dahulu, atau null jika valid.
+     */
+    public function getBlockingPriorSession(?User $user = null): ?EkstrakurikulerSession
+    {
+        $user = $user ?: ($this->instruktur ?? (auth()->check() ? auth()->user() : null));
+        if ($user && in_array($user->role, ['admin', 'admin_sistem', 'webmaster'])) {
+            return null;
+        }
+
+        // 1. Cek sesi terdahulu di ROMBEL YANG SAMA (Pertemuan 1 sebelum Pertemuan 2, dst)
+        if ($this->ekstrakurikuler_rombel_id) {
+            $priorRombelSession = self::where('ekstrakurikuler_rombel_id', $this->ekstrakurikuler_rombel_id)
+                ->where(function ($q) {
+                    $q->where('nomor_pertemuan', '<', $this->nomor_pertemuan)
+                      ->orWhere(function ($q2) {
+                          $q2->where('nomor_pertemuan', '=', $this->nomor_pertemuan)
+                             ->where('id', '<', $this->id);
+                      });
+                })
+                ->where('status', '!=', self::STATUS_DIBATALKAN)
+                ->whereDate('tanggal_terjadwal', '<=', Carbon::today())
+                ->doesntHave('laporanMengajar')
+                ->orderBy('nomor_pertemuan', 'asc')
+                ->orderBy('tanggal_terjadwal', 'asc')
+                ->orderBy('id', 'asc')
+                ->first();
+
+            if ($priorRombelSession) {
+                return $priorRombelSession;
+            }
+        }
+
+        // 2. Cek sesi lampau instruktur secara global (tidak boleh melompati tanggal sesi lampau yang belum dilaporkan)
+        if ($user && $user->role === 'instruktur') {
+            $oldestPastSession = self::where('user_id_instruktur', $user->id)
+                ->whereDate('tanggal_terjadwal', '<=', Carbon::today())
+                ->where('status', '!=', self::STATUS_DIBATALKAN)
+                ->doesntHave('laporanMengajar')
+                ->orderBy('tanggal_terjadwal', 'asc')
+                ->orderBy('jam_mulai_terjadwal', 'asc')
+                ->orderBy('id', 'asc')
+                ->first();
+
+            if ($oldestPastSession && $this->id !== $oldestPastSession->id) {
+                if ($this->tanggal_terjadwal && Carbon::parse($this->tanggal_terjadwal)->gt(Carbon::parse($oldestPastSession->tanggal_terjadwal))) {
+                    return $oldestPastSession;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

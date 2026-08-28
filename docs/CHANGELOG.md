@@ -2,7 +2,35 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.17] - 2026-08-28
+
+### Perhitungan Honor Asisten Instruktur (Flat Rate Rp 100.000), Pengali Pajak 2.5%, & Ekspor Akuntansi Multisheet
+
+- **Perhitungan Honor Asisten Instruktur (Flat Rate Rp 100.000)**:
+  - Mengimplementasikan tarif flat **Rp 100.000** per sesi mengajar untuk Asisten Instruktur (`user_id_asisten`).
+  - Ketentuan operasional: Komponen uang transport asisten = **Rp 0** dan potongan denda keterlambatan asisten = **Rp 0**.
+- **Formula Akumulasi Gaji, Pengali Pajak 2.5%, dan Netto (Sesuai Slip Resmi Erlass)**:
+  - Total Penerimaan Kotor = `Honor Utama + Honor Asisten + Bonus Produk + Transport Utama`.
+  - Potongan Pajak (2.5%) = `round(Total Penerimaan Kotor * 0.025)`.
+  - Gaji Bersih Netto = `round(Total Penerimaan Kotor * 0.975) - Total Denda Check-in`.
+- **Arsitektur Database Multi-Peran (Pivot Table `payroll_item_session`)**:
+  - Menambahkan kolom `total_sessions_utama`, `total_sessions_asisten`, `total_asisten_fee`, `total_gross_salary`, `tax_rate`, `tax_amount` pada tabel `payroll_items`.
+  - Membuat tabel pivot `payroll_item_session` untuk mencatat relasi many-to-many duty mengajar antara `PayrollItem` dan `EkstrakurikulerSession` berdasarkan peran (`role`: `utama` vs `asisten`), fee dasar, transport, denda, dan net fee.
+  - Mendukung 1 sesi yang diajar bersama oleh Instruktur Utama dan Asisten tanpa konflik relasi.
+- **Pembaruan Ekspor Pelaporan Akuntansi**:
+  - **Excel Multi-Worksheet (`.xlsx`)**:
+    - **Sheet 1 (Transfer Bank)**: Kolom rekap penerima, nomor rekening, breakdown sesi & honor utama vs asisten, transport, kotor, pajak 2.5%, denda, netto + formula `=SUM()`.
+    - **Sheet 2 (Jurnal Akuntansi)**: Jurnal biaya batch, honor dasar, asisten, bonus, transport, pajak 2.5%, denda, netto + formula `=SUM()`.
+    - **Sheet 3 (Rincian Sesi Mengajar)**: Audit per sesi mengajar dengan badge peran (*Instruktur Utama* / *Asisten Instruktur*).
+  - **CSV Bank Mass Transfer (`.csv`)**: Format ringkas transfer massal bank yang diperbarui dengan kolom asisten dan pajak.
+  - **PDF Slip Gaji & Cetak Batch**: Desain resmi 2 kolom (*PENERIMAAN* vs *POTONGAN*) dan kotak *GAJI BERSIH* sesuai format fisik PT Erlass Prokreatif Indonesia.
+- **Pembaruan Antarmuka Pengguna (UI)**:
+  - **`payroll/show.blade.php`**: Kartu KPI batch mencakup Total Honor Asisten, Penerimaan Kotor, Pajak 2.5%, dan tabel rincian kompensasi per instruktur.
+  - **`payroll/slip_detail.blade.php`**: Rincian slip gaji resmi 2 kolom dengan pemisahan peran dan ringkasan pertemuan.
+  - **`payroll/my_salaries.blade.php`**: Portal instruktur yang menampilkan pemisahan sesi (Utama / Asisten) dan rincian pajak 2.5%.
+
 ## [2.9.16] - 2026-08-27
+
 
 ### Optimasi Performa Ekstrim Form Laporan Mengajar (Client-Side Compression & Async Background Jobs)
 

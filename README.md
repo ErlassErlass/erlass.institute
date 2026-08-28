@@ -1,4 +1,4 @@
-# 🏫 Erlass Portal — Web Apperlass (v2.9.10)
+# 🏫 Erlass Portal — Web Apperlass (v2.9.17)
 
 **Dashboard Manajemen Sistem & Portal Operasional Terpadu untuk Erlass Institute (Pendidikan & Ekstrakurikuler)**
 
@@ -23,27 +23,34 @@ Erlass Portal dibangun berdasarkan **Blueprint AOQCS (Academic Operations, Quali
 | **2. Rombel & Penjadwalan Sesi Cerdas** | Manajemen Rombel & Sesi, bypass otomatis tanggal libur nasional, soft alert kapasitas >20 siswa, & pengurutan sesi berorientasi Hari Ini ke depan + Selesai di urutan paling belakang. | 🟢 **100% Ready** |
 | **3. Perubahan Jadwal (Rescheduling Engine)** | Audit log jadwal lama/baru, workflow persetujuan (Akademik & PIC Sekolah), serta H-1 WhatsApp Reminder otomatis via Fonnte API (`schedule:send-reminders`). | 🟢 **100% Ready** |
 | **4. Kehadiran, Evaluasi & Laporan Mengajar** | Presensi detail (Hadir, Izin, Sakit, Alpha), Grace System Akses Ad-Hoc/Susulan (H+1 kuota 3x), Penilaian Siswa Dinamis (s.d 8 Periode), & Upload Portofolio Siswa (.sb3, .hex, .py). | 🟢 **100% Ready** |
-| **5. Kompensasi, Quality Control & Payroll** | Warning System Engine QC (6 aturan deteksi Merah/Kuning), Master Leveling & Tarif Kepakaran, Deteksi Punctuality Check-in, Batch Payroll Bulanan (Cutoff Tgl 11-10), Pelunasan, & Ekspor Akuntansi Multisheet (.xlsx, .csv, .pdf). | 🟢 **100% Ready** |
+| **5. Kompensasi, Quality Control & Payroll** | Warning System Engine QC (6 aturan deteksi Merah/Kuning), Master Leveling & Tarif Kepakaran, Deteksi Punctuality Check-in, Honor Asisten Flat Rp 100rb, Pajak 2.5% Akumulasi, Batch Payroll Bulanan (Cutoff Tgl 11-10), Pelunasan, & Ekspor Akuntansi Multisheet (.xlsx 3 Sheets, .csv, .pdf). | 🟢 **100% Ready** |
 
 > Rincian matriks audit kesiapan lengkap dapat dilihat di [docs/CHECKLIST_AOQCS_BLUEPRINT.md](docs/CHECKLIST_AOQCS_BLUEPRINT.md).
 
 ---
 
-## 🌟 Fitur Unggulan Sistem (v2.9.10)
+## 🌟 Fitur Unggulan Sistem (v2.9.17)
 
-- 🎯 **Interactive Spotlight Onboarding Tour (`driver.js`) (v2.9.9 - v2.9.10)**:
+- 💰 **Automated Payroll Engine & Ekspor Akuntansi Multisheet (v2.9.17)**:
+  - **Honor Asisten Instruktur**: Flat rate **Rp 100.000** per sesi mengajar dengan pivot table many-to-many `payroll_item_session`.
+  - **Pengali Pajak 2.5%**: Dihitung otomatis dari akumulasi total penerimaan kotor (`Honor Utama + Honor Asisten + Bonus + Transport`).
+  - **Ekspor Excel 3 Sheets**: Sheet 1 (Transfer Bank), Sheet 2 (Jurnal Akuntansi), Sheet 3 (Rincian Sesi Mengajar) lengkap dengan formula `=SUM()`.
+  - **Slip Gaji Digital & PDF**: Layout resmi dua kolom (*Penerimaan* vs *Potongan*) dan kotak *Gaji Bersih*.
+
+- 🎯 **Interactive Spotlight Onboarding Tour (`driver.js`)**:
   - Tur visual terarah langkah demi langkah menggunakan library modern `driver.js` dengan tema desain kustom Erlass (`onboarding-driver.css`) dan engine tur modular (`onboarding-engine.js`).
   - Menyediakan 2 skenario tur interaktif: **Tur Instruktur** (alur harian dari check-in GPS hingga submit laporan) dan **Tur Admin** (monitoring operasional & verifikasi).
   - Tombol pemanggil tur mandiri (**"🎯 Panduan Tur"**) tersedia di navbar, menu profil, dan banner Pusat Bantuan (`/help`).
 
-- ⏱️ **Jendela Waktu Check-in 30 Menit & Edukasi SOP Presensi (v2.9.9)**:
+- ⏱️ **Jendela Waktu Check-in 30 Menit & Edukasi SOP Presensi**:
   - Waktu pembukaan tombol presensi diperluas dari **10 menit $\rightarrow$ 30 menit sebelum jam mulai sesi** (`CHECKIN_EARLY_WINDOW_MINUTES = 30`).
   - Memungkinkan instruktur yang tiba lebih awal langsung melakukan check-in GPS & live camera sebelum mempersiapkan lab dan mengajar.
   - Edukasi tegas bahwa check-in wajib dilakukan saat tiba di sekolah **SEBELUM mengajar**, bukan setelah kelas selesai.
 
-- 📊 **Dual Metric Corporate & Personal Punctuality KPI (v2.9.9 - v2.9.10)**:
+- 📊 **Dual Metric Corporate & Personal Punctuality KPI**:
   - Dashboard Admin menampilkan 2 metrik terpisah: **Presensi Check-in Sesi** vs **Ketepatan Laporan SLA H+1** serta Leaderboard Disiplin Instruktur.
   - Perbaikan tuntas kalkulasi KPI personal instruktur yang memisahkan waktu check-in fisik di sekolah dari waktu submit laporan administrasi.
+
 
 - 🎨 **Modernisasi Form Edit Laporan Mengajar (`/laporan-mengajar/{id}/edit`) (v2.9.9)**:
   - Tampilan grid absensi siswa interaktif dengan avatar inisial, gender styling, tombol cepat *"Semua Hadir"*, dan live counter kehadiran.
@@ -51,7 +58,7 @@ Erlass Portal dibangun berdasarkan **Blueprint AOQCS (Academic Operations, Quali
 
 - 💰 **Engine Kompensasi & Transportasi Resmi (SK Direksi No. 536/EPI/V/2025)**:
   - Skala honor berdasarkan siswa hadir: $\ge 15$ siswa (Rp 150.000), 12–14 siswa (Rp 115.000), 10–11 siswa (Rp 100.000), 8–9 siswa (Rp 75.000), $<8$ siswa (HOLD).
-  - Formula bensin 2x PP untuk jarak $\ge 10\text{ KM}$: `(Jarak KM × Rp 350 × 2) + Rp 7.500 (Sewa Kendaraan)`.
+  - Formula bensin 2x PP untuk jarak $\ge 10\text{ KM}$: `(Jarak KM × Rp 350 × 2) + Rp 7.500 (Sewa Kendaraan)`, dan jarak $< 10\text{ KM}$: `Rp 7.500 (Sewa Kendaraan Saja)`.
   - Ketentuan asisten wajib untuk rombel $\ge 24$ siswa (Honor asisten Rp 100.000/sesi).
 
 - 🎫 **Sistem Tiket Bantuan & Helpdesk Terpadu (`/tickets`)**:

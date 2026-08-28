@@ -83,25 +83,40 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-sm-6 col-md">
+                        <div class="col-sm-6 col-md-3">
                             <small class="text-muted d-block mb-1">Total Instruktur</small>
                             <span class="fw-bold text-dark fs-5">{{ $batch->items->count() }} orang</span>
                         </div>
-                        <div class="col-sm-6 col-md">
+                        <div class="col-sm-6 col-md-3">
                             <small class="text-muted d-block mb-1">Total Sesi Terbayar</small>
                             <span class="fw-bold text-dark fs-5">{{ $batch->items->sum('total_sessions') }} Sesi</span>
+                            <small class="text-muted d-block" style="font-size: 0.75rem;">
+                                ({{ $batch->items->sum('total_sessions_utama') }} Utama, {{ $batch->items->sum('total_sessions_asisten') }} Asisten)
+                            </small>
                         </div>
-                        <div class="col-sm-6 col-md">
+                        <div class="col-sm-6 col-md-3">
+                            <small class="text-muted d-block mb-1">Total Honor Asisten</small>
+                            <span class="fw-bold text-info fs-5">Rp {{ number_format($batch->items->sum('total_asisten_fee'), 0, ',', '.') }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
                             <small class="text-muted d-block mb-1">Total Uang Transport</small>
-                            <span class="fw-bold text-primary fs-5">Rp {{ number_format($batch->items->sum('total_transport_fee'), 2, ',', '.') }}</span>
+                            <span class="fw-bold text-primary fs-5">Rp {{ number_format($batch->items->sum('total_transport_fee'), 0, ',', '.') }}</span>
                         </div>
-                        <div class="col-sm-6 col-md">
-                            <small class="text-muted d-block mb-1">Total Potongan Denda</small>
-                            <span class="fw-bold text-danger fs-5">Rp {{ number_format($batch->items->sum('total_penalty'), 2, ',', '.') }}</span>
+                        <div class="col-sm-6 col-md-3">
+                            <small class="text-muted d-block mb-1">Penerimaan Kotor</small>
+                            <span class="fw-bold text-secondary fs-5">Rp {{ number_format($batch->items->sum('total_gross_salary'), 0, ',', '.') }}</span>
                         </div>
-                        <div class="col-sm-6 col-md">
+                        <div class="col-sm-6 col-md-3">
+                            <small class="text-muted d-block mb-1">Total Pajak (2.5%)</small>
+                            <span class="fw-bold text-warning fs-5">-Rp {{ number_format($batch->items->sum('tax_amount'), 0, ',', '.') }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <small class="text-muted d-block mb-1">Potongan Denda</small>
+                            <span class="fw-bold text-danger fs-5">-Rp {{ number_format($batch->items->sum('total_penalty'), 0, ',', '.') }}</span>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
                             <small class="text-muted d-block mb-1">Total Transfer Netto</small>
-                            <span class="fw-bold text-success fs-5">Rp {{ number_format($batch->items->sum('net_salary'), 2, ',', '.') }}</span>
+                            <span class="fw-bold text-success fs-5">Rp {{ number_format($batch->items->sum('net_salary'), 0, ',', '.') }}</span>
                         </div>
                     </div>
                     @if ($batch->notes)
@@ -157,15 +172,17 @@
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4">Instruktur</th>
-                            <th>Total Sesi</th>
-                            <th>Total Honor Dasar</th>
-                            <th>Uang Transport</th>
-                            <th>Potongan Denda</th>
-                            <th>Honor Netto</th>
+                            <th class="text-center">Sesi (U / A)</th>
+                            <th class="text-end">Honor Utama</th>
+                            <th class="text-end">Honor Asisten</th>
+                            <th class="text-end">Transport</th>
+                            <th class="text-end">Pajak (2.5%)</th>
+                            <th class="text-end">Denda</th>
+                            <th class="text-end">Honor Netto</th>
                             <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -176,18 +193,37 @@
                                     <div class="fw-bold text-dark">{{ $item->instruktur->nama_lengkap }}</div>
                                     <small class="text-muted font-monospace">{{ $item->instruktur->instructor_id ?? '-' }}</small>
                                 </td>
-                                <td>{{ $item->total_sessions }} Sesi</td>
-                                <td>Rp {{ number_format($item->total_base_fee, 2, ',', '.') }}</td>
-                                <td>Rp {{ number_format($item->total_transport_fee, 2, ',', '.') }}</td>
-                                <td>
-                                    @if ($item->total_penalty > 0)
-                                        <span class="text-danger fw-semibold">-Rp {{ number_format($item->total_penalty, 2, ',', '.') }}</span>
+                                <td class="text-center">
+                                    <strong>{{ $item->total_sessions }}</strong> Sesi
+                                    <div class="text-muted small" style="font-size: 0.75rem;">
+                                        ({{ $item->total_sessions_utama }} U / {{ $item->total_sessions_asisten }} A)
+                                    </div>
+                                </td>
+                                <td class="text-end">Rp {{ number_format($item->total_base_fee, 0, ',', '.') }}</td>
+                                <td class="text-end">
+                                    @if ($item->total_asisten_fee > 0)
+                                        <span class="text-info fw-semibold">Rp {{ number_format($item->total_asisten_fee, 0, ',', '.') }}</span>
                                     @else
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
-                                <td class="fw-bold text-success">
-                                    Rp {{ number_format($item->net_salary, 2, ',', '.') }}
+                                <td class="text-end">Rp {{ number_format($item->total_transport_fee, 0, ',', '.') }}</td>
+                                <td class="text-end text-warning fw-semibold">
+                                    @if ($item->tax_amount > 0)
+                                        -Rp {{ number_format($item->tax_amount, 0, ',', '.') }}
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td class="text-end">
+                                    @if ($item->total_penalty > 0)
+                                        <span class="text-danger fw-semibold">-Rp {{ number_format($item->total_penalty, 0, ',', '.') }}</span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td class="text-end fw-bold text-success">
+                                    Rp {{ number_format($item->net_salary, 0, ',', '.') }}
                                 </td>
                                 <td class="text-center">
                                     <a href="{{ route('payroll.slip.show', $item->id) }}" class="btn btn-sm btn-outline-secondary px-3">
@@ -201,5 +237,6 @@
             </div>
         </div>
     </div>
+
 </div>
 @endsection

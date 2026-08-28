@@ -30,3 +30,7 @@ debug_*.json
 
 # Agent skills
 .agents/
+
+# Local backup files
+*Backup*.csv
+*.csv.bak

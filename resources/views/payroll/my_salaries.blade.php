@@ -43,11 +43,11 @@
                             <i class="bi bi-people-fill me-1"></i> Skala Rombel & Honor Mengajar Utama
                         </div>
                         <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
-                            <li><span class="badge bg-success me-1">≥ 15 Siswa</span> <strong>Rp 150.000</strong> / sesi (Honorarium Standar Penuh)</li>
-                            <li><span class="badge bg-info text-dark me-1">12 - 14 Siswa</span> <strong>Rp 115.000</strong> / sesi</li>
-                            <li><span class="badge bg-secondary me-1">10 - 11 Siswa</span> <strong>Rp 100.000</strong> / sesi</li>
-                            <li><span class="badge bg-warning text-dark me-1">8 - 9 Siswa</span> <strong>Rp 75.000</strong> / sesi</li>
-                            <li><span class="badge bg-danger me-1">&lt; 8 Siswa</span> <strong>HOLD</strong> (Pembelajaran Ditunda sampai kuota terpenuhi)</li>
+                            <li><span class="badge bg-success me-1">≥ 15 Siswa</span> <strong>Rp 150.000</strong> / sesi <span class="text-muted">(Berjalan)</span></li>
+                            <li><span class="badge bg-success me-1">12 - 14 Siswa</span> <strong>Rp 115.000</strong> / sesi <span class="text-muted">(Berjalan)</span></li>
+                            <li><span class="badge bg-success me-1">10 - 11 Siswa</span> <strong>Rp 100.000</strong> / sesi <span class="text-muted">(Berjalan)</span></li>
+                            <li><span class="badge bg-warning text-dark me-1">8 - 9 Siswa</span> <strong>Rp 75.000</strong> / sesi <span class="text-muted">(Minimum)</span></li>
+                            <li><span class="badge bg-danger me-1">&lt; 8 Siswa</span> <strong>Rp 0</strong> <span class="text-danger fw-bold">(Hold / Ditunda)</span></li>
                         </ul>
                     </div>
                 </div>
@@ -58,7 +58,7 @@
                             <i class="bi bi-truck me-1"></i> Transportasi & Ketentuan Operasional
                         </div>
                         <ul class="list-unstyled mb-0 d-flex flex-column gap-2 text-muted">
-                            <li><i class="bi bi-check-circle-fill text-success me-1"></i> <strong>Transport Min. 10 KM</strong>: Rp 350 / KM + Rp 7.500 (sewa kendaraan).</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-1"></i> <strong>Transport &amp; Sewa Kendaraan</strong>: Jarak ≥ 10 KM (Bensin 2x PP + Sewa Rp 7.500), Jarak &lt; 10 KM (Flat Sewa Kendaraan Rp 7.500).</li>
                             <li><i class="bi bi-check-circle-fill text-success me-1"></i> <strong>Guru Internal &amp; Sesi Erlass</strong>: Biaya transport Rp 0 (Hanya honor mengajar).</li>
                             <li><i class="bi bi-check-circle-fill text-success me-1"></i> <strong>Asisten Instruktur</strong>: Honor Rp 100.000 berlaku untuk Rombel &gt; 24 siswa.</li>
                             <li><i class="bi bi-check-circle-fill text-success me-1"></i> <strong>Kedisiplinan Check-in</strong>: Keterlambatan ≥ 15 menit dikenakan penyesuaian Rp 25.000.</li>
@@ -76,47 +76,76 @@
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4">Periode</th>
                             <th>Kode Batch</th>
-                            <th>Total Sesi</th>
-                            <th>Honor Dasar</th>
-                            <th>Uang Transport</th>
-                            <th>Potongan Denda</th>
-                            <th>Honor Bersih (Netto)</th>
-                            <th>Status</th>
+                            <th class="text-center">Sesi (U/A)</th>
+                            <th class="text-end">Honor Mengajar</th>
+                            <th class="text-end">Honor Asisten</th>
+                            <th class="text-end">Uang Transport</th>
+                            <th class="text-end">Pajak (2.5%)</th>
+                            <th class="text-end">Potongan Denda</th>
+                            <th class="text-end">Gaji Bersih (Netto)</th>
+                            <th class="text-center">Status</th>
                             <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($items as $item)
+                            @php
+                                $sesiU = $item->total_sessions_utama ?: $item->payrollItemSessions->where('role', 'utama')->count();
+                                $sesiA = $item->total_sessions_asisten ?: $item->payrollItemSessions->where('role', 'asisten')->count();
+                                if ($sesiU === 0 && $sesiA === 0) $sesiU = $item->total_sessions;
+
+                                $gross = $item->total_gross_salary ?: ($item->total_base_fee + $item->total_asisten_fee + $item->total_product_bonus + $item->total_transport_fee);
+                                $tax = $item->tax_amount ?: round($gross * 0.025);
+                            @endphp
                             <tr>
                                 <td class="ps-4 fw-semibold text-dark">
                                     {{ $item->batch->periode->format('F Y') }}
                                 </td>
                                 <td class="font-monospace text-muted">{{ $item->batch->code }}</td>
-                                <td>{{ $item->total_sessions }} Sesi</td>
-                                <td>Rp {{ number_format($item->total_base_fee, 2, ',', '.') }}</td>
-                                <td>Rp {{ number_format($item->total_transport_fee, 2, ',', '.') }}</td>
-                                <td>
-                                    @if ($item->total_penalty > 0)
-                                        <span class="text-danger fw-semibold">-Rp {{ number_format($item->total_penalty, 2, ',', '.') }}</span>
+                                <td class="text-center">
+                                    <strong>{{ $item->total_sessions }}</strong> Sesi
+                                    <div class="text-muted small" style="font-size: 0.75rem;">
+                                        ({{ $sesiU }} U / {{ $sesiA }} A)
+                                    </div>
+                                </td>
+                                <td class="text-end">Rp {{ number_format($item->total_base_fee, 0, ',', '.') }}</td>
+                                <td class="text-end">
+                                    @if ($item->total_asisten_fee > 0)
+                                        <span class="text-info fw-semibold">Rp {{ number_format($item->total_asisten_fee, 0, ',', '.') }}</span>
                                     @else
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
-                                <td class="fw-bold text-success">
-                                    Rp {{ number_format($item->net_salary, 2, ',', '.') }}
+                                <td class="text-end">Rp {{ number_format($item->total_transport_fee, 0, ',', '.') }}</td>
+                                <td class="text-end text-warning fw-semibold">
+                                    @if ($tax > 0)
+                                        -Rp {{ number_format($tax, 0, ',', '.') }}
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
                                 </td>
-                                <td>
+                                <td class="text-end">
+                                    @if ($item->total_penalty > 0)
+                                        <span class="text-danger fw-semibold">-Rp {{ number_format($item->total_penalty, 0, ',', '.') }}</span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td class="text-end fw-bold text-success">
+                                    Rp {{ number_format($item->net_salary, 0, ',', '.') }}
+                                </td>
+                                <td class="text-center">
                                     @if ($item->status === 'pending')
                                         <span class="badge bg-secondary">Draft</span>
-                                    @elseif ($item->status === 'approved')
+                                    @elseif ($item->status === 'approved' || $item->status === 'processed')
                                         <span class="badge bg-primary">Terverifikasi</span>
                                     @elseif ($item->status === 'paid')
-                                        <span class="badge bg-success">Lunas Dibayar</span>
+                                        <span class="badge bg-success">Lunas</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
@@ -127,7 +156,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center py-5">
+                                <td colspan="11" class="text-center py-5">
                                     <div class="mb-3">
                                         <i class="bi bi-file-earmark-x text-muted fs-1 opacity-25"></i>
                                     </div>

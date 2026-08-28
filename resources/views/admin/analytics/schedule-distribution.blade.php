@@ -146,6 +146,54 @@
         justify-content: center;
         flex-shrink: 0;
     }
+
+    /* Freeze / Sticky Columns for Availability Table */
+    .sd-sticky-table {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .sd-sticky-table th.sd-col-no,
+    .sd-sticky-table td.sd-col-no {
+        position: sticky;
+        left: 0;
+        z-index: 10;
+        width: 48px;
+        min-width: 48px;
+        max-width: 48px;
+        background-color: #ffffff;
+    }
+    .sd-sticky-table th.sd-col-name,
+    .sd-sticky-table td.sd-col-name {
+        position: sticky;
+        left: 48px;
+        z-index: 10;
+        width: 220px;
+        min-width: 200px;
+        max-width: 250px;
+        background-color: #ffffff;
+    }
+    .sd-sticky-table th.sd-col-domisili,
+    .sd-sticky-table td.sd-col-domisili {
+        position: sticky;
+        left: 268px; /* 48px + 220px */
+        z-index: 10;
+        width: 140px;
+        min-width: 130px;
+        background-color: #ffffff;
+        border-right: 2px solid #cbd5e1 !important;
+        box-shadow: 4px 0 8px -2px rgba(15, 23, 42, 0.08);
+    }
+    .sd-sticky-table thead th.sd-col-no,
+    .sd-sticky-table thead th.sd-col-name,
+    .sd-sticky-table thead th.sd-col-domisili {
+        z-index: 25;
+        background-color: #f8fafc;
+    }
+    .sd-sticky-table tr.avail-row:hover td.sd-col-no,
+    .sd-sticky-table tr.avail-row:hover td.sd-col-name,
+    .sd-sticky-table tr.avail-row:hover td.sd-col-domisili {
+        background-color: #f8fafc !important;
+    }
 </style>
 @endpush
 
@@ -623,12 +671,12 @@
                 </span>
             </div>
             <div class="table-responsive">
-                <table class="table sd-table mb-0 align-middle" id="availabilityTable">
+                <table class="table sd-table sd-sticky-table mb-0 align-middle" id="availabilityTable">
                     <thead>
                         <tr>
-                            <th style="width:44px;">No</th>
-                            <th style="min-width:180px;">Instruktur</th>
-                            <th style="min-width:120px;">Domisili</th>
+                            <th class="sd-col-no" style="width:48px; min-width:48px;">No</th>
+                            <th class="sd-col-name" style="min-width:200px; width:220px;">Instruktur</th>
+                            <th class="sd-col-domisili" style="min-width:130px; width:140px;">Domisili</th>
                             <th class="text-center day-header" data-day="Senin" style="min-width:115px;">Senin</th>
                             <th class="text-center day-header" data-day="Selasa" style="min-width:115px;">Selasa</th>
                             <th class="text-center day-header" data-day="Rabu" style="min-width:115px;">Rabu</th>
@@ -648,23 +696,23 @@
                                 data-name="{{ strtolower($instr->nama_lengkap) }}"
                                 data-kota="{{ strtolower($instr->kota_domisili) }}"
                                 data-instr-id="{{ $instr->id }}">
-                                <td class="fw-bold text-muted small">{{ $idx + 1 }}</td>
-                                <td>
+                                <td class="fw-bold text-muted small sd-col-no">{{ $idx + 1 }}</td>
+                                <td class="sd-col-name">
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="sd-avatar" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;">
                                             {{ strtoupper(substr($instr->nama_lengkap, 0, 2)) }}
                                         </div>
-                                        <div>
-                                            <div class="fw-bold text-dark" style="font-size:.875rem;">
+                                        <div style="min-width:0;">
+                                            <div class="fw-bold text-dark text-truncate" style="font-size:.875rem; max-width:160px;" title="{{ $instr->nama_lengkap }}">
                                                 {{ $instr->nama_lengkap }}
                                             </div>
-                                            <small class="text-muted" style="font-size:.725rem;">{{ $instr->email }}</small>
+                                            <small class="text-muted text-truncate d-block" style="font-size:.725rem; max-width:160px;" title="{{ $instr->email }}">{{ $instr->email }}</small>
                                         </div>
                                     </div>
                                 </td>
-                                <td>
+                                <td class="sd-col-domisili">
                                     @if($instr->kota_domisili)
-                                        <span class="badge bg-light text-dark border fw-normal">
+                                        <span class="badge bg-light text-dark border fw-normal text-truncate d-inline-block" style="max-width:120px;" title="{{ $instr->kota_domisili }}">
                                             <i class="bi bi-geo-alt me-1 text-secondary"></i>{{ $instr->kota_domisili }}
                                         </span>
                                     @else

@@ -167,95 +167,101 @@ Lanjutkan pengisian rincian kegiatan pembelajaran pada formulir yang sama:
 2. **Unggah Foto Kegiatan Belajar (WAJIB 📸)**:
    - Unggah minimal 1 foto dokumentasi suasana pembelajaran di kelas (tampak siswa sedang belajar/praktik).
    - Format: JPG, PNG (Maksimal 5MB).
-170: 3. **Unggah File Project Siswa (WAJIB 💾)**:
-171:    - Unggah hasil karya/program yang dibuat siswa pada pertemuan ini sebagai portofolio belajar digital.
-172:    - Format yang didukung: Scratch (`.sb3`), Robotic/Micro:bit (`.hex`, `.ino`, `.cpp`), Python/AI (`.py`, `.ipynb`), Web/Desain (`.html`, `.pdf`, `.zip`, `.png`, `.jpg`) dengan ukuran maksimal **20MB**.
-173: 4. **Unggah Lembar Absensi Fisik / TTD (Opsional 📄)**:
-174:    - Jika sekolah mewajibkan lembar tanda tangan manual dari guru pendamping / pihak sekolah, foto dan lampirkan di bagian ini.
-175: 5. **Evaluasi Pembelajaran Kelas**:
-176:    - **Tingkat Keaktifan Kelas**: Pilih Sangat Aktif, Aktif, Cukup, atau Kurang.
-177:    - **Pemahaman Materi**: Pilih Sangat Paham, Paham, Sebagian Paham, atau Butuh Bimbingan Khusus.
-178:    - **Catatan Instruktur**: Tuliskan ringkasan perkembangan belajar atau catatan khusus jika ada kendala di kelas.
-179: 6. **Submit & Finalisasi**:
-180:    - Klik **"Simpan & Selesaikan Sesi"**.
-181:    - Periksa ringkasan pada modal konfirmasi, lalu klik **"Ya, Kirim Laporan Sekarang"**.
-182:    - Status sesi otomatis berubah menjadi **Selesai (🟢)** dan masuk ke perhitungan honor Anda.
-183: 
-184: > [!TIP]
-185: > **Notifikasi Otomatis ke Orang Tua Siswa**:
-186: > Setiap kali seorang siswa mencapai **kelipatan 4 pertemuan** (Pertemuan 4, 8, 12, dst.), sistem secara otomatis menembakkan laporan perkembangan dan rekap kehadiran anak ke WhatsApp orang tua masing-masing.
-187: 
-188: ---
-189: 
-190: ## 8. Tahap 7: Aturan Batas Waktu (H+1) & Izin Susulan
-191: 
-192: ### ⏳ Aturan Batas Waktu Pelaporan (SLA H+1):
-193: - Laporan mengajar **wajib dikirimkan paling lambat H+1 pukul 23:59 WIB** dari tanggal pelaksanaan sesi.
-194: - *Contoh*: Jika mengajar pada hari **Senin, 10 Agustus**, batas akhir pelaporan adalah **Selasa, 11 Agustus pukul 23:59 WIB**.
-195: 
-196: ### 🔓 Cara Mengajukan Izin Buka Akses Susulan (Late Report Request):
-197: Jika Anda terlambat melaporkan karena kendala darurat:
-198: 1. Buka sesi yang terkunci $\rightarrow$ Akan muncul tombol **"Ajukan Buka Akses Pelaporan"**.
-199: 2. Tuliskan alasan keterlambatan dengan jujur dan jelas.
-200: 3. Klik **"Kirim Permohonan"**.
-201: 4. Notifikasi permohonan akan masuk ke Admin Akademik. Begitu disetujui, akses pengisian laporan untuk sesi tersebut akan terbuka kembali selama 24 jam.
-202: 5. *Catatan*: Setiap instruktur memiliki kuota izin susulan terbatas setiap bulannya.
-203: 
-204: ---
-205: 
-206: ## 9. Pemahaman Skor KPI Kedisiplinan & Ketepatan Waktu (Punctuality KPI)
-207: 
-208: Sistem Erlass Portal mengevaluasi kedisiplinan mengajar Anda secara adil dan transparan melalui 2 indikator terpisah:
-209: 
-210: | Indikator Kedisiplinan | Waktu Pengukuran | Kriteria Tepat Waktu |
-211: | :--- | :--- | :--- |
-212: | **1. Kehadiran di Sekolah (Check-in GPS)** | Saat baru tiba di sekolah | Dilakukan antara **H - 30 menit** s/d toleransi **14 menit** setelah jam mulai kelas. |
-213: | **2. Ketepatan Laporan (SLA H+1)** | Setelah kelas usai | Disimpan maksimal **24 jam (H+1 pukul 23:59 WIB)** setelah kelas selesai. |
-214: 
-215: > [!NOTE]
-216: > **Penting Mengenai Jam Pengisian Laporan**:
-217: > Mengisi laporan mengajar di sore hari atau malam hari setelah Anda tiba di rumah **TIDAK AKAN** membuat Anda tercatat *Late Arrival (Terlambat Hadir)*, karena waktu kedatangan fisik Anda di sekolah telah terkunci saat Anda melakukan check-in GPS di awal kelas.
-218: 
-219: **Tingkat Skor KPI Bulanan**:
-220: - 🟢 **`≥ 90%` — Sangat Disiplin**: Memenuhi standar kinerja prima.
-221: - 🔵 **`75% – 89%` — Disiplin**: Kinerja baik dan konsisten.
-222: - 🟡 **`60% – 74%` — Cukup Disiplin**: Perlu meningkatkan ketepatan submit laporan.
-223: - 🔴 **`< 60%` — Perlu Evaluasi**: Keterlambatan berulang memerlukan pendampingan koordinator.
-224: 
-225: ---
-226: 
-227: ## 10. Ketentuan Kompensasi Honor & Transportasi (SK Direksi No. 536/EPI/V/2025)
-228: 
-229: ### A. Skala Honorarium Berdasarkan Jumlah Siswa Hadir:
-230: Honorarium dihitung berdasarkan **jumlah siswa yang HADIR** pada sesi tersebut:
-231: - **$\ge 15$ Siswa**: **Rp 150.000** / sesi (Penuh)
-232: - **12 – 14 Siswa**: **Rp 115.000** / sesi
-233: - **10 – 11 Siswa**: **Rp 100.000** / sesi
-234: - **8 – 9 Siswa**: **Rp 75.000** / sesi
-235: - **$< 8$ Siswa**: **Rp 0** (HOLD / Ditunda untuk evaluasi kelas)
-236: 
-237: ### B. Ketentuan Transportasi Operasional:
-238: - **Jarak $\ge 10\text{ KM}$ dari Pejaten**: Diberikan uang bensin 2x Pulang-Pergi (PP) + uang sewa kendaraan:
-239:   $$\text{Transport} = (\text{Jarak KM} \times \text{Rp } 350 \times 2) + \text{Rp } 7.500$$
-240: - **Jarak $< 10\text{ KM}$ / Guru Internal / Sesi Kantor Erlass**: Uang transport = **Rp 0**.
-241: - Transportasi dibayarkan **1x per sekolah per hari** (jika mengajar beberapa rombel di sekolah yang sama pada hari yang sama).
-242: 
-243: ### C. Ketentuan Asisten Instruktur:
-244: - Rombel dengan kapasitas **$\ge 24$ siswa** wajib didampingi 1 orang Asisten Instruktur (Honor Asisten: **Rp 100.000** / sesi).
-245: 
-246: ---
-247: 
-248: ## 11. Tips Penting Penggunaan di Lapangan
-249: 
-250: | Situasi di Lapangan | Solusi Praktis |
-251: | :--- | :--- |
-252: | **Sinyal HP Lemah di Sekolah** | Jangan khawatir saat check-in; foto telah dikompres otomatis menjadi sangat ringan (~150KB) sehingga cepat terkirim walau sinyal 3G/Edge. |
-253: | **HP Lama Ditinggal / Layar Terkunci** | Sistem memiliki masa sesi **7 hari** dan fitur *auto keep-alive*. Saat layar HP dibuka kembali, token keamanan otomatis diperbarui tanpa membuat Anda ter-logout. |
-254: | **Salah Memilih Pertemuan Sesi** | Jika Anda salah memilih nomor pertemuan saat melapor, hubungi Admin Akademik untuk memindahkan laporan ke sesi yang benar via fitur *Relokasi Laporan*. |
-255: | **Jadwal Bentrok / Perubahan Hari** | Instruktur tidak dapat mengubah jadwal secara sepihak. Segera koordinasikan dengan Koordinator Akademik / PIC Sekolah agar jadwal diupdate resmi di sistem. |
-256: | **Pengecekan Honor Bulanan** | Rekap jam mengajar dan estimasi honor dapat dilihat secara transparan di dashboard Anda berdasarkan siklus cutoff tanggal 11 s/d 10 bulan berikutnya. |
-257: | **Mengalami Kendala Sistem / Honor** | Gunakan modul **Tiket Bantuan** (`/tickets`) di sidebar untuk membuat tiket pengaduan terstruktur ke Tim Manajemen. |
-258: 
-259: ---
-260: 
-261: *Jika membutuhkan panduan tambahan atau mengalami kendala teknis, silakan hubungi tim IT & Akademik Erlass Institute atau buat tiket di menu [Tiket Bantuan](https://erlass.institute/tickets).*
+3. **Unggah File Project Siswa (WAJIB 💾)**:
+   - Unggah hasil karya/program yang dibuat siswa pada pertemuan ini sebagai portofolio belajar digital.
+   - Format yang didukung: Scratch (`.sb3`), Robotic/Micro:bit (`.hex`, `.ino`, `.cpp`), Python/AI (`.py`, `.ipynb`), Web/Desain (`.html`, `.pdf`, `.zip`, `.png`, `.jpg`) dengan ukuran maksimal **20MB**.
+4. **Unggah Lembar Absensi Fisik / TTD (Opsional 📄)**:
+   - Jika sekolah mewajibkan lembar tanda tangan manual dari guru pendamping / pihak sekolah, foto dan lampirkan di bagian ini.
+5. **Evaluasi Pembelajaran Kelas**:
+   - **Tingkat Keaktifan Kelas**: Pilih Sangat Aktif, Aktif, Cukup, atau Kurang.
+   - **Pemahaman Materi**: Pilih Sangat Paham, Paham, Sebagian Paham, atau Butuh Bimbingan Khusus.
+   - **Catatan Instruktur**: Tuliskan ringkasan perkembangan belajar atau catatan khusus jika ada kendala di kelas.
+6. **Submit & Finalisasi**:
+   - Klik **"Simpan & Selesaikan Sesi"**.
+   - Periksa ringkasan pada modal konfirmasi, lalu klik **"Ya, Kirim Laporan Sekarang"**.
+   - Status sesi otomatis berubah menjadi **Selesai (🟢)** dan masuk ke perhitungan honor Anda.
+
+> [!TIP]
+> **Notifikasi Otomatis ke Orang Tua Siswa**:
+> Setiap kali seorang siswa mencapai **kelipatan 4 pertemuan** (Pertemuan 4, 8, 12, dst.), sistem secara otomatis menembakkan laporan perkembangan dan rekap kehadiran anak ke WhatsApp orang tua masing-masing.
+
+---
+
+## 8. Tahap 7: Aturan Batas Waktu (H+1) & Izin Susulan
+
+### ⏳ Aturan Batas Waktu Pelaporan (SLA H+1):
+- Laporan mengajar **wajib dikirimkan paling lambat H+1 pukul 23:59 WIB** dari tanggal pelaksanaan sesi.
+- *Contoh*: Jika mengajar pada hari **Senin, 10 Agustus**, batas akhir pelaporan adalah **Selasa, 11 Agustus pukul 23:59 WIB**.
+
+### 🔓 Cara Mengajukan Izin Buka Akses Susulan (Late Report Request):
+Jika Anda terlambat melaporkan karena kendala darurat:
+1. Buka sesi yang terkunci $\rightarrow$ Akan muncul tombol **"Ajukan Buka Akses Pelaporan"**.
+2. Tuliskan alasan keterlambatan dengan jujur dan jelas.
+3. Klik **"Kirim Permohonan"**.
+4. Notifikasi permohonan akan masuk ke Admin Akademik. Begitu disetujui, akses pengisian laporan untuk sesi tersebut akan terbuka kembali selama 24 jam.
+5. *Catatan*: Setiap instruktur memiliki kuota izin susulan terbatas setiap bulannya.
+
+---
+
+## 9. Pemahaman Skor KPI Kedisiplinan & Ketepatan Waktu (Punctuality KPI)
+
+Sistem Erlass Portal mengevaluasi kedisiplinan mengajar Anda secara adil dan transparan melalui 2 indikator terpisah:
+
+| Indikator Kedisiplinan | Waktu Pengukuran | Kriteria Tepat Waktu |
+| :--- | :--- | :--- |
+| **1. Kehadiran di Sekolah (Check-in GPS)** | Saat baru tiba di sekolah | Dilakukan antara **H - 30 menit** s/d toleransi **14 menit** setelah jam mulai kelas. |
+| **2. Ketepatan Laporan (SLA H+1)** | Setelah kelas usai | Disimpan maksimal **24 jam (H+1 pukul 23:59 WIB)** setelah kelas selesai. |
+
+> [!NOTE]
+> **Penting Mengenai Jam Pengisian Laporan**:
+> Mengisi laporan mengajar di sore hari atau malam hari setelah Anda tiba di rumah **TIDAK AKAN** membuat Anda tercatat *Late Arrival (Terlambat Hadir)*, karena waktu kedatangan fisik Anda di sekolah telah terkunci saat Anda melakukan check-in GPS di awal kelas.
+
+**Tingkat Skor KPI Bulanan**:
+- 🟢 **`≥ 90%` — Sangat Disiplin**: Memenuhi standar kinerja prima.
+- 🔵 **`75% – 89%` — Disiplin**: Kinerja baik dan konsisten.
+- 🟡 **`60% – 74%` — Cukup Disiplin**: Perlu meningkatkan ketepatan submit laporan.
+- 🔴 **`< 60%` — Perlu Evaluasi**: Keterlambatan berulang memerlukan pendampingan koordinator.
+
+---
+
+## 10. Ketentuan Kompensasi Honor & Transportasi (SK Direksi No. 536/EPI/V/2025)
+
+### A. Skala Honorarium Berdasarkan Jumlah Siswa Hadir:
+Honorarium dihitung berdasarkan **jumlah siswa yang HADIR** pada sesi tersebut:
+- **$\ge 15$ Siswa**: **Rp 150.000** / sesi (Berjalan)
+- **12 – 14 Siswa**: **Rp 115.000** / sesi (Berjalan)
+- **10 – 11 Siswa**: **Rp 100.000** / sesi (Berjalan)
+- **8 – 9 Siswa**: **Rp 75.000** / sesi (Minimum)
+- **$< 8$ Siswa**: **Rp 0** (Hold / Ditunda)
+
+### B. Ketentuan Transportasi Operasional:
+- **Jarak $\ge 10\text{ KM}$ dari Pejaten**: Diberikan uang bensin 2x Pulang-Pergi (PP) + uang sewa kendaraan:
+  $$\text{Transport} = (\text{Jarak KM} \times \text{Rp } 350 \times 2) + \text{Rp } 7.500$$
+- **Jarak $< 10\text{ KM}$ dari Pejaten**: Diberikan flat uang **Sewa Kendaraan Rp 7.500** (tanpa komponen bensin).
+- **Guru Internal / Sesi Kantor Erlass**: Uang transport = **Rp 0**.
+- Transportasi dibayarkan **1x per sekolah per hari** (jika mengajar beberapa rombel di sekolah yang sama pada hari yang sama).
+
+### C. Ketentuan Asisten Instruktur:
+- Rombel dengan kapasitas **$\ge 24$ siswa** wajib didampingi 1 orang Asisten Instruktur (Honor Asisten: **Rp 100.000** / sesi).
+
+### D. Formula Akumulasi Penerimaan, Pajak (2.5%), & Gaji Bersih (Netto):
+- **Total Penerimaan Kotor**: $\text{Honor Utama} + \text{Honor Asisten} + \text{Bonus} + \text{Transport}$
+- **Potongan Pajak (2.5%)**: $\text{round}(\text{Total Penerimaan Kotor} \times 0.025)$
+- **Gaji Bersih Diterima**: $\text{round}(\text{Total Penerimaan Kotor} \times 0.975) - \text{Denda Keterlambatan Check-in}$
+
+---
+
+## 11. Tips Penting Penggunaan di Lapangan
+
+| Situasi di Lapangan | Solusi Praktis |
+| :--- | :--- |
+| **Sinyal HP Lemah di Sekolah** | Jangan khawatir saat check-in; foto telah dikompres otomatis menjadi sangat ringan (~150KB) sehingga cepat terkirim walau sinyal 3G/Edge. |
+| **HP Lama Ditinggal / Layar Terkunci** | Sistem memiliki masa sesi **7 hari** dan fitur *auto keep-alive*. Saat layar HP dibuka kembali, token keamanan otomatis diperbarui tanpa membuat Anda ter-logout. |
+| **Salah Memilih Pertemuan Sesi** | Jika Anda salah memilih nomor pertemuan saat melapor, hubungi Admin Akademik untuk memindahkan laporan ke sesi yang benar via fitur *Relokasi Laporan*. |
+| **Jadwal Bentrok / Perubahan Hari** | Instruktur tidak dapat mengubah jadwal secara sepihak. Segera koordinasikan dengan Koordinator Akademik / PIC Sekolah agar jadwal diupdate resmi di sistem. |
+| **Pengecekan Honor Bulanan** | Rekap jam mengajar, slip gaji digital, dan rincian honor dapat diakses di menu **Slip Gaji & Kompensasi** (`/my-salaries`) berdasarkan siklus cutoff tgl 11 s/d 10. |
+| **Mengalami Kendala Sistem / Honor** | Gunakan modul **Tiket Bantuan** (`/tickets`) di sidebar untuk membuat tiket pengaduan terstruktur ke Tim Manajemen. |
+
+---
+
+*Jika membutuhkan panduan tambahan atau mengalami kendala teknis, silakan hubungi tim IT & Akademik Erlass Institute atau buat tiket di menu [Tiket Bantuan](https://erlass.institute/tickets).*

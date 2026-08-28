@@ -71,62 +71,92 @@
     <!-- Table 1: Bank Transfer Summary -->
     <div class="mb-5">
         <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">1. REKAPITULASI TRANSFER BANK INSTRUKTUR</h6>
-        <table class="table table-bordered table-pdf align-middle">
+        <table class="table table-bordered table-pdf align-middle" style="font-size: 8pt;">
             <thead>
-                <tr>
-                    <th class="text-center" style="width: 40px;">No</th>
-                    <th>ID Instruktur</th>
+                <tr class="table-light">
+                    <th class="text-center" style="width: 30px;">No</th>
+                    <th>ID</th>
                     <th>Nama Instruktur</th>
-                    <th>Nama Bank</th>
-                    <th>Nomor Rekening</th>
-                    <th>Nama Pemilik Rekening</th>
-                    <th class="text-center">Sesi Utama</th>
-                    <th class="text-center">Sesi Asisten</th>
-                    <th class="text-center">Total Sesi</th>
-                    <th class="text-end">Total Nominal Transfer (Rp)</th>
+                    <th>Bank & Rekening</th>
+                    <th class="text-center">U</th>
+                    <th class="text-center">A</th>
+                    <th class="text-center">Total</th>
+                    <th class="text-end">Honor Utama</th>
+                    <th class="text-end">Honor Asisten</th>
+                    <th class="text-end">Transport</th>
+                    <th class="text-end">Total Kotor</th>
+                    <th class="text-end">Pajak (2.5%)</th>
+                    <th class="text-end">Denda</th>
+                    <th class="text-end">Netto (Rp)</th>
                 </tr>
             </thead>
             <tbody>
                 @php 
                     $totalNet = 0; 
+                    $totalGross = 0;
+                    $totalTax = 0;
+                    $totalPenalty = 0;
                     $totalSess = 0; 
                     $totalUtama = 0;
                     $totalAsisten = 0;
+                    $totalBaseFee = 0;
+                    $totalAsistenFee = 0;
+                    $totalTransFee = 0;
                 @endphp
                 @foreach($batch->items as $idx => $item)
                 @php
                     $profile = $item->instruktur->instructorProfile ?? null;
-                    $sessions = $item->sessions;
-                    $sesiUtama = $sessions->filter(fn($s) => (int)$s->user_id_instruktur === (int)$item->user_id_instruktur)->count();
-                    $sesiAsisten = $sessions->filter(fn($s) => (int)$s->user_id_asisten === (int)$item->user_id_instruktur && (int)$s->user_id_instruktur !== (int)$item->user_id_instruktur)->count();
-                    if ($sesiUtama + $sesiAsisten < $item->total_sessions) {
-                        $sesiUtama = $item->total_sessions - $sesiAsisten;
-                    }
+                    $sesiUtama = $item->total_sessions_utama ?: $item->payrollItemSessions->where('role', 'utama')->count();
+                    $sesiAsisten = $item->total_sessions_asisten ?: $item->payrollItemSessions->where('role', 'asisten')->count();
+                    if ($sesiUtama === 0 && $sesiAsisten === 0) $sesiUtama = $item->total_sessions;
+
+                    $gross = $item->total_gross_salary ?: ($item->total_base_fee + $item->total_asisten_fee + $item->total_product_bonus + $item->total_transport_fee);
+                    $tax = $item->tax_amount ?: round($gross * 0.025);
+
                     $totalNet += $item->net_salary;
+                    $totalGross += $gross;
+                    $totalTax += $tax;
+                    $totalPenalty += $item->total_penalty;
                     $totalSess += $item->total_sessions;
                     $totalUtama += $sesiUtama;
                     $totalAsisten += $sesiAsisten;
+                    $totalBaseFee += $item->total_base_fee;
+                    $totalAsistenFee += $item->total_asisten_fee;
+                    $totalTransFee += $item->total_transport_fee;
                 @endphp
                 <tr>
                     <td class="text-center">{{ $idx + 1 }}</td>
                     <td>{{ $item->instruktur->instructor_id ?? $item->instruktur->id }}</td>
                     <td class="fw-bold">{{ $item->instruktur->nama_lengkap }}</td>
-                    <td>{{ $profile->nama_bank ?? '-' }}</td>
-                    <td class="font-monospace">{{ $profile->no_rekening ?? '-' }}</td>
-                    <td>{{ $profile->nama_pemilik_rekening ?? $item->instruktur->nama_lengkap }}</td>
+                    <td>
+                        {{ $profile->nama_bank ?? '-' }} <span class="font-monospace">{{ $profile->no_rekening ?? '-' }}</span><br>
+                        <small class="text-muted">an. {{ $profile->nama_pemilik_rekening ?? $item->instruktur->nama_lengkap }}</small>
+                    </td>
                     <td class="text-center">{{ $sesiUtama }}</td>
                     <td class="text-center">{{ $sesiAsisten }}</td>
                     <td class="text-center fw-bold">{{ $item->total_sessions }}</td>
-                    <td class="text-end fw-bold text-dark">Rp {{ number_format($item->net_salary, 0, ',', '.') }}</td>
+                    <td class="text-end">Rp {{ number_format($item->total_base_fee, 0, ',', '.') }}</td>
+                    <td class="text-end">Rp {{ number_format($item->total_asisten_fee, 0, ',', '.') }}</td>
+                    <td class="text-end">Rp {{ number_format($item->total_transport_fee, 0, ',', '.') }}</td>
+                    <td class="text-end fw-semibold">Rp {{ number_format($gross, 0, ',', '.') }}</td>
+                    <td class="text-end text-warning">Rp {{ number_format($tax, 0, ',', '.') }}</td>
+                    <td class="text-end text-danger">{{ $item->total_penalty > 0 ? '-Rp ' . number_format($item->total_penalty, 0, ',', '.') : '-' }}</td>
+                    <td class="text-end fw-bold text-success">Rp {{ number_format($item->net_salary, 0, ',', '.') }}</td>
                 </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr class="table-secondary fw-bold">
-                    <td colspan="6" class="text-end">TOTAL KESELURUHAN DANA PAYROLL:</td>
+                    <td colspan="4" class="text-end">TOTAL KESELURUHAN:</td>
                     <td class="text-center">{{ $totalUtama }}</td>
                     <td class="text-center">{{ $totalAsisten }}</td>
-                    <td class="text-center">{{ $totalSess }} Sesi</td>
+                    <td class="text-center">{{ $totalSess }}</td>
+                    <td class="text-end">Rp {{ number_format($totalBaseFee, 0, ',', '.') }}</td>
+                    <td class="text-end">Rp {{ number_format($totalAsistenFee, 0, ',', '.') }}</td>
+                    <td class="text-end">Rp {{ number_format($totalTransFee, 0, ',', '.') }}</td>
+                    <td class="text-end">Rp {{ number_format($totalGross, 0, ',', '.') }}</td>
+                    <td class="text-end">Rp {{ number_format($totalTax, 0, ',', '.') }}</td>
+                    <td class="text-end text-danger">-Rp {{ number_format($totalPenalty, 0, ',', '.') }}</td>
                     <td class="text-end text-success fs-6">Rp {{ number_format($totalNet, 0, ',', '.') }}</td>
                 </tr>
             </tfoot>
@@ -136,56 +166,62 @@
     <!-- Table 2: Accounting Journal Summary -->
     <div class="mb-5">
         <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">2. REKAPITULASI JURNAL AKUNTANSI (KOMPOSISI DANA & POTONGAN)</h6>
-        <table class="table table-bordered table-pdf align-middle">
+        <table class="table table-bordered table-pdf align-middle" style="font-size: 8pt;">
             <thead>
-                <tr>
-                    <th class="text-center" style="width: 40px;">No</th>
+                <tr class="table-light">
+                    <th class="text-center" style="width: 30px;">No</th>
                     <th>Nama Instruktur</th>
-                    <th class="text-center">Sesi Utama</th>
-                    <th class="text-center">Sesi Asisten</th>
-                    <th class="text-center">Total Sesi</th>
-                    <th class="text-end">Honor Dasar (Rp)</th>
-                    <th class="text-end">Bonus Alat (Rp)</th>
-                    <th class="text-end">Uang Transport (Rp)</th>
-                    <th class="text-end">Potongan Denda (Rp)</th>
-                    <th class="text-end">Gaji Netto (Rp)</th>
+                    <th class="text-center">Sesi (U/A)</th>
+                    <th class="text-center">Total</th>
+                    <th class="text-end">Honor Utama</th>
+                    <th class="text-end">Honor Asisten</th>
+                    <th class="text-end">Bonus</th>
+                    <th class="text-end">Transport</th>
+                    <th class="text-end">Total Kotor</th>
+                    <th class="text-end">Pajak (2.5%)</th>
+                    <th class="text-end">Denda</th>
+                    <th class="text-end">Gaji Netto</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($batch->items as $idx => $item)
                 @php
-                    $sessions = $item->sessions;
-                    $sesiUtama = $sessions->filter(fn($s) => (int)$s->user_id_instruktur === (int)$item->user_id_instruktur)->count();
-                    $sesiAsisten = $sessions->filter(fn($s) => (int)$s->user_id_asisten === (int)$item->user_id_instruktur && (int)$s->user_id_instruktur !== (int)$item->user_id_instruktur)->count();
-                    if ($sesiUtama + $sesiAsisten < $item->total_sessions) {
-                        $sesiUtama = $item->total_sessions - $sesiAsisten;
-                    }
+                    $sesiUtama = $item->total_sessions_utama ?: $item->payrollItemSessions->where('role', 'utama')->count();
+                    $sesiAsisten = $item->total_sessions_asisten ?: $item->payrollItemSessions->where('role', 'asisten')->count();
+                    if ($sesiUtama === 0 && $sesiAsisten === 0) $sesiUtama = $item->total_sessions;
+
+                    $gross = $item->total_gross_salary ?: ($item->total_base_fee + $item->total_asisten_fee + $item->total_product_bonus + $item->total_transport_fee);
+                    $tax = $item->tax_amount ?: round($gross * 0.025);
                 @endphp
                 <tr>
                     <td class="text-center">{{ $idx + 1 }}</td>
                     <td class="fw-bold">{{ $item->instruktur->nama_lengkap }}</td>
-                    <td class="text-center">{{ $sesiUtama }}</td>
-                    <td class="text-center">{{ $sesiAsisten }}</td>
+                    <td class="text-center">{{ $sesiUtama }} / {{ $sesiAsisten }}</td>
                     <td class="text-center fw-bold">{{ $item->total_sessions }}</td>
                     <td class="text-end">Rp {{ number_format($item->total_base_fee, 0, ',', '.') }}</td>
+                    <td class="text-end">Rp {{ number_format($item->total_asisten_fee, 0, ',', '.') }}</td>
                     <td class="text-end">Rp {{ number_format($item->total_product_bonus, 0, ',', '.') }}</td>
                     <td class="text-end">Rp {{ number_format($item->total_transport_fee, 0, ',', '.') }}</td>
+                    <td class="text-end fw-semibold">Rp {{ number_format($gross, 0, ',', '.') }}</td>
+                    <td class="text-end text-warning">Rp {{ number_format($tax, 0, ',', '.') }}</td>
                     <td class="text-end text-danger">{{ $item->total_penalty > 0 ? '-Rp ' . number_format($item->total_penalty, 0, ',', '.') : '-' }}</td>
-                    <td class="text-end fw-bold">Rp {{ number_format($item->net_salary, 0, ',', '.') }}</td>
+                    <td class="text-end fw-bold text-success">Rp {{ number_format($item->net_salary, 0, ',', '.') }}</td>
                 </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr class="table-secondary fw-bold">
                     <td colspan="2" class="text-end">TOTAL JUMLAH:</td>
-                    <td class="text-center">{{ $totalUtama }}</td>
-                    <td class="text-center">{{ $totalAsisten }}</td>
-                    <td class="text-center">{{ $batch->items->sum('total_sessions') }}</td>
-                    <td class="text-end">Rp {{ number_format($batch->items->sum('total_base_fee'), 0, ',', '.') }}</td>
+                    <td class="text-center">{{ $totalUtama }} / {{ $totalAsisten }}</td>
+                    <td class="text-center">{{ $totalSess }}</td>
+                    <td class="text-end">Rp {{ number_format($totalBaseFee, 0, ',', '.') }}</td>
+                    <td class="text-end">Rp {{ number_format($totalAsistenFee, 0, ',', '.') }}</td>
                     <td class="text-end">Rp {{ number_format($batch->items->sum('total_product_bonus'), 0, ',', '.') }}</td>
-                    <td class="text-end">Rp {{ number_format($batch->items->sum('total_transport_fee'), 0, ',', '.') }}</td>
-                    <td class="text-end text-danger">-Rp {{ number_format($batch->items->sum('total_penalty'), 0, ',', '.') }}</td>
-                    <td class="text-end text-success fs-6">Rp {{ number_format($batch->items->sum('net_salary'), 0, ',', '.') }}</td>
+                    <td class="text-end">Rp {{ number_format($totalTransFee, 0, ',', '.') }}</td>
+                    <td class="text-end">Rp {{ number_format($totalGross, 0, ',', '.') }}</td>
+                    <td class="text-end">Rp {{ number_format($totalTax, 0, ',', '.') }}</td>
+                    <td class="text-end text-danger">-Rp {{ number_format($totalPenalty, 0, ',', '.') }}</td>
+                    <td class="text-end text-success fs-6">Rp {{ number_format($totalNet, 0, ',', '.') }}</td>
                 </tr>
             </tfoot>
         </table>
@@ -194,18 +230,21 @@
     <!-- Table 3: Session Audit Details -->
     <div class="mb-5">
         <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">3. AUDIT RINCIAN PER SESI MENGAJAR (INSTRUKTUR UTAMA & ASISTEN)</h6>
-        <table class="table table-bordered table-pdf align-middle">
+        <table class="table table-bordered table-pdf align-middle" style="font-size: 8pt;">
             <thead>
-                <tr>
-                    <th class="text-center" style="width: 40px;">No</th>
-                    <th>ID Sesi</th>
+                <tr class="table-light">
+                    <th class="text-center" style="width: 30px;">No</th>
+                    <th>ID</th>
                     <th>Tanggal</th>
                     <th>Sekolah Mitra & Program</th>
                     <th>Penerima Honor</th>
                     <th>Instruktur Utama</th>
                     <th>Asisten Instruktur</th>
                     <th class="text-center">Peran</th>
-                    <th class="text-end">Honor Netto (Rp)</th>
+                    <th class="text-end">Honor (Rp)</th>
+                    <th class="text-end">Transport</th>
+                    <th class="text-end">Denda</th>
+                    <th class="text-end">Net Fee (Rp)</th>
                     <th class="text-center">Status</th>
                 </tr>
             </thead>
@@ -216,15 +255,40 @@
                     $totalNetSesiAll = 0;
                 @endphp
                 @foreach($batch->items as $item)
-                    @foreach($item->sessions as $session)
                     @php
-                        $calc = $calculator->calculateSessionFee($session);
-                        $baseFee = $session->override_fee !== null ? (float)$session->override_fee : (float)$calc['calculated_fee'];
-                        $netFee = max(0, $baseFee + $calc['transport_fee'] - $calc['actual_checkin_penalty']);
+                        $itemSessions = $item->payrollItemSessions->isNotEmpty() 
+                            ? $item->payrollItemSessions 
+                            : $item->sessions;
+                    @endphp
+                    @foreach($itemSessions as $entry)
+                    @php
+                        $session = ($entry instanceof \App\Models\PayrollItemSession) ? $entry->session : $entry;
+                        if (!$session) continue;
+
+                        $role = ($entry instanceof \App\Models\PayrollItemSession) ? $entry->role : 'utama';
+                        $calc = $calculator->calculateSessionFee($session, $role);
+
+                        $baseFee = ($entry instanceof \App\Models\PayrollItemSession)
+                            ? (float)$entry->base_fee
+                            : ($session->override_fee !== null ? (float)$session->override_fee : (float)$calc['calculated_fee']);
+
+                        $transFee = ($entry instanceof \App\Models\PayrollItemSession)
+                            ? (float)$entry->transport_fee
+                            : (float)$calc['transport_fee'];
+
+                        $penFee = ($entry instanceof \App\Models\PayrollItemSession)
+                            ? (float)$entry->penalty_fee
+                            : (float)$calc['actual_checkin_penalty'];
+
+                        $netFee = max(0, $baseFee + $transFee - $penFee);
                         $totalNetSesiAll += $netFee;
 
-                        $sekolahName = optional(optional(optional($session->rombel)->ekstrakurikuler)->sekolah)->namasekolah ?? 'Kegiatan Office / Ad-Hoc';
-                        $programName = optional(optional($session->rombel)->ekstrakurikuler)->kategori_program ?? 'Ad-Hoc';
+                        $sekolahName = optional(optional(optional($session->rombel)->ekstrakurikuler)->sekolah)->namasekolah 
+                            ?? optional(optional($session->ekstrakurikuler)->sekolah)->namasekolah 
+                            ?? 'Kegiatan Office / Ad-Hoc';
+                        $programName = optional(optional($session->rombel)->ekstrakurikuler)->kategori_program 
+                            ?? optional($session->ekstrakurikuler)->kategori_program 
+                            ?? 'Ad-Hoc';
                         $rombelName = optional($session->rombel)->nama_rombel;
 
                         $utamaName = optional($session->instruktur)->nama_lengkap 
@@ -235,9 +299,7 @@
                             ?? optional(optional($session->rombel)->asisten)->nama_lengkap 
                             ?? '-';
 
-                        $peran = ((int)$session->user_id_asisten === (int)$item->user_id_instruktur && (int)$session->user_id_instruktur !== (int)$item->user_id_instruktur)
-                            ? 'Asisten'
-                            : 'Utama';
+                        $peranDisplay = ($role === 'asisten') ? 'Asisten' : 'Utama';
                     @endphp
                     <tr>
                         <td class="text-center">{{ $sessNo++ }}</td>
@@ -251,8 +313,11 @@
                         <td>{{ $utamaName }}</td>
                         <td>{{ $asistenName }}</td>
                         <td class="text-center">
-                            <span class="badge {{ $peran === 'Utama' ? 'bg-primary' : 'bg-info text-dark' }}">{{ $peran }}</span>
+                            <span class="badge {{ $role === 'asisten' ? 'bg-info text-dark' : 'bg-primary text-white' }}">{{ $peranDisplay }}</span>
                         </td>
+                        <td class="text-end">Rp {{ number_format($baseFee, 0, ',', '.') }}</td>
+                        <td class="text-end">Rp {{ number_format($transFee, 0, ',', '.') }}</td>
+                        <td class="text-end text-danger">{{ $penFee > 0 ? '-Rp ' . number_format($penFee, 0, ',', '.') : '-' }}</td>
                         <td class="text-end fw-bold">Rp {{ number_format($netFee, 0, ',', '.') }}</td>
                         <td class="text-center text-uppercase small">{{ $session->status }}</td>
                     </tr>
@@ -261,7 +326,7 @@
             </tbody>
             <tfoot>
                 <tr class="table-secondary fw-bold">
-                    <td colspan="8" class="text-end">TOTAL RINCIAN SESI:</td>
+                    <td colspan="11" class="text-end">TOTAL RINCIAN SESI:</td>
                     <td class="text-end text-success fs-6">Rp {{ number_format($totalNetSesiAll, 0, ',', '.') }}</td>
                     <td></td>
                 </tr>

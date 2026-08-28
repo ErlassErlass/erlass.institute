@@ -310,8 +310,10 @@ class PayrollTest extends TestCase
         $this->assertNotNull($payrollItem);
         $this->assertEquals($batch->id, $payrollItem->payroll_batch_id);
         $this->assertEquals($instructor->id, $payrollItem->user_id_instruktur);
-        $this->assertEquals(0.00, $payrollItem->total_transport_fee);
-        $this->assertEquals(150000.00, $payrollItem->net_salary);
+        $this->assertEquals(7500.00, $payrollItem->total_transport_fee);
+        $this->assertEquals(157500.00, $payrollItem->total_gross_salary);
+        $this->assertEquals(3938.00, $payrollItem->tax_amount);
+        $this->assertEquals(153563.00, $payrollItem->net_salary);
 
         // 2. Process batch
         $response = $this->actingAs($admin)->post(route('admin.payroll.batches.process', $batch->id));
@@ -406,11 +408,11 @@ class PayrollTest extends TestCase
         $calc2 = $service->calculateSessionFee($session);
         $this->assertEquals(18000.00, $calc2['transport_fee']);
 
-        // Priority 2 (Under 10 KM): ekskul jarak_km is defined (< 10 km) -> 0.00
+        // Priority 2 (Under 10 KM): ekskul jarak_km is defined (< 10 km) -> 7500.00 (Sewa Kendaraan Saja)
         $ekskul->update(['jarak_km' => 5.00]);
         $session->refresh();
         $calc2Min = $service->calculateSessionFee($session);
-        $this->assertEquals(0.00, $calc2Min['transport_fee']);
+        $this->assertEquals(7500.00, $calc2Min['transport_fee']);
 
         // Priority 3 (Fallback): both jarak_km is 0 and kustom_transport_fee is null -> 0.00
         $ekskul->update(['jarak_km' => 0.00]);
@@ -418,6 +420,202 @@ class PayrollTest extends TestCase
         $session->refresh();
         $calc3 = $service->calculateSessionFee($session);
         $this->assertEquals(0.00, $calc3['transport_fee']);
+    }
+
+    public function test_assistant_fee_is_flat_100k_and_no_transport()
+    {
+        $assistant = User::create([
+            'nama_lengkap' => 'Assistant Test',
+            'email' => 'assistant@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'instruktur',
+            'status' => 'Aktif',
+            'tanggal_lahir' => '1995-05-05',
+            'agama' => 'Lainnya',
+            'pend_terakhir' => 'SMA',
+            'kompetensi_1' => 'General',
+            'no_telephone' => '081298765432',
+        ]);
+
+        $sekolah = Sekolah::factory()->create(['kodlan' => 'SCH003', 'namasekolah' => 'Sekolah Asisten']);
+        $ekskul = Ekstrakurikuler::factory()->create([
+            'sekolah_kodlan' => 'SCH003',
+            'jarak_km' => 20.00,
+        ]);
+        $rombel = EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nama_rombel' => 'Robotics Big Class',
+            'nomor_rombel' => 1,
+            'jumlah_siswa' => 28,
+            'ruangan' => 'Lab 2',
+            'tanggal_mulai' => '2026-06-01',
+            'tanggal_selesai' => '2026-12-01',
+            'hari' => 'kamis',
+            'jam_mulai' => '13:00',
+            'jam_selesai' => '15:00',
+            'total_pertemuan' => 12,
+            'status' => 'berlangsung',
+        ]);
+
+        $session = $rombel->sessions()->first();
+        $session->update([
+            'tanggal_pelaksanaan' => '2026-06-04',
+            'jam_mulai_aktual' => '13:00',
+            'jam_selesai_aktual' => '15:00',
+            'status' => 'selesai',
+            'user_id_asisten' => $assistant->id,
+        ]);
+
+        $service = new PayrollCalculatorService();
+        $calcAsisten = $service->calculateSessionFee($session, 'asisten');
+
+        $this->assertEquals(100000.00, $calcAsisten['base_rate']);
+        $this->assertEquals(0.00, $calcAsisten['transport_fee']);
+        $this->assertEquals(0.00, $calcAsisten['actual_checkin_penalty']);
+        $this->assertEquals(100000.00, $calcAsisten['net_fee']);
+    }
+
+    public function test_dual_role_session_calculates_and_generates_pivot_records()
+    {
+        $admin = User::create([
+            'nama_lengkap' => 'Admin Test',
+            'email' => 'admin_dual@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'webmaster',
+            'status' => 'Aktif',
+            'tanggal_lahir' => '1990-01-01',
+            'agama' => 'Lainnya',
+            'pend_terakhir' => 'SMA',
+            'kompetensi_1' => 'General',
+            'no_telephone' => '081234567890',
+        ]);
+
+        $leadTeacher = User::create([
+            'nama_lengkap' => 'Guru Utama',
+            'email' => 'guru.utama@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'instruktur',
+            'status' => 'Aktif',
+            'tanggal_lahir' => '1990-01-01',
+            'agama' => 'Lainnya',
+            'pend_terakhir' => 'SMA',
+            'kompetensi_1' => 'General',
+            'no_telephone' => '081234567891',
+        ]);
+
+        $assistantTeacher = User::create([
+            'nama_lengkap' => 'Guru Asisten',
+            'email' => 'guru.asisten@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'instruktur',
+            'status' => 'Aktif',
+            'tanggal_lahir' => '1992-02-02',
+            'agama' => 'Lainnya',
+            'pend_terakhir' => 'SMA',
+            'kompetensi_1' => 'General',
+            'no_telephone' => '081234567892',
+        ]);
+
+        $sekolah = Sekolah::factory()->create(['kodlan' => 'SCH004', 'namasekolah' => 'Sekolah Dual']);
+        $ekskul = Ekstrakurikuler::factory()->create([
+            'sekolah_kodlan' => 'SCH004',
+            'jarak_km' => 10.00,
+        ]);
+        $rombel = EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nama_rombel' => 'Big Class Dual',
+            'nomor_rombel' => 1,
+            'jumlah_siswa' => 26,
+            'ruangan' => 'Lab 3',
+            'tanggal_mulai' => '2026-06-01',
+            'tanggal_selesai' => '2026-12-01',
+            'hari' => 'jumat',
+            'jam_mulai' => '14:00',
+            'jam_selesai' => '16:00',
+            'total_pertemuan' => 12,
+            'status' => 'berlangsung',
+        ]);
+
+        $session = $rombel->sessions()->first();
+        $session->update([
+            'tanggal_pelaksanaan' => '2026-06-05',
+            'jam_mulai_aktual' => '14:00',
+            'jam_selesai_aktual' => '16:00',
+            'status' => 'selesai',
+            'user_id_instruktur' => $leadTeacher->id,
+            'user_id_asisten' => $assistantTeacher->id,
+        ]);
+
+        LaporanMengajar::create([
+            'ekstrakurikuler_session_id' => $session->id,
+            'user_id_instruktur' => $leadTeacher->id,
+            'pertemuan_ke' => 1,
+            'rombel' => $rombel->nama_rombel,
+            'jadwal_mengajar' => '2026-06-05',
+            'jam_mulai' => '14:00',
+            'jam_selesai' => '16:00',
+            'kategori_pengajaran' => 'ekstrakurikuler',
+            'materi_pengajaran' => 'Dual Session Test',
+            'sekolah_kodlan' => 'SCH004',
+            'jumlah_siswa_hadir' => 26,
+            'keaktifan' => 'aktif',
+            'pemahaman_materi' => 'paham',
+            'refleksi_siswa' => '-',
+            'refleksi_capaian' => '-',
+        ]);
+
+        $batch = PayrollBatch::create([
+            'code' => 'PAY-202606-TEST',
+            'periode' => '2026-06-01',
+            'status' => 'draft',
+        ]);
+
+        $service = new PayrollCalculatorService();
+        $count = $service->generateMonthlyPayroll($batch);
+
+        $this->assertEquals(2, $count); // Created items for both lead & assistant
+
+        $leadItem = PayrollItem::where('payroll_batch_id', $batch->id)
+            ->where('user_id_instruktur', $leadTeacher->id)
+            ->first();
+        $this->assertNotNull($leadItem);
+        $this->assertEquals(1, $leadItem->total_sessions_utama);
+        $this->assertEquals(0, $leadItem->total_sessions_asisten);
+        $this->assertEquals(150000.00, $leadItem->total_base_fee);
+        $this->assertEquals(14500.00, $leadItem->total_transport_fee); // (10 * 350 * 2) + 7500 = 14500
+        $this->assertEquals(164500.00, $leadItem->total_gross_salary);
+        $this->assertEquals(4113.00, $leadItem->tax_amount); // round(164500 * 0.025)
+        $this->assertEquals(160388.00, $leadItem->net_salary); // round(164500 * 0.975)
+
+        $asistenItem = PayrollItem::where('payroll_batch_id', $batch->id)
+            ->where('user_id_instruktur', $assistantTeacher->id)
+            ->first();
+        $this->assertNotNull($asistenItem);
+        $this->assertEquals(0, $asistenItem->total_sessions_utama);
+        $this->assertEquals(1, $asistenItem->total_sessions_asisten);
+        $this->assertEquals(0.00, $asistenItem->total_base_fee);
+        $this->assertEquals(100000.00, $asistenItem->total_asisten_fee);
+        $this->assertEquals(0.00, $asistenItem->total_transport_fee);
+        $this->assertEquals(100000.00, $asistenItem->total_gross_salary);
+        $this->assertEquals(2500.00, $asistenItem->tax_amount); // round(100000 * 0.025)
+        $this->assertEquals(97500.00, $asistenItem->net_salary); // round(100000 * 0.975)
+
+        // Check pivot records in payroll_item_session
+        $this->assertDatabaseHas('payroll_item_session', [
+            'payroll_item_id' => $leadItem->id,
+            'ekstrakurikuler_session_id' => $session->id,
+            'role' => 'utama',
+            'base_fee' => 150000.00,
+            'transport_fee' => 14500.00,
+        ]);
+
+        $this->assertDatabaseHas('payroll_item_session', [
+            'payroll_item_id' => $asistenItem->id,
+            'ekstrakurikuler_session_id' => $session->id,
+            'role' => 'asisten',
+            'base_fee' => 100000.00,
+            'transport_fee' => 0.00,
+        ]);
     }
 
     public function test_export_pdf_view_renders_with_session_and_instructor_details()
@@ -458,15 +656,23 @@ class PayrollTest extends TestCase
             'payroll_batch_id' => $batch->id,
             'user_id_instruktur' => $instructor->id,
             'total_sessions' => 1,
+            'total_sessions_utama' => 1,
+            'total_sessions_asisten' => 0,
             'total_base_fee' => 150000,
-            'net_salary' => 150000,
+            'total_asisten_fee' => 0,
+            'total_transport_fee' => 10000,
+            'total_gross_salary' => 160000,
+            'tax_rate' => 0.025,
+            'tax_amount' => 4000,
+            'net_salary' => 156000,
             'status' => 'pending',
         ]);
 
         $response = $this->actingAs($admin)->get(route('admin.payroll.batches.export-pdf', $batch->id));
         $response->assertStatus(200);
-        $response->assertSee('Sesi Utama');
-        $response->assertSee('Sesi Asisten');
+        $response->assertSee('Honor Utama');
+        $response->assertSee('Honor Asisten');
+        $response->assertSee('Pajak (2.5%)');
         $response->assertSee('AUDIT RINCIAN PER SESI MENGAJAR');
     }
 }
