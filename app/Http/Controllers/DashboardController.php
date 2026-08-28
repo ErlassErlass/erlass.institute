@@ -367,6 +367,24 @@ class DashboardController extends Controller
             'sertifikat_issued' => Certificate::where('status', 'issued')->count(),
             'sertifikat_pending' => Certificate::whereNull('file_path')->count(),
             'rapor_generated' => ReportCard::whereNotNull('file_path')->count(),
+            'ticket_stats' => [
+                'open' => \App\Models\Ticket::where('status', \App\Models\Ticket::STATUS_OPEN)->count(),
+                'in_progress' => \App\Models\Ticket::where('status', \App\Models\Ticket::STATUS_IN_PROGRESS)->count(),
+                'urgent_high' => \App\Models\Ticket::whereIn('status', [\App\Models\Ticket::STATUS_OPEN, \App\Models\Ticket::STATUS_IN_PROGRESS])
+                    ->whereIn('prioritas', [\App\Models\Ticket::PRIORITAS_URGENT, \App\Models\Ticket::PRIORITAS_HIGH])
+                    ->count(),
+                'unread_admin' => \App\Models\Ticket::where('has_unread_reply_for_admin', true)->count(),
+                'resolved' => \App\Models\Ticket::whereIn('status', [\App\Models\Ticket::STATUS_RESOLVED, \App\Models\Ticket::STATUS_CLOSED])->count(),
+            ],
+            'admin_actionable_tickets' => \App\Models\Ticket::with(['user', 'session.rombel.ekstrakurikuler.sekolah'])
+                ->where(function ($q) {
+                    $q->where('status', \App\Models\Ticket::STATUS_OPEN)
+                      ->orWhere('has_unread_reply_for_admin', true);
+                })
+                ->orderByRaw("CASE WHEN prioritas='urgent' THEN 1 WHEN prioritas='high' THEN 2 WHEN prioritas='medium' THEN 3 ELSE 4 END")
+                ->latest('updated_at')
+                ->take(6)
+                ->get(),
         ];
 
         return array_merge($adminData, $this->getChartData());

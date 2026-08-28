@@ -9,23 +9,38 @@ use Illuminate\Http\Request;
 class NotificationController extends Controller
 {
     /**
-     * Fetch unread milestone notifications for admin/webmaster users.
+     * Fetch unread notifications for admin/webmaster users (Milestones & Tickets).
      */
     public function getUnreadNotifications(Request $request): JsonResponse
     {
         $user = auth()->user();
         if (!$user || !in_array($user->role, ['webmaster', 'admin_sistem', 'admin', 'debug_user'])) {
-            return response()->json(['unread_count' => 0, 'notifications' => []]);
+            return response()->json([
+                'unread_count' => 0,
+                'ticket_count' => 0,
+                'milestone_count' => 0,
+                'notifications' => []
+            ]);
         }
 
         $query = Notification::where('is_read', false)
             ->orderBy('created_at', 'desc');
 
         $unreadCount = $query->count();
-        $notifications = $query->take(15)->get();
+        $notifications = $query->take(25)->get();
+
+        $ticketCount = Notification::where('is_read', false)
+            ->whereIn('type', ['ticket_created', 'ticket_reply'])
+            ->count();
+
+        $milestoneCount = Notification::where('is_read', false)
+            ->where('type', 'milestone_report')
+            ->count();
 
         return response()->json([
             'unread_count' => $unreadCount,
+            'ticket_count' => $ticketCount,
+            'milestone_count' => $milestoneCount,
             'notifications' => $notifications,
         ]);
     }

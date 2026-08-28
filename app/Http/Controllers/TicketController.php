@@ -124,6 +124,9 @@ class TicketController extends Controller
             'has_unread_reply_for_admin' => true,
         ]);
 
+        // Dispatch instant notification for Admin / QC Team
+        app(\App\Services\TicketNotificationService::class)->notifyTicketCreated($ticket);
+
         return redirect()->route('tickets.show', $ticket->id)
             ->with('success', "Tiket {$ticket->ticket_number} berhasil dibuat. Tim Operasional/QC akan segera menindaklanjuti.");
     }
@@ -148,9 +151,10 @@ class TicketController extends Controller
             abort(403, 'Akses ditolak. Anda tidak memiliki izin untuk melihat tiket ini.');
         }
 
-        // Mark unread status
+        // Mark unread status and notifications
         if ($isAdmin) {
             $ticket->update(['has_unread_reply_for_admin' => false]);
+            app(\App\Services\TicketNotificationService::class)->markTicketNotificationsAsRead($ticket->id);
         } else {
             $ticket->update(['has_unread_reply_for_user' => false]);
         }
@@ -188,7 +192,7 @@ class TicketController extends Controller
             $lampiranPath = $request->file('lampiran')->store('tickets/replies', 'public');
         }
 
-        TicketReply::create([
+        $reply = TicketReply::create([
             'ticket_id' => $ticket->id,
             'user_id' => $user->id,
             'pesan' => $request->pesan,
@@ -204,6 +208,7 @@ class TicketController extends Controller
                 'has_unread_reply_for_user' => true,
                 'has_unread_reply_for_admin' => false,
             ]);
+            app(\App\Services\TicketNotificationService::class)->markTicketNotificationsAsRead($ticket->id);
         } else {
             $newStatus = ($ticket->status === Ticket::STATUS_RESOLVED) ? Ticket::STATUS_IN_PROGRESS : $ticket->status;
             $ticket->update([
@@ -211,6 +216,7 @@ class TicketController extends Controller
                 'has_unread_reply_for_admin' => true,
                 'has_unread_reply_for_user' => false,
             ]);
+            app(\App\Services\TicketNotificationService::class)->notifyTicketReply($ticket, $reply);
         }
 
         return redirect()->route('tickets.show', $ticket->id)

@@ -792,9 +792,14 @@
                                 $sidebarTicketBadge = 0;
                                 if (Auth::check()) {
                                     if (in_array(Auth::user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-                                        $sidebarTicketBadge = \App\Models\Ticket::where('status', \App\Models\Ticket::STATUS_OPEN)->count();
+                                        $sidebarTicketBadge = \App\Models\Ticket::where(function($q) {
+                                            $q->where('status', \App\Models\Ticket::STATUS_OPEN)
+                                              ->orWhere('has_unread_reply_for_admin', true);
+                                        })->count();
                                     } else {
-                                        $sidebarTicketBadge = \App\Models\Ticket::where('user_id', Auth::id())->where('has_unread_reply_for_user', true)->count();
+                                        $sidebarTicketBadge = \App\Models\Ticket::where('user_id', Auth::id())
+                                            ->where('has_unread_reply_for_user', true)
+                                            ->count();
                                     }
                                 }
                             @endphp
@@ -833,36 +838,60 @@
                     
                     <div class="d-flex align-items-center gap-3">
                         @if(Auth::check() && in_array(Auth::user()->role, ['webmaster', 'admin_sistem', 'admin', 'debug_user']))
-                        <!-- Notification Bell Dropdown (Opsi A) -->
+                        <!-- Unified Admin Notification Center Dropdown -->
                         <div class="dropdown me-1" id="notificationBellDropdown">
                             <button class="btn btn-light border p-2 position-relative d-flex align-items-center justify-content-center" 
                                     type="button" id="notifBellBtn" data-bs-toggle="dropdown" aria-expanded="false" 
-                                    style="width: 40px; height: 40px; border-radius: 10px;" title="Notifikasi Milestone Laporan">
-                                <i class="bi bi-bell fs-5 text-dark"></i>
+                                    style="width: 40px; height: 40px; border-radius: 10px;" title="Pusat Notifikasi Admin">
+                                <i class="bi bi-bell-fill fs-5 text-dark"></i>
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
                                       id="notifCountBadge" style="display:none; font-size: 0.65rem; padding: 0.25em 0.5em;">0</span>
                             </button>
                             <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 animate slideIn p-0" 
                                  aria-labelledby="notifBellBtn" 
-                                 style="width: 380px; max-width: 92vw; border-radius: 14px; overflow: hidden; z-index: 1055;">
-                                <div class="p-3 bg-primary text-white d-flex align-items-center justify-content-between">
-                                    <div class="fw-bold" style="font-size: 0.88rem;">
-                                        <i class="bi bi-bell-fill me-1"></i> Milestone Laporan (4, 8, 12... 32)
+                                 style="width: 420px; max-width: 95vw; border-radius: 16px; overflow: hidden; z-index: 1055;">
+                                <div class="p-3 bg-dark text-white d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                            <i class="bi bi-bell-fill" style="font-size: 0.85rem;"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold" style="font-size: 0.88rem;">Pusat Notifikasi Admin</div>
+                                            <div class="text-muted" style="font-size: 0.70rem;">Tiket Bantuan & Milestone Laporan</div>
+                                        </div>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-link text-white text-decoration-none p-0 fw-semibold" 
-                                            onclick="markAllNotifsAsRead()" style="font-size: 0.72rem;">
-                                        Tandai Semua Dibaca
+                                    <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 fw-semibold rounded-pill" 
+                                            onclick="markAllNotifsAsRead()" style="font-size: 0.70rem;">
+                                        <i class="bi bi-check2-all me-1"></i>Tandai Semua
                                     </button>
                                 </div>
-                                <div id="notifListContainer" style="max-height: 380px; overflow-y: auto;">
+
+                                <!-- Filter Tabs -->
+                                <div class="px-3 py-2 bg-light border-bottom d-flex gap-1">
+                                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 fw-bold notif-filter-btn" data-filter="all" onclick="filterNotifTab('all', this)" style="font-size: 0.72rem;">
+                                        Semua <span class="badge bg-white text-dark ms-1" id="tabCountAll">0</span>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold notif-filter-btn" data-filter="ticket" onclick="filterNotifTab('ticket', this)" style="font-size: 0.72rem;">
+                                        <i class="bi bi-ticket-detailed me-1 text-warning"></i>Tiket <span class="badge bg-danger text-white ms-1" id="tabCountTicket">0</span>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold notif-filter-btn" data-filter="milestone" onclick="filterNotifTab('milestone', this)" style="font-size: 0.72rem;">
+                                        <i class="bi bi-flag me-1 text-primary"></i>Milestone <span class="badge bg-secondary text-white ms-1" id="tabCountMilestone">0</span>
+                                    </button>
+                                </div>
+
+                                <div id="notifListContainer" style="max-height: 400px; overflow-y: auto;">
                                     <div class="text-center py-4 text-muted small" id="notifLoading">
-                                        <div class="spinner-border spinner-border-sm text-primary me-1"></div> Memuat...
+                                        <div class="spinner-border spinner-border-sm text-primary me-1"></div> Memuat notifikasi...
                                     </div>
                                 </div>
-                                <div class="p-2 bg-light text-center border-top">
-                                    <span class="text-muted small" style="font-size: 0.72rem;">
-                                        <i class="bi bi-info-circle me-1"></i>Notifikasi otomatis untuk sesi kelipatan 4
-                                    </span>
+
+                                <div class="p-2.5 bg-light border-top d-flex justify-content-between align-items-center px-3">
+                                    <a href="{{ route('tickets.index') }}" class="small fw-bold text-decoration-none text-primary" style="font-size: 0.75rem;">
+                                        <i class="bi bi-ticket-perforated me-1"></i>Kelola Semua Tiket
+                                    </a>
+                                    <a href="{{ route('laporan-mengajar.index') }}" class="small fw-semibold text-decoration-none text-secondary" style="font-size: 0.75rem;">
+                                        <i class="bi bi-journal-check me-1"></i>Monitoring Laporan
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -1251,72 +1280,182 @@
 
     @if(Auth::check() && in_array(Auth::user()->role, ['webmaster', 'admin_sistem', 'admin', 'debug_user']))
     <script>
+    let currentNotifList = [];
+    let activeNotifFilter = 'all';
+
     document.addEventListener('DOMContentLoaded', function() {
         fetchUnreadNotifications();
         setInterval(fetchUnreadNotifications, 30000);
     });
+
+    function filterNotifTab(filterType, btnElem) {
+        activeNotifFilter = filterType;
+        document.querySelectorAll('.notif-filter-btn').forEach(btn => {
+            btn.classList.remove('btn-primary', 'fw-bold');
+            btn.classList.add('btn-outline-secondary', 'fw-semibold');
+        });
+        if (btnElem) {
+            btnElem.classList.remove('btn-outline-secondary', 'fw-semibold');
+            btnElem.classList.add('btn-primary', 'fw-bold');
+        }
+        renderNotificationsList();
+    }
 
     function fetchUnreadNotifications() {
         fetch("{{ route('admin.notifications.unread') }}")
             .then(r => r.json())
             .then(res => {
                 const badge = document.getElementById('notifCountBadge');
-                const container = document.getElementById('notifListContainer');
+                const tabAll = document.getElementById('tabCountAll');
+                const tabTicket = document.getElementById('tabCountTicket');
+                const tabMilestone = document.getElementById('tabCountMilestone');
 
-                if (!badge || !container) return;
+                const totalUnread = res.unread_count || 0;
+                const ticketCount = res.ticket_count || 0;
+                const milestoneCount = res.milestone_count || 0;
 
-                if (res.unread_count > 0) {
-                    badge.textContent = res.unread_count > 99 ? '99+' : res.unread_count;
-                    badge.style.display = 'inline-block';
-                } else {
-                    badge.style.display = 'none';
+                if (badge) {
+                    if (totalUnread > 0) {
+                        badge.textContent = totalUnread > 99 ? '99+' : totalUnread;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
                 }
 
-                if (!res.notifications || res.notifications.length === 0) {
-                    container.innerHTML = `
-                        <div class="text-center py-4 text-muted small">
-                            <i class="bi bi-bell-slash fs-4 d-block mb-1 opacity-50"></i>
-                            Belum ada notifikasi milestone baru
-                        </div>
-                    `;
-                    return;
-                }
+                if (tabAll) tabAll.textContent = totalUnread;
+                if (tabTicket) tabTicket.textContent = ticketCount;
+                if (tabMilestone) tabMilestone.textContent = milestoneCount;
 
-                container.innerHTML = res.notifications.map(n => {
-                    const d = n.data || {};
-                    const tgl4Html = (d.tanggal_mengajar_4 || []).map(t => 
-                        `<span class="badge bg-white text-dark border me-1 mb-1 shadow-sm" style="font-size:0.68rem; font-weight:600;">P${t.pertemuan_ke}: ${t.tanggal}</span>`
-                    ).join('');
-
-                    return `
-                        <div class="p-3 border-bottom notif-item" id="notif-item-${n.id}" style="background: #F8FAFC; transition: background 0.15s;">
-                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                                <span class="badge bg-primary text-white" style="font-size:0.68rem; font-weight:700;">
-                                    Milestone Pertemuan Ke-${d.pertemuan_ke}
-                                </span>
-                                <small class="text-muted" style="font-size:0.68rem;">${formatTimeAgo(n.created_at)}</small>
-                            </div>
-                            <div class="fw-bold text-dark" style="font-size:0.85rem;">${escJs(d.sekolah_nama || 'Sekolah')}</div>
-                            <div class="text-secondary small mb-2" style="font-size:0.78rem;">
-                                <strong>${escJs(d.kategori)}</strong> • ${escJs(d.rombel)} • Ins: <strong>${escJs(d.instruktur_nama)}</strong>
-                            </div>
-                            <div class="mb-2 p-2 rounded bg-light border">
-                                <div class="text-muted mb-1 fw-bold" style="font-size:0.7rem;"><i class="bi bi-calendar4-week me-1 text-primary"></i>4 Tanggal Mengajar:</div>
-                                <div class="d-flex flex-wrap">${tgl4Html}</div>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-between pt-1" style="font-size:0.75rem;">
-                                <span class="text-success fw-bold"><i class="bi bi-people-fill me-1"></i>${d.jumlah_hadir} Hadir</span>
-                                <div class="d-flex gap-1">
-                                    ${d.foto_absensi_url ? `<a href="${d.foto_absensi_url}" target="_blank" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size:0.7rem;"><i class="bi bi-file-earmark-image me-1"></i>Absensi</a>` : ''}
-                                    ${d.report_detail_url ? `<a href="${d.report_detail_url}" target="_blank" class="btn btn-primary btn-sm py-0 px-2" style="font-size:0.7rem;"><i class="bi bi-eye me-1"></i>Detail</a>` : ''}
-                                    <button class="btn btn-outline-secondary btn-sm py-0 px-1" title="Tandai Dibaca" onclick="markNotifAsRead(${n.id})" style="font-size:0.7rem;"><i class="bi bi-check2"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+                currentNotifList = res.notifications || [];
+                renderNotificationsList();
             })
             .catch(() => {});
+    }
+
+    function renderNotificationsList() {
+        const container = document.getElementById('notifListContainer');
+        if (!container) return;
+
+        let filtered = currentNotifList;
+        if (activeNotifFilter === 'ticket') {
+            filtered = currentNotifList.filter(n => n.type === 'ticket_created' || n.type === 'ticket_reply');
+        } else if (activeNotifFilter === 'milestone') {
+            filtered = currentNotifList.filter(n => n.type === 'milestone_report');
+        }
+
+        if (filtered.length === 0) {
+            let emptyMsg = 'Belum ada notifikasi baru';
+            if (activeNotifFilter === 'ticket') emptyMsg = 'Tidak ada tiket bantuan yang menunggu respon';
+            if (activeNotifFilter === 'milestone') emptyMsg = 'Tidak ada notifikasi milestone laporan';
+
+            container.innerHTML = `
+                <div class="text-center py-4 text-muted small">
+                    <i class="bi bi-bell-slash fs-4 d-block mb-1 opacity-50"></i>
+                    ${emptyMsg}
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.map(n => {
+            const d = n.data || {};
+            
+            // --- Case 1: Tiket Bantuan Baru / Balasan ---
+            if (n.type === 'ticket_created' || n.type === 'ticket_reply') {
+                const isReply = n.type === 'ticket_reply';
+                const prioritas = d.prioritas || 'medium';
+                let prioritasBadgeClass = 'bg-primary';
+                let borderLeftColor = '#3B82F6';
+
+                if (prioritas === 'urgent') {
+                    prioritasBadgeClass = 'bg-danger text-white';
+                    borderLeftColor = '#EF4444';
+                } else if (prioritas === 'high') {
+                    prioritasBadgeClass = 'bg-warning text-dark';
+                    borderLeftColor = '#F59E0B';
+                } else if (prioritas === 'low') {
+                    prioritasBadgeClass = 'bg-secondary text-white';
+                    borderLeftColor = '#6B7280';
+                }
+
+                const ticketUrl = d.ticket_url || ("{{ url('/tickets') }}/" + (d.ticket_id || ''));
+
+                return `
+                    <div class="p-3 border-bottom notif-item" id="notif-item-${n.id}" style="background: ${prioritas === 'urgent' ? '#FFF5F5' : '#FFFFFF'}; border-left: 4px solid ${borderLeftColor} !important; transition: background 0.15s;">
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="badge ${isReply ? 'bg-info text-dark' : 'bg-dark text-white'}" style="font-size:0.68rem; font-weight:700;">
+                                    <i class="bi ${isReply ? 'bi-chat-dots-fill' : 'bi-ticket-perforated-fill'} me-1"></i>${escJs(d.ticket_number || 'TIKET')}
+                                </span>
+                                <span class="badge ${prioritasBadgeClass}" style="font-size:0.65rem; font-weight:700;">
+                                    ${escJs(d.prioritas_label || prioritas.toUpperCase())}
+                                </span>
+                            </div>
+                            <small class="text-muted" style="font-size:0.68rem;">${formatTimeAgo(n.created_at)}</small>
+                        </div>
+                        <div class="fw-bold text-dark mb-1" style="font-size:0.85rem; line-height: 1.3;">
+                            ${escJs(d.judul || n.title)}
+                        </div>
+                        <div class="text-secondary small mb-2" style="font-size:0.75rem;">
+                            <i class="bi bi-person-fill me-1 text-primary"></i><strong>${escJs(d.instruktur_nama || 'Instruktur')}</strong>
+                            ${d.kategori_label ? ` • <span class="badge bg-light text-dark border" style="font-size:0.68rem;">${escJs(d.kategori_label)}</span>` : ''}
+                            ${d.sekolah_nama ? ` • <span class="text-muted">${escJs(d.sekolah_nama)}</span>` : ''}
+                        </div>
+                        ${d.pesan_snippet || d.deskripsi_snippet ? `
+                            <div class="mb-2 p-2 rounded bg-light border text-muted" style="font-size:0.72rem; font-style: italic;">
+                                "${escJs(d.pesan_snippet || d.deskripsi_snippet)}"
+                            </div>
+                        ` : ''}
+                        <div class="d-flex align-items-center justify-content-between pt-1">
+                            <span class="badge bg-light text-primary border" style="font-size:0.68rem;">
+                                <i class="bi bi-clock-history me-1"></i>Menunggu Respon
+                            </span>
+                            <div class="d-flex gap-1.5">
+                                <a href="${ticketUrl}" class="btn btn-primary btn-sm py-0.5 px-2.5 fw-bold rounded-pill" style="font-size:0.72rem;">
+                                    <i class="bi bi-chat-text-fill me-1"></i>Buka & Jawab
+                                </a>
+                                <button class="btn btn-outline-secondary btn-sm py-0.5 px-1.5 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead(${n.id})" style="font-size:0.72rem;">
+                                    <i class="bi bi-check2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- Case 2: Milestone Laporan (4, 8, 12... 32) ---
+            const tgl4Html = (d.tanggal_mengajar_4 || []).map(t => 
+                `<span class="badge bg-white text-dark border me-1 mb-1 shadow-sm" style="font-size:0.68rem; font-weight:600;">P${t.pertemuan_ke}: ${t.tanggal}</span>`
+            ).join('');
+
+            return `
+                <div class="p-3 border-bottom notif-item" id="notif-item-${n.id}" style="background: #F8FAFC; border-left: 4px solid #0EA5E9 !important; transition: background 0.15s;">
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                        <span class="badge bg-primary text-white" style="font-size:0.68rem; font-weight:700;">
+                            <i class="bi bi-flag-fill me-1"></i>Milestone Pertemuan Ke-${d.pertemuan_ke}
+                        </span>
+                        <small class="text-muted" style="font-size:0.68rem;">${formatTimeAgo(n.created_at)}</small>
+                    </div>
+                    <div class="fw-bold text-dark" style="font-size:0.85rem;">${escJs(d.sekolah_nama || 'Sekolah')}</div>
+                    <div class="text-secondary small mb-2" style="font-size:0.75rem;">
+                        <strong>${escJs(d.kategori)}</strong> • ${escJs(d.rombel)} • Ins: <strong>${escJs(d.instruktur_nama)}</strong>
+                    </div>
+                    <div class="mb-2 p-2 rounded bg-light border">
+                        <div class="text-muted mb-1 fw-bold" style="font-size:0.7rem;"><i class="bi bi-calendar4-week me-1 text-primary"></i>4 Tanggal Mengajar:</div>
+                        <div class="d-flex flex-wrap">${tgl4Html}</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between pt-1" style="font-size:0.75rem;">
+                        <span class="text-success fw-bold"><i class="bi bi-people-fill me-1"></i>${d.jumlah_hadir} Hadir</span>
+                        <div class="d-flex gap-1">
+                            ${d.foto_absensi_url ? `<a href="${d.foto_absensi_url}" target="_blank" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size:0.7rem;"><i class="bi bi-file-earmark-image me-1"></i>Absensi</a>` : ''}
+                            ${d.report_detail_url ? `<a href="${d.report_detail_url}" target="_blank" class="btn btn-primary btn-sm py-0 px-2" style="font-size:0.7rem;"><i class="bi bi-eye me-1"></i>Detail</a>` : ''}
+                            <button class="btn btn-outline-secondary btn-sm py-0 px-1 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead(${n.id})" style="font-size:0.7rem;"><i class="bi bi-check2"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 
     function markNotifAsRead(id) {

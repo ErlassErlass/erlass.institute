@@ -576,6 +576,119 @@
 
             <!-- Verification Center (Admin Only) -->
             @if(Auth::user()->role === 'admin_sistem' || Auth::user()->role === 'webmaster' || Auth::user()->role === 'admin')
+                <!-- Admin Helpdesk & Ticket Control Center -->
+                @if(isset($ticket_stats) && ($ticket_stats['open'] > 0 || $ticket_stats['unread_admin'] > 0 || (isset($admin_actionable_tickets) && $admin_actionable_tickets->count() > 0)))
+                <div class="dashboard-card mb-4" id="tour-admin-ticket-control" style="border-left: 6px solid #4F46E5 !important;">
+                    <div class="card-header bg-indigo-subtle text-indigo-emphasis fw-bold d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 p-3" style="background: #EEF2FF; color: #3730A3;">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: #4F46E5 !important;">
+                                <i class="bi bi-ticket-detailed-fill" style="font-size: 0.85rem;"></i>
+                            </div>
+                            <span class="fw-bold">🎫 PUSAT KENDALI TIKET & KENDALA INSTRUKTUR ({{ $ticket_stats['open'] }} Menunggu Respon)</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            @if($ticket_stats['urgent_high'] > 0)
+                                <span class="badge bg-danger rounded-pill px-2.5 py-1 fw-bold">
+                                    <i class="bi bi-fire me-1"></i>{{ $ticket_stats['urgent_high'] }} Prioritas Mendesak
+                                </span>
+                            @endif
+                            <a href="{{ route('tickets.index') }}" class="btn btn-sm text-white fw-semibold rounded-pill px-3 py-1 shadow-sm" style="font-size: 0.78rem; background: #4F46E5; border-color: #4F46E5;">
+                                Kelola Semua Tiket <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Counter Grid -->
+                    <div class="p-3 bg-light border-bottom">
+                        <div class="row g-2 text-center">
+                            <div class="col-6 col-md-3">
+                                <div class="p-2 bg-white rounded-3 border shadow-sm">
+                                    <div class="small text-muted" style="font-size: 0.72rem;">Tiket Menunggu Respon</div>
+                                    <div class="fs-5 fw-bold text-danger">{{ $ticket_stats['open'] }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-2 bg-white rounded-3 border shadow-sm">
+                                    <div class="small text-muted" style="font-size: 0.72rem;">Prioritas Urgent / High</div>
+                                    <div class="fs-5 fw-bold text-warning">{{ $ticket_stats['urgent_high'] }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-2 bg-white rounded-3 border shadow-sm">
+                                    <div class="small text-muted" style="font-size: 0.72rem;">Sedang Diproses</div>
+                                    <div class="fs-5 fw-bold text-primary">{{ $ticket_stats['in_progress'] }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-2 bg-white rounded-3 border shadow-sm">
+                                    <div class="small text-muted" style="font-size: 0.72rem;">Selesai Dijawab</div>
+                                    <div class="fs-5 fw-bold text-success">{{ $ticket_stats['resolved'] }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if(isset($admin_actionable_tickets) && $admin_actionable_tickets->count() > 0)
+                    <div class="list-group list-group-flush">
+                        @foreach($admin_actionable_tickets as $actTicket)
+                            @php
+                                $isUrgent = $actTicket->prioritas === 'urgent';
+                                $isHigh = $actTicket->prioritas === 'high';
+                            @endphp
+                            <div class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-3" style="{{ $isUrgent ? 'background: #FEF2F2;' : '' }}">
+                                <div class="w-100 w-md-auto">
+                                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                        <a href="{{ route('tickets.show', $actTicket->id) }}" class="font-monospace fw-bold text-decoration-none" style="font-size: 0.85rem; color: #4F46E5;">
+                                            {{ $actTicket->ticket_number }}
+                                        </a>
+                                        @if($isUrgent)
+                                            <span class="badge bg-danger text-white rounded-pill px-2 py-0.5 fw-bold" style="font-size: 0.68rem;">
+                                                <i class="bi bi-fire me-1"></i>Urgent
+                                            </span>
+                                        @elseif($isHigh)
+                                            <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 fw-bold" style="font-size: 0.68rem;">
+                                                <i class="bi bi-exclamation-triangle-fill me-1"></i>High
+                                            </span>
+                                        @else
+                                            <span class="badge bg-secondary text-white rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">Normal</span>
+                                        @endif
+
+                                        <span class="badge {{ $actTicket->kategori_badge }} rounded-pill" style="font-size: 0.68rem;">
+                                            {{ $actTicket->kategori_label }}
+                                        </span>
+
+                                        @if($actTicket->has_unread_reply_for_admin)
+                                            <span class="badge bg-info text-dark rounded-pill" style="font-size: 0.68rem;">
+                                                <i class="bi bi-chat-dots-fill me-1"></i>Balasan Baru
+                                            </span>
+                                        @endif
+                                        <small class="text-muted ms-auto ms-md-0" style="font-size: 0.72rem;">{{ $actTicket->created_at->diffForHumans() }}</small>
+                                    </div>
+                                    <h6 class="mb-1 fw-bold text-dark" style="font-size: 0.90rem;">
+                                        {{ $actTicket->judul }}
+                                    </h6>
+                                    <div class="text-muted small" style="font-size: 0.78rem;">
+                                        <i class="bi bi-person-fill text-primary me-1"></i><strong>{{ $actTicket->user->nama_lengkap ?? 'Instruktur' }}</strong>
+                                        @if($actTicket->session?->rombel?->ekstrakurikuler?->sekolah)
+                                            <span class="mx-1">•</span>
+                                            <i class="bi bi-building me-1"></i>{{ $actTicket->session->rombel->ekstrakurikuler->sekolah->namasekolah }}
+                                        @endif
+                                        <span class="mx-1">•</span>
+                                        <span class="fst-italic text-secondary">"{{ Str::limit($actTicket->deskripsi, 80) }}"</span>
+                                    </div>
+                                </div>
+                                <div class="w-100 w-md-auto text-end text-md-start d-flex gap-2 justify-content-end align-items-center">
+                                    <a href="{{ route('tickets.show', $actTicket->id) }}" class="btn btn-sm text-white fw-bold rounded-pill px-3 py-1.5 shadow-sm w-100 w-md-auto" style="font-size: 0.78rem; background: #4F46E5; border-color: #4F46E5;">
+                                        <i class="bi bi-chat-left-text-fill me-1"></i> Tanggapi Tiket
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    @endif
+                </div>
+                @endif
+
                 <!-- Admin To-Do List: Pending Reschedule / Sesi Libur -->
                 @if(isset($pending_reschedule_sessions) && $pending_reschedule_sessions->count() > 0)
                 <div class="dashboard-card mb-4" id="tour-admin-pending-reschedule" style="border-left: 6px solid #F59E0B !important;">

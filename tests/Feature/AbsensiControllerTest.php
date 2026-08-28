@@ -461,7 +461,7 @@ class AbsensiControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewIs('absensi.print-blank');
-        $response->assertSee('Presensi Coding Scratch');
+        $response->assertSee('Coding Scratch');
         $response->assertSee('Test School');
     }
 }

@@ -259,4 +259,42 @@ class TicketTest extends TestCase
         $this->assertTrue($ticket->has_unread_reply_for_admin);
         $this->assertEquals(2, $ticket->replies()->count());
     }
+
+    public function test_ticket_creation_and_reply_triggers_admin_notifications()
+    {
+        // 1. Instructor creates ticket -> Notification created for admin
+        $this->actingAs($this->instructor)->post(route('tickets.store'), [
+            'kategori' => 'jadwal_honor',
+            'judul' => 'Honor Sesi Tidak Muncul',
+            'deskripsi' => 'Mohon cek honor pertemuan 3',
+            'prioritas' => 'high',
+        ]);
+
+        $ticket = Ticket::latest('id')->first();
+        $this->assertNotNull($ticket);
+
+        $this->assertDatabaseHas('notifications', [
+            'type' => 'ticket_created',
+            'is_read' => false,
+        ]);
+
+        // 2. Admin fetches unread notifications API
+        $response = $this->actingAs($this->admin)->getJson(route('admin.notifications.unread'));
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'unread_count',
+            'ticket_count',
+            'milestone_count',
+            'notifications',
+        ]);
+        $this->assertGreaterThanOrEqual(1, $response->json('ticket_count'));
+
+        // 3. Admin views ticket -> notification marked as read
+        $this->actingAs($this->admin)->get(route('tickets.show', $ticket->id));
+
+        $this->assertDatabaseHas('notifications', [
+            'type' => 'ticket_created',
+            'is_read' => true,
+        ]);
+    }
 }

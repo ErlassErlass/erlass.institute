@@ -140,6 +140,20 @@ class Ticket extends Model
     }
 
     /**
+     * Get human-readable priority label.
+     */
+    public function getPrioritasLabelAttribute(): string
+    {
+        return match ($this->prioritas) {
+            self::PRIORITAS_URGENT => 'Mendesak (Urgent)',
+            self::PRIORITAS_HIGH => 'Tinggi (High)',
+            self::PRIORITAS_MEDIUM => 'Sedang (Medium)',
+            self::PRIORITAS_LOW => 'Rendah (Low)',
+            default => ucfirst($this->prioritas ?? 'Medium'),
+        };
+    }
+
+    /**
      * Scope for role access.
      */
     public function scopeForUser($query, $user)
