@@ -134,7 +134,7 @@
         background: #f8fafc;
         border-left: 4px solid var(--adm-blue);
         border-radius: 0 8px 8px 0;
-        padding: 1rem 1.25rem;
+        padding: 1.1rem 1.25rem;
         margin-bottom: 1rem;
     }
     .step-number {
@@ -166,22 +166,18 @@
         border-radius: 8px;
         padding: 1rem 1.25rem;
     }
-
-    /* ─── Feature Pill Badges ─── */
-    .feature-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.25rem 0.65rem;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        font-weight: 600;
+    .callout-info {
+        background: var(--adm-blue-subtle);
+        border: 1px solid rgba(37, 99, 235, 0.2);
+        border-left: 4px solid var(--adm-blue);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
     }
 
     /* ─── Quick Search ─── */
     .guide-search-wrap {
         position: relative;
-        max-width: 520px;
+        max-width: 540px;
     }
     .guide-search-wrap .bi-search {
         position: absolute;
@@ -222,15 +218,15 @@
         <div class="row align-items-center">
             <div class="col-lg-8">
                 <div class="admin-badge-pill">
-                    <i class="bi bi-shield-lock-fill text-warning"></i> Khusus Administrator &amp; Tim Manajemen
+                    <i class="bi bi-shield-lock-fill text-warning"></i> Khusus Administrator, Keuangan &amp; Tim Manajemen (v2.9.18)
                 </div>
-                <h1 class="display-6 fw-bold mb-2 text-white">Panduan Operasional &amp; SOP Sistem</h1>
-                <p class="text-white mb-4" style="max-width: 650px; opacity: 0.92; font-size: 1rem;">
-                    Dokumentasi lengkap panduan teknis, alur kerja (workflow), kebijakan penjadwalan, payroll, dan mitigasi kendala operasional harian pada sistem <strong>Erlass Institute</strong>.
+                <h1 class="display-6 fw-bold mb-2 text-white">Panduan Operasional &amp; SOP Sistem Administrator</h1>
+                <p class="text-white mb-4" style="max-width: 680px; opacity: 0.92; font-size: 1rem;">
+                    Dokumentasi resmi alur kerja (*Standard Operating Procedure*) untuk pengelolaan program ekskul, penanganan sesi libur/ditunda (FIFO Non-Blocking), antrean To-Do List reschedule, cascade shift, modul payroll (asisten &amp; pajak 2.5%), integrasi Google Sheets, dan automasi WhatsApp.
                 </p>
                 <div class="guide-search-wrap">
                     <i class="bi bi-search"></i>
-                    <input type="text" id="adminGuideSearch" placeholder="Cari panduan (misal: reschedule, reset sesi, payroll, rombel)..." onkeyup="filterGuideTopics()">
+                    <input type="text" id="adminGuideSearch" placeholder="Cari panduan (misal: reschedule, libur, cascade, pajak 2.5%, asisten, google sheets)..." onkeyup="filterGuideTopics()">
                 </div>
             </div>
             <div class="col-lg-4 text-end d-none d-lg-block">
@@ -244,29 +240,29 @@
         <div class="col-lg-3">
             <div class="toc-card">
                 <h6 class="fw-bold text-dark mb-3 d-flex align-items-center">
-                    <i class="bi bi-list-ul me-2 text-primary"></i> Daftar Topik Panduan
+                    <i class="bi bi-list-ul me-2 text-primary"></i> Daftar Modul Panduan
                 </h6>
                 <nav class="nav flex-column gap-1" id="guideTocNav">
+                    <a href="#section-dashboard-todo" class="toc-link">
+                        <i class="bi bi-pin-angle-fill text-danger"></i> 1. To-Do List Reschedule
+                    </a>
+                    <a href="#section-libur-reschedule" class="toc-link">
+                        <i class="bi bi-calendar-x text-warning"></i> 2. Libur, FIFO &amp; Cascade
+                    </a>
                     <a href="#section-program" class="toc-link">
-                        <i class="bi bi-journal-bookmark text-primary"></i> 1. Program &amp; Rombel
+                        <i class="bi bi-journal-bookmark text-primary"></i> 3. Program &amp; Rombel
                     </a>
                     <a href="#section-siswa" class="toc-link">
-                        <i class="bi bi-people text-success"></i> 2. Pendaftaran Siswa
+                        <i class="bi bi-people text-success"></i> 4. Siswa &amp; WhatsApp
                     </a>
-                    <a href="#section-jadwal" class="toc-link">
-                        <i class="bi bi-calendar3 text-warning"></i> 3. Jadwal &amp; Sesi
-                    </a>
-                    <a href="#section-reschedule" class="toc-link">
-                        <i class="bi bi-calendar-x text-danger"></i> 4. Libur, Reschedule &amp; Reset
-                    </a>
-                    <a href="#section-instruktur" class="toc-link">
-                        <i class="bi bi-person-badge text-info"></i> 5. Instruktur &amp; Audit Laporan
+                    <a href="#section-analisis" class="toc-link">
+                        <i class="bi bi-graph-up-arrow text-info"></i> 5. Analisis Beban Kerja
                     </a>
                     <a href="#section-payroll" class="toc-link">
-                        <i class="bi bi-wallet2 text-primary"></i> 6. Master Tarif &amp; Payroll
+                        <i class="bi bi-wallet2 text-primary"></i> 6. Payroll, Asisten &amp; Pajak
                     </a>
-                    <a href="#section-absensi" class="toc-link">
-                        <i class="bi bi-qr-code-scan text-secondary"></i> 7. Presensi &amp; Rekap PDF
+                    <a href="#section-sheets" class="toc-link">
+                        <i class="bi bi-file-earmark-spreadsheet text-success"></i> 7. Integrasi Google Sheets
                     </a>
                     <a href="#section-tiket" class="toc-link">
                         <i class="bi bi-ticket-detailed text-warning"></i> 8. Helpdesk &amp; Audit Log
@@ -274,9 +270,9 @@
                 </nav>
 
                 <hr class="my-3">
-                <div class="d-grid">
+                <div class="d-grid gap-2">
                     <a href="{{ route('help.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill">
-                        <i class="bi bi-box-arrow-up-right me-1"></i> Buka Panduan Instruktur / FAQ
+                        <i class="bi bi-box-arrow-up-right me-1"></i> Buka FAQ Instruktur
                     </a>
                 </div>
             </div>
@@ -285,34 +281,133 @@
         <!-- Main Content Area -->
         <div class="col-lg-9" id="guideContentArea">
 
-            <!-- 1. PROGRAM & ROMBEL -->
+            <!-- 1. TO-DO LIST RESCHEDULE ADMIN -->
+            <div class="guide-card" id="section-dashboard-todo">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="guide-header-icon bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-pin-angle-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-dark">1. Dashboard Command Center &amp; To-Do List Antrean Reschedule</h4>
+                        <small class="text-muted">Pemantauan sesi libur/ditunda dan penjadwalan tanggal pengganti langsung dari dashboard.</small>
+                    </div>
+                </div>
+
+                <div class="p-3.5 rounded-3 mb-3" style="background: #fffbeb; border: 1.5px solid #fde68a;">
+                    <h6 class="fw-bold text-dark mb-2">
+                        <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> Kebijakan: Strict Reschedule Rule (Tidak Boleh Hangus)
+                    </h6>
+                    <p class="small text-muted mb-0">
+                        Setiap sesi yang ditiadakan karena libur sekolah, kegiatan mendadak, atau izin instruktur <strong>wajib dijadwalkan ulang (reschedule)</strong> ke tanggal pengganti. Sesi tidak boleh dibatalkan atau di-skip begitu saja demi memastikan target kurikulum (12 atau 16 pertemuan) terpenuhi 100%.
+                    </p>
+                </div>
+
+                <div class="step-box">
+                    <div class="step-number">Alur Operasional</div>
+                    <h6 class="fw-bold mb-1">Menjalankan Reschedule dari Widget Dashboard</h6>
+                    <ol class="small text-secondary mb-0 ps-3">
+                        <li class="mb-2">Buka <strong>Dashboard Admin</strong> (<code>/dashboard</code>). Jika ada sesi libur yang belum ditentukan tanggal penggantinya, kartu kuning bertajuk <strong>📌 TO-DO LIST ADMIN: Antrean Reschedule (X Sesi Wajib Dijadwalkan Ulang)</strong> akan otomatis muncul di bagian atas.</li>
+                        <li class="mb-2">Pilih sesi yang ingin dijadwalkan, lalu klik tombol <strong>`Reschedule Sekarang`</strong>.</li>
+                        <li class="mb-2">Pilih <strong>Tanggal Pengganti Baru</strong> dan masukkan <strong>Alasan Penjadwalan</strong>.</li>
+                        <li class="mb-2"><strong>Opsi Pergeseran Berantai (*Cascade Shift*):</strong> Centang kotak <em>"Geser seluruh jadwal pertemuan berikutnya secara berantai"</em> jika Anda ingin memundurkan jadwal pertemuan berikutnya secara proporsional.</li>
+                        <li>Klik <strong>Simpan Jadwal Pengganti</strong>. Status sesi kembali menjadi <em>Terjadwal</em> dan otomatis keluar dari antrean to-do list.</li>
+                    </ol>
+                </div>
+
+                <div class="callout-info">
+                    <div class="d-flex gap-2">
+                        <i class="bi bi-shield-lock-fill text-primary fs-5"></i>
+                        <div class="small">
+                            <strong>Otorisasi Eksklusif Admin:</strong> Instruktur dilarang memindahkan atau mengubah tanggal sesi (HTTP 403 Forbidden). Hanya akun dengan role <strong>Admin, Admin Sistem, atau Webmaster</strong> yang memiliki wewenang memindahkan tanggal sesi.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. LIBUR, FIFO & CASCADE SHIFT -->
+            <div class="guide-card" id="section-libur-reschedule">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="guide-header-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-calendar-x-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-dark">2. Penanganan Sesi Libur, FIFO Non-Blocking, &amp; Relokasi Laporan</h4>
+                        <small class="text-muted">Eliminasi penguncian sesi lanjutan, tombol tandai libur, dan perbaikan salah input laporan.</small>
+                    </div>
+                </div>
+
+                <div class="step-box">
+                    <div class="step-number">Fitur v2.9.18</div>
+                    <h6 class="fw-bold mb-1">Mekanisme FIFO Non-Blocking &amp; Auto-Bypass Tanggal Merah</h6>
+                    <p class="small text-muted mb-2">
+                        Sistem tidak lagi mengunci sesi pertemuan lanjutan jika sesi sebelumnya berstatus libur atau bertepatan dengan tanggal merah:
+                    </p>
+                    <ul class="small text-secondary mb-0">
+                        <li><strong>Status Non-Blocking:</strong> Sesi dengan status <code>libur</code>, <code>ditunda</code>, <code>diganti</code>, atau <code>dibatalkan</code> secara otomatis dilewati dan <strong>tidak memblokir</strong> pengisian laporan atau check-in sesi berikutnya.</li>
+                        <li><strong>Auto-Bypass Hari Libur Nasional:</strong> Jika sesi lampau jatuh pada tanggal merah nasional yang terdaftar di database <code>holidays</code>, sesi tersebut otomatis dilewati dari penguncian FIFO tanpa perlu intervensi manual.</li>
+                    </ul>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-light h-100">
+                            <h6 class="fw-bold text-dark"><i class="bi bi-calendar2-minus text-warning me-1"></i> A. Tombol Cepat Tandai Libur</h6>
+                            <p class="small text-muted mb-0">
+                                Pada halaman Detail Sesi (<code>/ekstrakurikuler/sessions/{id}</code>), gunakan tombol <strong>`[ 📅 Sesi P.X Libur / Ditunda? ]`</strong> untuk menandai status libur dengan alasan resmi. Sesi akan otomatis masuk ke To-Do List Admin.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-light h-100">
+                            <h6 class="fw-bold text-dark"><i class="bi bi-arrow-left-right text-primary me-1"></i> B. Relokasi Laporan Mengajar</h6>
+                            <p class="small text-muted mb-0">
+                                Jika instruktur salah memasukkan laporan di Pertemuan 2 padahal untuk Pertemuan 1, buka Detail Laporan &gt; klik <strong>`⇄ Pindahkan Pertemuan`</strong> &gt; pilih target Pertemuan 1. Laporan, absensi, dan foto akan berpindah secara instan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="callout-warning">
+                    <div class="d-flex gap-2">
+                        <i class="bi bi-arrow-counterclockwise text-warning fs-5"></i>
+                        <div class="small">
+                            <strong>Reset Sesi Berlangsung ke Terjadwal:</strong> Jika instruktur salah menekan tombol *"Mulai Sesi"* sebelum waktu kegiatan, buka Detail Sesi &gt; klik <strong>`↺ Reset ke Terjadwal`</strong> untuk menghapus jam aktual dan mengembalikan status ke terjadwal.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. PROGRAM & ROMBEL -->
             <div class="guide-card" id="section-program">
                 <div class="d-flex align-items-center mb-3">
                     <div class="guide-header-icon bg-primary bg-opacity-10 text-primary">
                         <i class="bi bi-journal-bookmark-fill"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0 text-dark">1. Manajemen Program &amp; Rombongan Belajar (Rombel)</h4>
-                        <small class="text-muted">Pembuatan program ekskul, konfigurasi jadwal mingguan, dan kuota rombel.</small>
+                        <h4 class="fw-bold mb-0 text-dark">3. Manajemen Program Ekstrakurikuler &amp; Rombel</h4>
+                        <small class="text-muted">Wizard pembuatan program multi-step, penugasan instruktur utama &amp; asisten, dan sinkronisasi sesi.</small>
                     </div>
                 </div>
 
                 <div class="step-box">
                     <div class="step-number">Langkah 1</div>
-                    <h6 class="fw-bold mb-1">Membuat Program Ekstrakurikuler Baru</h6>
-                    <p class="small text-muted mb-2">Buka menu <strong>Program Ekskul &gt; Buat Program Baru</strong>. Lengkapi formulir multi-tahap:</p>
+                    <h6 class="fw-bold mb-1">Membuat Program Ekstrakurikuler Baru (Wizard 6 Langkah)</h6>
+                    <p class="small text-muted mb-2">Buka menu <strong>Program Ekskul &gt; Tambah Program</strong>:</p>
                     <ul class="small text-secondary mb-0">
-                        <li><strong>Identitas:</strong> Pilih Sekolah mitra, Kategori Program (misal: Coding Scratch, Robotik), dan Sales penanggung jawab.</li>
-                        <li><strong>Rombel &amp; Jadwal:</strong> Tentukan jumlah pertemuan (default 24 pertemuan), hari mengajar, dan jam mulai/selesai.</li>
-                        <li><strong>Instruktur &amp; Asisten:</strong> Tugaskan Instruktur Utama dan Asisten Instruktur (bisa dipilih langsung atau disusulkan nanti).</li>
+                        <li><strong>1. Info Program:</strong> Tentukan Kategori Program (Coding Scratch, Micro:bit, Python, Robotika) dan Sales PIC.</li>
+                        <li><strong>2. Sekolah:</strong> Pilih sekolah mitra dari database klien aktif.</li>
+                        <li><strong>3. Kebutuhan Teknis:</strong> Konfigurasi kebutuhan internet, proyektor, kabel terminal.</li>
+                        <li><strong>4. Struktur Rombel:</strong> Tentukan jumlah siswa, ruangan, dan total rombel yang dibuka.</li>
+                        <li><strong>5. Detail Rombel:</strong> Isi Hari, Jam Mulai/Selesai, Tanggal Mulai &amp; Selesai, serta Total Pertemuan (default: 16 sesi).</li>
+                        <li><strong>6. Review &amp; Simpan:</strong> Periksa pratinjau seluruh sesi dan klik <em>Selesai &amp; Simpan</em>.</li>
                     </ul>
                 </div>
 
                 <div class="step-box">
                     <div class="step-number">Langkah 2</div>
-                    <h6 class="fw-bold mb-1">Menambah Rombel Baru pada Program yang Sudah Berjalan</h6>
+                    <h6 class="fw-bold mb-1">Menambah Rombel Baru pada Program yang Berjalan</h6>
                     <p class="small text-muted mb-0">
-                        Pada halaman detail program ekskul (<code>/ekstrakurikuler/{id}</code>), klik tombol <strong>+ Tambah Rombel</strong> di tab Rombongan Belajar. Sistem akan otomatis men-generate seluruh sesi pertemuan untuk rombel baru tersebut sesuai tanggal mulai dan frekuensinya.
+                        Pada detail program ekskul (<code>/ekstrakurikuler/{id}</code>), buka tab <strong>Rombel</strong> &gt; klik <strong>`+ Tambah Rombel`</strong>. Sistem akan otomatis menentukan nomor rombel berikutnya (*Rombel N+1*) dan meng-generate seluruh jadwal sesinya.
                     </p>
                 </div>
 
@@ -320,242 +415,192 @@
                     <div class="d-flex gap-2">
                         <i class="bi bi-lightbulb-fill text-success fs-5"></i>
                         <div class="small">
-                            <strong>Tips Admin:</strong> Kuota siswa pada rombel bersifat target kuota kelas. Jumlah siswa aktif yang sesungguhnya dihitung secara otomatis dan real-time dari data enrollment siswa yang aktif.
+                            <strong>Proteksi Manual Reschedule saat Sinkronisasi:</strong> Mengklik tombol <em>"Sinkronkan Jadwal"</em> hanya memperbarui sesi-sesi normal yang belum berjalan. Sesi yang berstatus <em>Selesai</em>, <em>Berlangsung</em>, atau <em>Direschedule Manual (<code>is_manual_reschedule = true</code>)</em> tidak akan ditimpa atau dihapus.
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 2. PENDAFTARAN SISWA -->
+            <!-- 4. PENDAFTARAN SISWA & WHATSAPP -->
             <div class="guide-card" id="section-siswa">
                 <div class="d-flex align-items-center mb-3">
                     <div class="guide-header-icon bg-success bg-opacity-10 text-success">
                         <i class="bi bi-people-fill"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0 text-dark">2. Pendaftaran Siswa (Enrollment)</h4>
-                        <small class="text-muted">Metode memasukkan siswa ke rombel ekskul dan filter data kelas.</small>
+                        <h4 class="fw-bold mb-0 text-dark">4. Manajemen Siswa, Enrollment, &amp; WhatsApp Gateway</h4>
+                        <small class="text-muted">Import CSV, verifikasi NISN sementara, chat 1-klik, dan automasi notifikasi Fonnte.</small>
                     </div>
                 </div>
-
-                <p class="small text-muted">
-                    Masuk ke halaman <strong>Manajemen Siswa</strong> program melalui tombol <em>Daftar Siswa</em> pada detail ekskul (<code>/ekstrakurikuler/{id}/enrollment</code>). Tersedia 3 metode pendaftaran:
-                </p>
 
                 <div class="row g-3 mb-3">
                     <div class="col-md-4">
                         <div class="p-3 border rounded-3 bg-light h-100">
-                            <h6 class="fw-bold text-dark"><i class="bi bi-person-plus text-primary me-1"></i> 1. Input Manual</h6>
-                            <p class="small text-muted mb-0">Mendaftarkan siswa satu per satu dengan memilih siswa terdaftar dari database sekolah mitra.</p>
+                            <h6 class="fw-bold text-dark"><i class="bi bi-filetype-csv text-success me-1"></i> Import CSV Siswa</h6>
+                            <p class="small text-muted mb-0">
+                                Gunakan template <code>Template_Import_Siswa_Program.csv</code> pada halaman enrollment. Isi kolom: <code>nama_lengkap, nisn, kelas_akademik, no_hp_orangtua, target_rombel_ekskul</code>.
+                            </p>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="p-3 border rounded-3 bg-light h-100">
-                            <h6 class="fw-bold text-dark"><i class="bi bi-collection-fill text-success me-1"></i> 2. Dari Kelas Sekolah</h6>
-                            <p class="small text-muted mb-0">Fitur <em>Bulk Import Rombel</em>: Mendaftarkan langsung seluruh siswa dari satu rombel kelas reguler (misal: Kelas 7A) sekaligus ke ekskul.</p>
+                            <h6 class="fw-bold text-dark"><i class="bi bi-whatsapp text-success me-1"></i> Welcome Message</h6>
+                            <p class="small text-muted mb-0">
+                                Sistem otomatis mendeteksi <code>no_hp_orangtua</code> dan menembakkan pesan sambutan via WhatsApp berisi informasi jadwal hari dan jam mulai kelas anak.
+                            </p>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="p-3 border rounded-3 bg-light h-100">
-                            <h6 class="fw-bold text-dark"><i class="bi bi-file-earmark-excel text-success me-1"></i> 3. Unggah File Excel</h6>
-                            <p class="small text-muted mb-0">Mengunggah file CSV/Excel daftar siswa (Nama, NISN, Kelas) secara massal menggunakan template yang disediakan.</p>
+                            <h6 class="fw-bold text-dark"><i class="bi bi-bell-fill text-warning me-1"></i> Progress Kelipatan 4</h6>
+                            <p class="small text-muted mb-0">
+                                Setiap 4x kehadiran anak (Pertemuan 4, 8, 12, 16), sistem mengirimkan ringkasan materi dan absensi detail dengan emoji (✅ / ❌) ke orang tua.
+                            </p>
                         </div>
                     </div>
                 </div>
 
-                <div class="callout-tip">
+                <div class="callout-info">
                     <div class="d-flex gap-2">
-                        <i class="bi bi-info-circle-fill text-success fs-5"></i>
+                        <i class="bi bi-chat-dots-fill text-primary fs-5"></i>
                         <div class="small">
-                            <strong>Pembeda Kelas vs Rombel:</strong> Kolom <strong>Kelas</strong> menunjukkan kelas reguler siswa di sekolah (contoh: 7B, 8A). Sedangkan kolom <strong>Rombel</strong> menunjukkan kelompok belajar ekstrakurikuler yang diikuti.
+                            <strong>Chat WhatsApp 1-Klik di Menu Siswa (<code>/siswa</code>):</strong> Klik ikon hijau WhatsApp pada baris siswa untuk langsung membuka ruang obrolan ke nomor orang tua siswa tanpa perlu menyimpan nomor kontak terlebih dahulu.
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 3. JADWAL & SESI -->
-            <div class="guide-card" id="section-jadwal">
+            <!-- 5. ANALISIS JADWAL & BEBAN KERJA -->
+            <div class="guide-card" id="section-analisis">
                 <div class="d-flex align-items-center mb-3">
-                    <div class="guide-header-icon bg-warning bg-opacity-10 text-warning">
-                        <i class="bi bi-calendar3"></i>
+                    <div class="guide-header-icon bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-graph-up-arrow"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0 text-dark">3. Penjadwalan Cerdas &amp; Siklus Sesi (Smart Scheduling)</h4>
-                        <small class="text-muted">Mekanisme auto-generate, deteksi libur nasional, dan sinkronisasi sesi.</small>
+                        <h4 class="fw-bold mb-0 text-dark">5. Analisis Beban Kerja &amp; Matriks Ketersediaan</h4>
+                        <small class="text-muted">Monitoring distribusi sesi mengajar instruktur dan pemetaan jadwal luang mingguan.</small>
                     </div>
                 </div>
 
+                <p class="small text-muted mb-3">
+                    Akses menu <strong>Analisis Jadwal</strong> (<code>/admin/analytics/schedule-distribution</code>):
+                </p>
+
                 <div class="step-box">
-                    <div class="step-number">Alur Penjadwalan</div>
-                    <h6 class="fw-bold mb-1">Mekanisme Penjadwalan Otomatis</h6>
-                    <p class="small text-muted mb-2">Saat rombel dibuat, sistem melakukan kalkulasi tanggal sesi dengan aturan:</p>
+                    <div class="step-number">Tab 1: Distribusi Sesi</div>
+                    <h6 class="fw-bold mb-1">Monitoring Beban Kerja &amp; Keadilan Jam Mengajar</h6>
                     <ul class="small text-secondary mb-0">
-                        <li>Mencari hari pertama yang cocok antara tanggal mulai rombel dan hari yang dipilih (misal: Jumat).</li>
-                        <li>Melompati tanggal yang terdaftar dalam daftar <strong>Hari Libur Nasional</strong> kalender akademik.</li>
-                        <li>Membuat record sesi pertemuan dari pertemuan ke-1 hingga pertemuan target (misal: 24 sesi).</li>
+                        <li><strong>Filter Multi-Periode:</strong> Pilih periode <em>Periode Honor Berjalan (Siklus 11-10)</em>, <em>Periode Lalu</em>, atau <em>Custom Date Range</em>.</li>
+                        <li><strong>Grafik Visual:</strong> Membandingkan total jam mengajar antar-instruktur. Sistem memberi rekomendasi instruktur yang jam mengajarnya masih di bawah rata-rata.</li>
                     </ul>
                 </div>
 
                 <div class="step-box">
-                    <div class="step-number">Fitur Sinkronisasi</div>
-                    <h6 class="fw-bold mb-1">Tombol "Sinkronkan Jadwal" (Regenerate Sessions)</h6>
-                    <p class="small text-muted mb-0">
-                        Tombol ini digunakan saat ada perubahan konfigurasi rombel (misal: jam digeser atau hari diubah). Sistem akan memperbarui sesi-sesi yang <strong>belum dimulai (status terjadwal)</strong>. Sesi yang sudah <em>Selesai</em>, <em>Berlangsung</em>, atau <em>Direschedule Manual</em> akan <strong>tetap aman dan terlindungi</strong> dari penimpaan.
-                    </p>
+                    <div class="step-number">Tab 2: Matriks Ketersediaan (Availability Matrix)</div>
+                    <h6 class="fw-bold mb-1">Pengecekan Waktu Luang &amp; Filter Domisili Kota</h6>
+                    <ul class="small text-secondary mb-0">
+                        <li><strong>Interactive Week Picker:</strong> Pilih minggu kalender tertentu lalu klik <em>Cek Ketersediaan</em> untuk melihat jadwal terisi vs waktu luang instruktur.</li>
+                        <li><strong>Indikator Warna:</strong> 🟢 Free (Luang), 🟡 Sebagian Terisi, 🔴 Penuh / Busy, ⬜ Libur / Tidak Membuka Jadwal.</li>
+                        <li><strong>Filter Domisili:</strong> Saring instruktur berdasarkan kota tempat tinggal untuk menugaskan instruktur ke sekolah terdekat.</li>
+                    </ul>
                 </div>
             </div>
 
-            <!-- 4. LIBUR, RESCHEDULE & RESET SESI -->
-            <div class="guide-card" id="section-reschedule">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="guide-header-icon bg-danger bg-opacity-10 text-danger">
-                        <i class="bi bi-calendar-x-fill"></i>
-                    </div>
-                    <div>
-                        <h4 class="fw-bold mb-0 text-dark">4. Penanganan Libur Mendadak, Reschedule &amp; Reset Sesi</h4>
-                        <small class="text-muted">SOP penggantian tanggal sesi libur dan perbaikan salah status sesi berlangsung.</small>
-                    </div>
-                </div>
-
-                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-arrow-repeat text-warning me-1"></i> A. Kasus Libur Mendadak / Reschedule Jadwal</h6>
-                <p class="small text-muted mb-3">
-                    Bila ada hari libur mendadak (kegiatan sekolah, cuaca ekstrem, atau instruktur berhalangan):
-                </p>
-                <div class="p-3 border rounded-3 bg-light mb-3">
-                    <ol class="small text-secondary mb-0 ps-3">
-                        <li class="mb-2">Buka tab <strong>Jadwal Sesi</strong> pada halaman detail program ekstrakurikuler.</li>
-                        <li class="mb-2">Pada card sesi yang terdampak (status <em>Terjadwal</em> atau <em>Ditunda</em>), klik tombol <span class="badge bg-warning text-dark"><i class="bi bi-calendar-x me-1"></i>Libur / Jadwal Ulang</span>.</li>
-                        <li class="mb-2">
-                            <strong>Opsi 1 (Ganti Tanggal):</strong> Isi alasan libur dan pilih <strong>Tanggal Pengganti</strong>. Sistem akan langsung memindahkan jadwal sesi ke tanggal baru dan otomatis menandai flag <code>is_manual_reschedule</code> agar tidak terhapus saat ada sinkronisasi jadwal.
-                        </li>
-                        <li>
-                            <strong>Opsi 2 (Tunda Saja):</strong> Kosongkan tanggal pengganti dan isi alasan. Status sesi akan berubah menjadi <strong>Ditunda</strong> hingga tanggal pengganti ditentukan kemudian.
-                        </li>
-                    </ol>
-                </div>
-
-                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-arrow-counterclockwise text-danger me-1"></i> B. Kasus Salah Klik "Mulai" (Reset Sesi Berlangsung)</h6>
-                <p class="small text-muted mb-2">
-                    Kadang instruktur atau admin tidak sengaja menekan tombol <em>"Mulai Sesi"</em> padahal kelas belum dimulai, sehingga sesi terkunci dalam status <strong>Berlangsung</strong>.
-                </p>
-                <div class="callout-warning mb-3">
-                    <div class="d-flex gap-2">
-                        <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
-                        <div class="small">
-                            <strong>Fitur Khusus Admin:</strong> Sesi yang berstatus <em>Berlangsung</em> kini memiliki tombol <span class="badge bg-danger"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset Sesi</span> (tersedia di tab Jadwal Sesi detail program, daftar sesi, dan detail sesi). Mengklik tombol ini akan mengembalikan sesi ke status <strong>Terjadwal</strong> dan membersihkan jam pelaksanaan aktual yang keliru.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 5. INSTRUKTUR, TERTIB PELAPORAN & AUDIT KENDALA -->
-            <div class="guide-card" id="section-instruktur">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="guide-header-icon bg-info bg-opacity-10 text-info">
-                        <i class="bi bi-person-badge-fill"></i>
-                    </div>
-                    <div>
-                        <h4 class="fw-bold mb-0 text-dark">5. Instruktur, Tertib Pelaporan &amp; Audit Kendala Terlambat</h4>
-                        <small class="text-muted">Prosedur verifikasi akun, aturan tunggakan FIFO, dan SOP audit kendala keterlambatan berat.</small>
-                    </div>
-                </div>
-
-                <div class="row g-3 mb-3">
-                    <div class="col-md-6">
-                        <div class="step-box h-100">
-                            <div class="step-number">SOP 1 — Verifikasi Akun</div>
-                            <h6 class="fw-bold mb-1">Verifikasi Profil &amp; Legalitas Instruktur</h6>
-                            <p class="small text-muted mb-0">
-                                Menu <strong>Verifikasi Instruktur</strong> menampilkan calon instruktur baru. Tim Admin memvalidasi kelengkapan KTP, NPWP, nomor rekening bank, serta kompetensi sebelum mengaktifkan akun.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="step-box h-100">
-                            <div class="step-number">SOP 2 — Sistem Pelaporan Mandiri</div>
-                            <h6 class="fw-bold mb-1">Aturan Tunggakan Global FIFO (Maks. 1x)</h6>
-                            <p class="small text-muted mb-0">
-                                Instruktur dapat mengisi laporan sesi secara mandiri (*self-service*). Toleransi tunggakan maksimal adalah <strong>1 sesi lampau</strong>. Jika ada &ge; 2 tunggakan, form sesi baru otomatis terkunci dan wajib diisi berurutan (FIFO).
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="p-3.5 rounded-3 mb-3" style="background: #eff6ff; border: 1.5px solid #bfdbfe;">
-                    <h6 class="fw-bold text-primary mb-2">
-                        <i class="bi bi-shield-check me-1"></i> SOP Menu: Audit Laporan Terlambat (<code>/admin/late-reports</code>)
-                    </h6>
-                    <p class="small text-muted mb-2">
-                        Laporan yang disubmit terlambat berat (<strong>&gt; 3 hari kalender</strong> setelah tanggal jadwal atau telah melewati batas cut-off bulanan tanggal 10) wajib mencantumkan <em>Catatan Kendala Keterlambatan</em> dan otomatis masuk ke antrean audit admin:
-                    </p>
-                    <ol class="small text-secondary mb-0 ps-3">
-                        <li class="mb-1.5">
-                            <strong>Periksa Alasan &amp; Bukti:</strong> Admin meninjau data sesi, durasi keterlambatan, foto absensi fisik bertandatangan, serta penjelasan kendala dari instruktur.
-                        </li>
-                        <li class="mb-1.5">
-                            <strong>Setujui Kendala (ACC):</strong> Klik tombol hijau <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Setujui Kendala</span>. Status berubah menjadi <em>Approved</em> dan honor sesi secara otomatis diizinkan masuk ke batch payroll (atau <em>carry-over</em> ke periode cutoff berikutnya jika disubmit lewat tanggal 10).
-                        </li>
-                        <li>
-                            <strong>Tolak Kendala:</strong> Klik tombol merah <span class="badge bg-danger"><i class="bi bi-x-lg me-1"></i>Tolak Kendala</span> dan masukkan catatan evaluasi tertulis. Honor sesi akan ditahan (*on-hold*) dari batch penggajian.
-                        </li>
-                    </ol>
-                </div>
-            </div>
-
-            <!-- 6. MASTER TARIF, PAYROLL & CARRY-OVER -->
+            <!-- 6. MASTER TARIF & PAYROLL ENGINE -->
             <div class="guide-card" id="section-payroll">
                 <div class="d-flex align-items-center mb-3">
                     <div class="guide-header-icon bg-primary bg-opacity-10 text-primary">
                         <i class="bi bi-wallet2"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0 text-dark">6. Master Tarif, Penggajian &amp; Kebijakan Carry-Over</h4>
-                        <small class="text-muted">Kalkulasi honor instruktur, pencairan batch payroll bulanan, dan mekanisme carry-over laporan susulan.</small>
+                        <h4 class="fw-bold mb-0 text-dark">6. Master Tarif, Payroll Engine v2.9.18 &amp; Ekspor Akuntansi</h4>
+                        <small class="text-muted">Kompensasi instruktur utama, honor flat rate asisten, pajak 2.5%, denda check-in, dan ekspor multi-sheet.</small>
                     </div>
                 </div>
 
-                <div class="step-box">
-                    <div class="step-number">SOP 1 — Konfigurasi Tarif</div>
-                    <h6 class="fw-bold mb-1">Master Tarif (Salary Rates)</h6>
-                    <p class="small text-muted mb-0">
-                        Menu <strong>Master Tarif</strong> digunakan untuk mengatur nominal honor standar per pertemuan bagi Instruktur Utama, Asisten Instruktur, serta penyesuaian khusus per sekolah mitra.
-                    </p>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="step-box h-100">
+                            <div class="step-number">Komponen 1 — Instruktur Utama</div>
+                            <h6 class="fw-bold mb-1">Tarif Dasar + Bonus Kepakaran + Transport</h6>
+                            <p class="small text-muted mb-0">
+                                Tarif dasar dihitung per level karir (*Junior, Madya, Senior, Expert, Master Trainer*) ditambah bonus materi (*Scratch, Micro:bit, Python, Robotika*) dan uang transport per zona sekolah.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="step-box h-100">
+                            <div class="step-number">Komponen 2 — Asisten Instruktur</div>
+                            <h6 class="fw-bold mb-1">Flat Rate Rp 100.000 / Sesi</h6>
+                            <p class="small text-muted mb-0">
+                                Asisten Instruktur menerima tarif flat <strong>Rp 100.000</strong> per sesi mengajar. Sesuai kebijakan manajemen: Uang transport asisten = Rp 0 dan denda keterlambatan asisten = Rp 0.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3.5 rounded-3 mb-3" style="background: #f8fafc; border: 1.5px solid #cbd5e1;">
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-calculator text-primary me-1"></i> Formula Akumulasi Gaji, Pajak 2.5%, &amp; Netto (Slip Resmi Erlass)</h6>
+                    <div class="small font-monospace text-dark mb-2 p-2 bg-white rounded border">
+                        Total Penerimaan Kotor = Honor Utama + Honor Asisten + Bonus Produk + Transport Utama<br>
+                        Potongan Pajak (2.5%) = round(Total Penerimaan Kotor * 0.025)<br>
+                        Gaji Bersih (Netto) = round(Total Penerimaan Kotor * 0.975) - Total Denda Check-in
+                    </div>
+                    <small class="text-muted">* Denda keterlambatan check-in GPS (> 15 menit dari jam mulai) adalah Rp 25.000 per kejadian.</small>
                 </div>
 
                 <div class="step-box">
-                    <div class="step-number">SOP 2 — Pembuatan Batch Payroll Bulanan</div>
-                    <h6 class="fw-bold mb-1">Proses Cut-off &amp; Pencairan Payroll</h6>
-                    <p class="small text-muted mb-2">Pada setiap periode tutup buku penggajian:</p>
-                    <ol class="small text-secondary mb-0 ps-3">
-                        <li class="mb-1">Buka menu <strong>Pencairan Payroll &gt; Buat Batch Baru</strong> dan tentukan rentang tanggal cut-off.</li>
-                        <li class="mb-1">Sistem otomatis menarik sesi-sesi selesai yang memiliki laporan valid dan disetujui (termasuk sesi terlambat yang sudah di-ACC kendalanya).</li>
-                        <li class="mb-1"><strong>Mekanisme Carry-over:</strong> Sesi lampau yang baru dilaporkan dan disetujui setelah tanggal cutoff bulan sebelumnya akan otomatis ditarik (*carry-over*) ke batch cutoff aktif bulan ini.</li>
-                        <li>Klik <strong>Lock / Kunci Batch</strong> untuk memfinalkan pembayaran, cetak slip gaji resmi, dan ekspor rekap ke format Excel/PDF.</li>
-                    </ol>
+                    <div class="step-number">Ekspor &amp; Pembayaran</div>
+                    <h6 class="fw-bold mb-1">Format Ekspor Batch Payroll (<code>/payroll/{id}</code>)</h6>
+                    <ul class="small text-secondary mb-0">
+                        <li><strong>1. Excel Multi-Worksheet (<code>.xlsx</code>):</strong>
+                            <ul>
+                                <li><code>Transfer_Bank</code>: Rekap nama, bank, no rekening, honor utama/asisten, transport, kotor, pajak 2.5%, denda, netto + formula <code>=SUM()</code>.</li>
+                                <li><code>Jurnal_Akuntansi</code>: Jurnal debet/kredit biaya honor, hutang pajak 2.5%, dan kas keluar.</li>
+                                <li><code>Rincian_Sesi</code>: Audit detail per pertemuan lengkap dengan badge peran (Utama vs Asisten).</li>
+                            </ul>
+                        </li>
+                        <li><strong>2. CSV Mass Transfer Bank (<code>.csv</code>):</strong> Format ringkas siap unggah ke portal corporate banking BCA / Mandiri / BNI.</li>
+                        <li><strong>3. Cetak PDF Slip Gaji Batch / Satuan:</strong> Desain 2 kolom resmi (*PENERIMAAN* vs *POTONGAN*) dan kotak *GAJI BERSIH*.</li>
+                    </ul>
                 </div>
             </div>
 
-            <!-- 7. PRESENSI & REKAP PDF -->
-            <div class="guide-card" id="section-absensi">
+            <!-- 7. GOOGLE SHEETS INTEGRATION -->
+            <div class="guide-card" id="section-sheets">
                 <div class="d-flex align-items-center mb-3">
-                    <div class="guide-header-icon bg-secondary bg-opacity-10 text-secondary">
-                        <i class="bi bi-qr-code-scan"></i>
+                    <div class="guide-header-icon bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-file-earmark-spreadsheet-fill"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0 text-dark">7. Presensi, Rekap Kehadiran &amp; Cetak PDF Publik</h4>
-                        <small class="text-muted">Pengecekan bukti presensi dan tautan cetak form presensi tanpa login.</small>
+                        <h4 class="fw-bold mb-0 text-dark">7. Integrasi Google Spreadsheet (5 Tab Data Live)</h4>
+                        <small class="text-muted">Sinkronisasi streaming data operasional ke master spreadsheet manajemen.</small>
                     </div>
                 </div>
 
                 <p class="small text-muted mb-3">
-                    Sistem mendukung presensi digital berbasis QR Code, Geolocation GPS (radius meter ke lokasi sekolah), dan upload foto bukti mengajar di kelas.
+                    Akses menu: <strong>Sistem &amp; Pengaturan &gt; Integrasi Google Sheets</strong> (<code>/admin/google-sheets</code>).
                 </p>
 
-                <div class="callout-tip">
-                    <div class="d-flex gap-2">
-                        <i class="bi bi-printer-fill text-success fs-5"></i>
-                        <div class="small">
-                            <strong>Akses Cetak Presensi Terbuka (Public PDF):</strong> Tautan cetak form presensi fisik (<code>/ekstrakurikuler-session/{id}/print</code>) dapat diakses secara publik tanpa perlu login. Fitur ini dirancang agar PIC Sekolah atau Koordinator Lapangan dapat langsung mencetak lembar absensi fisik secara fleksibel dari browser mereka.
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-light h-100">
+                            <h6 class="fw-bold text-dark"><i class="bi bi-layers-fill text-success me-1"></i> Struktur 5 Tab Master Sheet</h6>
+                            <ul class="small text-secondary mb-0 ps-3">
+                                <li><code>Ringkasan_KPI</code>: Matriks performa instruktur &amp; kedisiplinan.</li>
+                                <li><code>Laporan_Mengajar</code>: Riwayat laporan, topik materi &amp; kehadiran.</li>
+                                <li><code>Jadwal_Sesi_Ekskul</code>: Jadwal sesi &amp; jam check-in aktual.</li>
+                                <li><code>Absensi_Siswa</code>: Rekap hadir, sakit, izin, alpha per anak.</li>
+                                <li><code>Rekap_Honor</code>: Estimasi honor kotor, denda &amp; honor bersih.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-light h-100">
+                            <h6 class="fw-bold text-dark"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Fitur Initial Full Sync</h6>
+                            <p class="small text-muted mb-2">
+                                Gunakan tombol <strong>`⚡ Jalankan Full Sync Sekarang`</strong> untuk menyinkronkan seluruh ribuan data historis dari database ke spreadsheet secara instan melalui background queue.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -568,25 +613,25 @@
                         <i class="bi bi-ticket-detailed-fill"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0 text-dark">8. Manajemen Tiket Bantuan &amp; Log Pergerakan Admin</h4>
-                        <small class="text-muted">Penanganan kendala pengguna dan pengawasan keamanan sistem.</small>
+                        <h4 class="fw-bold mb-0 text-dark">8. Manajemen Tiket Bantuan &amp; Log Aktivitas (Audit Trail)</h4>
+                        <small class="text-muted">Penyelesaian kendala operasional instruktur dan pencatatan audit trail keamanan.</small>
                     </div>
                 </div>
 
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="p-3 border rounded-3 bg-light h-100">
-                            <h6 class="fw-bold text-dark"><i class="bi bi-ticket-perforated text-warning me-1"></i> Tiket Bantuan (Helpdesk)</h6>
+                            <h6 class="fw-bold text-dark"><i class="bi bi-ticket-perforated text-warning me-1"></i> Tiket Bantuan (<code>/tickets</code>)</h6>
                             <p class="small text-muted mb-0">
-                                Setiap keluhan atau permohonan kendala sistem dari instruktur akan masuk sebagai tiket dengan status <em>Open</em>. Admin dapat membalas tiket, mengunggah lampiran solusi, dan menandai status tiket menjadi <em>Closed</em> setelah kendala terselesaikan.
+                                Tanggapi tiket kendala instruktur (kategori: *Jadwal / Honor*, *Teknis / Error*, *Keluhan Lain*). Admin dapat membalas pesan, mengunggah lampiran, dan menandai status menjadi *Resolved*.
                             </p>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="p-3 border rounded-3 bg-light h-100">
-                            <h6 class="fw-bold text-dark"><i class="bi bi-shield-lock text-danger me-1"></i> Log Pergerakan Admin (Audit Log)</h6>
+                            <h6 class="fw-bold text-dark"><i class="bi bi-shield-lock text-danger me-1"></i> Activity Logs (<code>/activity-logs</code>)</h6>
                             <p class="small text-muted mb-0">
-                                Khusus Webmaster dan Admin Sistem: Seluruh aktivitas krusial seperti pembuatan program, pembatalan sesi, perubahan tarif payroll, dan hapus data tersimpan dalam log riwayat yang tidak dapat dimanipulasi untuk menjaga integritas data.
+                                Seluruh aksi krusial (penandaan sesi libur, reschedule, relokasi laporan, override tarif, dan delete data) dicatat secara otomatis mencakup: User, Aksi, Waktu WIB, IP Address, dan Device Info.
                             </p>
                         </div>
                     </div>
@@ -617,7 +662,7 @@ function filterGuideTopics() {
 // Active TOC indicator on scroll
 window.addEventListener('scroll', () => {
     const sections = document.querySelectorAll('.guide-card');
-    const scrollPos = window.scrollY + 120;
+    const scrollPos = window.scrollY + 140;
     
     sections.forEach(section => {
         const top = section.offsetTop;

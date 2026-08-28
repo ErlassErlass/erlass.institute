@@ -25,6 +25,12 @@ Untuk menghindari kebingungan, sistem ini menggunakan istilah berikut:
 
 Admin memiliki akses penuh terhadap sistem.
 
+> [!TIP]
+> **Panduan Lengkap Operasional Administrator (v2.9.18)**:
+> Untuk panduan langkah demi langkah bergambar (*Executive & SOP Manual*) khusus Admin/Webmaster mengenai manajemen rombel, penanganan sesi libur (FIFO Non-Blocking), antrean To-Do List reschedule, cascade shift, payroll engine (asisten & pajak 2.5%), Google Sheets integration, dan audit log, silakan buka:
+> - Halaman Web Interaktif: **[https://erlass.institute/admin/panduan](/admin/panduan)**
+> - Dokumen Markdown: **[Panduan Lengkap Administrator (docs/user/PANDUAN_LENGKAP_ADMIN.md)](PANDUAN_LENGKAP_ADMIN.md)**
+
 ### 1. Manajemen Data Master
 *   **Data Sekolah**: Menambah, mengedit, dan menghapus data sekolah (calon klien atau klien aktif).
 *   **Data User**: Mengelola akun pengguna (Instruktur, Sales, Admin Sekolah). Otorisasi utama dipegang oleh Admin Utama **Adinda Wardania** (`adinda.wardania@erlass.institute`) & **Cornelis Banu** (`cornelis.banu@erlass.institute`).
