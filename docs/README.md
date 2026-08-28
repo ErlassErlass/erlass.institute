@@ -40,6 +40,7 @@ Untuk pengembang baru yang akan memodifikasi backend atau frontend aplikasi.
 ### 🚀 3. Operasional & Deployment (`docs/ops/`)
 Prosedur sysadmin untuk pemeliharaan server dan deployment Docker.
 
+*   [**`AUDIT_KESIAPAN_PRODUKSI_7_PILAR.md`**](ops/AUDIT_KESIAPAN_PRODUKSI_7_PILAR.md) — Matriks audit kesiapan produksi 7 pilar (Performance, SEO, Security, a11y, Responsiveness, Architecture, Monitoring).
 *   [**`ANALISIS_FEASIBILITY_SCALING.md`**](ops/ANALISIS_FEASIBILITY_SCALING.md) — Analisis kelayakan dan performa infrastruktur server/aplikasi untuk target 5.000 siswa dan 10.000 laporan.
 *   [**`DEPLOYMENT_GUIDE.md`**](ops/DEPLOYMENT_GUIDE.md) — Panduan komprehensif deploy VPS, konfigurasi Nginx Reverse Proxy, dan setup SSL Let's Encrypt.
 *   [**`DOCKER_DEPLOYMENT.md`**](ops/DOCKER_DEPLOYMENT.md) — Setup containerization menggunakan Docker Compose.
