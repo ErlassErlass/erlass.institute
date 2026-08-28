@@ -841,7 +841,7 @@
                         <!-- Unified Admin Notification Center Dropdown -->
                         <div class="dropdown me-1" id="notificationBellDropdown">
                             <button class="btn btn-light border p-2 position-relative d-flex align-items-center justify-content-center" 
-                                    type="button" id="notifBellBtn" data-bs-toggle="dropdown" aria-expanded="false" 
+                                    type="button" id="notifBellBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" 
                                     style="width: 40px; height: 40px; border-radius: 10px;" title="Pusat Notifikasi Admin">
                                 <i class="bi bi-bell-fill fs-5 text-dark"></i>
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
@@ -861,20 +861,20 @@
                                         </div>
                                     </div>
                                     <button type="button" class="btn btn-sm btn-outline-light py-1 px-2 fw-semibold rounded-pill" 
-                                            onclick="markAllNotifsAsRead()" style="font-size: 0.70rem;">
+                                            onclick="markAllNotifsAsRead(event)" style="font-size: 0.70rem;">
                                         <i class="bi bi-check2-all me-1"></i>Tandai Semua
                                     </button>
                                 </div>
 
                                 <!-- Filter Tabs -->
-                                <div class="px-3 py-2 bg-light border-bottom d-flex gap-1">
-                                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 fw-bold notif-filter-btn" data-filter="all" onclick="filterNotifTab('all', this)" style="font-size: 0.72rem;">
+                                <div class="px-3 py-2 bg-light border-bottom d-flex gap-1" onclick="event.stopPropagation()">
+                                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 fw-bold notif-filter-btn" data-filter="all" onclick="filterNotifTab('all', this, event)" style="font-size: 0.72rem;">
                                         Semua <span class="badge bg-white text-dark ms-1" id="tabCountAll">0</span>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold notif-filter-btn" data-filter="ticket" onclick="filterNotifTab('ticket', this)" style="font-size: 0.72rem;">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold notif-filter-btn" data-filter="ticket" onclick="filterNotifTab('ticket', this, event)" style="font-size: 0.72rem;">
                                         <i class="bi bi-ticket-detailed me-1 text-warning"></i>Tiket <span class="badge bg-danger text-white ms-1" id="tabCountTicket">0</span>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold notif-filter-btn" data-filter="milestone" onclick="filterNotifTab('milestone', this)" style="font-size: 0.72rem;">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold notif-filter-btn" data-filter="milestone" onclick="filterNotifTab('milestone', this, event)" style="font-size: 0.72rem;">
                                         <i class="bi bi-flag me-1 text-primary"></i>Milestone <span class="badge bg-secondary text-white ms-1" id="tabCountMilestone">0</span>
                                     </button>
                                 </div>
@@ -1283,12 +1283,11 @@
     let currentNotifList = [];
     let activeNotifFilter = 'all';
 
-    document.addEventListener('DOMContentLoaded', function() {
-        fetchUnreadNotifications();
-        setInterval(fetchUnreadNotifications, 30000);
-    });
-
-    function filterNotifTab(filterType, btnElem) {
+    function filterNotifTab(filterType, btnElem, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
         activeNotifFilter = filterType;
         document.querySelectorAll('.notif-filter-btn').forEach(btn => {
             btn.classList.remove('btn-primary', 'fw-bold');
@@ -1300,6 +1299,20 @@
         }
         renderNotificationsList();
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchUnreadNotifications();
+        setInterval(fetchUnreadNotifications, 30000);
+
+        const notifDropdown = document.querySelector('#notificationBellDropdown .dropdown-menu');
+        if (notifDropdown) {
+            notifDropdown.addEventListener('click', function(e) {
+                if (!e.target.closest('a[href]')) {
+                    e.stopPropagation();
+                }
+            });
+        }
+    });
 
     function fetchUnreadNotifications() {
         fetch("{{ route('admin.notifications.unread') }}")
@@ -1415,7 +1428,7 @@
                                 <a href="${ticketUrl}" class="btn btn-primary btn-sm py-0.5 px-2.5 fw-bold rounded-pill" style="font-size:0.72rem;">
                                     <i class="bi bi-chat-text-fill me-1"></i>Buka & Jawab
                                 </a>
-                                <button class="btn btn-outline-secondary btn-sm py-0.5 px-1.5 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead(${n.id})" style="font-size:0.72rem;">
+                                <button class="btn btn-outline-secondary btn-sm py-0.5 px-1.5 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead(${n.id}, event)" style="font-size:0.72rem;">
                                     <i class="bi bi-check2"></i>
                                 </button>
                             </div>
@@ -1450,7 +1463,7 @@
                         <div class="d-flex gap-1">
                             ${d.foto_absensi_url ? `<a href="${d.foto_absensi_url}" target="_blank" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size:0.7rem;"><i class="bi bi-file-earmark-image me-1"></i>Absensi</a>` : ''}
                             ${d.report_detail_url ? `<a href="${d.report_detail_url}" target="_blank" class="btn btn-primary btn-sm py-0 px-2" style="font-size:0.7rem;"><i class="bi bi-eye me-1"></i>Detail</a>` : ''}
-                            <button class="btn btn-outline-secondary btn-sm py-0 px-1 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead(${n.id})" style="font-size:0.7rem;"><i class="bi bi-check2"></i></button>
+                            <button class="btn btn-outline-secondary btn-sm py-0 px-1 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead(${n.id}, event)" style="font-size:0.7rem;"><i class="bi bi-check2"></i></button>
                         </div>
                     </div>
                 </div>
@@ -1458,7 +1471,11 @@
         }).join('');
     }
 
-    function markNotifAsRead(id) {
+    function markNotifAsRead(id, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
         fetch("{{ url('admin/notifications') }}/" + id + "/read", {
             method: 'POST',
             headers: {
@@ -1471,7 +1488,11 @@
         });
     }
 
-    function markAllNotifsAsRead() {
+    function markAllNotifsAsRead(event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
         fetch("{{ route('admin.notifications.read-all') }}", {
             method: 'POST',
             headers: {
