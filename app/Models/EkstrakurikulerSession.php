@@ -482,9 +482,16 @@ class EkstrakurikulerSession extends Model
             return null;
         }
 
+        $nonBlockingStatuses = [
+            self::STATUS_DIBATALKAN,
+            self::STATUS_LIBUR,
+            self::STATUS_DITUNDA,
+            self::STATUS_DIGANTI,
+        ];
+
         // 1. Cek sesi terdahulu di ROMBEL YANG SAMA (Pertemuan 1 sebelum Pertemuan 2, dst)
         if ($this->ekstrakurikuler_rombel_id) {
-            $priorRombelSession = self::where('ekstrakurikuler_rombel_id', $this->ekstrakurikuler_rombel_id)
+            $priorRombelCandidates = self::where('ekstrakurikuler_rombel_id', $this->ekstrakurikuler_rombel_id)
                 ->where(function ($q) {
                     $q->where('nomor_pertemuan', '<', $this->nomor_pertemuan)
                       ->orWhere(function ($q2) {
@@ -492,38 +499,57 @@ class EkstrakurikulerSession extends Model
                              ->where('id', '<', $this->id);
                       });
                 })
-                ->where('status', '!=', self::STATUS_DIBATALKAN)
+                ->whereNotIn('status', $nonBlockingStatuses)
                 ->whereDate('tanggal_terjadwal', '<=', Carbon::today())
                 ->doesntHave('laporanMengajar')
                 ->orderBy('nomor_pertemuan', 'asc')
                 ->orderBy('tanggal_terjadwal', 'asc')
                 ->orderBy('id', 'asc')
-                ->first();
+                ->get();
 
-            if ($priorRombelSession) {
-                return $priorRombelSession;
+            foreach ($priorRombelCandidates as $candidate) {
+                // Auto-bypass jika tanggal terjadwal jatuh pada Hari Libur Nasional
+                if ($candidate->tanggal_terjadwal && \App\Models\Holiday::isHoliday($candidate->tanggal_terjadwal)) {
+                    continue;
+                }
+                return $candidate;
             }
         }
 
         // 2. Cek sesi lampau instruktur secara global (tidak boleh melompati tanggal sesi lampau yang belum dilaporkan)
         if ($user && $user->role === 'instruktur') {
-            $oldestPastSession = self::where('user_id_instruktur', $user->id)
+            $pastCandidates = self::where('user_id_instruktur', $user->id)
                 ->whereDate('tanggal_terjadwal', '<=', Carbon::today())
-                ->where('status', '!=', self::STATUS_DIBATALKAN)
+                ->whereNotIn('status', $nonBlockingStatuses)
                 ->doesntHave('laporanMengajar')
                 ->orderBy('tanggal_terjadwal', 'asc')
                 ->orderBy('jam_mulai_terjadwal', 'asc')
                 ->orderBy('id', 'asc')
-                ->first();
+                ->get();
 
-            if ($oldestPastSession && $this->id !== $oldestPastSession->id) {
-                if ($this->tanggal_terjadwal && Carbon::parse($this->tanggal_terjadwal)->gt(Carbon::parse($oldestPastSession->tanggal_terjadwal))) {
-                    return $oldestPastSession;
+            foreach ($pastCandidates as $oldestPastSession) {
+                // Auto-bypass jika tanggal terjadwal jatuh pada Hari Libur Nasional
+                if ($oldestPastSession->tanggal_terjadwal && \App\Models\Holiday::isHoliday($oldestPastSession->tanggal_terjadwal)) {
+                    continue;
+                }
+
+                if ($this->id !== $oldestPastSession->id) {
+                    if ($this->tanggal_terjadwal && Carbon::parse($this->tanggal_terjadwal)->gt(Carbon::parse($oldestPastSession->tanggal_terjadwal))) {
+                        return $oldestPastSession;
+                    }
                 }
             }
         }
 
         return null;
+    }
+
+    /**
+     * Scope untuk sesi yang memerlukan penjadwalan ulang (To-Do List Admin).
+     */
+    public function scopeNeedsReschedule($query)
+    {
+        return $query->whereIn('status', [self::STATUS_DITUNDA, self::STATUS_LIBUR]);
     }
 
     /**
@@ -535,13 +561,14 @@ class EkstrakurikulerSession extends Model
     }
 
     /**
-     * Cek apakah session dapat ditunda.
+     * Cek apakah session dapat direschedule ke tanggal baru.
      */
     public function canReschedule(): bool
     {
         return in_array($this->status, [
             self::STATUS_TERJADWAL,
             self::STATUS_DITUNDA,
+            self::STATUS_LIBUR,
             self::STATUS_DIBATALKAN,
             self::STATUS_TIDAK_HADIR,
         ]);
@@ -552,7 +579,10 @@ class EkstrakurikulerSession extends Model
      */
     public function canPostpone(): bool
     {
-        return $this->status === self::STATUS_TERJADWAL;
+        return in_array($this->status, [
+            self::STATUS_TERJADWAL,
+            self::STATUS_LIBUR,
+        ]);
     }
 
     /**
@@ -682,11 +712,13 @@ class EkstrakurikulerSession extends Model
     /**
      * Method untuk menunda session ke tanggal lain.
      */
-    public function reschedule(Carbon $newDate, ?string $alasan = null): bool
+    public function reschedule(Carbon $newDate, ?string $alasan = null, bool $cascade = false): bool
     {
         if (! $this->canReschedule()) {
             return false;
         }
+
+        $oldDate = $this->tanggal_terjadwal ? Carbon::parse($this->tanggal_terjadwal) : null;
 
         // Pindahkan tanggal terjadwal langsung ke tanggal baru
         $this->tanggal_terjadwal = $newDate->toDateString();
@@ -701,7 +733,35 @@ class EkstrakurikulerSession extends Model
             $this->catatan = trim(($this->catatan ? $this->catatan . "\n" : "") . "Rescheduled: " . $alasan);
         }
 
-        return $this->save();
+        $saved = $this->save();
+
+        // Cascade shift subsequent sessions if requested
+        if ($saved && $cascade && $oldDate && $this->ekstrakurikuler_rombel_id) {
+            $dayDifference = $oldDate->diffInDays($newDate, false);
+            if ($dayDifference !== 0) {
+                $subsequentSessions = self::where('ekstrakurikuler_rombel_id', $this->ekstrakurikuler_rombel_id)
+                    ->where('nomor_pertemuan', '>', $this->nomor_pertemuan)
+                    ->whereIn('status', [self::STATUS_TERJADWAL, self::STATUS_DITUNDA, self::STATUS_LIBUR])
+                    ->orderBy('nomor_pertemuan', 'asc')
+                    ->get();
+
+                foreach ($subsequentSessions as $subSession) {
+                    if ($subSession->tanggal_terjadwal) {
+                        $currentSubDate = Carbon::parse($subSession->tanggal_terjadwal);
+                        $shiftedDate = $dayDifference > 0 
+                            ? $currentSubDate->addDays($dayDifference) 
+                            : $currentSubDate->subDays(abs($dayDifference));
+
+                        $subSession->tanggal_terjadwal = $shiftedDate->toDateString();
+                        $subSession->is_manual_reschedule = true;
+                        $subSession->catatan = trim(($subSession->catatan ? $subSession->catatan . "\n" : "") . "Cascade shifted by {$dayDifference} days from P.{$this->nomor_pertemuan}");
+                        $subSession->save();
+                    }
+                }
+            }
+        }
+
+        return $saved;
     }
 
     /**
@@ -715,6 +775,17 @@ class EkstrakurikulerSession extends Model
 
         $this->status = self::STATUS_DITUNDA;
         $this->alasan_pembatalan = $alasan;
+
+        return $this->save();
+    }
+
+    /**
+     * Method untuk menandai sesi libur / tidak ada KBM.
+     */
+    public function markAsLibur(?string $alasan = null): bool
+    {
+        $this->status = self::STATUS_LIBUR;
+        $this->alasan_pembatalan = $alasan ?: 'Libur / Tidak Ada KBM';
 
         return $this->save();
     }

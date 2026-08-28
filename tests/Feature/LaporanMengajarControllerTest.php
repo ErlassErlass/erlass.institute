@@ -357,7 +357,7 @@ class LaporanMengajarControllerTest extends TestCase
         $response = $this->actingAs($this->instructor)
             ->put(route('laporan-mengajar.update', $laporan), $updateData);
 
-        $response->assertRedirect(route('laporan-mengajar.index'));
+        $response->assertRedirect(route('laporan-mengajar.show', $laporan));
 
         $laporan->refresh();
         $this->assertEquals('Updated Material', $laporan->materi_pengajaran);

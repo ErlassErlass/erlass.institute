@@ -120,9 +120,14 @@
                 </span>
             </div>
         </div>
-        <a href="{{ route('ekstrakurikuler.sessions.report.create', $blockingPrior->id) }}" class="btn btn-warning text-dark fw-bold btn-sm rounded-pill px-3 shadow-xs">
-            <i class="bi bi-arrow-right-circle me-1"></i> Buat Laporan Sesi P.{{ $blockingPrior->nomor_pertemuan }} Sekarang
-        </a>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ route('ekstrakurikuler.sessions.report.create', $blockingPrior->id) }}" class="btn btn-warning text-dark fw-bold btn-sm rounded-pill px-3 shadow-xs">
+                <i class="bi bi-pencil-square me-1"></i> Buat Laporan Sesi P.{{ $blockingPrior->nomor_pertemuan }}
+            </a>
+            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold bg-white" data-bs-toggle="modal" data-bs-target="#markHolidayModal">
+                <i class="bi bi-calendar-x me-1"></i> Sesi P.{{ $blockingPrior->nomor_pertemuan }} Libur / Ditunda?
+            </button>
+        </div>
     </div>
     @endif
 
@@ -798,10 +803,10 @@
     }
 
     document.getElementById('rescheduleForm').addEventListener('submit', function(e) {
-        // ... (existing helper logic) ...
         e.preventDefault();
         const newDate = document.getElementById('new_date').value;
         const reason = document.getElementById('reschedule_reason').value;
+        const cascade = document.getElementById('reschedule_cascade')?.checked || false;
         
         const btn = this.querySelector('button[type="submit"]');
         const originalText = btn.innerHTML;
@@ -810,7 +815,8 @@
 
         sendRequest(`/ekstrakurikuler/sessions/${sessionId}/reschedule`, 'POST', { 
             tanggal_pengganti: newDate,
-            alasan: reason 
+            alasan: reason,
+            cascade_shift: cascade
         }).then(result => {
             if (result.success) {
                 location.reload();
@@ -839,12 +845,15 @@
                     alert('Sukses: ' + result.data.message);
                     bootstrap.Modal.getInstance(document.getElementById('reminderModal')).hide();
                 } else {
-                    alert('Gagal: ' + result.message);
+                    alert('Gagal: ' + (result.message || 'Terjadi kesalahan'));
                 }
-            })
-            .finally(() => {
                 btn.disabled = false;
                 spinner.classList.add('d-none');
+            })
+            .catch(error => {
+                btn.disabled = false;
+                spinner.classList.add('d-none');
+                alert('Terjadi kesalahan koneksi.');
             });
     });
 </script>
@@ -863,12 +872,8 @@
                     <div class="alert alert-warning d-flex align-items-center">
                         <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
                         <div>
-                            Tindakan ini tidak dapat dibatalkan.
+                            Pembatalan sesi dinonaktifkan. Silakan gunakan fitur Reschedule.
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="cancel_reason" class="form-label">Alasan Pembatalan <span class="text-danger">*</span></label>
-                        <textarea name="alasan_pembatalan" id="cancel_reason" rows="3" required class="form-control" placeholder="Jelaskan alasan pembatalan..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -881,25 +886,34 @@
 </div>
 <div class="modal fade" id="rescheduleModal" tabindex="-1" aria-labelledby="rescheduleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-warning">
-                <h5 class="modal-title text-dark" id="rescheduleModalLabel">Reschedule Sesi</h5>
+                <h5 class="modal-title text-dark fw-bold" id="rescheduleModalLabel"><i class="bi bi-calendar2-range me-2"></i>Reschedule Sesi</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="rescheduleForm">
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label for="new_date" class="form-label">Tanggal Baru <span class="text-danger">*</span></label>
-                        <input type="text" name="tanggal_pengganti" id="new_date" required class="form-control datepicker" placeholder="DD-MM-YYYY">
+                        <label for="new_date" class="form-label fw-bold">Tanggal Pengganti Baru <span class="text-danger">*</span></label>
+                        <input type="date" name="tanggal_pengganti" id="new_date" required class="form-control">
                     </div>
                     <div class="mb-3">
-                        <label for="reschedule_reason" class="form-label">Alasan (Opsional)</label>
-                        <textarea name="alasan" id="reschedule_reason" rows="3" class="form-control" placeholder="Catatan tambahan..."></textarea>
+                        <label for="reschedule_reason" class="form-label fw-bold">Alasan Penjadwalan Ulang</label>
+                        <textarea name="alasan" id="reschedule_reason" rows="2" class="form-control" placeholder="Contoh: Mengganti sesi libur tanggal merah..."></textarea>
+                    </div>
+                    <div class="form-check form-switch p-3 bg-light rounded-3 border">
+                        <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="reschedule_cascade" name="cascade_shift" value="1">
+                        <label class="form-check-label small fw-bold text-dark" for="reschedule_cascade">
+                            Geser seluruh jadwal pertemuan berikutnya secara berantai (+selisih hari)
+                        </label>
+                        <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                            Jika dicentang, tanggal pertemuan setelah ini dalam rombel akan ikut digeser maju secara otomatis.
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-warning text-dark">Simpan Jadwal Baru</button>
+                <div class="modal-footer bg-light border-0 p-3">
+                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold rounded-pill px-4">Simpan Jadwal Baru</button>
                 </div>
             </form>
         </div>
@@ -907,27 +921,69 @@
 </div>
 <div class="modal fade" id="postponeModal" tabindex="-1" aria-labelledby="postponeModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-secondary text-white">
-                <h5 class="modal-title" id="postponeModalLabel">Tunda Sesi</h5>
+                <h5 class="modal-title fw-bold" id="postponeModalLabel"><i class="bi bi-pause-circle me-2"></i>Tunda Sesi</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="postponeForm">
-                <div class="modal-body">
-                    <div class="alert alert-warning d-flex align-items-center">
-                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
-                        <div>
-                            Sesi akan ditunda tanpa tanggal pelaksanaan baru. Anda dapat mengatur ulang jadwal kembali melalui fitur Reschedule.
+                <div class="modal-body p-4">
+                    <div class="alert alert-warning d-flex align-items-center rounded-3">
+                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2 fs-5"></i>
+                        <div class="small">
+                            Sesi akan ditunda tanpa tanggal baru dan otomatis masuk ke <strong>To-Do List Reschedule Admin</strong>.
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="postpone_reason" class="form-label">Alasan Penundaan <span class="text-danger">*</span></label>
+                        <label for="postpone_reason" class="form-label fw-bold">Alasan Penundaan <span class="text-danger">*</span></label>
                         <textarea name="alasan" id="postpone_reason" rows="3" required class="form-control" placeholder="Jelaskan alasan penundaan..."></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-secondary text-white">Tunda Sesi</button>
+                <div class="modal-footer bg-light border-0 p-3">
+                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-secondary rounded-pill px-4 fw-bold">Tunda Sesi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tandai Libur (Instruktur / Admin) -->
+<div class="modal fade" id="markHolidayModal" tabindex="-1" aria-labelledby="markHolidayModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-danger text-white border-0 py-3">
+                <h5 class="modal-title fw-bold" id="markHolidayModalLabel">
+                    <i class="bi bi-calendar-x me-2"></i> Lapor Sesi Libur / Tidak Ada KBM
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('ekstrakurikuler.sessions.mark-holiday', isset($blockingPrior) && $blockingPrior ? $blockingPrior->id : $session->id) }}" method="POST">
+                @csrf
+                <div class="modal-body p-4">
+                    <div class="alert alert-info border-0 rounded-3 small mb-3">
+                        <i class="bi bi-info-circle-fill me-1"></i>
+                        Sesi <strong>Pertemuan ke-{{ isset($blockingPrior) && $blockingPrior ? $blockingPrior->nomor_pertemuan : $session->nomor_pertemuan }}</strong> akan ditandai <strong>Libur</strong> dan otomatis masuk ke <strong>To-Do List Reschedule Admin</strong> untuk dijadwalkan ulang ke tanggal pengganti. Kunci sesi berikutnya langsung terbuka.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">Alasan Libur / Tidak Ada KBM <span class="text-danger">*</span></label>
+                        <select name="alasan_select" class="form-select mb-2" required id="selectAlasanLibur" onchange="if(this.value === 'custom'){ document.getElementById('customAlasanText').classList.remove('d-none'); document.getElementById('finalAlasan').value = ''; } else { document.getElementById('customAlasanText').classList.add('d-none'); document.getElementById('finalAlasan').value = this.value; }">
+                            <option value="">-- Pilih Alasan --</option>
+                            <option value="Libur Tanggal Merah / Libur Nasional">Libur Tanggal Merah / Libur Nasional</option>
+                            <option value="Ujian Sekolah / Penilaian Akhir Semester (PAS/PTS)">Ujian Sekolah / Penilaian Akhir Semester (PAS/PTS)</option>
+                            <option value="Kegiatan Khusus Sekolah (Class Meeting / Porseni / Study Tour)">Kegiatan Khusus Sekolah (Class Meeting / Porseni / Study Tour)</option>
+                            <option value="Kendala Lapangan (Banjir / Pemadaman / Renovasi Lab)">Kendala Lapangan (Banjir / Pemadaman / Renovasi Lab)</option>
+                            <option value="custom">Lainnya (Tulis Manual)...</option>
+                        </select>
+                        <input type="hidden" name="alasan" id="finalAlasan" value="">
+                        <textarea id="customAlasanText" class="form-control d-none mt-2" rows="2" placeholder="Tuliskan keterangan detail alasan libur..." oninput="document.getElementById('finalAlasan').value = this.value;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0 p-3">
+                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">
+                        <i class="bi bi-check-circle me-1"></i> Simpan Status Libur
+                    </button>
                 </div>
             </form>
         </div>

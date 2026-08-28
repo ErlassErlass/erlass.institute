@@ -682,8 +682,9 @@ class EkstrakurikulerSessionController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'tanggal_pengganti' => 'required|date|after:today',
+            'tanggal_pengganti' => 'required|date',
             'alasan' => 'nullable|string|max:500',
+            'cascade_shift' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -695,11 +696,14 @@ class EkstrakurikulerSessionController extends Controller
         }
 
         $newDate = Carbon::parse($request->tanggal_pengganti);
-        $rescheduled = $session->reschedule($newDate, $request->alasan);
+        $cascade = $request->boolean('cascade_shift', false);
+        $rescheduled = $session->reschedule($newDate, $request->alasan, $cascade);
 
         return response()->json([
             'success' => $rescheduled,
-            'message' => $rescheduled ? 'Session berhasil direschedule' : 'Gagal reschedule session',
+            'message' => $rescheduled 
+                ? ($cascade ? 'Sesi dan seluruh jadwal berikutnya berhasil direschedule secara berantai' : 'Session berhasil direschedule') 
+                : 'Gagal reschedule session',
             'session' => $rescheduled ? $session->fresh() : null,
         ]);
     }
@@ -737,6 +741,65 @@ class EkstrakurikulerSessionController extends Controller
             'message' => $postponed ? 'Session berhasil ditunda' : 'Gagal menunda session',
             'session' => $postponed ? $session->fresh() : null,
         ]);
+    }
+
+    /**
+     * Tandai sesi sebagai Libur / Ditiadakan Sementara (Masuk ke Antrean Reschedule Admin).
+     * Dapat dilakukan oleh Admin atau Instruktur yang ditugaskan.
+     */
+    public function markHoliday(Request $request, EkstrakurikulerSession $session)
+    {
+        $user = auth()->user();
+        $isAssigned = $user && ($user->id === $session->user_id_instruktur || $user->id === $session->user_id_asisten);
+        $isAdmin = $user && $user->hasAdminAccess();
+
+        if (! $isAdmin && ! $isAssigned) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses ditolak. Anda bukan instruktur untuk sesi ini.',
+                ], 403);
+            }
+            return back()->with('error', 'Akses ditolak.');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'alasan' => 'required|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Alasan libur wajib diisi',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $alasan = $request->input('alasan');
+        $marked = $session->markAsLibur($alasan);
+
+        \App\Models\ActivityLog::create([
+            'user_id' => $user->id,
+            'action' => 'session_marked_holiday',
+            'description' => "Sesi Pertemuan ke-{$session->nomor_pertemuan} ditandai Libur oleh {$user->nama_lengkap}. Alasan: {$alasan}",
+            'subject_type' => EkstrakurikulerSession::class,
+            'subject_id' => $session->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => $marked,
+                'message' => $marked ? 'Sesi berhasil ditandai Libur dan masuk ke antrean reschedule Admin.' : 'Gagal menandai sesi.',
+                'session' => $marked ? $session->fresh() : null,
+            ]);
+        }
+
+        return back()->with('success', 'Sesi berhasil ditandai Libur dan masuk ke antrean reschedule Admin. Kunci sesi berikutnya kini terbuka.');
     }
 
     /**

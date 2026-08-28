@@ -102,7 +102,7 @@ class Holiday extends Model
             ? Carbon::instance($date)->toDateString()
             : Carbon::parse($date)->toDateString();
 
-        return static::where('tanggal', $d)
+        return static::whereDate('tanggal', $d)
             ->where('jenis', '!=', self::JENIS_CUTI_BERSAMA)
             ->exists();
     }
@@ -117,7 +117,7 @@ class Holiday extends Model
             ? Carbon::instance($date)->toDateString()
             : Carbon::parse($date)->toDateString();
 
-        return static::where('tanggal', $d)
+        return static::whereDate('tanggal', $d)
             ->where('jenis', '!=', self::JENIS_CUTI_BERSAMA)
             ->first();
     }

@@ -576,6 +576,58 @@
 
             <!-- Verification Center (Admin Only) -->
             @if(Auth::user()->role === 'admin_sistem' || Auth::user()->role === 'webmaster' || Auth::user()->role === 'admin')
+                <!-- Admin To-Do List: Pending Reschedule / Sesi Libur -->
+                @if(isset($pending_reschedule_sessions) && $pending_reschedule_sessions->count() > 0)
+                <div class="dashboard-card mb-4" id="tour-admin-pending-reschedule" style="border-left: 6px solid #F59E0B !important;">
+                    <div class="card-header bg-warning-subtle text-warning-emphasis fw-bold d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 p-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-calendar-range-fill text-warning fs-5"></i>
+                            <span>📌 TO-DO LIST ADMIN: Antrean Reschedule ({{ $total_pending_reschedule ?? $pending_reschedule_sessions->count() }} Sesi Wajib Dijadwalkan Ulang)</span>
+                        </div>
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold">Wajib Reschedule</span>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        @foreach($pending_reschedule_sessions as $pSession)
+                            <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3">
+                                <div class="w-100 w-sm-auto">
+                                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                        <h6 class="mb-0 fw-bold text-dark">
+                                            {{ $pSession->rombel->ekstrakurikuler->sekolah->namasekolah ?? 'Sekolah' }}
+                                        </h6>
+                                        <span class="badge bg-secondary rounded-pill" style="font-size: 0.7rem;">P.{{ $pSession->nomor_pertemuan }}</span>
+                                        @if($pSession->status === 'libur')
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-bold" style="font-size: 0.7rem;">Libur Sekolah</span>
+                                        @else
+                                            <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.7rem;">Ditunda</span>
+                                        @endif
+                                    </div>
+                                    <div class="text-muted small">
+                                        <span class="fw-bold text-primary">{{ $pSession->rombel->ekstrakurikuler->kategori_program ?? 'Ekskul' }}</span>
+                                        <span class="mx-1">•</span>
+                                        {{ $pSession->rombel->nama_rombel ?? 'Rombel' }}
+                                        <span class="mx-1">•</span>
+                                        Instruktur: <strong>{{ $pSession->instruktur->nama_lengkap ?? 'Belum Ditugaskan' }}</strong>
+                                        <br>
+                                        <i class="bi bi-calendar-x me-1 text-danger"></i> Tanggal Asal: {{ $pSession->tanggal_terjadwal ? \Carbon\Carbon::parse($pSession->tanggal_terjadwal)->format('d M Y') : '-' }}
+                                        @if($pSession->alasan_pembatalan || $pSession->catatan)
+                                            <span class="mx-1">•</span>
+                                            <span class="fst-italic text-dark">"{{ $pSession->alasan_pembatalan ?? $pSession->catatan }}"</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="w-100 w-sm-auto text-end text-sm-start d-flex gap-2 justify-content-end">
+                                    <button type="button" 
+                                            class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 shadow-sm w-100 w-sm-auto"
+                                            onclick="openDashboardRescheduleModal({{ $pSession->id }}, '{{ addslashes($pSession->rombel->ekstrakurikuler->sekolah->namasekolah ?? 'Sekolah') }}', '{{ addslashes($pSession->rombel->nama_rombel ?? 'Rombel') }}', {{ $pSession->nomor_pertemuan }}, '{{ $pSession->tanggal_terjadwal ? $pSession->tanggal_terjadwal->format('Y-m-d') : '' }}')">
+                                        <i class="bi bi-calendar2-range me-1"></i> Reschedule Sekarang
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
                 <!-- Admin Monitoring: Pending Reports -->
                 @if(isset($admin_pending_reports) && $admin_pending_reports->count() > 0)
                 <div class="dashboard-card mb-4" id="tour-admin-pending-reports" style="border-left: 6px solid #0EA5E9 !important;">
@@ -1115,7 +1167,107 @@
     </div>
 </div>
 
+<!-- Dashboard Reschedule Modal -->
+<div class="modal fade" id="dashRescheduleModal" tabindex="-1" aria-labelledby="dashRescheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title text-dark fw-bold" id="dashRescheduleModalLabel"><i class="bi bi-calendar2-range me-2"></i>Reschedule Sesi Pengganti</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="dashRescheduleForm" onsubmit="submitDashboardReschedule(event)">
+                <input type="hidden" id="dashRescheduleSessionId">
+                <div class="modal-body p-4">
+                    <div class="p-3 bg-light rounded-3 mb-3 border">
+                        <h6 class="fw-bold mb-1 text-dark" id="dashRescheduleTitle">Sekolah & Rombel</h6>
+                        <div class="text-muted small" id="dashRescheduleSubtitle">Pertemuan Ke-X</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dashRescheduleNewDate" class="form-label fw-bold text-dark">Tanggal Pengganti Baru <span class="text-danger">*</span></label>
+                        <input type="date" id="dashRescheduleNewDate" required class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="dashRescheduleReason" class="form-label fw-bold text-dark">Alasan Penjadwalan Ulang</label>
+                        <textarea id="dashRescheduleReason" rows="2" class="form-control" placeholder="Contoh: Mengganti sesi libur tanggal merah..."></textarea>
+                    </div>
+                    <div class="form-check form-switch p-3 bg-warning-subtle rounded-3 border border-warning-subtle">
+                        <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="dashRescheduleCascade" value="1">
+                        <label class="form-check-label small fw-bold text-dark" for="dashRescheduleCascade">
+                            Geser seluruh jadwal pertemuan berikutnya secara berantai (+selisih hari)
+                        </label>
+                        <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                            Jika dicentang, tanggal pertemuan setelah ini dalam rombel akan ikut digeser maju secara otomatis.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0 p-3">
+                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold rounded-pill px-4" id="btnDashSubmitReschedule">
+                        <span class="spinner-border spinner-border-sm d-none me-1" id="dashSpinReschedule" role="status"></span>
+                        Simpan Jadwal Baru
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
+function openDashboardRescheduleModal(sessionId, sekolahName, rombelName, meetingNo, currentDate) {
+    document.getElementById('dashRescheduleSessionId').value = sessionId;
+    document.getElementById('dashRescheduleTitle').textContent = sekolahName + ' • ' + rombelName;
+    document.getElementById('dashRescheduleSubtitle').textContent = 'Pertemuan Ke-' + meetingNo + ' (Jadwal Asal: ' + (currentDate || '-') + ')';
+    document.getElementById('dashRescheduleNewDate').value = '';
+    document.getElementById('dashRescheduleReason').value = '';
+    document.getElementById('dashRescheduleCascade').checked = false;
+
+    const modal = new bootstrap.Modal(document.getElementById('dashRescheduleModal'));
+    modal.show();
+}
+
+function submitDashboardReschedule(e) {
+    e.preventDefault();
+    const sessionId = document.getElementById('dashRescheduleSessionId').value;
+    const newDate = document.getElementById('dashRescheduleNewDate').value;
+    const reason = document.getElementById('dashRescheduleReason').value;
+    const cascade = document.getElementById('dashRescheduleCascade').checked;
+    const btn = document.getElementById('btnDashSubmitReschedule');
+    const spin = document.getElementById('dashSpinReschedule');
+
+    btn.disabled = true;
+    spin.classList.remove('d-none');
+
+    fetch(`/ekstrakurikuler/sessions/${sessionId}/reschedule`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            tanggal_pengganti: newDate,
+            alasan: reason,
+            cascade_shift: cascade
+        })
+    })
+    .then(r => r.json())
+    .then(res => {
+        btn.disabled = false;
+        spin.classList.add('d-none');
+        if (res.success) {
+            alert('✅ ' + res.message);
+            location.reload();
+        } else {
+            alert('⚠️ Gagal: ' + (res.message || 'Terjadi kesalahan'));
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        spin.classList.add('d-none');
+        alert('❌ Error: ' + err.message);
+    });
+}
+
 function openDashboardFonnteModal(sessionId, instrukturName, phone, programName, sekolahName, tanggalText) {
     document.getElementById('dashSessionId').value = sessionId;
     document.getElementById('dashCleanPhone').value = phone;

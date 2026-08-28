@@ -2,6 +2,26 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.18] - 2026-08-28
+
+### Penanganan Sesi Libur/Ditunda (FIFO Non-Blocking), Cascade Reschedule, & Dashboard To-Do List Admin
+
+- **Eliminasi Penguncian Sesi Lanjutan (FIFO Auto-Bypass)**:
+  - Sesi terdahulu yang berstatus `libur`, `ditunda`, `diganti`, atau `dibatalkan` tidak lagi memblokir pengisian laporan atau check-in sesi pertemuan berikutnya (misal: Sesi Pertemuan 2 libur, Instruktur tetap dapat langsung mengisi laporan Pertemuan 3).
+  - Pengecekan otomatis hari libur nasional (`Holiday::isHoliday()`): Sesi lampau yang jatuh pada tanggal merah nasional secara otomatis dilewati dari penguncian FIFO tanpa perlu intervensi manual.
+- **Aturan Ketat Reschedule (Tidak Boleh Hangus) & Otorisasi Eksklusif Admin**:
+  - Sesi libur/ditunda wajib dijadwalkan ulang (*Strict Reschedule Rule*) demi memastikan seluruh target 12/16 pertemuan kurikulum per rombel tercapai 100%.
+  - Otorisasi reschedule dijaga ketat eksklusif untuk Admin (`admin`, `admin_sistem`, `webmaster`) untuk mencegah perubahan sepihak oleh instruktur (HTTP 403 Forbidden bagi non-admin).
+- **To-Do List Antrean Reschedule di Dashboard Admin (`dashboard.blade.php`)**:
+  - Menambahkan kartu antrean tugas prioritas di Dashboard Admin bertajuk **📌 TO-DO LIST ADMIN: Antrean Reschedule (X Sesi Wajib Dijadwalkan Ulang)**.
+  - Menampilkan daftar lengkap sesi libur/ditunda yang membutuhkan tanggal pengganti, informasi rombel, instruktur, alasan penundaan, serta tombol cepat eksekusi reschedule modal langsung dari dashboard tanpa harus membuka menu rombel satu per satu.
+- **Fitur Cascade Shift Jadwal (Pergeseran Berantai Pertemuan Berikutnya)**:
+  - Menyediakan opsi pergeseran berantai (*Cascade Shift*) saat melakukan reschedule tanggal pengganti.
+  - Seluruh jadwal sesi pertemuan berikutnya dalam rombel yang sama akan otomatis ikut digeser secara proporsional sesuai selisih hari ($\Delta$ hari).
+- **Tombol Cepat Tandai Libur Sesi Lampau (`EkstrakurikulerSessionController@markHoliday`)**:
+  - Menambahkan endpoint dan modal konfirmasi bagi Instruktur dan Admin untuk menandai sesi lampau yang belum terlaksana sebagai `Libur / Tidak Ada KBM` beserta alasannya.
+  - Sesi yang ditandai libur otomatis masuk ke antrean To-Do List Admin dan dicatat ke `ActivityLog`.
+
 ## [2.9.17] - 2026-08-28
 
 ### Perhitungan Honor Asisten Instruktur (Flat Rate Rp 100.000), Pengali Pajak 2.5%, & Ekspor Akuntansi Multisheet

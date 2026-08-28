@@ -191,6 +191,8 @@ Route::middleware(['auth'])->group(function () {
             ->name('sessions.reschedule');
         Route::post('sessions/{session}/postpone', [EkstrakurikulerSessionController::class, 'postpone'])
             ->name('sessions.postpone');
+        Route::post('sessions/{session}/mark-holiday', [EkstrakurikulerSessionController::class, 'markHoliday'])
+            ->name('sessions.mark-holiday');
         Route::post('sessions/{session}/reset-to-scheduled', [EkstrakurikulerSessionController::class, 'resetToScheduled'])
             ->name('sessions.reset-to-scheduled');
         Route::post('sessions/{session}/override-fee', [EkstrakurikulerSessionController::class, 'overrideFee'])

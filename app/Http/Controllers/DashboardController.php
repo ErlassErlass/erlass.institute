@@ -340,6 +340,20 @@ class DashboardController extends Controller
                     ->take(10)
                     ->get()
                 : collect(),
+            'pending_reschedule_sessions' => in_array(auth()->user()->role, ['admin', 'admin_sistem', 'webmaster'])
+                ? \App\Models\EkstrakurikulerSession::with([
+                        'rombel.ekstrakurikuler.sekolah:kodlan,namasekolah',
+                        'instruktur:id,nama_lengkap,no_telephone'
+                    ])
+                    ->whereIn('status', [\App\Models\EkstrakurikulerSession::STATUS_DITUNDA, \App\Models\EkstrakurikulerSession::STATUS_LIBUR])
+                    ->orderBy('tanggal_terjadwal', 'asc')
+                    ->orderBy('jam_mulai_terjadwal', 'asc')
+                    ->take(15)
+                    ->get()
+                : collect(),
+            'total_pending_reschedule' => in_array(auth()->user()->role, ['admin', 'admin_sistem', 'webmaster'])
+                ? \App\Models\EkstrakurikulerSession::whereIn('status', [\App\Models\EkstrakurikulerSession::STATUS_DITUNDA, \App\Models\EkstrakurikulerSession::STATUS_LIBUR])->count()
+                : 0,
             'warning_merah' => Warning::where('severity', 'red')->where('status', 'active')->count(),
             'warning_kuning' => Warning::where('severity', 'yellow')->where('status', 'active')->count(),
             'warning_list' => Warning::with([
