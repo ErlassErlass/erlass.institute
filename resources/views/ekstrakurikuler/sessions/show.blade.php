@@ -1079,21 +1079,48 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="checkin_photo" class="form-label fw-bold text-dark">
-                            <i class="bi bi-camera-fill me-1 text-primary"></i>
-                            <span id="photoLabel">Foto Bukti Kehadiran (Wajib)</span>
+                        <label class="form-label fw-bold text-dark d-flex align-items-center justify-content-between">
+                            <span><i class="bi bi-camera-fill me-1 text-primary"></i> <span id="photoLabel">Foto Live Kamera (Wajib Selfie / Suasana Sekolah)</span></span>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle small fw-semibold" style="font-size: 0.7rem;"><i class="bi bi-shield-lock-fill me-1"></i>Kamera Langsung</span>
                         </label>
-                        {{-- capture attribute will be set by JS on mobile only --}}
-                        <input type="file" name="photo" id="checkin_photo" accept="image/*" class="form-control" required>
+                        
+                        {{-- Hidden File Input triggered by the big tactile camera button --}}
+                        <input type="file" name="photo" id="checkin_photo" accept="image/*" style="position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;" required>
+
+                        {{-- Tactile Shutter Button (Before Photo is Captured) --}}
+                        <div id="cameraTriggerBox" class="border border-2 border-primary border-dashed rounded-4 p-4 text-center bg-primary bg-opacity-10 cursor-pointer shadow-sm" onclick="document.getElementById('checkin_photo').click()" style="cursor: pointer; transition: all 0.25s ease;" onmouseover="this.style.background='rgba(37,99,235,0.15)'" onmouseout="this.style.background='rgba(37,99,235,0.10)'">
+                            <div class="py-1">
+                                <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle shadow mb-2" style="width: 58px; height: 58px;">
+                                    <i class="bi bi-camera-fill fs-3"></i>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-1" id="cameraBtnText">📸 Buka Kamera & Ambil Foto</h6>
+                                <small class="text-muted d-block" id="cameraBtnSub" style="font-size: 0.78rem;">Ketuk di sini untuk menyalakan kamera HP langsung</small>
+                            </div>
+                        </div>
+
+                        {{-- Photo Preview Box (After Photo is Captured) --}}
+                        <div id="photoPreviewContainer" class="rounded-4 p-3 border bg-light text-center d-none mt-2 shadow-sm">
+                            <div class="position-relative d-inline-block">
+                                <img id="photoPreview" src="" alt="Preview Foto Check-in" class="img-fluid rounded-3 border shadow-sm" style="max-height: 200px; object-fit: contain;">
+                            </div>
+                            <div class="mt-2.5 d-flex align-items-center justify-content-center gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold" onclick="document.getElementById('checkin_photo').click()">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Ambil Ulang Foto
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Compression & Geotag Status Badge --}}
                         <div id="photoCompressionBadge" class="mt-2 d-none">
-                            <span class="badge bg-success-subtle text-success border border-success-subtle small py-1 px-2">
-                                <i class="bi bi-lightning-charge-fill me-1"></i><span id="photoCompressionText">Foto dioptimasi</span>
-                            </span>
+                            <div class="alert alert-success border-0 py-1.5 px-2.5 rounded-3 mb-0 small d-flex align-items-center gap-2" style="font-size: 0.75rem; background: #ecfdf5; color: #065f46;">
+                                <i class="bi bi-patch-check-fill text-success fs-6"></i>
+                                <span id="photoCompressionText">Foto dioptimasi</span>
+                            </div>
                         </div>
-                        <div id="photoPreviewContainer" class="mt-2 text-center d-none">
-                            <img id="photoPreview" src="" alt="Preview Foto Check-in" class="img-fluid rounded-3 border shadow-sm" style="max-height: 160px; object-fit: contain;">
-                        </div>
-                        <small class="text-muted d-block mt-1" id="photoHint">Memuat...</small>
+
+                        <small class="text-muted d-block mt-1.5" style="font-size: 0.72rem;" id="photoHint">
+                            <i class="bi bi-shield-lock-fill text-success me-1"></i>Sistem mengunci pengambilan foto dari kamera langsung untuk verifikasi kehadiran otentik.
+                        </small>
                     </div>
 
                     <div class="bg-light p-3 rounded-3 border" id="gpsRuleBox">
@@ -1235,6 +1262,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const photoInput = document.getElementById('checkin_photo');
     const photoLabel = document.getElementById('photoLabel');
     const photoHint = document.getElementById('photoHint');
+    const cameraTriggerBox = document.getElementById('cameraTriggerBox');
+    const cameraBtnText = document.getElementById('cameraBtnText');
+    const cameraBtnSub = document.getElementById('cameraBtnSub');
     const desktopNote = document.getElementById('desktopAccuracyNote');
     const compressionBadge = document.getElementById('photoCompressionBadge');
     const compressionText = document.getElementById('photoCompressionText');
@@ -1249,13 +1279,21 @@ document.addEventListener('DOMContentLoaded', function () {
     if (photoInput) {
         if (isMobile) {
             photoInput.setAttribute('capture', 'environment');
-            photoLabel.textContent = 'Foto Live Kamera (Wajib Selfie / Suasana Sekolah)';
-            photoHint.textContent = 'Gunakan kamera HP langsung untuk mengambil foto terbaru di sekolah.';
+            if (photoLabel) photoLabel.textContent = 'Foto Live Kamera (Wajib Selfie / Suasana Sekolah)';
+            if (cameraBtnText) cameraBtnText.textContent = '📸 Buka Kamera & Ambil Foto';
+            if (cameraBtnSub) cameraBtnSub.textContent = 'Ketuk di sini untuk menyalakan kamera HP langsung';
+            if (photoHint) {
+                photoHint.innerHTML = '<i class="bi bi-shield-lock-fill text-success me-1"></i>Sistem otomatis menyalakan kamera HP langsung untuk verifikasi kehadiran otentik.';
+            }
         } else {
-            // Desktop: remove capture so file picker works normally
+            // Desktop: remove capture so device camera/file picker works normally
             photoInput.removeAttribute('capture');
-            photoLabel.textContent = 'Foto Bukti Kehadiran (Upload dari Perangkat)';
-            photoHint.textContent = 'Pilih foto terbaru yang diambil di area sekolah hari ini.';
+            if (photoLabel) photoLabel.textContent = 'Foto Bukti Kehadiran (Ambil / Upload dari Laptop)';
+            if (cameraBtnText) cameraBtnText.textContent = '📸 Ambil / Pilih Foto Bukti Kehadiran';
+            if (cameraBtnSub) cameraBtnSub.textContent = 'Ketuk untuk mengambil atau memilih foto bukti kehadiran hari ini';
+            if (photoHint) {
+                photoHint.innerHTML = '<i class="bi bi-laptop me-1 text-primary"></i>Mode Desktop: Disarankan check-in lewat HP agar presisi GPS & kamera live maksimal.';
+            }
             if (desktopNote) desktopNote.classList.remove('d-none');
         }
 
@@ -1294,6 +1332,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         console.warn('DataTransfer not fully supported, fallback to native file', e);
                     }
 
+                    if (cameraTriggerBox) cameraTriggerBox.classList.add('d-none');
                     if (photoPreview && previewContainer) {
                         photoPreview.src = result.previewUrl;
                         previewContainer.classList.remove('d-none');
@@ -1309,7 +1348,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (form && btnSubmit) {
-        form.addEventListener('submit', function () {
+        form.addEventListener('submit', function (e) {
+            if (!photoInput || !photoInput.files || photoInput.files.length === 0) {
+                e.preventDefault();
+                alert('Silakan ambil foto bukti kehadiran terlebih dahulu dengan menekan tombol kamera.');
+                return;
+            }
             btnSubmit.disabled = true;
             btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Mengirim Presensi...';
         });
