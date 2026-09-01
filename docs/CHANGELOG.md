@@ -2,6 +2,19 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.20] - 2026-09-01
+
+### Penyeragaman Kategori Free Trial Class, Migrasi Riwayat Database, & Pemutihan Check-in
+
+- **Penyeragaman Istilah Kategori Pengajaran (`Free Trial Class`)**:
+  - Menghilangkan redundansi antara `Trial Class` dan `Free Trial Class` di seluruh sistem (form input Ad-Hoc, filter pencarian, dan rekapitulasi).
+  - Menyeragamkan 100% opsi resmi menjadi **`Free Trial Class`** sesuai standar formulir input Ad-Hoc.
+  - Memigrasikan seluruh riwayat data lama (22 baris di `laporan_mengajar` dan 16 program di `ekstrakurikuler`) dari `Trial Class` ke `Free Trial Class`.
+  - Membersihkan aturan validasi di `StoreLaporanMengajarRequest` dan `LaporanMengajarController`.
+  - Memperbarui pemicu otomatis input jumlah peserta siswa Free Trial Class ($\le 6$ siswa vs $> 6$ siswa) dan placeholder rombel di antarmuka web.
+- **Pemutihan Sesi Check-in Instruktur (#40131)**:
+  - Melakukan pemutihan status check-in, penyesuaian jam mulai aktual menjadi tepat waktu, dan verifikasi radius GPS di sekolah pasca penanganan kendala teknis server.
+
 ## [2.9.19] - 2026-09-01
 
 ### Perbaikan Fatal Error 500 Check-in, Solusi Scroll & Sort Tabel Sesi, Kalibrasi Milestone $\ge 4$, dan Pemulihan Notifikasi Tiket

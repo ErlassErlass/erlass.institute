@@ -505,7 +505,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 rombelInput.attr('placeholder', 'Contoh: Nama Tim / Nama Event Lomba');
             } else if (kategori === 'Sosialisasi bersama Sales') {
                 rombelInput.attr('placeholder', 'Contoh: Calon Orang Tua Siswa / Peserta Sosialisasi');
-            } else if (kategori === 'Trial Class') {
+            } else if (kategori === 'Free Trial Class' || kategori === 'Trial Class') {
                 rombelInput.attr('placeholder', 'Contoh: Nama Siswa Trial / Kelompok Trial');
             } else {
                 rombelInput.attr('placeholder', 'Contoh: 1A, 2B, TK-A'); // Default

@@ -538,7 +538,6 @@ class LaporanMengajarController extends Controller
             [
                 'Backup Pertemuan',
                 'Free Trial Class',
-                'Trial Class',
                 'Inkul Coding Scratch',
                 'Inkul LKPD Informatika SD',
                 'Inkul LKPD Informatika SMA',
@@ -797,7 +796,6 @@ class LaporanMengajarController extends Controller
             [
                 'Backup Pertemuan',
                 'Free Trial Class',
-                'Trial Class',
                 'Inkul Coding Scratch',
                 'Inkul LKPD Informatika SD',
                 'Inkul LKPD Informatika SMA',

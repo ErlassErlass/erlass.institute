@@ -56,7 +56,7 @@ class AdHocSessionAttendanceTest extends TestCase
         $adhocReport = LaporanMengajar::factory()->create([
             'sekolah_kodlan' => $this->sekolah->kodlan,
             'rombel' => 'Rombel 1',
-            'kategori_pengajaran' => 'Trial Class',
+            'kategori_pengajaran' => 'Free Trial Class',
         ]);
 
         $this->assertTrue($adhocReport->isAdHoc());
@@ -94,7 +94,7 @@ class AdHocSessionAttendanceTest extends TestCase
                 'sekolah_nama' => $this->sekolah->namasekolah,
                 'rombel' => 'Rombel 1',
                 'pertemuan_ke' => 1,
-                'kategori_pengajaran' => 'Trial Class',
+                'kategori_pengajaran' => 'Free Trial Class',
                 'materi_pengajaran' => 'Pengenalan Scratch Trial',
                 'jadwal_mengajar' => now()->format('Y-m-d'),
                 'jam_mulai' => '08:00',
