@@ -1428,7 +1428,7 @@
                                 <a href="${ticketUrl}" class="btn btn-primary btn-sm py-0.5 px-2.5 fw-bold rounded-pill" style="font-size:0.72rem;">
                                     <i class="bi bi-chat-text-fill me-1"></i>Buka & Jawab
                                 </a>
-                                <button class="btn btn-outline-secondary btn-sm py-0.5 px-1.5 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead(${n.id}, event)" style="font-size:0.72rem;">
+                                <button class="btn btn-outline-secondary btn-sm py-0.5 px-1.5 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead('${n.id}', event)" style="font-size:0.72rem;">
                                     <i class="bi bi-check2"></i>
                                 </button>
                             </div>
@@ -1463,7 +1463,7 @@
                         <div class="d-flex gap-1">
                             ${d.foto_absensi_url ? `<a href="${d.foto_absensi_url}" target="_blank" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size:0.7rem;"><i class="bi bi-file-earmark-image me-1"></i>Absensi</a>` : ''}
                             ${d.report_detail_url ? `<a href="${d.report_detail_url}" target="_blank" class="btn btn-primary btn-sm py-0 px-2" style="font-size:0.7rem;"><i class="bi bi-eye me-1"></i>Detail</a>` : ''}
-                            <button class="btn btn-outline-secondary btn-sm py-0 px-1 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead(${n.id}, event)" style="font-size:0.7rem;"><i class="bi bi-check2"></i></button>
+                            <button class="btn btn-outline-secondary btn-sm py-0 px-1 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead('${n.id}', event)" style="font-size:0.7rem;"><i class="bi bi-check2"></i></button>
                         </div>
                     </div>
                 </div>
