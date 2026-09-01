@@ -388,9 +388,10 @@ class EkstrakurikulerRombel extends Model
      */
     public function getDeleteRestrictionReason(): ?string
     {
-        $siswaCount = $this->enrollments()->count();
+        // Hanya hitung siswa yang AKTIF, konsisten dengan getJumlahSiswaAktual()
+        $siswaCount = $this->activeEnrollments()->count();
         if ($siswaCount > 0) {
-            return "Memiliki {$siswaCount} siswa terdaftar. Pindahkan atau batalkan siswa terlebih dahulu.";
+            return "Memiliki {$siswaCount} siswa aktif terdaftar. Pindahkan atau batalkan siswa terlebih dahulu.";
         }
 
         if ($this->sessions()->whereHas('laporanMengajar')->exists()) {

@@ -44,7 +44,12 @@ class LaporanMengajarController extends Controller
     private function getFilteredLaporanQuery(Request $request)
     {
         $user = Auth::user();
-        $laporanQuery = LaporanMengajar::with('instruktur', 'sekolah', 'asisten', 'ekstrakurikulerSession.rombel.ekstrakurikuler');
+        $laporanQuery = LaporanMengajar::with([
+            'instruktur',
+            'sekolah',
+            'asisten',
+            'ekstrakurikulerSession.rombel.ekstrakurikuler.sekolah'
+        ]);
 
         // Filter by user role
         if (! in_array($user->role, ['admin', 'admin_sistem', 'webmaster'])) {
@@ -398,6 +403,14 @@ class LaporanMengajarController extends Controller
     {
         $this->authorize('view', $laporanMengajar);
 
+        $laporanMengajar->load([
+            'instruktur',
+            'asisten',
+            'sekolah',
+            'absensi.siswa',
+            'ekstrakurikulerSession.rombel.ekstrakurikuler.sekolah'
+        ]);
+
         $isEkstrakurikuler = $laporanMengajar->isFromEkstrakurikuler();
         $ekstrakurikulerSession = null;
         $ekstrakurikulerData = null;
@@ -600,12 +613,12 @@ class LaporanMengajarController extends Controller
             } catch (\Exception $e) {}
         }
 
-        // Handle File Uploads (Foto Kegiatan)
+        // Handle File Uploads (Foto Kegiatan with auto-compression)
         if ($request->hasFile('foto_kegiatan')) {
             if ($laporanMengajar->foto_kegiatan) {
                 Storage::disk('public')->delete($laporanMengajar->foto_kegiatan);
             }
-            $validated['foto_kegiatan'] = $request->file('foto_kegiatan')->store('laporan_kegiatan', 'public');
+            $validated['foto_kegiatan'] = $this->fileUploadService->upload($request->file('foto_kegiatan'), 'laporan_kegiatan');
         } elseif ($request->has('hapus_foto_kegiatan') && $request->hapus_foto_kegiatan == 1) {
             if ($laporanMengajar->foto_kegiatan) {
                 Storage::disk('public')->delete($laporanMengajar->foto_kegiatan);
@@ -613,12 +626,12 @@ class LaporanMengajarController extends Controller
             $validated['foto_kegiatan'] = null;
         }
 
-        // Handle File Uploads (Foto Absensi Siswa)
+        // Handle File Uploads (Foto Absensi Siswa with auto-compression)
         if ($request->hasFile('foto_absensi_siswa')) {
             if ($laporanMengajar->foto_absensi_siswa) {
                 Storage::disk('public')->delete($laporanMengajar->foto_absensi_siswa);
             }
-            $validated['foto_absensi_siswa'] = $request->file('foto_absensi_siswa')->store('laporan_absensi', 'public');
+            $validated['foto_absensi_siswa'] = $this->fileUploadService->upload($request->file('foto_absensi_siswa'), 'laporan_absensi');
         } elseif ($request->has('hapus_foto_absensi_siswa') && $request->hapus_foto_absensi_siswa == 1) {
             if ($laporanMengajar->foto_absensi_siswa) {
                 Storage::disk('public')->delete($laporanMengajar->foto_absensi_siswa);

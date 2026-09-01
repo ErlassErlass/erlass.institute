@@ -7,17 +7,21 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Alpine from 'alpinejs';
 import { showToast } from './utils/helpers.js';
 import { initErlassOnboarding } from './onboarding/onboarding-engine.js';
+import { compressImageFile, attachImageCompressionToInput, initAutoImageCompressor } from './utils/image-compressor.js';
 
 // Make utilities globally available
 window.showToast = showToast;
 window.Alpine = Alpine;
+window.compressImageFile = compressImageFile;
+window.attachImageCompressionToInput = attachImageCompressionToInput;
 
 // Initialize Alpine.js
 Alpine.start();
 
-// Initialize Onboarding Tour
+// Initialize Onboarding Tour & Auto Image Compressor
 document.addEventListener('DOMContentLoaded', function () {
     initErlassOnboarding();
+    initAutoImageCompressor();
 });
 
 // Handle AJAX form submissions globally if needed

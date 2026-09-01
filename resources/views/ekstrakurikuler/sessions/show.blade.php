@@ -860,294 +860,12 @@
 @endpush
 
 @push('modals')
-<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="cancelModalLabel">Batalkan Sesi</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="cancelForm">
-                <div class="modal-body">
-                    <div class="alert alert-warning d-flex align-items-center">
-                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></i>
-                        <div>
-                            Pembatalan sesi dinonaktifkan. Silakan gunakan fitur Reschedule.
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-danger">Batalkan Sesi</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="rescheduleModal" tabindex="-1" aria-labelledby="rescheduleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title text-dark fw-bold" id="rescheduleModalLabel"><i class="bi bi-calendar2-range me-2"></i>Reschedule Sesi</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="rescheduleForm">
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label for="new_date" class="form-label fw-bold">Tanggal Pengganti Baru <span class="text-danger">*</span></label>
-                        <input type="date" name="tanggal_pengganti" id="new_date" required class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="reschedule_reason" class="form-label fw-bold">Alasan Penjadwalan Ulang</label>
-                        <textarea name="alasan" id="reschedule_reason" rows="2" class="form-control" placeholder="Contoh: Mengganti sesi libur tanggal merah..."></textarea>
-                    </div>
-                    <div class="form-check form-switch p-3 bg-light rounded-3 border">
-                        <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="reschedule_cascade" name="cascade_shift" value="1">
-                        <label class="form-check-label small fw-bold text-dark" for="reschedule_cascade">
-                            Geser seluruh jadwal pertemuan berikutnya secara berantai (+selisih hari)
-                        </label>
-                        <div class="text-muted small mt-1" style="font-size: 0.75rem;">
-                            Jika dicentang, tanggal pertemuan setelah ini dalam rombel akan ikut digeser maju secara otomatis.
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light border-0 p-3">
-                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-warning text-dark fw-bold rounded-pill px-4">Simpan Jadwal Baru</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="postponeModal" tabindex="-1" aria-labelledby="postponeModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header bg-secondary text-white">
-                <h5 class="modal-title fw-bold" id="postponeModalLabel"><i class="bi bi-pause-circle me-2"></i>Tunda Sesi</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="postponeForm">
-                <div class="modal-body p-4">
-                    <div class="alert alert-warning d-flex align-items-center rounded-3">
-                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2 fs-5"></i>
-                        <div class="small">
-                            Sesi akan ditunda tanpa tanggal baru dan otomatis masuk ke <strong>To-Do List Reschedule Admin</strong>.
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="postpone_reason" class="form-label fw-bold">Alasan Penundaan <span class="text-danger">*</span></label>
-                        <textarea name="alasan" id="postpone_reason" rows="3" required class="form-control" placeholder="Jelaskan alasan penundaan..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light border-0 p-3">
-                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-secondary rounded-pill px-4 fw-bold">Tunda Sesi</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Tandai Libur (Instruktur / Admin) -->
-<div class="modal fade" id="markHolidayModal" tabindex="-1" aria-labelledby="markHolidayModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header bg-danger text-white border-0 py-3">
-                <h5 class="modal-title fw-bold" id="markHolidayModalLabel">
-                    <i class="bi bi-calendar-x me-2"></i> Lapor Sesi Libur / Tidak Ada KBM
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('ekstrakurikuler.sessions.mark-holiday', isset($blockingPrior) && $blockingPrior ? $blockingPrior->id : $session->id) }}" method="POST">
-                @csrf
-                <div class="modal-body p-4">
-                    <div class="alert alert-info border-0 rounded-3 small mb-3">
-                        <i class="bi bi-info-circle-fill me-1"></i>
-                        Sesi <strong>Pertemuan ke-{{ isset($blockingPrior) && $blockingPrior ? $blockingPrior->nomor_pertemuan : $session->nomor_pertemuan }}</strong> akan ditandai <strong>Libur</strong> dan otomatis masuk ke <strong>To-Do List Reschedule Admin</strong> untuk dijadwalkan ulang ke tanggal pengganti. Kunci sesi berikutnya langsung terbuka.
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-dark">Alasan Libur / Tidak Ada KBM <span class="text-danger">*</span></label>
-                        <select name="alasan_select" class="form-select mb-2" required id="selectAlasanLibur" onchange="if(this.value === 'custom'){ document.getElementById('customAlasanText').classList.remove('d-none'); document.getElementById('finalAlasan').value = ''; } else { document.getElementById('customAlasanText').classList.add('d-none'); document.getElementById('finalAlasan').value = this.value; }">
-                            <option value="">-- Pilih Alasan --</option>
-                            <option value="Libur Tanggal Merah / Libur Nasional">Libur Tanggal Merah / Libur Nasional</option>
-                            <option value="Ujian Sekolah / Penilaian Akhir Semester (PAS/PTS)">Ujian Sekolah / Penilaian Akhir Semester (PAS/PTS)</option>
-                            <option value="Kegiatan Khusus Sekolah (Class Meeting / Porseni / Study Tour)">Kegiatan Khusus Sekolah (Class Meeting / Porseni / Study Tour)</option>
-                            <option value="Kendala Lapangan (Banjir / Pemadaman / Renovasi Lab)">Kendala Lapangan (Banjir / Pemadaman / Renovasi Lab)</option>
-                            <option value="custom">Lainnya (Tulis Manual)...</option>
-                        </select>
-                        <input type="hidden" name="alasan" id="finalAlasan" value="">
-                        <textarea id="customAlasanText" class="form-control d-none mt-2" rows="2" placeholder="Tuliskan keterangan detail alasan libur..." oninput="document.getElementById('finalAlasan').value = this.value;"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light border-0 p-3">
-                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">
-                        <i class="bi bi-check-circle me-1"></i> Simpan Status Libur
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="reminderModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-whatsapp text-success me-2"></i>Kirim Reminder Manual</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="reminderForm">
-                <input type="hidden" id="reminderTarget" value="instructor">
-                <div class="modal-body">
-                    <p class="mb-2">Kirim notifikasi WhatsApp ke instruktur: <strong>{{ $session->instruktur->nama_lengkap ?? 'Instruktur' }}</strong></p>
-                    
-                    <div class="mb-3">
-                        <label for="customMessage" class="form-label small fw-bold">Pesan Tambahan (Opsional)</label>
-                        <textarea class="form-control" id="customMessage" rows="3" placeholder="Contoh: Harap datang 15 menit lebih awal."></textarea>
-                    </div>
-
-                    <div class="alert alert-info border-0 p-2 small mb-0">
-                        <i class="bi bi-info-circle-fill me-1"></i> Gunakan tombol <strong>"Tes WA Admin"</strong> untuk menguji apakah koneksi Fonnte Gateway berfungsi ke HP Admin.
-                    </div>
-                </div>
-                <div class="modal-footer d-flex justify-content-between">
-                    <button type="button" class="btn btn-outline-success btn-sm fw-bold" id="btnTestAdminReminder" onclick="sendReminderTarget('admin')">
-                        <i class="bi bi-whatsapp me-1"></i> 🧪 Tes WA Admin (+62 821-1830-2927)
-                    </button>
-                    <div>
-                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary btn-sm fw-bold" id="btnSendReminder" onclick="document.getElementById('reminderTarget').value='instructor'">
-                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                            <i class="bi bi-send me-1"></i> Kirim ke Instruktur
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-@php
-    $ekskulModel = $session->ekstrakurikuler ?: $session->rombel?->ekstrakurikuler;
-    $targetSchoolCoords = null;
-    if ($ekskulModel) {
-        $targetSchoolCoords = $ekskulModel->getOrExtractCoordinates();
-    }
-    if (!$targetSchoolCoords && $ekskulModel?->sekolah && !empty($ekskulModel->sekolah->latitude) && !empty($ekskulModel->sekolah->longitude)) {
-        $targetSchoolCoords = [
-            'lat' => (float) $ekskulModel->sekolah->latitude,
-            'lng' => (float) $ekskulModel->sekolah->longitude,
-        ];
-    }
-    $targetSchoolName = $ekskulModel?->sekolah?->namasekolah ?? 'Sekolah';
-    $targetSchoolLat = $targetSchoolCoords ? (float) $targetSchoolCoords['lat'] : null;
-    $targetSchoolLng = $targetSchoolCoords ? (float) $targetSchoolCoords['lng'] : null;
-@endphp
-
-<!-- Modal GPS Check-in (Live Camera & GPS Location) -->
-<div class="modal fade" id="gpsCheckinModal" tabindex="-1" aria-labelledby="gpsCheckinModalLabel" aria-hidden="true"
-     data-school-lat="{{ $targetSchoolLat !== null ? $targetSchoolLat : '' }}"
-     data-school-lng="{{ $targetSchoolLng !== null ? $targetSchoolLng : '' }}"
-     data-school-name="{{ e($targetSchoolName) }}">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title fw-bold" id="gpsCheckinModalLabel">
-                    <i class="bi bi-geo-alt-fill me-1"></i> Check-in Real-Time (GPS & Camera)
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('ekstrakurikuler.sessions.checkin', $session) }}" method="POST" enctype="multipart/form-data" id="gpsCheckinForm">
-                @csrf
-                <div class="modal-body p-4">
-                    <input type="hidden" name="latitude" id="checkin_lat">
-                    <input type="hidden" name="longitude" id="checkin_lng">
-                    <input type="hidden" name="accuracy" id="checkin_accuracy">
-                    <input type="hidden" name="mock_suspected" id="checkin_mock_suspected" value="0">
-                    <input type="hidden" name="device_info" id="checkin_device_info">
-
-                    <div class="alert alert-warning border-0 rounded-3 p-2.5 mb-3 d-flex align-items-center gap-2" style="background: #FFFBEB; border-left: 4px solid #F59E0B !important;">
-                        <i class="bi bi-info-circle-fill text-warning fs-5 flex-shrink-0"></i>
-                        <div class="small text-dark" style="font-size: 0.76rem; line-height: 1.35;">
-                            <strong>Waktu Check-in:</strong> Lakukan check-in <strong>saat Anda tiba di sekolah SEBELUM kelas dimulai</strong>, bukan setelah kelas selesai mengajar.
-                        </div>
-                    </div>
-
-                    <div id="gpsStatusAlert" class="alert alert-info d-flex align-items-center gap-2 mb-3">
-                        <div class="spinner-border spinner-border-sm text-primary" id="gpsSpinner" role="status"></div>
-                        <div id="gpsStatusText" class="small fw-semibold">Mendeteksi titik lokasi GPS HP Anda...</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-dark d-flex align-items-center justify-content-between">
-                            <span><i class="bi bi-camera-fill me-1 text-primary"></i> <span id="photoLabel">Foto Live Kamera (Wajib Selfie / Suasana Sekolah)</span></span>
-                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle small fw-semibold" style="font-size: 0.7rem;"><i class="bi bi-shield-lock-fill me-1"></i>Kamera Langsung</span>
-                        </label>
-                        
-                        {{-- Hidden File Input triggered by the big tactile camera button --}}
-                        <input type="file" name="photo" id="checkin_photo" accept="image/*" style="position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;" required>
-
-                        {{-- Tactile Shutter Button (Before Photo is Captured) --}}
-                        <div id="cameraTriggerBox" class="border border-2 border-primary border-dashed rounded-4 p-4 text-center bg-primary bg-opacity-10 cursor-pointer shadow-sm" onclick="document.getElementById('checkin_photo').click()" style="cursor: pointer; transition: all 0.25s ease;" onmouseover="this.style.background='rgba(37,99,235,0.15)'" onmouseout="this.style.background='rgba(37,99,235,0.10)'">
-                            <div class="py-1">
-                                <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle shadow mb-2" style="width: 58px; height: 58px;">
-                                    <i class="bi bi-camera-fill fs-3"></i>
-                                </div>
-                                <h6 class="fw-bold text-dark mb-1" id="cameraBtnText">📸 Buka Kamera & Ambil Foto</h6>
-                                <small class="text-muted d-block" id="cameraBtnSub" style="font-size: 0.78rem;">Ketuk di sini untuk menyalakan kamera HP langsung</small>
-                            </div>
-                        </div>
-
-                        {{-- Photo Preview Box (After Photo is Captured) --}}
-                        <div id="photoPreviewContainer" class="rounded-4 p-3 border bg-light text-center d-none mt-2 shadow-sm">
-                            <div class="position-relative d-inline-block">
-                                <img id="photoPreview" src="" alt="Preview Foto Check-in" class="img-fluid rounded-3 border shadow-sm" style="max-height: 200px; object-fit: contain;">
-                            </div>
-                            <div class="mt-2.5 d-flex align-items-center justify-content-center gap-2">
-                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold" onclick="document.getElementById('checkin_photo').click()">
-                                    <i class="bi bi-arrow-repeat me-1"></i> Ambil Ulang Foto
-                                </button>
-                            </div>
-                        </div>
-
-                        {{-- Compression & Geotag Status Badge --}}
-                        <div id="photoCompressionBadge" class="mt-2 d-none">
-                            <div class="alert alert-success border-0 py-1.5 px-2.5 rounded-3 mb-0 small d-flex align-items-center gap-2" style="font-size: 0.75rem; background: #ecfdf5; color: #065f46;">
-                                <i class="bi bi-patch-check-fill text-success fs-6"></i>
-                                <span id="photoCompressionText">Foto dioptimasi</span>
-                            </div>
-                        </div>
-
-                        <small class="text-muted d-block mt-1.5" style="font-size: 0.72rem;" id="photoHint">
-                            <i class="bi bi-shield-lock-fill text-success me-1"></i>Sistem mengunci pengambilan foto dari kamera langsung untuk verifikasi kehadiran otentik.
-                        </small>
-                    </div>
-
-                    <div class="bg-light p-3 rounded-3 border" id="gpsRuleBox">
-                        <small class="text-muted fw-bold d-block"><i class="bi bi-shield-check text-success me-1"></i>Aturan Verifikasi GPS Erlass:</small>
-                        <small class="text-secondary d-block" style="font-size: 0.75rem;">
-                            Sistem akan secara otomatis menghitung jarak presisi titik Anda ke Sekolah (Radius Toleransi: &le; 500 meter).
-                        </small>
-                        <small class="text-secondary d-block mt-1" style="font-size: 0.75rem;">
-                            <i class="bi bi-clock-history text-primary me-1"></i>Check-in dibuka mulai 30 menit sebelum jam mulai sesi.
-                        </small>
-                        <div id="desktopAccuracyNote" class="d-none mt-2">
-                            <small class="text-warning fw-semibold d-block" style="font-size: 0.75rem;">
-                                <i class="bi bi-laptop me-1"></i><strong>Mode Desktop:</strong> Akurasi GPS mungkin lebih rendah (via WiFi/IP). Admin akan memverifikasi secara manual jika status <em>Diluar Radius</em>.
-                            </small>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-success fw-bold px-4" id="btnSubmitCheckin" disabled>
-                        <i class="bi bi-check-circle me-1"></i> Kirim Check-in
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+@include('ekstrakurikuler.sessions.partials.modals.cancel')
+@include('ekstrakurikuler.sessions.partials.modals.reschedule')
+@include('ekstrakurikuler.sessions.partials.modals.postpone')
+@include('ekstrakurikuler.sessions.partials.modals.holiday')
+@include('ekstrakurikuler.sessions.partials.modals.reminder')
+@include('ekstrakurikuler.sessions.partials.modals.gps-checkin')
 
 <script>
 function sendReminderTarget(target) {
@@ -1162,6 +880,39 @@ function formatBytes(bytes, decimals = 1) {
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+}
+
+function applyCanvasWatermark(ctx, width, height, watermarkData) {
+    if (!watermarkData) return;
+
+    const barHeight = Math.max(70, Math.round(height * 0.13));
+    const gradient = ctx.createLinearGradient(0, height - barHeight, 0, height);
+    gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    gradient.addColorStop(0.25, 'rgba(0, 0, 0, 0.72)');
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.90)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, height - barHeight, width, barHeight);
+
+    const baseFontSize = Math.max(13, Math.round(width * 0.024));
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+
+    // Line 1: School & Meeting
+    ctx.font = `bold ${baseFontSize}px sans-serif`;
+    ctx.fillStyle = '#ffffff';
+    const line1 = `📍 ${watermarkData.school || 'Erlass Institute'} • Pertemuan ${watermarkData.meeting || '?'}`;
+    ctx.fillText(line1, 16, height - (barHeight * 0.55));
+
+    // Line 2: Timestamp & GPS Coordinates
+    ctx.font = `normal ${Math.max(11, Math.round(baseFontSize * 0.85))}px sans-serif`;
+    ctx.fillStyle = '#f8f9fa';
+    const line2 = `🕒 ${watermarkData.time || ''} • GPS: ${watermarkData.coords || 'Aktif'}`;
+    ctx.fillText(line2, 16, height - (barHeight * 0.20));
+
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
 }
 
 function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.75, watermarkData = null) {
@@ -1200,36 +951,7 @@ function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.
                 ctx.drawImage(img, 0, 0, width, height);
 
                 // ─── Geotag Canvas Watermark ───
-                if (watermarkData) {
-                    const barHeight = Math.max(70, Math.round(height * 0.13));
-                    const gradient = ctx.createLinearGradient(0, height - barHeight, 0, height);
-                    gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-                    gradient.addColorStop(0.25, 'rgba(0, 0, 0, 0.72)');
-                    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.90)');
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(0, height - barHeight, width, barHeight);
-
-                    const baseFontSize = Math.max(13, Math.round(width * 0.024));
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                    ctx.shadowBlur = 4;
-                    ctx.shadowOffsetX = 1;
-                    ctx.shadowOffsetY = 1;
-
-                    // Line 1: School & Meeting
-                    ctx.font = `bold ${baseFontSize}px sans-serif`;
-                    ctx.fillStyle = '#ffffff';
-                    const line1 = `📍 ${watermarkData.school || 'Erlass Institute'} • Pertemuan ${watermarkData.meeting || '?'}`;
-                    ctx.fillText(line1, 16, height - (barHeight * 0.55));
-
-                    // Line 2: Timestamp & GPS Coordinates
-                    ctx.font = `normal ${Math.max(11, Math.round(baseFontSize * 0.85))}px sans-serif`;
-                    ctx.fillStyle = '#f8f9fa';
-                    const line2 = `🕒 ${watermarkData.time || ''} • GPS: ${watermarkData.coords || 'Aktif'}`;
-                    ctx.fillText(line2, 16, height - (barHeight * 0.20));
-
-                    ctx.shadowColor = 'transparent';
-                    ctx.shadowBlur = 0;
-                }
+                applyCanvasWatermark(ctx, width, height, watermarkData);
 
                 canvas.toBlob((blob) => {
                     if (!blob) {
@@ -1254,93 +976,216 @@ function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.
     });
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    // ─── Device detection ───
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+let mediaStream = null;
+let currentFacingMode = 'environment';
 
-    // Set photo input behaviour based on device
+window.stopLiveCameraStream = function() {
+    if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        mediaStream = null;
+    }
+    const videoEl = document.getElementById('liveCameraVideo');
+    if (videoEl) videoEl.srcObject = null;
+};
+
+window.startLiveCameraOrFallback = async function() {
+    const videoEl = document.getElementById('liveCameraVideo');
+    const cameraContainer = document.getElementById('liveCameraContainer');
+    const triggerBox = document.getElementById('cameraTriggerBox');
+    const previewContainer = document.getElementById('photoPreviewContainer');
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+            window.stopLiveCameraStream();
+            mediaStream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: { ideal: currentFacingMode },
+                    width: { ideal: 1280 },
+                    height: { ideal: 960 }
+                },
+                audio: false
+            });
+
+            if (videoEl && cameraContainer) {
+                videoEl.srcObject = mediaStream;
+                await videoEl.play();
+                cameraContainer.classList.remove('d-none');
+                if (triggerBox) triggerBox.classList.add('d-none');
+                if (previewContainer) previewContainer.classList.add('d-none');
+                return;
+            }
+        } catch (err) {
+            console.warn('getUserMedia camera stream not available, fallback to native camera capture:', err);
+        }
+    }
+
+    // Fallback: trigger native camera directly with capture="environment" locked
     const photoInput = document.getElementById('checkin_photo');
-    const photoLabel = document.getElementById('photoLabel');
-    const photoHint = document.getElementById('photoHint');
+    if (photoInput) {
+        photoInput.setAttribute('capture', currentFacingMode);
+        photoInput.click();
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function () {
+    const photoInput = document.getElementById('checkin_photo');
     const cameraTriggerBox = document.getElementById('cameraTriggerBox');
-    const cameraBtnText = document.getElementById('cameraBtnText');
-    const cameraBtnSub = document.getElementById('cameraBtnSub');
-    const desktopNote = document.getElementById('desktopAccuracyNote');
-    const compressionBadge = document.getElementById('photoCompressionBadge');
-    const compressionText = document.getElementById('photoCompressionText');
     const previewContainer = document.getElementById('photoPreviewContainer');
     const photoPreview = document.getElementById('photoPreview');
+    const compressionBadge = document.getElementById('photoCompressionBadge');
+    const compressionText = document.getElementById('photoCompressionText');
     const form = document.getElementById('gpsCheckinForm');
     const btnSubmit = document.getElementById('btnSubmitCheckin');
+    const cameraContainer = document.getElementById('liveCameraContainer');
+    const videoEl = document.getElementById('liveCameraVideo');
 
     const schoolName = @json($session->ekstrakurikuler?->sekolah?->namasekolah ?? ($session->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? 'Erlass Institute'));
     const meetingNumber = @json($session->nomor_pertemuan);
 
-    if (photoInput) {
-        if (isMobile) {
-            photoInput.setAttribute('capture', 'environment');
-            if (photoLabel) photoLabel.textContent = 'Foto Live Kamera (Wajib Selfie / Suasana Sekolah)';
-            if (cameraBtnText) cameraBtnText.textContent = '📸 Buka Kamera & Ambil Foto';
-            if (cameraBtnSub) cameraBtnSub.textContent = 'Ketuk di sini untuk menyalakan kamera HP langsung';
-            if (photoHint) {
-                photoHint.innerHTML = '<i class="bi bi-shield-lock-fill text-success me-1"></i>Sistem otomatis menyalakan kamera HP langsung untuk verifikasi kehadiran otentik.';
-            }
-        } else {
-            // Desktop: remove capture so device camera/file picker works normally
-            photoInput.removeAttribute('capture');
-            if (photoLabel) photoLabel.textContent = 'Foto Bukti Kehadiran (Ambil / Upload dari Laptop)';
-            if (cameraBtnText) cameraBtnText.textContent = '📸 Ambil / Pilih Foto Bukti Kehadiran';
-            if (cameraBtnSub) cameraBtnSub.textContent = 'Ketuk untuk mengambil atau memilih foto bukti kehadiran hari ini';
-            if (photoHint) {
-                photoHint.innerHTML = '<i class="bi bi-laptop me-1 text-primary"></i>Mode Desktop: Disarankan check-in lewat HP agar presisi GPS & kamera live maksimal.';
-            }
-            if (desktopNote) desktopNote.classList.remove('d-none');
+    function getWatermarkPayload() {
+        const latVal = document.getElementById('checkin_lat')?.value;
+        const lngVal = document.getElementById('checkin_lng')?.value;
+        const accVal = document.getElementById('checkin_accuracy')?.value;
+        const coordsText = (latVal && lngVal) ? `${parseFloat(latVal).toFixed(5)}, ${parseFloat(lngVal).toFixed(5)} (±${accVal ? Math.round(accVal) + 'm' : '?'})` : 'GPS Aktif';
+
+        const now = new Date();
+        const timeString = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + 
+                           now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+
+        return {
+            school: schoolName,
+            meeting: meetingNumber,
+            time: timeString,
+            coords: coordsText
+        };
+    }
+
+    // ─── Live Camera Shutter Button ───
+    document.getElementById('btnCaptureLive')?.addEventListener('click', async function () {
+        if (!videoEl || !videoEl.videoWidth) return;
+
+        if (btnSubmit) {
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memproses Foto...';
         }
 
-        // Automatic client-side image compression & Geotag Watermark
+        const watermarkData = getWatermarkPayload();
+
+        // Capture frame from live video
+        const canvas = document.createElement('canvas');
+        canvas.width = videoEl.videoWidth;
+        canvas.height = videoEl.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+        // Apply Geotag Watermark
+        applyCanvasWatermark(ctx, canvas.width, canvas.height, watermarkData);
+
+        // Stop stream
+        window.stopLiveCameraStream();
+        if (cameraContainer) cameraContainer.classList.add('d-none');
+
+        canvas.toBlob((blob) => {
+            if (!blob) return;
+            const liveFile = new File([blob], "live_checkin_" + Date.now() + ".jpg", { type: "image/jpeg" });
+            try {
+                const dt = new DataTransfer();
+                dt.items.add(liveFile);
+                if (photoInput) photoInput.files = dt.files;
+            } catch (e) {
+                console.warn('DataTransfer fallback', e);
+            }
+
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            const base64Input = document.getElementById('checkin_photo_base64');
+            if (base64Input) base64Input.value = dataUrl;
+
+            if (photoPreview && previewContainer) {
+                photoPreview.src = dataUrl;
+                previewContainer.classList.remove('d-none');
+            }
+
+            if (compressionBadge && compressionText) {
+                compressionBadge.classList.remove('d-none');
+                compressionText.innerHTML = '<i class="bi bi-patch-check-fill text-success fs-6 me-1"></i>Foto Kamera Live Siap (' + formatBytes(blob.size) + ')';
+            }
+
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '<i class="bi bi-check-circle me-1"></i> Kirim Check-in';
+            }
+        }, 'image/jpeg', 0.8);
+    });
+
+    // ─── Switch Camera (Front / Back) ───
+    document.getElementById('btnSwitchCam')?.addEventListener('click', async function () {
+        currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+        await window.startLiveCameraOrFallback();
+    });
+
+    // ─── Close Camera Viewfinder ───
+    document.getElementById('btnCloseCam')?.addEventListener('click', function () {
+        window.stopLiveCameraStream();
+        if (cameraContainer) cameraContainer.classList.add('d-none');
+        if (triggerBox) triggerBox.classList.remove('d-none');
+    });
+
+    // ─── Close Camera on Modal Dismiss ───
+    const gpsModal = document.getElementById('gpsCheckinModal');
+    if (gpsModal) {
+        gpsModal.addEventListener('hidden.bs.modal', function () {
+            window.stopLiveCameraStream();
+        });
+    }
+
+    // ─── Fallback Native Input Change Handler ───
+    if (photoInput) {
         photoInput.addEventListener('change', async function () {
             if (this.files && this.files[0]) {
                 const originalFile = this.files[0];
                 if (compressionBadge) {
                     compressionBadge.classList.remove('d-none');
-                    compressionText.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mengoptimalkan foto & mencetak stempel geotag...';
+                    compressionText.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memproses stempel geotag...';
                 }
 
-                const latVal = document.getElementById('checkin_lat').value;
-                const lngVal = document.getElementById('checkin_lng').value;
-                const accVal = document.getElementById('checkin_accuracy').value;
-                const coordsText = (latVal && lngVal) ? `${parseFloat(latVal).toFixed(5)}, ${parseFloat(lngVal).toFixed(5)} (±${accVal ? Math.round(accVal) + 'm' : '?'})` : 'GPS Aktif';
+                if (btnSubmit) {
+                    btnSubmit.disabled = true;
+                    btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memproses Foto...';
+                }
 
-                const now = new Date();
-                const timeString = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + 
-                                   now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+                const watermarkData = getWatermarkPayload();
 
-                const watermarkData = {
-                    school: schoolName,
-                    meeting: meetingNumber,
-                    time: timeString,
-                    coords: coordsText
-                };
+                try {
+                    const result = await compressImageFile(originalFile, 1280, 1280, 0.75, watermarkData);
+                    if (result && result.file) {
+                        try {
+                            const dt = new DataTransfer();
+                            dt.items.add(result.file);
+                            photoInput.files = dt.files;
+                        } catch (e) {
+                            console.warn('DataTransfer not supported', e);
+                        }
 
-                const result = await compressImageFile(originalFile, 1280, 1280, 0.75, watermarkData);
-                if (result && result.file) {
-                    try {
-                        const dt = new DataTransfer();
-                        dt.items.add(result.file);
-                        photoInput.files = dt.files;
-                    } catch (e) {
-                        console.warn('DataTransfer not fully supported, fallback to native file', e);
+                        const base64Input = document.getElementById('checkin_photo_base64');
+                        if (base64Input && result.previewUrl) {
+                            base64Input.value = result.previewUrl;
+                        }
+
+                        if (cameraTriggerBox) cameraTriggerBox.classList.add('d-none');
+                        if (photoPreview && previewContainer) {
+                            photoPreview.src = result.previewUrl;
+                            previewContainer.classList.remove('d-none');
+                        }
+
+                        if (compressionBadge && compressionText) {
+                            const reduction = Math.round((1 - (result.compressedSize / result.originalSize)) * 100);
+                            compressionText.innerHTML = `Foto & Geotag siap! Ukuran: ${formatBytes(result.originalSize)} ➔ <strong>${formatBytes(result.compressedSize)}</strong> (${reduction > 0 ? reduction + '% lebih hemat' : 'Optimal'})`;
+                        }
                     }
-
-                    if (cameraTriggerBox) cameraTriggerBox.classList.add('d-none');
-                    if (photoPreview && previewContainer) {
-                        photoPreview.src = result.previewUrl;
-                        previewContainer.classList.remove('d-none');
-                    }
-
-                    if (compressionBadge && compressionText) {
-                        const reduction = Math.round((1 - (result.compressedSize / result.originalSize)) * 100);
-                        compressionText.innerHTML = `Foto & Geotag siap! Ukuran: ${formatBytes(result.originalSize)} ➔ <strong>${formatBytes(result.compressedSize)}</strong> (${reduction > 0 ? reduction + '% lebih hemat' : 'Optimal'})`;
+                } finally {
+                    if (btnSubmit) {
+                        btnSubmit.disabled = false;
+                        btnSubmit.innerHTML = '<i class="bi bi-check-circle me-1"></i> Kirim Check-in';
                     }
                 }
             }

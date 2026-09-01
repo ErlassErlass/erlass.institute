@@ -163,18 +163,34 @@ class LaporanMengajar extends Model
     }
 
     /**
-     * Accessor untuk mendapatkan jumlah siswa hadir.
+     * Accessor untuk mendapatkan jumlah siswa hadir (N+1 safe).
      */
-    public function getJumlahHadirAttribute()
+    public function getJumlahHadirAttribute(): int
     {
+        if ($this->relationLoaded('absensi')) {
+            return $this->absensi->where('status', 'hadir')->count();
+        }
+
+        if (isset($this->attributes['jumlah_siswa_hadir'])) {
+            return (int) $this->attributes['jumlah_siswa_hadir'];
+        }
+
         return $this->absensi()->where('status', 'hadir')->count();
     }
 
     /**
-     * Accessor untuk mendapatkan jumlah siswa tidak hadir.
+     * Accessor untuk mendapatkan jumlah siswa tidak hadir (N+1 safe).
      */
-    public function getJumlahTidakHadirAttribute()
+    public function getJumlahTidakHadirAttribute(): int
     {
+        if ($this->relationLoaded('absensi')) {
+            return $this->absensi->whereIn('status', ['izin', 'sakit', 'alpha'])->count();
+        }
+
+        if (isset($this->attributes['jumlah_siswa_tidak_hadir'])) {
+            return (int) $this->attributes['jumlah_siswa_tidak_hadir'];
+        }
+
         return $this->absensi()->whereIn('status', ['izin', 'sakit', 'alpha'])->count();
     }
 

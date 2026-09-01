@@ -34,6 +34,9 @@
                             <i class="bi bi-person-check-fill text-success me-1"></i> Cornelis Banu
                         </div>
                         <div class="fw-bold text-dark small mt-1">
+                            <i class="bi bi-person-check-fill text-success me-1"></i> Ahmad Yusril Firdaus
+                        </div>
+                        <div class="fw-bold text-dark small mt-1">
                             <i class="bi bi-shield-lock-fill text-warning me-1"></i> Webmaster IT
                         </div>
                     </div>
@@ -235,7 +238,7 @@
                                 <i class="bi bi-shield-lock-fill text-warning fs-5"></i>
                                 <div>
                                     <strong class="d-block mb-1">Akses Pembuatan Batch Dibatasi</strong>
-                                    Pembuatan dan pencairan batch payroll memerlukan verifikasi Admin Utama (<strong>Adinda Wardania</strong> atau <strong>Cornelis Banu</strong>).
+                                    Pembuatan dan pencairan batch payroll memerlukan verifikasi Admin Utama (<strong>Adinda Wardania</strong>, <strong>Cornelis Banu</strong>, atau <strong>Ahmad Yusril Firdaus</strong>).
                                 </div>
                             </div>
                         </div>

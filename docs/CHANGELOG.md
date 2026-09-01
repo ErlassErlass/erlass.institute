@@ -2,6 +2,31 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.19] - 2026-09-01
+
+### Perbaikan Fatal Error 500 Check-in, Solusi Scroll & Sort Tabel Sesi, Kalibrasi Milestone $\ge 4$, dan Pemulihan Notifikasi Tiket
+
+- **Perbaikan Fatal Error 500 Check-in GPS Instruktur (`FileUploadService`)**:
+  - Menyelaraskan nama fungsi pemrosesan cap air (*geotag watermark*) foto check-in antara `addGeotagWatermark` dan `applyGeotagWatermark`.
+  - Mencegah *Call to undefined method* saat instruktur melakukan check-in GPS dengan lampiran foto bukti kehadiran.
+  - Memastikan proses kompresi foto dan penambahan banner watermark (Lokasi Sekolah, Pertemuan, Waktu WIB, Koordinat GPS) berjalan stabil.
+- **Penyempurnaan & Navigasi Scroll Tabel Sesi (`/ekstrakurikuler/sessions`)**:
+  - **Struktur Kolom Sesuai Format Export Gambar**: Urutan kolom kini terstandarisasi: *No*, *Tanggal Mengajar*, *Sekolah*, *Rombel*, *Pertemuan*, *Nama Instruktur*, *Asst. Instruktur*, *Jml Siswa*, *Kecamatan*, *Ekskul*, *Sales*, *Jam Mulai*, *PIC Ekskul*, *Status Jadwal*, *Aksi*.
+  - **Instant In-Memory Table Sorting (< 0.005 detik)**: Klik header kolom untuk sorting langsung di browser (*Client-Side Engine*) tanpa reload halaman yang berat. Mendukung sorting tanggal (`DD/MM/YYYY`), nomor pertemuan numerik (`Ke-1`, `Ke-2`), jam, dan alfabet.
+  - **Top Scrollbar Synchronization**: Menambahkan scrollbar horizontal ganda di bagian atas tabel yang tersinkronisasi 2 arah secara *real-time* dengan tabel utama.
+  - **Drag-to-Scroll / Mouse Grab**: Mengizinkan pengguna mengklik dan menggeser mouse (*grab & drag*) ke kiri dan kanan pada area tabel seperti di Google Sheets / Excel.
+- **Kalibrasi Ketat Notifikasi Milestone Laporan Mengajar ($\ge 4$ Sesi Riil)**:
+  - Notifikasi milestone laporan mengajar kelipatan 4 kini **wajib memastikan terdapat $\ge 4$ sesi riil berstatus `selesai` & memiliki laporan mengajar**.
+  - Sesi yang berstatus `libur`, `ditunda`, `dibatalkan`, atau `tidak_hadir` tidak dihitung dalam kuota milestone 4 pertemuan.
+  - Menghapus dan membersihkan seluruh notifikasi milestone prematur (misal rombel yang baru selesai 3 pertemuan karena ada 1 sesi yang ditunda).
+- **Perbaikan & Pemulihan Sistem Notifikasi Tiket Bantuan**:
+  - Memperbarui `NotificationController@getUnreadNotifications` untuk mengambil notifikasi tiket dan milestone secara independen dan seimbang (hingga 25 item per kategori).
+  - Menghilangkan *pagination starvation* di mana puluhan notifikasi milestone sebelumnya menenggelamkan notifikasi tiket bantuan dari instruktur.
+  - Melakukan re-sinkronisasi seluruh 21 tiket aktif (`open` & `in_progress`) ke dalam dropdown notifikasi admin.
+- **Pencegahan Error Upload PWA Android (`ERR_UPLOAD_FILE_CHANGED`)**:
+  - Menerapkan fungsi `detachFileToMemory()` pada `image-compressor.js` untuk menyalin file kamera ke memori RAM (*ArrayBuffer/Blob*) sebelum dikompres.
+  - Menambahkan dukungan payload `photo_base64` di backend sebagai fallback transmisi file yang aman terhadap perubahan filesystem Android background.
+
 ## [2.9.18] - 2026-08-28
 
 ### Penanganan Sesi Libur/Ditunda (FIFO Non-Blocking), Cascade Reschedule, & Dashboard To-Do List Admin

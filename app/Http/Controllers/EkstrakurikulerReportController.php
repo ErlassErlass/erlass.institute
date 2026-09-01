@@ -142,21 +142,27 @@ class EkstrakurikulerReportController extends Controller
         // 1. Siswa Aktif di Rombel ini
         $siswaList = $rombel->siswaAktif()->orderBy('nama_lengkap')->get();
 
-        // 2. Siswa yang pernah terdaftar di Rombel ini namun telah Pindah ke rombel lain (Baris Abu-Abu)
+        // 2. Siswa yang pernah terdaftar di Rombel ini namun telah Pindah ke rombel lain (Baris Abu-Abu) - Batch optimized
         $transferredEnrollments = \App\Models\SiswaEkstrakurikuler::with('siswa')
             ->where('ekstrakurikuler_rombel_id', $rombel->id)
             ->where('status', \App\Models\SiswaEkstrakurikuler::STATUS_PINDAH)
             ->get();
 
+        $transferredSiswaIds = $transferredEnrollments->pluck('siswa_id')->filter()->unique();
+        $activeEnrollmentsMap = $transferredSiswaIds->isNotEmpty()
+            ? \App\Models\SiswaEkstrakurikuler::with('rombel')
+                ->whereIn('siswa_id', $transferredSiswaIds)
+                ->where('ekstrakurikuler_id', $ekskulId)
+                ->where('status', \App\Models\SiswaEkstrakurikuler::STATUS_AKTIF)
+                ->get()
+                ->keyBy('siswa_id')
+            : collect();
+
         $transferredStudents = [];
         foreach ($transferredEnrollments as $enrollment) {
             if ($enrollment->siswa) {
-                // Cari rombel aktif siswa saat ini di program ekskul yang sama
-                $activeEnrollment = \App\Models\SiswaEkstrakurikuler::with('rombel')
-                    ->where('siswa_id', $enrollment->siswa_id)
-                    ->where('ekstrakurikuler_id', $ekskulId)
-                    ->where('status', \App\Models\SiswaEkstrakurikuler::STATUS_AKTIF)
-                    ->first();
+                // Cari rombel aktif siswa saat ini di program ekskul yang sama dari map (in-memory)
+                $activeEnrollment = $activeEnrollmentsMap->get($enrollment->siswa_id);
 
                 // Hanya tampilkan jika sekarang sudah aktif di rombel lain
                 if ($activeEnrollment && $activeEnrollment->ekstrakurikuler_rombel_id !== $rombel->id) {
@@ -330,10 +336,11 @@ class EkstrakurikulerReportController extends Controller
 
         DB::beginTransaction();
         try {
-            // 1. Handle File Uploads
-            $fotoKegiatanPath = $request->file('foto_kegiatan')->store('laporan_kegiatan', 'public');
+            // 1. Handle File Uploads with auto compression & standardized security
+            $fileUploadService = app(\App\Services\FileUploadService::class);
+            $fotoKegiatanPath = $fileUploadService->upload($request->file('foto_kegiatan'), 'laporan_kegiatan');
             $fotoAbsensiPath = $request->hasFile('foto_absensi_siswa') 
-                ? $request->file('foto_absensi_siswa')->store('laporan_absensi', 'public') 
+                ? $fileUploadService->upload($request->file('foto_absensi_siswa'), 'laporan_absensi') 
                 : null;
             $fileProjectPath = $request->hasFile('file_project')
                 ? $request->file('file_project')->store('laporan_project', 'public')

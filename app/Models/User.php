@@ -212,13 +212,14 @@ class User extends Authenticatable
     }
 
     /**
-     * Cek apakah user adalah Admin Utama / Otorisasi Khusus (Adinda Wardania, Cornelis Banu, atau Webmaster)
+     * Cek apakah user adalah Admin Utama / Otorisasi Khusus (Adinda Wardania, Cornelis Banu, Ahmad Yusril Firdaus, atau Webmaster)
      */
     public function isPrimaryAdmin(): bool
     {
         return $this->role === 'webmaster' || in_array($this->email, [
             'adinda.wardania@erlass.institute',
             'cornelis.banu@erlass.institute',
+            'ahmad.firdaus@erlass.institute',
         ]);
     }
 

@@ -23,12 +23,6 @@ class NotificationController extends Controller
             ]);
         }
 
-        $query = Notification::where('is_read', false)
-            ->orderBy('created_at', 'desc');
-
-        $unreadCount = $query->count();
-        $notifications = $query->take(25)->get();
-
         $ticketCount = Notification::where('is_read', false)
             ->whereIn('type', ['ticket_created', 'ticket_reply'])
             ->count();
@@ -36,6 +30,25 @@ class NotificationController extends Controller
         $milestoneCount = Notification::where('is_read', false)
             ->where('type', 'milestone_report')
             ->count();
+
+        $unreadCount = $ticketCount + $milestoneCount;
+
+        // Ambil notifikasi tiket dan milestone secara seimbang agar tidak saling menenggelamkan
+        $ticketNotifications = Notification::where('is_read', false)
+            ->whereIn('type', ['ticket_created', 'ticket_reply'])
+            ->orderBy('created_at', 'desc')
+            ->take(25)
+            ->get();
+
+        $milestoneNotifications = Notification::where('is_read', false)
+            ->where('type', 'milestone_report')
+            ->orderBy('created_at', 'desc')
+            ->take(25)
+            ->get();
+
+        $notifications = $ticketNotifications->merge($milestoneNotifications)
+            ->sortByDesc('created_at')
+            ->values();
 
         return response()->json([
             'unread_count' => $unreadCount,

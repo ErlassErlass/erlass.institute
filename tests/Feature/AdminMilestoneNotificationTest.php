@@ -78,8 +78,33 @@ class AdminMilestoneNotificationTest extends TestCase
             'user_id_instruktur' => $instructor->id,
         ]);
 
+        // Create reports for sessions 1, 2, 3, 4
+        for ($i = 1; $i <= 3; $i++) {
+            $s = $rombel->sessions()->where('nomor_pertemuan', $i)->first();
+            $s->update(['status' => EkstrakurikulerSession::STATUS_SELESAI]);
+            LaporanMengajar::create([
+                'ekstrakurikuler_session_id' => $s->id,
+                'user_id_instruktur' => $instructor->id,
+                'pertemuan_ke' => $i,
+                'rombel' => $rombel->nama_rombel,
+                'sekolah_kodlan' => $sekolah->kodlan,
+                'sekolah_nama' => $sekolah->namasekolah,
+                'jadwal_mengajar' => "2025-08-0{$i}",
+                'jam_mulai' => '13:00',
+                'jam_selesai' => '14:30',
+                'kategori_pengajaran' => 'Coding Scratch',
+                'materi_pengajaran' => "Materi {$i}",
+                'jumlah_siswa_hadir' => 12,
+                'refleksi_siswa' => '-',
+                'refleksi_capaian' => '-',
+                'keaktifan' => 'aktif',
+                'pemahaman_materi' => 'paham',
+            ]);
+        }
+
         $session4 = $rombel->sessions()->where('nomor_pertemuan', 4)->first();
         $this->assertNotNull($session4);
+        $session4->update(['status' => EkstrakurikulerSession::STATUS_SELESAI]);
 
         // Create report for meeting 4
         $laporan = LaporanMengajar::create([
@@ -128,21 +153,21 @@ class AdminMilestoneNotificationTest extends TestCase
 
         $sekolah = Sekolah::create([
             'kodlan' => 'ERL54321',
-            'namasekolah' => 'SD ERLASS 2',
+            'namasekolah' => 'SD Bintang Kejora',
             'jenjang' => 'SD',
-            'status' => 'Aktif',
+            'status' => 'aktif',
             'kec' => 'Kecamatan Test',
-            'kotkab' => 'Kota Jakarta',
-            'kota' => 'JAKARTA',
+            'kotkab' => 'Kota Jakarta Timur',
+            'kota' => 'JAKARTA TIMUR',
             'provinsi' => 'DKI Jakarta',
         ]);
 
         $ekskul = Ekstrakurikuler::create([
-            'nama_program' => 'Robotik',
+            'nama_program' => 'Coding Scratch',
             'sekolah_id' => $sekolah->id,
             'sekolah_kodlan' => $sekolah->kodlan,
-            'kategori_program' => 'Robotik',
-            'total_siswa' => 10,
+            'kategori_program' => 'Coding Scratch',
+            'total_siswa' => 15,
             'total_ruangan' => 1,
             'total_rombel' => 1,
             'total_pertemuan' => 12,
@@ -156,11 +181,11 @@ class AdminMilestoneNotificationTest extends TestCase
         $rombel = EkstrakurikulerRombel::create([
             'ekstrakurikuler_id' => $ekskul->id,
             'nomor_rombel' => 1,
-            'nama_rombel' => 'Rombel A',
-            'jumlah_siswa' => 10,
+            'nama_rombel' => 'Rombel 1',
+            'jumlah_siswa' => 15,
             'tanggal_mulai' => now()->toDateString(),
             'tanggal_selesai' => now()->addMonths(3)->toDateString(),
-            'hari' => 'rabu',
+            'hari' => 'senin',
             'jam_mulai' => '13:00',
             'jam_selesai' => '14:30',
             'total_pertemuan' => 12,
@@ -179,9 +204,9 @@ class AdminMilestoneNotificationTest extends TestCase
             'jadwal_mengajar' => '2025-08-03',
             'jam_mulai' => '13:00',
             'jam_selesai' => '14:30',
-            'kategori_pengajaran' => 'Robotik',
-            'materi_pengajaran' => 'Sensors',
-            'jumlah_siswa_hadir' => 10,
+            'kategori_pengajaran' => 'Coding Scratch',
+            'materi_pengajaran' => 'Pertemuan 3',
+            'jumlah_siswa_hadir' => 12,
             'refleksi_siswa' => '-',
             'refleksi_capaian' => '-',
             'keaktifan' => 'aktif',
@@ -192,5 +217,114 @@ class AdminMilestoneNotificationTest extends TestCase
         $notif = $service->checkAndTriggerMilestoneNotification($session3, $laporan);
 
         $this->assertNull($notif);
+    }
+
+    public function test_milestone_notification_excludes_libur_and_ditunda_sessions(): void
+    {
+        $instructor = User::create([
+            'nama_lengkap' => 'Galih Instructor',
+            'email' => 'galih3@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'instruktur',
+            'status' => 'Aktif',
+            'verification_status' => 'approved',
+        ]);
+
+        $sekolah = Sekolah::create([
+            'kodlan' => 'ERL99887',
+            'namasekolah' => 'SD Permata Hati',
+            'jenjang' => 'SD',
+            'status' => 'aktif',
+            'kec' => 'Kecamatan Test',
+            'kotkab' => 'Kota Jakarta Timur',
+            'kota' => 'JAKARTA TIMUR',
+            'provinsi' => 'DKI Jakarta',
+        ]);
+
+        $ekskul = Ekstrakurikuler::create([
+            'nama_program' => 'Coding Scratch',
+            'sekolah_id' => $sekolah->id,
+            'sekolah_kodlan' => $sekolah->kodlan,
+            'kategori_program' => 'Coding Scratch',
+            'total_siswa' => 15,
+            'total_ruangan' => 1,
+            'total_rombel' => 1,
+            'total_pertemuan' => 12,
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addMonths(3)->toDateString(),
+            'tahun_ajaran' => '2025/2026',
+            'status' => 'aktif',
+            'created_by' => $instructor->id,
+        ]);
+
+        $rombel = EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nomor_rombel' => 1,
+            'nama_rombel' => 'Rombel 1',
+            'jumlah_siswa' => 15,
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addMonths(3)->toDateString(),
+            'hari' => 'senin',
+            'jam_mulai' => '13:00',
+            'jam_selesai' => '14:30',
+            'total_pertemuan' => 12,
+            'user_id_instruktur' => $instructor->id,
+        ]);
+
+        // Session 1 completed
+        $session1 = $rombel->sessions()->where('nomor_pertemuan', 1)->first();
+        $session1->update(['status' => EkstrakurikulerSession::STATUS_SELESAI]);
+        LaporanMengajar::create([
+            'ekstrakurikuler_session_id' => $session1->id,
+            'user_id_instruktur' => $instructor->id,
+            'pertemuan_ke' => 1,
+            'rombel' => $rombel->nama_rombel,
+            'sekolah_kodlan' => $sekolah->kodlan,
+            'jadwal_mengajar' => '2025-08-01',
+            'jam_mulai' => '13:00',
+            'jam_selesai' => '14:30',
+            'kategori_pengajaran' => 'Coding Scratch',
+            'materi_pengajaran' => 'Pertemuan 1',
+            'jumlah_siswa_hadir' => 10,
+            'refleksi_siswa' => '-',
+            'refleksi_capaian' => '-',
+            'keaktifan' => 'aktif',
+            'pemahaman_materi' => 'paham',
+        ]);
+
+        // Set session 2 as LIBUR and session 3 as DITUNDA
+        $session2 = $rombel->sessions()->where('nomor_pertemuan', 2)->first();
+        $session2->update(['status' => EkstrakurikulerSession::STATUS_LIBUR]);
+
+        $session3 = $rombel->sessions()->where('nomor_pertemuan', 3)->first();
+        $session3->update(['status' => EkstrakurikulerSession::STATUS_DITUNDA]);
+
+        // Meeting 4 finished, but since sessions 2 & 3 were libur/ditunda, only 2 valid completed sessions exist (1 & 4)
+        $session4 = $rombel->sessions()->where('nomor_pertemuan', 4)->first();
+        $session4->update(['status' => EkstrakurikulerSession::STATUS_SELESAI]);
+
+        $laporan4 = LaporanMengajar::create([
+            'ekstrakurikuler_session_id' => $session4->id,
+            'user_id_instruktur' => $instructor->id,
+            'pertemuan_ke' => 4,
+            'rombel' => $rombel->nama_rombel,
+            'sekolah_kodlan' => $sekolah->kodlan,
+            'jadwal_mengajar' => '2025-08-25',
+            'jam_mulai' => '13:00',
+            'jam_selesai' => '14:30',
+            'kategori_pengajaran' => 'Coding Scratch',
+            'materi_pengajaran' => 'Pertemuan 4',
+            'jumlah_siswa_hadir' => 10,
+            'refleksi_siswa' => '-',
+            'refleksi_capaian' => '-',
+            'keaktifan' => 'aktif',
+            'pemahaman_materi' => 'paham',
+        ]);
+
+        $service = new MilestoneNotificationService();
+        $notif = $service->checkAndTriggerMilestoneNotification($session4, $laporan4);
+
+        // Harus NULL karena baru 2 sesi mengajar yang selesai (pertemuan 2 & 3 libur/ditunda)
+        $this->assertNull($notif, 'Milestone notification tidak boleh muncul jika baru < 4 sesi mengajar yang selesai');
     }
 }

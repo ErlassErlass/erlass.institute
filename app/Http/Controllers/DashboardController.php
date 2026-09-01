@@ -143,7 +143,7 @@ class DashboardController extends Controller
         // - Terhubung langsung ke session via ekstrakurikuler_session_id
         $recent_sessions = \App\Models\LaporanMengajar::with([
                 'instruktur:id,nama_lengkap',
-                'session.rombel.ekstrakurikuler:id,kategori_program',
+                'ekstrakurikulerSession.rombel.ekstrakurikuler',
             ])
             ->select('id', 'user_id_instruktur', 'ekstrakurikuler_session_id', 'materi_pengajaran', 'created_at')
             ->whereNotNull('ekstrakurikuler_session_id')
@@ -152,7 +152,7 @@ class DashboardController extends Controller
             ->take(5)
             ->get()
             ->map(function ($item) {
-                $ekskul = $item->session?->rombel?->ekstrakurikuler?->kategori_program ?? 'Ekskul';
+                $ekskul = $item->ekstrakurikulerSession?->rombel?->ekstrakurikuler?->kategori_program ?? 'Ekskul';
                 $instruktur = $item->instruktur?->nama_lengkap ?? 'Instruktur';
                 return [
                     'type'  => 'session',

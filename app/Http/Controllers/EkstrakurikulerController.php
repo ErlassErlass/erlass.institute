@@ -642,6 +642,9 @@ class EkstrakurikulerController extends Controller
             // Hapus semua sesi terjadwal
             $rombel->sessions()->where('status', 'terjadwal')->forceDelete();
 
+            // Hapus relasi enrollment (siswa non-aktif/keluar) jika ada
+            $rombel->enrollments()->delete();
+
             // Hapus rombel secara permanen
             $rombel->forceDelete();
 

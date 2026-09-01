@@ -280,8 +280,8 @@ class GoogleSheetsService
     {
         $headers = [
             'ID Laporan', 'ID Sesi', 'Tanggal Sesi', 'Jam Sesi', 
-            'Nama Sekolah', 'Program Ekskul', 'Rombel', 'Pertemuan Ke', 
-            'Nama Instruktur', 'Nama Asisten', 'Waktu Submit Laporan', 
+            'Kode Sekolah', 'Nama Sekolah', 'Program Ekskul', 'Rombel', 'Pertemuan Ke', 
+            'Nama Instruktur', 'Nama Asisten', 'Tanggal Submit', 'Jam Submit', 
             'Status Keterlambatan', 'Alasan Kendala', 'Status Approval Admin', 
             'Jml Hadir', 'Jml Tidak Hadir', 'Refleksi Guru', 'Catatan Admin'
         ];
@@ -295,7 +295,9 @@ class GoogleSheetsService
         foreach ($reports as $r) {
             $session = $r->session;
             $ekskul = $session?->ekstrakurikuler;
-            $sekolah = $ekskul?->sekolah?->namasekolah ?? $r->sekolah_nama ?? $r->sekolah_kodlan ?? 'N/A';
+            $sekolah = $ekskul?->sekolah;
+            $namaSekolah = $sekolah?->namasekolah ?? $r->sekolah_nama ?? $r->sekolah_kodlan ?? 'N/A';
+            $kodeSekolah = $sekolah?->kodlan ?? $ekskul?->sekolah_kodlan ?? $r->sekolah_kodlan ?? '-';
             $program = $ekskul?->nama_ekskul ?: ($ekskul?->kategori_program ?? $r->kategori_pengajaran ?? '-');
             $rombel = $session?->rombel?->nama_rombel ?? $r->rombel ?? 'Rombel 1';
             $pertemuan = $session?->nomor_pertemuan ?? $r->pertemuan_ke ?? 1;
@@ -308,15 +310,17 @@ class GoogleSheetsService
             $rows[] = [
                 $r->id,
                 $session?->id ?? '-',
-                $r->jadwal_mengajar ? Carbon::parse($r->jadwal_mengajar)->toDateString() : '-',
+                $r->jadwal_mengajar ? Carbon::parse($r->jadwal_mengajar)->format('d/m/Y') : '-',
                 ($r->jam_mulai ? Carbon::parse($r->jam_mulai)->format('H:i') : '-') . ' - ' . ($r->jam_selesai ? Carbon::parse($r->jam_selesai)->format('H:i') : '-'),
-                $sekolah,
+                $kodeSekolah,
+                $namaSekolah,
                 $program,
                 $rombel,
                 $pertemuan,
                 $r->instruktur?->nama_lengkap ?? $r->instruktur?->name ?? '-',
                 $r->asisten?->nama_lengkap ?? $r->asisten?->name ?? '-',
-                $r->created_at ? $r->created_at->toDateTimeString() : '-',
+                $r->created_at ? $r->created_at->format('d/m/Y') : '-',
+                $r->created_at ? $r->created_at->format('H:i:s') : '-',
                 $r->is_late ? 'Terlambat' : 'Tepat Waktu',
                 $alasanKendala,
                 ucfirst($approvalStatus),
@@ -336,7 +340,7 @@ class GoogleSheetsService
     public function syncTabJadwal(?string $token = null): array
     {
         $headers = [
-            'ID Sesi', 'ID Ekskul', 'Nama Sekolah', 'Program Ekskul', 
+            'ID Sesi', 'ID Ekskul', 'Kode Sekolah', 'Nama Sekolah', 'Program Ekskul', 
             'Rombel', 'Pertemuan Ke', 'Hari', 'Tanggal Terjadwal', 
             'Jam Mulai Jadwal', 'Jam Selesai Jadwal', 'Instruktur Terjadwal', 
             'Status Sesi', 'Jam Checkin Aktual', 'Checkin Status', 'Laporan ID'
@@ -351,19 +355,22 @@ class GoogleSheetsService
 
         foreach ($sessions as $s) {
             $ekskul = $s->ekstrakurikuler;
-            $sekolah = $ekskul?->sekolah?->namasekolah ?? $ekskul?->sekolah_kodlan ?? 'N/A';
+            $sekolah = $ekskul?->sekolah;
+            $namaSekolah = $sekolah?->namasekolah ?? $ekskul?->sekolah_kodlan ?? 'N/A';
+            $kodeSekolah = $sekolah?->kodlan ?? $ekskul?->sekolah_kodlan ?? '-';
             $program = $ekskul?->nama_ekskul ?: ($ekskul?->kategori_program ?? '-');
             $rombel = $s->rombel?->nama_rombel ?? 'Rombel 1';
 
             $rows[] = [
                 $s->id,
                 $s->ekstrakurikuler_id,
-                $sekolah,
+                $kodeSekolah,
+                $namaSekolah,
                 $program,
                 $rombel,
                 $s->nomor_pertemuan,
                 ucfirst($s->rombel?->hari ?? '-'),
-                $s->tanggal_terjadwal ? Carbon::parse($s->tanggal_terjadwal)->toDateString() : '-',
+                $s->tanggal_terjadwal ? Carbon::parse($s->tanggal_terjadwal)->format('d/m/Y') : '-',
                 $s->jam_mulai_terjadwal ? Carbon::parse($s->jam_mulai_terjadwal)->format('H:i') : '-',
                 $s->jam_selesai_terjadwal ? Carbon::parse($s->jam_selesai_terjadwal)->format('H:i') : '-',
                 $s->instruktur?->nama_lengkap ?? $s->instruktur?->name ?? '-',
@@ -383,7 +390,7 @@ class GoogleSheetsService
     public function syncTabAbsensi(?string $token = null): array
     {
         $headers = [
-            'ID Absensi', 'ID Laporan', 'Tanggal Sesi', 'Nama Sekolah', 
+            'ID Absensi', 'ID Laporan', 'Tanggal Sesi', 'Kode Sekolah', 'Nama Sekolah', 
             'Program Ekskul', 'Rombel', 'ID Siswa', 'Nama Siswa', 
             'Kelas', 'Status Kehadiran', 'Waktu Dicatat'
         ];
@@ -399,15 +406,18 @@ class GoogleSheetsService
             $laporan = $a->laporanMengajar;
             $session = $laporan?->session;
             $ekskul = $session?->ekstrakurikuler;
-            $sekolah = $ekskul?->sekolah?->namasekolah ?? $laporan?->sekolah_kodlan ?? '-';
+            $sekolah = $ekskul?->sekolah;
+            $namaSekolah = $sekolah?->namasekolah ?? $laporan?->sekolah_nama ?? $laporan?->sekolah_kodlan ?? '-';
+            $kodeSekolah = $sekolah?->kodlan ?? $ekskul?->sekolah_kodlan ?? $laporan?->sekolah_kodlan ?? '-';
             $program = $ekskul?->nama_ekskul ?: ($ekskul?->kategori_program ?? '-');
             $rombel = $session?->rombel?->nama_rombel ?? $laporan?->rombel ?? '-';
 
             $rows[] = [
                 $a->id,
                 $a->laporan_mengajar_id,
-                $laporan?->jadwal_mengajar ? Carbon::parse($laporan->jadwal_mengajar)->toDateString() : ($a->created_at ? $a->created_at->toDateString() : '-'),
-                $sekolah,
+                $laporan?->jadwal_mengajar ? Carbon::parse($laporan->jadwal_mengajar)->format('d/m/Y') : ($a->created_at ? $a->created_at->format('d/m/Y') : '-'),
+                $kodeSekolah,
+                $namaSekolah,
                 $program,
                 $rombel,
                 $a->siswa_id,
@@ -483,7 +493,7 @@ class GoogleSheetsService
     public function syncTabRekapPertemuan(?string $token = null): array
     {
         $headers = [
-            'ID Sesi', 'Nama Sekolah', 'Kota / Wilayah', 'Program Ekskul', 
+            'ID Sesi', 'Kode Sekolah', 'Nama Sekolah', 'Kota / Wilayah', 'Program Ekskul', 
             'Rombel', 'Pertemuan Ke', 'Tanggal Pelaksanaan', 'Nama Instruktur', 
             'Topik / Materi Pengajaran', 'Jml Siswa Hadir', 'Link Cetak Presensi', 
             'Link Foto Kegiatan', 'Link Foto Absensi', 'Link File Project'
@@ -517,12 +527,13 @@ class GoogleSheetsService
 
             $rows[] = [
                 $session->id,
+                $sekolah?->kodlan ?? $ekskul?->sekolah_kodlan ?? '—',
                 $sekolah?->namasekolah ?? '—',
                 $sekolah?->kota ?? '—',
                 $ekskul?->nama_ekskul ?: ($ekskul?->kategori_program ?? '—'),
                 $rombel?->nama_rombel ?? '—',
-                $session->nomor_pertemuan ?? '—',
-                $tanggal ? $tanggal->format('Y-m-d') : '-',
+                $session->nomor_pertemuan ? 'Pertemuan ' . $session->nomor_pertemuan : '—',
+                $tanggal ? $tanggal->format('d/m/Y') : '-',
                 $instruktur?->nama_lengkap ?? $instruktur?->name ?? '—',
                 $laporan?->materi_pengajaran ?? '—',
                 $laporan?->jumlah_siswa_hadir ?? 0,
@@ -546,7 +557,9 @@ class GoogleSheetsService
 
         $session = $r->session;
         $ekskul = $session?->ekstrakurikuler;
-        $sekolah = $ekskul?->sekolah?->namasekolah ?? $r->sekolah_nama ?? $r->sekolah_kodlan ?? 'N/A';
+        $sekolah = $ekskul?->sekolah;
+        $namaSekolah = $sekolah?->namasekolah ?? $r->sekolah_nama ?? $r->sekolah_kodlan ?? 'N/A';
+        $kodeSekolah = $sekolah?->kodlan ?? $ekskul?->sekolah_kodlan ?? $r->sekolah_kodlan ?? '-';
         $program = $ekskul?->nama_ekskul ?: ($ekskul?->kategori_program ?? $r->kategori_pengajaran ?? '-');
         $rombel = $session?->rombel?->nama_rombel ?? $r->rombel ?? 'Rombel 1';
         $pertemuan = $session?->nomor_pertemuan ?? $r->pertemuan_ke ?? 1;
@@ -559,15 +572,17 @@ class GoogleSheetsService
         $row = [
             $r->id,
             $session?->id ?? '-',
-            $r->jadwal_mengajar ? Carbon::parse($r->jadwal_mengajar)->toDateString() : '-',
+            $r->jadwal_mengajar ? Carbon::parse($r->jadwal_mengajar)->format('d/m/Y') : '-',
             ($r->jam_mulai ? Carbon::parse($r->jam_mulai)->format('H:i') : '-') . ' - ' . ($r->jam_selesai ? Carbon::parse($r->jam_selesai)->format('H:i') : '-'),
-            $sekolah,
+            $kodeSekolah,
+            $namaSekolah,
             $program,
             $rombel,
             $pertemuan,
             $r->instruktur?->nama_lengkap ?? $r->instruktur?->name ?? '-',
             $r->asisten?->nama_lengkap ?? $r->asisten?->name ?? '-',
-            $r->created_at ? $r->created_at->toDateTimeString() : '-',
+            $r->created_at ? $r->created_at->format('d/m/Y') : '-',
+            $r->created_at ? $r->created_at->format('H:i:s') : '-',
             $r->is_late ? 'Terlambat' : 'Tepat Waktu',
             $alasanKendala,
             ucfirst($approvalStatus),

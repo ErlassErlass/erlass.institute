@@ -115,36 +115,109 @@ class EkstrakurikulerSessionController extends Controller
             });
         }
 
-        // Sorting: Sesi berstatus 'selesai' ditaruh di paling belakang, dan urutan tanggal dimulai dari hari ini
-        $sort = $request->get('sort', 'date_asc'); // Default to date_asc (Jadwal Terdekat)
-        $today = now()->format('Y-m-d');
-        
-        // Sesi berstatus selesai/completed selalu ditaruh di paling belakang
-        $query->orderByRaw("CASE WHEN status IN ('selesai', 'completed') THEN 1 ELSE 0 END ASC");
+        // Sorting: Dukungan sort_by & sort_dir untuk seluruh header kolom tabel, serta fallback sort preset
+        $sortBy = $request->get('sort_by');
+        $sortDir = strtolower($request->get('sort_dir', 'asc')) === 'desc' ? 'desc' : 'asc';
 
-        switch ($sort) {
-            case 'date_asc':
-                $query->orderByRaw("CASE WHEN tanggal_terjadwal >= '{$today}' THEN 0 ELSE 1 END ASC")
-                      ->orderByRaw("CASE WHEN tanggal_terjadwal >= '{$today}' THEN tanggal_terjadwal END ASC")
-                      ->orderByRaw("CASE WHEN tanggal_terjadwal < '{$today}' THEN tanggal_terjadwal END DESC")
-                      ->orderBy('jam_mulai_terjadwal', 'asc');
-                break;
-            case 'date_desc':
-                $query->orderBy('tanggal_terjadwal', 'desc')
-                      ->orderBy('jam_mulai_terjadwal', 'desc');
-                break;
-            case 'meeting_asc':
-                $query->orderBy('nomor_pertemuan', 'asc');
-                break;
-            case 'meeting_desc':
-                $query->orderBy('nomor_pertemuan', 'desc');
-                break;
-            default:
-                $query->orderByRaw("CASE WHEN tanggal_terjadwal >= '{$today}' THEN 0 ELSE 1 END ASC")
-                      ->orderByRaw("CASE WHEN tanggal_terjadwal >= '{$today}' THEN tanggal_terjadwal END ASC")
-                      ->orderByRaw("CASE WHEN tanggal_terjadwal < '{$today}' THEN tanggal_terjadwal END DESC")
-                      ->orderBy('jam_mulai_terjadwal', 'asc');
-                break;
+        if ($sortBy) {
+            switch ($sortBy) {
+                case 'tanggal':
+                case 'tanggal_terjadwal':
+                    $query->orderBy('ekstrakurikuler_sessions.tanggal_terjadwal', $sortDir)
+                          ->orderBy('ekstrakurikuler_sessions.jam_mulai_terjadwal', $sortDir);
+                    break;
+                case 'pertemuan':
+                case 'nomor_pertemuan':
+                    $query->orderBy('ekstrakurikuler_sessions.nomor_pertemuan', $sortDir);
+                    break;
+                case 'instruktur':
+                    $query->leftJoin('users as ins_u', 'ekstrakurikuler_sessions.user_id_instruktur', '=', 'ins_u.id')
+                          ->orderBy('ins_u.nama_lengkap', $sortDir)
+                          ->select('ekstrakurikuler_sessions.*');
+                    break;
+                case 'asisten':
+                    $query->leftJoin('users as asst_u', 'ekstrakurikuler_sessions.user_id_asisten', '=', 'asst_u.id')
+                          ->orderBy('asst_u.nama_lengkap', $sortDir)
+                          ->select('ekstrakurikuler_sessions.*');
+                    break;
+                case 'sekolah':
+                    $query->leftJoin('ekstrakurikulers as eks_s', 'ekstrakurikuler_sessions.ekstrakurikuler_id', '=', 'eks_s.id')
+                          ->leftJoin('sekolahs as sek_s', 'eks_s.sekolah_id', '=', 'sek_s.id')
+                          ->orderBy('sek_s.namasekolah', $sortDir)
+                          ->select('ekstrakurikuler_sessions.*');
+                    break;
+                case 'rombel':
+                    $query->leftJoin('ekstrakurikuler_rombel as rmb_s', 'ekstrakurikuler_sessions.ekstrakurikuler_rombel_id', '=', 'rmb_s.id')
+                          ->orderBy('rmb_s.nomor_rombel', $sortDir)
+                          ->select('ekstrakurikuler_sessions.*');
+                    break;
+                case 'jumlah_siswa':
+                    $query->leftJoin('ekstrakurikuler_rombel as rmb_js', 'ekstrakurikuler_sessions.ekstrakurikuler_rombel_id', '=', 'rmb_js.id')
+                          ->orderBy('rmb_js.jumlah_siswa', $sortDir)
+                          ->select('ekstrakurikuler_sessions.*');
+                    break;
+                case 'kecamatan':
+                    $query->leftJoin('ekstrakurikulers as eks_k', 'ekstrakurikuler_sessions.ekstrakurikuler_id', '=', 'eks_k.id')
+                          ->leftJoin('sekolahs as sek_k', 'eks_k.sekolah_id', '=', 'sek_k.id')
+                          ->orderBy('sek_k.kec', $sortDir)
+                          ->select('ekstrakurikuler_sessions.*');
+                    break;
+                case 'ekskul':
+                case 'kategori_program':
+                    $query->leftJoin('ekstrakurikulers as eks_kp', 'ekstrakurikuler_sessions.ekstrakurikuler_id', '=', 'eks_kp.id')
+                          ->orderBy('eks_kp.kategori_program', $sortDir)
+                          ->select('ekstrakurikuler_sessions.*');
+                    break;
+                case 'sales':
+                    $query->leftJoin('ekstrakurikulers as eks_sl', 'ekstrakurikuler_sessions.ekstrakurikuler_id', '=', 'eks_sl.id')
+                          ->leftJoin('users as u_sl', 'eks_sl.sales_user_id', '=', 'u_sl.id')
+                          ->orderBy('u_sl.nama_lengkap', $sortDir)
+                          ->select('ekstrakurikuler_sessions.*');
+                    break;
+                case 'jam':
+                case 'jam_mulai':
+                    $query->orderBy('ekstrakurikuler_sessions.jam_mulai_terjadwal', $sortDir);
+                    break;
+                case 'status':
+                    $query->orderBy('ekstrakurikuler_sessions.status', $sortDir);
+                    break;
+                default:
+                    $query->orderBy('ekstrakurikuler_sessions.tanggal_terjadwal', 'asc')
+                          ->orderBy('ekstrakurikuler_sessions.jam_mulai_terjadwal', 'asc');
+                    break;
+            }
+        } else {
+            // Default sort preset
+            $sort = $request->get('sort', 'date_asc');
+            $today = now()->format('Y-m-d');
+            
+            // Sesi berstatus selesai/completed selalu ditaruh di paling belakang
+            $query->orderByRaw("CASE WHEN status IN ('selesai', 'completed') THEN 1 ELSE 0 END ASC");
+
+            switch ($sort) {
+                case 'date_asc':
+                    $query->orderByRaw("CASE WHEN tanggal_terjadwal >= '{$today}' THEN 0 ELSE 1 END ASC")
+                          ->orderByRaw("CASE WHEN tanggal_terjadwal >= '{$today}' THEN tanggal_terjadwal END ASC")
+                          ->orderByRaw("CASE WHEN tanggal_terjadwal < '{$today}' THEN tanggal_terjadwal END DESC")
+                          ->orderBy('jam_mulai_terjadwal', 'asc');
+                    break;
+                case 'date_desc':
+                    $query->orderBy('tanggal_terjadwal', 'desc')
+                          ->orderBy('jam_mulai_terjadwal', 'desc');
+                    break;
+                case 'meeting_asc':
+                    $query->orderBy('nomor_pertemuan', 'asc');
+                    break;
+                case 'meeting_desc':
+                    $query->orderBy('nomor_pertemuan', 'desc');
+                    break;
+                default:
+                    $query->orderByRaw("CASE WHEN tanggal_terjadwal >= '{$today}' THEN 0 ELSE 1 END ASC")
+                          ->orderByRaw("CASE WHEN tanggal_terjadwal >= '{$today}' THEN tanggal_terjadwal END ASC")
+                          ->orderByRaw("CASE WHEN tanggal_terjadwal < '{$today}' THEN tanggal_terjadwal END DESC")
+                          ->orderBy('jam_mulai_terjadwal', 'asc');
+                    break;
+            }
         }
 
         $sessions = $query->paginate(20)->withQueryString();
@@ -1254,8 +1327,17 @@ class EkstrakurikulerSessionController extends Controller
         $request->validate([
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
-            'photo' => 'required|image|max:10240', // Max 10MB
+            'photo' => 'nullable|image|max:10240', // Max 10MB
+            'photo_base64' => 'nullable|string',
         ]);
+
+        if (! $request->hasFile('photo') && ! $request->filled('photo_base64')) {
+            $errMsg = 'Foto bukti check-in wajib diambil melalui kamera.';
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $errMsg], 422);
+            }
+            return redirect()->back()->with('error', $errMsg);
+        }
 
         $user = auth()->user();
         if (! $session->isCheckinWindowOpen($user)) {
@@ -1337,10 +1419,28 @@ class EkstrakurikulerSessionController extends Controller
             }
         }
 
-        // Store photo
+        // Store photo with auto-compression, geotag watermarking & security validation
         $photoPath = null;
+        $schoolName = $session->ekstrakurikuler?->sekolah?->namasekolah 
+            ?? ($session->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? 'Erlass Institute');
+        $timeString = now()->timezone('Asia/Jakarta')->translatedFormat('d M Y, H:i') . ' WIB';
+        $coordsString = ($lat && $lng) 
+            ? (number_format($lat, 5) . ', ' . number_format($lng, 5) . ($accuracy ? ' (±' . round($accuracy) . 'm)' : ''))
+            : 'GPS Aktif';
+
+        $watermarkData = [
+            'school' => $schoolName,
+            'meeting' => (string) $session->nomor_pertemuan,
+            'time' => $timeString,
+            'coords' => $coordsString,
+        ];
+
+        $fileUploadService = app(\App\Services\FileUploadService::class);
+
         if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('checkin_photos', 'public');
+            $photoPath = $fileUploadService->upload($request->file('photo'), 'checkin_photos', (string)$session->id, 1200, 80, $watermarkData);
+        } elseif ($request->filled('photo_base64')) {
+            $photoPath = $fileUploadService->uploadBase64($request->input('photo_base64'), 'checkin_photos', (string)$session->id, 1200, 80, $watermarkData);
         }
 
         // Start session & save checkin metadata
