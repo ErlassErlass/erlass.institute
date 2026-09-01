@@ -334,17 +334,17 @@
                         <div>
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="badge bg-primary text-white fw-bold" style="font-size: 0.75rem;">
-                                    {{ $todo->rombel->nama_rombel ?? 'Rombel ' . $todo->rombel->nomor_rombel }}
+                                    {{ $todo->rombel?->nama_rombel ?? ($todo->rombel ? 'Rombel ' . $todo->rombel->nomor_rombel : 'Sesi Ekstrakurikuler') }}
                                 </span>
                                 <span class="badge bg-secondary rounded-pill">Pertemuan ke-{{ $todo->nomor_pertemuan }}</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-1">{{ $todo->rombel->ekstrakurikuler->kategori_program }}</h6>
+                            <h6 class="fw-bold text-dark mb-1">{{ $todo->rombel?->ekstrakurikuler?->kategori_program ?? $todo->ekstrakurikuler?->kategori_program ?? 'Ekstrakurikuler' }}</h6>
                             <div class="text-muted small mb-2">
-                                <i class="bi bi-building me-1"></i> {{ $todo->rombel->ekstrakurikuler->sekolah->namasekolah }}
+                                <i class="bi bi-building me-1"></i> {{ $todo->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $todo->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah' }}
                             </div>
                             <div class="d-flex align-items-center gap-3 text-secondary small mb-3">
                                 <span><i class="bi bi-calendar-event me-1"></i>{{ \Carbon\Carbon::parse($todo->tanggal_terjadwal)->format('d M Y') }}</span>
-                                <span><i class="bi bi-people-fill text-info me-1"></i><strong>{{ $todo->rombel->getJumlahSiswaAktual() }} Siswa Terdaftar</strong></span>
+                                <span><i class="bi bi-people-fill text-info me-1"></i><strong>{{ $todo->rombel ? $todo->rombel->getJumlahSiswaAktual() : 0 }} Siswa Terdaftar</strong></span>
                             </div>
                         </div>
                         <a href="{{ route('ekstrakurikuler.sessions.report.create', $todo->id) }}" class="btn btn-warning text-dark fw-bold btn-sm rounded-pill w-100 shadow-sm">
@@ -421,25 +421,28 @@
                                             </td>
                                             <td class="py-2">
                                                 <div class="fw-bold text-dark lh-sm mb-1" style="font-size: 0.85rem;">
-                                                    {{ $session->rombel->ekstrakurikuler->sekolah->namasekolah }}
+                                                    {{ $session->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $session->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah' }}
                                                 </div>
                                                 <div class="d-flex align-items-center gap-1.5 flex-wrap">
-                                                    <span class="text-secondary fw-semibold" style="font-size: 0.75rem;">{{ $session->rombel->ekstrakurikuler->kategori_program }}</span>
-                                                    <span class="badge bg-light text-dark border px-1.5 py-0.5" style="font-size: 0.7rem;">{{ $session->rombel->nama_rombel }}</span>
-                                                    @if($session->rombel->ekstrakurikuler->google_maps_link)
-                                                        <a href="{{ $session->rombel->ekstrakurikuler->google_maps_link }}" target="_blank" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill text-decoration-none px-1.5 py-0.5" title="Buka Google Maps" style="font-size: 0.68rem;">
+                                                    <span class="text-secondary fw-semibold" style="font-size: 0.75rem;">{{ $session->rombel?->ekstrakurikuler?->kategori_program ?? $session->ekstrakurikuler?->kategori_program ?? 'Ekstrakurikuler' }}</span>
+                                                    <span class="badge bg-light text-dark border px-1.5 py-0.5" style="font-size: 0.7rem;">{{ $session->rombel?->nama_rombel ?? 'Rombel' }}</span>
+                                                    @if($session->rombel?->ekstrakurikuler?->google_maps_link ?? $session->ekstrakurikuler?->google_maps_link)
+                                                        <a href="{{ $session->rombel?->ekstrakurikuler?->google_maps_link ?? $session->ekstrakurikuler?->google_maps_link }}" target="_blank" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill text-decoration-none px-1.5 py-0.5" title="Buka Google Maps" style="font-size: 0.68rem;">
                                                             <i class="bi bi-geo-alt-fill"></i> Maps
                                                         </a>
                                                     @endif
-                                                    @if($session->rombel->ekstrakurikuler->no_telepon)
+                                                    @php
+                                                        $ekskulObj = $session->rombel?->ekstrakurikuler ?? $session->ekstrakurikuler;
+                                                    @endphp
+                                                    @if($ekskulObj?->no_telepon)
                                                         @php
-                                                            $cleanPhone = preg_replace('/[^0-9]/', '', $session->rombel->ekstrakurikuler->no_telepon);
+                                                            $cleanPhone = preg_replace('/[^0-9]/', '', $ekskulObj->no_telepon);
                                                             if (str_starts_with($cleanPhone, '0')) {
                                                                 $cleanPhone = '62' . substr($cleanPhone, 1);
                                                             }
-                                                            $waText = urlencode("Halo " . $session->rombel->ekstrakurikuler->penanggung_jawab . ", saya instruktur Erlass untuk ekstrakurikuler " . $session->rombel->ekstrakurikuler->kategori_program . ".");
+                                                            $waText = urlencode("Halo " . ($ekskulObj->penanggung_jawab ?? 'Bapak/Ibu') . ", saya instruktur Erlass untuk ekstrakurikuler " . ($ekskulObj->kategori_program ?? '') . ".");
                                                         @endphp
-                                                        <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" rel="noopener" class="wa-contact-chip py-0 px-1.5" title="WhatsApp PJ: {{ $session->rombel->ekstrakurikuler->penanggung_jawab }}" style="font-size: 0.68rem;">
+                                                        <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" rel="noopener" class="wa-contact-chip py-0 px-1.5" title="WhatsApp PJ: {{ $ekskulObj->penanggung_jawab ?? '' }}" style="font-size: 0.68rem;">
                                                             <span class="wa-dot"></span> WA
                                                         </a>
                                                     @endif
@@ -532,15 +535,15 @@
                                             </td>
                                             <td>
                                                 <div class="fw-bold text-dark d-flex align-items-center gap-2">
-                                                    <span>{{ $session->rombel->ekstrakurikuler->sekolah->namasekolah }}</span>
-                                                    @if($session->rombel->ekstrakurikuler->google_maps_link)
-                                                        <a href="{{ $session->rombel->ekstrakurikuler->google_maps_link }}" target="_blank" class="text-primary d-inline-flex align-items-center" title="Buka Google Maps">
+                                                    <span>{{ $session->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $session->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah' }}</span>
+                                                    @if($session->rombel?->ekstrakurikuler?->google_maps_link ?? $session->ekstrakurikuler?->google_maps_link)
+                                                        <a href="{{ $session->rombel?->ekstrakurikuler?->google_maps_link ?? $session->ekstrakurikuler?->google_maps_link }}" target="_blank" class="text-primary d-inline-flex align-items-center" title="Buka Google Maps">
                                                             <i class="bi bi-geo-alt-fill"></i>
                                                         </a>
                                                     @endif
                                                 </div>
                                                 <div class="text-muted small">
-                                                    {{ $session->rombel->ekstrakurikuler->kategori_program }} - {{ $session->rombel->nama_rombel }}
+                                                    {{ $session->rombel?->ekstrakurikuler?->kategori_program ?? $session->ekstrakurikuler?->kategori_program ?? 'Ekstrakurikuler' }} - {{ $session->rombel?->nama_rombel ?? 'Rombel' }}
                                                 </div>
                                             </td>
                                             <td class="text-center">
@@ -767,9 +770,9 @@
                                         @endif
                                     </div>
                                     <div class="text-muted small">
-                                        <span class="fw-bold text-primary">{{ $report->rombel->ekstrakurikuler->kategori_program }}</span>
+                                        <span class="fw-bold text-primary">{{ $report->rombel?->ekstrakurikuler?->kategori_program ?? $report->ekstrakurikuler?->kategori_program ?? 'Ekskul' }}</span>
                                         <span class="mx-1">•</span>
-                                        {{ $report->rombel->ekstrakurikuler->sekolah->namasekolah }}
+                                        {{ $report->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $report->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah' }}
                                         <br>
                                         <i class="bi bi-calendar-event me-1"></i> {{ \Carbon\Carbon::parse($report->tanggal_terjadwal)->format('d M Y') }}
                                         @if($report->jam_mulai_terjadwal && $report->jam_selesai_terjadwal)
@@ -790,7 +793,7 @@
                                     @endphp
                                     <button type="button" 
                                             class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm w-100 w-sm-auto"
-                                            onclick="openDashboardFonnteModal({{ $report->id }}, '{{ addslashes($report->instruktur->nama_lengkap ?? 'Instruktur') }}', '{{ $cleanInstrukturPhone }}', '{{ addslashes($report->rombel->ekstrakurikuler->kategori_program ?? '') }}', '{{ addslashes($report->rombel->ekstrakurikuler->sekolah->namasekolah ?? '') }}', '{{ $report->tanggal_terjadwal ? $report->tanggal_terjadwal->format('d/m/Y') : '' }}')">
+                                            onclick="openDashboardFonnteModal({{ $report->id }}, '{{ addslashes($report->instruktur->nama_lengkap ?? 'Instruktur') }}', '{{ $cleanInstrukturPhone }}', '{{ addslashes($report->rombel?->ekstrakurikuler?->kategori_program ?? $report->ekstrakurikuler?->kategori_program ?? '') }}', '{{ addslashes($report->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $report->ekstrakurikuler?->sekolah?->namasekolah ?? '') }}', '{{ $report->tanggal_terjadwal ? $report->tanggal_terjadwal->format('d/m/Y') : '' }}')">
                                         <i class="bi bi-whatsapp me-1"></i> Ingatkan
                                     </button>
                                 </div>
@@ -1023,14 +1026,14 @@
                             @foreach($instructor_todo_list as $todo)
                                 <div class="list-group-item p-3 border-bottom hover-bg-light">
                                     <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <h6 class="mb-0 fw-bold text-dark text-truncate" style="max-width: 75%;" title="{{ $todo->rombel->ekstrakurikuler->kategori_program }}">
-                                            {{ $todo->rombel->ekstrakurikuler->kategori_program }}
+                                        <h6 class="mb-0 fw-bold text-dark text-truncate" style="max-width: 75%;" title="{{ $todo->rombel?->ekstrakurikuler?->kategori_program ?? $todo->ekstrakurikuler?->kategori_program ?? 'Ekstrakurikuler' }}">
+                                            {{ $todo->rombel?->ekstrakurikuler?->kategori_program ?? $todo->ekstrakurikuler?->kategori_program ?? 'Ekstrakurikuler' }}
                                         </h6>
                                         <span class="badge bg-secondary rounded-pill" style="font-size: 0.7rem;">P.{{ $todo->nomor_pertemuan }}</span>
                                     </div>
                                     <div class="text-muted small mb-3">
-                                        <div class="mb-1 text-truncate" title="{{ $todo->rombel->ekstrakurikuler->sekolah->namasekolah }}">
-                                            <i class="bi bi-building me-1"></i> {{ $todo->rombel->ekstrakurikuler->sekolah->namasekolah }}
+                                        <div class="mb-1 text-truncate" title="{{ $todo->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $todo->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah' }}">
+                                            <i class="bi bi-building me-1"></i> {{ $todo->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $todo->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah' }}
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
                                             <span>

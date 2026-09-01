@@ -295,7 +295,10 @@ class DashboardController extends Controller
                 ->groupBy(function($date) {
                     return \Carbon\Carbon::parse($date->tanggal_terjadwal)->format('Y-m-d');
                 }),
-            'instructor_todo_list' => \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah:kodlan,namasekolah'])
+            'instructor_todo_list' => \App\Models\EkstrakurikulerSession::with([
+                    'rombel.ekstrakurikuler.sekolah',
+                    'ekstrakurikuler.sekolah'
+                ])
                 ->where('user_id_instruktur', $user->id)
                 ->doesntHave('laporanMengajar')
                 ->whereDate('tanggal_terjadwal', '<=', Carbon::today())
