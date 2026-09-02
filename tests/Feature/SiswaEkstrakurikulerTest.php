@@ -295,4 +295,42 @@ class SiswaEkstrakurikulerTest extends TestCase
             'status' => SiswaEkstrakurikuler::STATUS_AKTIF,
         ]);
     }
+
+    public function test_update_and_transfer_back_to_existing_rombel_does_not_violate_unique_constraint()
+    {
+        // 1. Awalnya di rombel A
+        $enrollmentA = SiswaEkstrakurikuler::create([
+            'siswa_id' => $this->siswa->id,
+            'ekstrakurikuler_id' => $this->ekstrakurikuler->id,
+            'ekstrakurikuler_rombel_id' => $this->rombelA->id,
+            'status' => SiswaEkstrakurikuler::STATUS_AKTIF,
+            'tanggal_daftar' => now(),
+        ]);
+
+        // 2. Transfer ke rombel B
+        $enrollmentA->transfer($this->rombelB->id, 'Pindah ke B');
+
+        $enrollmentB = SiswaEkstrakurikuler::where('siswa_id', $this->siswa->id)
+            ->where('ekstrakurikuler_rombel_id', $this->rombelB->id)
+            ->first();
+
+        $this->assertNotNull($enrollmentB);
+        $this->assertEquals(SiswaEkstrakurikuler::STATUS_AKTIF, $enrollmentB->status);
+
+        // 3. Edit enrollmentB untuk dipindahkan kembali ke rombel A via controller update
+        $response = $this->actingAs($this->user)
+            ->put(route('ekstrakurikuler.enrollment.update', [$this->ekstrakurikuler, $enrollmentB]), [
+                'ekstrakurikuler_rombel_id' => $this->rombelA->id,
+                'status' => 'aktif',
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success');
+
+        $enrollmentA->refresh();
+        $enrollmentB->refresh();
+
+        $this->assertEquals(SiswaEkstrakurikuler::STATUS_AKTIF, $enrollmentA->status);
+        $this->assertEquals(SiswaEkstrakurikuler::STATUS_PINDAH, $enrollmentB->status);
+    }
 }

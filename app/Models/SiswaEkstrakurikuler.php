@@ -248,15 +248,29 @@ class SiswaEkstrakurikuler extends Model
                 $this->catatan = 'Pindah ke Rombel ID: ' . $newRombelId . '. ' . ($alasan ?? '');
                 $this->save();
 
-                // 2. Buat record baru untuk rombel tujuan
-                self::create([
-                    'siswa_id' => $this->siswa_id,
-                    'ekstrakurikuler_id' => $this->ekstrakurikuler_id,
-                    'ekstrakurikuler_rombel_id' => $newRombelId,
-                    'status' => self::STATUS_AKTIF,
-                    'tanggal_daftar' => now(),
-                    'catatan' => 'Pindahan dari Rombel ID: ' . $oldRombelId,
-                ]);
+                // 2. Reaktifkan record jika sudah ada di rombel tujuan, atau buat record baru
+                $existing = self::where('siswa_id', $this->siswa_id)
+                    ->where('ekstrakurikuler_id', $this->ekstrakurikuler_id)
+                    ->where('ekstrakurikuler_rombel_id', $newRombelId)
+                    ->first();
+
+                if ($existing) {
+                    $existing->update([
+                        'status'         => self::STATUS_AKTIF,
+                        'tanggal_keluar' => null,
+                        'alasan_keluar'  => null,
+                        'catatan'        => 'Pindah kembali dari Rombel ID: ' . $oldRombelId . ($alasan ? ' - ' . $alasan : ''),
+                    ]);
+                } else {
+                    self::create([
+                        'siswa_id'                  => $this->siswa_id,
+                        'ekstrakurikuler_id'        => $this->ekstrakurikuler_id,
+                        'ekstrakurikuler_rombel_id' => $newRombelId,
+                        'status'                    => self::STATUS_AKTIF,
+                        'tanggal_daftar'            => now(),
+                        'catatan'                   => 'Pindahan dari Rombel ID: ' . $oldRombelId,
+                    ]);
+                }
 
                 return true;
             });

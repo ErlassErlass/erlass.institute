@@ -2,6 +2,16 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.22] - 2026-09-02
+
+### Perbaikan Konflik Pindah Rombel Siswa (Re-aktivasi Riwayat Rombel Tujuan) & Penyelarasan Enrollment Siswa
+
+- **Perbaikan Bug Integritas Database Saat Pindah Rombel (`unique_siswa_per_program_rombel`)**:
+  - Mengatasi error *SQLSTATE[23000]: 1062 Duplicate entry* yang terjadi ketika seorang siswa dipindahkan kembali ke rombel yang pernah ia tempati sebelumnya (misal dari Rombel 2 ke Rombel 3 lalu ingin kembali ke Rombel 2).
+  - Menyempurnakan `SiswaEkstrakurikulerController@update`, `SiswaEkstrakurikulerController@bulkAction`, dan model `SiswaEkstrakurikuler@transfer` agar secara otomatis mendeteksi dan mengaktifkan kembali record lama di rombel tujuan alih-alih mencoba membuat baris duplikat yang memicu bentrok basis data.
+- **Penyelesaian Kasus Enrollment Jonathan Ray (#8777 -> Rombel 2)**:
+  - Mengaktifkan kembali enrollment resmi Jonathan Ray di Rombel 2 (#4145) dan menandai record di Rombel 3 (#8777) sebagai telah dipindahkan, sehingga data presensi dan status siswa kini 100% konsisten dan aktif di Rombel 2.
+
 ## [2.9.21] - 2026-09-02
 
 ### Penyelarasan Tanggal Mengajar Riil di Portal Rekap Pertemuan Ekskul & Pengosongan Instruktur Terjadwal
