@@ -8,7 +8,7 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
 - **Tab Baru `Daftar_Program_Ekskul`**:
   - Menambahkan sheet ke-7 pada integrasi Google Spreadsheet sistem Erlass yang merangkum seluruh portofolio kontrak program ekskul sekolah secara komprehensif.
-  - Memuat **27 kolom data lengkap**: ID Program, Kode Sekolah (NPSN), Nama Sekolah, Jenjang, Kota/Wilayah, Program Ekskul, Status Program, Sales Representative PIC, Kepala Sekolah, Penanggung Jawab (PIC), No. Telepon PIC, Tanggal Mulai/Selesai, Frekuensi, Total Rombel, Rincian Rombel & Jadwal (Hari & Jam), Instruktur & Asisten Bertugas, Target Kuota Siswa, Siswa Aktif Terdaftar, Target Pertemuan, Total Sesi Terjadwal, Pertemuan Selesai, Sisa Pertemuan, Progres Belajar (%), Konfigurasi Alat/Kit, Alamat Lengkap Sekolah, dan Link Detail Portal Erlass.
+  - Memuat **28 kolom data lengkap**: ID Program, Kode Sekolah (NPSN), Nama Sekolah, Jenjang, Kota/Wilayah, **Jarak dari POP (KM)**, Program Ekskul, Status Program, Sales Representative PIC, Kepala Sekolah, Penanggung Jawab (PIC), No. Telepon PIC, Tanggal Mulai/Selesai, Frekuensi, Total Rombel, Rincian Rombel & Jadwal (Hari & Jam), Instruktur & Asisten Bertugas, Target Kuota Siswa, Siswa Aktif Terdaftar, Target Pertemuan, Total Sesi Terjadwal, Pertemuan Selesai, Sisa Pertemuan, Progres Belajar (%), Konfigurasi Alat/Kit, Alamat Lengkap Sekolah, dan Link Detail Portal Erlass.
 - **Otomatisasi & Ketahanan Layanan (`GoogleSheetsService`)**:
   - Integrasi otomatis pembuatan tab baru via Google Sheets API batchUpdate (`ensureTabsExist`).
   - Menambahkan batas waktu (*timeout*) pada panggilan HTTP eksternal Google OAuth2 dan Sheets API untuk menjaga responsivitas eksekusi background.

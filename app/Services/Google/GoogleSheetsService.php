@@ -559,12 +559,13 @@ class GoogleSheetsService
     {
         $headers = [
             'ID Program', 'Kode Sekolah', 'Nama Sekolah', 'Jenjang', 'Kota / Wilayah', 
-            'Program Ekskul', 'Status Program', 'Sales Representative', 'Kepala Sekolah', 
-            'Penanggung Jawab (PIC)', 'No Telepon / HP PIC', 'Tanggal Mulai', 'Tanggal Selesai', 
-            'Frekuensi', 'Total Rombel', 'Rincian Rombel & Jadwal', 'Instruktur Bertugas', 
-            'Target Kuota Siswa', 'Siswa Aktif Terdaftar', 'Target Pertemuan (per Rombel)', 
-            'Total Sesi Terjadwal', 'Pertemuan Selesai', 'Sisa Pertemuan', 'Progres Belajar (%)', 
-            'Konfigurasi Alat / Kit', 'Alamat Lengkap Sekolah', 'Link Detail Portal'
+            'Jarak dari POP (KM)', 'Program Ekskul', 'Status Program', 'Sales Representative', 
+            'Kepala Sekolah', 'Penanggung Jawab (PIC)', 'No Telepon / HP PIC', 'Tanggal Mulai', 
+            'Tanggal Selesai', 'Frekuensi', 'Total Rombel', 'Rincian Rombel & Jadwal', 
+            'Instruktur Bertugas', 'Target Kuota Siswa', 'Siswa Aktif Terdaftar', 
+            'Target Pertemuan (per Rombel)', 'Total Sesi Terjadwal', 'Pertemuan Selesai', 
+            'Sisa Pertemuan', 'Progres Belajar (%)', 'Konfigurasi Alat / Kit', 
+            'Alamat Lengkap Sekolah', 'Link Detail Portal'
         ];
 
         $programs = Ekstrakurikuler::with([
@@ -624,6 +625,7 @@ class GoogleSheetsService
                 $alatStr .= " (1 alat / {$p->jumlah_siswa_per_alat} siswa)";
             }
 
+            $jarakKm = $p->jarak_km !== null ? (float) $p->jarak_km : '-';
             $portalUrl = "{$baseUrl}/ekstrakurikuler/{$p->id}";
 
             $rows[] = [
@@ -632,6 +634,7 @@ class GoogleSheetsService
                 $sekolah?->namasekolah ?? 'N/A',
                 $sekolah?->jenjang ?? '-',
                 $sekolah?->kota ?? '-',
+                $jarakKm,
                 $p->nama_ekskul ?: ($p->kategori_program ?? '-'),
                 ucfirst($p->status ?? 'aktif'),
                 $sales?->nama_salesman ?? ($sales?->user?->nama_lengkap ?? '-'),
