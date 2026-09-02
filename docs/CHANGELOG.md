@@ -2,6 +2,17 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.21] - 2026-09-02
+
+### Penyelarasan Tanggal Mengajar Riil di Portal Rekap Pertemuan Ekskul & Pengosongan Instruktur Terjadwal
+
+- **Penyelarasan Tanggal Mengajar Riil (`/rekap-pertemuan-ekskul`)**:
+  - Memperbarui kolom *Tanggal & Sesi* di halaman Rekap Pertemuan Ekskul (`AgendaKegiatanController`), Ekspor ZIP Agenda (`GenerateAgendaExportJob`), dan Google Spreadsheet Feed agar selalu memprioritaskan **Tanggal Mengajar Riil** (`laporan_mengajar.jadwal_mengajar` / `session.tanggal_terjadwal`) dan bukan tanggal submit/input web (`created_at`).
+  - Memperbarui method `EkstrakurikulerSession@start` dan `EkstrakurikulerSession@complete` agar otomatis menggunakan `tanggal_terjadwal` sebagai default `tanggal_pelaksanaan`.
+  - Mensinkronisasikan 144 data sesi riwayat di database sehingga tanggal pelaksanaan sesi identik dengan tanggal jadwal mengajar pada laporan mengajar terkait.
+- **Pengosongan Penugasan Instruktur Terjadwal di SDI AL-ABRAR (#258 & #323)**:
+  - Mengosongkan penugasan instruktur utama dan asisten pada seluruh 197 sesi berstatus `terjadwal` di Ekskul Coding Scratch (#258) dan Ekskul Robotik Erboblox (#323), dengan tetap mempertahankan seluruh sesi yang telah `selesai`.
+
 ## [2.9.20] - 2026-09-01
 
 ### Penyeragaman Kategori Free Trial Class, Migrasi Riwayat Database, & Pemutihan Check-in

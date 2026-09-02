@@ -57,7 +57,7 @@ class GenerateAgendaExportJob implements ShouldQueue
                 $ekskul  = $rombel?->ekstrakurikuler;
                 $sekolah = $ekskul?->sekolah;
                 $laporan = $session->laporanMengajar;
-                $tanggal = $session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal;
+                $tanggal = $laporan?->jadwal_mengajar ?? $session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal;
 
                 return [
                     'session_id'          => $session->id,

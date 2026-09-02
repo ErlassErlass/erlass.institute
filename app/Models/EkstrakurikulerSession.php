@@ -595,7 +595,7 @@ class EkstrakurikulerSession extends Model
         }
 
         $this->status = self::STATUS_BERLANGSUNG;
-        $this->tanggal_pelaksanaan = now()->toDateString();
+        $this->tanggal_pelaksanaan = $this->tanggal_terjadwal ? $this->tanggal_terjadwal->toDateString() : now()->toDateString();
         $this->jam_mulai_aktual = now()->format('H:i');
 
         if (! empty($data['topik_materi'])) {
@@ -620,9 +620,9 @@ class EkstrakurikulerSession extends Model
 
         $this->status = self::STATUS_SELESAI;
         
-        // Set tanggal pelaksanaan jika belum ada
+        // Set tanggal pelaksanaan jika belum ada (gunakan tanggal_terjadwal agar sesuai tanggal mengajar)
         if (! $this->tanggal_pelaksanaan) {
-            $this->tanggal_pelaksanaan = now()->toDateString();
+            $this->tanggal_pelaksanaan = $this->tanggal_terjadwal ? $this->tanggal_terjadwal->toDateString() : now()->toDateString();
         }
 
         // Set waktu aktual

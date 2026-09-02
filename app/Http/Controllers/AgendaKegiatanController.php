@@ -225,7 +225,7 @@ class AgendaKegiatanController extends Controller
                 $projectUrl = rtrim(request()->getSchemeAndHttpHost(), '/') . '/storage/' . ltrim($laporan->file_project, '/');
             }
 
-            $tanggal = $session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal;
+            $tanggal = $laporan?->jadwal_mengajar ?? $session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal;
 
             return [
                 'session_id'          => $session->id,

@@ -523,7 +523,7 @@ class GoogleSheetsService
             $projectUrl = $laporan?->file_project ? url('storage/' . ltrim($laporan->file_project, '/')) : '-';
             $printUrl = route('ekstrakurikuler-session.print-session', ['session' => $session->id]);
 
-            $tanggal = $session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal;
+            $tanggal = $laporan?->jadwal_mengajar ?? $session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal;
 
             $rows[] = [
                 $session->id,
