@@ -2,6 +2,17 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.23] - 2026-09-02
+
+### Pembersihan Program & Laporan Keliru Pictoblox Latansa Cendekia Serta Optimasi Resolusi Google Spreadsheet
+
+- **Pembersihan Tuntas Program Ekskul Pictoblox AI SDS ISLAM LATANSA CENDEKIA (#278)**:
+  - Menghapus permanen seluruh 64 sesi terjadwal, 2 rombel, 21 data absensi, dan 2 laporan mengajar anomali/keliru (Laporan #603 dan Laporan #819) yang sempat diinput pada program Ekskul Pictoblox AI di SDS ISLAM LATANSA CENDEKIA (program resmi sekolah ini adalah Ekskul Coding Scratch #212).
+  - Menyesuaikan tagihan/honor pada batch penggajian pending untuk Instruktur Yusup (Item #949) dan Instruktur Serdinand (Item #994) agar nominal dan jumlah sesi tetap akurat.
+- **Penguatan Resolusi Relasi Google Spreadsheet (`GoogleSheetsService`)**:
+  - Menambahkan `withTrashed()` pada relasi `EkstrakurikulerSession@ekstrakurikuler` dan `EkstrakurikulerRombel@ekstrakurikuler`.
+  - Memperbaiki resolusi `namaSekolah` dan `program` pada feed Laporan dan Absensi di Google Sheets agar mengambil nama sekolah langsung dari relasi master sekolah (`laporan->sekolah->namasekolah`) dan program dari metadata laporan, sehingga data tidak akan pernah lagi jatuh (*fallback*) ke nomor kode NPSN atau kata umum jika relasi program induk diarsipkan.
+
 ## [2.9.22] - 2026-09-02
 
 ### Perbaikan Konflik Pindah Rombel Siswa (Re-aktivasi Riwayat Rombel Tujuan) & Penyelarasan Enrollment Siswa

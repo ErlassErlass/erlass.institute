@@ -102,7 +102,7 @@ class EkstrakurikulerRombel extends Model
      */
     public function ekstrakurikuler(): BelongsTo
     {
-        return $this->belongsTo(Ekstrakurikuler::class);
+        return $this->belongsTo(Ekstrakurikuler::class)->withTrashed();
     }
 
     /**

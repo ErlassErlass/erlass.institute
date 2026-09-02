@@ -286,7 +286,7 @@ class GoogleSheetsService
             'Jml Hadir', 'Jml Tidak Hadir', 'Refleksi Guru', 'Catatan Admin'
         ];
 
-        $reports = LaporanMengajar::with(['session.ekstrakurikuler.sekolah', 'session.rombel', 'instruktur', 'asisten'])
+        $reports = LaporanMengajar::with(['sekolah', 'session.ekstrakurikuler.sekolah', 'session.rombel', 'instruktur', 'asisten'])
             ->orderBy('id', 'asc')
             ->get();
 
@@ -295,10 +295,11 @@ class GoogleSheetsService
         foreach ($reports as $r) {
             $session = $r->session;
             $ekskul = $session?->ekstrakurikuler;
-            $sekolah = $ekskul?->sekolah;
+            $sekolah = $r->sekolah ?? $ekskul?->sekolah;
             $namaSekolah = $sekolah?->namasekolah ?? $r->sekolah_nama ?? $r->sekolah_kodlan ?? 'N/A';
             $kodeSekolah = $sekolah?->kodlan ?? $ekskul?->sekolah_kodlan ?? $r->sekolah_kodlan ?? '-';
-            $program = $ekskul?->nama_ekskul ?: ($ekskul?->kategori_program ?? $r->kategori_pengajaran ?? '-');
+            $meta = $r->metadata_json ?? [];
+            $program = $ekskul?->nama_ekskul ?: ($ekskul?->kategori_program ?? $meta['program'] ?? $r->kategori_pengajaran ?? '-');
             $rombel = $session?->rombel?->nama_rombel ?? $r->rombel ?? 'Rombel 1';
             $pertemuan = $session?->nomor_pertemuan ?? $r->pertemuan_ke ?? 1;
 
@@ -406,10 +407,11 @@ class GoogleSheetsService
             $laporan = $a->laporanMengajar;
             $session = $laporan?->session;
             $ekskul = $session?->ekstrakurikuler;
-            $sekolah = $ekskul?->sekolah;
+            $sekolah = $laporan?->sekolah ?? $ekskul?->sekolah;
             $namaSekolah = $sekolah?->namasekolah ?? $laporan?->sekolah_nama ?? $laporan?->sekolah_kodlan ?? '-';
             $kodeSekolah = $sekolah?->kodlan ?? $ekskul?->sekolah_kodlan ?? $laporan?->sekolah_kodlan ?? '-';
-            $program = $ekskul?->nama_ekskul ?: ($ekskul?->kategori_program ?? '-');
+            $meta = $laporan?->metadata_json ?? [];
+            $program = $ekskul?->nama_ekskul ?: ($ekskul?->kategori_program ?? $meta['program'] ?? '-');
             $rombel = $session?->rombel?->nama_rombel ?? $laporan?->rombel ?? '-';
 
             $rows[] = [
