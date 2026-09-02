@@ -72,6 +72,13 @@ class GoogleSheetsController extends Controller
                 'icon' => 'bi-journal-check text-purple',
                 'cached_rows' => count(Cache::get('google_sheets_data_' . GoogleSheetsService::TAB_REKAP_PERTEMUAN, [])),
             ],
+            [
+                'key' => GoogleSheetsService::TAB_PROGRAM_EKSKUL,
+                'name' => '7. Daftar Program Ekskul',
+                'description' => 'Direktori komprehensif portofolio program ekskul seluruh sekolah, status kontrak, sales PIC, rincian jadwal rombel, progres pertemuan, dan kapasitas siswa.',
+                'icon' => 'bi-collection-play-fill text-primary',
+                'cached_rows' => count(Cache::get('google_sheets_data_' . GoogleSheetsService::TAB_PROGRAM_EKSKUL, [])),
+            ],
         ];
 
         return view('admin.google-sheets.index', compact(
@@ -86,7 +93,7 @@ class GoogleSheetsController extends Controller
     }
 
     /**
-     * Trigger instant Full Sync of all 5 tabs.
+     * Trigger instant Full Sync of all 7 tabs.
      */
     public function syncNow(Request $request)
     {
@@ -96,12 +103,12 @@ class GoogleSheetsController extends Controller
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Sinkronisasi seluruh 5 tab ke Google Spreadsheet berhasil!',
+                    'message' => 'Sinkronisasi seluruh 7 tab ke Google Spreadsheet berhasil!',
                     'data' => $result,
                 ]);
             }
 
-            return back()->with('success', 'Sinkronisasi 5 tab ke Google Spreadsheet berhasil!');
+            return back()->with('success', 'Sinkronisasi seluruh 7 tab ke Google Spreadsheet berhasil!');
         } catch (\Throwable $e) {
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
@@ -151,6 +158,9 @@ class GoogleSheetsController extends Controller
             'honor' => GoogleSheetsService::TAB_HONOR,
             'rekap_pertemuan' => GoogleSheetsService::TAB_REKAP_PERTEMUAN,
             'Rekap_Pertemuan_Ekskul' => GoogleSheetsService::TAB_REKAP_PERTEMUAN,
+            'program' => GoogleSheetsService::TAB_PROGRAM_EKSKUL,
+            'program_ekskul' => GoogleSheetsService::TAB_PROGRAM_EKSKUL,
+            'Daftar_Program_Ekskul' => GoogleSheetsService::TAB_PROGRAM_EKSKUL,
         ];
 
         $tabKey = $validTabs[$tab] ?? $tab;

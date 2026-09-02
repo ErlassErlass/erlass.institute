@@ -32,7 +32,7 @@ class SyncGoogleSheetsCommand extends Command
         $tab = $this->option('tab');
 
         if ($tab === 'all') {
-            $this->info("Menyinkronkan seluruh 5 tab...");
+            $this->info("Menyinkronkan seluruh 7 tab...");
             $result = $sheetsService->syncAllData();
             $this->info("Sukses! Waktu: " . ($result['timestamp'] ?? now()));
             foreach ($result['results'] ?? [] as $tabName => $res) {
@@ -48,6 +48,7 @@ class SyncGoogleSheetsCommand extends Command
                 'absensi', 'Absensi_Siswa' => $sheetsService->syncTabAbsensi($token),
                 'honor', 'Rekap_Honor' => $sheetsService->syncTabHonor($token),
                 'rekap_pertemuan', 'Rekap_Pertemuan_Ekskul' => $sheetsService->syncTabRekapPertemuan($token),
+                'program', 'program_ekskul', 'Daftar_Program_Ekskul' => $sheetsService->syncTabProgramEkskul($token),
                 default => null,
             };
 

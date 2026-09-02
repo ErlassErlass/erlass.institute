@@ -2,6 +2,19 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.24] - 2026-09-02
+
+### Penambahan Tab Ke-7 "Daftar_Program_Ekskul" pada Integrasi Google Spreadsheet
+
+- **Tab Baru `Daftar_Program_Ekskul`**:
+  - Menambahkan sheet ke-7 pada integrasi Google Spreadsheet sistem Erlass yang merangkum seluruh portofolio kontrak program ekskul sekolah secara komprehensif.
+  - Memuat **27 kolom data lengkap**: ID Program, Kode Sekolah (NPSN), Nama Sekolah, Jenjang, Kota/Wilayah, Program Ekskul, Status Program, Sales Representative PIC, Kepala Sekolah, Penanggung Jawab (PIC), No. Telepon PIC, Tanggal Mulai/Selesai, Frekuensi, Total Rombel, Rincian Rombel & Jadwal (Hari & Jam), Instruktur & Asisten Bertugas, Target Kuota Siswa, Siswa Aktif Terdaftar, Target Pertemuan, Total Sesi Terjadwal, Pertemuan Selesai, Sisa Pertemuan, Progres Belajar (%), Konfigurasi Alat/Kit, Alamat Lengkap Sekolah, dan Link Detail Portal Erlass.
+- **Otomatisasi & Ketahanan Layanan (`GoogleSheetsService`)**:
+  - Integrasi otomatis pembuatan tab baru via Google Sheets API batchUpdate (`ensureTabsExist`).
+  - Menambahkan batas waktu (*timeout*) pada panggilan HTTP eksternal Google OAuth2 dan Sheets API untuk menjaga responsivitas eksekusi background.
+  - Memperbarui dashboard admin (`/admin/google-sheets`) dengan kartu tab ke-7 dan skrip generator Apps Script.
+  - Menambahkan dukungan ekspor CSV dan opsi CLI `--tab=Daftar_Program_Ekskul` / `--tab=program`.
+
 ## [2.9.23] - 2026-09-02
 
 ### Pembersihan Program & Laporan Keliru Pictoblox Latansa Cendekia Serta Optimasi Resolusi Google Spreadsheet

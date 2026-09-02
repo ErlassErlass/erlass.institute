@@ -26,6 +26,7 @@ class GoogleSheetsService
     const TAB_ABSENSI = 'Absensi_Siswa';
     const TAB_HONOR = 'Rekap_Honor';
     const TAB_REKAP_PERTEMUAN = 'Rekap_Pertemuan_Ekskul';
+    const TAB_PROGRAM_EKSKUL = 'Daftar_Program_Ekskul';
 
     public function __construct()
     {
@@ -124,7 +125,7 @@ class GoogleSheetsService
 
             $jwt = "$base64UrlHeader.$base64UrlClaim.$base64UrlSignature";
 
-            $response = Http::asForm()->post('https://oauth2.googleapis.com/token', [
+            $response = Http::asForm()->timeout(5)->post('https://oauth2.googleapis.com/token', [
                 'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
                 'assertion' => $jwt,
             ]);
@@ -156,7 +157,7 @@ class GoogleSheetsService
 
         try {
             // Get current spreadsheet metadata
-            $response = Http::withToken($token)->get("https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}");
+            $response = Http::withToken($token)->timeout(8)->get("https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}");
             if (!$response->successful()) {
                 return ['success' => false, 'message' => 'Gagal mengakses Spreadsheet. Pastikan ID benar dan telah di-share ke ' . $this->getServiceAccountEmail()];
             }
@@ -171,6 +172,7 @@ class GoogleSheetsService
                 self::TAB_ABSENSI,
                 self::TAB_HONOR,
                 self::TAB_REKAP_PERTEMUAN,
+                self::TAB_PROGRAM_EKSKUL,
             ];
 
             $requests = [];
@@ -190,7 +192,7 @@ class GoogleSheetsService
             }
 
             if (!empty($requests)) {
-                $batchResponse = Http::withToken($token)->post("https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}:batchUpdate", [
+                $batchResponse = Http::withToken($token)->timeout(8)->post("https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}:batchUpdate", [
                     'requests' => $requests,
                 ]);
 
@@ -206,7 +208,7 @@ class GoogleSheetsService
     }
 
     /**
-     * Execute a Full Initial Sync of all 6 tabs.
+     * Execute a Full Initial Sync of all 7 tabs.
      */
     public function syncAllData(): array
     {
@@ -220,6 +222,7 @@ class GoogleSheetsService
             self::TAB_ABSENSI => $this->syncTabAbsensi($token),
             self::TAB_HONOR => $this->syncTabHonor($token),
             self::TAB_REKAP_PERTEMUAN => $this->syncTabRekapPertemuan($token),
+            self::TAB_PROGRAM_EKSKUL => $this->syncTabProgramEkskul($token),
         ];
 
         Cache::put('google_sheets_last_sync', now()->toDateTimeString(), 86400 * 30);
@@ -550,6 +553,114 @@ class GoogleSheetsService
     }
 
     /**
+     * Tab 7: Daftar Program Ekskul Lengkap (Portofolio Program Seluruh Sekolah)
+     */
+    public function syncTabProgramEkskul(?string $token = null): array
+    {
+        $headers = [
+            'ID Program', 'Kode Sekolah', 'Nama Sekolah', 'Jenjang', 'Kota / Wilayah', 
+            'Program Ekskul', 'Status Program', 'Sales Representative', 'Kepala Sekolah', 
+            'Penanggung Jawab (PIC)', 'No Telepon / HP PIC', 'Tanggal Mulai', 'Tanggal Selesai', 
+            'Frekuensi', 'Total Rombel', 'Rincian Rombel & Jadwal', 'Instruktur Bertugas', 
+            'Target Kuota Siswa', 'Siswa Aktif Terdaftar', 'Target Pertemuan (per Rombel)', 
+            'Total Sesi Terjadwal', 'Pertemuan Selesai', 'Sisa Pertemuan', 'Progres Belajar (%)', 
+            'Konfigurasi Alat / Kit', 'Alamat Lengkap Sekolah', 'Link Detail Portal'
+        ];
+
+        $programs = Ekstrakurikuler::with([
+            'sekolah',
+            'sales',
+            'rombels.instruktur',
+            'rombels.asisten',
+            'rombels.activeEnrollments',
+            'rombels.sessions',
+        ])
+        ->orderBy('sekolah_kodlan', 'asc')
+        ->orderBy('id', 'asc')
+        ->get();
+
+        $rows = [$headers];
+        $baseUrl = rtrim(config('app.url', 'https://erlass.institute'), '/');
+
+        foreach ($programs as $p) {
+            $sekolah = $p->sekolah;
+            $sales = $p->sales;
+
+            $rombelDetails = [];
+            $instructors = [];
+            $totalCompleted = 0;
+            $totalSessions = 0;
+            $totalActiveStudents = 0;
+
+            foreach ($p->rombels as $r) {
+                $days = $r->hari_belajar ? ucfirst($r->hari_belajar) : '';
+                $times = ($r->jam_mulai ? Carbon::parse($r->jam_mulai)->format('H:i') : '') 
+                    . ($r->jam_selesai ? '-' . Carbon::parse($r->jam_selesai)->format('H:i') : '');
+                $scheduleStr = trim("{$days} {$times}");
+                $rombelDetails[] = $r->nama_rombel . ($scheduleStr ? " ({$scheduleStr})" : '');
+
+                if ($r->instruktur) {
+                    $instructors[] = $r->instruktur->nama_lengkap ?? $r->instruktur->name;
+                }
+                if ($r->asisten) {
+                    $instructors[] = ($r->asisten->nama_lengkap ?? $r->asisten->name) . ' (Asst)';
+                }
+
+                $totalSessions += $r->sessions->count();
+                $totalCompleted += $r->sessions->where('status', 'selesai')->count();
+                $totalActiveStudents += $r->activeEnrollments->count();
+            }
+
+            $rombelSummary = !empty($rombelDetails) ? implode('; ', $rombelDetails) : '-';
+            $instructorSummary = !empty($instructors) ? implode(', ', array_unique($instructors)) : '-';
+
+            $targetPertemuan = $p->total_pertemuan ?? 16;
+            $expectedTotal = $totalSessions > 0 ? $totalSessions : ($targetPertemuan * max(1, $p->rombels->count()));
+            $sisaPertemuan = max(0, $expectedTotal - $totalCompleted);
+            $progressPersen = $expectedTotal > 0 ? round(($totalCompleted / $expectedTotal) * 100, 1) . '%' : '0%';
+
+            $alatStr = $p->jenis_alat ?: 'Standar';
+            if ($p->jumlah_siswa_per_alat) {
+                $alatStr .= " (1 alat / {$p->jumlah_siswa_per_alat} siswa)";
+            }
+
+            $portalUrl = "{$baseUrl}/ekstrakurikuler/{$p->id}";
+
+            $rows[] = [
+                $p->id,
+                $sekolah?->kodlan ?? $p->sekolah_kodlan ?? '-',
+                $sekolah?->namasekolah ?? 'N/A',
+                $sekolah?->jenjang ?? '-',
+                $sekolah?->kota ?? '-',
+                $p->nama_ekskul ?: ($p->kategori_program ?? '-'),
+                ucfirst($p->status ?? 'aktif'),
+                $sales?->nama_salesman ?? ($sales?->user?->nama_lengkap ?? '-'),
+                $p->kepala_sekolah ?? '-',
+                $p->penanggung_jawab ?? '-',
+                $p->no_telepon ?? '-',
+                $p->tanggal_mulai ? Carbon::parse($p->tanggal_mulai)->format('d/m/Y') : '-',
+                $p->tanggal_selesai ? Carbon::parse($p->tanggal_selesai)->format('d/m/Y') : '-',
+                $p->frekuensi_label ?? ($p->frekuensi ? ucfirst($p->frekuensi) : '-'),
+                $p->rombels->count(),
+                $rombelSummary,
+                $instructorSummary,
+                $p->total_siswa ?? 0,
+                $totalActiveStudents,
+                $targetPertemuan,
+                $totalSessions,
+                $totalCompleted,
+                $sisaPertemuan,
+                $progressPersen,
+                $alatStr,
+                $p->alamat_lengkap ?? $sekolah?->alamat ?? '-',
+                $portalUrl,
+            ];
+        }
+
+        return $this->writeTab(self::TAB_PROGRAM_EKSKUL, $rows, $token);
+    }
+
+    /**
      * Append a single Laporan row in Realtime.
      */
     public function appendLaporanRealtime(LaporanMengajar $r): bool
@@ -618,6 +729,7 @@ class GoogleSheetsService
         try {
             $range = urlencode("{$tabTitle}!A1");
             $response = Http::withToken($token)
+                ->timeout(10)
                 ->put("https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}/values/{$range}?valueInputOption=USER_ENTERED", [
                     'range' => "{$tabTitle}!A1",
                     'majorDimension' => 'ROWS',
@@ -689,6 +801,7 @@ class GoogleSheetsService
                 self::TAB_ABSENSI => $this->syncTabAbsensi(),
                 self::TAB_HONOR => $this->syncTabHonor(),
                 self::TAB_REKAP_PERTEMUAN => $this->syncTabRekapPertemuan(),
+                self::TAB_PROGRAM_EKSKUL => $this->syncTabProgramEkskul(),
                 default => null,
             };
             $data = Cache::get("google_sheets_data_{$tabTitle}", []);
@@ -706,7 +819,7 @@ class GoogleSheetsService
     }
 
     /**
-     * Get array data of all 6 tabs.
+     * Get array data of all 7 tabs.
      */
     public function getAllTabsData(): array
     {
@@ -716,6 +829,7 @@ class GoogleSheetsService
         $this->syncTabAbsensi();
         $this->syncTabHonor();
         $this->syncTabRekapPertemuan();
+        $this->syncTabProgramEkskul();
 
         return [
             self::TAB_KPI => Cache::get("google_sheets_data_" . self::TAB_KPI, []),
@@ -724,6 +838,7 @@ class GoogleSheetsService
             self::TAB_ABSENSI => Cache::get("google_sheets_data_" . self::TAB_ABSENSI, []),
             self::TAB_HONOR => Cache::get("google_sheets_data_" . self::TAB_HONOR, []),
             self::TAB_REKAP_PERTEMUAN => Cache::get("google_sheets_data_" . self::TAB_REKAP_PERTEMUAN, []),
+            self::TAB_PROGRAM_EKSKUL => Cache::get("google_sheets_data_" . self::TAB_PROGRAM_EKSKUL, []),
         ];
     }
 }
