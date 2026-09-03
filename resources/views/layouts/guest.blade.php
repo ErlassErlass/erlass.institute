@@ -133,10 +133,19 @@
             navigator.serviceWorker.register('/service-worker.js')
                 .then(function(registration) {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    registration.update();
                 })
                 .catch(function(err) {
                     console.log('ServiceWorker registration failed: ', err);
                 });
+
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    refreshing = true;
+                    window.location.reload();
+                }
+            });
         }
 
         // PWA Custom Installation Logic

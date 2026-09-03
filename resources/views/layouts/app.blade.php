@@ -1152,6 +1152,14 @@
                     .then(function(registration) {
                         console.log('ServiceWorker registered with scope:', registration.scope);
                         
+                        // Proactively check for Service Worker updates
+                        registration.update();
+                        document.addEventListener('visibilitychange', () => {
+                            if (document.visibilityState === 'visible') {
+                                registration.update();
+                            }
+                        });
+
                         // Detect Service Worker Update
                         registration.addEventListener('updatefound', () => {
                             const newWorker = registration.installing;

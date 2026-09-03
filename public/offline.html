@@ -161,12 +161,18 @@
                 Halaman ini tidak dapat dimuat karena perangkat Anda kehilangan koneksi internet. Pastikan WiFi atau Data Seluler aktif.
             </p>
 
-            <button type="button" class="btn-reconnect mb-3" id="btnReload">
+            <button type="button" class="btn-reconnect mb-2" id="btnReload">
                 <i class="bi bi-arrow-clockwise me-2"></i> Coba Hubungkan Ulang
             </button>
 
+            <div class="mb-3">
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" id="btnResetCache" style="font-size: 0.8rem;">
+                    <i class="bi bi-arrow-repeat me-1"></i> Bersihkan Cache & Muat Ulang
+                </button>
+            </div>
+
             <div class="small text-muted" style="font-size: 0.78rem;">
-                <i class="bi bi-info-circle me-1"></i> Aplikasi akan otomatis memuat ulang saat koneksi kembali stabil.
+                <i class="bi bi-info-circle me-1"></i> Aplikasi akan otomatis memuat ulang saat koneksi kembali stabil. Anda juga dapat menarik layar ke bawah (pull down) untuk me-refresh browser.
             </div>
         </div>
     </div>
@@ -174,42 +180,72 @@
     <script>
         const statusBadge = document.getElementById('statusBadge');
         const btnReload = document.getElementById('btnReload');
+        const btnResetCache = document.getElementById('btnResetCache');
 
-        function updateOnlineStatus() {
-            if (navigator.onLine) {
-                statusBadge.className = 'status-badge online';
-                statusBadge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Terhubung Kembali! Memuat...';
-                setTimeout(() => window.location.reload(), 800);
-            } else {
-                statusBadge.className = 'status-badge';
-                statusBadge.innerHTML = '<i class="bi bi-exclamation-circle-fill me-1"></i> Sinyal Terputus';
-            }
+        function checkAndRestore() {
+            fetch('/favicon-32.png?t=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
+                .then(function(res) {
+                    if (res.ok || res.status < 400) {
+                        statusBadge.className = 'status-badge online';
+                        statusBadge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Terhubung Kembali! Memuat...';
+                        setTimeout(() => {
+                            window.location.href = '/?reconnected=' + Date.now();
+                        }, 500);
+                    }
+                })
+                .catch(function() {
+                    statusBadge.className = 'status-badge';
+                    statusBadge.innerHTML = '<i class="bi bi-exclamation-circle-fill me-1"></i> Sinyal Terputus';
+                });
         }
 
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
+        window.addEventListener('online', checkAndRestore);
+        window.addEventListener('offline', function() {
+            statusBadge.className = 'status-badge';
+            statusBadge.innerHTML = '<i class="bi bi-exclamation-circle-fill me-1"></i> Sinyal Terputus';
+        });
 
-        // If page loaded but navigator is actually online (e.g. temporary timeout glitch), auto reload!
+        // If navigator reports online on page load, test immediately
         if (navigator.onLine) {
-            setTimeout(() => {
-                if (navigator.onLine) {
-                    window.location.reload();
-                }
-            }, 1200);
+            setTimeout(checkAndRestore, 600);
         }
 
-        btnReload.addEventListener('click', () => {
+        btnReload.addEventListener('click', function() {
             btnReload.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memeriksa Sinyal...';
             btnReload.disabled = true;
-            setTimeout(() => {
-                if (!navigator.onLine) {
+
+            fetch('/favicon-32.png?t=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
+                .then(function(res) {
+                    if (res.ok || res.status < 400) {
+                        window.location.href = '/?retry=' + Date.now();
+                    } else {
+                        throw new Error('Server error');
+                    }
+                })
+                .catch(function() {
                     btnReload.disabled = false;
                     btnReload.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i> Coba Hubungkan Ulang';
-                    alert('Internet masih terputus. Mohon periksa jaringan Anda.');
-                } else {
-                    window.location.reload();
-                }
-            }, 800);
+                    alert('Koneksi internet belum stabil. Pastikan kuota / data seluler Anda aktif, atau ganti ke jaringan lain.');
+                });
+        });
+
+        btnResetCache.addEventListener('click', function() {
+            btnResetCache.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Mereset...';
+            btnResetCache.disabled = true;
+
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    return Promise.all(names.map(function(name) {
+                        return caches.delete(name);
+                    }));
+                }).then(function() {
+                    window.location.href = '/?fresh=' + Date.now();
+                }).catch(function() {
+                    window.location.href = '/?fresh=' + Date.now();
+                });
+            } else {
+                window.location.href = '/?fresh=' + Date.now();
+            }
         });
     </script>
 </body>

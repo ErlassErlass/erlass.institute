@@ -1,4 +1,4 @@
-const CACHE_NAME = 'erlass-ekskul-cache-v5';
+const CACHE_NAME = 'erlass-ekskul-cache-v6';
 const OFFLINE_URL = '/offline.html';
 const CORE_ASSETS = [
     OFFLINE_URL,
@@ -52,54 +52,36 @@ self.addEventListener('message', (event) => {
     }
 });
 
-// Fetch event: Network-First for HTML navigation with 12s Timeout & Stale-While-Revalidate for Static Assets
+// Fetch event: Resilient Network-First for HTML navigation & Stale-While-Revalidate for Static Assets
 self.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') return;
 
     const requestUrl = new URL(event.request.url);
 
-    // 1. Document request (HTML Page navigation): Network-First with 12s Timeout
+    // 1. Document request (HTML Page navigation): Resilient Network-First
+    // Lets network requests complete naturally without premature timeout cutoffs on slow cellular 4G/5G
     if (event.request.mode === 'navigate') {
         event.respondWith(
-            new Promise((resolve) => {
-                let isTimedOut = false;
-                const timeoutId = setTimeout(() => {
-                    isTimedOut = true;
-                    // Fallback on network timeout (12s)
-                    caches.match(event.request).then((cachedResponse) => {
-                        if (cachedResponse) {
-                            resolve(cachedResponse);
-                        } else {
-                            caches.match(OFFLINE_URL).then((offlineRes) => resolve(offlineRes));
-                        }
-                    });
-                }, 12000);
-
-                fetch(event.request)
-                    .then((networkResponse) => {
-                        clearTimeout(timeoutId);
-                        if (!isTimedOut && networkResponse.status === 200) {
-                            const responseClone = networkResponse.clone();
-                            caches.open(CACHE_NAME).then((cache) => {
-                                cache.put(event.request, responseClone);
-                                trimCache(CACHE_NAME, MAX_DYNAMIC_ITEMS);
-                            });
-                        }
-                        if (!isTimedOut) resolve(networkResponse);
-                    })
-                    .catch(() => {
-                        clearTimeout(timeoutId);
-                        if (!isTimedOut) {
-                            caches.match(event.request).then((cachedResponse) => {
-                                if (cachedResponse) {
-                                    resolve(cachedResponse);
-                                } else {
-                                    caches.match(OFFLINE_URL).then((offlineRes) => resolve(offlineRes));
-                                }
-                            });
-                        }
-                    });
-            })
+            fetch(event.request)
+                .then((networkResponse) => {
+                    if (networkResponse && networkResponse.status === 200) {
+                        const responseClone = networkResponse.clone();
+                        caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(event.request, responseClone);
+                            trimCache(CACHE_NAME, MAX_DYNAMIC_ITEMS);
+                        });
+                    }
+                    return networkResponse;
+                })
+                .catch(async () => {
+                    // Only fallback to cache or offline page if network genuinely fails (e.g. no signal, airplane mode)
+                    const cachedResponse = await caches.match(event.request);
+                    if (cachedResponse) {
+                        return cachedResponse;
+                    }
+                    const offlineRes = await caches.match(OFFLINE_URL);
+                    return offlineRes || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } });
+                })
         );
         return;
     }

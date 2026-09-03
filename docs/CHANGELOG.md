@@ -2,6 +2,22 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.27] - 2026-09-03
+
+### Optimasi PWA Cache v6, Pengamanan Header Service Worker Nginx, dan Ketahanan Koneksi Jaringan Seluler
+
+- **Eliminasi Caching Nginx pada Service Worker & Manifest (`webapperlass.conf`)**:
+  - Menambahkan blok konfigurasi khusus `location = /service-worker.js` dan `location = /manifest.json` dengan header `Cache-Control: "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"` dan `expires -1`.
+  - Mengeliminasi bug caching 30 hari yang sebelumnya menahan Service Worker lama di proxy provider internet/browser seluler, memastikan pembaruan sistem langsung terdeteksi oleh perangkat pengguna di seluruh ISP (Telkomsel, Indihome, XL, Indosat, Biznet, dll).
+- **Pembaruan Service Worker ke Versi 6 & Penghapusan Timeout Prematur (`public/service-worker.js`)**:
+  - Menaikkan `CACHE_NAME` menjadi `erlass-ekskul-cache-v6` untuk membersihkan cache usang pada browser/PWA pengguna.
+  - Menghapus pembatasan waktu 12 detik (*12s timeout*) pada navigasi HTML. Navigasi kini menggunakan *Resilient Network-First* yang membiarkan browser menyelesaikan koneksi seluler tanpa terpotong prematur ke halaman offline saat sinyal 4G berfluktuasi.
+- **Penyempurnaan Halaman Offline & Fitur Reset Cache Mandiri (`public/offline.html`)**:
+  - Tombol *"Coba Hubungkan Ulang"* kini melakukan pengujian koneksi langsung (*live ping*) sebelum redirect, mencegah loop reload di layar offline.
+  - Menambahkan tombol bantuan *"Bersihkan Cache & Muat Ulang"* untuk membersihkan cache PWA yang tersangkut hanya dengan satu ketukan.
+- **Pemeriksaan Update Otomatis pada Layout PWA (`app.blade.php` & `guest.blade.php`)**:
+  - Menambahkan `registration.update()` saat aplikasi dimuat dan saat layar HP kembali aktif (`visibilitychange`), sehingga PWA otomatis mendeteksi dan menerapkan pembaruan sistem.
+
 ## [2.9.26] - 2026-09-03
 
 ### Penambahan Aksi Pindah Rombel pada Detail Siswa, Perbaikan Form Bulk Action, dan Roster Siswa Sesi Terjadwal
