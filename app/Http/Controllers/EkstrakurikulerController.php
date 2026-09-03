@@ -462,16 +462,26 @@ class EkstrakurikulerController extends Controller
                 'dibatalkan_oleh' => auth()->id()
             ]);
 
-            // 2. Cancel Future Sessions (Terjadwal & >= Today)
+            // 2. Cancel All Pending Sessions (Terjadwal & Ditunda)
             $ekstrakurikuler->sessions()
-                ->where('status', \App\Models\EkstrakurikulerSession::STATUS_TERJADWAL)
-                ->where('tanggal_terjadwal', '>=', now()->toDateString())
+                ->whereIn('status', [
+                    \App\Models\EkstrakurikulerSession::STATUS_TERJADWAL,
+                    \App\Models\EkstrakurikulerSession::STATUS_DITUNDA,
+                ])
                 ->update([
                     'status' => \App\Models\EkstrakurikulerSession::STATUS_DIBATALKAN,
-                    'alasan_pembatalan' => 'Program dihentikan oleh pusat: ' . $request->reason
+                    'alasan_pembatalan' => 'Program dihentikan oleh pusat: ' . $request->reason,
+                    'is_manual_reschedule' => false,
+                    'unreported_reminder_count' => 0,
                 ]);
 
-            // 3. Unenroll Active Students
+            // 3. Cancel and soft-delete rombels
+            foreach ($ekstrakurikuler->rombels as $rombel) {
+                $rombel->update(['status' => \App\Models\EkstrakurikulerRombel::STATUS_DIBATALKAN]);
+                $rombel->delete();
+            }
+
+            // 4. Unenroll Active Students
             $ekstrakurikuler->enrollments()
                 ->where('status', \App\Models\SiswaEkstrakurikuler::STATUS_AKTIF)
                 ->update([
