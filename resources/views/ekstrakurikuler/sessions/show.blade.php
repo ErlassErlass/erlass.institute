@@ -574,6 +574,69 @@
                         </div>
                     </div>
                 </div>
+            @elseif($session->rombel)
+                @php
+                    $enrolledStudents = $session->rombel->siswaAktif()->orderBy('nama_lengkap', 'asc')->get();
+                @endphp
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-0 fw-bold text-secondary">
+                                <i class="bi bi-people me-2"></i>Daftar Siswa Terdaftar ({{ $session->rombel->nama_rombel }})
+                            </h5>
+                            <small class="text-muted">Daftar siswa aktif di rombel ini untuk sesi pertemuan mendatang.</small>
+                        </div>
+                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1 fw-bold">
+                            {{ $enrolledStudents->count() }} Siswa Terdaftar
+                        </span>
+                    </div>
+                    <div class="card-body p-0">
+                        @if($enrolledStudents->isNotEmpty())
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="ps-4" style="width: 50px;">#</th>
+                                            <th>Nama Siswa</th>
+                                            <th>NISN / ID</th>
+                                            <th>Kelas Akademik</th>
+                                            <th class="text-center" style="width: 130px;">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($enrolledStudents as $index => $siswa)
+                                        <tr>
+                                            <td class="ps-4 text-muted">{{ $index + 1 }}</td>
+                                            <td class="fw-medium text-dark">{{ $siswa->nama_lengkap }}</td>
+                                            <td class="text-muted small">{{ $siswa->nisn ?? '-' }}</td>
+                                            <td><span class="badge bg-light text-dark border">{{ $siswa->kelas ?? '-' }}</span></td>
+                                            <td class="text-center">
+                                                <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
+                                                    <i class="bi bi-check2 me-1"></i> Terdaftar
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <span class="small text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Presensi kehadiran akan dicatat oleh instruktur saat/setelah kegiatan belajar mengajar berlangsung.
+                                </span>
+                                <a href="{{ route('ekstrakurikuler-session.print-session', $session) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-printer me-1"></i> Cetak Lembar Presensi
+                                </a>
+                            </div>
+                        @else
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-person-x fs-2 d-block mb-1 text-secondary"></i>
+                                Belum ada siswa aktif yang terdaftar di {{ $session->rombel->nama_rombel }}.
+                            </div>
+                        @endif
+                    </div>
+                </div>
             @endif
         </div>
 

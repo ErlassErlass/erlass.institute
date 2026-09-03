@@ -17,8 +17,13 @@
                 </div>
                 <div class="d-flex gap-2">
                     @can('update', $ekstrakurikuler)
+                        @if($enrollment->status === 'aktif' && isset($rombels) && $rombels->isNotEmpty())
+                            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#transferModal">
+                                <i class="bi bi-arrow-left-right me-1"></i> Pindah Rombel
+                            </button>
+                        @endif
                         <a href="{{ route('ekstrakurikuler.enrollment.edit', [$ekstrakurikuler, $enrollment]) }}"
-                           class="btn btn-warning btn-sm">
+                           class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-pencil me-1"></i> Edit
                         </a>
                     @endcan
@@ -174,6 +179,62 @@
         </div>
     </div>
 </div>
+
+{{-- Modal Pindah Rombel --}}
+@can('update', $ekstrakurikuler)
+@if($enrollment->status === 'aktif' && isset($rombels) && $rombels->isNotEmpty())
+<div class="modal fade" id="transferModal" tabindex="-1" aria-labelledby="transferModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content shadow-lg border-0">
+            <form method="POST" action="{{ route('ekstrakurikuler.enrollment.transfer', [$ekstrakurikuler, $enrollment]) }}">
+                @csrf
+                <div class="modal-header bg-warning bg-opacity-10 border-bottom border-warning border-opacity-25">
+                    <h5 class="modal-title fw-bold text-dark" id="transferModalLabel">
+                        <i class="bi bi-arrow-left-right me-2 text-warning"></i>Pindah Rombel Siswa
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-light border d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-person-circle fs-4 text-primary"></i>
+                        <div>
+                            <div class="fw-bold text-dark">{{ $enrollment->siswa->nama_lengkap }}</div>
+                            <small class="text-muted">
+                                Rombel Saat Ini: <span class="badge bg-primary bg-opacity-10 text-primary">{{ $enrollment->rombel->nama_rombel ?? '-' }}</span>
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="new_rombel_id" class="form-label fw-semibold">Rombel Tujuan <span class="text-danger">*</span></label>
+                        <select class="form-select" id="new_rombel_id" name="new_rombel_id" required>
+                            <option value="">Pilih Rombel Tujuan...</option>
+                            @foreach($rombels as $r)
+                                <option value="{{ $r->id }}">
+                                    {{ $r->nama_rombel }} ({{ $r->getJumlahSiswaAktual() }} siswa terdaftar)
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Siswa akan dimutasi ke rombel ini dan status di rombel saat ini menjadi <strong>Pindah</strong>.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="alasan_transfer" class="form-label fw-semibold">Alasan Pemindahan (Opsional)</label>
+                        <textarea class="form-control" id="alasan_transfer" name="alasan" rows="3" placeholder="Contoh: Menyesuaikan jadwal sekolah/permintaan wali murid..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning fw-bold px-3">
+                        <i class="bi bi-arrow-left-right me-1"></i> Simpan Perpindahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+@endcan
 
 <style>
 .avatar-lg {

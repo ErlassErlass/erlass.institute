@@ -470,7 +470,7 @@
                         <div class="form-text">Siswa yang dipilih akan dipindahkan ke rombel ini. Hanya siswa berstatus <strong>Aktif</strong> yang akan diproses.</div>
                         <div class="mt-2">
                             <label for="bulk_alasan_transfer" class="form-label">Alasan Pindah (Opsional)</label>
-                            <textarea class="form-control" id="bulk_alasan_transfer" name="bulk_alasan" rows="2"
+                            <textarea class="form-control" id="bulk_alasan_transfer" name="bulk_alasan_transfer" rows="2"
                                       placeholder="Alasan pemindahan rombel..."></textarea>
                         </div>
                     </div>
@@ -583,9 +583,17 @@ function showBulkModal(action) {
     // Tampilkan/sembunyikan field alasan
     const reasonGroup = document.getElementById('bulkReasonGroup');
     const rombelGroup = document.getElementById('bulkRombelGroup');
+    const isReason = ['deactivate', 'withdraw'].includes(action);
+    const isTransfer = (action === 'transfer');
     
-    reasonGroup.style.display  = ['deactivate', 'withdraw'].includes(action) ? 'block' : 'none';
-    rombelGroup.style.display  = (action === 'transfer') ? 'block' : 'none';
+    reasonGroup.style.display  = isReason ? 'block' : 'none';
+    document.getElementById('bulk_alasan').disabled = !isReason;
+
+    rombelGroup.style.display  = isTransfer ? 'block' : 'none';
+    const rombelTujuanSelect = document.getElementById('bulk_rombel_tujuan');
+    rombelTujuanSelect.disabled = !isTransfer;
+    rombelTujuanSelect.required = isTransfer;
+    document.getElementById('bulk_alasan_transfer').disabled = !isTransfer;
 
     // Wajib isi alasan untuk withdraw
     const requiredMark = document.getElementById('bulk_alasan_required');

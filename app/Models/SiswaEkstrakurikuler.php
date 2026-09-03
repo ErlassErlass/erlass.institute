@@ -234,19 +234,30 @@ class SiswaEkstrakurikuler extends Model
                 ->where('ekstrakurikuler_id', $this->ekstrakurikuler_id)
                 ->first();
 
-            if (! $newRombel) {
+            if (! $newRombel || (int) $newRombelId === (int) $this->ekstrakurikuler_rombel_id) {
                 return false;
             }
 
             $oldRombelId = $this->ekstrakurikuler_rombel_id;
+            $oldRombelName = $this->rombel->nama_rombel ?? ('Rombel ID: ' . $oldRombelId);
+            $newRombelName = $newRombel->nama_rombel ?? ('Rombel ID: ' . $newRombelId);
 
-            return DB::transaction(function () use ($newRombelId, $oldRombelId, $alasan) {
-                // 1. Update record saat ini menjadi status pindah
-                $this->status = self::STATUS_PINDAH;
-                $this->tanggal_keluar = now();
-                $this->alasan_keluar = 'Pindah ke Rombel ID: ' . $newRombelId;
-                $this->catatan = 'Pindah ke Rombel ID: ' . $newRombelId . '. ' . ($alasan ?? '');
-                $this->save();
+            return DB::transaction(function () use ($newRombelId, $oldRombelId, $oldRombelName, $newRombelName, $alasan) {
+                // 1. Update SEMUA record aktif siswa ini di rombel selain target menjadi status pindah
+                self::where('siswa_id', $this->siswa_id)
+                    ->where('ekstrakurikuler_id', $this->ekstrakurikuler_id)
+                    ->where('ekstrakurikuler_rombel_id', '!=', $newRombelId)
+                    ->where('status', self::STATUS_AKTIF)
+                    ->get()
+                    ->each(function ($item) use ($newRombelId, $newRombelName, $alasan) {
+                        $item->update([
+                            'status'         => self::STATUS_PINDAH,
+                            'tanggal_keluar' => now(),
+                            'alasan_keluar'  => 'Pindah ke Rombel ID: ' . $newRombelId . ($newRombelName ? ' (' . $newRombelName . ')' : ''),
+                            'catatan'        => ($item->catatan ? $item->catatan . ' | ' : '') . 'Pindah ke ' . $newRombelName . ($alasan ? ': ' . $alasan : ''),
+                            'updated_by'     => auth()->id() ?? $item->updated_by,
+                        ]);
+                    });
 
                 // 2. Reaktifkan record jika sudah ada di rombel tujuan, atau buat record baru
                 $existing = self::where('siswa_id', $this->siswa_id)
@@ -259,7 +270,8 @@ class SiswaEkstrakurikuler extends Model
                         'status'         => self::STATUS_AKTIF,
                         'tanggal_keluar' => null,
                         'alasan_keluar'  => null,
-                        'catatan'        => 'Pindah kembali dari Rombel ID: ' . $oldRombelId . ($alasan ? ' - ' . $alasan : ''),
+                        'catatan'        => 'Pindah kembali dari Rombel ID: ' . $oldRombelId . ($oldRombelName ? ' (' . $oldRombelName . ')' : '') . ($alasan ? ' - ' . $alasan : ''),
+                        'updated_by'     => auth()->id(),
                     ]);
                 } else {
                     self::create([
@@ -268,9 +280,13 @@ class SiswaEkstrakurikuler extends Model
                         'ekstrakurikuler_rombel_id' => $newRombelId,
                         'status'                    => self::STATUS_AKTIF,
                         'tanggal_daftar'            => now(),
-                        'catatan'                   => 'Pindahan dari Rombel ID: ' . $oldRombelId,
+                        'catatan'                   => 'Pindahan dari Rombel ID: ' . $oldRombelId . ($oldRombelName ? ' (' . $oldRombelName . ')' : '') . ($alasan ? ' - ' . $alasan : ''),
+                        'created_by'                => auth()->id(),
+                        'updated_by'                => auth()->id(),
                     ]);
                 }
+
+                $this->refresh();
 
                 return true;
             });

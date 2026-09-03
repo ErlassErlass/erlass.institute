@@ -2,6 +2,21 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.26] - 2026-09-03
+
+### Penambahan Aksi Pindah Rombel pada Detail Siswa, Perbaikan Form Bulk Action, dan Roster Siswa Sesi Terjadwal
+
+- **Tombol & Modal "Pindah Rombel" pada Halaman Detail Siswa ([show.blade.php](file:///var/www/webapperlass/resources/views/ekstrakurikuler/enrollment/show.blade.php))**:
+  - Menambahkan tombol aksi langsung "Pindah Rombel" di header halaman detail enrollment siswa.
+  - Membuka modal pemilihan Rombel Tujuan dengan info kuota siswa terkini dan input Catatan Alasan yang memproses rute `ekstrakurikuler.enrollment.transfer`.
+- **Perbaikan Form Bulk Action Pindah Rombel ([index.blade.php](file:///var/www/webapperlass/resources/views/ekstrakurikuler/enrollment/index.blade.php))**:
+  - Memisahkan nama field input menjadi `bulk_alasan_transfer` dan secara dinamis me-nonaktifkan (*disable*) textarea yang sedang disembunyikan agar data form bersih dan tidak saling menimpa (*override*).
+- **Pencegahan Duplikasi Status Aktif Siswa ([SiswaEkstrakurikuler.php](file:///var/www/webapperlass/app/Models/SiswaEkstrakurikuler.php) & [SiswaEkstrakurikulerController.php](file:///var/www/webapperlass/app/Http/Controllers/SiswaEkstrakurikulerController.php))**:
+  - Menyempurnakan logika mutasi baik pada single transfer, edit enrollment, maupun bulk action, agar ketika siswa dipindahkan ke rombel baru, seluruh record aktif siswa tersebut di rombel lama otomatis diubah menjadi status `pindah` (mencegah siswa aktif di 2 rombel sekaligus).
+  - Merapikan anomali 4 data siswa yang sempat aktif ganda di Rombel 1 dan Rombel 2 pada Ekskul 64.
+- **Tampilan Daftar Siswa Terdaftar pada Sesi Belum Absen ([sessions/show.blade.php](file:///var/www/webapperlass/resources/views/ekstrakurikuler/sessions/show.blade.php))**:
+  - Pada sesi berstatus `terjadwal` atau yang belum memiliki laporan mengajar/absensi fisik tersimpan, halaman detail sesi kini menampilkan tabel "Daftar Siswa Terdaftar (Rombel Ini)" yang bersumber dari siswa aktif rombel, sehingga mutasi rombel langsung terlihat di halaman sesi mendatang.
+
 ## [2.9.25] - 2026-09-03
 
 ### Perbaikan Error 500 Daftar Sesi dan Penguatan Relasi Rombel
