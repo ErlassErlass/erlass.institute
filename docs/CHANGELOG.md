@@ -2,6 +2,17 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.25] - 2026-09-03
+
+### Perbaikan Error 500 Daftar Sesi dan Penguatan Relasi Rombel
+
+- **Perbaikan Error 500 pada Halaman Sesi (`/ekstrakurikuler/sessions`)**:
+  - Memperbaiki fatal error `Attempt to read property "nomor_rombel" on null` yang muncul saat memuat sesi yang rombel induknya telah diarsipkan/dihapus (*soft-deleted*).
+  - Menambahkan relasi `withTrashed()` pada `EkstrakurikulerSession@rombel` agar sesi yang berkaitan dengan rombel non-aktif tetap dapat memuat data nama rombel dan nomor rombel secara utuh.
+  - Mengimplementasikan operator nullsafe (`?->`) di seluruh tampilan Blade tabel dan kartu mobile ([sessions/index.blade.php](file:///var/www/webapperlass/resources/views/ekstrakurikuler/sessions/index.blade.php)) untuk mencegah *crash* saat data relasi rombel kosong.
+- **Penguatan Alur Pembatalan Program Ekskul (`EkstrakurikulerController@cancel`)**:
+  - Memastikan seluruh sesi tertunda/terjadwal (tanpa terpotong batas tanggal) dan rombelnya otomatis ikut dibatalkan & dibersihkan secara berantai saat program dibatalkan oleh admin/sales.
+
 ## [2.9.24] - 2026-09-02
 
 ### Penambahan Tab Ke-7 "Daftar_Program_Ekskul" pada Integrasi Google Spreadsheet
