@@ -391,7 +391,7 @@
                                 <span title="{{ $sekolahNama }}">{{ $sekolahNama }}</span>
                             </td>
                             <td class="text-center fw-bold">
-                                {{ $session->rombel->nama_rombel ?? ($session->rombel->nomor_rombel ? 'Rombel ' . $session->rombel->nomor_rombel : '-') }}
+                                {{ $session->rombel?->nama_rombel ?? ($session->rombel?->nomor_rombel ? 'Rombel ' . $session->rombel->nomor_rombel : '-') }}
                             </td>
                             <td class="text-center">
                                 <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-2 py-1 border border-primary border-opacity-25 rounded-pill">
@@ -405,7 +405,7 @@
                                 {{ $session->asisten->nama_lengkap ?? '-' }}
                             </td>
                             <td class="text-center">
-                                <span class="badge bg-light text-dark border">{{ $session->rombel->jumlah_siswa ?? '0' }}</span>
+                                <span class="badge bg-light text-dark border">{{ $session->rombel?->jumlah_siswa ?? '0' }}</span>
                             </td>
                             <td class="text-muted small">
                                 {{ $kecamatan }}
@@ -528,8 +528,8 @@
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div>
                             <span class="badge bg-primary bg-opacity-10 text-primary mb-1">Pertemuan {{ $session->nomor_pertemuan }}</span>
-                            <h6 class="fw-bold mb-0 text-dark">{{ $session->rombel->ekstrakurikuler->kategori_program }}</h6>
-                            <small class="text-muted">{{ $session->rombel->ekstrakurikuler->sekolah->namasekolah }}</small>
+                            <h6 class="fw-bold mb-0 text-dark">{{ $session->ekstrakurikuler->kategori_program ?? ($session->rombel?->ekstrakurikuler?->kategori_program ?? '-') }}</h6>
+                            <small class="text-muted">{{ $session->ekstrakurikuler->sekolah->namasekolah ?? ($session->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? '-') }}</small>
                         </div>
                         @php
                             $statusClass = match($session->status) {
@@ -1215,18 +1215,18 @@ function exportScheduleToImage() {
                     {{ $tgl ? \Carbon\Carbon::parse($tgl)->format('d/m/Y') : '-' }}
                 </td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->sekolah->namasekolah ?? '-' }}</td>
-                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center;">{{ $session->rombel->nomor_rombel ?? '-' }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center;">{{ $session->rombel?->nomor_rombel ?? '-' }}</td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #1e40af;">
                     Ke-{{ $session->nomor_pertemuan }}
                 </td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left; font-weight: bold; color: #0f172a;">{{ $session->instruktur->nama_lengkap ?? '-' }}</td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->asisten->nama_lengkap ?? '-' }}</td>
-                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center;">{{ $session->rombel->jumlah_siswa ?? '0' }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center;">{{ $session->rombel?->jumlah_siswa ?? '0' }}</td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->sekolah->kec ?? '-' }}</td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left; font-weight: bold; color: #0f172a;">{{ $session->ekstrakurikuler->kategori_program ?? '-' }}</td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->sales->nama_lengkap ?? ($session->ekstrakurikuler->sales->name ?? '-') }}</td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0f172a;">
-                    {{ $session->jam_mulai_terjadwal ? \Carbon\Carbon::parse($session->jam_mulai_terjadwal)->format('H:i') : ($session->rombel->jam_mulai ? \Carbon\Carbon::parse($session->rombel->jam_mulai)->format('H:i') : '-') }}
+                    {{ $session->jam_mulai_terjadwal ? \Carbon\Carbon::parse($session->jam_mulai_terjadwal)->format('H:i') : ($session->rombel?->jam_mulai ? \Carbon\Carbon::parse($session->rombel->jam_mulai)->format('H:i') : '-') }}
                 </td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->penanggung_jawab ?? '-' }}</td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold;">
