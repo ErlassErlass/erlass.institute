@@ -2,6 +2,21 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.28] - 2026-09-04
+
+### Auto-Recovery ViewException, Validasi Modal Tambah Rombel, dan Perbaikan Error 500
+
+- **Auto-Recovery ViewException Cache Korup (`bootstrap/app.php`)**:
+  - Menambahkan exception handler khusus untuk `ViewException` yang disebabkan error `filemtime(): stat failed` — kondisi yang terjadi saat file view cache hilang/korup akibat deployment atau race condition.
+  - Saat terdeteksi, sistem otomatis menjalankan `Artisan::call('view:clear')` dan me-redirect pengguna ke URL yang sama secara transparan tanpa menampilkan halaman 500.
+  - Dilengkapi **loop guard** via cookie `_vcr` (expire 10 detik) untuk mencegah infinite redirect jika `view:clear` sendiri bermasalah.
+  - Setiap auto-recovery dicatat di `laravel.log` dengan prefix `[ViewCache]` untuk kemudahan monitoring.
+- **Validasi & UX Modal Tambah Rombel (`ekstrakurikuler/show.blade.php`)**:
+  - Pesan error validasi (jam, durasi, field kosong) kini ditampilkan langsung di dalam modal `#addRombelModal` via `alert-danger`, tidak lagi hilang begitu saja.
+  - Modal otomatis terbuka kembali dan tab **Rombongan Belajar** aktif jika submit gagal validasi server-side.
+  - Semua field form mempertahankan isian sebelumnya dengan `old()` saat redirect kembali karena error.
+  - Field yang gagal validasi ditandai merah dengan class `is-invalid`.
+
 ## [2.9.27] - 2026-09-03
 
 ### Optimasi PWA Cache v6, Pengamanan Header Service Worker Nginx, dan Ketahanan Koneksi Jaringan Seluler

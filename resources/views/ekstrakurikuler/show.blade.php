@@ -946,6 +946,18 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
+                        {{-- Error display --}}
+                        @if ($errors->any())
+                            <div class="alert alert-danger py-2 small mb-3">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                <ul class="mb-0 ps-3">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         <div class="alert alert-info py-2 small mb-3 border-0 bg-info bg-opacity-10 text-info">
                             <i class="bi bi-info-circle me-1"></i> Rombel baru akan ditambahkan sebagai <strong>Rombel {{ ($ekstrakurikuler->rombels->max('nomor_rombel') ?? 0) + 1 }}</strong>. Sesi pertemuan akan di-generate secara otomatis.
                         </div>
@@ -954,26 +966,26 @@
                             {{-- Hari --}}
                             <div class="col-md-4 mb-3">
                                 <label for="addRombel_hari" class="form-label small fw-bold text-muted">Hari <span class="text-danger">*</span></label>
-                                <select class="form-select" id="addRombel_hari" name="hari" required>
-                                    <option value="" disabled selected>Pilih hari...</option>
-                                    <option value="senin">Senin</option>
-                                    <option value="selasa">Selasa</option>
-                                    <option value="rabu">Rabu</option>
-                                    <option value="kamis">Kamis</option>
-                                    <option value="jumat">Jumat</option>
-                                    <option value="sabtu">Sabtu</option>
-                                    <option value="minggu">Minggu</option>
+                                <select class="form-select @error('hari') is-invalid @enderror" id="addRombel_hari" name="hari" required>
+                                    <option value="" disabled {{ old('hari') ? '' : 'selected' }}>Pilih hari...</option>
+                                    <option value="senin" {{ old('hari') === 'senin' ? 'selected' : '' }}>Senin</option>
+                                    <option value="selasa" {{ old('hari') === 'selasa' ? 'selected' : '' }}>Selasa</option>
+                                    <option value="rabu" {{ old('hari') === 'rabu' ? 'selected' : '' }}>Rabu</option>
+                                    <option value="kamis" {{ old('hari') === 'kamis' ? 'selected' : '' }}>Kamis</option>
+                                    <option value="jumat" {{ old('hari') === 'jumat' ? 'selected' : '' }}>Jumat</option>
+                                    <option value="sabtu" {{ old('hari') === 'sabtu' ? 'selected' : '' }}>Sabtu</option>
+                                    <option value="minggu" {{ old('hari') === 'minggu' ? 'selected' : '' }}>Minggu</option>
                                 </select>
                             </div>
                             {{-- Jam Mulai --}}
                             <div class="col-md-4 mb-3">
                                 <label for="addRombel_jam_mulai" class="form-label small fw-bold text-muted">Jam Mulai <span class="text-danger">*</span></label>
-                                <input type="time" class="form-control" id="addRombel_jam_mulai" name="jam_mulai" required>
+                                <input type="time" class="form-control @error('jam_mulai') is-invalid @enderror" id="addRombel_jam_mulai" name="jam_mulai" value="{{ old('jam_mulai') }}" required>
                             </div>
                             {{-- Jam Selesai --}}
                             <div class="col-md-4 mb-3">
                                 <label for="addRombel_jam_selesai" class="form-label small fw-bold text-muted">Jam Selesai <span class="text-danger">*</span></label>
-                                <input type="time" class="form-control" id="addRombel_jam_selesai" name="jam_selesai" required>
+                                <input type="time" class="form-control @error('jam_selesai') is-invalid @enderror" id="addRombel_jam_selesai" name="jam_selesai" value="{{ old('jam_selesai') }}" required>
                             </div>
                         </div>
 
@@ -981,12 +993,12 @@
                             {{-- Tanggal Mulai --}}
                             <div class="col-md-6 mb-3">
                                 <label for="addRombel_tanggal_mulai" class="form-label small fw-bold text-muted">Tanggal Mulai <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" id="addRombel_tanggal_mulai" name="tanggal_mulai" required>
+                                <input type="date" class="form-control @error('tanggal_mulai') is-invalid @enderror" id="addRombel_tanggal_mulai" name="tanggal_mulai" value="{{ old('tanggal_mulai') }}" required>
                             </div>
                             {{-- Tanggal Selesai --}}
                             <div class="col-md-6 mb-3">
                                 <label for="addRombel_tanggal_selesai" class="form-label small fw-bold text-muted">Tanggal Selesai <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" id="addRombel_tanggal_selesai" name="tanggal_selesai" required>
+                                <input type="date" class="form-control @error('tanggal_selesai') is-invalid @enderror" id="addRombel_tanggal_selesai" name="tanggal_selesai" value="{{ old('tanggal_selesai') }}" required>
                             </div>
                         </div>
 
@@ -994,12 +1006,12 @@
                             {{-- Total Pertemuan --}}
                             <div class="col-md-6 mb-3">
                                 <label for="addRombel_total_pertemuan" class="form-label small fw-bold text-muted">Total Pertemuan <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="addRombel_total_pertemuan" name="total_pertemuan" min="1" max="52" placeholder="Contoh: 16" required>
+                                <input type="number" class="form-control @error('total_pertemuan') is-invalid @enderror" id="addRombel_total_pertemuan" name="total_pertemuan" min="1" max="52" placeholder="Contoh: 16" value="{{ old('total_pertemuan') }}" required>
                             </div>
                             {{-- Jumlah Siswa --}}
                             <div class="col-md-6 mb-3">
                                 <label for="addRombel_jumlah_siswa" class="form-label small fw-bold text-muted">Kuota Siswa (Target) <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="addRombel_jumlah_siswa" name="jumlah_siswa" min="1" placeholder="Contoh: 25" required>
+                                <input type="number" class="form-control @error('jumlah_siswa') is-invalid @enderror" id="addRombel_jumlah_siswa" name="jumlah_siswa" min="1" placeholder="Contoh: 25" value="{{ old('jumlah_siswa') }}" required>
                             </div>
                         </div>
 
@@ -1007,12 +1019,12 @@
                             {{-- Ruangan --}}
                             <div class="col-md-6 mb-3">
                                 <label for="addRombel_ruangan" class="form-label small fw-bold text-muted">Ruangan</label>
-                                <input type="text" class="form-control" id="addRombel_ruangan" name="ruangan" placeholder="Contoh: Lab Komputer 2">
+                                <input type="text" class="form-control" id="addRombel_ruangan" name="ruangan" placeholder="Contoh: Lab Komputer 2" value="{{ old('ruangan') }}">
                             </div>
                             {{-- Keterangan Ruangan --}}
                             <div class="col-md-6 mb-3">
                                 <label for="addRombel_keterangan_ruangan" class="form-label small fw-bold text-muted">Keterangan Ruangan</label>
-                                <input type="text" class="form-control" id="addRombel_keterangan_ruangan" name="keterangan_ruangan" placeholder="Contoh: Lantai 2, gedung utara">
+                                <input type="text" class="form-control" id="addRombel_keterangan_ruangan" name="keterangan_ruangan" placeholder="Contoh: Lantai 2, gedung utara" value="{{ old('keterangan_ruangan') }}">
                             </div>
                         </div>
                     </div>
@@ -1086,6 +1098,20 @@ document.addEventListener('DOMContentLoaded', function() {
             tabTrigger.show();
         });
     });
+
+    // Auto-buka modal Tambah Rombel jika ada error validasi dari submit sebelumnya
+    @if ($errors->any())
+        // Pindah ke tab Rombel
+        const rombelTab = document.querySelector('#detailTabs button[data-bs-target="#rombel"]');
+        if (rombelTab) {
+            bootstrap.Tab.getOrCreateInstance(rombelTab).show();
+        }
+        // Buka modal
+        const addRombelModal = document.getElementById('addRombelModal');
+        if (addRombelModal) {
+            bootstrap.Modal.getOrCreateInstance(addRombelModal).show();
+        }
+    @endif
 });
 
 // --- Reschedule / Libur Sesi ---
