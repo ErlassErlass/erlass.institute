@@ -44,10 +44,20 @@ class RegisteredUserController extends Controller
             'kompetensi_2' => ['nullable', 'string', 'in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris'],
             
             // Financial & Legal Info (Mandatory)
-            'nama_bank' => ['required', 'string', 'max:100'],
-            'no_rekening' => ['required', 'string', 'max:50'],
+            'nama_bank' => ['required', 'string', \Illuminate\Validation\Rule::in(\App\Models\InstructorProfile::listNamaBank())],
+            'no_rekening' => ['required', 'string', 'regex:/^[0-9]+$/', 'min:5', 'max:30'],
             'nik' => ['required', 'string', 'min:16', 'max:16'],
             'no_npwp' => ['nullable', 'string', 'max:20'],
+        ], [
+            'nama_bank.required' => 'Nama bank wajib dipilih.',
+            'nama_bank.in' => 'Pilihan nama bank harus sesuai dengan daftar bank yang tersedia.',
+            'no_rekening.required' => 'Nomor rekening bank wajib diisi.',
+            'no_rekening.regex' => 'Nomor rekening hanya boleh berisi angka tanpa spasi atau tanda hubung.',
+            'no_rekening.min' => 'Nomor rekening minimal 5 digit angka.',
+            'no_rekening.max' => 'Nomor rekening maksimal 30 digit angka.',
+            'nik.required' => 'Nomor NIK KTP wajib diisi.',
+            'nik.min' => 'Nomor NIK KTP harus tepat 16 digit angka.',
+            'nik.max' => 'Nomor NIK KTP harus tepat 16 digit angka.',
         ]);
 
         $user = DB::transaction(function () use ($request) {

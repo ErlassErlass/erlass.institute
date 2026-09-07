@@ -341,12 +341,49 @@ class UserController extends Controller
     public function profile(Request $request)
     {
         $user = $request->user();
+        $recentReports = collect();
+        $reportStats = [
+            'total_reports' => 0,
+            'avg_attendance_percent' => 100,
+            'profile_completion' => 100,
+        ];
+
         if ($user->role === 'instruktur') {
             $user->load('instructorProfile');
-        }
-        $profile = $user->instructorProfile;
+            $profile = $user->instructorProfile;
 
-        return view('profile.edit', compact('user', 'profile'));
+            // Ambil riwayat laporan mengajar terbaru
+            $recentReports = \App\Models\LaporanMengajar::with(['sekolah', 'ekstrakurikulerSession'])
+                ->where('user_id_instruktur', $user->id)
+                ->latest('jadwal_mengajar')
+                ->take(15)
+                ->get();
+
+            $totalReports = \App\Models\LaporanMengajar::where('user_id_instruktur', $user->id)->count();
+            $reportStats['total_reports'] = $totalReports;
+
+            if ($totalReports > 0) {
+                $totalHadir = \App\Models\LaporanMengajar::where('user_id_instruktur', $user->id)->sum('jumlah_siswa_hadir');
+                $totalTidakHadir = \App\Models\LaporanMengajar::where('user_id_instruktur', $user->id)->sum('jumlah_siswa_tidak_hadir');
+                $totalAll = $totalHadir + $totalTidakHadir;
+                $reportStats['avg_attendance_percent'] = $totalAll > 0 ? round(($totalHadir / $totalAll) * 100) : 100;
+            }
+
+            // Hitung persentase kelengkapan data profil
+            $fields = [
+                $user->nama_lengkap, $user->email, $user->no_telephone, $user->foto_profil, $user->agama, $user->pend_terakhir,
+                $profile?->alamat_domisili, $profile?->kota_domisili, $profile?->no_rekening, $profile?->nama_bank,
+                $profile?->foto_ktp, $profile?->cv_link, $profile?->pekerjaan_terakhir
+            ];
+            $filledCount = count(array_filter($fields, fn($f) => !empty($f)));
+            $reportStats['profile_completion'] = round(($filledCount / count($fields)) * 100);
+        } else {
+            $profile = $user->instructorProfile;
+            $reportStats['total_users'] = \App\Models\User::count();
+            $reportStats['total_reports'] = \App\Models\LaporanMengajar::count();
+        }
+
+        return view('profile.edit', compact('user', 'profile', 'recentReports', 'reportStats'));
     }
 
     /**
@@ -365,6 +402,8 @@ class UserController extends Controller
             'pend_terakhir' => 'required|string|in:SMA/SMK Sederajat,D3,D4/S1,S2,S3',
             'kompetensi_1' => 'required|string|in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris',
             'kompetensi_2' => 'nullable|string|in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris',
+            'foto_profil' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'remove_foto_profil' => 'nullable|boolean',
         ];
 
         if ($user->role === 'instruktur') {
@@ -389,8 +428,12 @@ class UserController extends Controller
                 'universitas_jurusan' => 'required|string',
                 
                 // Financial & Legal
-                'nama_bank' => 'required|string',
-                'no_rekening' => 'required|string',
+                'nama_bank' => [
+                    'required',
+                    'string',
+                    \Illuminate\Validation\Rule::in(\App\Models\InstructorProfile::listNamaBank()),
+                ],
+                'no_rekening' => ['required', 'string', 'regex:/^[0-9]+$/', 'min:5', 'max:30'],
                 'no_npwp' => 'nullable|string',
                 'nik' => 'required|string|min:16|max:16',
 
@@ -427,8 +470,12 @@ class UserController extends Controller
             'pekerjaan_terakhir.required' => 'Pekerjaan terakhir wajib diisi.',
             'jenjang_mengajar.required' => 'Jenjang mengajar wajib dipilih.',
             'universitas_jurusan.required' => 'Universitas / Jurusan wajib diisi.',
-            'nama_bank.required' => 'Nama bank wajib diisi.',
+            'nama_bank.required' => 'Nama bank wajib dipilih.',
+            'nama_bank.in' => 'Pilihan nama bank harus sesuai dengan daftar bank yang tersedia.',
             'no_rekening.required' => 'Nomor rekening bank wajib diisi.',
+            'no_rekening.regex' => 'Nomor rekening hanya boleh berisi angka tanpa spasi atau tanda hubung.',
+            'no_rekening.min' => 'Nomor rekening minimal 5 digit angka.',
+            'no_rekening.max' => 'Nomor rekening maksimal 30 digit angka.',
             'nik.required' => 'NIK KTP wajib diisi.',
             'nik.min' => 'NIK KTP harus tepat 16 digit angka.',
             'nik.max' => 'NIK KTP harus tepat 16 digit angka.',
@@ -439,6 +486,9 @@ class UserController extends Controller
             'kendaraan.required' => 'Opsi kendaraan wajib dipilih.',
             'jenis_kendaraan.required' => 'Jenis kendaraan wajib diisi.',
             'waktu_mengajar.required' => 'Pilih minimal 1 slot jam ketersediaan mengajar.',
+            'foto_profil.image' => 'File foto profil harus berupa gambar.',
+            'foto_profil.mimes' => 'Format foto profil harus JPG, PNG, atau WEBP.',
+            'foto_profil.max' => 'Ukuran foto profil maksimal 5MB.',
         ];
 
         $validated = $request->validate($rules, $messages);
@@ -451,8 +501,29 @@ class UserController extends Controller
                 'agama', 'pend_terakhir', 'kompetensi_1', 'kompetensi_2',
             ]));
 
+            $fileUploadService = app(\App\Services\FileUploadService::class);
+
+            // Handle Foto Profil upload or removal with automatic GD compression (max 500px, 75% quality)
+            if ($request->boolean('remove_foto_profil')) {
+                if ($user->foto_profil && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->foto_profil)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($user->foto_profil);
+                }
+                $user->update(['foto_profil' => null]);
+            } elseif ($request->hasFile('foto_profil')) {
+                if ($user->foto_profil && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->foto_profil)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($user->foto_profil);
+                }
+                $avatarPath = $fileUploadService->upload(
+                    $request->file('foto_profil'),
+                    'avatars',
+                    $user->id,
+                    maxDimension: 500,
+                    quality: 75
+                );
+                $user->update(['foto_profil' => $avatarPath]);
+            }
+
             if ($user->role === 'instruktur') {
-                $fileUploadService = app(\App\Services\FileUploadService::class);
                 $docPaths = $user->verification_documents ?? [];
                 
                 if ($request->hasFile('foto_ktp')) {

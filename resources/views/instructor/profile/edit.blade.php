@@ -216,14 +216,35 @@
                                  <i class="bi bi-wallet2 me-2"></i> Data Bank & Dokumen
                              </h5>
                              <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="form-label small text-muted">Nama Bank <span class="text-danger">*</span></label>
-                                    <input class="form-control" type="text" name="nama_bank" value="{{ old('nama_bank', $profile->nama_bank ?? '') }}" required placeholder="BCA / Mandiri " />
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small text-muted">No Rekening <span class="text-danger">*</span></label>
-                                    <input class="form-control font-monospace" type="text" name="no_rekening" value="{{ old('no_rekening', $profile->no_rekening ?? '') }}" required />
-                                </div>
+                                 <div class="col-md-4">
+                                     <label class="form-label small text-muted">Nama Bank <span class="text-danger">*</span></label>
+                                     @php
+                                         $selectedBank = strtoupper(old('nama_bank', $profile->nama_bank ?? ''));
+                                         $bankList = \App\Models\InstructorProfile::listNamaBank();
+                                     @endphp
+                                     <select class="form-select" name="nama_bank" required>
+                                         <option value="" disabled {{ $selectedBank ? '' : 'selected' }}>-- Pilih Singkatan Bank --</option>
+                                         @foreach($bankList as $bank)
+                                             <option value="{{ $bank }}" {{ $selectedBank === $bank ? 'selected' : '' }}>{{ $bank }}</option>
+                                         @endforeach
+                                         @if($selectedBank && !in_array($selectedBank, $bankList))
+                                             <option value="{{ $selectedBank }}" selected>{{ $selectedBank }}</option>
+                                         @endif
+                                     </select>
+                                 </div>
+                                 <div class="col-md-4">
+                                     <label class="form-label small text-muted">No Rekening <span class="text-danger">*</span></label>
+                                     <input class="form-control font-monospace" 
+                                         type="text" 
+                                         name="no_rekening" 
+                                         value="{{ old('no_rekening', $profile->no_rekening ?? '') }}" 
+                                         inputmode="numeric" 
+                                         pattern="[0-9]*" 
+                                         oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
+                                         placeholder="Contoh: 12341332" 
+                                         required />
+                                     <div class="form-text text-muted" style="font-size: 0.72rem;">Hanya angka, otomatis tanpa spasi.</div>
+                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small text-muted">NPWP (16 Digit)</label>
                                     <input class="form-control font-monospace" type="text" name="no_npwp" value="{{ old('no_npwp', $profile->no_npwp ?? '') }}" maxlength="16" />

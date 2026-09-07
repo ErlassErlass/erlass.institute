@@ -18,8 +18,8 @@ class UserFactory extends Factory
             'status' => 'Aktif',
             'agama' => fake()->randomElement(['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Lainnya']),
             'pend_terakhir' => fake()->randomElement(['SMA', 'D3', 'S1', 'S2', 'S3']),
-            'kompetensi_1' => fake()->randomElement(['Coding', 'Robotik', 'Desain', 'IoT', 'Data Science']),
-            'kompetensi_2' => fake()->optional()->randomElement(['Coding', 'Robotik', 'Desain', 'IoT', 'Data Science']),
+            'kompetensi_1' => fake()->randomElement(['Coding', 'Robotik', 'Desain', 'IoT', 'Data Science', 'Bahasa Inggris']),
+            'kompetensi_2' => fake()->optional()->randomElement(['Coding', 'Robotik', 'Desain', 'IoT', 'Data Science', 'Bahasa Inggris']),
             'role' => 'instruktur', // Default role
             // Field untuk sistem verifikasi instruktur
             'is_verified' => false,

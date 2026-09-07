@@ -71,8 +71,8 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="no_hp_orangtua" class="form-label">No. WA Orang Tua</label>
-                            <input type="text" class="form-control @error('no_hp_orangtua') is-invalid @enderror" id="no_hp_orangtua" name="no_hp_orangtua" value="{{ old('no_hp_orangtua', $siswa->no_hp_orangtua) }}" placeholder="Contoh: 08123456789" required>
+                            <label for="no_hp_orangtua" class="form-label">No. WA Orang Tua <span class="badge bg-secondary-subtle text-secondary fw-normal">Opsional</span></label>
+                            <input type="text" class="form-control @error('no_hp_orangtua') is-invalid @enderror" id="no_hp_orangtua" name="no_hp_orangtua" value="{{ old('no_hp_orangtua', $siswa->no_hp_orangtua !== '-' ? $siswa->no_hp_orangtua : '') }}" placeholder="Contoh: 08123456789 (opsional)">
                             <small class="text-muted">Gunakan format angka saja tanpa spasi atau karakter khusus.</small>
                             @error('no_hp_orangtua')
                                 <div class="invalid-feedback">{{ $message }}</div>

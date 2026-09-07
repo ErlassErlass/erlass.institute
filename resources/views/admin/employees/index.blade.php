@@ -67,9 +67,13 @@
                             <tr>
                                 <td class="ps-4">
                                     <div class="d-flex align-items-center">
-                                        <div class="avatar-initial rounded-circle bg-primary text-white me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                            {{ substr($employee->nama_lengkap, 0, 1) }}
-                                        </div>
+                                        @if($employee->avatar_url)
+                                            <img src="{{ $employee->avatar_url }}" alt="{{ $employee->nama_lengkap }}" class="rounded-circle me-3 object-fit-cover shadow-xs border" style="width: 40px; height: 40px;">
+                                        @else
+                                            <div class="avatar-initial rounded-circle bg-primary text-white me-3 d-flex align-items-center justify-content-center shadow-xs" style="width: 40px; height: 40px;">
+                                                {{ $employee->initials }}
+                                            </div>
+                                        @endif
                                         <div>
                                             <a href="{{ route('admin.employees.show', $employee) }}" class="fw-bold text-decoration-none">{{ $employee->nama_lengkap }}</a>
                                             <div class="small text-muted">{{ $employee->email }}</div>

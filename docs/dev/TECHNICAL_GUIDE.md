@@ -45,7 +45,12 @@ Menggunakan `spatie/laravel-permission`.
   - Audit logging via `ActivityLog::create(...)`.
 
 ### 4. Admin Milestone Notification System & Rombel Normalization
-- **Milestone Notification**: Automatically triggers navbar bell notifications (`MilestoneNotificationService`) when a Rombel reaches sessions 4, 8, 12, 16, 20, 24, 28, 32, featuring the 4 corresponding teaching dates.
+- **Milestone Notification**: Automatically triggers navbar bell notifications (`MilestoneNotificationService`) when a Rombel completes sessions 4, 8, 12, 16, 20, 24, 28, 32.
+  - **Strict Session Filtering**: Evaluates the exact 4-meeting window `[$pertemuanKe - 3 .. $pertemuanKe]`. Excludes trial/orientation sessions (`P.0` and `nomor_pertemuan <= 0`) and strictly aborts trigger if any session in the block is `libur`, `ditunda`, `dibatalkan`, or `tidak_hadir`.
+  - **Recalibration Engine**: `MilestoneNotificationService::recalibrateExistingMilestoneNotifications()` purges invalid/premature milestone alerts and recalibrates teaching date arrays.
+- **Admin Notification Center & State Restoration (`/admin/notifications`)**:
+  - Full management dashboard (`NotificationController@index`) featuring KPI stat cards, read/unread status filters, category tabs (Milestones vs Tickets), text search, and pagination.
+  - Bell dropdown toggle (`Belum Dibaca` vs `Sudah Dibaca`) with instant mark-as-unread rollback capability (`NotificationController@markAsUnread`).
 - **Strict Rombel Normalization**: Model observer on `EkstrakurikulerRombel` enforces strict naming (`Rombel 1`, `Rombel 2`, etc.) across DB records and dropdown filters.
 
 ### 5. Help Center & FAQ 101 (`/help`)

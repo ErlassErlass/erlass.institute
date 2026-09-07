@@ -1,2 +1,22 @@
 User-agent: *
-Disallow:
+Allow: /$
+Allow: /login$
+Allow: /register-instructor$
+Allow: /rekap-pertemuan-ekskul
+Allow: /images/
+Allow: /build/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /profile/
+Disallow: /dashboard/
+Disallow: /laporan-mengajar/
+Disallow: /absensi/
+Disallow: /ekstrakurikuler/
+Disallow: /sekolah/
+Disallow: /siswa/
+Disallow: /payroll/
+Disallow: /ekstrakurikuler-session/*/print
+Disallow: /storage/uploads/instructors/
+Disallow: /storage/uploads/reports/
+
+Sitemap: https://erlass.institute/sitemap.xml

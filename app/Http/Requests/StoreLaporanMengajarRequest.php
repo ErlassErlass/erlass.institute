@@ -59,9 +59,6 @@ class StoreLaporanMengajarRequest extends FormRequest
                 function ($attribute, $value, $fail) {
                     try {
                         $inputDate = \Carbon\Carbon::parse($value)->startOfDay();
-                        if ($inputDate->isBefore(now()->subDays(30)->startOfDay())) {
-                            $fail('Tanggal mengajar tidak boleh lebih dari 30 hari yang lalu.');
-                        }
                         if ($inputDate->isAfter(now()->endOfDay())) {
                             $fail('Tanggal mengajar tidak boleh di masa depan.');
                         }
@@ -70,6 +67,24 @@ class StoreLaporanMengajarRequest extends FormRequest
                     }
                 },
             ],
+            'alasan_kendala_keterlambatan' => [
+                Rule::requiredIf(function () {
+                    $jadwal = $this->input('jadwal_mengajar');
+                    if ($jadwal) {
+                        try {
+                            $date = \Carbon\Carbon::parse($jadwal)->startOfDay();
+                            return $date->isBefore(now()->subDays(30)->startOfDay());
+                        } catch (\Throwable $e) {
+                            return false;
+                        }
+                    }
+                    return false;
+                }),
+                'nullable',
+                'string',
+                'min:10',
+                'max:1000',
+            ],
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
             'kategori_pengajaran' => [
@@ -77,22 +92,7 @@ class StoreLaporanMengajarRequest extends FormRequest
                 'string',
                 Rule::in($allowedKategori),
             ],
-            'materi_pengajaran' => [
-                'required',
-                'string',
-                'max:1000',
-                function ($attribute, $value, $fail) {
-                    $kategori = $this->input('kategori_pengajaran');
-                    if ($kategori && \App\Models\RefMateri::where('kategori', $kategori)->exists()) {
-                        $exists = \App\Models\RefMateri::where('kategori', $kategori)
-                            ->where('materi', $value)
-                            ->exists();
-                        if (! $exists) {
-                            $fail('Materi pengajaran yang dipilih tidak valid.');
-                        }
-                    }
-                },
-            ],
+            'materi_pengajaran' => 'required|string|max:1000',
             'sekolah_nama' => 'nullable|string|max:255',
             'sekolah_kota' => 'nullable|string|max:100',
             'sekolah_kecamatan' => 'nullable|string|max:100',
@@ -134,6 +134,8 @@ class StoreLaporanMengajarRequest extends FormRequest
             'sekolah_kodlan.required' => 'Sekolah harus dipilih.',
             'sekolah_kodlan.exists' => 'Sekolah yang dipilih tidak valid.',
             'jadwal_mengajar.required' => 'Jadwal mengajar harus diisi.',
+            'alasan_kendala_keterlambatan.required' => 'Karena tanggal kegiatan lebih dari 30 hari yang lalu (1 bulan), Anda wajib mengisi catatan kendala keterlambatan untuk diaudit oleh Admin.',
+            'alasan_kendala_keterlambatan.min' => 'Catatan kendala keterlambatan minimal 10 karakter.',
             'jam_mulai.required' => 'Jam mulai harus diisi.',
             'jam_mulai.date_format' => 'Format jam mulai harus HH:MM.',
             'jam_selesai.required' => 'Jam selesai harus diisi.',
@@ -161,6 +163,15 @@ class StoreLaporanMengajarRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
+            // Validasi kustom: Pastikan instruktur wajib mengisi data rekening bank
+            $instructorUser = \Illuminate\Support\Facades\Auth::user();
+            if ($this->filled('user_id_instruktur')) {
+                $instructorUser = \App\Models\User::find($this->input('user_id_instruktur')) ?? $instructorUser;
+            }
+            if ($instructorUser && $instructorUser->role === 'instruktur' && !$instructorUser->hasCompleteBankDetails()) {
+                $validator->errors()->add('user_id_instruktur', 'Instruktur wajib melengkapi data nama bank dan nomor rekening pada profil sebelum dapat membuat atau mengirim laporan mengajar agar honor dapat dicairkan.');
+            }
+
             // Validasi kustom: Pastikan instruktur tidak sama dengan asisten
             if ($this->user_id_instruktur && $this->user_id_assisten &&
                 $this->user_id_instruktur == $this->user_id_assisten) {

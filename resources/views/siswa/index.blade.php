@@ -269,7 +269,7 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
         <ul class="nav nav-pills nav-pills-custom gap-2">
             <li class="nav-item">
-                <a class="nav-link {{ !request('temp_nisn') ? 'active' : '' }}" href="{{ route('siswa.index', request()->except('temp_nisn', 'page')) }}">
+                <a class="nav-link {{ !request('temp_nisn') ? 'active' : '' }}" href="{{ route('siswa.index', array_merge(request()->except('temp_nisn', 'page'), ['all_nisn' => 1])) }}">
                     <i class="bi bi-people me-1.5"></i> Semua Siswa
                 </a>
             </li>
@@ -325,8 +325,8 @@
                 <button type="submit" class="btn btn-primary w-100 fw-semibold">
                     <i class="bi bi-funnel-fill me-1"></i> Filter
                 </button>
-                @if(request()->has('search') || request()->has('kodlan') || request()->has('per_page') || request()->has('temp_nisn'))
-                    <a href="{{ route('siswa.index') }}" class="btn btn-light border" title="Reset Semua Filter">
+                @if(request()->has('search') || request()->has('kodlan') || request()->has('per_page') || request()->has('temp_nisn') || session()->has('siswa_last_filter'))
+                    <a href="{{ route('siswa.index', ['reset_filter' => 1]) }}" class="btn btn-light border" title="Reset Semua Filter">
                         <i class="bi bi-arrow-counterclockwise"></i>
                     </a>
                 @endif

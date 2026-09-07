@@ -27,6 +27,7 @@ class GoogleSheetsService
     const TAB_HONOR = 'Rekap_Honor';
     const TAB_REKAP_PERTEMUAN = 'Rekap_Pertemuan_Ekskul';
     const TAB_PROGRAM_EKSKUL = 'Daftar_Program_Ekskul';
+    const TAB_REKAP_HONOR_INSTRUKTUR = 'Rekap_Honor_Instruktur';
 
     public function __construct()
     {
@@ -173,6 +174,7 @@ class GoogleSheetsService
                 self::TAB_HONOR,
                 self::TAB_REKAP_PERTEMUAN,
                 self::TAB_PROGRAM_EKSKUL,
+                self::TAB_REKAP_HONOR_INSTRUKTUR,
             ];
 
             $requests = [];
@@ -189,6 +191,29 @@ class GoogleSheetsService
                         ],
                     ];
                 }
+            }
+
+            // Dapatkan sheetId untuk TAB_REKAP_HONOR_INSTRUKTUR agar kolom NIK (Kolom L) dapat dikunci sebagai Plain Text
+            $rekapSheet = collect($meta['sheets'] ?? [])->firstWhere('properties.title', self::TAB_REKAP_HONOR_INSTRUKTUR);
+            if ($rekapSheet && isset($rekapSheet['properties']['sheetId'])) {
+                $requests[] = [
+                    'repeatCell' => [
+                        'range' => [
+                            'sheetId' => $rekapSheet['properties']['sheetId'],
+                            'startColumnIndex' => 11, // Kolom L (NIK)
+                            'endColumnIndex' => 12,
+                            'startRowIndex' => 1,     // Baris data (setelah header)
+                        ],
+                        'cell' => [
+                            'userEnteredFormat' => [
+                                'numberFormat' => [
+                                    'type' => 'TEXT',
+                                ],
+                            ],
+                        ],
+                        'fields' => 'userEnteredFormat.numberFormat',
+                    ],
+                ];
             }
 
             if (!empty($requests)) {
@@ -223,6 +248,7 @@ class GoogleSheetsService
             self::TAB_HONOR => $this->syncTabHonor($token),
             self::TAB_REKAP_PERTEMUAN => $this->syncTabRekapPertemuan($token),
             self::TAB_PROGRAM_EKSKUL => $this->syncTabProgramEkskul($token),
+            self::TAB_REKAP_HONOR_INSTRUKTUR => $this->syncTabRekapHonorInstruktur($token),
         ];
 
         Cache::put('google_sheets_last_sync', now()->toDateTimeString(), 86400 * 30);
@@ -261,7 +287,7 @@ class GoogleSheetsService
                 $inst->id,
                 $inst->nama_lengkap ?? $inst->name,
                 $inst->email,
-                $inst->no_telepon ?? $inst->phone ?? '-',
+                ($inst->no_telepon || $inst->phone) ? "'" . trim($inst->no_telepon ?? $inst->phone) : '-',
                 $totalTerjadwal,
                 $kpi['total_laporan'] ?? 0,
                 $kpi['on_time_count'] ?? 0,
@@ -640,7 +666,7 @@ class GoogleSheetsService
                 $sales?->nama_salesman ?? ($sales?->user?->nama_lengkap ?? '-'),
                 $p->kepala_sekolah ?? '-',
                 $p->penanggung_jawab ?? '-',
-                $p->no_telepon ?? '-',
+                (!empty($p->no_telepon) && $p->no_telepon !== '-') ? "'" . trim($p->no_telepon) : '-',
                 $p->tanggal_mulai ? Carbon::parse($p->tanggal_mulai)->format('d/m/Y') : '-',
                 $p->tanggal_selesai ? Carbon::parse($p->tanggal_selesai)->format('d/m/Y') : '-',
                 $p->frekuensi_label ?? ($p->frekuensi ? ucfirst($p->frekuensi) : '-'),
@@ -661,6 +687,145 @@ class GoogleSheetsService
         }
 
         return $this->writeTab(self::TAB_PROGRAM_EKSKUL, $rows, $token);
+    }
+
+    /**
+     * Tab 8: Rekap Honor Instruktur
+     * Satu baris per sesi mengajar (LaporanMengajar) — seluruh history.
+     * Honor Inst Fin diambil dari PayrollItemSession.net_fee (honor real per sesi).
+     * Kolom: Nama Instruktur, Nama Asisten, Tanggal Submit, Jam Submit, Nama Sekolah,
+     *        Tanggal Sesi, Program Ekskul, Rombel, Jml Hadir, Honor Inst Fin, No. Rek, NIK
+     */
+    public function syncTabRekapHonorInstruktur(?string $token = null): array
+    {
+        $headers = [
+            'Nama Instruktur',
+            'Nama Asisten',
+            'Tanggal Submit',
+            'Jam Submit',
+            'Nama Sekolah',
+            'Tanggal Sesi',
+            'Program Ekskul',
+            'Rombel',
+            'Jml Hadir',
+            'Honor Inst Fin',
+            'No. Rek',
+            'NIK',
+        ];
+
+        // Ambil semua laporan mengajar, diurutkan nama instruktur lalu tanggal sesi
+        $reports = LaporanMengajar::with([
+            'instruktur.instructorProfile',
+            'asisten',
+            'sekolah',
+            'session.rombel.ekstrakurikuler.sekolah',
+            'session.payrollItemSessions',
+        ])
+        ->orderBy('user_id_instruktur')
+        ->orderBy('jadwal_mengajar')
+        ->orderBy('id')
+        ->get();
+
+        $rows = [$headers];
+
+        foreach ($reports as $r) {
+            $inst    = $r->instruktur;
+            $profile = $inst?->instructorProfile;
+            $session = $r->session;
+
+            // Nama instruktur & asisten
+            $namaInstruktur = $inst?->nama_lengkap ?? $inst?->name ?? '-';
+            $namaAsisten    = $r->asisten?->nama_lengkap
+                ?? $r->asisten?->name
+                ?? '-';
+
+            // Tanggal & jam submit laporan
+            $tanggalSubmit = $r->created_at ? $r->created_at->format('d/m/Y') : '-';
+            $jamSubmit     = $r->created_at ? $r->created_at->format('H:i:s')  : '-';
+
+            // Sekolah — prioritaskan dari relasi session, fallback ke laporan langsung
+            $sekolah = $session?->rombel?->ekstrakurikuler?->sekolah
+                ?? $r->sekolah;
+            $namaSekolah = $sekolah?->namasekolah
+                ?? $r->sekolah_nama
+                ?? $r->sekolah_kodlan
+                ?? '-';
+
+            // Tanggal sesi
+            $tanggalSesi = $session?->tanggal_pelaksanaan
+                ? Carbon::parse($session->tanggal_pelaksanaan)->format('d/m/Y')
+                : ($r->jadwal_mengajar
+                    ? Carbon::parse($r->jadwal_mengajar)->format('d/m/Y')
+                    : '-');
+
+            // Program & rombel
+            $programEkskul = $session?->rombel?->ekstrakurikuler?->nama_ekskul
+                ?: ($session?->rombel?->ekstrakurikuler?->kategori_program
+                    ?? $r->kategori_pengajaran
+                    ?? '-');
+
+            $namaRombel = $session?->rombel?->nama_rombel
+                ?? $r->rombel
+                ?? '-';
+
+            // Jumlah hadir dari laporan
+            $jmlHadir = (int) ($r->jumlah_siswa_hadir ?? 0);
+
+            // Honor per sesi dari PayrollItemSession.net_fee
+            // Cari PayrollItemSession yang terhubung ke session ini untuk instruktur ini
+            $honorPerSesi = 0;
+            if ($session) {
+                $pisEntry = $session->payrollItemSessions
+                    ->where('user_id', $inst?->id)
+                    ->first();
+
+                if ($pisEntry) {
+                    $honorPerSesi = (float) $pisEntry->net_fee;
+                } else {
+                    // Fallback: gunakan calculated_fee dari sesi jika belum masuk payroll
+                    $honorPerSesi = (float) ($session->calculated_fee
+                        ?? $session->override_fee
+                        ?? 0);
+                }
+            }
+
+            // Format No. Rek: "NamaBank NoRek an. NamaPemilik"
+            $noRek = '-';
+            if ($profile && $profile->no_rekening) {
+                $bank     = $profile->nama_bank ?? '';
+                $rekening = trim($profile->no_rekening);
+                $pemilik  = $profile->nama_pemilik_rekening ?? strtoupper($namaInstruktur);
+                $noRek    = trim("{$bank} {$rekening} an. {$pemilik}");
+                // Jika hanya berisi nomor rekening tanpa nama bank, proteksi dengan petik agar tidak diubah ke format angka
+                if (preg_match('/^\d+$/', $noRek)) {
+                    $noRek = "'" . $noRek;
+                }
+            }
+
+            // Proteksi NIK: Awali dengan tanda petik (') agar Google Sheets memperlakukan 16 digit NIK sebagai teks murni (Plain Text)
+            // Hal ini mencegah konversi otomatis ke scientific notation (misal: 3.1741E+15) serta menjaga presisi digit ke-16
+            $rawNik = $profile?->nik;
+            $nik    = ($rawNik && trim($rawNik) !== '' && trim($rawNik) !== '-')
+                ? "'" . trim($rawNik)
+                : '-';
+
+            $rows[] = [
+                $namaInstruktur,
+                $namaAsisten,
+                $tanggalSubmit,
+                $jamSubmit,
+                $namaSekolah,
+                $tanggalSesi,
+                $programEkskul,
+                $namaRombel,
+                $jmlHadir,
+                (int) $honorPerSesi,
+                $noRek,
+                $nik,
+            ];
+        }
+
+        return $this->writeTab(self::TAB_REKAP_HONOR_INSTRUKTUR, $rows, $token);
     }
 
     /**
@@ -805,6 +970,7 @@ class GoogleSheetsService
                 self::TAB_HONOR => $this->syncTabHonor(),
                 self::TAB_REKAP_PERTEMUAN => $this->syncTabRekapPertemuan(),
                 self::TAB_PROGRAM_EKSKUL => $this->syncTabProgramEkskul(),
+                self::TAB_REKAP_HONOR_INSTRUKTUR => $this->syncTabRekapHonorInstruktur(),
                 default => null,
             };
             $data = Cache::get("google_sheets_data_{$tabTitle}", []);
@@ -833,6 +999,7 @@ class GoogleSheetsService
         $this->syncTabHonor();
         $this->syncTabRekapPertemuan();
         $this->syncTabProgramEkskul();
+        $this->syncTabRekapHonorInstruktur();
 
         return [
             self::TAB_KPI => Cache::get("google_sheets_data_" . self::TAB_KPI, []),
@@ -842,6 +1009,7 @@ class GoogleSheetsService
             self::TAB_HONOR => Cache::get("google_sheets_data_" . self::TAB_HONOR, []),
             self::TAB_REKAP_PERTEMUAN => Cache::get("google_sheets_data_" . self::TAB_REKAP_PERTEMUAN, []),
             self::TAB_PROGRAM_EKSKUL => Cache::get("google_sheets_data_" . self::TAB_PROGRAM_EKSKUL, []),
+            self::TAB_REKAP_HONOR_INSTRUKTUR => Cache::get("google_sheets_data_" . self::TAB_REKAP_HONOR_INSTRUKTUR, []),
         ];
     }
 }

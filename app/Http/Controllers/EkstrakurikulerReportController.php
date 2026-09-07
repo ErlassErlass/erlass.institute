@@ -105,6 +105,12 @@ class EkstrakurikulerReportController extends Controller
                 ->with('error', 'Akses Ditolak: Anda bukan instruktur yang ditugaskan untuk sesi ini.');
         }
 
+        // Mandatory Banking Details Check for Instructors
+        if ($user->role === 'instruktur' && !$user->hasCompleteBankDetails()) {
+            return redirect()->route('profile.edit', ['tab' => 'bank'])
+                ->with('warning', 'Penting: Anda wajib melengkapi data nama bank dan nomor rekening pada profil terlebih dahulu sebelum dapat membuat laporan kegiatan mengajar agar pencairan honor dapat diproses.');
+        }
+
         // Sequential Reporting Lock: Tidak bisa laporan di sesi baru jika sesi lama/sebelumnya belum laporan
         $blockingSession = $session->getBlockingPriorSession($user);
         if ($blockingSession) {
@@ -234,6 +240,12 @@ class EkstrakurikulerReportController extends Controller
         
         if (!in_array($user->role, $allowedRoles) && !$isAssigned) {
              abort(403, 'Akses Ditolak: Anda bukan instruktur yang ditugaskan untuk sesi ini.');
+        }
+
+        // Mandatory Banking Details Check for Instructors
+        if ($user->role === 'instruktur' && !$user->hasCompleteBankDetails()) {
+            return redirect()->route('profile.edit', ['tab' => 'bank'])
+                ->with('warning', 'Penting: Anda wajib melengkapi data nama bank dan nomor rekening pada profil terlebih dahulu sebelum dapat membuat laporan kegiatan mengajar agar pencairan honor dapat diproses.');
         }
 
         // Guard Check 1: Session status must be scheduled or in progress

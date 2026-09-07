@@ -10,6 +10,51 @@ class SiswaController extends Controller
 {
     public function index(Request $request)
     {
+        // 1. Tangani aksi reset filter eksplisit dari user
+        if ($request->has('reset') || $request->has('reset_filter')) {
+            session()->forget('siswa_last_filter');
+            return redirect()->route('siswa.index');
+        }
+
+        // Daftar key parameter filter yang valid
+        $filterKeys = ['search', 'temp_nisn', 'kodlan', 'jenis_kelamin', 'per_page', 'page'];
+
+        // Cek apakah request saat ini membawa parameter query
+        $hasQueryKeys = false;
+        $activeFilters = [];
+
+        foreach ($filterKeys as $key) {
+            if ($request->has($key)) {
+                $hasQueryKeys = true;
+                $val = $request->input($key);
+                if ($val !== null && $val !== '') {
+                    $activeFilters[$key] = $val;
+                }
+            }
+        }
+
+        // Jika user klik tab "Semua Siswa" (mengirim all_nisn=1), hapus temp_nisn
+        if ($request->has('all_nisn')) {
+            $hasQueryKeys = true;
+            unset($activeFilters['temp_nisn']);
+        }
+
+        if ($hasQueryKeys) {
+            if (!empty($activeFilters)) {
+                // Simpan filter aktif ke session
+                session(['siswa_last_filter' => $activeFilters]);
+            } else {
+                // Jika user submit filter kosong, bersihkan session
+                session()->forget('siswa_last_filter');
+            }
+        } else {
+            // Jika user masuk tanpa parameter query (misal kembali dari edit, breadcrumb, dll)
+            $lastFilter = session('siswa_last_filter');
+            if (!empty($lastFilter) && is_array($lastFilter) && !$request->ajax() && !$request->wantsJson()) {
+                return redirect()->route('siswa.index', $lastFilter);
+            }
+        }
+
         // Mulai query dengan eager loading relasi 'sekolah'
         $query = Siswa::query()->with('sekolah');
 
@@ -126,14 +171,16 @@ class SiswaController extends Controller
             'jenis_kelamin' => 'nullable|string|max:20',
             'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
             'kelas' => 'required|string',
-            'no_hp_orangtua' => 'required|string|min:10|max:15',
+            'no_hp_orangtua' => 'nullable|string|max:25',
         ]);
 
+        $validated['no_hp_orangtua'] = $request->filled('no_hp_orangtua') ? trim(strip_tags($request->no_hp_orangtua)) : '-';
         $validated['rombel'] = $validated['kelas'];
 
         $siswa->update($validated);
 
-        return redirect()->route('siswa.index')->with('success', 'Siswa updated!');
+        $lastFilter = session('siswa_last_filter', []);
+        return redirect()->route('siswa.index', $lastFilter)->with('success', 'Data siswa berhasil diperbarui!');
     }
 
     public function destroy(Siswa $siswa)
@@ -149,7 +196,8 @@ class SiswaController extends Controller
             $siswa->delete();
         });
 
-        return redirect()->route('siswa.index')->with('success', 'Siswa deleted!');
+        $lastFilter = session('siswa_last_filter', []);
+        return redirect()->route('siswa.index', $lastFilter)->with('success', 'Data siswa berhasil dihapus!');
     }
 
     public function bulkDestroy(Request $request)

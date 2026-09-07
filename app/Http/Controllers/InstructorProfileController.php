@@ -75,8 +75,12 @@ class InstructorProfileController extends Controller
             'universitas_jurusan' => 'required|string',
             
             // Financial & Legal
-            'nama_bank' => 'required|string',
-            'no_rekening' => 'required|string',
+            'nama_bank' => [
+                'required',
+                'string',
+                \Illuminate\Validation\Rule::in(\App\Models\InstructorProfile::listNamaBank()),
+            ],
+            'no_rekening' => ['required', 'string', 'regex:/^[0-9]+$/', 'min:5', 'max:30'],
             'no_npwp' => 'nullable|string',
             'nik' => 'required|string|min:16|max:16',
 
@@ -92,6 +96,13 @@ class InstructorProfileController extends Controller
             
             // Schedule
             'waktu_mengajar' => 'required|array',
+        ], [
+            'nama_bank.required' => 'Nama bank wajib dipilih.',
+            'nama_bank.in' => 'Pilihan nama bank harus sesuai dengan daftar bank yang tersedia.',
+            'no_rekening.required' => 'Nomor rekening bank wajib diisi.',
+            'no_rekening.regex' => 'Nomor rekening hanya boleh berisi angka tanpa spasi atau tanda hubung.',
+            'no_rekening.min' => 'Nomor rekening minimal 5 digit angka.',
+            'no_rekening.max' => 'Nomor rekening maksimal 30 digit angka.',
         ]);
 
         try {

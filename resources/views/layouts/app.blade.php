@@ -866,15 +866,31 @@
                                     </button>
                                 </div>
 
-                                <!-- Filter Tabs -->
-                                <div class="px-3 py-2 bg-light border-bottom d-flex gap-1" onclick="event.stopPropagation()">
-                                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 fw-bold notif-filter-btn" data-filter="all" onclick="filterNotifTab('all', this, event)" style="font-size: 0.72rem;">
+                                <!-- Status Toggle (Belum Dibaca vs Riwayat Dibaca) -->
+                                <div class="px-3 pt-2 pb-1 bg-light border-bottom d-flex justify-content-between align-items-center" onclick="event.stopPropagation()">
+                                    <div class="btn-group btn-group-sm p-0.5 bg-white border rounded-pill shadow-xs" role="group" style="padding: 2px !important;">
+                                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-0.5 fw-bold notif-status-btn" id="btnStatusUnread" onclick="switchNotifStatus('unread', this, event)" style="font-size: 0.70rem;">
+                                            Belum Dibaca <span class="badge bg-danger text-white ms-1" id="statusCountUnread">0</span>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-light text-secondary rounded-pill px-2.5 py-0.5 fw-semibold notif-status-btn" id="btnStatusRead" onclick="switchNotifStatus('read', this, event)" style="font-size: 0.70rem;">
+                                            Sudah Dibaca <span class="badge bg-secondary text-white ms-1" id="statusCountRead">0</span>
+                                        </button>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0.5 px-2 fw-semibold rounded-pill" 
+                                            id="btnMarkAllRead" onclick="markAllNotifsAsRead(event)" style="font-size: 0.68rem;" title="Tandai semua notifikasi belum dibaca sebagai sudah dibaca">
+                                        <i class="bi bi-check2-all me-1"></i>Tandai Semua
+                                    </button>
+                                </div>
+
+                                <!-- Filter Tabs (Semua, Tiket, Milestone) -->
+                                <div class="px-3 py-1.5 bg-light border-bottom d-flex gap-1" onclick="event.stopPropagation()">
+                                    <button type="button" class="btn btn-sm btn-dark rounded-pill px-2.5 py-0.5 fw-bold notif-filter-btn" data-filter="all" onclick="filterNotifTab('all', this, event)" style="font-size: 0.70rem;">
                                         Semua <span class="badge bg-white text-dark ms-1" id="tabCountAll">0</span>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold notif-filter-btn" data-filter="ticket" onclick="filterNotifTab('ticket', this, event)" style="font-size: 0.72rem;">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold notif-filter-btn" data-filter="ticket" onclick="filterNotifTab('ticket', this, event)" style="font-size: 0.70rem;">
                                         <i class="bi bi-ticket-detailed me-1 text-warning"></i>Tiket <span class="badge bg-danger text-white ms-1" id="tabCountTicket">0</span>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold notif-filter-btn" data-filter="milestone" onclick="filterNotifTab('milestone', this, event)" style="font-size: 0.72rem;">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold notif-filter-btn" data-filter="milestone" onclick="filterNotifTab('milestone', this, event)" style="font-size: 0.70rem;">
                                         <i class="bi bi-flag me-1 text-primary"></i>Milestone <span class="badge bg-secondary text-white ms-1" id="tabCountMilestone">0</span>
                                     </button>
                                 </div>
@@ -886,12 +902,17 @@
                                 </div>
 
                                 <div class="p-2.5 bg-light border-top d-flex justify-content-between align-items-center px-3">
-                                    <a href="{{ route('tickets.index') }}" class="small fw-bold text-decoration-none text-primary" style="font-size: 0.75rem;">
-                                        <i class="bi bi-ticket-perforated me-1"></i>Kelola Semua Tiket
+                                    <a href="{{ route('admin.notifications.index') }}" class="small fw-bold text-decoration-none text-primary" style="font-size: 0.75rem;">
+                                        <i class="bi bi-archive-fill me-1"></i>Pusat Arsip Notifikasi &rarr;
                                     </a>
-                                    <a href="{{ route('laporan-mengajar.index') }}" class="small fw-semibold text-decoration-none text-secondary" style="font-size: 0.75rem;">
-                                        <i class="bi bi-journal-check me-1"></i>Monitoring Laporan
-                                    </a>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ route('tickets.index') }}" class="small fw-semibold text-decoration-none text-secondary" style="font-size: 0.75rem;">
+                                            <i class="bi bi-ticket-perforated me-1"></i>Tiket
+                                        </a>
+                                        <a href="{{ route('laporan-mengajar.index') }}" class="small fw-semibold text-decoration-none text-secondary" style="font-size: 0.75rem;">
+                                            <i class="bi bi-journal-check me-1"></i>Laporan
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -929,9 +950,13 @@
 
                         <div class="dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 py-1 pe-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center border" style="width: 38px; height: 38px;">
-                                    <span class="fw-bold">{{ substr(Auth::user()->nama_lengkap, 0, 1) }}</span>
-                                </div>
+                                @if(Auth::user()->avatar_url)
+                                    <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->nama_lengkap }}" class="rounded-circle border object-fit-cover shadow-xs" style="width: 38px; height: 38px;">
+                                @else
+                                    <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center border" style="width: 38px; height: 38px;">
+                                        <span class="fw-bold">{{ Auth::user()->initials }}</span>
+                                    </div>
+                                @endif
                                 <div class="d-none d-md-block line-height-sm text-start">
                                     <span class="d-block fw-bold small text-dark">{{ Str::limit(Auth::user()->nama_lengkap, 15) }}</span>
                                     <span class="d-block x-small text-muted" style="font-size: 0.7rem;">{{ ucfirst(Auth::user()->role) }}</span>
@@ -1290,6 +1315,48 @@
     <script>
     let currentNotifList = [];
     let activeNotifFilter = 'all';
+    let activeNotifStatus = 'unread';
+
+    function switchNotifStatus(status, btnElem, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        activeNotifStatus = status;
+
+        const btnUnread = document.getElementById('btnStatusUnread');
+        const btnRead = document.getElementById('btnStatusRead');
+        const btnMarkAll = document.getElementById('btnMarkAllRead');
+
+        if (status === 'unread') {
+            if (btnUnread) {
+                btnUnread.className = 'btn btn-sm btn-primary rounded-pill px-2.5 py-0.5 fw-bold notif-status-btn';
+            }
+            if (btnRead) {
+                btnRead.className = 'btn btn-sm btn-light text-secondary rounded-pill px-2.5 py-0.5 fw-semibold notif-status-btn';
+            }
+            if (btnMarkAll) btnMarkAll.style.display = 'inline-block';
+        } else {
+            if (btnUnread) {
+                btnUnread.className = 'btn btn-sm btn-light text-secondary rounded-pill px-2.5 py-0.5 fw-semibold notif-status-btn';
+            }
+            if (btnRead) {
+                btnRead.className = 'btn btn-sm btn-secondary text-white rounded-pill px-2.5 py-0.5 fw-bold notif-status-btn';
+            }
+            if (btnMarkAll) btnMarkAll.style.display = 'none';
+        }
+
+        const container = document.getElementById('notifListContainer');
+        if (container) {
+            container.innerHTML = `
+                <div class="text-center py-4 text-muted small">
+                    <div class="spinner-border spinner-border-sm text-primary me-1"></div> Memuat data...
+                </div>
+            `;
+        }
+
+        fetchNotifications();
+    }
 
     function filterNotifTab(filterType, btnElem, event) {
         if (event) {
@@ -1298,19 +1365,19 @@
         }
         activeNotifFilter = filterType;
         document.querySelectorAll('.notif-filter-btn').forEach(btn => {
-            btn.classList.remove('btn-primary', 'fw-bold');
+            btn.classList.remove('btn-dark', 'fw-bold');
             btn.classList.add('btn-outline-secondary', 'fw-semibold');
         });
         if (btnElem) {
             btnElem.classList.remove('btn-outline-secondary', 'fw-semibold');
-            btnElem.classList.add('btn-primary', 'fw-bold');
+            btnElem.classList.add('btn-dark', 'fw-bold');
         }
         renderNotificationsList();
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        fetchUnreadNotifications();
-        setInterval(fetchUnreadNotifications, 30000);
+        fetchNotifications();
+        setInterval(fetchNotifications, 30000);
 
         const notifDropdown = document.querySelector('#notificationBellDropdown .dropdown-menu');
         if (notifDropdown) {
@@ -1322,16 +1389,19 @@
         }
     });
 
-    function fetchUnreadNotifications() {
-        fetch("{{ route('admin.notifications.unread') }}")
+    function fetchNotifications() {
+        fetch("{{ route('admin.notifications.unread') }}?status=" + activeNotifStatus)
             .then(r => r.json())
             .then(res => {
                 const badge = document.getElementById('notifCountBadge');
+                const statusCountUnread = document.getElementById('statusCountUnread');
+                const statusCountRead = document.getElementById('statusCountRead');
                 const tabAll = document.getElementById('tabCountAll');
                 const tabTicket = document.getElementById('tabCountTicket');
                 const tabMilestone = document.getElementById('tabCountMilestone');
 
                 const totalUnread = res.unread_count || 0;
+                const totalRead = res.read_count || 0;
                 const ticketCount = res.ticket_count || 0;
                 const milestoneCount = res.milestone_count || 0;
 
@@ -1344,11 +1414,21 @@
                     }
                 }
 
-                if (tabAll) tabAll.textContent = totalUnread;
-                if (tabTicket) tabTicket.textContent = ticketCount;
-                if (tabMilestone) tabMilestone.textContent = milestoneCount;
+                if (statusCountUnread) statusCountUnread.textContent = totalUnread;
+                if (statusCountRead) statusCountRead.textContent = totalRead;
 
                 currentNotifList = res.notifications || [];
+
+                if (tabAll) tabAll.textContent = currentNotifList.length;
+                if (tabTicket) {
+                    const tCount = currentNotifList.filter(n => n.type === 'ticket_created' || n.type === 'ticket_reply').length;
+                    tabTicket.textContent = tCount;
+                }
+                if (tabMilestone) {
+                    const mCount = currentNotifList.filter(n => n.type === 'milestone_report').length;
+                    tabMilestone.textContent = mCount;
+                }
+
                 renderNotificationsList();
             })
             .catch(() => {});
@@ -1366,9 +1446,13 @@
         }
 
         if (filtered.length === 0) {
-            let emptyMsg = 'Belum ada notifikasi baru';
-            if (activeNotifFilter === 'ticket') emptyMsg = 'Tidak ada tiket bantuan yang menunggu respon';
-            if (activeNotifFilter === 'milestone') emptyMsg = 'Tidak ada notifikasi milestone laporan';
+            let emptyMsg = activeNotifStatus === 'unread' ? 'Belum ada notifikasi baru' : 'Belum ada riwayat notifikasi yang telah dibaca';
+            if (activeNotifFilter === 'ticket') {
+                emptyMsg = activeNotifStatus === 'unread' ? 'Tidak ada tiket bantuan yang menunggu respon' : 'Tidak ada riwayat tiket dibaca';
+            }
+            if (activeNotifFilter === 'milestone') {
+                emptyMsg = activeNotifStatus === 'unread' ? 'Tidak ada notifikasi milestone laporan' : 'Tidak ada riwayat milestone dibaca';
+            }
 
             container.innerHTML = `
                 <div class="text-center py-4 text-muted small">
@@ -1379,6 +1463,8 @@
             return;
         }
 
+        const isReadMode = (activeNotifStatus === 'read');
+
         container.innerHTML = filtered.map(n => {
             const d = n.data || {};
             
@@ -1387,23 +1473,27 @@
                 const isReply = n.type === 'ticket_reply';
                 const prioritas = d.prioritas || 'medium';
                 let prioritasBadgeClass = 'bg-primary';
-                let borderLeftColor = '#3B82F6';
+                let borderLeftColor = isReadMode ? '#94A3B8' : '#3B82F6';
 
-                if (prioritas === 'urgent') {
-                    prioritasBadgeClass = 'bg-danger text-white';
-                    borderLeftColor = '#EF4444';
-                } else if (prioritas === 'high') {
-                    prioritasBadgeClass = 'bg-warning text-dark';
-                    borderLeftColor = '#F59E0B';
-                } else if (prioritas === 'low') {
+                if (!isReadMode) {
+                    if (prioritas === 'urgent') {
+                        prioritasBadgeClass = 'bg-danger text-white';
+                        borderLeftColor = '#EF4444';
+                    } else if (prioritas === 'high') {
+                        prioritasBadgeClass = 'bg-warning text-dark';
+                        borderLeftColor = '#F59E0B';
+                    } else if (prioritas === 'low') {
+                        prioritasBadgeClass = 'bg-secondary text-white';
+                        borderLeftColor = '#6B7280';
+                    }
+                } else {
                     prioritasBadgeClass = 'bg-secondary text-white';
-                    borderLeftColor = '#6B7280';
                 }
 
                 const ticketUrl = d.ticket_url || ("{{ url('/tickets') }}/" + (d.ticket_id || ''));
 
                 return `
-                    <div class="p-3 border-bottom notif-item" id="notif-item-${n.id}" style="background: ${prioritas === 'urgent' ? '#FFF5F5' : '#FFFFFF'}; border-left: 4px solid ${borderLeftColor} !important; transition: background 0.15s;">
+                    <div class="p-3 border-bottom notif-item" id="notif-item-${n.id}" style="background: ${isReadMode ? '#F8FAFC' : (prioritas === 'urgent' ? '#FFF5F5' : '#FFFFFF')}; border-left: 4px solid ${borderLeftColor} !important; transition: background 0.15s;">
                         <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
                             <div class="d-flex align-items-center gap-1">
                                 <span class="badge ${isReply ? 'bg-info text-dark' : 'bg-dark text-white'}" style="font-size:0.68rem; font-weight:700;">
@@ -1412,6 +1502,7 @@
                                 <span class="badge ${prioritasBadgeClass}" style="font-size:0.65rem; font-weight:700;">
                                     ${escJs(d.prioritas_label || prioritas.toUpperCase())}
                                 </span>
+                                ${isReadMode ? `<span class="badge bg-light text-muted border" style="font-size:0.62rem;">Selesai/Dibaca</span>` : ''}
                             </div>
                             <small class="text-muted" style="font-size:0.68rem;">${formatTimeAgo(n.created_at)}</small>
                         </div>
@@ -1429,16 +1520,13 @@
                             </div>
                         ` : ''}
                         <div class="d-flex align-items-center justify-content-between pt-1">
-                            <span class="badge bg-light text-primary border" style="font-size:0.68rem;">
-                                <i class="bi bi-clock-history me-1"></i>Menunggu Respon
+                            <span class="badge ${isReadMode ? 'bg-light text-secondary' : 'bg-light text-primary'} border" style="font-size:0.68rem;">
+                                <i class="bi ${isReadMode ? 'bi-check2' : 'bi-clock-history'} me-1"></i>${isReadMode ? 'Sudah Ditanggapi' : 'Menunggu Respon'}
                             </span>
                             <div class="d-flex gap-1.5">
                                 <a href="${ticketUrl}" class="btn btn-primary btn-sm py-0.5 px-2.5 fw-bold rounded-pill" style="font-size:0.72rem;">
-                                    <i class="bi bi-chat-text-fill me-1"></i>Buka & Jawab
+                                    <i class="bi bi-chat-text-fill me-1"></i>${isReadMode ? 'Lihat Tiket' : 'Buka & Jawab'}
                                 </a>
-                                <button class="btn btn-outline-secondary btn-sm py-0.5 px-1.5 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead('${n.id}', event)" style="font-size:0.72rem;">
-                                    <i class="bi bi-check2"></i>
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -1451,11 +1539,14 @@
             ).join('');
 
             return `
-                <div class="p-3 border-bottom notif-item" id="notif-item-${n.id}" style="background: #F8FAFC; border-left: 4px solid #0EA5E9 !important; transition: background 0.15s;">
+                <div class="p-3 border-bottom notif-item" id="notif-item-${n.id}" style="background: ${isReadMode ? '#FAFAFA' : '#F8FAFC'}; border-left: 4px solid ${isReadMode ? '#94A3B8' : '#0EA5E9'} !important; transition: background 0.15s;">
                     <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                        <span class="badge bg-primary text-white" style="font-size:0.68rem; font-weight:700;">
-                            <i class="bi bi-flag-fill me-1"></i>Milestone Pertemuan Ke-${d.pertemuan_ke}
-                        </span>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="badge ${isReadMode ? 'bg-secondary' : 'bg-primary'} text-white" style="font-size:0.68rem; font-weight:700;">
+                                <i class="bi bi-flag-fill me-1"></i>Milestone Pertemuan Ke-${d.pertemuan_ke}
+                            </span>
+                            ${isReadMode ? `<span class="badge bg-light text-muted border" style="font-size:0.62rem;"><i class="bi bi-check2-circle text-success me-1"></i>Sudah Dibaca</span>` : ''}
+                        </div>
                         <small class="text-muted" style="font-size:0.68rem;">${formatTimeAgo(n.created_at)}</small>
                     </div>
                     <div class="fw-bold text-dark" style="font-size:0.85rem;">${escJs(d.sekolah_nama || 'Sekolah')}</div>
@@ -1467,11 +1558,14 @@
                         <div class="d-flex flex-wrap">${tgl4Html}</div>
                     </div>
                     <div class="d-flex align-items-center justify-content-between pt-1" style="font-size:0.75rem;">
-                        <span class="text-success fw-bold"><i class="bi bi-people-fill me-1"></i>${d.jumlah_hadir} Hadir</span>
-                        <div class="d-flex gap-1">
+                        <span class="text-success fw-bold"><i class="bi bi-people-fill me-1"></i>${d.jumlah_hadir || 0} Hadir</span>
+                        <div class="d-flex gap-1 align-items-center">
                             ${d.foto_absensi_url ? `<a href="${d.foto_absensi_url}" target="_blank" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size:0.7rem;"><i class="bi bi-file-earmark-image me-1"></i>Absensi</a>` : ''}
                             ${d.report_detail_url ? `<a href="${d.report_detail_url}" target="_blank" class="btn btn-primary btn-sm py-0 px-2" style="font-size:0.7rem;"><i class="bi bi-eye me-1"></i>Detail</a>` : ''}
-                            <button class="btn btn-outline-secondary btn-sm py-0 px-1 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead('${n.id}', event)" style="font-size:0.7rem;"><i class="bi bi-check2"></i></button>
+                            ${isReadMode 
+                                ? `<button class="btn btn-outline-warning btn-sm py-0 px-2 rounded-pill fw-semibold" title="Kembalikan ke Belum Dibaca" onclick="markNotifAsUnread('${n.id}', event)" style="font-size:0.7rem;"><i class="bi bi-arrow-counterclockwise me-1"></i>Batal Dibaca</button>`
+                                : `<button class="btn btn-outline-secondary btn-sm py-0 px-1.5 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead('${n.id}', event)" style="font-size:0.7rem;"><i class="bi bi-check2"></i></button>`
+                            }
                         </div>
                     </div>
                 </div>
@@ -1492,7 +1586,24 @@
             }
         })
         .then(() => {
-            fetchUnreadNotifications();
+            fetchNotifications();
+        });
+    }
+
+    function markNotifAsUnread(id, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        fetch("{{ url('admin/notifications') }}/" + id + "/unread", {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(() => {
+            fetchNotifications();
         });
     }
 
@@ -1509,7 +1620,7 @@
             }
         })
         .then(() => {
-            fetchUnreadNotifications();
+            fetchNotifications();
         });
     }
 

@@ -295,6 +295,11 @@ class LaporanMengajarController extends Controller
 
     public function create()
     {
+        if (Auth::user()?->role === 'instruktur' && !Auth::user()->hasCompleteBankDetails()) {
+            return redirect()->route('profile.edit', ['tab' => 'bank'])
+                ->with('warning', 'Penting: Anda wajib melengkapi data nama bank dan nomor rekening pada profil terlebih dahulu sebelum membuat laporan mengajar agar pembayaran honor dapat diproses.');
+        }
+
         $instructors = User::where('role', 'instruktur')
             ->where('verification_status', 'approved')
             ->orderBy('nama_lengkap')
@@ -347,6 +352,21 @@ class LaporanMengajarController extends Controller
             );
         }
 
+        // Handle late audit metadata
+        $scheduleDate = \Carbon\Carbon::parse($validated['jadwal_mengajar'])->startOfDay();
+        $diffDays = (int) $scheduleDate->diffInDays(now()->startOfDay(), false);
+        $isSevereLate = $diffDays >= 3;
+
+        $metadata = [];
+        if ($isSevereLate || $request->filled('alasan_kendala_keterlambatan')) {
+            $metadata['is_severe_late'] = true;
+            $metadata['status_approval_kendala'] = 'pending_approval';
+            if ($request->filled('alasan_kendala_keterlambatan')) {
+                $metadata['alasan_kendala_keterlambatan'] = $request->input('alasan_kendala_keterlambatan');
+            }
+        }
+        $validated['metadata_json'] = $metadata;
+
         // Create the report
         $laporan = LaporanMengajar::create($validated);
 
@@ -378,10 +398,14 @@ class LaporanMengajarController extends Controller
             \Log::warning('Google Sheet async dispatch error: ' . $e->getMessage());
         }
 
+        $auditNotice = ($isSevereLate || $request->filled('alasan_kendala_keterlambatan'))
+            ? ' Laporan tercatat mengalami keterlambatan dan diteruskan ke Admin untuk Audit Keterlambatan.'
+            : '';
+
         // For Ad-Hoc / Special event reports, skip individual student attendance and redirect to show.
         if ($laporan->isAdHoc()) {
             return redirect()->route('laporan-mengajar.show', $laporan)
-                ->with('success', 'Laporan mengajar Ad-Hoc / Khusus berhasil dibuat!');
+                ->with('success', 'Laporan mengajar Ad-Hoc / Khusus berhasil dibuat!' . $auditNotice);
         }
 
         // Smart Redirect: If pre-registered students exist in DB for this school & rombel, redirect to absensi.create.
@@ -392,11 +416,11 @@ class LaporanMengajarController extends Controller
 
         if ($hasRegisteredStudents) {
             return redirect()->route('laporan-mengajar.absensi.create', $laporan)
-                ->with('success', 'Laporan dasar berhasil dibuat! Silakan tandai absensi siswa.');
+                ->with('success', 'Laporan dasar berhasil dibuat! Silakan tandai absensi siswa.' . $auditNotice);
         }
 
         return redirect()->route('laporan-mengajar.show', $laporan)
-            ->with('success', 'Laporan mengajar Ad-Hoc / Free Trial Class berhasil dibuat!');
+            ->with('success', 'Laporan mengajar Ad-Hoc / Free Trial Class berhasil dibuat!' . $auditNotice);
     }
 
     public function show(LaporanMengajar $laporanMengajar)
@@ -725,6 +749,11 @@ class LaporanMengajarController extends Controller
     {
         $this->authorize('create', LaporanMengajar::class);
 
+        if (Auth::user()?->role === 'instruktur' && !Auth::user()->hasCompleteBankDetails()) {
+            return redirect()->route('profile.edit', ['tab' => 'bank'])
+                ->with('warning', 'Penting: Anda wajib melengkapi data nama bank dan nomor rekening pada profil terlebih dahulu sebelum membuat laporan mengajar agar pembayaran honor dapat diproses.');
+        }
+
         // Check if a report already exists for this session
         $existing = LaporanMengajar::where('ekstrakurikuler_session_id', $session->id)->first();
         if ($existing) {
@@ -862,22 +891,7 @@ class LaporanMengajarController extends Controller
                     }
                 }
             ],
-            'materi_pengajaran' => [
-                'required',
-                'string',
-                'max:1000',
-                function ($attribute, $value, $fail) use ($request) {
-                    $kategori = $request->input('kategori_pengajaran');
-                    if ($kategori && \App\Models\RefMateri::where('kategori', $kategori)->exists()) {
-                        $exists = \App\Models\RefMateri::where('kategori', $kategori)
-                            ->where('materi', $value)
-                            ->exists();
-                        if (! $exists) {
-                            $fail('Materi pengajaran yang dipilih tidak valid.');
-                        }
-                    }
-                },
-            ],
+            'materi_pengajaran' => 'required|string|max:1000',
             'foto_kegiatan' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ];
     }
@@ -944,5 +958,124 @@ class LaporanMengajarController extends Controller
         });
 
         return redirect()->back()->with('success', 'Laporan Mengajar berhasil dipindahkan ke Pertemuan ' . $targetSession->nomor_pertemuan . '!');
+    }
+
+    /**
+     * Kirim ringkasan laporan mengajar ke nomor WhatsApp instruktur via Fonnte.
+     * Dibatasi maksimal 1x per laporan yang sudah selesai.
+     */
+    public function sendWaReport(Request $request, LaporanMengajar $laporan)
+    {
+        // 1. Authorize: Instruktur pemilik laporan atau Admin
+        if (! in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin']) && auth()->id() !== $laporan->user_id_instruktur) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Anda hanya dapat mengirim laporan mengajar milik Anda sendiri.',
+            ], 403);
+        }
+
+        // 2. Cek apakah laporan sudah selesai (materi_pengajaran terisi)
+        if (empty(trim($laporan->materi_pengajaran ?? ''))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pengiriman gagal: Laporan belum selesai (materi pengajaran belum diisi).',
+            ], 422);
+        }
+
+        // 3. Cek apakah sudah pernah dikirim (Limit 1x)
+        $meta = is_array($laporan->metadata_json) ? $laporan->metadata_json : (json_decode($laporan->metadata_json, true) ?? []);
+        if (! empty($meta['wa_report_sent'])) {
+            $sentAt = ! empty($meta['wa_report_sent_at']) 
+                ? Carbon::parse($meta['wa_report_sent_at'])->locale('id')->translatedFormat('d M Y H:i') 
+                : '';
+            return response()->json([
+                'success' => false,
+                'message' => "Laporan sesi ini sudah pernah dikirim ke WhatsApp" . ($sentAt ? " pada {$sentAt}" : "") . ".",
+            ], 400);
+        }
+
+        // 4. Instruktur pemilik laporan & nomor teleponnya
+        $instruktur = $laporan->instruktur;
+        if (! $instruktur) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Instruktur pemilik laporan tidak ditemukan dalam sistem.',
+            ], 404);
+        }
+
+        $phone = $instruktur->no_telephone ?? $instruktur->phone_number ?? $instruktur->no_wa ?? null;
+        if (empty($phone)) {
+            return response()->json([
+                'success' => false,
+                'message' => "Nomor WhatsApp instruktur ({$instruktur->nama_lengkap}) belum terdaftar pada profil akun.",
+            ], 422);
+        }
+
+        // 5. Kirim via WhatsAppChannel
+        try {
+            $notification = new \App\Notifications\SessionReportNotification($laporan);
+            $channel = app(\App\Notifications\Channels\WhatsAppChannel::class);
+            $sent = $channel->sendNotification($instruktur, $notification);
+
+            if (! $sent) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengirim laporan ke WhatsApp via Fonnte. Periksa nomor telepon atau koneksi layanan.',
+                ], 500);
+            }
+
+            // 6. Tandai metadata sudah dikirim
+            $meta['wa_report_sent'] = true;
+            $meta['wa_report_sent_at'] = now()->toISOString();
+            $meta['wa_report_sent_by'] = auth()->id();
+            $laporan->update(['metadata_json' => $meta]);
+
+            // 7. Log Activity jika ada
+            if (class_exists('\App\Models\ActivityLog')) {
+                \App\Models\ActivityLog::create([
+                    'user_id' => auth()->id(),
+                    'action' => 'SEND_WA',
+                    'module' => 'Laporan Mengajar',
+                    'description' => "Mengirim laporan mengajar #{$laporan->id} (Pertemuan {$laporan->pertemuan_ke}) ke WhatsApp instruktur {$instruktur->nama_lengkap} ({$phone})",
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ]);
+            }
+
+            $formattedTime = now()->locale('id')->translatedFormat('d M Y H:i');
+
+            return response()->json([
+                'success' => true,
+                'message' => "Laporan berhasil dikirim ke nomor WhatsApp {$instruktur->nama_lengkap} ({$phone}).",
+                'sent_at' => $formattedTime,
+            ]);
+
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Error saat sendWaReport #{$laporan->id}: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem saat memproses pengiriman WhatsApp: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Dapatkan teks laporan mengajar berformat rapi dan sopan untuk disalin ke clipboard.
+     */
+    public function getWaReportText(LaporanMengajar $laporan)
+    {
+        if (! in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin']) && auth()->id() !== $laporan->user_id_instruktur) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak.',
+            ], 403);
+        }
+
+        $text = \App\Notifications\SessionReportNotification::generateReportMessage($laporan);
+
+        return response()->json([
+            'success' => true,
+            'text' => $text,
+        ]);
     }
 }

@@ -253,6 +253,28 @@
     </div>
     @endif
 
+    <!-- Critical Banking Details Missing Alert -->
+    @if(Auth::user()->role === 'instruktur' && !Auth::user()->hasCompleteBankDetails())
+    <div class="alert alert-danger border-0 shadow-sm mb-4 rounded-4" role="alert" style="background: #FEF2F2; border-left: 6px solid #EF4444 !important;">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 p-2">
+            <div class="d-flex align-items-center">
+                <div class="bg-danger text-white rounded-circle p-2 me-3 d-flex align-items-center justify-content-center shadow-xs" style="width: 44px; height: 44px; min-width: 44px;">
+                    <i class="bi bi-credit-card-2-front-fill fs-5"></i>
+                </div>
+                <div>
+                    <h5 class="alert-heading h6 fw-bold mb-1 text-danger">Peringatan: Data Rekening Bank Belum Diisi!</h5>
+                    <p class="mb-0 small text-dark">
+                        Sesuai kebijakan operasional & penggajian, instruktur <strong>wajib mengisi data nama bank dan nomor rekening</strong> agar dapat membuat laporan kegiatan mengajar dan pencairan honor dapat ditransfer tanpa kendala.
+                    </p>
+                </div>
+            </div>
+            <a href="{{ route('profile.edit', ['tab' => 'bank']) }}" class="btn btn-danger text-white fw-bold btn-sm px-4 py-2 rounded-pill shadow-sm text-nowrap">
+                <i class="bi bi-pencil-square me-1"></i> Isi Data Rekening Sekarang <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+    @endif
+
     <!-- Profile Completion Alert -->
     @if(isset($incomplete_profile) && $incomplete_profile)
     <div class="alert alert-warning border-0 shadow-sm mb-4 rounded-4" role="alert" style="background: #FFFBEB; border-left: 6px solid #F59E0B !important;">

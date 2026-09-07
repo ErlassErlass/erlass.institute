@@ -24,9 +24,13 @@
                         ];
                         $avatarBg = $avatarColors[$user->role] ?? 'bg-secondary';
                     @endphp
-                    <div class="rounded-circle d-flex align-items-center justify-content-center {{ $avatarBg }}" style="width: 56px; height: 56px; font-size: 1.25rem; font-weight: 700; color: {{ $user->role === 'admin_sistem' ? '#000' : '#fff' }};">
-                        {{ $initials }}
-                    </div>
+                    @if($user->avatar_url)
+                        <img src="{{ $user->avatar_url }}" alt="{{ $user->nama_lengkap }}" class="rounded-circle object-fit-cover shadow-sm border" style="width: 56px; height: 56px;">
+                    @else
+                        <div class="rounded-circle d-flex align-items-center justify-content-center {{ $avatarBg }}" style="width: 56px; height: 56px; font-size: 1.25rem; font-weight: 700; color: {{ $user->role === 'admin_sistem' ? '#000' : '#fff' }};">
+                            {{ $initials }}
+                        </div>
+                    @endif
                     <div>
                         <h1 class="h3 fw-bold text-dark mb-0">{{ $user->nama_lengkap }}</h1>
                         <div class="d-flex align-items-center gap-2 mt-1">

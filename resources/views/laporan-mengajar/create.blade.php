@@ -198,6 +198,31 @@
                                 </div>
                             </div>
 
+                            <!-- Dynamic Section: Catatan Kendala Keterlambatan (> 30 Hari / 1 Bulan) -->
+                            @php
+                                $isInitialLate = false;
+                                if (old('jadwal_mengajar')) {
+                                    try {
+                                        $d = \Carbon\Carbon::parse(old('jadwal_mengajar'))->startOfDay();
+                                        $isInitialLate = $d->isBefore(now()->subDays(30)->startOfDay());
+                                    } catch (\Throwable $e) {}
+                                }
+                            @endphp
+                            <div class="mb-3" id="lateReasonWrapper" style="{{ ($isInitialLate || $errors->has('alasan_kendala_keterlambatan')) ? '' : 'display: none;' }}">
+                                <div class="p-3 rounded-3" style="background: #FEF2F2; border: 1.5px solid #FCA5A5;">
+                                    <label for="alasan_kendala_keterlambatan" class="form-label fw-bold text-danger d-flex align-items-center gap-1 mb-1">
+                                        <i class="bi bi-exclamation-triangle-fill"></i> Catatan Kendala Keterlambatan (&gt; 1 Bulan) <span class="badge bg-danger text-white ms-1">Wajib untuk Audit Admin</span>
+                                    </label>
+                                    <p class="small text-muted mb-2">
+                                        Tanggal kegiatan yang Anda pilih sudah lewat lebih dari 30 hari (1 bulan). Laporan tetap dapat diajukan, namun wajib menyertakan alasan/kendala keterlambatan pelaporan secara rinci (minimal 10 karakter) untuk diverifikasi dan disetujui (ACC) oleh Admin sebelum pencairan honor.
+                                    </p>
+                                    <textarea name="alasan_kendala_keterlambatan" id="alasan_kendala_keterlambatan" class="form-control @error('alasan_kendala_keterlambatan') is-invalid @enderror" rows="3" placeholder="Contoh: Mengalami kendala konfirmasi dan pengumpulan dokumentasi foto resmi dari pihak sekolah yang baru selesai pekan ini..." style="border-radius: 10px; border-color: #F87171;">{{ old('alasan_kendala_keterlambatan') }}</textarea>
+                                    @error('alasan_kendala_keterlambatan')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
                             <!-- Dynamic Section: Input Jumlah Siswa Khusus Free Trial Class -->
                             <div class="row bg-success bg-opacity-10 p-3 rounded mb-3 border border-success border-opacity-25" id="freeTrialStudentCountWrapper" style="display: none;">
                                 <div class="col-md-6 mb-3 mb-md-0">
@@ -610,13 +635,37 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        $(document).on('change', '#kategori_pengajaran', function() {
-            toggleFreeTrialFields();
+        // Toggle input catatan kendala keterlambatan jika tanggal > 30 hari yang lalu (Audit Admin)
+        function checkLateReportDate() {
+            var val = $('#jadwal_mengajar').val();
+            if (!val) {
+                $('#lateReasonWrapper').slideUp(200);
+                $('#alasan_kendala_keterlambatan').removeAttr('required');
+                return;
+            }
+            var selectedDate = new Date(val + 'T00:00:00');
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            var diffTime = today - selectedDate;
+            var diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 30) {
+                $('#lateReasonWrapper').slideDown(200);
+                $('#alasan_kendala_keterlambatan').attr('required', 'required');
+            } else {
+                $('#lateReasonWrapper').slideUp(200);
+                $('#alasan_kendala_keterlambatan').removeAttr('required');
+            }
+        }
+
+        $(document).on('change', '#jadwal_mengajar', function() {
+            checkLateReportDate();
         });
 
         // Run on page load
         setTimeout(function() {
             toggleFreeTrialFields();
+            checkLateReportDate();
         }, 100);
     });
 </script>

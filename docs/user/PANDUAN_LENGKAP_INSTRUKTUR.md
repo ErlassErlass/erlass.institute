@@ -1,20 +1,23 @@
 # 📘 Panduan Lengkap Operasional Instruktur
-**Portal Manajemen & Pembelajaran Erlass Institute (v2.9.10)**
+**Portal Manajemen & Pembelajaran Erlass Institute (v2.9.29)**
 
-Dokumen ini merupakan panduan resmi langkah demi langkah (*Standard Operating Procedure*) bagi seluruh **Instruktur Utama** dan **Asisten Instruktur** Erlass Institute, mulai dari proses pendaftaran akun hingga pelaporan kegiatan belajar mengajar di sekolah mitra.
+Dokumen ini merupakan panduan resmi langkah demi langkah (*Standard Operating Procedure*) bagi seluruh **Instruktur Utama** dan **Asisten Instruktur** Erlass Institute, mulai dari proses pendaftaran akun, pengelolaan profil mandiri, pelaksanaan kelas, hingga pelaporan kegiatan belajar mengajar di sekolah mitra.
 
 ---
 
 ## 📑 Daftar Isi
 1. [Prasyarat & Persiapan Perangkat](#1-prasyarat--persiapan-perangkat)
 2. [Tahap 1: Pendaftaran Akun & Pengisian Jadwal Ketersediaan](#2-tahap-1-pendaftaran-akun--pengisian-jadwal-ketersediaan)
-3. [Tahap 2: Melengkapi Profil & Data Rekening Honor](#3-tahap-2-melengkapi-profil--data-rekening-honor)
+3. [Tahap 2: Pusat Profil Impeccable & Dokumen Administrasi](#3-tahap-2-pusat-profil-impeccable--dokumen-administrasi)
 4. [Tahap 3: Memahami Penugasan & Kalender Mengajar](#4-tahap-3-memahami-penugasan--kalender-mengajar)
 5. [Tahap 4: Kedatangan di Sekolah & Check-in GPS](#5-tahap-4-kedatangan-di-sekolah--check-in-gps)
 6. [Tahap 5: Pelaksanaan Kelas & Presensi Kehadiran Siswa](#6-tahap-5-pelaksanaan-kelas--presensi-kehadiran-siswa)
 7. [Tahap 6: Pengisian Laporan Mengajar & Upload Berkas](#7-tahap-6-pengisian-laporan-mengajar--upload-berkas)
-8. [Tahap 7: Aturan Batas Waktu (H+1) & Izin Susulan](#8-tahap-7-aturan-batas-waktu-h1--izin-susulan)
-9. [Tips Penting Penggunaan di Lapangan](#9-tips-penting-penggunaan-di-lapangan)
+8. [Tahap 7: Berbagi Laporan ke WhatsApp Group Sekolah & Salin Teks (Baru)](#8-tahap-7-berbagi-laporan-ke-whatsapp-group-sekolah--salin-teks-baru)
+9. [Tahap 8: Aturan Batas Waktu (H+1) & Izin Susulan](#9-tahap-8-aturan-batas-waktu-h1--izin-susulan)
+10. [Pemahaman Skor KPI Kedisiplinan & Ketepatan Waktu (Punctuality KPI)](#10-pemahaman-skor-kpi-kedisiplinan--ketepatan-waktu-punctuality-kpi)
+11. [Ketentuan Kompensasi Honor & Transportasi (SK Direksi No. 536/EPI/V/2025)](#11-ketentuan-kompensasi-honor--transportasi-sk-direksi-no-536epiv2025)
+12. [Tips Penting Penggunaan di Lapangan](#12-tips-penting-penggunaan-di-lapangan)
 
 ---
 
@@ -54,20 +57,39 @@ Jika Anda adalah calon instruktur baru:
 
 ---
 
-## 3. Tahap 2: Melengkapi Profil & Data Rekening Honor
+## 3. Tahap 2: Pusat Profil Impeccable & Dokumen Administrasi
 
-Setelah akun disetujui dan Anda berhasil login:
+Setelah akun Anda disetujui dan berhasil login, kelola seluruh data diri dan administrasi mengajar melalui menu profil yang kini tampil terpadu dan modern:
 
-1. **Buka Menu Profil**:
-   - Klik foto/nama Anda di pojok kanan atas $\rightarrow$ Pilih **"Profil Saya"** (atau akses `https://erlass.institute/profile`).
-2. **Lengkapi Data Pembayaran (Wajib untuk Payroll)**:
-   - **Nama Bank**: Pilih bank rekening Anda (BCA, Mandiri, BRI, BNI, dll.).
-   - **Nomor Rekening**: Pastikan nomor rekening valid dan tidak salah ketik.
-   - **Atas Nama Rekening**: Harus sesuai dengan nama pemilik buku tabungan.
-3. **Unggah Dokumen Pendukung**:
-   - Foto KTP, Foto Diri/Avatar, dan dokumen pendukung keahlian jika diminta.
-4. **Simpan Perubahan**:
-   - Klik **"Perbarui Profil"**.
+```
+[ Klik Foto / Nama di Kanan Atas ] ➔ [ Profil Saya (/profile) ] ➔ [ Pantau 4 Kartu KPI & Kelola 6 Tab Fungsional ]
+```
+
+### A. 4 Kartu Metrik KPI (Hero Summary Cards)
+Di bagian atas halaman profil, sistem menampilkan ringkasan metrik performa mengajar Anda secara real-time:
+1. **Total Sesi Mengajar**: Akumulasi seluruh sesi yang telah berhasil Anda selesaikan.
+2. **Tingkat Kehadiran Siswa**: Persentase rata-rata kehadiran siswa di seluruh rombel yang Anda ampu.
+3. **Status Dokumen Berkas**: Indikator kelengkapan berkas administrasi (KTP, NPWP, CV, dan rekening bank).
+4. **Status Akun**: Status keaktifan instruktur (🟢 Aktif / Terverifikasi).
+
+### B. 6 Tab Fungsional Terpadu:
+1. **Tab 1 — Data Akun & Domisili**:
+   - Memperbarui Nama Lengkap, Email, Nomor WhatsApp aktif (wajib aktif untuk notifikasi sistem & report WA), Alamat Domisili, dan Kota Penugasan.
+2. **Tab 2 — Bank & Dokumen Berkas (Wajib Payroll)**:
+   - **Rekening Bank**: Pilih bank (BCA, Mandiri, BRI, BNI, dll.), nomor rekening, dan nama pemilik rekening (harus sesuai buku tabungan untuk pencairan honor bulanan).
+   - **Unggah Dokumen Berkas**: Unggah foto/file KTP, NPWP (opsional), dan Curriculum Vitae (CV) dalam format PDF/JPG/PNG.
+3. **Tab 3 — Karir & Logistik**:
+   - Menyimpan preferensi kendaraan operasional (Motor, Mobil, Transportasi Umum), ukuran kaos seragam instruktur Erlass, riwayat sertifikasi kurikulum, dan catatan portofolio.
+4. **Tab 4 — Jadwal Mengajar Aktif**:
+   - Menampilkan daftar seluruh program dan rombel ekstrakurikuler yang saat ini aktif Anda ampu, lengkap dengan hari, jam, sekolah mitra, dan kuota siswa.
+5. **Tab 5 — Riwayat Laporan Mengajar (Quick Actions)**:
+   - Menampilkan tabel ringkas seluruh laporan sesi yang pernah Anda selesaikan.
+   - Dilengkapi tombol cepat:
+     - **📋 Salin Teks**: Menyalin format teks laporan sesi ke clipboard.
+     - **📲 Kirim WA**: Mengirimkan laporan dan foto kegiatan langsung ke WhatsApp pribadi Anda.
+     - **👁️ Detail**: Membuka halaman detail laporan lengkap.
+6. **Tab 6 — Keamanan & Ganti Password Mandiri**:
+   - Form ganti password terintegrasi. Masukkan password saat ini, password baru (minimal 8 karakter), dan konfirmasi password baru secara mandiri tanpa harus meminta reset ke Admin.
 
 ---
 
@@ -187,7 +209,37 @@ Lanjutkan pengisian rincian kegiatan pembelajaran pada formulir yang sama:
 
 ---
 
-## 8. Tahap 7: Aturan Batas Waktu (H+1) & Izin Susulan
+## 8. Tahap 7: Berbagi Laporan ke WhatsApp Group Sekolah & Salin Teks (Baru)
+
+Setelah laporan sesi selesai disubmit (`Status: 🟢 Selesai`), Anda dapat membagikan resume kegiatan belajar ke grup WhatsApp PIC Sekolah mitra atau grup orang tua siswa dengan sangat cepat dan rapi:
+
+```
+[ Laporan Selesai ] ➔ [ Buka Detail Laporan atau Tab Riwayat Profil ] ➔ [ Klik "Kirim ke WA Saya" ] ➔ [ Notifikasi & Foto Masuk ] ➔ [ Forward ke Grup PIC ]
+```
+
+### A. Fitur 1: Kirim ke WhatsApp Saya (1x Kirim per Sesi)
+- **Tombol WhatsApp Hijau** (`[ 📲 Kirim ke WA Saya ]`): Tersedia di halaman Detail Laporan Mengajar (`/laporan-mengajar/{id}`) dan Tab Riwayat Laporan Profil (`/profile`).
+- **Pesan Otomatis via Gateway Fonnte**: Sistem mengirimkan ringkasan laporan sesi mengajar langsung ke nomor WhatsApp pribadi Anda yang terdaftar di akun.
+- **Lampiran Foto Kegiatan Otomatis**: Foto dokumentasi kelas yang Anda unggah otomatis dikirim sebagai gambar dengan *caption* teks laporan lengkap.
+- **Format Santun & Formal**: Pesan dirancang menggunakan bahasa Indonesia yang ramah, santun, dan profesional, **tanpa watermark / footer sistem** (`_Dikirim via Sistem Erlass Ekskul_`), sehingga tidak perlu diedit lagi sebelum diteruskan.
+- **Ketentuan Bisnis & Limitasi**:
+  - Laporan harus berstatus **Selesai** dan materi pembelajaran telah terisi.
+  - Terdapat pembatasan **1x kirim per sesi** guna mencegah duplikasi atau spam. Setelah berhasil dikirim, tombol berubah menjadi abu-abu bertuliskan **`[ ✓ Terkirim ]`**.
+
+### B. Fitur 2: Salin Teks ke Clipboard (Papan Klip)
+- **Tombol Biru** (`[ 📋 Salin Teks ]`): Menyalin seluruh format laporan sesi ke clipboard HP/komputer Anda dengan sekali klik.
+- **Bebas Kuota Pengiriman**: Fitur salin teks dapat digunakan kapan saja tanpa batas kuota, sangat ideal jika Anda menggunakan WhatsApp Web di laptop atau ingin menambahkan salam pembuka kustom sebelum mengirimkan ke grup sekolah.
+
+### C. SOP Praktis di Lapangan:
+1. Selesaikan kelas dan submit laporan mengajar.
+2. Klik tombol **"Kirim ke WA Saya"**.
+3. Buka aplikasi WhatsApp di HP Anda $\rightarrow$ Pesan laporan dari sistem Erlass beserta foto kelas akan muncul di chat Anda.
+4. Tekan lama pesan & foto, lalu pilih **Teruskan / Forward** ke grup WhatsApp sekolah mitra (PIC / Guru Pendamping).
+5. Proses pelaporan ke pihak sekolah selesai rapi dalam hitungan detik!
+
+---
+
+## 9. Tahap 8: Aturan Batas Waktu (H+1) & Izin Susulan
 
 ### ⏳ Aturan Batas Waktu Pelaporan (SLA H+1):
 - Laporan mengajar **wajib dikirimkan paling lambat H+1 pukul 23:59 WIB** dari tanggal pelaksanaan sesi.
@@ -203,7 +255,7 @@ Jika Anda terlambat melaporkan karena kendala darurat:
 
 ---
 
-## 9. Pemahaman Skor KPI Kedisiplinan & Ketepatan Waktu (Punctuality KPI)
+## 10. Pemahaman Skor KPI Kedisiplinan & Ketepatan Waktu (Punctuality KPI)
 
 Sistem Erlass Portal mengevaluasi kedisiplinan mengajar Anda secara adil dan transparan melalui 2 indikator terpisah:
 
@@ -224,7 +276,7 @@ Sistem Erlass Portal mengevaluasi kedisiplinan mengajar Anda secara adil dan tra
 
 ---
 
-## 10. Ketentuan Kompensasi Honor & Transportasi (SK Direksi No. 536/EPI/V/2025)
+## 11. Ketentuan Kompensasi Honor & Transportasi (SK Direksi No. 536/EPI/V/2025)
 
 ### A. Skala Honorarium Berdasarkan Jumlah Siswa Hadir:
 Honorarium dihitung berdasarkan **jumlah siswa yang HADIR** pada sesi tersebut:
@@ -251,7 +303,7 @@ Honorarium dihitung berdasarkan **jumlah siswa yang HADIR** pada sesi tersebut:
 
 ---
 
-## 11. Tips Penting Penggunaan di Lapangan
+## 12. Tips Penting Penggunaan di Lapangan
 
 | Situasi di Lapangan | Solusi Praktis |
 | :--- | :--- |

@@ -250,8 +250,8 @@ class DashboardController extends Controller
             if (empty($profile->nik)) $missing_fields[] = 'Nomor NIK (KTP)';
             if (empty($profile->foto_ktp) && empty($profile->foto_ktp_path)) $missing_fields[] = 'Foto KTP'; 
             if (empty($profile->cv_link) && empty($profile->cv_file)) $missing_fields[] = 'CV / Resume';
-            if (empty($profile->nama_bank)) $missing_fields[] = 'Nama Bank';
-            if (empty($profile->no_rekening)) $missing_fields[] = 'Nomor Rekening';
+            if (empty($profile->nama_bank)) $missing_fields[] = 'Nama Bank (Wajib untuk pencairan honor)';
+            if (empty($profile->no_rekening)) $missing_fields[] = 'Nomor Rekening (Wajib untuk pencairan honor)';
             if (empty($profile->alamat_domisili)) $missing_fields[] = 'Alamat Domisili';
         }
 

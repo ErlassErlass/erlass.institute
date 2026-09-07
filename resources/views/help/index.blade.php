@@ -486,7 +486,7 @@
     <div class="help-tab-content active" id="tab-panduan" role="tabpanel" aria-labelledby="btn-panduan">
 
         {{-- Section 1: 2 Jalur --}}
-        <p class="section-label"><i class="bi bi-signpost-split me-1"></i>Langkah 1 dari 3 — Pilih Jalur</p>
+        <p class="section-label"><i class="bi bi-signpost-split me-1"></i>Langkah 1 dari 4 — Pilih Jalur</p>
         <h2 class="section-heading">2 Jalur Pembuatan Laporan Mengajar</h2>
 
         <div class="path-grid">
@@ -534,7 +534,7 @@
         </div>
 
         {{-- Section 2: Komponen Wajib --}}
-        <p class="section-label"><i class="bi bi-check-all me-1"></i>Langkah 2 dari 3 — Isi Form</p>
+        <p class="section-label"><i class="bi bi-check-all me-1"></i>Langkah 2 dari 4 — Isi Form</p>
         <h2 class="section-heading">Komponen Wajib Pengisian Laporan</h2>
 
         <div class="comp-grid">
@@ -590,7 +590,7 @@
         </div>
 
         {{-- Section 3: Deadline & Aturan Pelaporan --}}
-        <p class="section-label"><i class="bi bi-clock-history me-1"></i>Langkah 3 dari 3 — Kirim Tepat Waktu & Tertib Sesi</p>
+        <p class="section-label"><i class="bi bi-clock-history me-1"></i>Langkah 3 dari 4 — Kirim Tepat Waktu & Tertib Sesi</p>
         <h2 class="section-heading">Batas Waktu Laporan & Aturan Tunggakan Sesi</h2>
 
         <div class="row g-3 mb-4">
@@ -685,6 +685,105 @@
                             </p>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Section 4: Berbagi Laporan & Riwayat di Profil --}}
+        <p class="section-label"><i class="bi bi-share-fill me-1 text-primary"></i>Langkah 4 dari 4 — Berbagi Laporan &amp; Riwayat di Profil</p>
+        <h2 class="section-heading">Kirim Laporan ke WhatsApp, Salin Teks ke PIC, &amp; Tab Riwayat Profil</h2>
+
+        <div class="row g-3 mb-4">
+            {{-- Feature 1: Kirim ke WA Saya --}}
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative" style="background: #ffffff; border: 1.5px solid #bbf7d0 !important;">
+                    <div class="position-absolute top-0 start-0 w-100" style="height: 4px; background: #16a34a;"></div>
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="badge px-3 py-1.5 rounded-pill fw-bold" style="background: #dcfce7; color: #15803d; font-size: 0.76rem;">
+                                <i class="bi bi-whatsapp me-1"></i> 1x Kirim per Sesi
+                            </span>
+                            <span class="badge bg-success bg-opacity-10 text-success fw-bold px-2 py-0.5 rounded-pill" style="font-size: 0.7rem;">
+                                Otomatis Foto
+                            </span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2" style="font-size: 1rem;">
+                            <i class="bi bi-send-check text-success me-1"></i> Kirim ke WhatsApp Saya
+                        </h5>
+                        <p class="small text-muted mb-3" style="font-size: 0.82rem; line-height: 1.6;">
+                            Kirim ringkasan sesi mengajar langsung ke nomor WhatsApp pribadi Anda lengkap dengan <strong>lampiran foto kegiatan otomatis</strong> via Fonnte.
+                        </p>
+                        <div class="p-2.5 rounded-3 mb-2" style="background: #f0fdf4; border: 1px solid #bbf7d0; font-size: 0.78rem; line-height: 1.5; color: #166534;">
+                            <i class="bi bi-check-circle-fill text-success me-1"></i> Format resmi, santun, dan rapi tanpa label watermark sistem, siap langsung di-<em>forward</em> ke grup PIC Sekolah / Orang Tua.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Feature 2: Salin Teks Format Resmi --}}
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative" style="background: #ffffff; border: 1.5px solid #bfdbfe !important;">
+                    <div class="position-absolute top-0 start-0 w-100" style="height: 4px; background: #2563eb;"></div>
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="badge px-3 py-1.5 rounded-pill fw-bold" style="background: #dbeafe; color: #1d4ed8; font-size: 0.76rem;">
+                                <i class="bi bi-clipboard-check me-1"></i> Papan Klip Instan
+                            </span>
+                            <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-2 py-0.5 rounded-pill" style="font-size: 0.7rem;">
+                                Tanpa Kuota
+                            </span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2" style="font-size: 1rem;">
+                            <i class="bi bi-clipboard2-plus text-primary me-1"></i> Salin Teks ke Clipboard
+                        </h5>
+                        <p class="small text-muted mb-3" style="font-size: 0.82rem; line-height: 1.6;">
+                            Salin seluruh isi laporan pertemuan (nama sekolah, rombel, materi, rekap siswa hadir/absen, dan refleksi kelas) hanya dengan satu kali klik.
+                        </p>
+                        <div class="p-2.5 rounded-3 mb-2" style="background: #eff6ff; border: 1px solid #bfdbfe; font-size: 0.78rem; line-height: 1.5; color: #1e40af;">
+                            <i class="bi bi-cursor-fill text-primary me-1"></i> Sangat fleksibel untuk ditempel di WhatsApp Web/Desktop atau diedit kembali sebelum dibagikan ke sekolah.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Feature 3: Tab Riwayat di Profil --}}
+            <div class="col-lg-4 col-md-12">
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative" style="background: #ffffff; border: 1.5px solid #e9d5ff !important;">
+                    <div class="position-absolute top-0 start-0 w-100" style="height: 4px; background: #9333ea;"></div>
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="badge px-3 py-1.5 rounded-pill fw-bold" style="background: #f3e8ff; color: #7e22ce; font-size: 0.76rem;">
+                                <i class="bi bi-person-badge me-1"></i> Menu Profil (/profile)
+                            </span>
+                            <span class="badge bg-purple bg-opacity-10 text-purple fw-bold px-2 py-0.5 rounded-pill" style="font-size: 0.7rem; color: #9333ea; background: #faf5ff;">
+                                6 Tab Terpadu
+                            </span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2" style="font-size: 1rem;">
+                            <i class="bi bi-journal-check text-purple me-1" style="color: #9333ea;"></i> Tab Riwayat Laporan Mengajar
+                        </h5>
+                        <p class="small text-muted mb-3" style="font-size: 0.82rem; line-height: 1.6;">
+                            Pantau seluruh arsip laporan mengajar Anda di halaman profil yang baru. Dilengkapi 4 kartu KPI, status honor, dan tombol cepat <strong>Salin Teks</strong> &amp; <strong>Kirim WA</strong> langsung di tabel.
+                        </p>
+                        <div class="p-2.5 rounded-3 mb-2" style="background: #faf5ff; border: 1px solid #e9d5ff; font-size: 0.78rem; line-height: 1.5; color: #6b21a8;">
+                            <i class="bi bi-shield-lock-fill me-1" style="color: #9333ea;"></i> Termasuk tab ganti password mandiri, upload berkas KTP/NPWP/CV, dan rekening bank honor.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Tip Banner: SOP Forward WA ke Grup Sekolah --}}
+        <div class="p-3.5 p-md-4 rounded-4 mb-4" style="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%); border: 1px solid #a7f3d0;">
+            <div class="d-flex align-items-start gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 text-white shadow-sm" style="width: 40px; height: 40px; background: #16a34a; font-size: 1.2rem;">
+                    <i class="bi bi-whatsapp"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-1" style="color: #14532d; font-size: 0.95rem;">💡 SOP Forward Laporan ke WhatsApp Group PIC Sekolah</h6>
+                    <p class="small mb-0" style="color: #166534; line-height: 1.6; font-size: 0.84rem;">
+                        Setelah sesi selesai dan laporan disimpan, buka halaman laporan lalu klik <strong>"Kirim ke WA Saya"</strong>. Laporan beserta foto dokumentasi akan masuk ke chat WhatsApp pribadi Anda. Buka WhatsApp di HP Anda, lalu pilih <strong>Teruskan / Forward</strong> pesan dan foto tersebut ke WhatsApp Group sekolah mitra (PIC &amp; Guru Pendamping). Proses pelaporan ke sekolah selesai rapi dalam waktu kurang dari 5 detik!
+                    </p>
                 </div>
             </div>
         </div>
@@ -1113,6 +1212,31 @@
                            '• <strong>Python / Web / AI</strong>: <code>.py</code>, <code>.ipynb</code>, <code>.html</code>, <code>.zip</code><br>' .
                            '• <strong>English Course / Desain / Karya Lain</strong>: <code>.pdf</code>, <code>.docx</code>, <code>.png</code>, <code>.jpg</code>, <code>.zip</code><br>' .
                            'File tersimpan otomatis secara aman di cloud storage Erlass dan langsung tertaut di lembar portofolio digital sekolah mitra.',
+                ],
+                [
+                    'q' => 'Bagaimana cara membagikan laporan mengajar ke grup WhatsApp PIC Sekolah atau Orang Tua?',
+                    'a' => 'Buka detail laporan mengajar yang sudah selesai (atau buka menu <strong>Profil Saya</strong> &rarr; tab <strong>Riwayat Laporan</strong>).<br>' .
+                           '1. Klik tombol hijau <strong>"Kirim ke WA Saya"</strong>. Sistem akan mengirim pesan laporan resmi lengkap dengan lampiran <strong>Foto Kegiatan Kelas</strong> langsung ke nomor WhatsApp pribadi Anda.<br>' .
+                           '2. Buka aplikasi WhatsApp di HP Anda, lalu <strong>teruskan (forward)</strong> pesan dan foto tersebut ke grup WhatsApp PIC Sekolah atau guru pendamping.<br>' .
+                           '3. Format pesan sudah disesuaikan agar santun, profesional, dan <strong>tanpa label watermark sistem</strong>.<br>' .
+                           '<em>Alternatif:</em> Anda juga dapat menekan tombol biru <strong>"Salin Teks"</strong> untuk menyalin isi laporan ke clipboard dan menempelkannya (paste) langsung ke WhatsApp Web / HP.',
+                ],
+                [
+                    'q' => 'Mengapa tombol "Kirim ke WA Saya" nonaktif atau bertuliskan "Terkirim"?',
+                    'a' => 'Sistem menerapkan 2 ketentuan integritas pelaporan:<br>' .
+                           '1. <strong>Laporan Wajib Selesai &amp; Materi Terisi</strong>: Tombol hanya dapat digunakan jika laporan berstatus Selesai dan ringkasan materi pembelajaran telah diisi.<br>' .
+                           '2. <strong>Limit 1x Kirim per Sesi</strong>: Untuk menjaga kuota gateway Fonnte dan mencegah spam, pengiriman otomatis dibatasi 1x per sesi. Setelah berhasil dikirim, tombol berubah menjadi abu-abu bertuliskan <em>"Terkirim"</em>.<br>' .
+                           'Jika Anda membutuhkan teks laporan kembali setelahnya, Anda dapat menggunakan tombol <strong>"Salin Teks"</strong> tanpa ada batasan kuota.',
+                ],
+                [
+                    'q' => 'Bagaimana cara memperbarui rekening bank, berkas KTP/NPWP/CV, dan ganti password akun saya?',
+                    'a' => 'Klik foto profil Anda di pojok kanan atas &rarr; pilih <strong>"Profil Saya"</strong> (<code>https://erlass.institute/profile</code>). Halaman profil terbaru kini dilengkapi 6 tab terstruktur:<br>' .
+                           '• <strong>Data Akun &amp; Domisili</strong>: Nama, email, nomor WhatsApp aktif, dan alamat tempat tinggal.<br>' .
+                           '• <strong>Bank &amp; Berkas</strong>: Nama bank dan nomor rekening untuk transfer honor bulanan, serta unggah dokumen KTP, NPWP, dan CV.<br>' .
+                           '• <strong>Karir &amp; Logistik</strong>: Preferensi kendaraan operasional, ukuran kaos instruktur, dan catatan kompetensi.<br>' .
+                           '• <strong>Jadwal Mengajar</strong>: Daftar seluruh rombel aktif dan jadwal rutin yang sedang Anda ampu.<br>' .
+                           '• <strong>Riwayat Laporan</strong>: Rekap seluruh laporan mengajar lampau dengan tombol cepat Salin Teks &amp; Kirim WA.<br>' .
+                           '• <strong>Keamanan &amp; Password</strong>: Memperbarui password login secara mandiri tanpa harus menghubungi admin.',
                 ],
             ];
             @endphp

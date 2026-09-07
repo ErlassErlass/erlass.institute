@@ -3,11 +3,11 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Models\LaporanMengajar;
 use App\Notifications\Channels\WhatsAppChannel;
+use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class SessionReportNotification extends Notification
 {
@@ -34,35 +34,94 @@ class SessionReportNotification extends Notification
     public function via($notifiable)
     {
         return [WhatsAppChannel::class];
-        
-        /* Email disabled per user request
-        $channels = [WhatsAppChannel::class];
-        
-        // Only trigger mail if the notifiable has an email address
-        if (!empty($notifiable->email)) {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
-        */
     }
 
     /**
-     * Get the mail representation of the notification.
+     * Helper to generate standardized polite & informative text.
+     * Accessible by both notification and Blade views / clipboard.
      *
-     * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
+     * @param  LaporanMengajar  $report
+     * @return string
      */
-    public function toMail($notifiable)
+    public static function generateReportMessage(LaporanMengajar $report): string
     {
-        return (new MailMessage)
-                    ->subject('Laporan Mengajar - ' . $this->report->jadwal_mengajar->format('d M Y'))
-                    ->greeting('Halo, ' . $notifiable->nama_lengkap . '!')
-                    ->line('Berikut adalah laporan mengajar untuk sesi tanggal ' . $this->report->jadwal_mengajar->format('d M Y') . '.')
-                    ->line('Materi: ' . $this->report->materi)
-                    ->line('Catatan: ' . ($this->report->catatan ?? '-'))
-                    ->action('Lihat Detail', route('laporan-mengajar.show', $this->report))
-                    ->line('Terima kasih telah menggunakan layanan kami!');
+        $sekolahNama = $report->sekolah->nama_sekolah 
+            ?? $report->sekolah->namasekolah 
+            ?? $report->sekolah_nama 
+            ?? 'Sekolah';
+
+        $program = $report->getEkstrakurikulerName() 
+            ?? $report->kategori_pengajaran 
+            ?? 'Ekstrakurikuler';
+
+        $pertemuan = $report->pertemuan_ke 
+            ?? ($report->ekstrakurikulerSession?->nomor_pertemuan ?: '1');
+
+        $hariTanggal = $report->jadwal_mengajar 
+            ? Carbon::parse($report->jadwal_mengajar)->locale('id')->translatedFormat('l, d F Y')
+            : '-';
+
+        $jamMulai = $report->jam_mulai ? Carbon::parse($report->jam_mulai)->format('H:i') : null;
+        $jamSelesai = $report->jam_selesai ? Carbon::parse($report->jam_selesai)->format('H:i') : null;
+        $waktu = ($jamMulai && $jamSelesai) ? "{$jamMulai} - {$jamSelesai} WIB" : '-';
+
+        $instrukturNama = $report->instruktur->nama_lengkap 
+            ?? $report->instruktur->name 
+            ?? 'Instruktur';
+
+        $asistenText = '';
+        if ($report->asisten) {
+            $asistenNama = $report->asisten->nama_lengkap ?? $report->asisten->name;
+            if ($asistenNama) {
+                $asistenText = "\n• Asisten       : {$asistenNama}";
+            }
+        }
+
+        $hadir = (int) ($report->jumlah_hadir ?? $report->jumlah_siswa_hadir ?? 0);
+        $tidakHadir = (int) ($report->jumlah_tidak_hadir ?? $report->jumlah_siswa_tidak_hadir ?? 0);
+        $totalSiswa = $hadir + $tidakHadir;
+
+        $materi = trim($report->materi_pengajaran ?? '-');
+
+        // Evaluasi & Catatan
+        $evaluasiLines = [];
+        if (! empty($report->pemahaman_materi)) {
+            $pemahamanFormatted = ucwords(str_replace('_', ' ', $report->pemahaman_materi));
+            $evaluasiLines[] = "• Pemahaman : {$pemahamanFormatted}";
+        }
+        if (! empty($report->keaktifan)) {
+            $keaktifanFormatted = ucwords(str_replace('_', ' ', $report->keaktifan));
+            $evaluasiLines[] = "• Keaktifan : {$keaktifanFormatted}";
+        }
+
+        $catatan = trim($report->refleksi_siswa ?? $report->refleksi_capaian ?? '');
+        if (! empty($catatan)) {
+            $evaluasiLines[] = "• Catatan   : {$catatan}";
+        }
+
+        $evaluasiBlock = ! empty($evaluasiLines) ? implode("\n", $evaluasiLines) : '• Pembelajaran berjalan dengan baik dan lancar.';
+
+        $msg = "*LAPORAN KEGIATAN PEMBELAJARAN*\n\n"
+             . "Yth. Bapak/Ibu PIC & Tim {$sekolahNama},\n\n"
+             . "Berikut kami sampaikan laporan kegiatan pembelajaran ekstrakurikuler yang telah terlaksana dengan rincian sebagai berikut:\n\n"
+             . "📌 *Detail Kegiatan:*\n"
+             . "• Sekolah       : {$sekolahNama}\n"
+             . "• Program       : {$program}\n"
+             . "• Pertemuan     : Ke-{$pertemuan}\n"
+             . "• Hari, Tanggal : {$hariTanggal}\n"
+             . "• Waktu         : {$waktu}\n"
+             . "• Instruktur    : {$instrukturNama}{$asistenText}\n\n"
+             . "👥 *Kehadiran Siswa:*\n"
+             . "• Hadir         : {$hadir} siswa\n"
+             . "• Tidak Hadir   : {$tidakHadir} siswa\n"
+             . "• Total Siswa   : {$totalSiswa} siswa\n\n"
+             . "📖 *Materi Pembelajaran:*\n"
+             . "{$materi}\n\n"
+             . "📝 *Evaluasi & Catatan:*\n"
+             . "{$evaluasiBlock}\n\n"
+             . "Demikian laporan kegiatan ini kami sampaikan. Terima kasih banyak atas kerja sama dan dukungan Bapak/Ibu. 🙏";
+
+        return $msg;
     }
 
     /**
@@ -73,7 +132,30 @@ class SessionReportNotification extends Notification
      */
     public function toWhatsApp($notifiable)
     {
-        return "Laporan Mengajar:\n\nHalo {$notifiable->nama_lengkap},\nBerikut laporan sesi tanggal {$this->report->jadwal_mengajar->format('d M Y')}:\n\nMateri: {$this->report->materi}\nCatatan: " . ($this->report->catatan ?? '-') . "\n\nSelengkapnya: " . route('laporan-mengajar.show', $this->report);
+        return self::generateReportMessage($this->report);
+    }
+
+    /**
+     * Get public Image URL for WhatsApp (Fonnte) if available.
+     *
+     * @param  mixed  $notifiable
+     * @return string|null
+     */
+    public function toWhatsAppImageUrl($notifiable = null): ?string
+    {
+        if (! empty($this->report->foto_kegiatan)) {
+            // Check public disk
+            if (Storage::disk('public')->exists($this->report->foto_kegiatan)) {
+                return url(Storage::disk('public')->url($this->report->foto_kegiatan));
+            }
+            // If path already starts with http/https
+            if (str_starts_with($this->report->foto_kegiatan, 'http://') || str_starts_with($this->report->foto_kegiatan, 'https://')) {
+                return $this->report->foto_kegiatan;
+            }
+            return asset('storage/' . ltrim($this->report->foto_kegiatan, '/'));
+        }
+
+        return null;
     }
 
     /**
@@ -85,7 +167,8 @@ class SessionReportNotification extends Notification
     public function toArray($notifiable)
     {
         return [
-            //
+            'laporan_mengajar_id' => $this->report->id,
+            'pertemuan_ke' => $this->report->pertemuan_ke,
         ];
     }
 }

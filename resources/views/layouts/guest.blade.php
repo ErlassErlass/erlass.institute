@@ -13,7 +13,36 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Erlass Ekskul">
 
-    <title>@yield('title', 'Erlass Ekskul')</title>
+    <title>@yield('title', 'Erlass Institute — Portal Ekstrakurikuler & Instruktur')</title>
+    <meta name="description" content="@yield('meta_description', 'Portal resmi operasional ekstrakurikuler PT Erlass Prokreatif Indonesia. Manajemen jadwal mengajar, presensi instruktur sekolah, dan pendaftaran instruktur.')">
+    <link rel="canonical" href="{{ url()->current() }}">
+
+    <!-- Open Graph / WhatsApp Preview -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="@yield('og_title', 'Erlass Institute — Portal Ekstrakurikuler & Instruktur')">
+    <meta property="og:description" content="@yield('og_description', 'Portal resmi operasional ekstrakurikuler PT Erlass Prokreatif Indonesia. Manajemen jadwal mengajar, presensi instruktur sekolah, dan pendaftaran instruktur.')">
+    <meta property="og:image" content="{{ asset('images/logo-erlass.png') }}">
+    <meta property="og:site_name" content="Erlass Institute">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="@yield('og_title', 'Erlass Institute — Portal Ekstrakurikuler & Instruktur')">
+    <meta name="twitter:description" content="@yield('og_description', 'Portal resmi operasional ekstrakurikuler PT Erlass Prokreatif Indonesia. Manajemen jadwal mengajar, presensi instruktur sekolah, dan pendaftaran instruktur.')">
+    <meta name="twitter:image" content="{{ asset('images/logo-erlass.png') }}">
+
+    <!-- Schema.org Organization Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "EducationalOrganization",
+      "name": "PT Erlass Prokreatif Indonesia",
+      "alternateName": "Erlass Institute",
+      "url": "https://erlass.institute",
+      "logo": "{{ asset('images/logo-erlass.png') }}",
+      "description": "Layanan kemitraan ekstrakurikuler sekolah, manajemen instruktur, dan program pembelajaran kreatif."
+    }
+    </script>
 
     <!-- Fonts & Icons (Preconnected for instant rendering without FOUC delay) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -22,9 +22,13 @@
         <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
-                    <div class="avatar-initial rounded-circle bg-primary text-white mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; font-size: 2.5rem;">
-                        {{ substr($employee->nama_lengkap, 0, 1) }}
-                    </div>
+                    @if($employee->avatar_url)
+                        <img src="{{ $employee->avatar_url }}" alt="{{ $employee->nama_lengkap }}" class="rounded-circle border border-3 border-light shadow-sm mx-auto mb-3 object-fit-cover" style="width: 100px; height: 100px;">
+                    @else
+                        <div class="avatar-initial rounded-circle bg-primary text-white mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                            {{ $employee->initials }}
+                        </div>
+                    @endif
                     <h4 class="fw-bold">{{ $employee->nama_lengkap }}</h4>
                     <p class="text-muted mb-1">{{ $employee->email }}</p>
                     <span class="badge bg-info text-dark mb-3">{{ $employee->division->name ?? 'Belum ada divisi' }}</span>

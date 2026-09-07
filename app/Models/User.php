@@ -117,6 +117,7 @@ class User extends Authenticatable
         'application_date',
         'division_id',
         'instructor_id',
+        'foto_profil',
         'tanggal_aktif',
         'tanggal_nonaktif',
     ];
@@ -240,6 +241,27 @@ class User extends Authenticatable
     }
 
     /**
+     * Cek apakah instruktur sudah melengkapi data rekening bank.
+     * Mengembalikan true jika bukan instruktur, atau jika profil memiliki nama_bank dan no_rekening yang valid.
+     */
+    public function hasCompleteBankDetails(): bool
+    {
+        if ($this->role !== 'instruktur') {
+            return true;
+        }
+
+        $profile = $this->instructorProfile;
+        if (!$profile) {
+            return false;
+        }
+
+        $bank = trim((string)$profile->nama_bank);
+        $rek  = trim((string)$profile->no_rekening);
+
+        return $bank !== '' && $bank !== '-' && $rek !== '' && $rek !== '-';
+    }
+
+    /**
      * Cek apakah user adalah instruktur yang sudah terverifikasi
      */
     public function isVerifiedInstructor(): bool
@@ -288,6 +310,7 @@ class User extends Authenticatable
     {
         return $this->hasOne(Salesman::class);
     }
+
 
     /**
      * Get the extracurricular sessions assigned to the instructor.
@@ -358,4 +381,34 @@ class User extends Authenticatable
 
         return 'https://wa.me/' . $cleaned;
     }
+
+    /**
+     * Accessor for public avatar URL with fallback verification.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if ($this->foto_profil && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->foto_profil)) {
+            return asset('storage/' . $this->foto_profil);
+        }
+
+        return null;
+    }
+
+    /**
+     * Accessor for user initials (e.g. "Budi Santoso" -> "BS" or "B").
+     */
+    public function getInitialsAttribute(): string
+    {
+        $words = preg_split('/\s+/', trim($this->nama_lengkap ?? ''));
+        if (empty($words) || empty($words[0])) {
+            return 'U';
+        }
+
+        if (count($words) >= 2 && !empty($words[1])) {
+            return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+        }
+
+        return strtoupper(substr($words[0], 0, 1));
+    }
 }
+

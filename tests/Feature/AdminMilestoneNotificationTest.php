@@ -327,4 +327,65 @@ class AdminMilestoneNotificationTest extends TestCase
         // Harus NULL karena baru 2 sesi mengajar yang selesai (pertemuan 2 & 3 libur/ditunda)
         $this->assertNull($notif, 'Milestone notification tidak boleh muncul jika baru < 4 sesi mengajar yang selesai');
     }
+
+    public function test_admin_can_view_notification_center_and_toggle_read_unread(): void
+    {
+        $admin = User::create([
+            'nama_lengkap' => 'Admin Super',
+            'email' => 'admin_super@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin_sistem',
+            'status' => 'Aktif',
+        ]);
+
+        $notif = Notification::create([
+            'type' => 'milestone_report',
+            'title' => 'Test Milestone Notif',
+            'message' => 'Detail milestone report test',
+            'data' => [
+                'pertemuan_ke' => 4,
+                'sekolah_nama' => 'SMP Test',
+                'instruktur_nama' => 'Test Ins',
+                'rombel' => 'Rombel 1',
+                'tanggal_mengajar_4' => [
+                    ['pertemuan_ke' => 1, 'tanggal' => '01-08-2026'],
+                    ['pertemuan_ke' => 2, 'tanggal' => '08-08-2026'],
+                    ['pertemuan_ke' => 3, 'tanggal' => '15-08-2026'],
+                    ['pertemuan_ke' => 4, 'tanggal' => '22-08-2026'],
+                ],
+            ],
+            'is_read' => false,
+            'read_at' => null,
+        ]);
+
+        // 1. Check index page
+        $response = $this->actingAs($admin)->get(route('admin.notifications.index'));
+        $response->assertStatus(200);
+        $response->assertSee('Pusat Notifikasi & Arsip Milestone');
+        $response->assertSee('Test Milestone Notif');
+
+        // 2. Fetch unread API
+        $respUnread = $this->actingAs($admin)->get(route('admin.notifications.unread', ['status' => 'unread']));
+        $respUnread->assertStatus(200);
+        $respUnread->assertJsonPath('unread_count', 1);
+
+        // 3. Mark as read
+        $respMarkRead = $this->actingAs($admin)->post(route('admin.notifications.read', $notif->id));
+        $respMarkRead->assertStatus(200);
+        $notif->refresh();
+        $this->assertTrue($notif->is_read);
+        $this->assertNotNull($notif->read_at);
+
+        // 4. Fetch read API
+        $respRead = $this->actingAs($admin)->get(route('admin.notifications.unread', ['status' => 'read']));
+        $respRead->assertStatus(200);
+        $respRead->assertJsonPath('unread_count', 0);
+
+        // 5. Restore (Mark as unread)
+        $respMarkUnread = $this->actingAs($admin)->post(route('admin.notifications.unread.single', $notif->id));
+        $respMarkUnread->assertStatus(200);
+        $notif->refresh();
+        $this->assertFalse($notif->is_read);
+        $this->assertNull($notif->read_at);
+    }
 }

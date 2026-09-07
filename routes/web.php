@@ -89,6 +89,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('laporan-mengajar.get-materi');
     Route::post('/laporan-mengajar/{laporan}/relocate', [LaporanMengajarController::class, 'relocateReport'])
         ->name('laporan-mengajar.relocate');
+    Route::post('/laporan-mengajar/{laporan}/send-wa-report', [LaporanMengajarController::class, 'sendWaReport'])
+        ->name('laporan-mengajar.send-wa-report');
+    Route::get('/laporan-mengajar/{laporan}/wa-report-text', [LaporanMengajarController::class, 'getWaReportText'])
+        ->name('laporan-mengajar.wa-report-text');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/help', [HelpCenterController::class, 'index'])->name('help.index');
 
@@ -100,11 +104,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/tickets/{id}/reply', [TicketController::class, 'reply'])->name('tickets.reply');
     Route::patch('/tickets/{id}/status', [TicketController::class, 'updateStatus'])->name('tickets.update-status');
 
-    // Admin Milestone Notifications API
+    // Admin Milestone & Ticket Notifications
+    Route::get('/admin/notifications', [App\Http\Controllers\NotificationController::class, 'index'])
+        ->name('admin.notifications.index');
     Route::get('/admin/notifications/unread', [App\Http\Controllers\NotificationController::class, 'getUnreadNotifications'])
         ->name('admin.notifications.unread');
     Route::post('/admin/notifications/{notification}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])
         ->name('admin.notifications.read');
+    Route::post('/admin/notifications/{notification}/unread', [App\Http\Controllers\NotificationController::class, 'markAsUnread'])
+        ->name('admin.notifications.unread.single');
     Route::post('/admin/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])
         ->name('admin.notifications.read-all');
     Route::post('/ekstrakurikuler/sessions/{session}/checkin', [EkstrakurikulerSessionController::class, 'checkin'])->name('ekstrakurikuler.sessions.checkin');

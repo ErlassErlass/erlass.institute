@@ -271,15 +271,16 @@
                                             <span class="input-group-text bg-light border-end-0">
                                                 <i class="bi bi-bank text-muted"></i>
                                             </span>
-                                            <x-text-input 
-                                                id="nama_bank" 
-                                                name="nama_bank" 
-                                                type="text" 
-                                                :value="old('nama_bank')" 
-                                                required
-                                                placeholder="Contoh: BCA, Mandiri, BNI, BRI"
-                                                class="border-start-0 ps-0"
-                                            />
+                                            @php
+                                                $selectedBank = strtoupper(old('nama_bank', ''));
+                                                $bankList = \App\Models\InstructorProfile::listNamaBank();
+                                            @endphp
+                                            <select id="nama_bank" name="nama_bank" class="form-select border-start-0 ps-2" required>
+                                                <option value="" disabled {{ $selectedBank ? '' : 'selected' }}>-- Pilih Singkatan Bank --</option>
+                                                @foreach($bankList as $bank)
+                                                    <option value="{{ $bank }}" {{ $selectedBank === $bank ? 'selected' : '' }}>{{ $bank }}</option>
+                                                @endforeach
+                                            </select>
                                         </div>
                                         <x-input-error :messages="$errors->get('nama_bank')" class="mt-2" />
                                     </div>
@@ -295,12 +296,16 @@
                                                 id="no_rekening" 
                                                 name="no_rekening" 
                                                 type="text" 
+                                                inputmode="numeric"
+                                                pattern="[0-9]*"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                                 :value="old('no_rekening')" 
                                                 required
-                                                placeholder="Nomor rekening bank"
+                                                placeholder="Contoh: 12341332 (hanya angka)"
                                                 class="border-start-0 ps-0"
                                             />
                                         </div>
+                                        <div class="form-text text-muted" style="font-size: 0.72rem;">Hanya angka, otomatis tanpa spasi.</div>
                                         <x-input-error :messages="$errors->get('no_rekening')" class="mt-2" />
                                     </div>
 

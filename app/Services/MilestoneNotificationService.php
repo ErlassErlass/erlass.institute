@@ -88,37 +88,53 @@ class MilestoneNotificationService
 
     /**
      * Get the 4 valid teaching dates for a milestone block, ignoring libur/ditunda/dibatalkan sessions.
+     * Strictly verifies that all 4 meetings in the block (e.g. 1..4, 5..8) are completed without libur/ditunda.
      */
     public function getTeachingDatesForMilestone(?int $rombelId, int $pertemuanKe, ?EkstrakurikulerSession $currentSession = null, ?LaporanMengajar $currentLaporan = null): array
     {
-        if (!$rombelId) {
+        if (!$rombelId || $pertemuanKe <= 0 || $pertemuanKe % 4 !== 0) {
             return [];
         }
 
-        // Fetch sessions for this rombel up to current milestone meeting, strictly excluding libur/ditunda/dibatalkan
-        $validSessions = EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombelId)
-            ->whereNotIn('status', self::EXCLUDED_STATUSES)
-            ->where('nomor_pertemuan', '<=', $pertemuanKe)
-            ->where(function($q) use ($currentSession) {
-                $q->where('status', EkstrakurikulerSession::STATUS_SELESAI)
-                  ->orWhereHas('laporanMengajar');
-                if ($currentSession) {
-                    $q->orWhere('id', $currentSession->id);
-                }
-            })
+        $startPertemuan = $pertemuanKe - 3;
+        $endPertemuan = $pertemuanKe;
+
+        // Fetch sessions in this exact 4-meeting window
+        $blockSessions = EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombelId)
+            ->where('nomor_pertemuan', '>=', $startPertemuan)
+            ->where('nomor_pertemuan', '<=', $endPertemuan)
             ->with('laporanMengajar')
-            ->orderBy('nomor_pertemuan', 'desc')
-            ->take(4)
-            ->get()
-            ->sortBy('nomor_pertemuan')
-            ->values();
+            ->orderBy('nomor_pertemuan', 'asc')
+            ->get();
+
+        if ($blockSessions->count() < 4) {
+            return [];
+        }
 
         $tanggalMengajarList = [];
-        foreach ($validSessions as $bSession) {
+        for ($pNum = $startPertemuan; $pNum <= $endPertemuan; $pNum++) {
+            $bSession = $blockSessions->firstWhere('nomor_pertemuan', $pNum);
+            if (!$bSession) {
+                return [];
+            }
+
+            // If any session in this block is libur, ditunda, dibatalkan, or tidak_hadir -> milestone not reached
+            if (in_array($bSession->status, self::EXCLUDED_STATUSES)) {
+                return [];
+            }
+
+            $isCurrent = ($currentSession && $bSession->id === $currentSession->id);
+            $hasReport = $bSession->laporanMengajar || ($isCurrent && $currentLaporan);
+            $isCompleted = ($bSession->status === EkstrakurikulerSession::STATUS_SELESAI) || $hasReport;
+
+            if (!$isCompleted) {
+                return [];
+            }
+
             $tgl = null;
             if ($bSession->laporanMengajar && $bSession->laporanMengajar->jadwal_mengajar) {
                 $tgl = Carbon::parse($bSession->laporanMengajar->jadwal_mengajar)->format('d-m-Y');
-            } elseif ($currentLaporan && $bSession->id === $currentSession?->id && $currentLaporan->jadwal_mengajar) {
+            } elseif ($isCurrent && $currentLaporan && $currentLaporan->jadwal_mengajar) {
                 $tgl = Carbon::parse($currentLaporan->jadwal_mengajar)->format('d-m-Y');
             } elseif ($bSession->tanggal_pelaksanaan) {
                 $tgl = Carbon::parse($bSession->tanggal_pelaksanaan)->format('d-m-Y');
@@ -132,7 +148,7 @@ class MilestoneNotificationService
             ];
         }
 
-        return $tanggalMengajarList;
+        return count($tanggalMengajarList) === 4 ? $tanggalMengajarList : [];
     }
 
     /**

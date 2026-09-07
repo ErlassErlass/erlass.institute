@@ -1,5 +1,10 @@
 @extends('layouts.guest')
 
+@section('title', 'Erlass Institute — Portal Ekstrakurikuler Sekolah & Instruktur')
+@section('meta_description', 'Portal operasional resmi PT Erlass Prokreatif Indonesia. Layanan kemitraan ekstrakurikuler sekolah, jadwal mengajar, dan pendaftaran instruktur.')
+@section('og_title', 'Erlass Institute — Portal Ekstrakurikuler Sekolah & Instruktur')
+@section('og_description', 'Portal operasional resmi PT Erlass Prokreatif Indonesia. Layanan kemitraan ekstrakurikuler sekolah, jadwal mengajar, dan pendaftaran instruktur.')
+
 @push('styles')
 <style>
     body { background-color: #fff !important; display: block !important; padding: 0 !important; }
@@ -48,12 +53,12 @@
             <div class="mb-4">
                 <img src="{{ asset('images/logo-erlass.png') }}" alt="Erlass Logo" width="120" height="120" fetchpriority="high" decoding="async" class="img-fluid" style="max-height: 120px; filter: brightness(0) invert(1);">
             </div>
-            <h1 class="display-5 fw-bold mb-3 text-white">Transformasi Digital<br>Ekstrakurikuler Sekolah</h1>
-            <p class="lead mb-5" style="color: rgba(255, 255, 255, 0.92);">Solusi terintegrasi untuk manajemen jadwal, absensi real-time, dan pelaporan kegiatan ekstrakurikuler yang efisien dan transparan.</p>
+            <h1 class="display-5 fw-bold mb-3 text-white">Platform Ekstrakurikuler<br>Sekolah & Instruktur</h1>
+            <p class="lead mb-5" style="color: rgba(255, 255, 255, 0.92);">Pusat operasional ekstrakurikuler PT Erlass Prokreatif Indonesia. Mengelola jadwal belajar, presensi instruktur di sekolah, dan laporan kegiatan.</p>
             
             <div class="stat-badge d-inline-flex align-items-center bg-white bg-opacity-10 backdrop-blur border border-white border-opacity-20 px-4 py-2 rounded-pill text-white">
                 <i class="bi bi-people-fill me-2"></i>
-                <span>Bergabung dengan +70 Instruktur Berbakat</span>
+                <span>+70 Instruktur Aktif di Sekolah Mitra</span>
             </div>
         </div>
     </div>

@@ -79,6 +79,13 @@ class GoogleSheetsController extends Controller
                 'icon' => 'bi-collection-play-fill text-primary',
                 'cached_rows' => count(Cache::get('google_sheets_data_' . GoogleSheetsService::TAB_PROGRAM_EKSKUL, [])),
             ],
+            [
+                'key' => GoogleSheetsService::TAB_REKAP_HONOR_INSTRUKTUR,
+                'name' => '8. Rekap Honor Instruktur',
+                'description' => 'Rekapitulasi per instruktur: nama asisten, tanggal & jam submit laporan terbaru, sekolah, program ekskul, rombel, total siswa hadir, honor final (net), nomor rekening, dan NIK.',
+                'icon' => 'bi-person-badge-fill text-success',
+                'cached_rows' => count(Cache::get('google_sheets_data_' . GoogleSheetsService::TAB_REKAP_HONOR_INSTRUKTUR, [])),
+            ],
         ];
 
         return view('admin.google-sheets.index', compact(
@@ -161,6 +168,8 @@ class GoogleSheetsController extends Controller
             'program' => GoogleSheetsService::TAB_PROGRAM_EKSKUL,
             'program_ekskul' => GoogleSheetsService::TAB_PROGRAM_EKSKUL,
             'Daftar_Program_Ekskul' => GoogleSheetsService::TAB_PROGRAM_EKSKUL,
+            'rekap_honor_instruktur' => GoogleSheetsService::TAB_REKAP_HONOR_INSTRUKTUR,
+            'Rekap_Honor_Instruktur' => GoogleSheetsService::TAB_REKAP_HONOR_INSTRUKTUR,
         ];
 
         $tabKey = $validTabs[$tab] ?? $tab;

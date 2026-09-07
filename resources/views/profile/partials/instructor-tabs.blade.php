@@ -1,29 +1,38 @@
-<div class="card glass-card border-0 shadow-sm">
-    <div class="card-header bg-white py-3 border-bottom">
-        <ul class="nav nav-tabs card-header-tabs" id="instructorProfileTabs" role="tablist">
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="card-header bg-white p-3.5 border-bottom">
+        <ul class="nav nav-pills-impeccable" id="instructorProfileTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active fw-bold text-dark" id="account-tab" data-bs-toggle="tab" data-bs-target="#account-pane" type="button" role="tab" aria-controls="account-pane" aria-selected="true">
-                    <i class="bi bi-person-fill me-1"></i> Data Akun & Domisili
+                <button class="nav-link active" id="account-tab" data-bs-toggle="tab" data-bs-target="#account-pane" type="button" role="tab" aria-controls="account-pane" aria-selected="true">
+                    <i class="bi bi-person-fill"></i> Data Akun & Domisili
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link fw-bold text-dark" id="docs-tab" data-bs-toggle="tab" data-bs-target="#docs-pane" type="button" role="tab" aria-controls="docs-pane" aria-selected="false">
-                    <i class="bi bi-card-text me-1"></i> Bank & Berkas
+                <button class="nav-link" id="docs-tab" data-bs-toggle="tab" data-bs-target="#docs-pane" type="button" role="tab" aria-controls="docs-pane" aria-selected="false">
+                    <i class="bi bi-credit-card-2-front"></i> Bank & Berkas
+                    @if(empty($profile->nama_bank) || empty($profile->no_rekening))
+                        <span class="badge bg-danger rounded-pill ms-1" style="font-size: 0.68rem;">Wajib</span>
+                    @endif
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link fw-bold text-dark" id="professional-tab" data-bs-toggle="tab" data-bs-target="#professional-pane" type="button" role="tab" aria-controls="professional-pane" aria-selected="false">
-                    <i class="bi bi-mortarboard-fill me-1"></i> Karir & Logistik
+                <button class="nav-link" id="professional-tab" data-bs-toggle="tab" data-bs-target="#professional-pane" type="button" role="tab" aria-controls="professional-pane" aria-selected="false">
+                    <i class="bi bi-mortarboard-fill"></i> Karir & Logistik
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link fw-bold text-dark" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule-pane" type="button" role="tab" aria-controls="schedule-pane" aria-selected="false">
-                    <i class="bi bi-calendar-week-fill me-1"></i> Jadwal Mengajar
+                <button class="nav-link" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule-pane" type="button" role="tab" aria-controls="schedule-pane" aria-selected="false">
+                    <i class="bi bi-calendar-week-fill"></i> Jadwal Mengajar
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link fw-bold text-dark" id="security-tab" data-bs-toggle="tab" data-bs-target="#security-pane" type="button" role="tab" aria-controls="security-pane" aria-selected="false">
-                    <i class="bi bi-shield-lock-fill me-1"></i> Ganti Password
+                <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports-pane" type="button" role="tab" aria-controls="reports-pane" aria-selected="false">
+                    <i class="bi bi-journal-check"></i> Riwayat Laporan
+                    <span class="badge bg-primary bg-opacity-20 text-primary ms-1 rounded-pill">{{ count($recentReports ?? []) }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security-pane" type="button" role="tab" aria-controls="security-pane" aria-selected="false">
+                    <i class="bi bi-shield-lock-fill"></i> Ganti Password
                 </button>
             </li>
         </ul>
@@ -39,6 +48,44 @@
                 <div class="tab-pane fade show active" id="account-pane" role="tabpanel" aria-labelledby="account-tab" tabindex="0">
                     <h5 class="text-primary fw-bold border-bottom pb-2 mb-4"><i class="bi bi-person-lines-fill me-2"></i>Data Akun & Domisili</h5>
                     
+                    <!-- Foto Profil Instruktur Card -->
+                    <div class="card bg-light border-0 shadow-sm rounded-4 p-3 mb-4">
+                        <div class="d-flex flex-column flex-sm-row align-items-center gap-3">
+                            <div class="position-relative">
+                                <div id="avatarContainer" class="rounded-circle shadow-sm border border-3 border-white d-flex align-items-center justify-content-center overflow-hidden bg-primary bg-opacity-10" style="width: 96px; height: 96px;">
+                                    @if($user->avatar_url)
+                                        <img id="avatarImagePreview" src="{{ $user->avatar_url }}" alt="{{ $user->nama_lengkap }}" class="w-100 h-100 object-fit-cover">
+                                        <span id="avatarInitialsFallback" class="d-none fw-bold text-primary" style="font-size: 2rem;">{{ $user->initials }}</span>
+                                    @else
+                                        <img id="avatarImagePreview" src="" alt="Preview" class="w-100 h-100 object-fit-cover d-none">
+                                        <span id="avatarInitialsFallback" class="fw-bold text-primary" style="font-size: 2rem;">{{ $user->initials }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 text-center text-sm-start">
+                                <h6 class="fw-bold text-dark mb-1">Foto Profil Instruktur</h6>
+                                <p class="text-muted small mb-2">
+                                    Unggah foto formal / semi-formal dengan pakaian rapi.
+                                </p>
+                                <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-sm-start gap-2">
+                                    <label for="foto_profil" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 shadow-sm mb-0 cursor-pointer">
+                                        <i class="bi bi-camera-fill me-1"></i> Pilih Foto
+                                    </label>
+                                    <input type="file" id="foto_profil" name="foto_profil" class="d-none" accept="image/jpeg,image/png,image/jpg,image/webp">
+                                    <input type="hidden" id="remove_foto_profil" name="remove_foto_profil" value="0">
+                                    
+                                    <button type="button" id="btnRemoveAvatar" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1.5 {{ $user->foto_profil ? '' : 'd-none' }}">
+                                        <i class="bi bi-trash3 me-1"></i> Hapus Foto
+                                    </button>
+                                    <span id="selectedFileName" class="small text-muted fst-italic d-none"></span>
+                                </div>
+                                @error('foto_profil')
+                                    <div class="text-danger small mt-1"><i class="bi bi-exclamation-triangle me-1"></i>{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="nama_lengkap" class="form-label small text-muted text-uppercase fw-bold">Nama Lengkap</label>
@@ -118,7 +165,22 @@
 
                 <!-- Tab 2: Bank & Berkas -->
                 <div class="tab-pane fade" id="docs-pane" role="tabpanel" aria-labelledby="docs-tab" tabindex="0">
-                    <h5 class="text-primary fw-bold border-bottom pb-2 mb-4"><i class="bi bi-bank me-2"></i>Data Bank & Berkas</h5>
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4">
+                        <h5 class="text-primary fw-bold mb-0"><i class="bi bi-bank me-2"></i>Data Bank & Berkas</h5>
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle rounded-pill px-3 py-1 fw-bold" style="font-size: 0.75rem;">
+                            <i class="bi bi-asterisk me-1"></i>Rekening Wajib untuk Pencairan Honor
+                        </span>
+                    </div>
+
+                    @if(empty($profile->nama_bank) || empty($profile->no_rekening))
+                    <div class="alert alert-danger border-0 rounded-4 p-3 mb-4 d-flex align-items-center shadow-xs" style="background: #FEF2F2; border-left: 5px solid #EF4444 !important;">
+                        <i class="bi bi-exclamation-octagon-fill text-danger fs-3 me-3"></i>
+                        <div>
+                            <div class="fw-bold text-danger">Data Rekening Bank Wajib Diisi!</div>
+                            <small class="text-dark">Mohon pilih nama bank dan masukkan nomor rekening Anda dengan benar. Data rekening yang valid mutlak diwajibkan oleh bagian keuangan agar Anda dapat membuat laporan kegiatan mengajar dan pencairan honor dapat diproses tanpa kendala.</small>
+                        </div>
+                    </div>
+                    @endif
                     
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
@@ -128,12 +190,34 @@
                         </div>
                         <div class="col-md-4">
                             <label for="nama_bank" class="form-label small text-muted text-uppercase fw-bold">Nama Bank <span class="text-danger">*</span></label>
-                            <input type="text" id="nama_bank" name="nama_bank" class="form-control @error('nama_bank') is-invalid @enderror" value="{{ old('nama_bank', $profile->nama_bank ?? '') }}" required placeholder="BCA / Mandiri / BNI">
+                            @php
+                                $selectedBank = strtoupper(old('nama_bank', $profile->nama_bank ?? ''));
+                                $bankList = \App\Models\InstructorProfile::listNamaBank();
+                            @endphp
+                            <select id="nama_bank" name="nama_bank" class="form-select @error('nama_bank') is-invalid @enderror" required>
+                                <option value="" disabled {{ $selectedBank ? '' : 'selected' }}>-- Pilih Singkatan Bank --</option>
+                                @foreach($bankList as $bank)
+                                    <option value="{{ $bank }}" {{ $selectedBank === $bank ? 'selected' : '' }}>{{ $bank }}</option>
+                                @endforeach
+                                @if($selectedBank && !in_array($selectedBank, $bankList))
+                                    <option value="{{ $selectedBank }}" selected>{{ $selectedBank }}</option>
+                                @endif
+                            </select>
                             @error('nama_bank') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-4">
                             <label for="no_rekening" class="form-label small text-muted text-uppercase fw-bold">No. Rekening <span class="text-danger">*</span></label>
-                            <input type="text" id="no_rekening" name="no_rekening" class="form-control font-monospace @error('no_rekening') is-invalid @enderror" value="{{ old('no_rekening', $profile->no_rekening ?? '') }}" required>
+                            <input type="text" id="no_rekening" name="no_rekening" 
+                                class="form-control font-monospace @error('no_rekening') is-invalid @enderror" 
+                                value="{{ old('no_rekening', $profile->no_rekening ?? '') }}" 
+                                inputmode="numeric" 
+                                pattern="[0-9]*" 
+                                minlength="5"
+                                maxlength="30"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
+                                placeholder="Contoh: 12341332 (hanya angka)" 
+                                required>
+                            <div class="form-text text-muted" style="font-size: 0.72rem;">Wajib untuk pencairan honor. Hanya angka, tanpa spasi.</div>
                             @error('no_rekening') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-4">
@@ -143,21 +227,29 @@
                         </div>
                     </div>
 
-                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-arrow-up me-2"></i>Unggah Dokumen Verifikasi</h6>
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-arrow-up me-2 text-primary"></i>Unggah Dokumen Verifikasi</h6>
                     
                     <div class="row g-4">
                         <!-- Foto KTP -->
                         <div class="col-md-4">
-                            <div class="border rounded p-3 bg-light bg-opacity-50 h-100 d-flex flex-column justify-content-between">
+                            <div class="card border border-light-subtle rounded-4 p-3.5 bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
                                 <div>
-                                    <label for="foto_ktp" class="form-label fw-bold small text-dark mb-1">Foto KTP <span class="text-danger">*</span></label>
-                                    <input type="file" id="foto_ktp" name="foto_ktp" class="form-control @error('foto_ktp') is-invalid @enderror" accept="image/*">
-                                    <div class="form-text small">Maks 5MB. Format JPG/PNG.</div>
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="stat-icon-circle bg-primary bg-opacity-10 text-primary" style="width: 32px; height: 32px; font-size: 1rem;">
+                                                <i class="bi bi-person-vcard"></i>
+                                            </div>
+                                            <span class="fw-bold small text-dark">Foto KTP</span>
+                                        </div>
+                                        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">Wajib</span>
+                                    </div>
+                                    <input type="file" id="foto_ktp" name="foto_ktp" class="form-control form-control-sm @error('foto_ktp') is-invalid @enderror" accept="image/*">
+                                    <div class="form-text small text-muted mt-1.5" style="font-size: 0.72rem;"><i class="bi bi-info-circle me-1"></i>Maks 5MB. Format JPG/PNG.</div>
                                     @error('foto_ktp') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                                 @if(isset($profile->foto_ktp) && $profile->foto_ktp)
-                                    <div class="mt-3 pt-2 border-top">
-                                        <a href="{{ Storage::url($profile->foto_ktp) }}" target="_blank" class="btn btn-xs btn-outline-success w-100 rounded-pill">
+                                    <div class="mt-3 pt-2.5 border-top">
+                                        <a href="{{ Storage::url($profile->foto_ktp) }}" target="_blank" class="btn btn-sm btn-outline-success w-100 rounded-pill fw-semibold" style="font-size: 0.78rem;">
                                             <i class="bi bi-image me-1"></i> Lihat KTP Terunggah
                                         </a>
                                     </div>
@@ -167,16 +259,24 @@
 
                         <!-- Foto NPWP -->
                         <div class="col-md-4">
-                            <div class="border rounded p-3 bg-light bg-opacity-50 h-100 d-flex flex-column justify-content-between">
+                            <div class="card border border-light-subtle rounded-4 p-3.5 bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
                                 <div>
-                                    <label for="foto_npwp" class="form-label fw-bold small text-dark mb-1">Foto NPWP</label>
-                                    <input type="file" id="foto_npwp" name="foto_npwp" class="form-control @error('foto_npwp') is-invalid @enderror" accept="image/*">
-                                    <div class="form-text small">Maks 5MB. Format JPG/PNG.</div>
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="stat-icon-circle bg-success bg-opacity-10 text-success" style="width: 32px; height: 32px; font-size: 1rem;">
+                                                <i class="bi bi-card-heading"></i>
+                                            </div>
+                                            <span class="fw-bold small text-dark">Foto NPWP</span>
+                                        </div>
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">Opsional</span>
+                                    </div>
+                                    <input type="file" id="foto_npwp" name="foto_npwp" class="form-control form-control-sm @error('foto_npwp') is-invalid @enderror" accept="image/*">
+                                    <div class="form-text small text-muted mt-1.5" style="font-size: 0.72rem;"><i class="bi bi-info-circle me-1"></i>Maks 5MB. Format JPG/PNG.</div>
                                     @error('foto_npwp') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                                 @if(isset($profile->foto_npwp) && $profile->foto_npwp)
-                                    <div class="mt-3 pt-2 border-top">
-                                        <a href="{{ Storage::url($profile->foto_npwp) }}" target="_blank" class="btn btn-xs btn-outline-success w-100 rounded-pill">
+                                    <div class="mt-3 pt-2.5 border-top">
+                                        <a href="{{ Storage::url($profile->foto_npwp) }}" target="_blank" class="btn btn-sm btn-outline-success w-100 rounded-pill fw-semibold" style="font-size: 0.78rem;">
                                             <i class="bi bi-image me-1"></i> Lihat NPWP Terunggah
                                         </a>
                                     </div>
@@ -186,16 +286,24 @@
 
                         <!-- CV / Resume -->
                         <div class="col-md-4">
-                            <div class="border rounded p-3 bg-light bg-opacity-50 h-100 d-flex flex-column justify-content-between">
+                            <div class="card border border-light-subtle rounded-4 p-3.5 bg-white shadow-xs h-100 d-flex flex-column justify-content-between">
                                 <div>
-                                    <label for="cv" class="form-label fw-bold small text-dark mb-1">CV / Resume <span class="text-danger">*</span></label>
-                                    <input type="file" id="cv" name="cv" class="form-control @error('cv') is-invalid @enderror" accept=".pdf,.doc,.docx">
-                                    <div class="form-text small">Maks 5MB. Format PDF/DOCX.</div>
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="stat-icon-circle text-purple" style="background: rgba(139, 92, 246, 0.12); color: #8B5CF6; width: 32px; height: 32px; font-size: 1rem;">
+                                                <i class="bi bi-file-earmark-person"></i>
+                                            </div>
+                                            <span class="fw-bold small text-dark">CV / Resume</span>
+                                        </div>
+                                        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">Wajib</span>
+                                    </div>
+                                    <input type="file" id="cv" name="cv" class="form-control form-control-sm @error('cv') is-invalid @enderror" accept=".pdf,.doc,.docx">
+                                    <div class="form-text small text-muted mt-1.5" style="font-size: 0.72rem;"><i class="bi bi-info-circle me-1"></i>Maks 5MB. Format PDF/DOCX.</div>
                                     @error('cv') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                                 @if(isset($profile->cv_link) && $profile->cv_link)
-                                    <div class="mt-3 pt-2 border-top">
-                                        <a href="{{ Storage::url($profile->cv_link) }}" target="_blank" class="btn btn-xs btn-outline-primary w-100 rounded-pill">
+                                    <div class="mt-3 pt-2.5 border-top">
+                                        <a href="{{ Storage::url($profile->cv_link) }}" target="_blank" class="btn btn-sm btn-outline-primary w-100 rounded-pill fw-semibold" style="font-size: 0.78rem;">
                                             <i class="bi bi-file-earmark-pdf me-1"></i> Lihat CV Terunggah
                                         </a>
                                     </div>
@@ -347,44 +455,370 @@
                         </table>
                     </div>
                 </div>
-            </div>
-            
-            <div class="mt-5 text-center">
-                <button type="submit" class="btn btn-primary px-5 py-3 fw-bold rounded-pill shadow-lg hover-scale">
-                    <i class="bi bi-save me-2"></i> Simpan Pembaruan Profil
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
 
-<!-- Tab 5: Security / Password Form (Separate Form) -->
-<div class="tab-pane fade d-none" id="security-pane" role="tabpanel" aria-labelledby="security-tab" tabindex="0">
-    <!-- Managed via JS tab-switching below to prevent nested form issues -->
+                <div id="submitProfileBtnContainer" class="mt-5 text-center">
+                    <button type="submit" class="btn btn-primary px-5 py-3 fw-bold rounded-pill shadow-lg hover-scale">
+                        <i class="bi bi-save me-2"></i> Simpan Pembaruan Profil
+                    </button>
+                </div>
+            </form>
+
+            <!-- Tab 5: Riwayat Laporan Mengajar Sesi -->
+            <div class="tab-pane fade" id="reports-pane" role="tabpanel" aria-labelledby="reports-tab" tabindex="0">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 border-bottom pb-3 mb-4">
+                    <div>
+                        <h5 class="text-primary fw-bold mb-1"><i class="bi bi-journal-check me-2"></i>Riwayat Laporan Mengajar Sesi</h5>
+                        <p class="text-muted small mb-0">Daftar sesi pembelajaran yang telah selesai. Anda dapat menyalin format laporan atau mengirimkannya langsung ke nomor WhatsApp Anda via Fonnte.</p>
+                    </div>
+                    <a href="{{ route('laporan-mengajar.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold">
+                        <i class="bi bi-arrow-right-circle me-1"></i> Buka Semua Laporan
+                    </a>
+                </div>
+
+                @if(isset($recentReports) && count($recentReports) > 0)
+                    <div class="row g-3">
+                        @foreach($recentReports as $rep)
+                            @php
+                                $repMeta = is_array($rep->metadata_json) ? $rep->metadata_json : (json_decode($rep->metadata_json, true) ?? []);
+                                $repWaSent = !empty($repMeta['wa_report_sent']);
+                                $repWaSentAt = !empty($repMeta['wa_report_sent_at']) ? \Carbon\Carbon::parse($repMeta['wa_report_sent_at'])->locale('id')->translatedFormat('d M Y H:i') : '';
+                                $repWaText = \App\Notifications\SessionReportNotification::generateReportMessage($rep);
+                                $repSchool = $rep->sekolah->nama_sekolah ?? $rep->sekolah->namasekolah ?? $rep->sekolah_nama ?? 'Sekolah';
+                                $repProg = $rep->getEkstrakurikulerName() ?? $rep->kategori_pengajaran ?? 'Ekstrakurikuler';
+                                $repSiswaHadir = $rep->jumlah_siswa_hadir ?? $rep->jumlah_hadir ?? 0;
+                                $repSiswaTidakHadir = $rep->jumlah_siswa_tidak_hadir ?? $rep->jumlah_tidak_hadir ?? 0;
+                            @endphp
+                            <div class="col-12">
+                                <div class="profile-report-card">
+                                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-2">
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2.5 py-1 fw-bold">
+                                                Pertemuan Ke-{{ $rep->pertemuan_ke ?? ($rep->ekstrakurikulerSession?->nomor_pertemuan ?: '1') }}
+                                            </span>
+                                            <h6 class="fw-bold text-dark mb-0">{{ $repSchool }}</h6>
+                                            <span class="text-muted small">&bull; {{ $repProg }}</span>
+                                        </div>
+                                        <div class="text-muted small">
+                                            <i class="bi bi-calendar-event me-1 text-primary"></i>
+                                            {{ $rep->jadwal_mengajar ? $rep->jadwal_mengajar->translatedFormat('l, d M Y') : '-' }}
+                                            @if($rep->jam_mulai && $rep->jam_selesai)
+                                                ({{ \Carbon\Carbon::parse($rep->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($rep->jam_selesai)->format('H:i') }} WIB)
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-2 align-items-center mt-2">
+                                        <div class="col-md-7">
+                                            <div class="p-2.5 rounded-3 bg-light bg-opacity-75 small border border-light-subtle">
+                                                <div class="text-muted fw-semibold mb-1"><i class="bi bi-book me-1 text-primary"></i>Materi Pembelajaran:</div>
+                                                <div class="text-dark fw-medium text-truncate-2">{{ $rep->materi_pengajaran ?: 'Belum ada catatan materi.' }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5 d-flex flex-column align-items-md-end gap-2">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1">
+                                                    <i class="bi bi-check-circle me-1"></i>{{ $repSiswaHadir }} Hadir
+                                                </span>
+                                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2.5 py-1">
+                                                    <i class="bi bi-x-circle me-1"></i>{{ $repSiswaTidakHadir }} Tdk Hadir
+                                                </span>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                @if(!empty(trim($rep->materi_pengajaran ?? '')))
+                                                    <button type="button" class="btn btn-xs btn-light border rounded-pill px-2.5 py-1 fw-semibold btn-copy-wa shadow-xs" data-text="{{ e($repWaText) }}" title="Salin Teks Laporan">
+                                                        <i class="bi bi-clipboard me-1 text-primary"></i> Salin
+                                                    </button>
+                                                    @if($repWaSent)
+                                                        <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2.5 py-1 fw-semibold disabled" disabled title="Laporan sudah dikirim pada {{ $repWaSentAt }}">
+                                                            <i class="bi bi-check-all me-1"></i> Terkirim ({{ $repWaSentAt }})
+                                                        </button>
+                                                    @else
+                                                        <button type="button" class="btn btn-xs btn-success rounded-pill px-2.5 py-1 fw-bold btn-send-wa shadow-xs" data-url="{{ route('laporan-mengajar.send-wa-report', $rep) }}" data-instructor="{{ $user->nama_lengkap }}" data-phone="{{ $user->no_telephone }}" title="Kirim ke WA Saya">
+                                                            <i class="bi bi-whatsapp me-1"></i> Kirim WA
+                                                        </button>
+                                                    @endif
+                                                @endif
+                                                <a href="{{ route('laporan-mengajar.show', $rep) }}" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 fw-semibold" title="Lihat Detail Laporan">
+                                                    <i class="bi bi-eye me-1"></i> Detail
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-5">
+                        <div class="mb-3">
+                            <div class="stat-icon-circle mx-auto bg-primary bg-opacity-10 text-primary" style="width: 64px; height: 64px; font-size: 1.75rem;">
+                                <i class="bi bi-journal-x"></i>
+                            </div>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">Belum Ada Riwayat Laporan Mengajar</h6>
+                        <p class="text-muted small mb-3">Laporan sesi mengajar yang telah Anda buat dan selesaikan akan tampil di sini.</p>
+                        <a href="{{ route('laporan-mengajar.create') }}" class="btn btn-sm btn-primary rounded-pill px-4 py-2 fw-semibold">
+                            <i class="bi bi-plus-circle me-1"></i> Buat Laporan Mengajar
+                        </a>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Tab 6: Ganti Password Keamanan -->
+            <div class="tab-pane fade" id="security-pane" role="tabpanel" aria-labelledby="security-tab" tabindex="0">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 border-bottom pb-3 mb-4">
+                    <div>
+                        <h5 class="text-primary fw-bold mb-1"><i class="bi bi-shield-lock-fill me-2"></i>Ganti Password Keamanan</h5>
+                        <p class="text-muted small mb-0">Pastikan akun Anda menggunakan password yang kuat dan aman untuk melindungi privasi data Anda.</p>
+                    </div>
+                </div>
+                <div class="col-lg-8 mx-auto py-2">
+                    @include('profile.partials.update-password-form')
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const tabEl = document.querySelectorAll('#instructorProfileTabs button');
-        const securityPane = document.getElementById('security-pane');
-        const securityFormCard = document.getElementById('securityFormCard');
-        const instructorFormCard = document.getElementById('instructorProfileForm');
+        const submitContainer = document.getElementById('submitProfileBtnContainer');
 
         tabEl.forEach(tab => {
             tab.addEventListener('shown.bs.tab', function(event) {
-                if (event.target.id === 'security-tab') {
-                    // Move security form to the active pane area
-                    securityPane.classList.remove('d-none');
-                    securityPane.appendChild(securityFormCard);
-                    instructorFormCard.classList.add('d-none');
+                const targetId = event.target.id;
+                if (targetId === 'security-tab' || targetId === 'reports-tab') {
+                    if (submitContainer) submitContainer.classList.add('d-none');
                 } else {
-                    // Restore main form
-                    instructorFormCard.classList.remove('d-none');
-                    securityPane.classList.add('d-none');
-                    document.body.appendChild(securityFormCard); // move it outside form temporarily
+                    if (submitContainer) submitContainer.classList.remove('d-none');
                 }
             });
         });
+
+        // Auto-switch to tab on URL parameter (?tab=bank) or hash or validation errors or password update status
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('tab') === 'bank' || urlParams.get('tab') === 'docs' || window.location.hash === '#docs-pane') {
+            const docsTabBtn = document.getElementById('docs-tab');
+            if (docsTabBtn) {
+                bootstrap.Tab.getOrCreateInstance(docsTabBtn).show();
+            }
+        } else if (@json($errors->updatePassword->any()) || @json(session('status') === 'password-updated')) {
+            const secTabBtn = document.getElementById('security-tab');
+            if (secTabBtn) {
+                bootstrap.Tab.getOrCreateInstance(secTabBtn).show();
+            }
+        } else {
+            const firstInvalidInput = document.querySelector('#instructorProfileForm .is-invalid');
+            if (firstInvalidInput) {
+                const parentPane = firstInvalidInput.closest('.tab-pane');
+                if (parentPane && parentPane.id) {
+                    const correspondingTab = document.querySelector(`[data-bs-target="#${parentPane.id}"]`);
+                    if (correspondingTab) {
+                        bootstrap.Tab.getOrCreateInstance(correspondingTab).show();
+                    }
+                }
+            }
+        }
+
+        // 📋 Handle Salin Teks
+        document.querySelectorAll('.btn-copy-wa').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const text = this.getAttribute('data-text');
+                if (!text) return;
+
+                const showSuccess = () => {
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Teks Berhasil Disalin!',
+                            text: 'Format laporan yang rapi dan sopan telah disalin ke clipboard.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        alert('Teks laporan berhasil disalin!');
+                    }
+                };
+
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(showSuccess).catch(() => fallbackCopy(text, showSuccess));
+                } else {
+                    fallbackCopy(text, showSuccess);
+                }
+            });
+        });
+
+        function fallbackCopy(text, callback) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                if (callback) callback();
+            } catch (err) {
+                prompt('Salin teks laporan di bawah ini secara manual:', text);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // 📲 Handle Kirim ke WA Saya
+        document.querySelectorAll('.btn-send-wa').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.getAttribute('data-url');
+                const instructor = this.getAttribute('data-instructor') || 'Instruktur';
+                const phone = this.getAttribute('data-phone') || '';
+
+                if (!phone) {
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Nomor WA Belum Terdaftar',
+                            text: 'Nomor WhatsApp instruktur belum terdaftar pada profil akun.',
+                        });
+                    } else {
+                        alert('Nomor WhatsApp instruktur belum terdaftar pada profil.');
+                    }
+                    return;
+                }
+
+                const executeSend = () => {
+                    const originalHtml = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(res => res.json().then(data => ({ status: res.status, body: data })))
+                    .then(({ status, body }) => {
+                        if (status >= 200 && status < 300 && body.success) {
+                            btn.outerHTML = `<button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2.5 py-1 fw-semibold disabled" disabled title="Laporan sudah dikirim pada ${body.sent_at || 'Baru saja'}"><i class="bi bi-check-all me-1"></i> Terkirim (${body.sent_at || 'Baru saja'})</button>`;
+                            if (window.Swal) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil Terkirim!',
+                                    text: body.message || 'Laporan beserta foto kegiatan telah dikirim ke WhatsApp Anda.',
+                                });
+                            } else {
+                                alert(body.message || 'Laporan berhasil dikirim ke WhatsApp!');
+                            }
+                        } else {
+                            btn.disabled = false;
+                            btn.innerHTML = originalHtml;
+                            const errMsg = (body && body.message) ? body.message : 'Terjadi kesalahan saat mengirim laporan.';
+                            if (window.Swal) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Pengiriman Gagal',
+                                    text: errMsg,
+                                });
+                            } else {
+                                alert(errMsg);
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                        if (window.Swal) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gangguan Jaringan',
+                                text: 'Gagal menghubungi server. Silakan coba sesaat lagi.',
+                            });
+                        } else {
+                            alert('Gagal menghubungi server.');
+                        }
+                    });
+                };
+
+                if (window.Swal) {
+                    Swal.fire({
+                        title: 'Kirim Laporan ke WhatsApp?',
+                        html: `Laporan akan dikirimkan ke nomor WhatsApp <b>${phone}</b> (${instructor}) beserta foto kegiatan.<br><div class="alert alert-warning py-1 px-2 mt-2 mb-0 small"><i class="bi bi-exclamation-triangle me-1"></i> Pengiriman ini dibatasi <b>1 kali</b> per sesi laporan selesai.</div>`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#198754',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: '<i class="bi bi-whatsapp me-1"></i> Ya, Kirim Sekarang',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            executeSend();
+                        }
+                    });
+                } else {
+                    if (confirm(`Kirim laporan ke nomor WhatsApp ${phone} (${instructor})? (Batas 1x kirim)`)) {
+                        executeSend();
+                    }
+                }
+            });
+        });
+
+        // Avatar Upload & Live Preview Logic
+        const fotoProfilInput = document.getElementById('foto_profil');
+        const avatarImagePreview = document.getElementById('avatarImagePreview');
+        const avatarInitialsFallback = document.getElementById('avatarInitialsFallback');
+        const btnRemoveAvatar = document.getElementById('btnRemoveAvatar');
+        const removeFotoProfilInput = document.getElementById('remove_foto_profil');
+        const selectedFileName = document.getElementById('selectedFileName');
+
+        if (fotoProfilInput) {
+            fotoProfilInput.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (!['image/jpeg', 'image/png', 'image/jpg', 'image/webp'].includes(file.type)) {
+                        alert('Format file tidak didukung. Harap pilih file JPG, PNG, atau WEBP.');
+                        fotoProfilInput.value = '';
+                        return;
+                    }
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Ukuran file melebihi 5MB. Silakan pilih foto lain.');
+                        fotoProfilInput.value = '';
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        avatarImagePreview.src = event.target.result;
+                        avatarImagePreview.classList.remove('d-none');
+                        avatarInitialsFallback.classList.add('d-none');
+                        btnRemoveAvatar.classList.remove('d-none');
+                        removeFotoProfilInput.value = '0';
+                        selectedFileName.textContent = file.name;
+                        selectedFileName.classList.remove('d-none');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        if (btnRemoveAvatar) {
+            btnRemoveAvatar.addEventListener('click', function () {
+                if (confirm('Apakah Anda yakin ingin menghapus foto profil ini?')) {
+                    fotoProfilInput.value = '';
+                    avatarImagePreview.src = '';
+                    avatarImagePreview.classList.add('d-none');
+                    avatarInitialsFallback.classList.remove('d-none');
+                    btnRemoveAvatar.classList.add('d-none');
+                    removeFotoProfilInput.value = '1';
+                    selectedFileName.textContent = '';
+                    selectedFileName.classList.add('d-none');
+                }
+            });
+        }
     });
 </script>
 

@@ -23,16 +23,40 @@ class WhatsAppChannel
      */
     public function send($notifiable, Notification $notification)
     {
+        $this->sendNotification($notifiable, $notification);
+    }
+
+    /**
+     * Send notification and return status boolean.
+     *
+     * @param  mixed  $notifiable
+     * @param  \Illuminate\Notifications\Notification  $notification
+     * @return bool
+     */
+    public function sendNotification($notifiable, Notification $notification): bool
+    {
         if (! method_exists($notification, 'toWhatsApp')) {
-            return;
+            return false;
         }
 
         $message = $notification->toWhatsApp($notifiable);
-        $raw = $notifiable->routeNotificationFor('whatsapp') ?? $notifiable->phone_number ?? $notifiable->no_wa ?? null;
+        $imageUrl = null;
+        if (method_exists($notification, 'toWhatsAppImageUrl')) {
+            $imageUrl = $notification->toWhatsAppImageUrl($notifiable);
+        } elseif (method_exists($notification, 'toWhatsAppImage')) {
+            $imageUrl = $notification->toWhatsAppImage($notifiable);
+        }
+
+        $raw = $notifiable->routeNotificationFor('whatsapp', $notification)
+            ?? $notifiable->routeNotificationFor('whatsapp')
+            ?? $notifiable->phone_number
+            ?? $notifiable->no_wa
+            ?? $notifiable->no_telephone
+            ?? null;
 
         if (! $raw) {
             Log::warning('WhatsApp Notification: No phone number found for notifiable ID ' . ($notifiable->id ?? 'unknown'));
-            return;
+            return false;
         }
 
         // Normalisasi nomor ke format internasional (62xxx)
@@ -40,21 +64,21 @@ class WhatsAppChannel
 
         if (! $to) {
             Log::warning("WhatsApp Notification: Nomor tidak valid atau tidak dapat dinormalisasi: {$raw}");
-            return;
+            return false;
         }
 
         $provider = config('services.whatsapp.provider', 'log');
 
         if ($provider === 'log') {
-            Log::info("WhatsApp Message to {$to}: \n{$message}");
-            return;
+            Log::info("WhatsApp Message to {$to}" . ($imageUrl ? " [Image: {$imageUrl}]" : "") . ": \n{$message}");
+            return true;
         }
 
         if ($provider === 'fonnte') {
-            $this->sendFonnte($to, $message);
+            return $this->sendFonnte($to, $message, $imageUrl);
         }
 
-        // Add other providers here (Twilio, WaBlas, etc.)
+        return false;
     }
 
     /**
@@ -78,9 +102,10 @@ class WhatsAppChannel
      *
      * @param  string  $target  Nomor dalam format 628xxx
      * @param  string  $message
+     * @param  string|null  $imageUrl  URL publik gambar (jika ada)
      * @return bool
      */
-    protected function sendFonnte(string $target, string $message): bool
+    protected function sendFonnte(string $target, string $message, ?string $imageUrl = null): bool
     {
         $token = config('services.whatsapp.fonnte_token');
 
@@ -99,18 +124,24 @@ class WhatsAppChannel
         usleep(random_int(1_000_000, 3_000_000));
 
         try {
-            $response = Http::timeout(15)->withHeaders([
-                'Authorization' => $token,
-            ])->post('https://api.fonnte.com/send', [
+            $payload = [
                 'target'      => $target,
                 'message'     => $message,
                 'countryCode' => '62',
-            ]);
+            ];
+
+            if (! empty($imageUrl)) {
+                $payload['url'] = $imageUrl;
+            }
+
+            $response = Http::timeout(15)->withHeaders([
+                'Authorization' => $token,
+            ])->post('https://api.fonnte.com/send', $payload);
 
             $body = $response->json();
 
             if ($response->successful() && ($body['status'] ?? false)) {
-                Log::info("WhatsApp (Fonnte): Pesan terkirim ke {$target}.");
+                Log::info("WhatsApp (Fonnte): Pesan" . (! empty($imageUrl) ? " dan gambar ({$imageUrl})" : "") . " terkirim ke {$target}.");
                 return true;
             }
 

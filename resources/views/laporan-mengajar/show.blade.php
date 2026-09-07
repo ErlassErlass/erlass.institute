@@ -315,6 +315,34 @@
                 <a href="{{ route('laporan-mengajar.index') }}" class="btn btn-sm btn-hero-action px-3 py-2">
                     <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar
                 </a>
+
+                @if(!empty(trim($laporanMengajar->materi_pengajaran ?? '')))
+                    @php
+                        $metaWa = is_array($laporanMengajar->metadata_json) ? $laporanMengajar->metadata_json : (json_decode($laporanMengajar->metadata_json, true) ?? []);
+                        $waSent = !empty($metaWa['wa_report_sent']);
+                        $waSentAt = !empty($metaWa['wa_report_sent_at']) ? \Carbon\Carbon::parse($metaWa['wa_report_sent_at'])->locale('id')->translatedFormat('d M Y H:i') : '';
+                        $waReportText = \App\Notifications\SessionReportNotification::generateReportMessage($laporanMengajar);
+                        $instrukturWa = $laporanMengajar->instruktur;
+                        $instrukturPhone = $instrukturWa->no_telephone ?? $instrukturWa->phone_number ?? $instrukturWa->no_wa ?? '';
+                    @endphp
+
+                    {{-- Tombol Salin Teks Laporan --}}
+                    <button type="button" class="btn btn-sm btn-light border text-dark fw-semibold px-3 py-2 rounded-3 shadow-sm btn-copy-wa" data-text="{{ e($waReportText) }}" title="Salin format laporan ke clipboard">
+                        <i class="bi bi-clipboard me-1 text-primary"></i> Salin Teks
+                    </button>
+
+                    {{-- Tombol Kirim ke WA Saya --}}
+                    @if($waSent)
+                        <button type="button" class="btn btn-sm btn-outline-success fw-semibold px-3 py-2 rounded-3 shadow-sm disabled" disabled title="Laporan sudah dikirim ke nomor WA instruktur pada {{ $waSentAt }}">
+                            <i class="bi bi-check-all me-1"></i> Terkirim ke WA ({{ $waSentAt }})
+                        </button>
+                    @else
+                        <button type="button" class="btn btn-sm btn-success fw-bold px-3 py-2 rounded-3 shadow-sm btn-send-wa" data-url="{{ route('laporan-mengajar.send-wa-report', $laporanMengajar) }}" data-instructor="{{ $instrukturWa->nama_lengkap ?? 'Instruktur' }}" data-phone="{{ $instrukturPhone }}">
+                            <i class="bi bi-whatsapp me-1"></i> Kirim ke WA Saya
+                        </button>
+                    @endif
+                @endif
+
                 @if(in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin']) && $isEkstrakurikuler)
                 <button type="button" class="btn btn-sm btn-warning text-dark fw-bold px-3 py-2 rounded-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#relocateReportModal">
                     <i class="bi bi-arrow-left-right me-1"></i> Pindahkan Pertemuan
@@ -741,6 +769,152 @@
         if (relocateModal && relocateModal.parentNode !== document.body) {
             document.body.appendChild(relocateModal);
         }
+
+        // 📋 Handle Salin Teks
+        document.querySelectorAll('.btn-copy-wa').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const text = this.getAttribute('data-text');
+                if (!text) return;
+
+                const showSuccess = () => {
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="bi bi-check2 text-success me-1"></i> Tersalin!';
+                    setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
+
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Teks Berhasil Disalin!',
+                            text: 'Format laporan yang rapi dan sopan telah disalin ke clipboard.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
+                };
+
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(showSuccess).catch(() => fallbackCopy(text, showSuccess));
+                } else {
+                    fallbackCopy(text, showSuccess);
+                }
+            });
+        });
+
+        function fallbackCopy(text, callback) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                if (callback) callback();
+            } catch (err) {
+                prompt('Salin teks laporan di bawah ini secara manual:', text);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // 📲 Handle Kirim ke WA Saya
+        document.querySelectorAll('.btn-send-wa').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const url = this.getAttribute('data-url');
+                const instructor = this.getAttribute('data-instructor') || 'Instruktur';
+                const phone = this.getAttribute('data-phone') || '';
+
+                if (!phone) {
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Nomor WA Belum Terdaftar',
+                            text: 'Nomor WhatsApp instruktur belum terdaftar pada profil akun.',
+                        });
+                    } else {
+                        alert('Nomor WhatsApp instruktur belum terdaftar pada profil.');
+                    }
+                    return;
+                }
+
+                const executeSend = () => {
+                    const originalHtml = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Mengirim...';
+
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(res => res.json().then(data => ({ status: res.status, body: data })))
+                    .then(({ status, body }) => {
+                        if (status >= 200 && status < 300 && body.success) {
+                            btn.outerHTML = `<button type="button" class="btn btn-sm btn-outline-success fw-semibold px-3 py-2 rounded-3 shadow-sm disabled" disabled title="Laporan sudah dikirim ke nomor WA instruktur"><i class="bi bi-check-all me-1"></i> Terkirim ke WA (${body.sent_at || 'Baru saja'})</button>`;
+                            if (window.Swal) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil Terkirim!',
+                                    text: body.message || 'Laporan beserta foto kegiatan telah dikirim ke WhatsApp Anda.',
+                                });
+                            } else {
+                                alert(body.message || 'Laporan berhasil dikirim ke WhatsApp!');
+                            }
+                        } else {
+                            btn.disabled = false;
+                            btn.innerHTML = originalHtml;
+                            const errMsg = (body && body.message) ? body.message : 'Terjadi kesalahan saat mengirim laporan.';
+                            if (window.Swal) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Pengiriman Gagal',
+                                    text: errMsg,
+                                });
+                            } else {
+                                alert(errMsg);
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                        if (window.Swal) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gangguan Jaringan',
+                                text: 'Gagal menghubungi server. Silakan coba sesaat lagi.',
+                            });
+                        } else {
+                            alert('Gagal menghubungi server.');
+                        }
+                    });
+                };
+
+                if (window.Swal) {
+                    Swal.fire({
+                        title: 'Kirim Laporan ke WhatsApp?',
+                        html: `Laporan akan dikirimkan ke nomor WhatsApp <b>${phone}</b> (${instructor}) beserta foto kegiatan.<br><div class="alert alert-warning py-1 px-2 mt-2 mb-0 small"><i class="bi bi-exclamation-triangle me-1"></i> Pengiriman ini dibatasi <b>1 kali</b> per sesi laporan selesai.</div>`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#198754',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: '<i class="bi bi-whatsapp me-1"></i> Ya, Kirim Sekarang',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            executeSend();
+                        }
+                    });
+                } else {
+                    if (confirm(`Kirim laporan ke nomor WhatsApp ${phone} (${instructor})? (Batas 1x kirim)`)) {
+                        executeSend();
+                    }
+                }
+            });
+        });
     });
 </script>
 @endpush

@@ -333,6 +333,7 @@
                                     <option value="D3" {{ old('pend_terakhir') == 'D3' ? 'selected' : '' }}>D3</option>
                                     <option value="D4/S1" {{ old('pend_terakhir') == 'D4/S1' ? 'selected' : '' }}>D4/S1</option>
                                     <option value="S2" {{ old('pend_terakhir') == 'S2' ? 'selected' : '' }}>S2</option>
+                                    <option value="S3" {{ old('pend_terakhir') == 'S3' ? 'selected' : '' }}>S3</option>
                                 </select>
                                 @error('pend_terakhir') <div class="small text-danger mt-1">{{ $message }}</div> @enderror
                              </div>
@@ -357,6 +358,7 @@
                                   <select class="form-select @error('kompetensi_1') is-invalid @enderror" name="kompetensi_1" required>
                                       <option value="">Pilih Kompetensi</option>
                                       <option value="Coding" {{ old('kompetensi_1') == 'Coding' ? 'selected' : '' }}>Coding</option>
+                                      <option value="Bahasa Inggris" {{ old('kompetensi_1') == 'Bahasa Inggris' ? 'selected' : '' }}>Bahasa Inggris</option>
                                       <option value="Robotik" {{ old('kompetensi_1') == 'Robotik' ? 'selected' : '' }}>Robotik</option>
                                       <option value="Desain" {{ old('kompetensi_1') == 'Desain' ? 'selected' : '' }}>Desain</option>
                                       <option value="IoT" {{ old('kompetensi_1') == 'IoT' ? 'selected' : '' }}>IoT</option>
@@ -369,6 +371,7 @@
                                   <select class="form-select @error('kompetensi_2') is-invalid @enderror" name="kompetensi_2">
                                       <option value="">Pilih Kompetensi (Opsional)</option>
                                       <option value="Coding" {{ old('kompetensi_2') == 'Coding' ? 'selected' : '' }}>Coding</option>
+                                      <option value="Bahasa Inggris" {{ old('kompetensi_2') == 'Bahasa Inggris' ? 'selected' : '' }}>Bahasa Inggris</option>
                                       <option value="Robotik" {{ old('kompetensi_2') == 'Robotik' ? 'selected' : '' }}>Robotik</option>
                                       <option value="Desain" {{ old('kompetensi_2') == 'Desain' ? 'selected' : '' }}>Desain</option>
                                       <option value="IoT" {{ old('kompetensi_2') == 'IoT' ? 'selected' : '' }}>IoT</option>
@@ -463,16 +466,34 @@
                              <i class="bi bi-wallet2 me-2"></i> Data Bank & Dokumen
                          </h5>
                          <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label small text-muted">Nama Bank <span class="text-danger">*</span></label>
-                                <input class="form-control @error('nama_bank') is-invalid @enderror" type="text" name="nama_bank" value="{{ old('nama_bank') }}" required placeholder="BCA / Mandiri" />
-                                @error('nama_bank') <div class="small text-danger mt-1">{{ $message }}</div> @enderror
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small text-muted">No Rekening <span class="text-danger">*</span></label>
-                                <input class="form-control font-monospace @error('no_rekening') is-invalid @enderror" type="text" name="no_rekening" value="{{ old('no_rekening') }}" required />
-                                @error('no_rekening') <div class="small text-danger mt-1">{{ $message }}</div> @enderror
-                            </div>
+                             <div class="col-md-4">
+                                 <label class="form-label small text-muted">Nama Bank <span class="text-danger">*</span></label>
+                                 @php
+                                     $selectedBank = strtoupper(old('nama_bank', ''));
+                                     $bankList = \App\Models\InstructorProfile::listNamaBank();
+                                 @endphp
+                                 <select class="form-select @error('nama_bank') is-invalid @enderror" name="nama_bank" required>
+                                     <option value="" disabled {{ $selectedBank ? '' : 'selected' }}>-- Pilih Singkatan Bank --</option>
+                                     @foreach($bankList as $bank)
+                                         <option value="{{ $bank }}" {{ $selectedBank === $bank ? 'selected' : '' }}>{{ $bank }}</option>
+                                     @endforeach
+                                 </select>
+                                 @error('nama_bank') <div class="small text-danger mt-1">{{ $message }}</div> @enderror
+                             </div>
+                             <div class="col-md-4">
+                                 <label class="form-label small text-muted">No Rekening <span class="text-danger">*</span></label>
+                                 <input class="form-control font-monospace @error('no_rekening') is-invalid @enderror" 
+                                     type="text" 
+                                     name="no_rekening" 
+                                     value="{{ old('no_rekening') }}" 
+                                     inputmode="numeric" 
+                                     pattern="[0-9]*" 
+                                     oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
+                                     placeholder="Contoh: 12341332" 
+                                     required />
+                                 <div class="form-text text-muted" style="font-size: 0.72rem;">Hanya angka, otomatis tanpa spasi.</div>
+                                 @error('no_rekening') <div class="small text-danger mt-1">{{ $message }}</div> @enderror
+                             </div>
                             <div class="col-md-4">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <label class="form-label small text-muted mb-0">NPWP (15-16 Digit) <span class="text-danger">*</span></label>

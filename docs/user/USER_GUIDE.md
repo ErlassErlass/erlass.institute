@@ -50,6 +50,7 @@ Fitur notifikasi WhatsApp (Fonnte) sudah terintegrasi secara cerdas:
 *   **Welcome Message Otomatis**: Setiap kali ada Siswa Baru yang masuk ke dalam Rombel (via Import Excel, Tambah Manual, atau *Quick Add* Instruktur), sistem akan mendeteksi `no_hp_orangtua` dan menembakkan pesan sambutan lengkap dengan hari dan jam mulai kelas.
 *   **Progress Reminder Otomatis/Manual**: Setiap 4x kehadiran anak, sistem mengirim ringkasan belajar ke Orang Tua. Admin juga bisa **mengirim ulang secara manual** dari halaman Detail Sesi. Laporan kini menggunakan format Emoji interaktif (✅ / ❌) yang detail untuk setiap pertemuannya.
 *   **Pengingat Instruktur**: Mengirim reminder manual jadwal mengajar kepada Instruktur.
+*   **Laporan Sesi Instruktur (1x Kirim dengan Foto)**: Instruktur dapat mengirimkan laporan mengajar yang telah berstatus selesai langsung ke WhatsApp pribadi mereka lengkap dengan foto dokumentasi kegiatan (image caption via Fonnte) untuk diteruskan ke grup PIC Sekolah mitra. Admin dapat memantau jejak kirim via metadata laporan.
 
 ### 5. Analisis Jadwal & Beban Kerja (`/admin/analytics/schedule-distribution`)
 *   **Tab 1: Distribusi Sesi**: Melihat grafik beban kerja instruktur untuk memastikan pembagian jam mengajar yang adil.
@@ -120,112 +121,71 @@ Instruktur bertugas melaksanakan kegiatan pengajaran dan pelaporan di sekolah mi
 > **Panduan Lengkap & Terstruktur Instruktur**:
 > Untuk panduan langkah demi langkah bergambar (*Step-by-Step SOP*) dari registrasi, input ketersediaan, check-in GPS, hingga pengisian laporan dan absensi, silakan buka dokumen **[Panduan Lengkap Operasional Instruktur (docs/user/PANDUAN_LENGKAP_INSTRUKTUR.md)](PANDUAN_LENGKAP_INSTRUKTUR.md)**.
 
-### 1. Pendaftaran & Profil
-*   **Registrasi**: Calon instruktur mendaftar melalui halaman registrasi dengan mengisi data diri lengkap.
-    *   **Jadwal Ketersediaan**: Gunakan tabel (Baris = Hari, Kolom = Jam) untuk menandai waktu kapan Anda bisa mengajar.
-    *   **Kembali ke Home**: Jika salah masuk, gunakan tombol "Kembali ke Beranda" di pojok kiri atas.
-*   **Lengkapi Profil**: Setelah login, instruktur wajib melengkapi data (Dokumen, Bank, Fisik) melalui menu "Lengkapi Profil".
+### 1. Pendaftaran & Pusat Profil Impeccable (`/profile`)
+*   **Registrasi**: Calon instruktur mendaftar melalui halaman registrasi dengan mengisi data diri lengkap dan menandai ketersediaan waktu pada Availability Matrix.
+*   **Pusat Profil Terpadu (Impeccable UI)**: Setelah login, akses menu **Profil Saya** (`/profile`) yang kini dilengkapi 4 kartu ringkasan KPI (Total Sesi, Kehadiran Siswa, Status Berkas, Akun Aktif) serta 6 tab terstruktur:
+    1. **Data Akun & Domisili**: Memperbarui Nama, Email, Nomor WhatsApp aktif (penting untuk penerimaan notifikasi & laporan sesi), Alamat, dan Kota Penugasan.
+    2. **Bank & Berkas (Wajib Payroll)**: Informasi rekening bank pencairan honorarium bulanan serta upload berkas administrasi resmi (KTP, NPWP, dan CV).
+    3. **Karir & Logistik**: Pilihan kendaraan operasional (motor/mobil/umum), ukuran seragam instruktur, dan portofolio kurikulum.
+    4. **Jadwal Mengajar**: Daftar rombel aktif yang sedang diampu lengkap dengan informasi hari, jam, sekolah, dan kapasitas siswa.
+    5. **Riwayat Laporan Mengajar**: Rekap seluruh sesi yang telah selesai, status verifikasi/honor, serta tombol cepat **Salin Teks** dan **Kirim WA**.
+    6. **Keamanan & Password**: Form mandiri untuk mengganti password akun kapan saja tanpa harus meminta reset manual ke Admin.
 
-### 2. Check-in GPS Real-Time di Sekolah (Skenario A)
+### 2. Dashboard & Agenda Mengajar
+*   **Personal Stats & KPI Card**: Menampilkan metrik real-time total jam mengajar, sesi selesai bulan ini, dan skor ketepatan waktu (*Punctuality Rate*).
+*   **Jadwal Hari Ini & Agenda 3 Hari Mendatang**: Sesi mengajar terdekat tersaji otomatis di baris teratas.
+*   **Quick Actions (Tombol Cepat)**: Akses instan satu ketukan ke Jadwal Sesi, Buat Laporan, Rekap Absensi, dan Profil.
+
+### 3. Check-in GPS Real-Time di Sekolah (Live Camera & Stempel Geotag)
 *   **Jendela Waktu Check-in (30 Menit Sebelum Sesi)**: Tombol check-in aktif mulai **30 menit sebelum jam mulai sesi**. Sebelum waktu tersebut, tombol menampilkan status informatif nonaktif `[ 🕒 Check-in dibuka HH:ii WIB ]`.
 *   **Kamera Live & Stempel Geotag (*Burn-In Canvas Watermark*)**: Sistem mengaktifkan kamera HP secara langsung (`capture="environment"`). Sistem otomatis mencetak stempel visual permanen di bagian bawah foto berisi: *Nama Sekolah, Nomor Pertemuan, Tanggal & Jam WIB, serta Koordinat GPS & Akurasi*.
+*   **Kompresi Otomatis**: Browser HP otomatis mengompres foto resolusi tinggi (10MB–15MB) menjadi ~150–250KB dalam sekejap sebelum dikirim ke server.
 *   **Verifikasi Radius (500 Meter)**: Sistem menghitung koordinat GPS Anda ke titik sekolah. Berstatus **🟢 Terverifikasi (Valid)** jika berada dalam radius $\le 500$ meter dari sekolah.
-*   **Proteksi Anti-Fake GPS & Anti-Spoofing**: Sistem memverifikasi sinyal satelit GPS asli (`enableHighAccuracy: true`) dan mendeteksi anomali akurasi tiruan (`0m`) atau perpindahan mustahil (*teleportation*), yang akan otomatis ditandai untuk pemeriksaan tim QC Admin.
+*   **Proteksi Anti-Fake GPS & Anti-Spoofing**: Sistem memverifikasi sinyal satelit GPS asli (`enableHighAccuracy: true`) dan mendeteksi anomali akurasi tiruan (`0m`) atau perpindahan mustahil (*teleportation*).
 
-### 3. Pembuatan Laporan Mengajar & Absensi Sesi (Impeccable UI)
+### 4. Pembuatan Laporan Mengajar & Absensi Sesi (Impeccable UI)
 *   **Jalur 1 — Sesi Rutin (Agenda Sesi)**: Masuk ke menu Agenda Kegiatan $\rightarrow$ Detail Sesi $\rightarrow$ Check-in GPS $\rightarrow$ Klik **"Buat Laporan & Absensi"** (`/ekstrakurikuler/sessions/{id}/report/create`). Wajib digunakan untuk seluruh kegiatan ekskul resmi, **termasuk jika menggantikan instruktur lain (inval) atau kelas susulan/reschedule**.
 *   **Jalur 2 — Sesi Khusus / Non-Jadwal**: Buka menu **Laporan Khusus (Non-Jadwal)** (`/laporan-mengajar/create`) $\rightarrow$ HANYA untuk penugasan insidental non-rombel (seperti Workshop Kilat, Juri Lomba, Pameran, atau Sosialisasi).
-*   **Tampilan & Alur Baru Impeccable**:
-    *   **Glassmorphic Hero Banner**: Menampilkan ringkasan informasi sekolah, rombel, tanggal, dan jam mengajar secara kontras dan jelas.
-    *   **Stepper Progress 4-Step**: Pemantau progresis bentuk langkah (*1. Detail Kegiatan → 2. Absensi Siswa → 3. Evaluasi → 4. Submit*).
-    *   **Zona Upload Drag & Drop**: Cukup seret atau klik file untuk mengunggah *Foto Kegiatan*, *File Project*, dan *Foto Absensi Fisik (TTD)*. Terdapat pratinjau (*live preview*) gambar dan verifikasi otomatis ukuran file.
-    *   **File Project WAJIB**: Seluruh pengisian laporan mengajar **wajib melampirkan File Project** (format `.hex`, `.sb3`, `.zip`, `.rar`, `.py`, `.ino`, `.pdf`, dll. max 10MB).
-    *   **Tabel Absensi Touch-Friendly**: Dilengkapi avatar inisial warna-warni, tombol toggle *Hadir/Absen* besar, penghitung real-time jumlah siswa hadir vs absen, serta kotak pencarian nama siswa di tabel.
-    *   **Tambah Siswa Fast-Add**: Tambahkan siswa baru yang belum terdaftar langsung ke daftar hadir melalui modal *Cari Siswa* atau *Buat Baru*.
-    *   **Modal Konfirmasi Submit**: Sebelum laporan disimpan, sistem menampilkan modal ringkasan untuk verifikasi ulang data.
+*   **Komponen Wajib Laporan**:
+    *   **Materi & Topik Pembelajaran**: Modul dan ringkasan bahan ajar hari ini.
+    *   **Presensi Siswa**: Menandai Hadir, Izin, Sakit, atau Alpha (dilengkapi tombol cepat "HADIR SEMUA" dan Fast-Add siswa baru).
+    *   **Foto Dokumentasi Kegiatan (WAJIB)**: Foto interaksi kegiatan kelas.
+    *   **File Project Siswa (WAJIB)**: File artefak belajar (`.sb3`, `.hex`, `.py`, `.zip`, `.pdf` maks 20MB).
+    *   **Foto Absensi Fisik TTD (Opsional)**: Lembar presensi paraf guru pendamping.
+    *   **Refleksi & Catatan Kendala**: Evaluasi keaktifan dan kendala alat di kelas.
 *   **Batas Waktu Pelaporan & Aturan Tunggakan Sesi**:
     *   **Tanggal 1 s.d. 27**: Batas waktu pelaporan adalah **H+1 (23:59 WIB)**.
     *   **Tanggal 28, 29, 30, 31 (Akhir Bulan)**: Wajib di-submit pada **Hari H (23:59 WIB)** untuk kelancaran tutup buku bulanan.
     *   **Toleransi Tunggakan Maksimal 1x (Global FIFO)**: Instruktur hanya diperbolehkan menunggak maksimal 1 laporan sesi lampau di seluruh sekolah/rombel. Jika memiliki $\ge 2$ tunggakan, sesi baru akan terkunci dan wajib diselesaikan berurutan dari pertemuan paling awal.
     *   **Keterlambatan Berat (> 3 Hari / Lewat Cutoff)**: Form mewajibkan pengisian *Catatan Kendala Keterlambatan* dan hak honor otomatis masuk ke batch penggajian periode cutoff berikutnya.
-    *   **Tanpa Permohonan Buka Akses Manual**: Instruktur dapat langsung mengisi laporan sesi lampau secara mandiri tanpa menunggu approval Admin.
 
-### 4. Pusat Bantuan, FAQ 101 & Tiket Bantuan (`/tickets`)
-*   **Panduan & FAQ 101 (`/help`)**: Mempelajari SOP pengisian laporan, penanganan masalah lokasi GPS, toleransi keterlambatan check-in 14 menit, dan rincian slip gaji.
+### 5. Berbagi Laporan ke WhatsApp Group PIC Sekolah & Salin Teks (Baru)
+*   **Kirim ke WA Saya (Fonnte Integration)**:
+    *   Pada halaman Detail Laporan Mengajar (`/laporan-mengajar/{id}`) atau Tab Riwayat Laporan Profil (`/profile`), klik tombol hijau **"Kirim ke WA Saya"**.
+    *   Sistem secara otomatis mengirimkan teks laporan sesi beserta **lampiran Foto Kegiatan Kelas** langsung ke nomor WhatsApp pribadi instruktur.
+    *   Pesan disusun dengan bahasa yang santun, formal, dan rapi **tanpa watermark footer sistem** (`_Dikirim via Sistem Erlass Ekskul_`).
+    *   Instruktur cukup meneruskan (*forward*) pesan dan foto kegiatan tersebut ke WhatsApp Group sekolah mitra (PIC / Guru Pendamping) dalam waktu singkat.
+    *   *Limitasi Bisnis*: Tombol aktif hanya untuk sesi yang sudah berstatus `selesai` dan materi telah terisi, dengan batas aman 1x kirim per sesi (status tombol berubah menjadi "Terkirim").
+*   **Salin Teks ke Clipboard**:
+    *   Tombol biru **"Salin Teks"** menyalin seluruh draft laporan ke papan klip dengan satu ketukan.
+    *   Dapat digunakan tanpa batasan kuota untuk ditempel di WhatsApp Web/HP atau diedit sesuai kebutuhan.
+
+### 6. Riwayat, Arsip & Cetak Absensi
+*   **Tab Riwayat di Profil**: Akses cepat ke seluruh arsip laporan sesi mengajar dengan tombol cepat aksi WA dan salin teks.
+*   **Arsip Pusat (`/laporan-mengajar`)**: Melihat history, edit data yang keliru, atau export PDF.
+*   **Cetak Absensi Resmi**: Cetak lembar presensi 4 pertemuan (A4 Landscape) langsung dari detail laporan.
+
+### 7. Slip Gaji Saya (Portal Financial)
+*   Instruktur dapat mengakses menu **Slip Gaji** di sidebar kiri (`/my-salaries`).
+*   Menampilkan rekam jejak slip gaji bulanan yang sudah diproses (`Paid`).
+*   Instruktur dapat mengklik **Detail** untuk melihat struk rincian slip gaji: total sesi mengajar, rincian per sesi, bonus kepakaran, denda keterlambatan check-in, penyesuaian manual dari admin, dan total bersih yang dibayarkan.
+
+### 8. Pusat Bantuan, FAQ 101 & Tiket Bantuan (`/tickets`)
+*   **Panduan & FAQ 101 (`/help`)**: Mempelajari SOP pengisian laporan, fitur berbagi laporan WA, toleransi keterlambatan check-in 14 menit, dan rincian slip gaji.
 *   **Tiket Bantuan & Pengaduan (`/tickets`)**:
     *   Jika mengalami kendala operasional (kesalahan jadwal mengajar, ketidaksesuaian perhitungan honor/transport, atau error teknis aplikasi), buka menu **"Tiket Bantuan"** di sidebar.
     *   Klik **"Buat Tiket Baru"**, pilih Kategori (`Jadwal / Honor`, `Keluhan Lain`, atau `Teknis / Error`), dan jelaskan kendala Anda (dapat melampirkan sesi pertemuan terkait).
-    *   Admin akan menindaklanjuti dan membalas tiket. Terdapat indikator pesan belum dibaca (*unread badge*) di sidebar untuk setiap balasan dari Admin.
-
-### 5. Kompresi Foto GPS Check-in Otomatis & Watermark Geotag
-*   Saat melakukan check-in kehadiran di sekolah, browser HP otomatis mengompres foto kamera yang berukuran besar (10MB–15MB) menjadi ~150–250KB dalam sekejap sekaligus mencetak stempel geotag permanen.
-*   Instruktur dapat melihat indikator penghematan ukuran (*"Foto siap! 9.2 MB ➔ 185 KB"*) sebelum menekan tombol check-in, memastikan proses unggah sangat cepat dan bebas dari error timeout jaringan.
-
-### 2. Dashboard & Jadwal
-*   **Personal Stats**: Melihat total jam mengajar dan laporan bulan ini.
-*   **Agenda Mendatang**: Melihat jadwal mengajar untuk **3 hari ke depan**.
-*   **Quick Actions (Tombol Cepat)**: Baris tombol ikon di bagian atas dashboard untuk akses langsung ke:
-    *   **Jadwal**: Melihat kalender/daftar sesi.
-    *   **Laporan**: Memulai pembuatan laporan baru.
-    *   **Absen**: Akses cepat ke rekap absensi.
-*   **Quick Links**: Akses cepat ke "Buat Laporan Baru" dan "Lihat Jadwal Lengkap".
-
-### 3. Jadwal Mengajar
-Sistem membedakan tampilan jadwal berdasarkan role user login.
-- **Admin/Webmaster**: Melihat **SEMUA** jadwal ekstrakurikuler di seluruh sekolah.
-- **Instruktur**: Hanya melihat jadwal dimana ia ditugaskan sebagai **Instruktur Utama** atau **Asisten**.
-- **Aksi Terbatas**: Instruktur **TIDAK DAPAT** mengubah jadwal (Edit), membatalkan (Cancel), atau me-reschedule sesi. Perubahan jadwal harus request ke Admin.
-
-### 4. Membuat Laporan Mengajar
-Terdapat **dua cara** membuat laporan:
-
-#### A. Laporan Rutin (Sesuai Jadwal)
-> **Gunakan cara ini untuk kegiatan mengajar harian yang sudah terjadwal.**
-1.  Buka menu **"Jadwal & Laporan"**.
-2.  Cari sesi di tabel "Agenda Mendatang" atau "Jadwal Hari Ini".
-3.  Klik tombol **"Detail"** lalu **"Buat Laporan & Absensi"**.
-4.  Data sekolah, rombel, dan daftar siswa akan **terisi otomatis**.
-5.  **Fitur Efisiensi (Mark All)**: Gunakan tombol **"HADIR SEMUA"** atau **"TIDAK HADIR"** di bagian atas tabel untuk menandai seluruh siswa secara cepat.
-6.  Isi topik materi, foto kegiatan, evaluasi keaktifan dan pemahaman siswa.
-7.  Klik **"Simpan Laporan & Selesaikan Sesi"**. Status sesi akan otomatis berubah menjadi **"Selesai"**.
-    > **Info Notifikasi**: Jika laporan ini merupakan **kelipatan sesi ke-4** untuk seorang siswa, sistem akan menembakkan pesan WhatsApp kepada orang tua siswa yang berisi ringkasan progres belajar mereka.
-
-#### B. Laporan Ad-Hoc (Luar Jadwal)
-> **Gunakan ini untuk: Pameran, Lomba, Sosialisasi atau Pendampingan.**
-1.  Klik menu **"Buat Laporan Baru"** di navigasi atas.
-2.  Pilih **Sekolah** dan ketik **Nama Kelas/Rombel** manual (jika tidak ada di list).
-3.  Upload bukti kegiatan.
-4.  **Tambah Siswa**: Jika siswa belum ada di database, gunakan tombol **"Tambah Siswa Baru"** di dalam form absensi.
-
-> **⚠️ PENTING: Batas Waktu Pelaporan (H+1) & KPI Kedisiplinan**
-> - Instruktur **WAJIB** membuat laporan pada hari H atau selambat-lambatnya **H+1** (Satu hari setelah jadwal jam 23:59).
-> - Jika melewati batas H+1 pukul 23:59, sistem akan **mengunci** pembuatan laporan. Instruktur dapat mengajukan permohonan buka akses (Grace System) ke Admin.
-> - **Modul KPI Ketepatan Waktu (*Punctuality Rate*)**:
->   - Sistem menghitung persentase kedisiplinan pelaporan secara real-time:
->     $$\text{Punctuality Rate (\%)} = \left( \frac{\text{Laporan Tepat Waktu (H+0 / H+1)}}{\text{Total Sesi Mengajar Selesai}} \right) \times 100\%$$
->   - **Tingkat Kategori**:
->     - 🟢 **Sangat Disiplin ($\ge 90\%$)**: Pelaporan konsisten sebelum H+1.
->     - 🟡 **Cukup / Standard ($75\% - 89\%$)**: Terdapat beberapa kali keterlambatan dengan izin Grace.
->     - 🔴 **Perlu Pembinaan ($< 75\%$)**: Sering terlambat melapor di luar batas H+1.
->   - KPI ini dapat dipantau langsung pada **Dashboard Instruktur** (Personal KPI Card) dan **Halaman Profil Instruktur** oleh Admin.
-
-### 5. Riwayat & Cetak Absensi
-*   **Riwayat**: Melihat daftar laporan yang sudah dibuat.
-*   **Cetak Absensi**:
-    *   Buka detail laporan (klik ikon mata/lihat).
-    *   Khusus untuk laporan **Ekstrakurikuler**, terdapat tombol **"Print"** berwarna hijau di bagian "Rekap Absensi".
-    *   Klik tombol tersebut untuk mencetak form absensi kosong atau rekap kehadiran.
-    *   Format cetak: Lembar presensi untuk **4 pertemuan sekaligus**, A4 Landscape.
-
-> **CATATAN: Halaman `/laporan-mengajar`**
-> Halaman "Daftar Laporan Mengajar" berfungsi sebagai **Arsip Pusat**.
-> - Instruktur tidak perlu membuat laporan dari halaman ini (gunakan workflow "Selesai Sesi").
-> - Halaman ini digunakan untuk **Melihat History**, **Edit Data Salah**, atau **Export PDF/Excel** jika diperlukan.
-
-### 6. Slip Gaji Saya (Portal Financial)
-*   Instruktur dapat mengakses menu **Slip Gaji** di sidebar kiri.
-*   Menampilkan rekam jejak slip gaji bulanan yang sudah diproses (`Paid`).
-*   Instruktur dapat mengklik **Detail** untuk melihat struk rincian slip gaji: total sesi mengajar, rincian per sesi, bonus kepakaran, denda keterlambatan, penyesuaian manual dari admin, dan total bersih yang dibayarkan.
+    *   Admin akan menindaklanjuti dan membalas tiket dengan notifikasi badge belum dibaca di sidebar.
 
 ---
 

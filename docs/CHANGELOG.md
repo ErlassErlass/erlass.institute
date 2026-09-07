@@ -2,6 +2,57 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.30] - 2026-09-07
+
+### Opsi Pendidikan S3 & Kompetensi Bahasa Inggris, Pembersihan Anomali Sesi Scratch Strada, Kalibrasi Ketat Milestone Pertemuan, dan Pusat Notifikasi Admin Terpadu
+
+- **Penambahan Pendidikan Terakhir S3 & Kompetensi Bahasa Inggris (`register`, `register-instructor`, `profile`)**:
+  - Menambahkan opsi tingkat pendidikan terakhir `S3` pada formulir registrasi instruktur publik (`register-instructor.blade.php`, `register.blade.php`), profil instruktur (`profile/edit.blade.php`, `instructor/profile/edit.blade.php`), serta view detail karyawan/instruktur admin (`admin/employees/show.blade.php`).
+  - Menambahkan validasi `in:SMA/SMK,D3,D4/S1,S2,S3` pada `InstructorRegistrationController` dan `RegisteredUserController`.
+  - Menambahkan opsi kompetensi `Bahasa Inggris` pada profil dan registrasi instruktur untuk mengakomodasi instruktur dengan spesialisasi bahasa.
+- **Pembersihan Anomali Sesi Duplikat Ekskul Coding Scratch SDS Strada Dipamarga**:
+  - Mengaudit sesi instruktur Olivia Rilan Jedahul pada rombel Ekskul Coding Scratch SDS Strada Dipamarga.
+  - Mengeliminasi sesi duplikat P.30 (#40923) dan P.31 (#40924) yang sebelumnya terdaftar ganda dan terikat pada draft payroll Batch 61 & 62, mencegah potensi overpaid honor instruktur sebesar Rp 300.000 fiktif.
+  - Memastikan sesi P.2 riil siap diisi laporan dan presensinya oleh instruktur.
+- **Kalibrasi Ketat Milestone Pertemuan Bebas Libur / Ditunda / Dibatalkan / P.0 (`MilestoneNotificationService`)**:
+  - Memperbaiki `getTeachingDatesForMilestone()`: Milestone kelipatan 4 (P.4, P.8, P.12, dst.) kini mewajibkan pemeriksaan rentang 4 sesi riil secara presisi pada blok `[$pertemuanKe - 3 .. $pertemuanKe]`.
+  - Mengabaikan nomor pertemuan `<= 0` (seperti sesi orientasi / uji coba P.0).
+  - Jika salah satu sesi dalam blok 4 pertemuan tersebut berstatus `libur`, `ditunda`, `dibatalkan`, atau `tidak_hadir`, fungsi mengembalikan array kosong sehingga notifikasi milestone tidak akan terpicu prematur.
+  - Menjalankan rekalibrasi database (`recalibrateExistingMilestoneNotifications()`): menghapus notifikasi milestone prematur (seperti Notifikasi #194 SMP Methodist Rombel 1 di mana P.1 berstatus ditunda) dan memperbarui 167 milestone valid.
+- **Pusat Notifikasi Admin & Fitur Pemulihan Status (*Mark as Unread*)**:
+  - **Dropdown Lonceng Navbar (`app.blade.php`)**:
+    - Menambahkan toggle status **Belum Dibaca** & **Sudah Dibaca**.
+    - Menambahkan tombol aksi **Batal Dibaca** (`bi-arrow-counterclockwise`) pada notifikasi yang sudah dibaca untuk mengembalikannya ke daftar belum dibaca secara instan.
+    - Menambahkan link langsung ke halaman arsip notifikasi.
+  - **Halaman Pusat Notifikasi Admin (`/admin/notifications`)**:
+    - Membuat view baru `resources/views/admin/notifications/index.blade.php` lengkap dengan KPI metrik (Total Notifikasi, Belum Dibaca, Sudah Dibaca, Milestone Pertemuan).
+    - Dilengkapi filter status (*Semua, Belum Dibaca, Sudah Dibaca*), filter jenis notifikasi (*Milestone Laporan, Tiket*), pencarian teks bebas (nama sekolah, rombel, instruktur), dan pagination.
+  - **Routes & Controller API (`NotificationController.php`, `routes/web.php`)**:
+    - Menambahkan rute `GET /admin/notifications` (`admin.notifications.index`).
+    - Menambahkan rute `POST /admin/notifications/{notification}/unread` (`admin.notifications.unread.single`).
+    - Memperbarui `getUnreadNotifications` untuk mendukung parameter `status=unread` dan `status=read`.
+  - **Automated Feature Tests**:
+    - Memperbarui `tests/Feature/AdminMilestoneNotificationTest.php` dengan test case baru untuk pengujian halaman index, pemisahan view unread vs read, serta toggle tandai dibaca dan belum dibaca (4 passed, 23 assertions).
+
+## [2.9.29] - 2026-09-04
+
+### Laporan WhatsApp per Sesi (Fonnte Caption & Foto), Tombol Salin Teks Resmi, Redesain Impeccable Profile, dan Pembaruan Panduan 101
+
+- **Laporan WhatsApp Sesi Mengajar Otomatis via Fonnte (`SessionReportNotification` & `WhatsAppChannel`)**:
+  - Menambahkan pengiriman laporan sesi mengajar langsung ke nomor WhatsApp instruktur terdaftar via gateway Fonnte.
+  - Mendukung pengiriman gambar foto kegiatan kelas sebagai payload utama dengan teks laporan sebagai caption (`url` parameter di Fonnte API).
+  - Teks laporan disusun dengan salam pembuka, detail pelaksanaan (sekolah, rombel, pertemuan, jam), materi yang diajarkan, presensi siswa hadir/absen, dan refleksi instruktur tanpa watermark sistem (`_Dikirim via Sistem Erlass Ekskul_`) sehingga sopan dan siap diteruskan (*forward*) ke WhatsApp Group PIC Sekolah.
+  - Implementasi gate validasi: hanya untuk laporan berstatus `selesai` dan materi telah diisi, dengan pembatasan bisnis 1x kirim per sesi (status tercatat di `metadata_json['wa_report_sent']`).
+- **Fitur Salin Teks Laporan ke Clipboard (`LaporanMengajarController@getWaReportText`)**:
+  - Tombol aksi cepat *"Salin Teks"* untuk menyalin draft laporan sesi ke papan klip dengan satu ketukan, memudahkan pengiriman via WhatsApp Web atau HP tanpa batasan kuota.
+- **Redesain Impeccable Profile Instruktur (`/profile` & `UserController`)**:
+  - Hero banner elegan dengan 4 kartu metrik KPI: Total Sesi Mengajar, Rata-rata Kehadiran Siswa, Kelengkapan Berkas (KTP/NPWP/CV/Bank), dan Status Akun.
+  - 6 tab fungsional terpadu: Data Akun & Domisili, Bank & Berkas, Karir & Logistik, Jadwal Mengajar Aktif, Riwayat Laporan Mengajar (dengan aksi cepat Salin Teks & Kirim WA), serta Keamanan & Ganti Password Mandiri.
+  - Penyelarasan styling cross-view dengan `laporan-mengajar/show.blade.php` dan `dashboard.blade.php`, auto-activation tab saat error validasi, dan penanganan status update.
+- **Pembaruan Panduan 101 In-App & Dokumentasi Pengguna**:
+  - Menambahkan Langkah ke-4 pada **Panduan 101** in-app (`resources/views/help/index.blade.php`) dan 3 entri FAQ baru terkait pembagian laporan ke WhatsApp PIC, kuota 1x kirim, serta manajemen 6 tab profil.
+  - Memperbarui SOP instruktur pada `docs/user/PANDUAN_LENGKAP_INSTRUKTUR.md` (Tahap 2 & Tahap 7) dan `docs/user/USER_GUIDE.md`.
+
 ## [2.9.28] - 2026-09-04
 
 ### Auto-Recovery ViewException, Validasi Modal Tambah Rombel, dan Perbaikan Error 500
