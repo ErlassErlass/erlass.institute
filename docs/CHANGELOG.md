@@ -2,6 +2,33 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.31] - 2026-09-09
+
+### Proteksi Reschedule Manual (Sync Sesi), Cascading Deletion Absensi Laporan, Peningkatan Performa Distribusi Jadwal & Filter Ketersediaan Mingguan
+
+- **Proteksi Reschedule Manual Sesi Ekstrakurikuler (`EkstrakurikulerSessionController`, `SchedulingService`, `sessions/edit.blade.php`, `show.blade.php`)**:
+  - Menambahkan deteksi otomatis perubahan tanggal (`tanggal_terjadwal`) atau jam sesi (`jam_mulai_terjadwal`) saat formulir edit sesi disimpan, secara otomatis menandai `is_manual_reschedule = true`.
+  - Menambahkan switch toggle *"Kunci Jadwal Manual (Proteksi dari Sync Sesi)"* pada form edit sesi agar admin dapat mengunci atau membuka kunci jadwal sesi secara eksplisit.
+  - Sesi yang dijadwalkan ulang secara manual melalui `SchedulingService::rescheduleSessions()` otomatis ditandai `is_manual_reschedule = true`.
+  - Pada halaman detail ekstrakurikuler (`show.blade.php`), sesi yang terkunci manual diberi badge penanda `Terkunci (Manual)` dengan ikon pin kuning, menjamin sesi tersebut tidak akan terhapus atau tertimpa saat tombol *Sync Sesi* dijalankan dari halaman program.
+- **Cascading Deletion Absensi pada Laporan Mengajar (`LaporanMengajar.php`)**:
+  - Menambahkan model event handler `deleting` pada `LaporanMengajar` untuk otomatis menghapus record presensi siswa terkait (`$laporan->absensi()->delete()`).
+  - Mencegah error foreign key constraint `fk_absensi_siswa_laporan_mengajar` saat laporan mengajar dihapus atau di-reset kembali ke status terjadwal.
+  - Memperbaiki anomali laporan duplikat (#1403 & #1404) dan melakukan reset bersih pada pertemuan ke-3 (Microbit & Jimu) MIS Plus Asy-Syukriyyah agar instruktur dapat melakukan pengisian laporan dan presensi ulang secara benar.
+- **Peningkatan Performa & Filter Ketersediaan Mingguan (`/admin/analytics/schedule-distribution`, `DashboardAnalyticsController.php`)**:
+  - **Optimasi Query & Render**: Mengeliminasi duplikasi query 138 instruktur dengan me-reuse koleksi `$instructors` yang sudah dimuat; menambahkan optimasi rendering CSS `content-visibility: auto` dan batch DOM update pada tabel ketersediaan agar bebas lag.
+  - **Sticky Frozen Headers & Columns**: Membekukan header tabel tanggal dan 3 kolom pertama (No, Nama Instruktur, Domisili) dengan scroll container (`max-height: 72vh`) sehingga navigasi matriks jadwal tetap nyaman saat scroll horizontal maupun vertikal.
+  - **Auto-Load Minggu Berjalan**: Saat membuka halaman atau mengklik tab *"Ketersediaan Mingguan"*, data sesi mingguan (176 sesi) langsung otomatis dimuat via AJAX tanpa perlu menekan tombol "Cek Ketersediaan" secara manual.
+  - **Dropdown Filter Status Ketersediaan**:
+    - `— Semua Status —`: Menampilkan seluruh 138 instruktur.
+    - `🟡 Hanya Ada Sesi (Kuning)`: Menyaring baris dan hanya menampilkan instruktur yang memiliki jadwal sesi mengajar di minggu tersebut (atau di hari terpilih).
+    - `🟢 Hanya Free / Tanpa Sesi (Hijau)`: Menyaring instruktur yang belum memiliki jadwal sesi sama sekali (full free).
+  - **Mode Tampilan Hijau Bersih (*Pure Availability*)**:
+    - Switch *"🟡 Sembunyikan Detail Sesi (Tampilan Hijau Saja)"* menyembunyikan detail kartu sesi dan mengubah sel kuning `🟡 Sebagian` serta merah `🔴 Penuh` menjadi warna hijau bersih (`🟢 Free` dengan rentang jam ketersediaan), menyajikan ketersediaan murni tanpa distraksi.
+  - **Perbaikan Helper Status & Counter Real-time**: Memperbaiki fungsi helper pembacaan atribut dataset (case-insensitive) dan menyinkronkan counter instruktur (`Menampilkan: X / 138`) secara real-time saat filter kota, nama, hari, maupun status diubah.
+- **Command CLI Pemisahan Program Trial (`app/Console/Commands/SeparateTrialPrograms.php`)**:
+  - Menyediakan command Artisan `app:separate-trial-programs` untuk pemisahan dan migrasi aman program trial/uji coba.
+
 ## [2.9.30] - 2026-09-07
 
 ### Opsi Pendidikan S3 & Kompetensi Bahasa Inggris, Pembersihan Anomali Sesi Scratch Strada, Kalibrasi Ketat Milestone Pertemuan, dan Pusat Notifikasi Admin Terpadu

@@ -312,6 +312,7 @@ class SchedulingService
                         'tanggal_terjadwal' => $newDate->toDateString(),
                         'jam_mulai_terjadwal' => $newSchedule['jam_mulai'] ?? $session->jam_mulai_terjadwal,
                         'jam_selesai_terjadwal' => $newSchedule['jam_selesai'] ?? $session->jam_selesai_terjadwal,
+                        'is_manual_reschedule' => true,
                         'updated_by' => auth()->id(),
                     ]);
 

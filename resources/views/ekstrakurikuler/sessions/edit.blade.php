@@ -133,6 +133,27 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+
+                            <!-- Proteksi Jadwal Manual -->
+                            <div class="col-12">
+                                <div class="p-3 bg-light rounded-3 border">
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input ms-0 me-2" 
+                                               type="checkbox" 
+                                               role="switch" 
+                                               id="is_manual_reschedule" 
+                                               name="is_manual_reschedule" 
+                                               value="1" 
+                                               {{ old('is_manual_reschedule', $session->is_manual_reschedule) ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-bold text-dark" for="is_manual_reschedule">
+                                            <i class="bi bi-pin-angle-fill text-warning me-1"></i> Kunci Jadwal Manual (Proteksi dari Sync Sesi)
+                                        </label>
+                                    </div>
+                                    <div class="text-muted small mt-1 ms-4">
+                                        Jika aktif (atau jika tanggal/jam sesi diubah), sesi ini akan <strong>terkunci</strong> dan tidak akan pernah terhapus atau berubah kembali saat tombol <em>Sync Sesi</em> dijalankan di halaman program.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

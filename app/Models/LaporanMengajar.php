@@ -105,6 +105,9 @@ class LaporanMengajar extends Model
             if ($laporan->file_project) {
                 Storage::disk('public')->delete($laporan->file_project);
             }
+
+            // Hapus data absensi terkait agar tidak melanggar foreign key constraint
+            $laporan->absensi()->delete();
         });
     }
 

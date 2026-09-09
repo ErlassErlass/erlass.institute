@@ -442,6 +442,22 @@ class EkstrakurikulerSessionController extends Controller
             $data['user_id_asisten'] = $session->user_id_asisten;
         }
 
+        // Deteksi perubahan jadwal tanggal/jam atau switch kunci jadwal manual
+        $originalDate = $session->tanggal_terjadwal ? \Carbon\Carbon::parse($session->tanggal_terjadwal)->format('Y-m-d') : null;
+        $submittedDate = !empty($data['tanggal_terjadwal']) ? \Carbon\Carbon::parse($data['tanggal_terjadwal'])->format('Y-m-d') : null;
+
+        $originalStartTime = $session->jam_mulai_terjadwal ? \Carbon\Carbon::parse($session->jam_mulai_terjadwal)->format('H:i') : null;
+        $submittedStartTime = !empty($data['jam_mulai_terjadwal']) ? \Carbon\Carbon::parse($data['jam_mulai_terjadwal'])->format('H:i') : null;
+
+        if (($submittedDate && $submittedDate !== $originalDate) || 
+            ($submittedStartTime && $submittedStartTime !== $originalStartTime) || 
+            $request->boolean('is_manual_reschedule')) {
+            $data['is_manual_reschedule'] = true;
+        } elseif ($request->has('is_manual_reschedule') && ! $request->boolean('is_manual_reschedule')) {
+            // Jika admin sengaja mematikan kunci manual via switch
+            $data['is_manual_reschedule'] = false;
+        }
+
         // Cek conflict jika ada perubahan instructor atau waktu
         if ($data['user_id_instruktur']) {
             $instructor = User::find($data['user_id_instruktur']);

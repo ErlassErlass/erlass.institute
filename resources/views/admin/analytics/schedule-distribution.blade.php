@@ -147,10 +147,37 @@
         flex-shrink: 0;
     }
 
-    /* Freeze / Sticky Columns for Availability Table */
+    /* Scroll container for frozen sticky table headers */
+    .sd-table-scroll-container {
+        max-height: 72vh;
+        overflow-y: auto;
+        overflow-x: auto;
+        position: relative;
+        border-radius: 0 0 var(--sd-radius) var(--sd-radius);
+        contain: paint;
+        will-change: scroll-position;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Rendering performance optimization for long table rows */
+    .instructor-row,
+    .avail-row {
+        content-visibility: auto;
+        contain-intrinsic-size: 0 45px;
+    }
+
+    /* Freeze / Sticky Columns and Header for Availability Table */
     .sd-sticky-table {
         border-collapse: separate;
         border-spacing: 0;
+    }
+    .sd-sticky-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background-color: #f8fafc;
+        border-bottom: 2px solid #cbd5e1 !important;
+        box-shadow: 0 2px 4px rgba(15, 23, 42, 0.05);
     }
     .sd-sticky-table th.sd-col-no,
     .sd-sticky-table td.sd-col-no {
@@ -181,18 +208,138 @@
         min-width: 130px;
         background-color: #ffffff;
         border-right: 2px solid #cbd5e1 !important;
-        box-shadow: 4px 0 8px -2px rgba(15, 23, 42, 0.08);
     }
-    .sd-sticky-table thead th.sd-col-no,
-    .sd-sticky-table thead th.sd-col-name,
-    .sd-sticky-table thead th.sd-col-domisili {
-        z-index: 25;
+    /* Fixed Intersection (top-left cells fixed in both axes) */
+    .sd-sticky-table thead th.sd-col-no {
+        position: sticky;
+        top: 0;
+        left: 0;
+        z-index: 35;
         background-color: #f8fafc;
+    }
+    .sd-sticky-table thead th.sd-col-name {
+        position: sticky;
+        top: 0;
+        left: 48px;
+        z-index: 35;
+        background-color: #f8fafc;
+    }
+    .sd-sticky-table thead th.sd-col-domisili {
+        position: sticky;
+        top: 0;
+        left: 268px;
+        z-index: 35;
+        background-color: #f8fafc;
+        border-right: 2px solid #cbd5e1 !important;
+        box-shadow: 4px 2px 8px -2px rgba(15, 23, 42, 0.1);
     }
     .sd-sticky-table tr.avail-row:hover td.sd-col-no,
     .sd-sticky-table tr.avail-row:hover td.sd-col-name,
     .sd-sticky-table tr.avail-row:hover td.sd-col-domisili {
         background-color: #f8fafc !important;
+    }
+
+    /* Instructors Table (Tab 1) Sticky Header */
+    #instructorsTable thead th {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background-color: #f8fafc;
+        border-bottom: 2px solid #cbd5e1 !important;
+        box-shadow: 0 2px 4px rgba(15, 23, 42, 0.05);
+    }
+
+    /* Availability Matrix Cell Styles (optimized lightweight classes) */
+    .day-cell {
+        padding: 4px !important;
+        vertical-align: top;
+    }
+    .day-cell-content {
+        border-radius: 6px;
+        padding: 4px;
+        min-height: 38px;
+        background: #f8fafc;
+        transition: background-color .15s ease;
+    }
+    .cell-free, .cell-free .day-cell-content { background-color: #f0fdf4 !important; }
+    .cell-unavailable, .cell-unavailable .day-cell-content { background-color: #f8fafc !important; }
+    .cell-partial, .cell-partial .day-cell-content { background-color: #fffbeb !important; }
+    .cell-busy, .cell-busy .day-cell-content { background-color: #fef2f2 !important; }
+    .cell-no_data, .cell-no_data .day-cell-content { background-color: #fffbeb !important; }
+
+    .status-badge {
+        display: block;
+        margin-bottom: 2px;
+        font-size: .7rem;
+        font-weight: 600;
+        padding: 2px 4px;
+        border-radius: 4px;
+    }
+    .status-badge.status-free { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .status-badge.status-unavailable { background-color: #f1f5f9; color: #94a3b8; border: 1px solid #cbd5e1; }
+    .status-badge.status-partial { background-color: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+    .status-badge.status-busy { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .status-badge.status-no_data { background-color: #fef3c7; color: #92400e; border: 1px solid #fcd34d; opacity: .7; }
+
+    .avail-range-text {
+        font-size: .68rem;
+        color: #64748b;
+        margin-bottom: 2px;
+        line-height: 1.25;
+    }
+
+    .session-item-card {
+        font-size: .68rem;
+        color: #1e293b;
+        background: #ffffff;
+        border-radius: 4px;
+        padding: 3px 5px;
+        margin-top: 3px;
+        border-left: 2.5px solid #f59e0b;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        line-height: 1.25;
+        text-align: left;
+    }
+    .session-item-card .session-time { font-weight: 700; color: #0f172a; }
+    .session-item-card .session-ekskul { font-size: .65rem; color: #334155; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* Hide session cards when toggle is active & show clean green availability */
+    .hide-session-cards .session-item-card {
+        display: none !important;
+    }
+    .hide-session-cards .day-cell-content {
+        min-height: auto !important;
+    }
+    .hide-session-cards .day-cell.cell-partial,
+    .hide-session-cards .day-cell.cell-busy {
+        background-color: #f0fdf4 !important;
+    }
+    .hide-session-cards .day-cell.cell-partial .day-cell-content,
+    .hide-session-cards .day-cell.cell-busy .day-cell-content {
+        background-color: #f0fdf4 !important;
+    }
+    .hide-session-cards .day-cell.cell-partial .status-badge,
+    .hide-session-cards .day-cell.cell-busy .status-badge {
+        background-color: #dcfce7 !important;
+        color: #166534 !important;
+        border-color: #86efac !important;
+    }
+    .hide-session-cards .day-cell.cell-partial .status-badge span,
+    .hide-session-cards .day-cell.cell-busy .status-badge span {
+        display: none !important;
+    }
+    .hide-session-cards .day-cell.cell-partial .status-badge::after,
+    .hide-session-cards .day-cell.cell-busy .status-badge::after {
+        content: "🟢 Free";
+    }
+
+    /* Highlight column for selected day */
+    .day-col-highlight {
+        background-color: #f0f7ff !important;
+    }
+    th.day-col-highlight {
+        background-color: #e0f2fe !important;
+        color: #0369a1 !important;
+        border-bottom: 2px solid #0284c7 !important;
     }
 </style>
 @endpush
@@ -496,7 +643,7 @@
             </div>
         </div>
 
-        <div class="table-responsive">
+        <div class="table-responsive sd-table-scroll-container">
             <table class="table sd-table mb-0 align-middle" id="instructorsTable">
                 <thead>
                     <tr>
@@ -514,9 +661,7 @@
                             <td class="fw-bold text-muted small">{{ $index + 1 }}</td>
                             <td>
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="sd-avatar">
-                                        {{ strtoupper(substr($inst->nama_lengkap, 0, 2)) }}
-                                    </div>
+                                    <div class="sd-avatar">{{ strtoupper(substr($inst->nama_lengkap, 0, 2)) }}</div>
                                     <div>
                                         <div class="fw-bold text-dark mb-0.5">{{ $inst->nama_lengkap }}</div>
                                         <small class="text-muted">{{ $inst->email }}</small>
@@ -524,36 +669,21 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="badge bg-light text-dark border fw-normal">
-                                    <i class="bi bi-geo-alt me-1 text-secondary"></i>{{ $inst->instructorProfile->kota_domisili ?? '-' }}
-                                </span>
+                                <span class="badge bg-light text-dark border fw-normal"><i class="bi bi-geo-alt me-1 text-secondary"></i>{{ $inst->instructorProfile->kota_domisili ?? '-' }}</span>
                             </td>
                             <td>
-                                <small class="text-secondary d-block">
-                                    {{ $inst->instructorProfile->kompetensi_1 ?? 'Umum' }}
-                                    @if(!empty($inst->instructorProfile->kompetensi_2))
-                                        , {{ $inst->instructorProfile->kompetensi_2 }}
-                                    @endif
-                                </small>
+                                <small class="text-secondary d-block">{{ $inst->instructorProfile->kompetensi_1 ?? 'Umum' }}@if(!empty($inst->instructorProfile->kompetensi_2)), {{ $inst->instructorProfile->kompetensi_2 }}@endif</small>
                             </td>
                             <td class="text-center">
-                                <span class="badge {{ $inst->ekstrakurikuler_sessions_count > 0 ? 'bg-primary' : 'bg-secondary' }} px-3 py-1.5 rounded-pill fs-6 fw-bold">
-                                    {{ $inst->ekstrakurikuler_sessions_count }} Sesi
-                                </span>
+                                <span class="badge {{ $inst->ekstrakurikuler_sessions_count > 0 ? 'bg-primary' : 'bg-secondary' }} px-3 py-1.5 rounded-pill fs-6 fw-bold">{{ $inst->ekstrakurikuler_sessions_count }} Sesi</span>
                             </td>
                             <td class="text-center">
                                 @if($inst->ekstrakurikuler_sessions_count == 0)
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1">
-                                        <i class="bi bi-x-circle me-1"></i> Belum ada Sesi
-                                    </span>
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1"><i class="bi bi-x-circle me-1"></i> Belum ada Sesi</span>
                                 @elseif($inst->ekstrakurikuler_sessions_count < $average_sessions)
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1">
-                                        <i class="bi bi-dash-circle me-1"></i> Dibawah Rata2
-                                    </span>
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1"><i class="bi bi-dash-circle me-1"></i> Dibawah Rata2</span>
                                 @else
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
-                                        <i class="bi bi-check-circle me-1"></i> Optimal
-                                    </span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1"><i class="bi bi-check-circle me-1"></i> Optimal</span>
                                 @endif
                             </td>
                         </tr>
@@ -627,6 +757,57 @@
                 </div>
             </div>
 
+            {{-- Filter Baris 2: Filter Hari, Status & Tampilan --}}
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-3 pt-3 border-top">
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                    {{-- Filter Hari --}}
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label small fw-bold text-muted mb-0 text-nowrap" for="dayFilter">
+                            <i class="bi bi-calendar3 me-1 text-primary"></i> Filter Hari:
+                        </label>
+                        <select id="dayFilter" class="form-select form-select-sm" style="min-width:140px;">
+                            <option value="">— Semua Hari —</option>
+                            <option value="Senin">Senin</option>
+                            <option value="Selasa">Selasa</option>
+                            <option value="Rabu">Rabu</option>
+                            <option value="Kamis">Kamis</option>
+                            <option value="Jumat">Jumat</option>
+                            <option value="Sabtu">Sabtu</option>
+                        </select>
+                    </div>
+
+                    {{-- Filter Status Ketersediaan --}}
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label small fw-bold text-muted mb-0 text-nowrap" for="statusFilter">
+                            <i class="bi bi-funnel me-1 text-primary"></i> Filter Status:
+                        </label>
+                        <select id="statusFilter" class="form-select form-select-sm" style="min-width:210px;">
+                            <option value="">— Semua Status —</option>
+                            <option value="partial">🟡 Hanya Ada Sesi (Kuning)</option>
+                            <option value="free">🟢 Hanya Free / Tanpa Sesi (Hijau)</option>
+                        </select>
+                    </div>
+
+                    {{-- Switch: Sembunyikan Detail Sesi (Kuning) --}}
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" role="switch" id="hideJadwalSwitch" style="cursor:pointer;">
+                        <label class="form-check-label small fw-bold text-dark text-nowrap" for="hideJadwalSwitch" style="cursor:pointer;" title="Sembunyikan detail sesi kuning dan tampilkan slot hijau saja">
+                            🟡 Sembunyikan Detail Sesi (Tampilan Hijau Saja)
+                        </label>
+                    </div>
+                </div>
+
+                {{-- Counter & Reset --}}
+                <div class="d-flex align-items-center gap-2 ms-auto">
+                    <span class="badge bg-light text-muted border px-2.5 py-1.5" style="font-size:.78rem;">
+                        Menampilkan: <strong id="visibleInstructorsCount" class="text-primary">{{ $availability_instructors->count() }}</strong> / {{ $availability_instructors->count() }} instruktur
+                    </span>
+                    <button type="button" id="resetAvailFiltersBtn" class="btn btn-outline-secondary btn-sm py-1 px-2.5" style="font-size:.78rem;">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filter
+                    </button>
+                </div>
+            </div>
+
             {{-- Legend --}}
             <div class="d-flex align-items-center gap-3 flex-wrap mt-2 pt-2 border-top">
                 <span class="small text-muted fw-semibold">Keterangan:</span>
@@ -670,7 +851,7 @@
                     {{ $availability_instructors->count() }} Instruktur
                 </span>
             </div>
-            <div class="table-responsive">
+            <div class="table-responsive sd-table-scroll-container">
                 <table class="table sd-table sd-sticky-table mb-0 align-middle" id="availabilityTable">
                     <thead>
                         <tr>
@@ -692,60 +873,39 @@
                                 $hasSchedule = !empty($instr->instructorProfile?->waktu_mengajar);
                                 $days = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
                             @endphp
-                            <tr class="avail-row"
-                                data-name="{{ strtolower($instr->nama_lengkap) }}"
-                                data-kota="{{ strtolower($instr->kota_domisili) }}"
-                                data-instr-id="{{ $instr->id }}">
+                            <tr class="avail-row" data-name="{{ strtolower($instr->nama_lengkap) }}" data-kota="{{ strtolower($instr->kota_domisili) }}" data-instr-id="{{ $instr->id }}" @foreach($days as $day) data-status-{{ strtolower($day) }}="{{ !empty($instr->availability_by_day[$day]) ? 'free' : ($hasSchedule ? 'unavailable' : 'no_data') }}"@endforeach>
                                 <td class="fw-bold text-muted small sd-col-no">{{ $idx + 1 }}</td>
                                 <td class="sd-col-name">
                                     <div class="d-flex align-items-center gap-2">
-                                        <div class="sd-avatar" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;">
-                                            {{ strtoupper(substr($instr->nama_lengkap, 0, 2)) }}
-                                        </div>
+                                        <div class="sd-avatar" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;">{{ strtoupper(substr($instr->nama_lengkap, 0, 2)) }}</div>
                                         <div style="min-width:0;">
-                                            <div class="fw-bold text-dark text-truncate" style="font-size:.875rem; max-width:160px;" title="{{ $instr->nama_lengkap }}">
-                                                {{ $instr->nama_lengkap }}
-                                            </div>
-                                            <small class="text-muted text-truncate d-block" style="font-size:.725rem; max-width:160px;" title="{{ $instr->email }}">{{ $instr->email }}</small>
+                                            <div class="fw-bold text-dark text-truncate" style="font-size:.875rem;max-width:160px;" title="{{ $instr->nama_lengkap }}">{{ $instr->nama_lengkap }}</div>
+                                            <small class="text-muted text-truncate d-block" style="font-size:.725rem;max-width:160px;" title="{{ $instr->email }}">{{ $instr->email }}</small>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="sd-col-domisili">
                                     @if($instr->kota_domisili)
-                                        <span class="badge bg-light text-dark border fw-normal text-truncate d-inline-block" style="max-width:120px;" title="{{ $instr->kota_domisili }}">
-                                            <i class="bi bi-geo-alt me-1 text-secondary"></i>{{ $instr->kota_domisili }}
-                                        </span>
+                                        <span class="badge bg-light text-dark border fw-normal text-truncate d-inline-block" style="max-width:120px;" title="{{ $instr->kota_domisili }}"><i class="bi bi-geo-alt me-1 text-secondary"></i>{{ $instr->kota_domisili }}</span>
                                     @else
                                         <span class="text-muted small">—</span>
                                     @endif
                                 </td>
                                 @if(!$hasSchedule)
-                                    {{-- No waktu_mengajar: span all 6 day columns --}}
-                                    <td colspan="6" class="text-center" style="background:#fffbeb;">
-                                        <span class="badge fw-normal" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;font-size:.75rem;">
-                                            <i class="bi bi-exclamation-triangle me-1"></i> Belum mengisi jadwal ketersediaan
-                                        </span>
+                                    <td colspan="6" class="text-center cell-no_data">
+                                        <span class="badge status-badge status-no_data d-inline-block px-3 py-1"><i class="bi bi-exclamation-triangle me-1"></i> Belum mengisi jadwal ketersediaan</span>
                                     </td>
                                 @else
                                     @foreach($days as $day)
                                         @php $range = $instr->availability_by_day[$day] ?? null; @endphp
-                                        <td class="text-center p-1" style="{{ $range ? 'background:#f0fdf4;' : 'background:#f8fafc;' }}">
-                                            @if($range)
-                                                <span class="badge fw-normal d-inline-block"
-                                                      style="background:#dcfce7;color:#166534;border:1px solid #86efac;font-size:.72rem;line-height:1.4;white-space:normal;">
-                                                    {{ $range }}
-                                                </span>
-                                            @else
-                                                <span class="text-muted" style="font-size:.8rem;">—</span>
-                                            @endif
+                                        <td class="text-center day-cell {{ $range ? 'cell-free' : 'cell-unavailable' }}" data-day="{{ $day }}">
+                                            <div class="day-cell-content">
+                                                @if($range)<span class="badge status-badge status-free">🟢 Free</span><div class="avail-range-text">{{ $range }}</div>@else<span class="badge status-badge status-unavailable">⬜ Libur</span>@endif
+                                            </div>
                                         </td>
                                     @endforeach
                                 @endif
-                                <td class="text-center">
-                                    <span class="badge {{ $instr->sesi_aktif_bulan_ini > 0 ? 'bg-primary' : 'bg-secondary' }} rounded-pill px-2 py-1">
-                                        {{ $instr->sesi_aktif_bulan_ini }}
-                                    </span>
-                                </td>
+                                <td class="text-center"><span class="badge {{ $instr->sesi_aktif_bulan_ini > 0 ? 'bg-primary' : 'bg-secondary' }} rounded-pill px-2 py-1">{{ $instr->sesi_aktif_bulan_ini }}</span></td>
                             </tr>
                         @empty
                             <tr>
@@ -766,43 +926,145 @@
 </div>
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // Debounce helper
+    function debounce(fn, wait = 150) {
+        let timeout;
+        return function (...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => fn.apply(this, args), wait);
+        };
+    }
+
     // Dynamic Filter Fields Toggle
     function toggleFilterFields(mode) {
         document.querySelectorAll('.filter-field-month').forEach(el => el.classList.toggle('d-none', mode !== 'month'));
         document.querySelectorAll('.filter-field-custom').forEach(el => el.classList.toggle('d-none', mode !== 'custom'));
     }
 
-    // Live Table Search (Tab 1)
-    document.getElementById('tableSearchInput')?.addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim();
+    // Live Table Search (Tab 1) with debounce
+    const debouncedTableSearch = debounce(function(val) {
+        const query = (val || '').toLowerCase().trim();
         document.querySelectorAll('.instructor-row').forEach(row => {
             const name = row.dataset.name || '';
             row.style.display = name.includes(query) ? '' : 'none';
         });
+    }, 150);
+
+    document.getElementById('tableSearchInput')?.addEventListener('input', function() {
+        debouncedTableSearch(this.value);
     });
 
-    // Tab 2: Kota filter
-    document.getElementById('kotaFilter')?.addEventListener('change', function() {
+    // Tab 2 Filter Elements
+    // Tab 2 Filter Elements
+    const kotaFilter = document.getElementById('kotaFilter');
+    const availSearchInput = document.getElementById('availSearchInput');
+    const dayFilter = document.getElementById('dayFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const hideJadwalSwitch = document.getElementById('hideJadwalSwitch');
+    const resetAvailFiltersBtn = document.getElementById('resetAvailFiltersBtn');
+
+    // Debounced search for Tab 2
+    const debouncedAvailSearch = debounce(applyAvailabilityFilters, 150);
+
+    // Event listeners
+    kotaFilter?.addEventListener('change', applyAvailabilityFilters);
+    availSearchInput?.addEventListener('input', debouncedAvailSearch);
+    dayFilter?.addEventListener('change', function() {
+        updateDayColumnHighlight(this.value);
+        applyAvailabilityFilters();
+    });
+    statusFilter?.addEventListener('change', applyAvailabilityFilters);
+    hideJadwalSwitch?.addEventListener('change', function() {
+        const table = document.getElementById('availabilityTable');
+        if (this.checked) {
+            table?.classList.add('hide-session-cards');
+        } else {
+            table?.classList.remove('hide-session-cards');
+        }
         applyAvailabilityFilters();
     });
 
-    // Tab 2: Name search
-    document.getElementById('availSearchInput')?.addEventListener('input', function() {
+    resetAvailFiltersBtn?.addEventListener('click', function() {
+        if (kotaFilter) kotaFilter.value = '';
+        if (availSearchInput) availSearchInput.value = '';
+        if (dayFilter) dayFilter.value = '';
+        if (statusFilter) statusFilter.value = '';
+        if (hideJadwalSwitch) {
+            hideJadwalSwitch.checked = false;
+            document.getElementById('availabilityTable')?.classList.remove('hide-session-cards');
+        }
+        updateDayColumnHighlight('');
         applyAvailabilityFilters();
     });
+
+    function updateDayColumnHighlight(selectedDay) {
+        document.querySelectorAll('.day-header').forEach(th => {
+            th.classList.toggle('day-col-highlight', Boolean(selectedDay && th.dataset.day === selectedDay));
+        });
+        document.querySelectorAll('.day-cell').forEach(td => {
+            td.classList.toggle('day-col-highlight', Boolean(selectedDay && td.dataset.day === selectedDay));
+        });
+    }
+
+    function getRowDayStatus(row, dayName) {
+        if (!row || !dayName) return 'no_data';
+        const dLower = dayName.toLowerCase();
+        const dCapital = dayName.charAt(0).toUpperCase() + dLower.slice(1);
+        return row.dataset['status' + dCapital] ||
+               row.dataset['status' + dLower] ||
+               row.getAttribute('data-status-' + dLower) ||
+               'no_data';
+    }
 
     function applyAvailabilityFilters() {
-        const kota  = (document.getElementById('kotaFilter')?.value  || '').toLowerCase().trim();
-        const query = (document.getElementById('availSearchInput')?.value || '').toLowerCase().trim();
+        const kota = (kotaFilter?.value || '').toLowerCase().trim();
+        const query = (availSearchInput?.value || '').toLowerCase().trim();
+        const selectedDay = dayFilter?.value || '';
+        const statusVal = statusFilter?.value || '';
+
+        let visibleCount = 0;
+
         document.querySelectorAll('.avail-row').forEach(row => {
             const rowKota = row.dataset.kota || '';
             const rowName = row.dataset.name || '';
             const kotaOk  = !kota  || rowKota === kota;
             const nameOk  = !query || rowName.includes(query);
-            row.style.display = (kotaOk && nameOk) ? '' : 'none';
+
+            let statusOk = true;
+
+            if (selectedDay) {
+                const st = getRowDayStatus(row, selectedDay);
+                if (statusVal === 'free' || statusVal === 'hide_partial') {
+                    statusOk = (st === 'free');
+                } else if (statusVal === 'partial') {
+                    statusOk = (st === 'partial' || st === 'busy');
+                }
+            } else {
+                if (statusVal === 'free' || statusVal === 'hide_partial') {
+                    // Instruktur yang belum ada jadwal sesi sama sekali (full Free/Libur) di minggu ini
+                    statusOk = !DAYS.some(d => {
+                        const st = getRowDayStatus(row, d);
+                        return st === 'partial' || st === 'busy';
+                    });
+                } else if (statusVal === 'partial') {
+                    // Minimal 1 hari yang ada jadwal sesi (kuning / merah) di minggu ini
+                    statusOk = DAYS.some(d => {
+                        const st = getRowDayStatus(row, d);
+                        return st === 'partial' || st === 'busy';
+                    });
+                }
+            }
+
+            const isVisible = kotaOk && nameOk && statusOk;
+            row.style.display = isVisible ? '' : 'none';
+            if (isVisible) visibleCount++;
         });
+
+        const counterEl = document.getElementById('visibleInstructorsCount');
+        if (counterEl) {
+            counterEl.textContent = visibleCount;
+        }
     }
 
     // ─── Week Picker AJAX Load ───────────────────────────────────────────────
@@ -810,64 +1072,43 @@
 
     // Helper: render a single cell based on day data from AJAX
     function renderDayCell(dayData) {
-        if (!dayData) {
-            // Static mode (no week loaded yet)
-            return null;
-        }
+        if (!dayData) return null;
 
         const { status, available, sessions } = dayData;
-
-        const bgColor = {
-            free:        '#f0fdf4',
-            partial:     '#fffbeb',
-            busy:        '#fef2f2',
-            unavailable: '#f8fafc',
-            no_data:     '#fffbeb',
-        }[status] || '#f8fafc';
-
-        const badgeStyle = {
-            free:        'background:#dcfce7;color:#166534;border:1px solid #86efac;',
-            partial:     'background:#fef3c7;color:#92400e;border:1px solid #fcd34d;',
-            busy:        'background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;',
-            unavailable: 'background:#f1f5f9;color:#94a3b8;border:1px solid #cbd5e1;',
-            no_data:     'background:#fef3c7;color:#92400e;border:1px solid #fcd34d;opacity:.7;',
-        }[status] || '';
 
         const icon = {
             free: '🟢', partial: '🟡', busy: '🔴', unavailable: '⬜', no_data: '⚠️',
         }[status] || '';
 
         const label = {
-            free: 'Free',
-            partial: 'Sebagian',
-            busy: 'Penuh',
-            unavailable: 'Libur',
-            no_data: 'Blm isi',
+            free: 'Free', partial: 'Sebagian', busy: 'Penuh', unavailable: 'Libur', no_data: 'Blm isi',
         }[status] || status;
 
-        let html = `<div style="background:${bgColor};border-radius:6px;padding:4px;min-height:38px;">`;
-        html += `<span class="badge fw-semibold d-block mb-1" style="${badgeStyle}font-size:.7rem;">${icon} ${label}</span>`;
+        let html = `<div class="day-cell-content">`;
+        html += `<span class="badge status-badge status-${status}"><span>${icon} ${label}</span></span>`;
 
         if (available && status !== 'unavailable' && status !== 'no_data') {
-            html += `<div style="font-size:.68rem;color:#64748b;margin-bottom:2px;">${available}</div>`;
+            html += `<div class="avail-range-text">${available}</div>`;
         }
 
         if (sessions && sessions.length > 0) {
             sessions.forEach(s => {
-                const schoolInfo = s.school && s.school !== '—' ? ` @ ${s.school}` : '';
-                html += `<div title="${s.time} ${s.ekskul}${schoolInfo}" style="font-size:.68rem;color:#1e293b;background:#ffffff;border-radius:4px;padding:3px 5px;margin-top:3px;border-left:2.5px solid #f59e0b;box-shadow:0 1px 2px rgba(0,0,0,0.05);line-height:1.25;text-align:left;">`;
-                html += `<div style="font-weight:700;color:#0f172a;">${s.time}</div>`;
-                html += `<div style="font-size:.65rem;color:#334155;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.ekskul}</div>`;
-                if (s.school && s.school !== '—') {
-                    html += `<div style="font-size:.62rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.school}</div>`;
-                }
-                html += `</div>`;
+                const schoolInfo = s.school && s.school !== '—' ? `<div class="session-school">${s.school}</div>` : '';
+                html += `<div class="session-item-card" title="${s.time} ${s.ekskul}">` +
+                        `<div class="session-time">${s.time}</div>` +
+                        `<div class="session-ekskul">${s.ekskul}</div>` +
+                        schoolInfo +
+                        `</div>`;
             });
         }
 
         html += '</div>';
         return html;
     }
+
+    document.getElementById('weekPicker')?.addEventListener('change', function() {
+        document.getElementById('loadWeekBtn')?.click();
+    });
 
     document.getElementById('loadWeekBtn')?.addEventListener('click', function() {
         const weekVal = document.getElementById('weekPicker')?.value;
@@ -876,6 +1117,7 @@
         const btn     = this;
         const loading = document.getElementById('loadingBadge');
         const label   = document.getElementById('weekLabelDisplay');
+        const table   = document.getElementById('availabilityTable');
 
         btn.disabled  = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memuat...';
@@ -908,29 +1150,44 @@
             label?.classList.remove('d-none');
             label?.classList.add('d-flex');
 
-            // Update each avail-row cells
-            document.querySelectorAll('.avail-row').forEach(row => {
-                const instrId = row.dataset.instrId;
-                const instrData = data.availability[instrId];
-                if (!instrData) return;
+            // Batch DOM update: hide table momentarily to suppress layout reflows
+            if (table) table.style.visibility = 'hidden';
 
-                DAYS.forEach((day, idx) => {
-                    // day cell index: 3 = Senin, 4=Selasa, ... (after No, Nama, Domisili cols)
-                    const cellIdx = 3 + idx;
-                    const cell = row.cells[cellIdx];
-                    if (!cell) return;
+            try {
+                document.querySelectorAll('.avail-row').forEach(row => {
+                    const instrId = row.dataset.instrId;
+                    const instrData = data.availability[instrId];
+                    if (!instrData) return;
 
-                    // Handle colspan=6 (no waktu_mengajar)
-                    if (row.querySelector('td[colspan="6"]')) return;
+                    DAYS.forEach((day, idx) => {
+                        const dayData = instrData[day];
+                        const dayStatus = dayData ? dayData.status : 'no_data';
+                        const dayLower = day.toLowerCase();
+                        const dayCapital = day.charAt(0).toUpperCase() + dayLower.slice(1);
+                        row.setAttribute('data-status-' + dayLower, dayStatus);
+                        row.dataset['status' + dayCapital] = dayStatus;
+                        row.dataset['status' + dayLower] = dayStatus;
 
-                    const rendered = renderDayCell(instrData[day]);
-                    if (rendered !== null) {
-                        cell.innerHTML = rendered;
-                        cell.style.padding = '4px';
-                        cell.style.verticalAlign = 'top';
-                    }
+                        const cellIdx = 3 + idx;
+                        const cell = row.cells[cellIdx];
+                        if (!cell || row.querySelector('td[colspan="6"]')) return;
+
+                        const rendered = renderDayCell(dayData);
+                        if (rendered !== null) {
+                            cell.innerHTML = rendered;
+                            cell.className = `text-center day-cell cell-${dayStatus}`;
+                            cell.dataset.day = day;
+                            cell.style.verticalAlign = 'top';
+                        }
+                    });
                 });
-            });
+
+                // Re-apply highlight & filters with fresh weekly data
+                updateDayColumnHighlight(dayFilter?.value || '');
+                applyAvailabilityFilters();
+            } finally {
+                if (table) table.style.visibility = '';
+            }
         })
         .catch(err => {
             console.error(err);
@@ -943,6 +1200,22 @@
         });
     });
 
+    // Auto-load current week when Tab 2 is opened or page finishes loading
+    let weekDataLoaded = false;
+    function triggerLoadWeekOnce() {
+        if (!weekDataLoaded) {
+            weekDataLoaded = true;
+            document.getElementById('loadWeekBtn')?.click();
+        }
+    }
+
+    document.querySelector('button[data-bs-target="#pane-ketersediaan"]')?.addEventListener('shown.bs.tab', function() {
+        triggerLoadWeekOnce();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(triggerLoadWeekOnce, 250);
+    });
 
     // Chart JS Initialization
     document.addEventListener('DOMContentLoaded', function() {

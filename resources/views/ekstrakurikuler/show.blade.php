@@ -637,6 +637,11 @@
                                             <span class="badge {{ $sessionBadge }} rounded-pill px-2.5 py-0.5 small fs-8">
                                                 {{ $session->status_label }}
                                             </span>
+                                            @if($session->is_manual_reschedule && $session->status === 'terjadwal')
+                                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-2 py-0.5 small fs-8" title="Jadwal sesi ini dikunci manual dan aman dari penimpaan Sync Sesi">
+                                                    <i class="bi bi-pin-angle-fill me-0.5"></i> Terkunci (Manual)
+                                                </span>
+                                            @endif
                                             @can('update', $session)
                                             <a href="{{ route('ekstrakurikuler.sessions.edit', $session) }}" class="text-primary small text-decoration-none" title="Edit Jadwal">
                                                 <i class="bi bi-pencil"></i>

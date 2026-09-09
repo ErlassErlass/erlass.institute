@@ -157,14 +157,23 @@ class DashboardAnalyticsController extends Controller
             $periodLabel = 'Periode Honor Berjalan (' . $periodStart->translatedFormat('d M Y') . ' - ' . $periodEnd->translatedFormat('d M Y') . ')';
         }
 
+        $bulanIni     = Carbon::now()->startOfMonth();
+        $bulanIniEnd  = Carbon::now()->endOfMonth();
+
         $instructors = User::teachingStaff()
             ->with(['instructorProfile'])
-            ->withCount(['ekstrakurikulerSessions' => function ($query) use ($periodStart, $periodEnd) {
-                $query->where('status', '!=', 'dibatalkan');
-                if ($periodStart && $periodEnd) {
-                    $query->whereBetween('tanggal_terjadwal', [$periodStart, $periodEnd]);
+            ->withCount([
+                'ekstrakurikulerSessions' => function ($query) use ($periodStart, $periodEnd) {
+                    $query->where('status', '!=', 'dibatalkan');
+                    if ($periodStart && $periodEnd) {
+                        $query->whereBetween('tanggal_terjadwal', [$periodStart, $periodEnd]);
+                    }
+                },
+                'ekstrakurikulerSessions as sesi_aktif_bulan_ini' => function ($q) use ($bulanIni, $bulanIniEnd) {
+                    $q->whereNotIn('status', ['dibatalkan'])
+                      ->whereBetween('tanggal_terjadwal', [$bulanIni, $bulanIniEnd]);
                 }
-            }])
+            ])
             ->orderBy('ekstrakurikuler_sessions_count', 'desc')
             ->orderBy('nama_lengkap', 'asc')
             ->get();
@@ -187,19 +196,10 @@ class DashboardAnalyticsController extends Controller
         ];
 
         // ── Availability matrix data ──────────────────────────────────────────
-        // Load ALL teaching staff with their profile (for waktu_mengajar & kota_domisili)
-        // and count of active/scheduled sessions in the current calendar month
-        $bulanIni     = Carbon::now()->startOfMonth();
-        $bulanIniEnd  = Carbon::now()->endOfMonth();
-
-        $availabilityInstructors = User::teachingStaff()
-            ->with(['instructorProfile'])
-            ->withCount(['ekstrakurikulerSessions as sesi_aktif_bulan_ini' => function ($q) use ($bulanIni, $bulanIniEnd) {
-                $q->whereNotIn('status', ['dibatalkan'])
-                  ->whereBetween('tanggal_terjadwal', [$bulanIni, $bulanIniEnd]);
-            }])
-            ->orderBy('nama_lengkap')
-            ->get()
+        // Reuse already loaded teaching staff, sorted by name for the matrix
+        $availabilityInstructors = $instructors
+            ->sortBy('nama_lengkap')
+            ->values()
             ->map(function ($instr) {
                 $waktuMengajar = $instr->instructorProfile?->waktu_mengajar ?? [];
                 $instr->availability_by_day = $this->parseAvailabilityToRanges($waktuMengajar);

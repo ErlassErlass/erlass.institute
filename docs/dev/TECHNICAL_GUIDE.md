@@ -23,6 +23,7 @@ Menggunakan `spatie/laravel-permission`.
 - **GPS Check-in Metadata**: Columns: `checkin_lat`, `checkin_lng`, `checkin_distance_meters`, `checkin_status_radius` (`valid` / `out_of_bounds` / `unverified`), `checkin_photo_path`.
 - **Geolocation Engine**: `GoogleMapsLocationService` mengurai short link Google Maps secara otomatis menjadi koordinat asli sekolah saat penyimpanan data ekstrakurikuler.
 - **Haversine Formula**: Endpoint `/ekstrakurikuler/sessions/{session}/checkin` menghitung jarak real-time dari posisi GPS instruktur ke koordinat sekolah yang terdaftar (toleransi radius $\le 500$m). Jika koordinat belum dikonfigurasi, status dicatat sebagai `unverified`.
+- **Proteksi Reschedule Manual (Sync Sesi)**: Kolom `is_manual_reschedule` pada `ekstrakurikuler_session` aktif otomatis ketika admin memodifikasi tanggal/jam sesi pada `EkstrakurikulerSessionController@update` atau via `SchedulingService::rescheduleSessions()`. Sesi bertanda ini terlindungi secara permanen dari penimpaan atau penghapusan saat tombol *Sync Sesi* dijalankan di halaman program ekstrakurikuler.
 
 ### 2. Form Laporan & Absensi Sesi Impeccable (`/ekstrakurikuler/sessions/{id}/report/create`)
 - **Controller**: `EkstrakurikulerReportController@create` & `EkstrakurikulerReportController@store`.
@@ -80,9 +81,15 @@ Menggunakan `spatie/laravel-permission`.
 - **Schedule Distribution (`/admin/analytics/schedule-distribution`)**:
   - **Controller**: `DashboardAnalyticsController@scheduleDistribution`.
   - **Period Modes**: `honor_current` (Cut-off 11-10), `honor_prev`, `honor_prev2`, `all`, `month`, `custom`.
+  - **Query & Render Optimization**: Me-reuse koleksi instruktur ter-load (`$instructors`) untuk data ketersediaan matriks guna meniadakan duplikasi query; menambahkan CSS `content-visibility: auto` pada setiap baris ketersediaan instruktur agar rendering ratusan baris instan tanpa frame-drop.
+  - **Sticky Frozen Headers & Columns**: Membekukan header hari/tanggal (`position: sticky; top: 0`) dan 3 kolom identitas pertama (No, Nama, Domisili) dengan scroll container khusus berbatas tinggi (`max-height: 72vh`), memungkinkan scroll 2 arah dengan konteks tetap terlihat.
   - **Dynamic Export**: `DashboardAnalyticsController@exportScheduleDistribution` maps `ScheduleDistributionExport` class according to active filter date boundaries.
 - **Weekly Instructor Availability Matrix (`/admin/analytics/availability-check`)**:
   - **Controller**: `DashboardAnalyticsController@availabilityCheck` (AJAX Endpoint).
+  - **Auto-Load On Tab Activation**: Memuat data sesi mingguan secara otomatis begitu halaman dimuat atau tab *"Ketersediaan Mingguan"* diaktifkan tanpa mengharuskan klik manual "Cek Ketersediaan".
+  - **Status Filter & Display Modes**:
+    * Dropdown Filter Status: `Semua Status`, `🟡 Hanya Ada Sesi (Kuning)`, dan `🟢 Hanya Free / Tanpa Sesi (Hijau)` yang terintegrasi dengan filter kota, hari, dan pencarian nama serta counter instruktur real-time.
+    * Switch Mode Ketersediaan Murni: *"🟡 Sembunyikan Detail Sesi (Tampilan Hijau Saja)"* menyembunyikan kartu sesi dan mengubah sel kuning/merah menjadi hijau ketersediaan lembut (`🟢 Free`).
   - **Query & Formatting**:
     * Menerima parameter `week` bertipe format ISO (`YYYY-Www`).
     * Menghitung tanggal Senin–Sabtu dari minggu tersebut via `Carbon::setISODate()`.
