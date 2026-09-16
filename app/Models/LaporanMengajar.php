@@ -321,44 +321,84 @@ class LaporanMengajar extends Model
         $rombelId = null;
 
         if ($this->sekolah_kodlan) {
-            $ekskul = \App\Models\Ekstrakurikuler::where('sekolah_kodlan', $this->sekolah_kodlan)->first();
-            if (! $ekskul) {
-                $ekskul = \App\Models\Ekstrakurikuler::create([
-                    'sekolah_kodlan' => $this->sekolah_kodlan,
-                    'kategori_program' => $this->kategori_pengajaran ?? 'Reguler',
-                    'total_siswa' => 15,
-                    'total_ruangan' => 1,
-                    'total_rombel' => 1,
-                    'total_pertemuan' => 12,
-                    'tanggal_mulai' => $this->jadwal_mengajar ?? now(),
-                    'tanggal_selesai' => ($this->jadwal_mengajar ? $this->jadwal_mengajar->copy()->addMonths(6) : now()->addMonths(6)),
-                    'status' => $isAdHocCategory ? 'dibatalkan' : 'aktif',
-                ]);
-            }
-            $ekstrakurikulerId = $ekskul->id;
+            if ($isAdHocCategory) {
+                $categoryName = $this->kategori_pengajaran ?: 'Kegiatan Khusus';
+                $ekskul = \App\Models\Ekstrakurikuler::where('sekolah_kodlan', $this->sekolah_kodlan)
+                    ->where('kategori_program', $categoryName)
+                    ->first();
+                if (! $ekskul) {
+                    $ekskul = \App\Models\Ekstrakurikuler::create([
+                        'sekolah_kodlan' => $this->sekolah_kodlan,
+                        'kategori_program' => $categoryName,
+                        'total_siswa' => 15,
+                        'total_ruangan' => 1,
+                        'total_rombel' => 1,
+                        'total_pertemuan' => 1,
+                        'tanggal_mulai' => $this->jadwal_mengajar ?? now(),
+                        'tanggal_selesai' => ($this->jadwal_mengajar ? $this->jadwal_mengajar->copy()->addMonths(6) : now()->addMonths(6)),
+                        'status' => 'selesai',
+                    ]);
+                }
+                $ekstrakurikulerId = $ekskul->id;
 
-            $rombel = \App\Models\EkstrakurikulerRombel::where('ekstrakurikuler_id', $ekskul->id)->first();
-            if (! $rombel) {
-                $totalSiswa = ($this->jumlah_siswa_hadir + $this->jumlah_siswa_tidak_hadir);
-                $rombel = \App\Models\EkstrakurikulerRombel::create([
-                    'ekstrakurikuler_id' => $ekskul->id,
-                    'nama_rombel' => 'Rombel ' . ($this->rombel ?? '1'),
-                    'nomor_rombel' => (int) preg_replace('/[^0-9]/', '', $this->rombel ?? '1') ?: 1,
-                    'jumlah_siswa' => max(15, $totalSiswa),
-                    'tanggal_mulai' => $this->jadwal_mengajar ?? now(),
-                    'tanggal_selesai' => ($this->jadwal_mengajar ? $this->jadwal_mengajar->copy()->addMonths(6) : now()->addMonths(6)),
-                    'jam_mulai' => $this->jam_mulai ?? '08:00:00',
-                    'jam_selesai' => $this->jam_selesai ?? '09:30:00',
-                    'total_pertemuan' => $isAdHocCategory ? 1 : 12,
-                    'status' => 'berlangsung',
-                ]);
+                $rombel = \App\Models\EkstrakurikulerRombel::where('ekstrakurikuler_id', $ekskul->id)->first();
+                if (! $rombel) {
+                    $totalSiswa = ($this->jumlah_siswa_hadir + $this->jumlah_siswa_tidak_hadir);
+                    $rombel = \App\Models\EkstrakurikulerRombel::create([
+                        'ekstrakurikuler_id' => $ekskul->id,
+                        'nama_rombel' => 'Penugasan Khusus - ' . $categoryName,
+                        'nomor_rombel' => 1,
+                        'jumlah_siswa' => max(15, $totalSiswa),
+                        'tanggal_mulai' => $this->jadwal_mengajar ?? now(),
+                        'tanggal_selesai' => ($this->jadwal_mengajar ? $this->jadwal_mengajar->copy()->addMonths(6) : now()->addMonths(6)),
+                        'jam_mulai' => $this->jam_mulai ?? '08:00:00',
+                        'jam_selesai' => $this->jam_selesai ?? '09:30:00',
+                        'total_pertemuan' => 1,
+                        'user_id_instruktur' => $this->user_id_instruktur,
+                        'status' => 'selesai',
+                    ]);
+                }
+                $rombelId = $rombel->id;
+            } else {
+                $ekskul = \App\Models\Ekstrakurikuler::where('sekolah_kodlan', $this->sekolah_kodlan)->first();
+                if (! $ekskul) {
+                    $ekskul = \App\Models\Ekstrakurikuler::create([
+                        'sekolah_kodlan' => $this->sekolah_kodlan,
+                        'kategori_program' => $this->kategori_pengajaran ?? 'Reguler',
+                        'total_siswa' => 15,
+                        'total_ruangan' => 1,
+                        'total_rombel' => 1,
+                        'total_pertemuan' => 12,
+                        'tanggal_mulai' => $this->jadwal_mengajar ?? now(),
+                        'tanggal_selesai' => ($this->jadwal_mengajar ? $this->jadwal_mengajar->copy()->addMonths(6) : now()->addMonths(6)),
+                        'status' => 'aktif',
+                    ]);
+                }
+                $ekstrakurikulerId = $ekskul->id;
+
+                $rombel = \App\Models\EkstrakurikulerRombel::where('ekstrakurikuler_id', $ekskul->id)->first();
+                if (! $rombel) {
+                    $totalSiswa = ($this->jumlah_siswa_hadir + $this->jumlah_siswa_tidak_hadir);
+                    $rombel = \App\Models\EkstrakurikulerRombel::create([
+                        'ekstrakurikuler_id' => $ekskul->id,
+                        'nama_rombel' => 'Rombel ' . ($this->rombel ?? '1'),
+                        'nomor_rombel' => (int) preg_replace('/[^0-9]/', '', $this->rombel ?? '1') ?: 1,
+                        'jumlah_siswa' => max(15, $totalSiswa),
+                        'tanggal_mulai' => $this->jadwal_mengajar ?? now(),
+                        'tanggal_selesai' => ($this->jadwal_mengajar ? $this->jadwal_mengajar->copy()->addMonths(6) : now()->addMonths(6)),
+                        'jam_mulai' => $this->jam_mulai ?? '08:00:00',
+                        'jam_selesai' => $this->jam_selesai ?? '09:30:00',
+                        'total_pertemuan' => 12,
+                        'status' => 'berlangsung',
+                    ]);
+                }
+                $rombelId = $rombel->id;
             }
-            $rombelId = $rombel->id;
         }
 
-        // Untuk Kegiatan Ad-Hoc / Khusus / Backup, pastikan nomor_pertemuan unik dan tidak bentrok (termasuk soft-deleted)
+        // Untuk Kegiatan Ad-Hoc / Khusus / Backup, pastikan nomor_pertemuan berurutan mulai dari 1 dan tidak bentrok
         if ($isAdHocCategory) {
-            $nomorPertemuan = 0;
+            $nomorPertemuan = 1;
             if ($rombelId) {
                 while (\App\Models\EkstrakurikulerSession::withTrashed()->where('ekstrakurikuler_rombel_id', $rombelId)->where('nomor_pertemuan', $nomorPertemuan)->exists()) {
                     $nomorPertemuan++;

@@ -1257,7 +1257,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (form && btnSubmit) {
         form.addEventListener('submit', function (e) {
-            if (!photoInput || !photoInput.files || photoInput.files.length === 0) {
+            const hasFileInput = photoInput && photoInput.files && photoInput.files.length > 0;
+            const hasBase64 = document.getElementById('checkin_photo_base64')?.value;
+            if (!hasFileInput && !hasBase64) {
                 e.preventDefault();
                 alert('Silakan ambil foto bukti kehadiran terlebih dahulu dengan menekan tombol kamera.');
                 return;

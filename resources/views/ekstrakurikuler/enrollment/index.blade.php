@@ -572,7 +572,7 @@ function showBulkModal(action) {
         'activate':   `<p>Yakin ingin mengaktifkan <strong>${checkedBoxes.length}</strong> siswa yang dipilih?</p>`,
         'deactivate': `<p>Yakin ingin menonaktifkan <strong>${checkedBoxes.length}</strong> siswa yang dipilih?</p>`,
         'graduate':   `<p>Yakin ingin meluluskan <strong>${checkedBoxes.length}</strong> siswa yang dipilih?</p>`,
-        'delete':     `<p class="text-danger">Yakin ingin menghapus enrollment <strong>${checkedBoxes.length}</strong> siswa yang dipilih? <br><small>Tindakan ini tidak dapat dibatalkan.</small></p>`,
+        'delete':     `<div class="alert alert-danger"><i class="bi bi-exclamation-octagon-fill me-2"></i><strong>PERINGATAN PENTING:</strong><br>Aksi <strong>Hapus</strong> hanya boleh digunakan jika siswa salah didaftarkan dan <u>belum pernah memiliki riwayat kehadiran (absensi)</u>.<br><br>Jika siswa berhenti atau pindah, gunakan aksi <strong>"Keluarkan Siswa" (Withdraw)</strong> atau <strong>"Pindah Rombel"</strong> agar data riwayat laporan mengajar tidak rusak/terhapus.</div><p>Lanjutkan hapus <strong>${checkedBoxes.length}</strong> enrollment terpilih?</p>`,
         'withdraw':   `<div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-2"></i>Anda akan mengeluarkan <strong>${checkedBoxes.length}</strong> siswa dari program. Hanya siswa berstatus <strong>Aktif</strong> yang akan diproses.</div>`,
         'transfer':   `<div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Memindahkan <strong>${checkedBoxes.length}</strong> siswa ke rombel lain. Hanya siswa berstatus <strong>Aktif</strong> yang akan diproses.</div>`,
     };

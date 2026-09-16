@@ -645,9 +645,10 @@
                                     @php
                                         $currentMateri = old('topik_materi', $defaults['materi']);
                                         $isInList = $materiList->contains($currentMateri);
+                                        $kategoriProg = $session->rombel?->ekstrakurikuler?->kategori_program;
                                     @endphp
                                     
-                                    @if($currentMateri && !$isInList)
+                                    @if($currentMateri && !$isInList && ($materiList->isEmpty() || $currentMateri !== $kategoriProg))
                                         <option value="{{ $currentMateri }}" selected>{{ $currentMateri }}</option>
                                     @endif
 
@@ -1264,10 +1265,56 @@
         const btnConfirm = document.getElementById('btnConfirmSubmit');
         const btnFinalSubmit = document.getElementById('btnFinalSubmit');
         
+        // Auto-scroll to error alert if exists
+        const errAlert = document.querySelector('.alert-danger');
+        if (errAlert) {
+            errAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
         if (btnConfirm) {
             btnConfirm.addEventListener('click', function() {
+                const reportForm = document.getElementById('reportForm');
+                
+                // 1. Validate Topik Materi
                 const topik = document.querySelector('[name="topik_materi"]');
-                const topikText = topik ? (topik.options ? topik.options[topik.selectedIndex]?.text : topik.value) : '-';
+                if (!topik || !topik.value || topik.value.trim() === '') {
+                    alert('Silakan pilih Topik Materi kegiatan terlebih dahulu.');
+                    topik?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    topik?.focus();
+                    return;
+                }
+
+                // 2. Validate Foto Kegiatan
+                const fotoKegiatan = document.querySelector('input[name="foto_kegiatan"]');
+                if (!fotoKegiatan || !fotoKegiatan.files || !fotoKegiatan.files.length) {
+                    alert('Foto Kegiatan wajib diunggah.');
+                    document.getElementById('uploadFotoKegiatan')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+
+                // 3. Validate File Project
+                const fileProject = document.querySelector('input[name="file_project"]');
+                if (!fileProject || !fileProject.files || !fileProject.files.length) {
+                    alert('File Project wajib diunggah (bisa file .hex, .sb3, .zip, .rar, .pdf, atau foto hasil project siswa .jpg/.png).');
+                    document.getElementById('uploadFileProject')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+
+                // 4. Validate Foto Absensi Siswa
+                const fotoAbsensi = document.querySelector('input[name="foto_absensi_siswa"]');
+                if (!fotoAbsensi || !fotoAbsensi.files || !fotoAbsensi.files.length) {
+                    alert('Foto Lembar Presensi (Wajib TTD & Stempel) wajib diunggah.');
+                    document.getElementById('uploadPresensi')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+
+                // 5. Native HTML5 check for any remaining required fields (e.g. catatan keterlambatan)
+                if (reportForm && !reportForm.checkValidity()) {
+                    reportForm.reportValidity();
+                    return;
+                }
+
+                const topikText = topik.options ? (topik.options[topik.selectedIndex]?.text || topik.value) : topik.value;
                 const keaktifan = document.querySelector('[name="keaktifan"]');
                 const keaktifanText = keaktifan ? keaktifan.options[keaktifan.selectedIndex]?.text : '-';
                 const pemahaman = document.querySelector('[name="pemahaman_materi"]');
@@ -1280,11 +1327,11 @@
                     </div>
                     <div class="confirm-summary-item">
                         <span class="label">Siswa Hadir</span>
-                        <span class="value" style="color: var(--imp-green);">${hadirCountEl.textContent} siswa</span>
+                        <span class="value" style="color: var(--imp-green);">${hadirCountEl ? hadirCountEl.textContent : '0'} siswa</span>
                     </div>
                     <div class="confirm-summary-item">
                         <span class="label">Siswa Absen</span>
-                        <span class="value" style="color: var(--imp-red);">${absenCountEl.textContent} siswa</span>
+                        <span class="value" style="color: var(--imp-red);">${absenCountEl ? absenCountEl.textContent : '0'} siswa</span>
                     </div>
                     <div class="confirm-summary-item">
                         <span class="label">Keaktifan Kelas</span>
@@ -1304,27 +1351,38 @@
         
         if (btnFinalSubmit) {
             btnFinalSubmit.addEventListener('click', async function() {
-                this.disabled = true;
-                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Mengunggah Laporan...';
-                if (btnConfirm) {
-                    btnConfirm.classList.add('loading');
-                    btnConfirm.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Mengunggah...';
-                }
+                try {
+                    this.disabled = true;
+                    this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Mengunggah Laporan...';
+                    if (btnConfirm) {
+                        btnConfirm.classList.add('loading');
+                        btnConfirm.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Mengunggah...';
+                    }
 
-                // Final safety check: ensure all image inputs are compressed before submit
-                const fileInputs = document.querySelectorAll('#reportForm input[type="file"]');
-                for (const input of fileInputs) {
-                    if (input.files && input.files[0] && input.files[0].type.startsWith('image/')) {
-                        const compressed = await compressImageFile(input.files[0]);
-                        try {
-                            const dt = new DataTransfer();
-                            dt.items.add(compressed);
-                            input.files = dt.files;
-                        } catch(e) {}
+                    // Final safety check: ensure all image inputs are compressed before submit
+                    const fileInputs = document.querySelectorAll('#reportForm input[type="file"]');
+                    for (const input of fileInputs) {
+                        if (input.files && input.files[0] && input.files[0].type.startsWith('image/')) {
+                            const compressed = await compressImageFile(input.files[0]);
+                            try {
+                                const dt = new DataTransfer();
+                                dt.items.add(compressed);
+                                input.files = dt.files;
+                            } catch(e) {}
+                        }
+                    }
+
+                    document.getElementById('reportForm').submit();
+                } catch (err) {
+                    console.error('Submit error:', err);
+                    alert('Terjadi kesalahan saat memproses data: ' + err.message);
+                    this.disabled = false;
+                    this.innerHTML = '<i class="bi bi-check-lg me-1"></i> Ya, Submit Laporan';
+                    if (btnConfirm) {
+                        btnConfirm.classList.remove('loading');
+                        btnConfirm.innerHTML = '<i class="bi bi-save me-2"></i> Simpan Laporan & Selesaikan Sesi';
                     }
                 }
-
-                document.getElementById('reportForm').submit();
             });
         }
 

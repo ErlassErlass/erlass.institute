@@ -364,9 +364,30 @@ class SiswaImporterService
                     ]);
                 }
 
-                // Attach to Rombel (O(1) Hash Map check)
-                if (!isset($attachedSiswaIds[$siswa->id])) {
-                    $rombel->siswa()->attach($siswa->id);
+                // Attach to Rombel (Check existing including trashed to avoid duplicate constraints)
+                $existingRecord = \App\Models\SiswaEkstrakurikuler::withTrashed()
+                    ->where('siswa_id', $siswa->id)
+                    ->where('ekstrakurikuler_id', $rombel->ekstrakurikuler_id)
+                    ->where('ekstrakurikuler_rombel_id', $rombel->id)
+                    ->first();
+
+                if ($existingRecord) {
+                    if ($existingRecord->trashed()) {
+                        $existingRecord->restore();
+                    }
+                    $existingRecord->update([
+                        'status' => 'aktif',
+                        'tanggal_keluar' => null,
+                        'alasan_keluar' => null,
+                    ]);
+                    $attachedSiswaIds[$siswa->id] = true;
+                    $updatedIndex++;
+                } elseif (!isset($attachedSiswaIds[$siswa->id])) {
+                    $rombel->siswa()->attach($siswa->id, [
+                        'ekstrakurikuler_id' => $rombel->ekstrakurikuler_id,
+                        'status'             => 'aktif',
+                        'tanggal_daftar'     => now()->toDateString(),
+                    ]);
                     $attachedSiswaIds[$siswa->id] = true;
                     $importedIndex++;
                 } else {
@@ -509,13 +530,13 @@ class SiswaImporterService
                     ]
                 );
 
-                // Enroll student to the specific program rombel
-                $isEnrolled = \App\Models\SiswaEkstrakurikuler::where('siswa_id', $siswa->id)
+                // Enroll student to the specific program rombel (including trashed)
+                $existingEnrollment = \App\Models\SiswaEkstrakurikuler::withTrashed()
+                    ->where('siswa_id', $siswa->id)
                     ->where('ekstrakurikuler_id', $ekstrakurikuler->id)
-                    ->where('status', '!=', 'keluar')
-                    ->exists();
+                    ->first();
 
-                if (!$isEnrolled) {
+                if (!$existingEnrollment) {
                     \App\Models\SiswaEkstrakurikuler::create([
                         'siswa_id' => $siswa->id,
                         'ekstrakurikuler_id' => $ekstrakurikuler->id,
@@ -536,17 +557,15 @@ class SiswaImporterService
 
                     $results['success']++;
                 } else {
-                    // Update current enrollment's rombel if already registered
-                    $enrollment = \App\Models\SiswaEkstrakurikuler::where('siswa_id', $siswa->id)
-                        ->where('ekstrakurikuler_id', $ekstrakurikuler->id)
-                        ->where('status', '!=', 'keluar')
-                        ->first();
-                    
-                    if ($enrollment) {
-                        $enrollment->update([
-                            'ekstrakurikuler_rombel_id' => $rombel->id
-                        ]);
+                    if ($existingEnrollment->trashed()) {
+                        $existingEnrollment->restore();
                     }
+                    $existingEnrollment->update([
+                        'ekstrakurikuler_rombel_id' => $rombel->id,
+                        'status' => 'aktif',
+                        'tanggal_keluar' => null,
+                        'alasan_keluar' => null,
+                    ]);
                     $results['success']++;
                 }
             }

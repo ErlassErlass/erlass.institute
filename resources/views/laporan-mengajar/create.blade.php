@@ -544,6 +544,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Save as draft functionality
         $('#saveDraftBtn').click(function() {
+            if (isSubmitting) return false;
             Swal.fire({
                 title: 'Simpan sebagai Draft?',
                 text: "Anda dapat melanjutkan mengeditnya nanti",
@@ -568,8 +569,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Form validation before submit
-        $('#laporanForm').submit(function() {
+        // Form validation & anti-double-click protection before submit
+        var isSubmitting = false;
+        $('#laporanForm').submit(function(e) {
+            if (isSubmitting) {
+                e.preventDefault();
+                return false;
+            }
+
             // Validate time
             var startTime = $('#jam_mulai').val();
             var endTime = $('#jam_selesai').val();
@@ -587,6 +594,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     return false;
                 }
             }
+
+            isSubmitting = true;
+            var submitBtn = $(this).find('button[type="submit"]');
+            submitBtn.prop('disabled', true);
+            submitBtn.html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Menyimpan...');
+            $('#saveDraftBtn').prop('disabled', true);
 
             return true;
         });

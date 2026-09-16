@@ -26,8 +26,8 @@ Untuk menghindari kebingungan, sistem ini menggunakan istilah berikut:
 Admin memiliki akses penuh terhadap sistem.
 
 > [!TIP]
-> **Panduan Lengkap Operasional Administrator (v2.9.18)**:
-> Untuk panduan langkah demi langkah bergambar (*Executive & SOP Manual*) khusus Admin/Webmaster mengenai manajemen rombel, penanganan sesi libur (FIFO Non-Blocking), antrean To-Do List reschedule, cascade shift, payroll engine (asisten & pajak 2.5%), Google Sheets integration, dan audit log, silakan buka:
+> **Panduan Lengkap Operasional Administrator (v2.9.33)**:
+> Untuk panduan langkah demi langkah bergambar (*Executive & SOP Manual*) khusus Admin/Webmaster mengenai manajemen rombel, penanganan sesi libur (FIFO Non-Blocking), proteksi jadwal manual, antrean To-Do List reschedule, cascade shift, payroll engine (asisten & pajak 2.5%), Google Sheets integration, dan audit log, silakan buka:
 > - Halaman Web Interaktif: **[https://erlass.institute/admin/panduan](/admin/panduan)**
 > - Dokumen Markdown: **[Panduan Lengkap Administrator (docs/user/PANDUAN_LENGKAP_ADMIN.md)](PANDUAN_LENGKAP_ADMIN.md)**
 
@@ -105,6 +105,13 @@ Admin dan Webmaster dapat menambah Rombel (kelompok belajar) baru ke program eks
 4. Isi form konfigurasi (Hari, Jam, Tanggal Mulai/Selesai, Total Pertemuan, Kuota Siswa, dan Ruangan).
 5. Klik **Tambah Rombel**. Sistem akan otomatis menentukan nomor rombel selanjutnya (Rombel N+1) dan meng-generate seluruh jadwal pertemuannya.
 
+#### 6.2 Prosedur Edit & Penjadwalan Ulang (Reschedule)
+Admin memiliki fleksibilitas penuh dalam mengelola jadwal:
+*   **Perubahan Rutin Rombel**: Buka detail program ekskul $\rightarrow$ Klik **Edit** $\rightarrow$ Ubah Hari/Jam/Instruktur pada Rombel $\rightarrow$ Klik **Simpan Perubahan** $\rightarrow$ Klik **Sync Sesi** di header atas untuk menyelaraskan seluruh pertemuan ke depan.
+*   **Perubahan Per Sesi**: Klik ikon **Pensil** di baris pertemuan terkait $\rightarrow$ Ubah Tanggal/Jam $\rightarrow$ Switch *Kunci Jadwal Manual* otomatis aktif melindungi sesi dari penimpaan Sync Sesi $\rightarrow$ Klik **Simpan Perubahan**.
+*   **Pergeseran Berantai ("Dan Seterusnya Mengikuti")**: Ubah tanggal pertemuan awal yang bergeser (misal P.4) $\rightarrow$ Simpan $\rightarrow$ Klik tombol **Sync Sesi** di header program. Sistem akan otomatis menyusun pertemuan berikutnya (P.5 s/d P.32) berjarak mingguan (+7 hari) dari tanggal baru tersebut.
+*   **Pemeriksaan Bentrokan (*Conflict Prevention*)**: Sistem secara proaktif memvalidasi bahwa instruktur tidak memiliki 2 sesi mengajar yang bertabrakan hari dan jamnya.
+
 ### 7. Kompensasi & Proses Payroll
 *   **Kelola Tarif**: Admin dan Webmaster dapat mengatur tarif dasar pengajaran per level instruktur (Junior, Madya, Senior, Expert, Master Trainer) dan bonus per kategori produk (Scratch, Microbit, Python, dll.).
 *   **Proses Payroll Bulanan**: Admin keuangan dapat membuat Batch Payroll baru berstatus `Draft` untuk bulan tertentu.
@@ -147,12 +154,13 @@ Instruktur bertugas melaksanakan kegiatan pengajaran dan pelaporan di sekolah mi
 *   **Jalur 1 — Sesi Rutin (Agenda Sesi)**: Masuk ke menu Agenda Kegiatan $\rightarrow$ Detail Sesi $\rightarrow$ Check-in GPS $\rightarrow$ Klik **"Buat Laporan & Absensi"** (`/ekstrakurikuler/sessions/{id}/report/create`). Wajib digunakan untuk seluruh kegiatan ekskul resmi, **termasuk jika menggantikan instruktur lain (inval) atau kelas susulan/reschedule**.
 *   **Jalur 2 — Sesi Khusus / Non-Jadwal**: Buka menu **Laporan Khusus (Non-Jadwal)** (`/laporan-mengajar/create`) $\rightarrow$ HANYA untuk penugasan insidental non-rombel (seperti Workshop Kilat, Juri Lomba, Pameran, atau Sosialisasi).
 *   **Komponen Wajib Laporan**:
-    *   **Materi & Topik Pembelajaran**: Modul dan ringkasan bahan ajar hari ini.
-    *   **Presensi Siswa**: Menandai Hadir, Izin, Sakit, atau Alpha (dilengkapi tombol cepat "HADIR SEMUA" dan Fast-Add siswa baru).
-    *   **Foto Dokumentasi Kegiatan (WAJIB)**: Foto interaksi kegiatan kelas.
-    *   **File Project Siswa (WAJIB)**: File artefak belajar (`.sb3`, `.hex`, `.py`, `.zip`, `.pdf` maks 20MB).
-    *   **Foto Absensi Fisik TTD (Opsional)**: Lembar presensi paraf guru pendamping.
-    *   **Refleksi & Catatan Kendala**: Evaluasi keaktifan dan kendala alat di kelas.
+    *   **Materi & Topik Pembelajaran (WAJIB)**: Modul dan bahan ajar yang dipilih dari silabus resmi program (`ref_materi`). Form secara otomatis mengarahkan pemilihan topik yang valid.
+    *   **Presensi Siswa**: Menandai Hadir atau Alpha (dilengkapi pencarian siswa instan dan pendaftaran siswa baru *quick-add*).
+    *   **Foto Dokumentasi Kegiatan (WAJIB)**: Foto interaksi belajar mengajar siswa dan instruktur di kelas.
+    *   **File Project Siswa (WAJIB)**: File artefak belajar (`.sb3`, `.hex`, `.py`, `.ino`, `.cpp`, `.zip`, `.rar`, `.7z`, `.pdf`) atau foto dokumentasi hasil robot/karya siswa format `.jpg`/`.png` (maks 10MB).
+    *   **Foto Lembar Presensi Fisik Bertanda Tangan & Stempel (WAJIB)**: Foto fisik lembar daftar hadir asli yang telah ditandatangani oleh PIC sekolah/guru pendamping & instruktur serta distempel resmi oleh sekolah mitra.
+    *   **Refleksi & Catatan Evaluasi**: Evaluasi tingkat keaktifan, pemahaman materi, dan catatan kegiatan.
+    *   **Validasi Cepat di Browser (*Client-Side Pre-Validation*)**: Tombol submit memeriksa kelengkapan keempat komponen wajib di atas sebelum modal konfirmasi terbuka, dan otomatis men-scroll layar ke input yang belum lengkap jika ada data yang terlewat.
 *   **Batas Waktu Pelaporan & Aturan Tunggakan Sesi**:
     *   **Tanggal 1 s.d. 27**: Batas waktu pelaporan adalah **H+1 (23:59 WIB)**.
     *   **Tanggal 28, 29, 30, 31 (Akhir Bulan)**: Wajib di-submit pada **Hari H (23:59 WIB)** untuk kelancaran tutup buku bulanan.

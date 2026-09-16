@@ -651,7 +651,13 @@ class EkstrakurikulerSession extends Model
             $this->deskripsi_kegiatan = $data['deskripsi_kegiatan'];
         }
 
-        // Laporan Mengajar relation is inverted, handled report-side
+        // Pastikan user_id_instruktur tidak kosong jika laporan mengajar sudah dibuat
+        if (empty($this->user_id_instruktur) && $this->laporanMengajar()->exists()) {
+            $lap = $this->laporanMengajar()->first();
+            if ($lap && $lap->user_id_instruktur) {
+                $this->user_id_instruktur = $lap->user_id_instruktur;
+            }
+        }
 
         $saved = $this->save();
 

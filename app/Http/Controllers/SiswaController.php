@@ -187,9 +187,12 @@ class SiswaController extends Controller
     {
         if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
         
+        // Guardrail: Tolak penghapusan jika siswa memiliki riwayat absensi
+        if ($siswa->absensis()->exists()) {
+            return redirect()->back()->with('error', "Gagal menghapus! Siswa {$siswa->nama_lengkap} telah memiliki riwayat kehadiran (absensi). Data siswa yang memiliki histori pembelajaran tidak boleh dihapus demi menjaga keutuhan riwayat laporan.");
+        }
+
         \Illuminate\Support\Facades\DB::transaction(function () use ($siswa) {
-            // Hapus data absensi terkait untuk menghindari foreign key constraint violation
-            $siswa->absensis()->delete();
             // Hapus data pendaftaran ekstrakurikuler (pivot table)
             $siswa->enrollments()->delete();
             // Hapus data siswa
@@ -215,9 +218,21 @@ class SiswaController extends Controller
         $ids = $request->input('siswa_ids', []);
         $count = count($ids);
 
+        // Guardrail: Cek apakah ada siswa yang memiliki riwayat absensi
+        $studentsWithAbsensi = Siswa::whereIn('id', $ids)
+            ->whereHas('absensis')
+            ->pluck('nama_lengkap')
+            ->toArray();
+
+        if (!empty($studentsWithAbsensi)) {
+            $sampleNames = implode(', ', array_slice($studentsWithAbsensi, 0, 3));
+            if (count($studentsWithAbsensi) > 3) {
+                $sampleNames .= ' dan ' . (count($studentsWithAbsensi) - 3) . ' siswa lainnya';
+            }
+            return redirect()->back()->with('error', "Penghapusan dibatalkan! Siswa ({$sampleNames}) telah memiliki riwayat kehadiran (absensi) pembelajaran. Data tidak boleh dihapus agar laporan mengajar lampau tidak rusak.");
+        }
+
         \Illuminate\Support\Facades\DB::transaction(function () use ($ids) {
-            // Hapus absensi terkait
-            \App\Models\Absensi::whereIn('siswa_id', $ids)->delete();
             // Hapus pendaftaran ekstrakurikuler (siswa_ekstrakurikuler)
             \App\Models\SiswaEkstrakurikuler::whereIn('siswa_id', $ids)->delete();
             // Hapus siswa

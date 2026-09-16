@@ -194,6 +194,42 @@ class StoreLaporanMengajarRequest extends FormRequest
                     }
                 } catch (\Throwable $e) {}
             }
+
+            // Validasi anti-duplicate report / double submission
+            $userId = $this->input('user_id_instruktur') ?? \Illuminate\Support\Facades\Auth::id();
+            $sekolahKodlan = $this->input('sekolah_kodlan');
+            $rombel = $this->input('rombel');
+            $jadwalRaw = $this->input('jadwal_mengajar');
+
+            if ($userId && $sekolahKodlan && $rombel && $jadwalRaw) {
+                try {
+                    $jadwalDate = \Carbon\Carbon::parse($jadwalRaw)->format('Y-m-d');
+                    
+                    // Cek apakah sudah ada laporan mengajar untuk instruktur, sekolah, rombel & tanggal yang sama
+                    $existingReport = \App\Models\LaporanMengajar::where('user_id_instruktur', $userId)
+                        ->where('sekolah_kodlan', $sekolahKodlan)
+                        ->where('rombel', $rombel)
+                        ->whereDate('jadwal_mengajar', $jadwalDate)
+                        ->latest('id')
+                        ->first();
+
+                    if ($existingReport) {
+                        // Jika dibuat dalam kurun waktu 10 menit terakhir, ini indikasi kuat double click / resubmit
+                        $diffMinutes = $existingReport->created_at ? $existingReport->created_at->diffInMinutes(now()) : 999;
+                        if ($diffMinutes <= 10) {
+                            $validator->errors()->add('jadwal_mengajar', 'Laporan mengajar untuk sekolah, rombel, dan tanggal ini baru saja dikirim (' . $existingReport->created_at->diffForHumans() . '). Harap tidak mengirim formulir berulang kali.');
+                        } else {
+                            // Cek apakah materi serupa atau identik
+                            $inputMateri = strtolower(trim(preg_replace('/\s+/', ' ', $this->input('materi_pengajaran') ?? '')));
+                            $existMateri = strtolower(trim(preg_replace('/\s+/', ' ', $existingReport->materi_pengajaran ?? '')));
+
+                            if ($inputMateri === $existMateri && !empty($inputMateri)) {
+                                $validator->errors()->add('materi_pengajaran', 'Laporan dengan materi dan jadwal yang sama persis sudah tercatat di sistem (ID #' . $existingReport->id . ').');
+                            }
+                        }
+                    }
+                } catch (\Throwable $e) {}
+            }
         });
     }
 

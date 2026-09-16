@@ -2,6 +2,48 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.33] - 2026-09-16
+
+### Perbaikan Pelaporan Mengajar (Topik Materi & Pre-Validation), Fix Silent Abort Check-in GPS, & Koreksi Data Sekolah Laporan #332
+
+- **Perbaikan Form Pelaporan Mengajar Ekstrakurikuler (`EkstrakurikulerReportController.php`, `create.blade.php`)**:
+  - **Eliminasi Default Topik Materi Invalid**: Memperbaiki bug di controller di mana sesi dengan `topik_materi` bernilai `NULL` otomatis mengisi default nilai dengan nama kategori program (`kategori_program`), yang memicu penolakan validasi server (`Topik/materi yang dipilih tidak valid`). Kini form menampilkan placeholder bersih *"Pilih Topik Materi"* dan mewajibkan pemilihan topik pembelajaran resmi dari database `ref_materi`.
+  - **Client-Side Pre-Validation Cepat**: Menambahkan pengecekan otomatis sebelum modal konfirmasi submit terbuka untuk memastikan:
+    1. Topik Materi telah dipilih dari dropdown.
+    2. Foto Kegiatan telah dipilih.
+    3. File Project telah dipilih (file `.hex`, `.sb3`, `.zip`, `.rar`, `.pdf`, atau foto hasil karya murid `.jpg`/`.png`).
+    4. Foto Lembar Presensi Fisik (TTD & Stempel) telah dipilih.
+  - **Auto-Scroll & Error Alerting**: Mengarahkan fokus layar (*smooth auto-scroll*) secara otomatis ke input yang belum lengkap jika pengguna belum melengkapi berkas wajib, dan mengeliminasi bug spinner macet pada tombol submit (`btnFinalSubmit`) dengan pembungkusan *try-catch*.
+- **Perbaikan Silent Form Abort Modal Check-in GPS (`gps-checkin.blade.php`, `show.blade.php`)**:
+  - Menghapus atribut HTML5 `required` pada elemen `<input type="file" name="photo" id="checkin_photo">` yang tersembunyi (`opacity: 0; pointer-events: none`). Hal ini mencegah Google Chrome membatalkan submit formulir secara diam-diam (*silent abort* dengan error *"An invalid form control is not focusable"*) ketika instruktur mengambil foto live via WebRTC camera yang tersimpan ke input `photo_base64`.
+  - Memperbarui event listener submit formulir agar memvalidasi keberadaan `photo` file maupun data `photo_base64` secara inklusif.
+- **Koreksi Sekolah Laporan Mengajar #332 & Program Ekskul Terkait (#385)**:
+  - Memperbarui data sekolah pada Laporan Mengajar #332 dari `60709961` (MIS NURUL ISLAM, Tapos, Depok) ke kodlan yang benar `60721463` (MIS NURUL ISLAM, Ciputat Timur, Tangsel).
+  - Menyelaraskan relasi program ekstrakurikuler #385 ke kodlan `60721463`.
+- **Pemisahan Program Free Trial Class & Restrukturisasi Sesi #1663 & #1664**:
+  - Memisahkan sesi Free Trial Class (Sesi #56814 & #56815) ke program independen berjenis *Free Trial Class* (#442 & #443).
+  - Menata ulang nomor pertemuan dan membersihkan sesi duplikat sehingga alur jadwal program reguler berjalan berurutan.
+
+## [2.9.32] - 2026-09-14
+
+### Pembersihan Sesi Duplikat Opsi 1, Sinkronisasi Instruktur Sesi Unassigned (Kasus Kamaludin Azhari), & Code Guard Anti-Desync Google Sheets
+
+- **Sinkronisasi Instruktur Sesi Unassigned (Perbaikan Kasus Kamaludin Azhari `--` di Spreadsheet)**:
+  - Memperbaiki 5 sesi mengajar aktif di database (`ekstrakurikuler_session`) yang memiliki `LaporanMengajar` namun kolom `user_id_instruktur` pada sesinya bernilai `NULL` (Sesi #31089, #31625, #31753, #31025 di MIS NURUL ISLAM dan Sesi #41549 di SD Angkasa 3).
+  - Mengupdate `user_id_instruktur = 146` (Kamaludin Azhari) pada ke-5 sesi tersebut dan menyinkronkan ulang cache Google Sheets (`GoogleSheetsService`), sehingga kolom *Instruktur Terjadwal* yang sebelumnya menampilkan tanda strip (`--` / `-`) kini terisi dengan benar sebagai `Kamaludin Azhari`.
+- **Code Guard Pencegahan Desync Instruktur (`LaporanMengajarController.php`, `EkstrakurikulerSession.php`)**:
+  - `LaporanMengajarController::createFromEkstrakurikuler()`: Otomatis mengisi `session.user_id_instruktur = Auth::id()` jika sesi yang dilaporkan belum memiliki instruktur penugasan.
+  - `LaporanMengajarController::store()` & `update()`: Menyinkronkan `user_id_instruktur` sesi terkait dari laporan mengajar jika instruktur sesi masih kosong.
+  - `EkstrakurikulerSession::complete()`: Memastikan `user_id_instruktur` terisi dari relasi laporan mengajar sebelum sesi ditandai selesai.
+- **Pembersihan 7 Sesi Duplikat Mengajar Sesuai Opsi 1**:
+  - `Adhitiya Pradana` (Rombel 82): Menghapus Sesi #11145 (P.2) & Laporan #451; mempertahankan Sesi #36652 (P.1) dengan transport Rp 16.670 & foto aman.
+  - `Daniel Gonardi` (Rombel 397): Menghapus Sesi #43389 (P.1) & Laporan #969; mempertahankan Sesi #24553 & Laporan #541 yang disesuaikan menjadi P.1 (transport Rp 38.300 & foto terselamatkan).
+  - `Fikhih Anantatur` (Rombel 305): Menghapus Sesi #18050 (P.2) & Laporan #945; mempertahankan Sesi #18049 (P.1) dengan transport Rp 18.770.
+  - `Yusup` (Rombel 86): Menghapus Sesi #34765 (P.3) & Laporan #935; mempertahankan Sesi #34764 (P.2) dengan transport Rp 28.150 & foto aman.
+  - `Rifqi Ramadhien` (Rombel 371): Menghapus Sesi #22762 (P.2) & Laporan #950; mempertahankan Sesi #39352 (P.1) dengan transport Rp 39.210 & foto aman.
+  - `Mohamad Rifai` (Rombel 192): Menghapus Sesi #28804 (P.3) & Laporan #953; mempertahankan Sesi #28803 (P.2) dengan transport Rp 23.530 & foto aman.
+  - `MIS Nurul Islam`: Sesi #31689 di-soft-delete dan payment dibatalkan pasca penghapusan UI Laporan #932.
+
 ## [2.9.31] - 2026-09-09
 
 ### Proteksi Reschedule Manual (Sync Sesi), Cascading Deletion Absensi Laporan, Peningkatan Performa Distribusi Jadwal & Filter Ketersediaan Mingguan
@@ -11,6 +53,13 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
   - Menambahkan switch toggle *"Kunci Jadwal Manual (Proteksi dari Sync Sesi)"* pada form edit sesi agar admin dapat mengunci atau membuka kunci jadwal sesi secara eksplisit.
   - Sesi yang dijadwalkan ulang secara manual melalui `SchedulingService::rescheduleSessions()` otomatis ditandai `is_manual_reschedule = true`.
   - Pada halaman detail ekstrakurikuler (`show.blade.php`), sesi yang terkunci manual diberi badge penanda `Terkunci (Manual)` dengan ikon pin kuning, menjamin sesi tersebut tidak akan terhapus atau tertimpa saat tombol *Sync Sesi* dijalankan dari halaman program.
+  - **Dokumentasi Prosedur Edit Jadwal (`docs/user/PANDUAN_LENGKAP_ADMIN.md`, `docs/user/USER_GUIDE.md`)**:
+    - Mendokumentasikan secara rinci SOP 3 skenario pengeditan jadwal: (1) Perubahan rutin rombel & sinkronisasi sesi, (2) Reschedule/libur satu sesi spesifik dengan kunci manual, dan (3) Pergeseran jadwal berantai ("dan seterusnya mengikuti").
+    - Menjelaskan aturan validasi anti-bentrok instruktur (*Conflict Detection*), proteksi sesi selesai (historical payroll safety), dan kalibrasi rentang `tanggal_selesai`.
+  - **Penyelarasan Jadwal Program Aktif**:
+    - **Ekstrakurikuler #212 (SDS Islam Latansa Cendekia - Coding Scratch)**: Mengeliminasi bentrokan jam ganda Instruktur Yusup dengan mengatur Rombel 1 (Senin 13:00–14:30) dan Rombel 2 (Senin 14:30–16:00); membersihkan anomali sesi masa lalu Rombel 3 sehingga P.4 s/d P.32 terjadwal rapi setiap Kamis (14:30–16:00) bersama Instruktur Serdinand.
+    - **Ekstrakurikuler #34 (Ekskul Robotik Microbit Learning Kit)**: Memperbarui P.5 ke Sabtu 12 September 2026 dan menyelaraskan P.6 s/d P.32 secara mingguan hingga 20 Maret 2027 bersama Instruktur Kamaludin Azhari.
+    - **Ekstrakurikuler #301 (Ekskul Coding Scratch)**: Menyelaraskan sesi P.4 pasca-reset ke Rabu 16 September 2026 dan menyelaraskan P.5 s/d P.32 secara mingguan hingga 31 Maret 2027 bersama Instruktur Achmad Nuril Mushthofa.
 - **Cascading Deletion Absensi pada Laporan Mengajar (`LaporanMengajar.php`)**:
   - Menambahkan model event handler `deleting` pada `LaporanMengajar` untuk otomatis menghapus record presensi siswa terkait (`$laporan->absensi()->delete()`).
   - Mencegah error foreign key constraint `fk_absensi_siswa_laporan_mengajar` saat laporan mengajar dihapus atau di-reset kembali ke status terjadwal.

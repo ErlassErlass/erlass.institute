@@ -97,6 +97,23 @@ Jika instruktur salah memasukkan data laporan di Pertemuan 2 padahal seharusnya 
 3. Pilih **Pertemuan Target** (misal: Pertemuan 1) dan cantumkan alasan.
 4. Klik **Konfirmasi Pindahkan**. Laporan, absensi, dan foto kegiatan akan dipindahkan ke Pertemuan 1 (`🟢 Selesai`), sedangkan Pertemuan 2 kembali menjadi `🔵 Terjadwal`.
 
+### E. Standar & Syarat Pelaporan Sesi Mengajar
+Untuk menjamin validitas pelaksanaan kegiatan dan pencairan honor, setiap pelaporan sesi (`/ekstrakurikuler/sessions/{id}/report/create`) mewajibkan **4 komponen utama**:
+1. **Topik Materi**: Wajib dipilih dari daftar silabus resmi program (`ref_materi`). Dropdown tidak lagi memilih nilai default yang salah secara otomatis.
+2. **Foto Dokumentasi Kegiatan**: Foto suasana belajar siswa bersama instruktur di kelas.
+3. **File Project Siswa**: File project kode program (`.hex`, `.sb3`, `.zip`, `.rar`, `.pdf`) atau foto dokumentasi hasil robot/karya siswa format `.jpg`/`.png` (maks. 10MB).
+4. **Foto Lembar Presensi Fisik**: Foto daftar hadir fisik yang telah ditandatangani oleh PIC sekolah & instruktur serta dibubuhi stempel resmi sekolah.
+
+*Catatan Validasi Cepat (Client-Side Pre-Validation)*: Form laporan dilengkapi validasi otomatis sebelum modal submit terbuka. Jika salah satu komponen di atas belum dipilih/diunggah, sistem akan langsung mengarahkan tampilan ke input terkait dengan pesan peringatan yang jelas.
+
+### F. Check-in Real-Time (GPS & Kamera Live)
+Sebelum memulai kegiatan, instruktur wajib melakukan check-in di lokasi sekolah mitra:
+1. Klik tombol **`Check-in (GPS & Camera)`** pada halaman detail sesi.
+2. Izinkan akses GPS dan Kamera pada browser HP.
+3. Arahkan kamera dan ambil foto live selfie / suasana sekolah. Sistem otomatis membubuhkan watermark geotag (Nama Sekolah, Nomor Pertemuan, Jam, dan Titik Koordinat GPS).
+4. Sistem menghitung jarak ke sekolah (Radius toleransi: $\le$ 500 meter). Klik **Kirim Check-in**.
+5. Waktu check-in tersimpan sebagai jam mulai aktual dan status sesi beralih ke `berlangsung`.
+
 ---
 
 ## 4. Manajemen Program Ekskul & Penjadwalan Rombel
@@ -119,6 +136,50 @@ Akses menu **Program Ekskul** (`/ekstrakurikuler`) $\rightarrow$ Klik **Tambah P
 - Pada detail Rombel atau Sesi, Admin dapat menetapkan:
   - **Instruktur Utama (`user_id_instruktur`)**: Bertanggung jawab penuh atas materi, check-in, absensi, dan laporan mengajar.
   - **Asisten Instruktur (`user_id_asisten`)**: Membantu pendampingan teknis siswa di kelas besar.
+
+### D. Prosedur Edit Jadwal & Penyelarasan Pertemuan (Sesi)
+Sistem Erlass Institute menyediakan 3 skenario penyesuaian jadwal untuk mengakomodasi dinamika di sekolah mitra:
+
+#### 1. Skenario 1: Mengubah Jadwal Rutin Rombel Secara Keseluruhan
+Gunakan cara ini jika rombel berganti hari rutin mingguan (misal dari Senin ke Kamis) atau jam mengajar tetapnya bergeser untuk seluruh pertemuan ke depan:
+1. Buka detail program ekskul terkait (`/ekstrakurikuler/{id}`).
+2. Klik tombol **`Edit`** di header kanan atas.
+3. Pada formulir kartu **Rombel Belajar**, sesuaikan konfigurasi:
+   - **Hari** rutin (Senin/Selasa/Rabu/Kamis/Jumat/Sabtu).
+   - **Jam Mulai** dan **Jam Selesai**.
+   - **Instruktur Utama** penanggung jawab.
+4. Klik **Simpan Perubahan**.
+5. Kembali ke halaman detail program, klik tombol **`Sync Sesi`** di header atas:
+   - Sistem akan menyinkronkan seluruh sesi ke depan yang masih berstatus `terjadwal`.
+   - *Keamanan Data*: Sesi yang sudah berstatus `selesai` (memiliki laporan mengajar) serta sesi yang berstatus `terkunci (manual)` **tidak akan tertimpa** atau terhapus.
+
+#### 2. Skenario 2: Menjadwalkan Ulang 1 Pertemuan Tertentu Saja (Per Sesi)
+Gunakan cara ini jika hanya ada 1 pertemuan tertentu yang libur sekolah, izin, atau perlu dipindah jam/tanggalnya tanpa mengubah hari rutin rombel:
+- **Cara Cepat (Modal Libur / Reschedule)**:
+  1. Pada tab **Jadwal Sesi**, klik tombol **`Libur / Jadwal Ulang`** pada baris pertemuan terkait.
+  2. Masukkan alasan penundaan dan pilih tanggal pengganti baru.
+  3. Klik **Konfirmasi**.
+- **Cara Lengkap (Formulir Edit Sesi)**:
+  1. Klik ikon **Pensil (Edit)** di samping nomor pertemuan (atau akses `/ekstrakurikuler/sessions/{id}/edit`).
+  2. Ubah tanggal sesi, jam mulai/selesai, atau instruktur/asisten.
+  3. Pastikan switch **"Kunci Jadwal Manual (Proteksi dari Sync Sesi)"** dalam posisi aktif *(otomatis aktif jika tanggal/jam diubah)*.
+  4. Klik **Simpan Perubahan**. Sesi akan ditandai dengan badge pin kuning `Terkunci (Manual)` dan aman dari sinkronisasi otomatis.
+
+#### 3. Skenario 3: Menggeser Sesi Tertentu dan Sesi-Sesi Setelahnya Mengikuti Berantai
+Gunakan cara ini jika kegiatan sempat tertunda beberapa pekan (misal Pertemuan 4 bergeser mundur ke tanggal baru), dan seluruh sesi setelahnya (P.5, P.6, dst.) ingin otomatis bergeser mingguan secara rapi mengikuti tanggal baru tersebut:
+1. Klik ikon **Pensil (Edit)** pada pertemuan titik awal perubahan (misal Pertemuan 4).
+2. Ubah tanggal ke tanggal baru yang diinginkan dan klik **Simpan Perubahan** (sesi ini otomatis menjadi jangkar manual/*anchor*).
+3. Pastikan sesi-sesi setelahnya (P.5 s/d P.32) tidak memiliki pin kunci manual dengan tanggal masa lalu yang salah.
+4. Klik tombol **`Sync Sesi`** di header halaman program. Sistem akan secara otomatis menyusun ulang jadwal pertemuan berikutnya dengan interval mingguan (+7 hari) dari tanggal jangkar tersebut.
+
+#### Aturan Penting & Validasi Sistem:
+1. **Deteksi Bentrokan Instruktur (*Conflict Detection*)**:
+   - Sistem menolak penyimpanan jadwal jika instruktur pilihan telah memiliki jadwal mengajar aktif (`terjadwal` atau `berlangsung`) lain pada hari dan rentang jam yang saling tumpang tindih (*overlap*).
+   - Pastikan jam selesai sesi sebelumnya tidak bertabrakan dengan jam mulai sesi berikutnya.
+2. **Proteksi Sesi Selesai**:
+   - Sesi yang sudah terlaksana dan memiliki laporan mengajar / absensi siswa tidak dapat digeser tanggalnya agar menjaga keabsahan data historis payroll dan presensi sekolah. Admin hanya diperkenankan mengoreksi tim pengajar jika diperlukan.
+3. **Perpanjangan `tanggal_selesai` Program**:
+   - Jika pergeseran jadwal menyebabkan pertemuan terakhir (misal P.32) jatuh melewati batas `tanggal_selesai` program, perbarui juga `tanggal_selesai` pada form **Edit Program** agar seluruh pertemuan berada di dalam rentang aktif.
 
 ---
 

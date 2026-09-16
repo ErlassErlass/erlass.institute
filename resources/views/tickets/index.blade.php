@@ -18,6 +18,9 @@
             </div>
         </div>
         <div class="d-flex align-items-center gap-2">
+            <a href="{{ route('tickets.export', request()->query()) }}" class="btn btn-success fw-bold shadow-sm px-3 py-2" title="Unduh rekap tiket ke format Excel (.xlsx)">
+                <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+            </a>
             <a href="{{ route('tickets.create') }}" class="btn btn-primary fw-bold shadow-sm px-3 py-2">
                 <i class="bi bi-plus-circle me-1"></i> Buat Tiket Baru
             </a>

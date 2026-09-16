@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\PunctualityKpiService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -28,6 +29,7 @@ class GoogleSheetsService
     const TAB_REKAP_PERTEMUAN = 'Rekap_Pertemuan_Ekskul';
     const TAB_PROGRAM_EKSKUL = 'Daftar_Program_Ekskul';
     const TAB_REKAP_HONOR_INSTRUKTUR = 'Rekap_Honor_Instruktur';
+    const TAB_PROFIL_INSTRUKTUR = 'Profil_Instruktur';
 
     public function __construct()
     {
@@ -175,6 +177,7 @@ class GoogleSheetsService
                 self::TAB_REKAP_PERTEMUAN,
                 self::TAB_PROGRAM_EKSKUL,
                 self::TAB_REKAP_HONOR_INSTRUKTUR,
+                self::TAB_PROFIL_INSTRUKTUR,
             ];
 
             $requests = [];
@@ -216,6 +219,43 @@ class GoogleSheetsService
                 ];
             }
 
+            // Dapatkan sheetId untuk TAB_PROFIL_INSTRUKTUR agar kolom NIK (Kolom E) dan Nomor Rekening (Kolom H) dikunci sebagai Plain Text
+            $profilSheet = collect($meta['sheets'] ?? [])->firstWhere('properties.title', self::TAB_PROFIL_INSTRUKTUR);
+            if ($profilSheet && isset($profilSheet['properties']['sheetId'])) {
+                $requests[] = [
+                    'repeatCell' => [
+                        'range' => [
+                            'sheetId' => $profilSheet['properties']['sheetId'],
+                            'startColumnIndex' => 4, // Kolom E (NIK)
+                            'endColumnIndex' => 5,
+                            'startRowIndex' => 1,
+                        ],
+                        'cell' => [
+                            'userEnteredFormat' => [
+                                'numberFormat' => ['type' => 'TEXT'],
+                            ],
+                        ],
+                        'fields' => 'userEnteredFormat.numberFormat',
+                    ],
+                ];
+                $requests[] = [
+                    'repeatCell' => [
+                        'range' => [
+                            'sheetId' => $profilSheet['properties']['sheetId'],
+                            'startColumnIndex' => 7, // Kolom H (Nomor Rekening)
+                            'endColumnIndex' => 8,
+                            'startRowIndex' => 1,
+                        ],
+                        'cell' => [
+                            'userEnteredFormat' => [
+                                'numberFormat' => ['type' => 'TEXT'],
+                            ],
+                        ],
+                        'fields' => 'userEnteredFormat.numberFormat',
+                    ],
+                ];
+            }
+
             if (!empty($requests)) {
                 $batchResponse = Http::withToken($token)->timeout(8)->post("https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}:batchUpdate", [
                     'requests' => $requests,
@@ -249,6 +289,7 @@ class GoogleSheetsService
             self::TAB_REKAP_PERTEMUAN => $this->syncTabRekapPertemuan($token),
             self::TAB_PROGRAM_EKSKUL => $this->syncTabProgramEkskul($token),
             self::TAB_REKAP_HONOR_INSTRUKTUR => $this->syncTabRekapHonorInstruktur($token),
+            self::TAB_PROFIL_INSTRUKTUR => $this->syncTabProfilInstruktur($token),
         ];
 
         Cache::put('google_sheets_last_sync', now()->toDateTimeString(), 86400 * 30);
@@ -829,6 +870,127 @@ class GoogleSheetsService
     }
 
     /**
+     * Tab 9: Master Profil & Rekening Instruktur (Instruktur Utama & Asisten)
+     * Kolom: ID User, Nama Instruktur, Peran Mengajar, Status Akun, NIK, NPWP,
+     *        Nama Bank, Nomor Rekening, Atas Nama Rekening, Rekening Lengkap (Gabungan),
+     *        No. Telepon / WA, Email, Domisili Kota, Sesi Instruktur Utama, Sesi Asisten, Total Sesi Terjadwal
+     */
+    public function syncTabProfilInstruktur(?string $token = null): array
+    {
+        $headers = [
+            'ID User',
+            'Nama Instruktur',
+            'Peran Mengajar',
+            'Status Akun',
+            'NIK',
+            'NPWP',
+            'Nama Bank',
+            'Nomor Rekening',
+            'Atas Nama Rekening',
+            'Rekening Lengkap (Gabungan)',
+            'No. Telepon / WA',
+            'Email',
+            'Domisili Kota',
+            'Sesi Instruktur Utama',
+            'Sesi Asisten',
+            'Total Sesi Terjadwal',
+        ];
+
+        // Hitung statistik sesi utama vs asisten per instruktur
+        $utamaCounts = EkstrakurikulerSession::select('user_id_instruktur', DB::raw('COUNT(*) as total'))
+            ->whereNotNull('user_id_instruktur')
+            ->groupBy('user_id_instruktur')
+            ->pluck('total', 'user_id_instruktur');
+
+        $asistenCounts = EkstrakurikulerSession::select('user_id_asisten', DB::raw('COUNT(*) as total'))
+            ->whereNotNull('user_id_asisten')
+            ->groupBy('user_id_asisten')
+            ->pluck('total', 'user_id_asisten');
+
+        $instructors = User::where(function ($q) {
+                $q->where('role', 'instruktur')
+                  ->orWhereHas('instructorProfile');
+            })
+            ->with('instructorProfile')
+            ->orderBy('nama_lengkap', 'asc')
+            ->get();
+
+        $rows = [$headers];
+
+        foreach ($instructors as $u) {
+            $prof = $u->instructorProfile;
+
+            $uCount = (int) ($utamaCounts[$u->id] ?? 0);
+            $aCount = (int) ($asistenCounts[$u->id] ?? 0);
+            $totCount = $uCount + $aCount;
+
+            if ($uCount > 0 && $aCount > 0) {
+                $peran = 'Instruktur Utama & Asisten';
+            } elseif ($uCount > 0) {
+                $peran = 'Instruktur Utama';
+            } elseif ($aCount > 0) {
+                $peran = 'Asisten Instruktur';
+            } else {
+                $peran = 'Belum Ada Penugasan';
+            }
+
+            // NIK & NPWP
+            $rawNik = $prof?->nik;
+            $nik = ($rawNik && trim($rawNik) !== '' && trim($rawNik) !== '-')
+                ? "'" . trim($rawNik)
+                : '-';
+
+            $rawNpwp = $prof?->no_npwp;
+            $npwp = ($rawNpwp && trim($rawNpwp) !== '' && trim($rawNpwp) !== '-')
+                ? "'" . trim($rawNpwp)
+                : '-';
+
+            // 4 Kolom Rekening: Pisah (Bank, No Rek, Atas Nama) & Gabungan
+            $bank = ($prof?->nama_bank && trim($prof->nama_bank) !== '') ? trim($prof->nama_bank) : '-';
+            
+            $rawRek = ($prof?->no_rekening && trim($prof->no_rekening) !== '') ? trim($prof->no_rekening) : '';
+            $noRek = ($rawRek !== '' && $rawRek !== '-') ? "'" . $rawRek : '-';
+
+            $an = ($prof?->nama_pemilik_rekening && trim($prof->nama_pemilik_rekening) !== '') 
+                ? trim($prof->nama_pemilik_rekening) 
+                : ($u->nama_lengkap ?? '-');
+
+            if ($bank !== '-' && $rawRek !== '' && $rawRek !== '-') {
+                $rekeningGabungan = trim("{$bank} {$rawRek} an. {$an}");
+            } else {
+                $rekeningGabungan = '-';
+            }
+
+            // Telepon
+            $rawPhone = $u->no_telephone;
+            $phone = ($rawPhone && trim($rawPhone) !== '' && trim($rawPhone) !== '-')
+                ? "'" . trim($rawPhone)
+                : '-';
+
+            $rows[] = [
+                $u->id,
+                $u->nama_lengkap ?? $u->name ?? '-',
+                $peran,
+                $u->status ?? 'Aktif',
+                $nik,
+                $npwp,
+                $bank,
+                $noRek,
+                $an,
+                $rekeningGabungan,
+                $phone,
+                $u->email ?? '-',
+                $prof?->kota_domisili ?? '-',
+                $uCount,
+                $aCount,
+                $totCount,
+            ];
+        }
+
+        return $this->writeTab(self::TAB_PROFIL_INSTRUKTUR, $rows, $token);
+    }
+
+    /**
      * Append a single Laporan row in Realtime.
      */
     public function appendLaporanRealtime(LaporanMengajar $r): bool
@@ -971,6 +1133,7 @@ class GoogleSheetsService
                 self::TAB_REKAP_PERTEMUAN => $this->syncTabRekapPertemuan(),
                 self::TAB_PROGRAM_EKSKUL => $this->syncTabProgramEkskul(),
                 self::TAB_REKAP_HONOR_INSTRUKTUR => $this->syncTabRekapHonorInstruktur(),
+                self::TAB_PROFIL_INSTRUKTUR => $this->syncTabProfilInstruktur(),
                 default => null,
             };
             $data = Cache::get("google_sheets_data_{$tabTitle}", []);
@@ -1010,6 +1173,7 @@ class GoogleSheetsService
             self::TAB_REKAP_PERTEMUAN => Cache::get("google_sheets_data_" . self::TAB_REKAP_PERTEMUAN, []),
             self::TAB_PROGRAM_EKSKUL => Cache::get("google_sheets_data_" . self::TAB_PROGRAM_EKSKUL, []),
             self::TAB_REKAP_HONOR_INSTRUKTUR => Cache::get("google_sheets_data_" . self::TAB_REKAP_HONOR_INSTRUKTUR, []),
+            self::TAB_PROFIL_INSTRUKTUR => Cache::get("google_sheets_data_" . self::TAB_PROFIL_INSTRUKTUR, []),
         ];
     }
 }

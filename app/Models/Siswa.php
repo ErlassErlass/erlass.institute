@@ -114,6 +114,7 @@ class Siswa extends Model
     public function ekstrakurikulers(): BelongsToMany
     {
         return $this->belongsToMany(Ekstrakurikuler::class, 'siswa_ekstrakurikuler')
+            ->wherePivotNull('deleted_at')
             ->withPivot([
                 'ekstrakurikuler_rombel_id',
                 'status',

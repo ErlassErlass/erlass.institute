@@ -194,7 +194,7 @@ class EkstrakurikulerReportController extends Controller
         
         // Pre-fill data
         $defaults = [
-            'materi' => $session->topik_materi ?? $session->rombel->ekstrakurikuler->kategori_program,
+            'materi' => $session->topik_materi,
             'deskripsi' => $session->deskripsi_kegiatan,
         ];
 

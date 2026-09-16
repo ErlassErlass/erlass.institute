@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\DashboardController;
 
 class SiswaEkstrakurikuler extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * Nama tabel yang terhubung dengan model.
@@ -259,13 +260,17 @@ class SiswaEkstrakurikuler extends Model
                         ]);
                     });
 
-                // 2. Reaktifkan record jika sudah ada di rombel tujuan, atau buat record baru
-                $existing = self::where('siswa_id', $this->siswa_id)
+                // 2. Reaktifkan record jika sudah ada di rombel tujuan (termasuk trashed), atau buat record baru
+                $existing = self::withTrashed()
+                    ->where('siswa_id', $this->siswa_id)
                     ->where('ekstrakurikuler_id', $this->ekstrakurikuler_id)
                     ->where('ekstrakurikuler_rombel_id', $newRombelId)
                     ->first();
 
                 if ($existing) {
+                    if ($existing->trashed()) {
+                        $existing->restore();
+                    }
                     $existing->update([
                         'status'         => self::STATUS_AKTIF,
                         'tanggal_keluar' => null,

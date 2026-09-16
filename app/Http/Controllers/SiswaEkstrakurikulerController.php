@@ -139,16 +139,32 @@ class SiswaEkstrakurikulerController extends Controller
             $duplicateCount = 0;
 
             foreach ($request->siswa_ids as $siswaId) {
-                // Cek apakah siswa sudah terdaftar di ekstrakurikuler ini
-                $existing = SiswaEkstrakurikuler::where('siswa_id', $siswaId)
+                // Cek apakah siswa sudah terdaftar di ekstrakurikuler ini (termasuk trashed)
+                $existing = SiswaEkstrakurikuler::withTrashed()
+                    ->where('siswa_id', $siswaId)
                     ->where('ekstrakurikuler_id', $ekstrakurikuler->id)
-                    ->where('status', '!=', 'keluar')
                     ->first();
 
                 if ($existing) {
-                    $duplicateCount++;
+                    if ($existing->trashed()) {
+                        $existing->restore();
+                        $existing->update([
+                            'ekstrakurikuler_rombel_id' => $request->ekstrakurikuler_rombel_id,
+                            'status'                    => 'aktif',
+                            'tanggal_daftar'            => $request->tanggal_daftar,
+                            'tanggal_keluar'            => null,
+                            'alasan_keluar'             => null,
+                            'catatan'                   => $request->catatan,
+                            'updated_by'                => auth()->id(),
+                        ]);
+                        $successCount++;
+                        continue;
+                    }
 
-                    continue;
+                    if ($existing->status !== 'keluar') {
+                        $duplicateCount++;
+                        continue;
+                    }
                 }
 
                 // Validasi siswa dari sekolah yang sama
@@ -255,13 +271,17 @@ class SiswaEkstrakurikulerController extends Controller
                         'updated_by'     => auth()->id(),
                     ]);
 
-                // Periksa apakah siswa sudah memiliki riwayat enrollment di rombel tujuan
-                $existingInTarget = SiswaEkstrakurikuler::where('siswa_id', $enrollment->siswa_id)
+                // Periksa apakah siswa sudah memiliki riwayat enrollment di rombel tujuan (termasuk trashed)
+                $existingInTarget = SiswaEkstrakurikuler::withTrashed()
+                    ->where('siswa_id', $enrollment->siswa_id)
                     ->where('ekstrakurikuler_id', $ekstrakurikuler->id)
                     ->where('ekstrakurikuler_rombel_id', $newRombelId)
                     ->first();
 
                 if ($existingInTarget) {
+                    if ($existingInTarget->trashed()) {
+                        $existingInTarget->restore();
+                    }
                     $existingInTarget->update([
                         'status'         => $request->status,
                         'tanggal_keluar' => null,
@@ -438,6 +458,34 @@ class SiswaEkstrakurikulerController extends Controller
                 ->where('ekstrakurikuler_id', $ekstrakurikuler->id)
                 ->get();
 
+            // Guardrail: Jika aksi adalah 'delete', pastikan siswa tidak memiliki riwayat absensi di kegiatan ekskul ini
+            if ($request->action === 'delete') {
+                $sessionIds = \App\Models\EkstrakurikulerSession::where('ekstrakurikuler_id', $ekstrakurikuler->id)
+                    ->orWhereIn('ekstrakurikuler_rombel_id', $enrollments->pluck('ekstrakurikuler_rombel_id')->filter()->unique())
+                    ->pluck('id');
+
+                $studentsWithAttendance = [];
+                foreach ($enrollments as $enrollment) {
+                    $hasAttendance = \App\Models\Absensi::where('siswa_id', $enrollment->siswa_id)
+                        ->whereHas('laporanMengajar', function ($q) use ($sessionIds) {
+                            $q->whereIn('ekstrakurikuler_session_id', $sessionIds);
+                        })
+                        ->exists();
+
+                    if ($hasAttendance) {
+                        $studentsWithAttendance[] = $enrollment->siswa->nama_lengkap ?? "ID {$enrollment->siswa_id}";
+                    }
+                }
+
+                if (!empty($studentsWithAttendance)) {
+                    $sampleNames = implode(', ', array_slice($studentsWithAttendance, 0, 3));
+                    if (count($studentsWithAttendance) > 3) {
+                        $sampleNames .= ' dan ' . (count($studentsWithAttendance) - 3) . ' siswa lainnya';
+                    }
+                    return redirect()->back()->with('error', "Penghapusan Ditolak! Siswa ({$sampleNames}) telah memiliki riwayat kehadiran (absensi) pada program ini. Data tidak boleh dihapus agar riwayat pembelajaran tidak hilang. Silakan gunakan aksi 'Keluarkan Siswa' (Withdraw) jika siswa berhenti.");
+                }
+            }
+
             $successCount = 0;
             $rombelTujuan = $request->filled('bulk_rombel_tujuan')
                 ? EkstrakurikulerRombel::find($request->bulk_rombel_tujuan)
@@ -487,12 +535,16 @@ class SiswaEkstrakurikulerController extends Controller
                                     'updated_by'     => auth()->id(),
                                 ]);
 
-                            $existingTarget = SiswaEkstrakurikuler::where('siswa_id', $enrollment->siswa_id)
+                            $existingTarget = SiswaEkstrakurikuler::withTrashed()
+                                ->where('siswa_id', $enrollment->siswa_id)
                                 ->where('ekstrakurikuler_id', $ekstrakurikuler->id)
                                 ->where('ekstrakurikuler_rombel_id', $rombelTujuan->id)
                                 ->first();
 
                             if ($existingTarget) {
+                                if ($existingTarget->trashed()) {
+                                    $existingTarget->restore();
+                                }
                                 $existingTarget->update([
                                     'status'         => 'aktif',
                                     'tanggal_keluar' => null,
@@ -517,6 +569,17 @@ class SiswaEkstrakurikulerController extends Controller
                         break;
                 }
             }
+
+            // Catat log aktivitas untuk audit trail
+            \App\Models\ActivityLog::create([
+                'user_id'      => auth()->id(),
+                'action'       => 'bulk_enrollment_' . $request->action,
+                'description'  => "Memproses aksi bulk [{$request->action}] untuk {$successCount} siswa pada program {$ekstrakurikuler->nama_ekskul} ({$ekstrakurikuler->sekolah?->namasekolah})",
+                'subject_type' => Ekstrakurikuler::class,
+                'subject_id'   => $ekstrakurikuler->id,
+                'ip_address'   => request()->ip(),
+                'user_agent'   => request()->userAgent(),
+            ]);
 
             DB::commit();
 
@@ -563,14 +626,34 @@ class SiswaEkstrakurikulerController extends Controller
             $successCount = 0;
 
             foreach ($siswaFromRombel as $siswa) {
-                SiswaEkstrakurikuler::create([
-                    'siswa_id' => $siswa->id,
-                    'ekstrakurikuler_id' => $ekstrakurikuler->id,
-                    'ekstrakurikuler_rombel_id' => $request->ekstrakurikuler_rombel_id, // Target Group ID
-                    'status' => 'aktif',
-                    'tanggal_daftar' => $request->tanggal_daftar,
-                    'catatan' => $request->catatan,
-                ]);
+                $existing = SiswaEkstrakurikuler::withTrashed()
+                    ->where('siswa_id', $siswa->id)
+                    ->where('ekstrakurikuler_id', $ekstrakurikuler->id)
+                    ->first();
+
+                if ($existing) {
+                    if ($existing->trashed()) {
+                        $existing->restore();
+                    }
+                    $existing->update([
+                        'ekstrakurikuler_rombel_id' => $request->ekstrakurikuler_rombel_id,
+                        'status'                    => 'aktif',
+                        'tanggal_daftar'            => $request->tanggal_daftar,
+                        'tanggal_keluar'            => null,
+                        'alasan_keluar'             => null,
+                        'catatan'                   => $request->catatan,
+                        'updated_by'                => auth()->id(),
+                    ]);
+                } else {
+                    SiswaEkstrakurikuler::create([
+                        'siswa_id' => $siswa->id,
+                        'ekstrakurikuler_id' => $ekstrakurikuler->id,
+                        'ekstrakurikuler_rombel_id' => $request->ekstrakurikuler_rombel_id, // Target Group ID
+                        'status' => 'aktif',
+                        'tanggal_daftar' => $request->tanggal_daftar,
+                        'catatan' => $request->catatan,
+                    ]);
+                }
 
                 $successCount++;
 

@@ -322,6 +322,8 @@ class PayrollCalculatorService
                 $processedUtama = [];
                 $processedAsisten = [];
                 $transportPaidKeys = []; // Track deduplikasi transport: "sekolah_kodlan|tanggal" => true
+                $rombelDatePaidKeys = []; // Track deduplikasi base fee: "rombel_id|tanggal" => session_id
+                $duplicateWarnings = [];
 
                 // 1. Proses Penugasan Instruktur Utama
                 foreach ($utamaDuties as $duty) {
@@ -349,10 +351,23 @@ class PayrollCalculatorService
 
                     $sessionBaseFee = $session->override_fee !== null ? (float) $session->override_fee : (float) $calc['calculated_fee'];
 
+                    // Guardrail Anti-Double Base Fee: Cek apakah rombel & tanggal yang sama sudah terhitung
+                    $rombelKey = ($session->ekstrakurikuler_rombel_id ? (string) $session->ekstrakurikuler_rombel_id : 'adhoc_' . $sekolahKey) . '|' . $sessionDate;
+                    if (isset($rombelDatePaidKeys[$rombelKey]) && $session->override_fee === null) {
+                        // Sesi duplikat pada rombel & tanggal yang sama: Nolkan base fee kecuali ada admin override
+                        $sessionBaseFee = 0.00;
+                        $primarySessionId = $rombelDatePaidKeys[$rombelKey];
+                        $warnMsg = "Sesi #{$session->id} terdeteksi ganda pada rombel & tanggal {$sessionDate} (sesi utama: #{$primarySessionId}). Honor dinolkan otomatis.";
+                        $duplicateWarnings[] = $warnMsg;
+                        \Log::warning("Payroll Guardrail: User {$userId} duplicate session #{$session->id} on rombel key {$rombelKey}");
+                    } else {
+                        $rombelDatePaidKeys[$rombelKey] = $session->id;
+                    }
+
                     $session->update([
                         'actual_checkin_status' => $calc['actual_checkin_status'],
                         'actual_checkin_penalty' => $calc['actual_checkin_penalty'],
-                        'calculated_fee' => $calc['calculated_fee'],
+                        'calculated_fee' => $sessionBaseFee,
                         'transport_fee' => $sessionTransport,
                         'payment_status' => 'processing',
                     ]);
@@ -422,6 +437,7 @@ class PayrollCalculatorService
                     'total_bonus' => 0.00,
                     'net_salary' => $netSalary,
                     'status' => 'pending',
+                    'notes' => !empty($duplicateWarnings) ? implode("\n", $duplicateWarnings) : null,
                 ]);
 
                 // Simpan rincian sesi ke tabel pivot payroll_item_session

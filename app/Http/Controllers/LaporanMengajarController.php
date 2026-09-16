@@ -104,12 +104,22 @@ class LaporanMengajarController extends Controller
             }
         }
 
-        // Search by school name, manual school, instructor name, topic, or rombel
+        // Search by school name, manual school, instructor name, topic, rombel, ID, or session ID
         if ($request->filled('search')) {
-            $searchTerm = '%' . $request->search . '%';
-            $laporanQuery->where(function ($query) use ($searchTerm) {
-                $query->whereHas('sekolah', function ($q) use ($searchTerm) {
-                    $q->where('namasekolah', 'LIKE', $searchTerm);
+            $rawSearch = trim($request->search);
+            $cleanSearch = ltrim($rawSearch, '#');
+            $searchTerm = '%' . $rawSearch . '%';
+
+            $laporanQuery->where(function ($query) use ($searchTerm, $cleanSearch) {
+                if (is_numeric($cleanSearch)) {
+                    $query->where('id', (int) $cleanSearch)
+                        ->orWhere('ekstrakurikuler_session_id', (int) $cleanSearch)
+                        ->orWhere('sekolah_kodlan', 'LIKE', '%' . $cleanSearch . '%');
+                }
+
+                $query->orWhereHas('sekolah', function ($q) use ($searchTerm) {
+                    $q->where('namasekolah', 'LIKE', $searchTerm)
+                      ->orWhere('kodlan', 'LIKE', $searchTerm);
                 })
                 ->orWhere('sekolah_nama', 'LIKE', $searchTerm)
                 ->orWhere('rombel', 'LIKE', $searchTerm)
@@ -381,6 +391,11 @@ class LaporanMengajarController extends Controller
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
+
+        // Sync session instructor if unassigned
+        if ($laporan->ekstrakurikulerSession && empty($laporan->ekstrakurikulerSession->user_id_instruktur)) {
+            $laporan->ekstrakurikulerSession->update(['user_id_instruktur' => $laporan->user_id_instruktur]);
+        }
 
         // Trigger Admin Milestone Notification if session exists and is milestone
         if ($laporan->ekstrakurikulerSession) {
@@ -715,6 +730,9 @@ class LaporanMengajarController extends Controller
             if ($request->filled('catatan')) {
                 $sessionUpdates['catatan'] = $request->catatan;
             }
+            if (empty($session->user_id_instruktur) && $laporanMengajar->user_id_instruktur) {
+                $sessionUpdates['user_id_instruktur'] = $laporanMengajar->user_id_instruktur;
+            }
             $session->update($sessionUpdates);
         }
 
@@ -788,8 +806,12 @@ class LaporanMengajarController extends Controller
 
         $laporan = LaporanMengajar::create($validated);
 
-        // Update session status
-        $session->update(['status' => 'berlangsung']);
+        // Update session status & sync instructor if unassigned
+        $sessionUpdates = ['status' => 'berlangsung'];
+        if (empty($session->user_id_instruktur)) {
+            $sessionUpdates['user_id_instruktur'] = Auth::id();
+        }
+        $session->update($sessionUpdates);
 
         if ($session->isAdHoc() || $laporan->isAdHoc()) {
             return redirect()->route('laporan-mengajar.show', $laporan)

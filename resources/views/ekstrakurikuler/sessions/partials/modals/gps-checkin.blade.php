@@ -57,7 +57,7 @@
                         </label>
                         
                         {{-- Hidden File Input strictly locked to Camera Capture --}}
-                        <input type="file" name="photo" id="checkin_photo" accept="image/*" capture="environment" data-no-auto-compress="true" style="position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;" required>
+                        <input type="file" name="photo" id="checkin_photo" accept="image/*" capture="environment" data-no-auto-compress="true" style="position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;">
 
                         {{-- 1. Live Camera Viewfinder (Direct WebRTC in Modal) --}}
                         <div id="liveCameraContainer" class="rounded-4 overflow-hidden position-relative bg-dark text-center mb-2 d-none shadow-sm" style="min-height: 220px;">

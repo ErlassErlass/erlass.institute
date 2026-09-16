@@ -98,6 +98,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Ticket & Helpdesk Routes (AQCOS Issue Management)
     Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
+    Route::get('/tickets/export', [TicketController::class, 'export'])->name('tickets.export');
     Route::get('/tickets/create', [TicketController::class, 'create'])->name('tickets.create');
     Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
     Route::get('/tickets/{id}', [TicketController::class, 'show'])->name('tickets.show');
@@ -351,6 +352,8 @@ Route::middleware(['auth'])->group(function () {
         // Schedule Distribution
         Route::get('analytics/schedule-distribution/export', [\App\Http\Controllers\DashboardAnalyticsController::class, 'exportScheduleDistribution'])
             ->name('analytics.schedule-distribution.export');
+        Route::get('analytics/schedule-distribution/export-schools', [\App\Http\Controllers\DashboardAnalyticsController::class, 'exportSchoolScheduleDistribution'])
+            ->name('analytics.schedule-distribution.export-schools');
         Route::get('analytics/schedule-distribution', [\App\Http\Controllers\DashboardAnalyticsController::class, 'scheduleDistribution'])
             ->name('analytics.schedule-distribution');
         Route::get('analytics/availability-check', [\App\Http\Controllers\DashboardAnalyticsController::class, 'availabilityCheck'])

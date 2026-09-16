@@ -146,9 +146,9 @@
         </div>
     </div>
 
-    <!-- 6 Standard Sheets Tabs Grid -->
+    <!-- Standard Sheets Tabs Grid -->
     <h5 class="fw-bold mb-3 text-dark">
-        <i class="bi bi-folder2-open text-primary me-2"></i>Struktur 6 Tab Google Spreadsheet
+        <i class="bi bi-folder2-open text-primary me-2"></i>Struktur {{ count($tabs) }} Tab Google Spreadsheet
     </h5>
 
     <div class="row g-3 mb-4">

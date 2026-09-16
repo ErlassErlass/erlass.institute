@@ -341,6 +341,45 @@
         color: #0369a1 !important;
         border-bottom: 2px solid #0284c7 !important;
     }
+    th.day-col-expanded {
+        min-width: 260px;
+        font-size: .95rem;
+    }
+    .single-day-mode .day-cell-content {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 4px;
+    }
+    .single-day-mode .status-badge {
+        font-size: .78rem;
+        padding: 3px 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .single-day-mode .avail-range-text {
+        font-size: .75rem;
+        margin-top: 2px;
+    }
+    .single-day-mode .session-item-card {
+        padding: 6px 10px;
+        font-size: .78rem;
+        margin-top: 5px;
+        border-radius: 6px;
+        border-left: 3px solid #f59e0b;
+    }
+    .single-day-mode .session-item-card .session-time {
+        font-size: .8rem;
+    }
+    .single-day-mode .session-item-card .session-ekskul {
+        font-size: .76rem;
+        white-space: normal;
+    }
+    .single-day-mode .session-item-card .session-school {
+        font-size: .74rem;
+        color: #64748b;
+        margin-top: 2px;
+    }
 </style>
 @endpush
 
@@ -372,7 +411,40 @@
         </div>
     </div>
 
-    {{-- ═══ FILTER & PERIODE TOOLBAR ═══ --}}
+    {{-- ═══ TAB NAVIGATION ═══ --}}
+    <ul class="nav nav-tabs mb-4 border-bottom" id="mainTabs" role="tablist" style="gap: .25rem;">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-semibold px-4 py-2" id="tab-distribusi" data-bs-toggle="tab"
+                    data-bs-target="#pane-distribusi" type="button" role="tab" aria-selected="true">
+                <i class="bi bi-bar-chart-steps me-1"></i> Distribusi Sesi
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold px-4 py-2" id="tab-ketersediaan" data-bs-toggle="tab"
+                    data-bs-target="#pane-ketersediaan" type="button" role="tab" aria-selected="false">
+                <i class="bi bi-calendar2-week me-1"></i> Ketersediaan Mingguan
+                <span class="badge rounded-pill ms-1" style="background:#2563eb;font-size:.7rem;">
+                    {{ $availability_instructors->count() }}
+                </span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold px-4 py-2" id="tab-wilayah-sekolah" data-bs-toggle="tab"
+                    data-bs-target="#pane-wilayah-sekolah" type="button" role="tab" aria-selected="false">
+                <i class="bi bi-geo-alt-fill me-1"></i> Distribusi Wilayah & Sekolah
+                <span class="badge rounded-pill ms-1" style="background:#16a34a;font-size:.7rem;">
+                    {{ $school_distribution_data->count() }}
+                </span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="mainTabContent">
+
+    {{-- ═══ TAB 1: DISTRIBUSI SESI ═══ --}}
+    <div class="tab-pane fade show active" id="pane-distribusi" role="tabpanel">
+
+    {{-- ═══ FILTER & PERIODE TOOLBAR (Tab 1 Only) ═══ --}}
     <div class="sd-filter-card">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             
@@ -405,7 +477,7 @@
                 </div>
             </div>
 
-            {{-- Actions: Export Excel --}}
+            {{-- Actions: Export Excel (Tab 1) --}}
             <div class="d-flex align-items-end">
                 <a href="{{ route('admin.analytics.schedule-distribution.export', array_merge(request()->query(), ['period_mode' => $period_mode])) }}" 
                    class="btn btn-success fw-bold px-3 py-2 rounded-3 shadow-sm text-nowrap" style="font-size: .875rem;">
@@ -470,30 +542,6 @@
             </form>
         </div>
     </div>
-
-    {{-- ═══ TAB NAVIGATION ═══ --}}
-    <ul class="nav nav-tabs mb-4 border-bottom" id="mainTabs" role="tablist" style="gap: .25rem;">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active fw-semibold px-4 py-2" id="tab-distribusi" data-bs-toggle="tab"
-                    data-bs-target="#pane-distribusi" type="button" role="tab" aria-selected="true">
-                <i class="bi bi-bar-chart-steps me-1"></i> Distribusi Sesi
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link fw-semibold px-4 py-2" id="tab-ketersediaan" data-bs-toggle="tab"
-                    data-bs-target="#pane-ketersediaan" type="button" role="tab" aria-selected="false">
-                <i class="bi bi-calendar2-week me-1"></i> Ketersediaan Mingguan
-                <span class="badge rounded-pill ms-1" style="background:#2563eb;font-size:.7rem;">
-                    {{ $availability_instructors->count() }}
-                </span>
-            </button>
-        </li>
-    </ul>
-
-    <div class="tab-content" id="mainTabContent">
-
-    {{-- ═══ TAB 1: DISTRIBUSI SESI ═══ --}}
-    <div class="tab-pane fade show active" id="pane-distribusi" role="tabpanel">
 
     {{-- ═══ KPI SUMMARY CARDS ═══ --}}
     <div class="row g-3 mb-4">
@@ -921,6 +969,314 @@
 
     </div>{{-- /tab-pane #pane-ketersediaan --}}
 
+    {{-- ═══ TAB 3: DISTRIBUSI WILAYAH & SEKOLAH ═══ --}}
+    <div class="tab-pane fade" id="pane-wilayah-sekolah" role="tabpanel">
+
+        {{-- Header & Export Button --}}
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+                <h4 class="fw-bold mb-1" style="color: var(--sd-navy);">
+                    <i class="bi bi-geo-alt-fill text-primary me-2"></i>Distribusi Wilayah, Sekolah & Sales
+                </h4>
+                <p class="text-muted small mb-0">
+                    Daftar penugasan instruktur utama (>2x sesi jadwal) dan asisten per rombel sekolah, beserta rekapitulasi beban sales.
+                </p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ route('admin.analytics.schedule-distribution.export-schools') }}" 
+                   id="btnExportSchoolsExcel" 
+                   class="btn btn-success d-inline-flex align-items-center gap-2 px-3 py-2 fw-semibold shadow-sm text-white"
+                   style="border-radius: 10px; background-color: #107c41; border-color: #107c41;">
+                    <i class="bi bi-file-earmark-excel-fill fs-5"></i>
+                    <span>Export Excel (.xlsx)</span>
+                </a>
+            </div>
+        </div>
+
+        {{-- Top KPI Cards --}}
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="sd-kpi-card">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="sd-kpi-icon" style="background: #eff6ff; color: #2563eb;">
+                            <i class="bi bi-collection-fill"></i>
+                        </div>
+                        <div>
+                            <div class="small fw-semibold text-muted">Total Rombel Aktif</div>
+                            <div class="fs-4 fw-bold text-dark">{{ $school_distribution_data->count() }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="sd-kpi-card">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="sd-kpi-icon" style="background: #f0fdf4; color: #16a34a;">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <div>
+                            <div class="small fw-semibold text-muted">Total Sekolah</div>
+                            <div class="fs-4 fw-bold text-dark">{{ $school_distribution_data->pluck('kodlan')->unique()->count() }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="sd-kpi-card">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="sd-kpi-icon" style="background: #faf5ff; color: #9333ea;">
+                            <i class="bi bi-person-video3"></i>
+                        </div>
+                        <div>
+                            <div class="small fw-semibold text-muted">Instruktur Utama Terlibat</div>
+                            <div class="fs-4 fw-bold text-dark">{{ $school_distribution_data->pluck('user_id_instruktur')->filter()->unique()->count() }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="sd-kpi-card">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="sd-kpi-icon" style="background: #fff7ed; color: #ea580c;">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <div>
+                            <div class="small fw-semibold text-muted">Salesman Terdaftar</div>
+                            <div class="fs-4 fw-bold text-dark">{{ count($sales_summary) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Section 1: Ringkasan Beban & Total Instruktur beserta Rombel per Sales --}}
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: var(--sd-radius); border: 1px solid var(--sd-line) !important;">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-person-badge-fill text-primary me-2"></i>Ringkasan & Total Instruktur beserta Rombel per Sales
+                    </h6>
+                    <small class="text-muted">Rekapitulasi jumlah sekolah, program, rombel aktif (>2x jadwal), dan instruktur yang bertugas per salesman</small>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSalesSummary" aria-expanded="true">
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+            </div>
+            <div class="collapse show" id="collapseSalesSummary">
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                        <table class="table table-hover align-middle mb-0 sd-table" style="font-size: .85rem;">
+                            <thead style="position: sticky; top: 0; z-index: 2; background: #f8fafc;">
+                                <tr>
+                                    <th class="text-center" style="width: 50px;">No</th>
+                                    <th>Nama Salesman</th>
+                                    <th>Group Leader</th>
+                                    <th class="text-center">Total Sekolah</th>
+                                    <th class="text-center">Total Program</th>
+                                    <th class="text-center">Total Rombel Aktif</th>
+                                    <th class="text-center">Total Instruktur Bertugas</th>
+                                    <th class="text-center" style="width: 100px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($sales_summary as $idx => $sm)
+                                    <tr @if($sm->nama_salesman === 'Belum Ditentukan') class="table-warning" @endif>
+                                        <td class="text-center text-muted fw-semibold">{{ $idx + 1 }}</td>
+                                        <td>
+                                            <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                                <div class="sd-avatar" style="width: 28px; height: 28px; font-size: .75rem; background: {{ $sm->nama_salesman === 'Belum Ditentukan' ? '#f59e0b' : '#3b82f6' }};">
+                                                    {{ strtoupper(substr($sm->nama_salesman, 0, 1)) }}
+                                                </div>
+                                                <span>{{ $sm->nama_salesman }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-secondary border">
+                                                <i class="bi bi-diagram-3-fill me-1"></i>{{ $sm->group_leader ?? '-' }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center fw-semibold">{{ $sm->total_sekolah }}</td>
+                                        <td class="text-center fw-semibold">{{ $sm->total_program }}</td>
+                                        <td class="text-center">
+                                            <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary fw-bold px-2 py-1">
+                                                {{ $sm->total_rombel }} Rombel
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge rounded-pill bg-success bg-opacity-10 text-success fw-bold px-2 py-1">
+                                                {{ $sm->total_instruktur }} Instruktur
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-primary py-0 px-2" 
+                                                    style="font-size: .75rem;" 
+                                                    onclick="filterBySalesman('{{ addslashes($sm->nama_salesman) }}')"
+                                                    title="Filter tabel rombel di bawah berdasarkan sales ini">
+                                                <i class="bi bi-funnel-fill me-1"></i>Filter
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted py-3">Tidak ada data sales.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        {{-- Section 3: Main Table - Distribusi Jadwal (Per Baris Per Rombel) --}}
+        <div class="card border-0 shadow-sm" style="border-radius: var(--sd-radius); border: 1px solid var(--sd-line) !important;">
+            <div class="card-header bg-white border-bottom py-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark">
+                            <i class="bi bi-table text-primary me-2"></i>Tabel Distribusi Jadwal Sekolah & Instruktur
+                        </h6>
+                        <small class="text-muted">Format 1 baris per rombel dengan kriteria instruktur utama jadwal &gt; 2x</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span id="schoolRowCountBadge" class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary-subtle px-3 py-2 fw-semibold">
+                            Menampilkan <span id="schoolVisibleCount">{{ $school_distribution_data->count() }}</span> dari {{ $school_distribution_data->count() }} Rombel
+                        </span>
+                    </div>
+                </div>
+
+                {{-- Filter toolbar --}}
+                <div class="row g-2 mt-2 pt-2 border-top">
+                    <div class="col-12 col-md-4">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" id="schoolSearchInput" class="form-control bg-light border-start-0" placeholder="Cari sekolah, rombel, instruktur, kodlan...">
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <select id="schoolCityFilter" class="form-select form-select-sm">
+                            <option value="">Semua Kota</option>
+                            @foreach($school_cities as $city)
+                                <option value="{{ $city }}">{{ $city }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <select id="schoolProgramFilter" class="form-select form-select-sm">
+                            <option value="">Semua Jenis Program</option>
+                            @foreach($school_programs as $prog)
+                                <option value="{{ $prog }}">{{ $prog }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-8 col-md-2">
+                        <select id="schoolSalesFilter" class="form-select form-select-sm">
+                            <option value="">Semua Sales</option>
+                            @foreach($school_salesmen as $sls)
+                                <option value="{{ $sls }}">{{ $sls }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-4 col-md-1 d-grid">
+                        <button type="button" id="btnResetSchoolFilters" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 650px; overflow-y: auto;">
+                    <table class="table table-hover align-middle mb-0 sd-table" id="tableSchoolDistribution" style="font-size: .85rem;">
+                        <thead style="position: sticky; top: 0; z-index: 3; background: #0f172a; color: #fff;">
+                            <tr>
+                                <th class="text-center" style="background: #0f172a; color: #fff; width: 45px;">No</th>
+                                <th style="background: #0f172a; color: #fff;">Wilayah Kota</th>
+                                <th style="background: #0f172a; color: #fff;">Kecamatan</th>
+                                <th style="background: #0f172a; color: #fff;">Nama Sales</th>
+                                <th style="background: #0f172a; color: #fff;">Group Leader</th>
+                                <th style="background: #0f172a; color: #fff;">Jenis Program</th>
+                                <th style="background: #0f172a; color: #fff;">KodLan / NPSN</th>
+                                <th style="background: #0f172a; color: #fff;">Nama Sekolah</th>
+                                <th style="background: #0f172a; color: #fff;">Rombel</th>
+                                <th style="background: #0f172a; color: #fff;">Instruktur Utama (>2x)</th>
+                                <th class="text-center" style="background: #0f172a; color: #fff;">Total Sesi</th>
+                                <th style="background: #0f172a; color: #fff;">Asisten Instruktur</th>
+                            </tr>
+                        </thead>
+                        <tbody id="schoolTableBody">
+                            @forelse($school_distribution_data as $idx => $row)
+                                <tr class="school-row"
+                                    data-kota="{{ strtolower($row->kota ?? '') }}"
+                                    data-program="{{ strtolower($row->kategori_program ?? '') }}"
+                                    data-sales="{{ strtolower($row->nama_salesman ?? '') }}"
+                                    data-search="{{ strtolower(($row->namasekolah ?? '') . ' ' . ($row->kodlan ?? '') . ' ' . ($row->nama_rombel ?? '') . ' ' . ($row->instruktur_utama ?? '') . ' ' . ($row->asisten_instruktur ?? '') . ' ' . ($row->nama_salesman ?? '') . ' ' . ($row->kota ?? '') . ' ' . ($row->kec ?? '')) }}">
+                                    <td class="text-center text-muted fw-semibold school-index">{{ $idx + 1 }}</td>
+                                    <td>
+                                        <span class="fw-semibold text-dark">{{ $row->kota ?? '-' }}</span>
+                                    </td>
+                                    <td class="text-muted">{{ $row->kec ?? '-' }}</td>
+                                    <td>
+                                        @if($row->nama_salesman === 'Belum Ditentukan')
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle me-1"></i>Belum Ditentukan</span>
+                                        @else
+                                            <span class="fw-bold text-dark">{{ $row->nama_salesman }}</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-secondary border">{{ $row->group_leader ?? '-' }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary fw-semibold border border-primary-subtle">
+                                            {{ $row->kategori_program ?? '-' }}
+                                        </span>
+                                    </td>
+                                    <td><code>{{ $row->kodlan ?? '-' }}</code></td>
+                                    <td>
+                                        <span class="fw-bold text-dark">{{ $row->namasekolah ?? '-' }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border">
+                                            {{ $row->nama_rombel ?? '-' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-person-check-fill text-success"></i>
+                                            <span class="fw-bold text-dark">{{ $row->instruktur_utama ?? '-' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge rounded-pill bg-success text-white px-2 py-1 fw-bold">
+                                            {{ $row->total_sesi }} Sesi
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if(!empty($row->asisten_instruktur))
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-person-badge text-info"></i>
+                                                <span>{{ $row->asisten_instruktur }}</span>
+                                            </div>
+                                        @else
+                                            <span class="text-muted fst-italic">-</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr id="emptySchoolRow">
+                                    <td colspan="12" class="text-center text-muted py-4">Tidak ada data jadwal rombel dengan sesi &gt; 2.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>{{-- /tab-pane #pane-wilayah-sekolah --}}
+
     </div>{{-- /tab-content --}}
 
 </div>
@@ -956,7 +1312,6 @@
     });
 
     // Tab 2 Filter Elements
-    // Tab 2 Filter Elements
     const kotaFilter = document.getElementById('kotaFilter');
     const availSearchInput = document.getElementById('availSearchInput');
     const dayFilter = document.getElementById('dayFilter');
@@ -971,7 +1326,7 @@
     kotaFilter?.addEventListener('change', applyAvailabilityFilters);
     availSearchInput?.addEventListener('input', debouncedAvailSearch);
     dayFilter?.addEventListener('change', function() {
-        updateDayColumnHighlight(this.value);
+        updateDayColumnVisibility(this.value);
         applyAvailabilityFilters();
     });
     statusFilter?.addEventListener('change', applyAvailabilityFilters);
@@ -994,18 +1349,58 @@
             hideJadwalSwitch.checked = false;
             document.getElementById('availabilityTable')?.classList.remove('hide-session-cards');
         }
-        updateDayColumnHighlight('');
+        updateDayColumnVisibility('');
         applyAvailabilityFilters();
     });
 
-    function updateDayColumnHighlight(selectedDay) {
+    // ── 1 Opsi A: Sesuaikan kolom hari saat filter per hari dipilih ───────────
+    function updateDayColumnVisibility(selectedDay) {
+        const table = document.getElementById('availabilityTable');
+        if (selectedDay) {
+            table?.classList.add('single-day-mode');
+        } else {
+            table?.classList.remove('single-day-mode');
+        }
+
+        // Header kolom hari: sembunyikan hari lain, lebarkan hari terpilih
         document.querySelectorAll('.day-header').forEach(th => {
-            th.classList.toggle('day-col-highlight', Boolean(selectedDay && th.dataset.day === selectedDay));
+            const isMatch = !selectedDay || th.dataset.day === selectedDay;
+            th.style.display = isMatch ? '' : 'none';
+            if (selectedDay && th.dataset.day === selectedDay) {
+                th.classList.add('day-col-highlight', 'day-col-expanded');
+                th.style.minWidth = '260px';
+                th.style.width = '';
+            } else {
+                th.classList.remove('day-col-highlight', 'day-col-expanded');
+                th.style.minWidth = '115px';
+                th.style.width = '';
+            }
         });
+
+        // Cell kolom hari: sembunyikan hari lain
         document.querySelectorAll('.day-cell').forEach(td => {
-            td.classList.toggle('day-col-highlight', Boolean(selectedDay && td.dataset.day === selectedDay));
+            const isMatch = !selectedDay || td.dataset.day === selectedDay;
+            td.style.display = isMatch ? '' : 'none';
+            if (selectedDay && td.dataset.day === selectedDay) {
+                td.classList.add('day-col-highlight');
+            } else {
+                td.classList.remove('day-col-highlight');
+            }
         });
+
+        // Sesuaikan colspan baris instruktur yang belum mengisi jadwal
+        document.querySelectorAll('#availabilityTable td.cell-no_data').forEach(td => {
+            td.colSpan = selectedDay ? 1 : 6;
+        });
+
+        // Sesuaikan baris kosong jika ada
+        const emptyRowTd = document.querySelector('#availabilityTable tbody td[colspan="10"], #availabilityTable tbody td[colspan="5"]');
+        if (emptyRowTd) {
+            emptyRowTd.colSpan = selectedDay ? 5 : 10;
+        }
     }
+
+    const updateDayColumnHighlight = updateDayColumnVisibility;
 
     function getRowDayStatus(row, dayName) {
         if (!row || !dayName) return 'no_data';
@@ -1017,15 +1412,56 @@
                'no_data';
     }
 
+    // Prioritas pengurutan status ketersediaan (2 Opsi 2)
+    const STATUS_PRIORITY = {
+        'free': 1,        // 🟢 Free / Tersedia (paling atas)
+        'partial': 2,     // 🟡 Sebagian terisi
+        'busy': 3,        // 🔴 Penuh
+        'unavailable': 4, // ⬜ Libur
+        'no_data': 5      // ⚠️ Belum input jadwal (paling bawah)
+    };
+
     function applyAvailabilityFilters() {
         const kota = (kotaFilter?.value || '').toLowerCase().trim();
         const query = (availSearchInput?.value || '').toLowerCase().trim();
         const selectedDay = dayFilter?.value || '';
         const statusVal = statusFilter?.value || '';
 
-        let visibleCount = 0;
+        const tbody = document.querySelector('#availabilityTable tbody');
+        if (!tbody) return;
 
-        document.querySelectorAll('.avail-row').forEach(row => {
+        const rows = Array.from(tbody.querySelectorAll('.avail-row'));
+        if (rows.length === 0) return;
+
+        // ── 2 Opsi 2: Pengurutan Baris Otomatis ──────────────────────────────
+        // Saat filter hari aktif: Urutkan Free -> Partial -> Busy -> Libur -> Belum Isi
+        // Jika status sama: urutkan alfabetis A-Z nama instruktur
+        // Saat "Semua Hari": kembalikan ke urutan default alfabetis A-Z
+        rows.sort((a, b) => {
+            if (selectedDay) {
+                const stA = getRowDayStatus(a, selectedDay);
+                const stB = getRowDayStatus(b, selectedDay);
+                const rankA = STATUS_PRIORITY[stA] ?? 99;
+                const rankB = STATUS_PRIORITY[stB] ?? 99;
+                if (rankA !== rankB) {
+                    return rankA - rankB;
+                }
+            }
+            const nameA = a.dataset.name || '';
+            const nameB = b.dataset.name || '';
+            return nameA.localeCompare(nameB, 'id');
+        });
+
+        // Re-append baris ke tbody sesuai urutan baru
+        const frag = document.createDocumentFragment();
+        rows.forEach(r => frag.appendChild(r));
+        tbody.appendChild(frag);
+
+        // ── Filter Visibility & Penomoran Ulang Berurutan ────────────────────
+        let visibleCount = 0;
+        let visibleNo = 1;
+
+        rows.forEach(row => {
             const rowKota = row.dataset.kota || '';
             const rowName = row.dataset.name || '';
             const kotaOk  = !kota  || rowKota === kota;
@@ -1058,7 +1494,14 @@
 
             const isVisible = kotaOk && nameOk && statusOk;
             row.style.display = isVisible ? '' : 'none';
-            if (isVisible) visibleCount++;
+
+            if (isVisible) {
+                visibleCount++;
+                const noCell = row.querySelector('.sd-col-no');
+                if (noCell) {
+                    noCell.textContent = visibleNo++;
+                }
+            }
         });
 
         const counterEl = document.getElementById('visibleInstructorsCount');
@@ -1168,9 +1611,8 @@
                         row.dataset['status' + dayCapital] = dayStatus;
                         row.dataset['status' + dayLower] = dayStatus;
 
-                        const cellIdx = 3 + idx;
-                        const cell = row.cells[cellIdx];
-                        if (!cell || row.querySelector('td[colspan="6"]')) return;
+                        const cell = row.querySelector(`.day-cell[data-day="${day}"]`);
+                        if (!cell || row.querySelector('td.cell-no_data')) return;
 
                         const rendered = renderDayCell(dayData);
                         if (rendered !== null) {
@@ -1182,8 +1624,8 @@
                     });
                 });
 
-                // Re-apply highlight & filters with fresh weekly data
-                updateDayColumnHighlight(dayFilter?.value || '');
+                // Re-apply column visibility & filters/sorting with fresh weekly data
+                updateDayColumnVisibility(dayFilter?.value || '');
                 applyAvailabilityFilters();
             } finally {
                 if (table) table.style.visibility = '';
@@ -1218,13 +1660,17 @@
     });
 
     // Chart JS Initialization
-    document.addEventListener('DOMContentLoaded', function() {
+    let distributionChartInstance = null;
+    function initDistributionChart() {
         const ctx = document.getElementById('distributionChart');
-        if (ctx) {
+        if (ctx && typeof Chart !== 'undefined') {
+            if (distributionChartInstance) {
+                distributionChartInstance.destroy();
+            }
             const chartLabels = @json($chart_data['labels'] ?? []);
             const chartValues = @json($chart_data['data'] ?? []);
 
-            new Chart(ctx, {
+            distributionChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: chartLabels,
@@ -1264,7 +1710,108 @@
                     }
                 }
             });
+            window.distributionChartInstance = distributionChartInstance;
         }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initDistributionChart();
+    });
+
+    document.querySelector('button[data-bs-target="#pane-distribusi"]')?.addEventListener('shown.bs.tab', function() {
+        if (!distributionChartInstance) {
+            initDistributionChart();
+        } else {
+            distributionChartInstance.resize();
+        }
+    });
+
+    // ── Tab 3: School Schedule Distribution Filtering & Export URL sync ────
+    function filterSchoolRows() {
+        const searchTerm = (document.getElementById('schoolSearchInput')?.value || '').toLowerCase().trim();
+        const cityFilter = (document.getElementById('schoolCityFilter')?.value || '').toLowerCase().trim();
+        const progFilter = (document.getElementById('schoolProgramFilter')?.value || '').toLowerCase().trim();
+        const salesFilter = (document.getElementById('schoolSalesFilter')?.value || '').toLowerCase().trim();
+
+        const rows = document.querySelectorAll('#schoolTableBody .school-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const rowKota = row.getAttribute('data-kota') || '';
+            const rowProg = row.getAttribute('data-program') || '';
+            const rowSales = row.getAttribute('data-sales') || '';
+            const rowSearch = row.getAttribute('data-search') || '';
+
+            const matchSearch = !searchTerm || rowSearch.includes(searchTerm);
+            const matchCity = !cityFilter || rowKota === cityFilter;
+            const matchProg = !progFilter || rowProg === progFilter;
+            const matchSales = !salesFilter || rowSales === salesFilter;
+
+            if (matchSearch && matchCity && matchProg && matchSales) {
+                row.style.display = '';
+                visibleCount++;
+                const indexCell = row.querySelector('.school-index');
+                if (indexCell) indexCell.textContent = visibleCount;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        const countBadge = document.getElementById('schoolVisibleCount');
+        if (countBadge) countBadge.textContent = visibleCount;
+
+        // Sync parameters with Excel export button
+        const baseExportUrl = "{{ route('admin.analytics.schedule-distribution.export-schools') }}";
+        const params = new URLSearchParams();
+        if (document.getElementById('schoolCityFilter')?.value) {
+            params.append('kota', document.getElementById('schoolCityFilter').value);
+        }
+        if (document.getElementById('schoolProgramFilter')?.value) {
+            params.append('program', document.getElementById('schoolProgramFilter').value);
+        }
+        if (document.getElementById('schoolSalesFilter')?.value) {
+            params.append('sales', document.getElementById('schoolSalesFilter').value);
+        }
+
+        const exportBtn = document.getElementById('btnExportSchoolsExcel');
+        if (exportBtn) {
+            exportBtn.href = params.toString() ? `${baseExportUrl}?${params.toString()}` : baseExportUrl;
+        }
+    }
+
+    function filterBySalesman(salesName) {
+        const salesSelect = document.getElementById('schoolSalesFilter');
+        if (salesSelect) {
+            salesSelect.value = salesName;
+            filterSchoolRows();
+            document.getElementById('tableSchoolDistribution')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    document.getElementById('schoolSearchInput')?.addEventListener('input', debounce(filterSchoolRows, 150));
+    document.getElementById('schoolCityFilter')?.addEventListener('change', filterSchoolRows);
+    document.getElementById('schoolProgramFilter')?.addEventListener('change', filterSchoolRows);
+    document.getElementById('schoolSalesFilter')?.addEventListener('change', filterSchoolRows);
+
+    document.getElementById('btnResetSchoolFilters')?.addEventListener('click', function() {
+        if (document.getElementById('schoolSearchInput')) document.getElementById('schoolSearchInput').value = '';
+        if (document.getElementById('schoolCityFilter')) document.getElementById('schoolCityFilter').value = '';
+        if (document.getElementById('schoolProgramFilter')) document.getElementById('schoolProgramFilter').value = '';
+        if (document.getElementById('schoolSalesFilter')) document.getElementById('schoolSalesFilter').value = '';
+        filterSchoolRows();
+    });
+
+    // Tab hash state synchronization
+    if (window.location.hash) {
+        const activeTabBtn = document.querySelector(`button[data-bs-target="${window.location.hash}"]`);
+        if (activeTabBtn) {
+            bootstrap.Tab.getOrCreateInstance(activeTabBtn).show();
+        }
+    }
+    document.querySelectorAll('#mainTabs button[data-bs-toggle="tab"]').forEach(btn => {
+        btn.addEventListener('shown.bs.tab', function(e) {
+            history.replaceState(null, null, e.target.getAttribute('data-bs-target'));
+        });
     });
 </script>
 @endpush

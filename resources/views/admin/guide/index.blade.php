@@ -218,15 +218,15 @@
         <div class="row align-items-center">
             <div class="col-lg-8">
                 <div class="admin-badge-pill">
-                    <i class="bi bi-shield-lock-fill text-warning"></i> Khusus Administrator, Keuangan &amp; Tim Manajemen (v2.9.18)
+                    <i class="bi bi-shield-lock-fill text-warning"></i> Khusus Administrator, Keuangan &amp; Tim Manajemen (v2.9.31)
                 </div>
                 <h1 class="display-6 fw-bold mb-2 text-white">Panduan Operasional &amp; SOP Sistem Administrator</h1>
                 <p class="text-white mb-4" style="max-width: 680px; opacity: 0.92; font-size: 1rem;">
-                    Dokumentasi resmi alur kerja (*Standard Operating Procedure*) untuk pengelolaan program ekskul, penanganan sesi libur/ditunda (FIFO Non-Blocking), antrean To-Do List reschedule, cascade shift, modul payroll (asisten &amp; pajak 2.5%), integrasi Google Sheets, dan automasi WhatsApp.
+                    Dokumentasi resmi alur kerja (*Standard Operating Procedure*) untuk pengelolaan program ekskul, penanganan sesi libur/ditunda (FIFO Non-Blocking), proteksi jadwal manual, antrean To-Do List reschedule, cascade shift, modul payroll (asisten &amp; pajak 2.5%), integrasi Google Sheets, dan automasi WhatsApp.
                 </p>
                 <div class="guide-search-wrap">
                     <i class="bi bi-search"></i>
-                    <input type="text" id="adminGuideSearch" placeholder="Cari panduan (misal: reschedule, libur, cascade, pajak 2.5%, asisten, google sheets)..." onkeyup="filterGuideTopics()">
+                    <input type="text" id="adminGuideSearch" placeholder="Cari panduan (misal: reschedule, libur, cascade, proteksi manual, ketersediaan, pajak 2.5%, tiket excel)..." onkeyup="filterGuideTopics()">
                 </div>
             </div>
             <div class="col-lg-4 text-end d-none d-lg-block">
@@ -247,7 +247,7 @@
                         <i class="bi bi-pin-angle-fill text-danger"></i> 1. To-Do List Reschedule
                     </a>
                     <a href="#section-libur-reschedule" class="toc-link">
-                        <i class="bi bi-calendar-x text-warning"></i> 2. Libur, FIFO &amp; Cascade
+                        <i class="bi bi-calendar-x text-warning"></i> 2. Libur, Reschedule &amp; Cascade
                     </a>
                     <a href="#section-program" class="toc-link">
                         <i class="bi bi-journal-bookmark text-primary"></i> 3. Program &amp; Rombel
@@ -334,27 +334,75 @@
                         <i class="bi bi-calendar-x-fill"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0 text-dark">2. Penanganan Sesi Libur, FIFO Non-Blocking, &amp; Relokasi Laporan</h4>
-                        <small class="text-muted">Eliminasi penguncian sesi lanjutan, tombol tandai libur, dan perbaikan salah input laporan.</small>
+                        <h4 class="fw-bold mb-0 text-dark">2. Penanganan Sesi Libur, Reschedule Berantai (Cascade) &amp; Proteksi Jadwal Manual</h4>
+                        <small class="text-muted">Prosedur sesi libur/ditunda, proteksi kunci manual dari sinkronisasi, cascade shift, hapus sesi berantai, dan eliminasi penguncian FIFO.</small>
                     </div>
                 </div>
 
-                <div class="step-box">
-                    <div class="step-number">Fitur v2.9.18</div>
+                <!-- Bagian 1: Proteksi Reschedule Manual -->
+                <div class="step-box mb-3 border-start border-4 border-warning">
+                    <div class="step-number bg-warning text-dark">Pembaruan v2.9.31</div>
+                    <h6 class="fw-bold mb-1">Proteksi Kunci Jadwal Manual (<code>is_manual_reschedule</code>) &amp; Badge Pin Kuning</h6>
+                    <p class="small text-muted mb-2">
+                        Sistem kini melindungi jadwal yang diubah secara khusus oleh admin agar tidak terhapus atau tertimpa saat tombol <em>"Sync Sesi"</em> dijalankan:
+                    </p>
+                    <ul class="small text-secondary mb-2 ps-3">
+                        <li class="mb-1"><strong>Deteksi Otomatis:</strong> Setiap kali admin mengedit tanggal (<code>tanggal_terjadwal</code>) atau jam sesi di formulir <code>/ekstrakurikuler/sessions/{id}/edit</code>, sistem secara otomatis menandai sesi tersebut sebagai <code>is_manual_reschedule = true</code>.</li>
+                        <li class="mb-1"><strong>Toggle Manual:</strong> Admin juga dapat mengaktifkan/menonaktifkan switch <em>"Kunci Jadwal Manual (Proteksi dari Sync Sesi)"</em> secara eksplisit pada formulir edit sesi.</li>
+                        <li class="mb-1"><strong>Indikator Visual:</strong> Pada halaman detail program ekskul (<code>show.blade.php</code>), sesi yang terkunci manual ditandai dengan badge pin kuning <strong>`📌 Terkunci (Manual)`</strong>.</li>
+                        <li class="mb-1"><strong>Kebal dari Tombol Sync Sesi:</strong> Menjalankan tombol <em>"Sync Sesi"</em> pada header program hanya memperbarui sesi-sesi normal yang belum berjalan. Sesi dengan status <em>Selesai</em>, <em>Berlangsung</em>, atau <em>Terkunci Manual</em> akan tetap dipertahankan 100%.</li>
+                    </ul>
+                </div>
+
+                <!-- Bagian 2: Cascade Shift & Prosedur Hapus Sesi -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-light h-100">
+                            <h6 class="fw-bold text-dark"><i class="bi bi-arrows-collapse text-primary me-1"></i> A. Pergeseran Berantai (*Cascade Shift*)</h6>
+                            <p class="small text-muted mb-2">
+                                Saat menjadwalkan ulang sesi dari Dashboard To-Do List atau modal reschedule:
+                            </p>
+                            <ul class="small text-secondary mb-0 ps-3">
+                                <li class="mb-1">Centang opsi <em>"Geser seluruh jadwal pertemuan berikutnya secara berantai"</em>.</li>
+                                <li class="mb-1">Sistem secara otomatis memundurkan jadwal pertemuan berikutnya (P.N+1 s/d selesai) dengan interval mingguan (+7 hari) secara proporsional.</li>
+                                <li>Pastikan memperbarui <code>tanggal_selesai</code> program jika pergeseran melewati batas akhir program.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-light h-100">
+                            <h6 class="fw-bold text-dark"><i class="bi bi-calendar2-x text-danger me-1"></i> B. Prosedur Hapus Sesi &amp; Penyesuaian Tanggal</h6>
+                            <p class="small text-muted mb-2">
+                                Jika satu sesi ditiadakan permanen dan sesi setelahnya ingin dimajukan tanggalnya:
+                            </p>
+                            <ul class="small text-secondary mb-0 ps-3">
+                                <li class="mb-1">Hapus sesi yang dibatalkan melalui aksi admin pada detail sesi.</li>
+                                <li class="mb-1">Sesuaikan tanggal sesi-sesi setelahnya (misal dimajukan 7 hari ke tanggal sesi yang dihapus) agar penomoran pertemuan tetap kontinu tanpa jeda kosong.</li>
+                                <li>Validasi bentrokan instruktur (*Conflict Detection*) otomatis menjaga agar tidak ada jadwal tumpang tindih.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bagian 3: FIFO Non-Blocking & Auto-Bypass Tanggal Merah -->
+                <div class="step-box mb-3">
+                    <div class="step-number">Mekanisme FIFO</div>
                     <h6 class="fw-bold mb-1">Mekanisme FIFO Non-Blocking &amp; Auto-Bypass Tanggal Merah</h6>
                     <p class="small text-muted mb-2">
                         Sistem tidak lagi mengunci sesi pertemuan lanjutan jika sesi sebelumnya berstatus libur atau bertepatan dengan tanggal merah:
                     </p>
-                    <ul class="small text-secondary mb-0">
-                        <li><strong>Status Non-Blocking:</strong> Sesi dengan status <code>libur</code>, <code>ditunda</code>, <code>diganti</code>, atau <code>dibatalkan</code> secara otomatis dilewati dan <strong>tidak memblokir</strong> pengisian laporan atau check-in sesi berikutnya.</li>
-                        <li><strong>Auto-Bypass Hari Libur Nasional:</strong> Jika sesi lampau jatuh pada tanggal merah nasional yang terdaftar di database <code>holidays</code>, sesi tersebut otomatis dilewati dari penguncian FIFO tanpa perlu intervensi manual.</li>
+                    <ul class="small text-secondary mb-0 ps-3">
+                        <li class="mb-1"><strong>Status Non-Blocking:</strong> Sesi dengan status <code>libur</code>, <code>ditunda</code>, <code>diganti</code>, atau <code>dibatalkan</code> secara otomatis dilewati dan <strong>tidak memblokir</strong> pengisian laporan atau check-in sesi berikutnya.</li>
+                        <li class="mb-1"><strong>Auto-Bypass Hari Libur Nasional:</strong> Jika sesi lampau jatuh pada tanggal merah nasional yang terdaftar di database <code>holidays</code>, sesi tersebut otomatis dilewati dari penguncian FIFO tanpa perlu intervensi manual.</li>
+                        <li><strong>Kalibrasi Notifikasi Milestone:</strong> Notifikasi progres belajar kelipatan 4 pertemuan (P.4, P.8, P.12, P.16) ke WhatsApp orang tua mengabaikan sesi libur/ditunda, hanya dikirimkan jika 4 sesi riil benar-benar terlaksana secara valid.</li>
                     </ul>
                 </div>
 
+                <!-- Bagian 4: Tombol Aksi Operasional -->
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <div class="p-3 border rounded-3 bg-light h-100">
-                            <h6 class="fw-bold text-dark"><i class="bi bi-calendar2-minus text-warning me-1"></i> A. Tombol Cepat Tandai Libur</h6>
+                            <h6 class="fw-bold text-dark"><i class="bi bi-calendar2-minus text-warning me-1"></i> C. Tombol Cepat Tandai Libur</h6>
                             <p class="small text-muted mb-0">
                                 Pada halaman Detail Sesi (<code>/ekstrakurikuler/sessions/{id}</code>), gunakan tombol <strong>`[ 📅 Sesi P.X Libur / Ditunda? ]`</strong> untuk menandai status libur dengan alasan resmi. Sesi akan otomatis masuk ke To-Do List Admin.
                             </p>
@@ -362,7 +410,7 @@
                     </div>
                     <div class="col-md-6">
                         <div class="p-3 border rounded-3 bg-light h-100">
-                            <h6 class="fw-bold text-dark"><i class="bi bi-arrow-left-right text-primary me-1"></i> B. Relokasi Laporan Mengajar</h6>
+                            <h6 class="fw-bold text-dark"><i class="bi bi-arrow-left-right text-primary me-1"></i> D. Relokasi Laporan Mengajar</h6>
                             <p class="small text-muted mb-0">
                                 Jika instruktur salah memasukkan laporan di Pertemuan 2 padahal untuk Pertemuan 1, buka Detail Laporan &gt; klik <strong>`⇄ Pindahkan Pertemuan`</strong> &gt; pilih target Pertemuan 1. Laporan, absensi, dan foto akan berpindah secara instan.
                             </p>
@@ -370,11 +418,11 @@
                     </div>
                 </div>
 
-                <div class="callout-warning">
+                <div class="callout-warning mb-2">
                     <div class="d-flex gap-2">
                         <i class="bi bi-arrow-counterclockwise text-warning fs-5"></i>
                         <div class="small">
-                            <strong>Reset Sesi Berlangsung ke Terjadwal:</strong> Jika instruktur salah menekan tombol *"Mulai Sesi"* sebelum waktu kegiatan, buka Detail Sesi &gt; klik <strong>`↺ Reset ke Terjadwal`</strong> untuk menghapus jam aktual dan mengembalikan status ke terjadwal.
+                            <strong>Cascading Deletion &amp; Reset Sesi Bersih:</strong> Jika instruktur salah menekan tombol *"Mulai Sesi"* atau laporan perlu dihapus, buka Detail Sesi &gt; klik <strong>`↺ Reset ke Terjadwal`</strong>. Sistem secara otomatis menghapus record presensi siswa terkait (*cascading deletion*) tanpa memicu error foreign key constraint database, serta mengembalikan status ke terjadwal.
                         </div>
                     </div>
                 </div>
@@ -499,12 +547,14 @@
                 </div>
 
                 <div class="step-box">
-                    <div class="step-number">Tab 2: Matriks Ketersediaan (Availability Matrix)</div>
-                    <h6 class="fw-bold mb-1">Pengecekan Waktu Luang &amp; Filter Domisili Kota</h6>
-                    <ul class="small text-secondary mb-0">
-                        <li><strong>Interactive Week Picker:</strong> Pilih minggu kalender tertentu lalu klik <em>Cek Ketersediaan</em> untuk melihat jadwal terisi vs waktu luang instruktur.</li>
-                        <li><strong>Indikator Warna:</strong> 🟢 Free (Luang), 🟡 Sebagian Terisi, 🔴 Penuh / Busy, ⬜ Libur / Tidak Membuka Jadwal.</li>
-                        <li><strong>Filter Domisili:</strong> Saring instruktur berdasarkan kota tempat tinggal untuk menugaskan instruktur ke sekolah terdekat.</li>
+                    <div class="step-number">Tab 2: Matriks Ketersediaan (Availability Matrix v2.9.31)</div>
+                    <h6 class="fw-bold mb-1">Pengecekan Waktu Luang, Filter Status &amp; Tampilan Bebas Lag</h6>
+                    <ul class="small text-secondary mb-0 ps-3">
+                        <li class="mb-1"><strong>Auto-Load Minggu Berjalan:</strong> Saat membuka tab atau filter, jadwal mingguan otomatis dimuat via AJAX tanpa perlu menekan tombol manual.</li>
+                        <li class="mb-1"><strong>Sticky Frozen Headers &amp; 3 Kolom:</strong> Header tanggal dan 3 kolom pertama (No, Nama, Domisili) dibekukan agar navigasi tabel tetap nyaman saat scroll horizontal/vertikal.</li>
+                        <li class="mb-1"><strong>Filter Status Ketersediaan:</strong> Dropdown filter <code>— Semua Status —</code>, <code>🟡 Hanya Ada Sesi</code>, dan <code>🟢 Hanya Free / Tanpa Sesi</code> untuk menyaring instruktur secara instan.</li>
+                        <li class="mb-1"><strong>Mode Tampilan Hijau Bersih (*Pure Availability*):</strong> Switch untuk menyembunyikan detail kartu sesi dan menampilkan ketersediaan murni hijau.</li>
+                        <li><strong>Ekspor Excel Distribusi:</strong> Unduh rekap distribusi jadwal sesi sekolah dan instruktur langsung ke format spreadsheet Excel via tombol ekspor.</li>
                     </ul>
                 </div>
             </div>
@@ -576,7 +626,7 @@
                         <i class="bi bi-file-earmark-spreadsheet-fill"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0 text-dark">7. Integrasi Google Spreadsheet (5 Tab Data Live)</h4>
+                        <h4 class="fw-bold mb-0 text-dark">7. Integrasi Google Spreadsheet (9 Tab Data Real-Time)</h4>
                         <small class="text-muted">Sinkronisasi streaming data operasional ke master spreadsheet manajemen.</small>
                     </div>
                 </div>
@@ -588,13 +638,17 @@
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <div class="p-3 border rounded-3 bg-light h-100">
-                            <h6 class="fw-bold text-dark"><i class="bi bi-layers-fill text-success me-1"></i> Struktur 5 Tab Master Sheet</h6>
+                            <h6 class="fw-bold text-dark"><i class="bi bi-layers-fill text-success me-1"></i> Struktur 9 Tab Master Sheet</h6>
                             <ul class="small text-secondary mb-0 ps-3">
                                 <li><code>Ringkasan_KPI</code>: Matriks performa instruktur &amp; kedisiplinan.</li>
                                 <li><code>Laporan_Mengajar</code>: Riwayat laporan, topik materi &amp; kehadiran.</li>
                                 <li><code>Jadwal_Sesi_Ekskul</code>: Jadwal sesi &amp; jam check-in aktual.</li>
                                 <li><code>Absensi_Siswa</code>: Rekap hadir, sakit, izin, alpha per anak.</li>
-                                <li><code>Rekap_Honor</code>: Estimasi honor kotor, denda &amp; honor bersih.</li>
+                                <li><code>Rekap_Honor</code>: Estimasi honor kotor, denda &amp; honor bersih bulanan.</li>
+                                <li><code>Rekap_Pertemuan_Ekskul</code>: Rekap publik materi &amp; link foto.</li>
+                                <li><code>Daftar_Program_Ekskul</code>: Portofolio program ekskul seluruh sekolah.</li>
+                                <li><code>Rekap_Honor_Instruktur</code>: Rekapitulasi honor riil per sesi mengajar.</li>
+                                <li><code>Profil_Instruktur</code>: Master profil &amp; rekening (Bank, No Rek, Atas Nama, &amp; Rekening Gabungan), NIK, dan kontak.</li>
                             </ul>
                         </div>
                     </div>
@@ -624,9 +678,9 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="p-3 border rounded-3 bg-light h-100">
-                            <h6 class="fw-bold text-dark"><i class="bi bi-ticket-perforated text-warning me-1"></i> Tiket Bantuan (<code>/tickets</code>)</h6>
+                            <h6 class="fw-bold text-dark"><i class="bi bi-ticket-perforated text-warning me-1"></i> Tiket Bantuan &amp; Ekspor Excel (<code>/tickets</code>)</h6>
                             <p class="small text-muted mb-0">
-                                Tanggapi tiket kendala instruktur (kategori: *Jadwal / Honor*, *Teknis / Error*, *Keluhan Lain*). Admin dapat membalas pesan, mengunggah lampiran, dan menandai status menjadi *Resolved*.
+                                Tanggapi tiket kendala instruktur (kategori: *Jadwal / Honor*, *Teknis / Error*, *Keluhan Lain*). Admin dapat membalas pesan, mengunggah lampiran, menandai status menjadi *Resolved*, serta mengunduh rekap tiket ke format Excel via tombol <strong>`📥 Ekspor Excel`</strong> dengan filter rentang tanggal dan status tiket.
                             </p>
                         </div>
                     </div>

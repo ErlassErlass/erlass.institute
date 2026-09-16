@@ -64,6 +64,59 @@ class TicketController extends Controller
     }
 
     /**
+     * Export filtered tickets to Excel.
+     */
+    public function export(Request $request)
+    {
+        $user = Auth::user();
+        $query = Ticket::query()
+            ->forUser($user)
+            ->with([
+                'user',
+                'assignedStaff',
+                'session.rombel.ekstrakurikuler.sekolah',
+                'session.ekstrakurikuler.sekolah',
+                'replies'
+            ]);
+
+        // Filter Category
+        if ($request->filled('kategori')) {
+            $query->where('kategori', $request->kategori);
+        }
+
+        // Filter Status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter Date Range (Optional)
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        // Search Query
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('ticket_number', 'like', "%{$search}%")
+                  ->orWhere('judul', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($subQ) use ($search) {
+                      $subQ->where('nama_lengkap', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $tickets = $query->latest('created_at')->get();
+
+        $fileName = 'Rekap_Tiket_Helpdesk_' . date('Ymd_His') . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\TicketExport($tickets), $fileName);
+    }
+
+    /**
      * Show the form for creating a new ticket.
      */
     public function create()

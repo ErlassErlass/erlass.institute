@@ -107,7 +107,7 @@
                         <label for="search" class="form-label small text-muted text-uppercase fw-bold">Kata Kunci</label>
                         <div class="input-group">
                             <span class="input-group-text bg-white border-light-subtle"><i class="bi bi-search text-primary"></i></span>
-                            <input type="text" name="search" id="search" class="form-control border-light-subtle bg-white" placeholder="Sekolah / Materi / Instruktur..." value="{{ request('search') }}">
+                            <input type="text" name="search" id="search" class="form-control border-light-subtle bg-white" placeholder="Sekolah / Materi / Instruktur / ID..." value="{{ request('search') }}">
                         </div>
                     </div>
                     @if(in_array(Auth::user()->role, ['admin', 'admin_sistem', 'webmaster']))
@@ -179,11 +179,11 @@
                 <table class="table table-modern table-compact align-middle mb-0" id="laporan-mengajar-table">
                     <thead>
                         <tr>
-                            <th width="15%">Tanggal</th>
-                            <th width="20%">Instruktur</th>
-                            <th width="25%">Sekolah</th>
-                            <th width="15%">Rombel</th>
-                            <th width="15%">Kategori</th>
+                            <th width="18%">Tanggal & ID</th>
+                            <th width="18%">Instruktur</th>
+                            <th width="22%">Sekolah</th>
+                            <th width="14%">Rombel</th>
+                            <th width="18%">Kategori & Materi</th>
                             <th width="10%" class="text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -194,6 +194,14 @@
                                 <div class="d-flex align-items-center gap-2">
                                     <i class="bi bi-calendar-event text-primary small"></i>
                                     <span class="fw-medium text-dark">{{ \Carbon\Carbon::parse($item->jadwal_mengajar)->isoFormat('D MMM YYYY') }}</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 mt-1 flex-wrap">
+                                    <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.7rem;" title="ID Laporan Mengajar">#{{ $item->id }}</span>
+                                    @if($item->ekstrakurikuler_session_id)
+                                        <span class="badge bg-primary-subtle text-primary" style="font-size: 0.7rem;" title="ID Sesi Kegiatan">Sesi #{{ $item->ekstrakurikuler_session_id }}</span>
+                                    @else
+                                        <span class="badge bg-warning-subtle text-warning-emphasis" style="font-size: 0.7rem;" title="Laporan Ad-Hoc / Belum terlink ke sesi jadwal">Ad-Hoc</span>
+                                    @endif
                                 </div>
                                 <small class="text-muted d-block mt-1"><i class="bi bi-clock me-1"></i>{{ $item->jam_mulai }} - {{ $item->jam_selesai }}</small>
                                 @if($item->created_at)
@@ -214,10 +222,15 @@
                                 @endif
                             </td>
                             <td>
-                                <div class="fw-medium text-dark">{{ $item->sekolah->namasekolah ?? 'N/A' }}</div>
+                                <div class="fw-medium text-dark">{{ $item->sekolah->namasekolah ?? $item->sekolah_nama ?? 'N/A' }}</div>
                                 <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ $item->sekolah->kec ?? '' }}</small>
                             </td>
-                            <td><span class="badge bg-light text-dark border">{{ $item->rombel }}</span></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-1 flex-wrap">
+                                    <span class="badge bg-light text-dark border">{{ $item->rombel }}</span>
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25" title="Pertemuan Ke-{{ $item->pertemuan_ke }}">P.{{ $item->pertemuan_ke }}</span>
+                                </div>
+                            </td>
                             <td>
                                 @php
                                 $categoryName = $item->kategori_pengajaran ?? 'Kegiatan';
@@ -235,6 +248,11 @@
                                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2.5 py-1">
                                         <i class="bi bi-calendar-check me-1"></i> {{ $categoryName }}
                                     </span>
+                                @endif
+                                @if(!empty(trim($item->materi_pengajaran ?? '')))
+                                    <small class="text-muted d-block mt-1 text-truncate" style="max-width: 220px;" title="{{ $item->materi_pengajaran }}">
+                                        <i class="bi bi-journal-text me-1 text-secondary"></i>{{ Str::limit($item->materi_pengajaran, 28) }}
+                                    </small>
                                 @endif
                             </td>
                             <td class="text-center">
@@ -325,11 +343,19 @@
                         </div>
 
                         <div class="mb-3">
-                            <div class="fw-bold text-dark">{{ $item->sekolah->namasekolah ?? 'N/A' }}</div>
-                            <div class="d-flex align-items-center gap-2 mt-1">
+                            <div class="fw-bold text-dark">{{ $item->sekolah->namasekolah ?? $item->sekolah_nama ?? 'N/A' }}</div>
+                            <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
+                                <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.7rem;">#{{ $item->id }}</span>
+                                @if($item->ekstrakurikuler_session_id)
+                                    <span class="badge bg-primary-subtle text-primary" style="font-size: 0.7rem;">Sesi #{{ $item->ekstrakurikuler_session_id }}</span>
+                                @endif
                                 <span class="badge bg-light text-dark border">{{ $item->rombel }}</span>
+                                <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">P.{{ $item->pertemuan_ke }}</span>
                                 <small class="text-muted"><i class="bi bi-person me-1"></i>{{ $item->instruktur->nama_lengkap ?? 'N/A' }}</small>
                             </div>
+                            @if(!empty(trim($item->materi_pengajaran ?? '')))
+                                <small class="text-muted d-block mt-2"><i class="bi bi-journal-text me-1 text-secondary"></i>{{ Str::limit($item->materi_pengajaran, 60) }}</small>
+                            @endif
                         </div>
 
                         <div class="btn-group w-100">

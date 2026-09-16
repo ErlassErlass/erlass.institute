@@ -215,22 +215,107 @@ class DashboardAnalyticsController extends Controller
             ->sort()
             ->values();
 
+        // ── School & Sales Schedule Distribution tab data ────────────────────
+        $schoolDistributionData = DB::table('ekstrakurikuler_rombel as r')
+            ->join('ekstrakurikuler as e', 'e.id', '=', 'r.ekstrakurikuler_id')
+            ->join('sekolah as s', 's.kodlan', '=', 'e.sekolah_kodlan')
+            ->leftJoin('salesmen as sm', 'sm.id', '=', 'e.user_id_sales')
+            ->leftJoin('users as u1', 'u1.id', '=', 'r.user_id_instruktur')
+            ->leftJoin('users as u2', 'u2.id', '=', 'r.user_id_asisten')
+            ->select(
+                'r.id as rombel_id',
+                'r.nama_rombel',
+                'r.nomor_rombel',
+                'r.user_id_instruktur',
+                'r.user_id_asisten',
+                's.kota',
+                's.kec',
+                'sm.id as sales_id',
+                DB::raw("COALESCE(sm.nama_salesman, 'Belum Ditentukan') as nama_salesman"),
+                DB::raw("COALESCE(sm.group_leader, '-') as group_leader"),
+                'e.id as ekstrakurikuler_id',
+                'e.kategori_program',
+                's.kodlan',
+                's.namasekolah',
+                'u1.nama_lengkap as instruktur_utama',
+                'u2.nama_lengkap as asisten_instruktur',
+                DB::raw('(SELECT COUNT(*) FROM ekstrakurikuler_session sess 
+                          WHERE sess.ekstrakurikuler_rombel_id = r.id 
+                            AND sess.user_id_instruktur = r.user_id_instruktur 
+                            AND sess.status != "dibatalkan" 
+                            AND sess.deleted_at IS NULL) as total_sesi')
+            )
+            ->where('e.kategori_program', 'LIKE', 'Ekskul%')
+            ->whereNotNull('r.user_id_instruktur')
+            ->having('total_sesi', '>', 2)
+            ->orderBy('s.kota')
+            ->orderBy('s.namasekolah')
+            ->orderBy('r.nomor_rombel')
+            ->get();
+
+        // Sales summary
+        $salesGrouped = $schoolDistributionData->groupBy('nama_salesman');
+        $allSalesmen = DB::table('salesmen')->orderBy('nama_salesman')->get();
+        $salesSummary = [];
+
+        foreach ($allSalesmen as $sm) {
+            $assigned = $salesGrouped->get($sm->nama_salesman, collect());
+            $salesSummary[] = (object) [
+                'id'               => $sm->id,
+                'nama_salesman'    => $sm->nama_salesman,
+                'group_leader'     => $sm->group_leader,
+                'total_sekolah'    => $assigned->pluck('kodlan')->unique()->count(),
+                'total_program'    => $assigned->pluck('ekstrakurikuler_id')->unique()->count(),
+                'total_rombel'     => $assigned->count(),
+                'total_instruktur' => $assigned->pluck('user_id_instruktur')->filter()->unique()->count(),
+            ];
+        }
+
+        // Include unassigned sales items if any rombel has no salesman
+        $unassignedSalesItems = $salesGrouped->get('Belum Ditentukan', collect());
+        if ($unassignedSalesItems->isNotEmpty()) {
+            $salesSummary[] = (object) [
+                'id'               => 0,
+                'nama_salesman'    => 'Belum Ditentukan',
+                'group_leader'     => '-',
+                'total_sekolah'    => $unassignedSalesItems->pluck('kodlan')->unique()->count(),
+                'total_program'    => $unassignedSalesItems->pluck('ekstrakurikuler_id')->unique()->count(),
+                'total_rombel'     => $unassignedSalesItems->count(),
+                'total_instruktur' => $unassignedSalesItems->pluck('user_id_instruktur')->filter()->unique()->count(),
+            ];
+        }
+
+        // Sort sales summary by total_rombel descending
+        usort($salesSummary, function ($a, $b) {
+            return $b->total_rombel <=> $a->total_rombel;
+        });
+
+        $uniqueSchoolCities = $schoolDistributionData->pluck('kota')->filter()->unique()->sort()->values();
+        $uniqueSchoolPrograms = $schoolDistributionData->pluck('kategori_program')->filter()->unique()->sort()->values();
+        $uniqueSchoolSalesmen = $schoolDistributionData->pluck('nama_salesman')->filter()->unique()->sort()->values();
+
         return view('admin.analytics.schedule-distribution', [
-            'instructors'              => $instructors,
-            'period_mode'              => $periodMode,
-            'period_start'             => $periodStart,
-            'period_end'               => $periodEnd,
-            'period_label'             => $periodLabel,
-            'average_sessions'         => $averageSessions,
-            'recommended_instructors'  => $recommendedInstructors,
-            'chart_data'               => $chartData,
-            'selected_month'           => $request->input('month', now()->month),
-            'selected_year'            => $request->input('year', now()->year),
-            'start_date'               => $request->input('start_date'),
-            'end_date'                 => $request->input('end_date'),
+            'instructors'               => $instructors,
+            'period_mode'               => $periodMode,
+            'period_start'              => $periodStart,
+            'period_end'                => $periodEnd,
+            'period_label'              => $periodLabel,
+            'average_sessions'          => $averageSessions,
+            'recommended_instructors'   => $recommendedInstructors,
+            'chart_data'                => $chartData,
+            'selected_month'            => $request->input('month', now()->month),
+            'selected_year'             => $request->input('year', now()->year),
+            'start_date'                => $request->input('start_date'),
+            'end_date'                  => $request->input('end_date'),
             // Availability tab
-            'availability_instructors' => $availabilityInstructors,
-            'kota_list'                => $kotaList,
+            'availability_instructors'  => $availabilityInstructors,
+            'kota_list'                 => $kotaList,
+            // School & Sales tab
+            'school_distribution_data'  => $schoolDistributionData,
+            'sales_summary'             => $salesSummary,
+            'school_cities'             => $uniqueSchoolCities,
+            'school_programs'           => $uniqueSchoolPrograms,
+            'school_salesmen'           => $uniqueSchoolSalesmen,
         ]);
     }
 
@@ -483,5 +568,66 @@ class DashboardAnalyticsController extends Controller
         $fileName = 'Distribusi_Jadwal_' . $dateSuffix . '.xlsx';
 
         return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\ScheduleDistributionExport($periodStart, $periodEnd), $fileName);
+    }
+
+    /**
+     * Export school schedule distribution to Excel.
+     */
+    public function exportSchoolScheduleDistribution(Request $request)
+    {
+        $query = DB::table('ekstrakurikuler_rombel as r')
+            ->join('ekstrakurikuler as e', 'e.id', '=', 'r.ekstrakurikuler_id')
+            ->join('sekolah as s', 's.kodlan', '=', 'e.sekolah_kodlan')
+            ->leftJoin('salesmen as sm', 'sm.id', '=', 'e.user_id_sales')
+            ->leftJoin('users as u1', 'u1.id', '=', 'r.user_id_instruktur')
+            ->leftJoin('users as u2', 'u2.id', '=', 'r.user_id_asisten')
+            ->select(
+                'r.id as rombel_id',
+                'r.nama_rombel',
+                'r.nomor_rombel',
+                's.kota',
+                's.kec',
+                DB::raw("COALESCE(sm.nama_salesman, 'Belum Ditentukan') as nama_salesman"),
+                DB::raw("COALESCE(sm.group_leader, '-') as group_leader"),
+                'e.kategori_program',
+                's.kodlan',
+                's.namasekolah',
+                'u1.nama_lengkap as instruktur_utama',
+                'u2.nama_lengkap as asisten_instruktur',
+                DB::raw('(SELECT COUNT(*) FROM ekstrakurikuler_session sess 
+                          WHERE sess.ekstrakurikuler_rombel_id = r.id 
+                            AND sess.user_id_instruktur = r.user_id_instruktur 
+                            AND sess.status != "dibatalkan" 
+                            AND sess.deleted_at IS NULL) as total_sesi')
+            )
+            ->where('e.kategori_program', 'LIKE', 'Ekskul%')
+            ->whereNotNull('r.user_id_instruktur')
+            ->having('total_sesi', '>', 2);
+
+        if ($request->filled('kota')) {
+            $query->where('s.kota', $request->input('kota'));
+        }
+        if ($request->filled('program')) {
+            $query->where('e.kategori_program', $request->input('program'));
+        }
+        if ($request->filled('sales')) {
+            if ($request->input('sales') === 'Belum Ditentukan') {
+                $query->whereNull('sm.nama_salesman');
+            } else {
+                $query->where('sm.nama_salesman', $request->input('sales'));
+            }
+        }
+
+        $data = $query->orderBy('s.kota')
+            ->orderBy('s.namasekolah')
+            ->orderBy('r.nomor_rombel')
+            ->get();
+
+        $fileName = 'Distribusi_Jadwal_Sekolah_Wilayah_' . date('Y-m-d_His') . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\SchoolScheduleDistributionExport($data),
+            $fileName
+        );
     }
 }
