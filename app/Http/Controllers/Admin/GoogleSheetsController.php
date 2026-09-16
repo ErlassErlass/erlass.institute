@@ -89,7 +89,7 @@ class GoogleSheetsController extends Controller
             [
                 'key' => GoogleSheetsService::TAB_PROFIL_INSTRUKTUR,
                 'name' => '9. Profil & Rekening Instruktur',
-                'description' => 'Master profil seluruh instruktur & asisten: NIK, NPWP, 4 kolom rekening (Bank, No Rek, Atas Nama, & Rekening Gabungan), kontak, peran mengajar, dan kompetensi.',
+                'description' => 'Master profil seluruh instruktur & asisten: NIK, NPWP, 4 kolom rekening (Bank, No Rek, Atas Nama, & Rekening Gabungan), kontak, peran mengajar, serta kompetensi 1 & 2.',
                 'icon' => 'bi-person-vcard-fill text-primary',
                 'cached_rows' => count(Cache::get('google_sheets_data_' . GoogleSheetsService::TAB_PROFIL_INSTRUKTUR, [])),
             ],

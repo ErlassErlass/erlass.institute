@@ -874,7 +874,7 @@ class GoogleSheetsService
      * Kolom: ID User, Nama Instruktur, Peran Mengajar, Status Akun, NIK, NPWP,
      *        Nama Bank, Nomor Rekening, Atas Nama Rekening, Rekening Lengkap (Gabungan),
      *        No. Telepon / WA, Email, Domisili Kota, Sesi Instruktur Utama, Sesi Asisten, Total Sesi Terjadwal,
-     *        Kompetensi (Paling Kanan)
+     *        Kompetensi 1, Kompetensi 2 (Paling Kanan)
      */
     public function syncTabProfilInstruktur(?string $token = null): array
     {
@@ -895,7 +895,8 @@ class GoogleSheetsService
             'Sesi Instruktur Utama',
             'Sesi Asisten',
             'Total Sesi Terjadwal',
-            'Kompetensi',
+            'Kompetensi 1',
+            'Kompetensi 2',
         ];
 
         // Hitung statistik sesi utama vs asisten per instruktur
@@ -969,11 +970,12 @@ class GoogleSheetsService
                 ? "'" . trim($rawPhone)
                 : '-';
 
-            // Kompetensi (Kompetensi 1 & 2 dari Akun User)
-            $k1 = trim((string) $u->kompetensi_1);
-            $k2 = trim((string) $u->kompetensi_2);
-            $kompetensiParts = array_unique(array_filter([$k1, $k2], fn($k) => $k !== '' && $k !== '-'));
-            $kompetensi = !empty($kompetensiParts) ? implode(', ', $kompetensiParts) : '-';
+            // Kompetensi 1 & 2 (Terpisah di paling kanan)
+            $k1Raw = trim((string) $u->kompetensi_1);
+            $kompetensi1 = ($k1Raw !== '' && $k1Raw !== '-') ? $k1Raw : '-';
+
+            $k2Raw = trim((string) $u->kompetensi_2);
+            $kompetensi2 = ($k2Raw !== '' && $k2Raw !== '-') ? $k2Raw : '-';
 
             $rows[] = [
                 $u->id,
@@ -992,7 +994,8 @@ class GoogleSheetsService
                 $uCount,
                 $aCount,
                 $totCount,
-                $kompetensi,
+                $kompetensi1,
+                $kompetensi2,
             ];
         }
 
