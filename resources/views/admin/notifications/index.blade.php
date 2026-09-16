@@ -49,7 +49,7 @@
 
     {{-- Stat KPI Cards --}}
     <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md">
             <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
                 <div class="card-body p-3 d-flex align-items-center gap-3">
                     <div class="rounded-3 bg-primary bg-opacity-10 text-primary p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
@@ -62,7 +62,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md">
             <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
                 <div class="card-body p-3 d-flex align-items-center gap-3">
                     <div class="rounded-3 bg-danger bg-opacity-10 text-danger p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
@@ -75,7 +75,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md">
             <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
                 <div class="card-body p-3 d-flex align-items-center gap-3">
                     <div class="rounded-3 bg-success bg-opacity-10 text-success p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
@@ -88,15 +88,41 @@
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md">
             <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
                 <div class="card-body p-3 d-flex align-items-center gap-3">
                     <div class="rounded-3 bg-info bg-opacity-10 text-info p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                         <i class="bi bi-flag-fill fs-4"></i>
                     </div>
                     <div>
-                        <div class="text-muted small fw-semibold">Milestone Pertemuan</div>
+                        <div class="text-muted small fw-semibold">Milestone</div>
                         <h3 class="fw-bold mb-0 text-info">{{ number_format($milestoneCount) }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @php
+            $notifFonnte = $fonnte_status ?? app(\App\Services\FonnteHealthService::class)->getCachedStatus();
+            $notifConnected = $notifFonnte['connected'] ?? false;
+        @endphp
+        <div class="col-12 col-md">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white" style="border-left: 4px solid {{ $notifConnected ? '#10B981' : '#EF4444' }} !important;">
+                <div class="card-body p-3 d-flex align-items-center gap-3">
+                    <div class="rounded-3 {{ $notifConnected ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger' }} p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="bi bi-whatsapp fs-4"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <div class="text-muted small fw-semibold">WA Gateway</div>
+                        <h4 class="fw-bold mb-0 {{ $notifConnected ? 'text-success' : 'text-danger' }}" style="font-size: 1.15rem;">
+                            {{ $notifConnected ? 'Aktif' : 'Terputus' }}
+                        </h4>
+                        <small class="text-muted text-truncate d-block" style="font-size: 0.70rem;">
+                            @if($notifConnected)
+                                {{ number_format($notifFonnte['quota'] ?? 0) }} kuota
+                            @else
+                                <a href="https://md.fonnte.com/" target="_blank" class="text-danger fw-bold text-decoration-underline">Scan QR</a>
+                            @endif
+                        </small>
                     </div>
                 </div>
             </div>

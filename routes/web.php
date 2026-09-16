@@ -116,6 +116,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('admin.notifications.unread.single');
     Route::post('/admin/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])
         ->name('admin.notifications.read-all');
+    Route::get('/admin/fonnte/status', [App\Http\Controllers\NotificationController::class, 'getFonnteStatus'])
+        ->name('admin.fonnte.status');
     Route::post('/ekstrakurikuler/sessions/{session}/checkin', [EkstrakurikulerSessionController::class, 'checkin'])->name('ekstrakurikuler.sessions.checkin');
     Route::post('/admin/warnings/{warning}/resolve', [DashboardController::class, 'resolveWarning'])
         ->name('admin.warnings.resolve')

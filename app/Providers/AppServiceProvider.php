@@ -44,5 +44,12 @@ class AppServiceProvider extends ServiceProvider
                 \Illuminate\Support\Facades\URL::forceScheme('https');
             }
         }
+
+        // Share Fonnte WhatsApp Gateway live status to admin views
+        view()->composer(['layouts.app', 'dashboard', 'admin.notifications.index'], function ($view) {
+            if (auth()->check() && in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin', 'debug_user'])) {
+                $view->with('fonnte_status', app(\App\Services\FonnteHealthService::class)->getCachedStatus());
+            }
+        });
     }
 }

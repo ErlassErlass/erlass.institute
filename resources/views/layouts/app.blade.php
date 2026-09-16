@@ -838,6 +838,35 @@
                     
                     <div class="d-flex align-items-center gap-3">
                         @if(Auth::check() && in_array(Auth::user()->role, ['webmaster', 'admin_sistem', 'admin', 'debug_user']))
+                        @php
+                            $topFonnte = $fonnte_status ?? app(\App\Services\FonnteHealthService::class)->getCachedStatus();
+                            $topConnected = $topFonnte['connected'] ?? false;
+                        @endphp
+                        <!-- WhatsApp Gateway Live Status Badge -->
+                        <div id="topbarFonnteStatusWrapper" class="d-flex align-items-center">
+                            @if($topConnected)
+                                <a href="https://md.fonnte.com/" target="_blank" rel="noopener noreferrer" 
+                                   id="topbarFonnteBadge"
+                                   class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 d-none d-sm-inline-flex align-items-center gap-1.5 text-decoration-none shadow-xs" 
+                                   style="font-size: 0.74rem;" 
+                                   title="WhatsApp Gateway (Fonnte) Terhubung | Device: {{ $topFonnte['device'] ?? '-' }} | Sisa Kuota: {{ number_format($topFonnte['quota'] ?? 0) }}. Klik untuk buka Fonnte.">
+                                    <span class="spinner-grow spinner-grow-sm text-success" style="width: 7px; height: 7px;" role="status"></span>
+                                    <i class="bi bi-whatsapp"></i>
+                                    <span class="fw-bold">WA Aktif</span>
+                                    <span class="opacity-75 small">({{ number_format($topFonnte['quota'] ?? 0) }})</span>
+                                </a>
+                            @else
+                                <a href="https://md.fonnte.com/" target="_blank" rel="noopener noreferrer" 
+                                   id="topbarFonnteBadge"
+                                   class="badge rounded-pill bg-danger text-white px-2.5 py-1.5 d-inline-flex align-items-center gap-1.5 text-decoration-none shadow-xs" 
+                                   style="font-size: 0.74rem;" 
+                                   title="🚨 PERINGATAN: WhatsApp Gateway (Fonnte) TERPUTUS! Klik untuk scan QR di Fonnte.">
+                                    <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                                    <span class="fw-bold">WA Terputus!</span>
+                                </a>
+                            @endif
+                        </div>
+
                         <!-- Unified Admin Notification Center Dropdown -->
                         <div class="dropdown me-1" id="notificationBellDropdown">
                             <button class="btn btn-light border p-2 position-relative d-flex align-items-center justify-content-center" 
@@ -1427,6 +1456,38 @@
                 if (tabMilestone) {
                     const mCount = currentNotifList.filter(n => n.type === 'milestone_report').length;
                     tabMilestone.textContent = mCount;
+                }
+
+                if (res.fonnte_status) {
+                    const topbarWrapper = document.getElementById('topbarFonnteStatusWrapper');
+                    if (topbarWrapper) {
+                        const fs = res.fonnte_status;
+                        const isConn = !!fs.connected;
+                        const quota = (fs.quota || 0).toLocaleString();
+                        if (isConn) {
+                            topbarWrapper.innerHTML = `
+                                <a href="https://md.fonnte.com/" target="_blank" rel="noopener noreferrer" 
+                                   id="topbarFonnteBadge"
+                                   class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 d-none d-sm-inline-flex align-items-center gap-1.5 text-decoration-none shadow-xs" 
+                                   style="font-size: 0.74rem;" 
+                                   title="WhatsApp Gateway (Fonnte) Terhubung | Device: ${fs.device || '-'} | Sisa Kuota: ${quota}. Klik untuk buka Fonnte.">
+                                    <span class="spinner-grow spinner-grow-sm text-success" style="width: 7px; height: 7px;" role="status"></span>
+                                    <i class="bi bi-whatsapp"></i>
+                                    <span class="fw-bold">WA Aktif</span>
+                                    <span class="opacity-75 small">(${quota})</span>
+                                </a>`;
+                        } else {
+                            topbarWrapper.innerHTML = `
+                                <a href="https://md.fonnte.com/" target="_blank" rel="noopener noreferrer" 
+                                   id="topbarFonnteBadge"
+                                   class="badge rounded-pill bg-danger text-white px-2.5 py-1.5 d-inline-flex align-items-center gap-1.5 text-decoration-none shadow-xs" 
+                                   style="font-size: 0.74rem;" 
+                                   title="🚨 PERINGATAN: WhatsApp Gateway (Fonnte) TERPUTUS! Klik untuk scan QR di Fonnte.">
+                                    <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                                    <span class="fw-bold">WA Terputus!</span>
+                                </a>`;
+                        }
+                    }
                 }
 
                 renderNotificationsList();

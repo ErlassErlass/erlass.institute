@@ -12,9 +12,29 @@ use Illuminate\Support\Facades\Log;
 
 class FonnteHealthService
 {
+    public const CACHE_STATUS_KEY = 'fonnte_latest_status';
     protected const CACHE_ALERT_KEY = 'fonnte_disconnect_alert_sent';
     protected const CACHE_DISCONNECT_FLAG = 'fonnte_is_disconnected';
     protected const COOLDOWN_HOURS = 2;
+
+    /**
+     * Get cached Fonnte device status (default 5-minute cache, or force refresh).
+     */
+    public function getCachedStatus(bool $refresh = false): array
+    {
+        if (!$refresh && Cache::has(self::CACHE_STATUS_KEY)) {
+            return Cache::get(self::CACHE_STATUS_KEY);
+        }
+
+        $status = $this->checkAndHandle();
+        $status['last_checked'] = now()->translatedFormat('d M Y, H:i');
+        $status['last_checked_iso'] = now()->toIso8601String();
+
+        // Simpan cache status selama 5 menit
+        Cache::put(self::CACHE_STATUS_KEY, $status, now()->addMinutes(5));
+
+        return $status;
+    }
 
     /**
      * Check device status directly against Fonnte API.
@@ -97,6 +117,10 @@ class FonnteHealthService
                 $this->notifyWebmasterReconnected($status['device'] ?? null);
             }
         }
+
+        $status['last_checked'] = now()->translatedFormat('d M Y, H:i');
+        $status['last_checked_iso'] = now()->toIso8601String();
+        Cache::put(self::CACHE_STATUS_KEY, $status, now()->addMinutes(5));
 
         return $status;
     }

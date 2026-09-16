@@ -105,6 +105,7 @@ class NotificationController extends Controller
             'ticket_count' => $ticketCount,
             'milestone_count' => $systemUnreadCount,
             'notifications' => $notifications,
+            'fonnte_status' => app(\App\Services\FonnteHealthService::class)->getCachedStatus(),
         ]);
     }
 
@@ -286,5 +287,21 @@ class NotificationController extends Controller
             'milestoneCount',
             'gatewayCount'
         ));
+    }
+
+    /**
+     * Get real-time / cached status of Fonnte WhatsApp Gateway.
+     */
+    public function getFonnteStatus(Request $request): JsonResponse
+    {
+        $user = auth()->user();
+        if (!$user || !in_array($user->role, ['webmaster', 'admin_sistem', 'admin', 'debug_user'])) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $force = $request->boolean('refresh', false);
+        $status = app(\App\Services\FonnteHealthService::class)->getCachedStatus($force);
+
+        return response()->json($status);
     }
 }

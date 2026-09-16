@@ -185,7 +185,25 @@
                     Sistem Manajemen Operational & Laporan Mengajar Ekstrakurikuler Erlass Prokreatif Indonesia
                 </p>
             </div>
-            <div class="col-md-5 text-md-end">
+            <div class="col-md-5 text-md-end d-flex flex-wrap align-items-center justify-content-md-end gap-2">
+                @if(in_array(Auth::user()->role, ['webmaster', 'admin_sistem', 'admin', 'debug_user']))
+                    @php
+                        $dashFonnte = $fonnte_status ?? app(\App\Services\FonnteHealthService::class)->getCachedStatus();
+                        $dashConnected = $dashFonnte['connected'] ?? false;
+                    @endphp
+                    @if($dashConnected)
+                        <a href="https://md.fonnte.com/" target="_blank" rel="noopener noreferrer" class="hero-date-pill text-decoration-none shadow-sm" style="background: rgba(16, 185, 129, 0.22) !important; border-color: rgba(16, 185, 129, 0.45) !important;" title="Fonnte WA Gateway Terhubung (Device: {{ $dashFonnte['device'] ?? '-' }} | Kuota: {{ number_format($dashFonnte['quota'] ?? 0) }})">
+                            <span class="spinner-grow spinner-grow-sm text-success" style="width: 7px; height: 7px;" role="status"></span>
+                            <i class="bi bi-whatsapp text-white"></i>
+                            <span>WA Gateway: <strong class="text-white">Aktif</strong> <span class="opacity-75 small">({{ number_format($dashFonnte['quota'] ?? 0) }})</span></span>
+                        </a>
+                    @else
+                        <a href="https://md.fonnte.com/" target="_blank" rel="noopener noreferrer" class="hero-date-pill text-decoration-none shadow-sm text-white" style="background: rgba(239, 68, 68, 0.4) !important; border-color: rgba(239, 68, 68, 0.7) !important;" title="PERINGATAN: WA Gateway Terputus! Klik untuk scan ulang di Fonnte">
+                            <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                            <span>WA Gateway: <strong class="text-warning">TERPUTUS!</strong></span>
+                        </a>
+                    @endif
+                @endif
                 <div class="hero-date-pill shadow-sm">
                     <i class="bi bi-calendar3 text-warning"></i>
                     <span>{{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }}</span>

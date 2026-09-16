@@ -12,7 +12,7 @@
         </div>
     </div>
 
-    <div class="col-6 col-md-4 col-xl-3">
+    <div class="col-6 col-md-4 col-xl-2">
         <div class="impeccable-stat-card accent-violet h-100">
             <div class="d-flex align-items-center mb-2">
                 <div class="stat-icon-wrapper bg-indigo bg-opacity-10 text-indigo me-2" style="color: #6366f1;">
@@ -38,7 +38,7 @@
         </div>
     </div>
 
-    <div class="col-6 col-md-6 col-xl-2">
+    <div class="col-6 col-md-4 col-xl-2">
         <div class="impeccable-stat-card accent-amber h-100">
             <div class="d-flex align-items-center mb-2">
                 <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning me-2">
@@ -51,7 +51,7 @@
         </div>
     </div>
 
-    <div class="col-12 col-md-6 col-xl-3">
+    <div class="col-6 col-md-4 col-xl-2">
         <div class="impeccable-stat-card accent-rose h-100">
             <div class="d-flex align-items-center mb-2">
                 <div class="stat-icon-wrapper bg-info bg-opacity-10 text-info me-2">
@@ -61,6 +61,36 @@
             </div>
             <h3 class="fw-bold mb-1 text-dark">{{ number_format($total_instruktur) }}</h3>
             <small class="text-success fw-semibold"><i class="bi bi-patch-check-fill me-1"></i>Terverifikasi</small>
+        </div>
+    </div>
+
+    @php
+        $statFonnte = $fonnte_status ?? app(\App\Services\FonnteHealthService::class)->getCachedStatus();
+        $statConnected = $statFonnte['connected'] ?? false;
+    @endphp
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="impeccable-stat-card {{ $statConnected ? 'accent-emerald' : 'accent-rose' }} h-100 position-relative">
+            <div class="d-flex align-items-center mb-2">
+                <div class="stat-icon-wrapper {{ $statConnected ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger' }} me-2">
+                    <i class="bi bi-whatsapp"></i>
+                </div>
+                <h6 class="text-muted mb-0 small fw-bold">WA Gateway</h6>
+            </div>
+            @if($statConnected)
+                <h4 class="fw-bold mb-1 text-success d-flex align-items-center gap-1.5" style="font-size: 1.12rem;">
+                    <i class="bi bi-check-circle-fill fs-6"></i> Aktif
+                </h4>
+                <small class="text-muted fw-semibold d-block text-truncate" title="Device: {{ $statFonnte['device'] ?? '-' }} | Kuota: {{ number_format($statFonnte['quota'] ?? 0) }}">
+                    <span class="text-success fw-bold">{{ number_format($statFonnte['quota'] ?? 0) }}</span> kuota
+                </small>
+            @else
+                <h4 class="fw-bold mb-1 text-danger d-flex align-items-center gap-1.5" style="font-size: 1.12rem;">
+                    <i class="bi bi-exclamation-triangle-fill fs-6"></i> Terputus
+                </h4>
+                <a href="https://md.fonnte.com/" target="_blank" rel="noopener noreferrer" class="text-danger fw-bold small text-decoration-none">
+                    <i class="bi bi-qr-code me-1"></i>Scan QR &rarr;
+                </a>
+            @endif
         </div>
     </div>
 </div>
