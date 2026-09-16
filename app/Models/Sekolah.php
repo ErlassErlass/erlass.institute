@@ -64,6 +64,7 @@ class Sekolah extends Model
         'alamat_lengkap',
         'lokasi_default',
         'kustom_transport_fee',
+        'is_sekolah_bayar_instruktur',
     ];
 
     /**
@@ -71,6 +72,7 @@ class Sekolah extends Model
      */
     protected $casts = [
         'kustom_transport_fee' => 'decimal:2',
+        'is_sekolah_bayar_instruktur' => 'boolean',
     ];
 
     /**

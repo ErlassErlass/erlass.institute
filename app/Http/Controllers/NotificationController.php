@@ -75,7 +75,20 @@ class NotificationController extends Controller
                 ->map(fn($ticket) => $this->formatTicketNotification($ticket, true));
 
             $notifications = $ticketNotifications->concat($systemNotifications)
-                ->sortByDesc(fn($n) => is_array($n) ? ($n['updated_at'] ?? $n['created_at']) : ($n->read_at ?? $n->updated_at))
+                ->sort(function ($a, $b) {
+                    $typeA = is_array($a) ? ($a['type'] ?? '') : $a->type;
+                    $typeB = is_array($b) ? ($b['type'] ?? '') : $b->type;
+
+                    $isPayoutA = ($typeA === 'monthly_school_payout');
+                    $isPayoutB = ($typeB === 'monthly_school_payout');
+
+                    if ($isPayoutA && !$isPayoutB) return -1;
+                    if (!$isPayoutA && $isPayoutB) return 1;
+
+                    $timeA = is_array($a) ? ($a['updated_at'] ?? $a['created_at']) : ($a->read_at ?? $a->updated_at);
+                    $timeB = is_array($b) ? ($b['updated_at'] ?? $b['created_at']) : ($b->read_at ?? $b->updated_at);
+                    return strcmp($timeB, $timeA);
+                })
                 ->values();
         } else {
             // Unread notifications
@@ -94,9 +107,27 @@ class NotificationController extends Controller
                 ->get();
 
             $notifications = $ticketNotifications->concat($systemNotifications)
-                ->sortByDesc('created_at')
+                ->sort(function ($a, $b) {
+                    $typeA = is_array($a) ? ($a['type'] ?? '') : $a->type;
+                    $typeB = is_array($b) ? ($b['type'] ?? '') : $b->type;
+
+                    $isPayoutA = ($typeA === 'monthly_school_payout');
+                    $isPayoutB = ($typeB === 'monthly_school_payout');
+
+                    if ($isPayoutA && !$isPayoutB) return -1;
+                    if (!$isPayoutA && $isPayoutB) return 1;
+
+                    $timeA = is_array($a) ? ($a['created_at'] ?? '') : $a->created_at;
+                    $timeB = is_array($b) ? ($b['created_at'] ?? '') : $b->created_at;
+                    return strcmp($timeB, $timeA);
+                })
                 ->values();
         }
+
+        $payoutCount = Notification::where('type', 'monthly_school_payout')
+            ->when($viewStatus === 'unread', fn($q) => $q->where('is_read', false))
+            ->when($viewStatus === 'read', fn($q) => $q->where('is_read', true))
+            ->count();
 
         return response()->json([
             'status_view' => $viewStatus,
@@ -104,6 +135,7 @@ class NotificationController extends Controller
             'read_count' => $readCount,
             'ticket_count' => $ticketCount,
             'milestone_count' => $systemUnreadCount,
+            'payout_count' => $payoutCount,
             'notifications' => $notifications,
             'fonnte_status' => app(\App\Services\FonnteHealthService::class)->getCachedStatus(),
         ]);
@@ -244,7 +276,9 @@ class NotificationController extends Controller
         $type = $request->input('type', 'all');     // 'all', 'milestone', 'system'
         $search = $request->input('search');
 
-        $query = Notification::query()->orderBy('created_at', 'desc');
+        $query = Notification::query()
+            ->orderByRaw("CASE WHEN type = 'monthly_school_payout' THEN 0 ELSE 1 END")
+            ->orderBy('created_at', 'desc');
 
         if ($status === 'unread') {
             $query->where('is_read', false);
@@ -254,6 +288,8 @@ class NotificationController extends Controller
 
         if ($type === 'milestone') {
             $query->where('type', 'milestone_report');
+        } elseif ($type === 'payout' || $type === 'monthly_school_payout') {
+            $query->where('type', 'monthly_school_payout');
         } elseif ($type === 'gateway' || $type === 'gateway_alert') {
             $query->where('type', 'gateway_alert');
         } elseif ($type !== 'all') {
@@ -274,6 +310,7 @@ class NotificationController extends Controller
         $unreadCount = Notification::where('is_read', false)->count();
         $readCount = Notification::where('is_read', true)->count();
         $milestoneCount = Notification::where('type', 'milestone_report')->count();
+        $payoutCount = Notification::where('type', 'monthly_school_payout')->count();
         $gatewayCount = Notification::where('type', 'gateway_alert')->count();
 
         return view('admin.notifications.index', compact(
@@ -285,6 +322,7 @@ class NotificationController extends Controller
             'unreadCount',
             'readCount',
             'milestoneCount',
+            'payoutCount',
             'gatewayCount'
         ));
     }
@@ -320,6 +358,31 @@ class NotificationController extends Controller
         $msg = "Rekalibrasi milestone berhasil: {$stats['deleted']} notifikasi prematur/anomali dibersihkan, {$stats['duplicates_purged']} duplikat dieliminasi, dan {$stats['updated']} tanggal mengajar diperbarui.";
 
         return redirect()->route('admin.notifications.index')
+            ->with('success', $msg);
+    }
+
+    /**
+     * Trigger generation of monthly school payout notifications manually.
+     */
+    public function generateMonthlyPayout(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user || !in_array($user->role, ['webmaster', 'admin_sistem', 'admin', 'debug_user'])) {
+            abort(403, 'Unauthorized');
+        }
+
+        $monthInput = $request->input('month');
+        try {
+            $targetMonth = $monthInput ? \Carbon\Carbon::parse($monthInput . '-01') : now();
+        } catch (\Exception $e) {
+            $targetMonth = now();
+        }
+
+        $stats = app(\App\Services\MilestoneNotificationService::class)->generateMonthlySchoolPayoutNotifications($targetMonth);
+
+        $msg = "Notifikasi cutoff akhir bulan ({$stats['month_label']}) berhasil dikalkulasi: {$stats['total_rombels']} rombel, {$stats['created']} baru dibuat, {$stats['updated']} diperbarui.";
+
+        return redirect()->route('admin.notifications.index', ['type' => 'monthly_school_payout'])
             ->with('success', $msg);
     }
 }

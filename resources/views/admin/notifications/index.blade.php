@@ -25,6 +25,12 @@
             </p>
         </div>
         <div class="d-flex align-items-center gap-2">
+            <form action="{{ route('admin.notifications.generate-monthly-payout') }}" method="POST" onsubmit="return confirm('Kalkulasi dan perbarui notifikasi cutoff akhir bulan untuk 21 sekolah prioritas (Sekolah Bayar Instruktur)?');">
+                @csrf
+                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-xs" style="border-color: #F97316; color: #EA580C;" title="Kalkulasi cutoff akhir bulan untuk sekolah bayar instruktur">
+                    <i class="bi bi-fire me-1"></i>Cutoff Akhir Bulan
+                </button>
+            </form>
             <form action="{{ route('admin.notifications.recalibrate') }}" method="POST" onsubmit="return confirm('Jalankan rekalibrasi milestone? Sistem akan memeriksa ulang seluruh 4 sesi riil, membersihkan notifikasi prematur/anomali, membuang duplikat, dan menyinkronkan tanggal mengajar.');">
                 @csrf
                 <button type="submit" class="btn btn-outline-warning btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-xs" title="Sinkronkan ulang tanggal mengajar riil dan bersihkan notifikasi anomali">
@@ -107,6 +113,19 @@
                 </div>
             </div>
         </div>
+        <div class="col-6 col-md">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white" style="border-left: 4px solid #F97316 !important;">
+                <div class="card-body p-3 d-flex align-items-center gap-3">
+                    <div class="rounded-3 p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background-color: #FFF7ED; color: #EA580C;">
+                        <i class="bi bi-fire fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold">Sekolah Bayar</div>
+                        <h3 class="fw-bold mb-0" style="color: #EA580C;">{{ number_format($payoutCount ?? 0) }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
         @php
             $notifFonnte = $fonnte_status ?? app(\App\Services\FonnteHealthService::class)->getCachedStatus();
             $notifConnected = $notifFonnte['connected'] ?? false;
@@ -163,6 +182,7 @@
                 <div class="col-6 col-md-auto">
                     <select name="type" class="form-select form-select-sm rounded-pill" onchange="this.form.submit()" style="font-size: 0.78rem;">
                         <option value="all" @selected($type === 'all')>Semua Kategori</option>
+                        <option value="monthly_school_payout" @selected($type === 'monthly_school_payout' || $type === 'payout')>🔥 Prioritas: Sekolah Bayar Instruktur</option>
                         <option value="milestone" @selected($type === 'milestone')>Milestone Pertemuan (4, 8, 12..)</option>
                         <option value="gateway_alert" @selected($type === 'gateway_alert' || $type === 'gateway')>WhatsApp Gateway (Fonnte)</option>
                     </select>
@@ -213,16 +233,28 @@
                 @foreach($notifications as $notif)
                     @php
                         $data = $notif->data ?? [];
+                        $isPayout = ($notif->type === 'monthly_school_payout');
                         $isMilestone = ($notif->type === 'milestone_report');
                         $isGatewayAlert = ($notif->type === 'gateway_alert');
                         $tgl4 = $data['tanggal_mengajar_4'] ?? [];
+                        $tglPayout = $data['tanggal_mengajar'] ?? [];
                     @endphp
                     <div class="list-group-item p-3 border-bottom transition-all notif-row-{{ $notif->id }}" 
-                         style="background: {{ $notif->is_read ? '#FAFAFA' : ($isGatewayAlert ? '#FEF2F2' : '#FFFFFF') }}; border-left: 5px solid {{ $notif->is_read ? '#CBD5E1' : ($isGatewayAlert ? '#EF4444' : '#0EA5E9') }} !important;">
+                         style="background: {{ $notif->is_read ? '#FAFAFA' : ($isPayout ? '#FFF7ED' : ($isGatewayAlert ? '#FEF2F2' : '#FFFFFF')) }}; border-left: 5px solid {{ $notif->is_read ? '#CBD5E1' : ($isPayout ? '#F97316' : ($isGatewayAlert ? '#EF4444' : '#0EA5E9')) }} !important;">
                         
                         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-2">
                             <div class="d-flex flex-wrap align-items-center gap-1.5">
-                                @if($isMilestone)
+                                @if($isPayout)
+                                    <span class="badge text-white fw-bold py-1 px-2" style="background-color: #F97316; font-size: 0.72rem;">
+                                        <i class="bi bi-fire me-1"></i>PRIORITAS: SEKOLAH BAYAR INSTRUKTUR
+                                    </span>
+                                    <span class="badge bg-dark text-white fw-bold py-1 px-2" style="font-size: 0.70rem;">
+                                        <i class="bi bi-calendar-check me-1"></i>Periode: {{ $data['bulan_label'] ?? ($data['bulan_key'] ?? 'Akhir Bulan') }}
+                                    </span>
+                                    <span class="badge bg-success text-white fw-bold py-1 px-2" style="font-size: 0.70rem;">
+                                        <i class="bi bi-check2-circle me-1"></i>{{ $data['total_sesi'] ?? 0 }} Sesi ({{ $data['total_jam'] ?? '-' }})
+                                    </span>
+                                @elseif($isMilestone)
                                     <span class="badge {{ $notif->is_read ? 'bg-secondary' : 'bg-primary' }} text-white fw-bold py-1 px-2" style="font-size: 0.72rem;">
                                         <i class="bi bi-flag-fill me-1"></i>Milestone Pertemuan Ke-{{ $data['pertemuan_ke'] ?? '?' }}
                                     </span>
@@ -307,6 +339,22 @@
                                     @endif
                                 </div>
                             </div>
+                        @elseif($isPayout)
+                            <div class="text-secondary small mb-2" style="font-size: 0.80rem;">
+                                <span class="text-dark fw-bold"><i class="bi bi-building me-1" style="color: #EA580C;"></i>{{ $data['sekolah_nama'] ?? 'Sekolah' }}</span>
+                                @if(!empty($data['kategori']))
+                                    • <span class="badge bg-light text-dark border">{{ $data['kategori'] }}</span>
+                                @endif
+                                @if(!empty($data['rombel']))
+                                    • <span class="fw-semibold text-dark">{{ $data['rombel'] }}</span>
+                                @endif
+                                @if(!empty($data['instruktur_nama']))
+                                    • Instruktur: <strong class="text-dark">{{ $data['instruktur_nama'] }}</strong>
+                                @endif
+                                @if(!empty($data['cutoff_date']))
+                                    • <span class="badge bg-white text-secondary border"><i class="bi bi-clock-history me-1"></i>Cutoff: {{ $data['cutoff_date'] }}</span>
+                                @endif
+                            </div>
                         @elseif($isMilestone)
                             <div class="text-secondary small mb-2" style="font-size: 0.80rem;">
                                 <span class="text-dark fw-semibold"><i class="bi bi-building me-1 text-primary"></i>{{ $data['sekolah_nama'] ?? 'Sekolah' }}</span>
@@ -329,8 +377,30 @@
                             </div>
                         @endif
 
-                        {{-- 4 Teaching Dates Pill Grid --}}
-                        @if(!empty($tgl4) && is_array($tgl4))
+                        {{-- Teaching Dates Pill Grid: Monthly Payout --}}
+                        @if($isPayout && !empty($tglPayout) && is_array($tglPayout))
+                            <div class="p-2.5 rounded-3 bg-white border border-warning-subtle mb-1 shadow-xs">
+                                <div class="small fw-bold mb-1.5 d-flex justify-content-between align-items-center" style="font-size: 0.72rem; color: #C2410C;">
+                                    <span><i class="bi bi-calendar2-check-fill me-1" style="color: #F97316;"></i>Daftar Sesi Mengajar Riil Bulan Ini (Total: {{ count($tglPayout) }} sesi):</span>
+                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle">{{ $data['total_jam'] ?? '-' }}</span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach($tglPayout as $t)
+                                        <span class="badge bg-light text-dark border shadow-xs py-1 px-2" style="font-size: 0.72rem; font-weight: 600;">
+                                            <i class="bi bi-check-circle-fill text-success me-1" style="font-size: 0.65rem;"></i>
+                                            P.{{ $t['pertemuan_ke'] ?? '?' }}: {{ $t['tanggal'] ?? '-' }}
+                                            @if(!empty($t['jam']))
+                                                <span class="text-muted fw-normal ms-1" style="font-size: 0.68rem;">({{ $t['jam'] }})</span>
+                                            @endif
+                                            @if(!empty($t['instruktur']))
+                                                <span class="text-primary fw-semibold ms-1" style="font-size: 0.68rem;">• {{ $t['instruktur'] }}</span>
+                                            @endif
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        {{-- 4 Teaching Dates Pill Grid: Standard Milestone --}}
+                        @elseif(!empty($tgl4) && is_array($tgl4))
                             <div class="p-2 rounded-3 bg-light border mb-1">
                                 <div class="text-muted small fw-bold mb-1" style="font-size: 0.72rem;">
                                     <i class="bi bi-calendar4-week me-1 text-primary"></i>4 Tanggal Sesi Mengajar Riil (Bebas Libur / Ditunda):

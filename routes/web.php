@@ -118,6 +118,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('admin.notifications.read-all');
     Route::post('/admin/notifications/recalibrate', [App\Http\Controllers\NotificationController::class, 'recalibrateMilestones'])
         ->name('admin.notifications.recalibrate');
+    Route::post('/admin/notifications/generate-monthly-payout', [App\Http\Controllers\NotificationController::class, 'generateMonthlyPayout'])
+        ->name('admin.notifications.generate-monthly-payout');
     Route::get('/admin/fonnte/status', [App\Http\Controllers\NotificationController::class, 'getFonnteStatus'])
         ->name('admin.fonnte.status');
     Route::post('/ekstrakurikuler/sessions/{session}/checkin', [EkstrakurikulerSessionController::class, 'checkin'])->name('ekstrakurikuler.sessions.checkin');

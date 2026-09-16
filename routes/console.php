@@ -60,5 +60,11 @@ if (app()->runningInConsole()) {
                  }
              }
          })->everyFiveMinutes()->name('purge-temp-exports')->withoutOverlapping();
+         // Notifikasi Cutoff Akhir Bulan (Sekolah Bayar Instruktur): jalan otomatis setiap akhir bulan jam 20:00 WIB
+         $schedule->command('notifications:monthly-school-payout')
+                  ->lastDayOfMonth('20:00')
+                  ->timezone('Asia/Jakarta')
+                  ->withoutOverlapping()
+                  ->appendOutputTo(storage_path('logs/monthly-school-payout.log'));
      });
 }

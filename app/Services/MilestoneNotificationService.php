@@ -32,6 +32,12 @@ class MilestoneNotificationService
             return null;
         }
 
+        // Khusus 21 sekolah dengan sistem pembayaran bulanan langsung oleh sekolah (Sekolah Bayar Instruktur):
+        // Notifikasi milestone per-4 pertemuan dinonaktifkan karena menggunakan notifikasi cutoff akhir bulan.
+        if ($session->rombel?->ekstrakurikuler?->sekolah?->is_sekolah_bayar_instruktur) {
+            return null;
+        }
+
         $rombelId = $session->ekstrakurikuler_rombel_id;
 
         // Fetch teaching dates for 4 actual completed sessions excluding libur / ditunda / dibatalkan
@@ -253,6 +259,23 @@ class MilestoneNotificationService
                 continue;
             }
 
+            // Update session / report references to the true milestone session if available
+            $targetSession = EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombelId)
+                ->where('nomor_pertemuan', $pertemuanKe)
+                ->with(['laporanMengajar.instruktur', 'instruktur', 'rombel.ekstrakurikuler.sekolah'])
+                ->first();
+
+            $sekolah = $targetSession?->rombel?->ekstrakurikuler?->sekolah 
+                    ?? (\App\Models\EkstrakurikulerRombel::find($rombelId)?->ekstrakurikuler?->sekolah);
+
+            // Bersihkan notifikasi milestone per-4 pertemuan untuk sekolah bayar instruktur
+            // karena sekolah ini menggunakan skema notifikasi cutoff akhir bulan (monthly_school_payout)
+            if ($sekolah && $sekolah->is_sekolah_bayar_instruktur) {
+                $notif->delete();
+                $deletedCount++;
+                continue;
+            }
+
             $recalibratedDates = $this->getTeachingDatesForMilestone($rombelId, $pertemuanKe);
 
             // Jika sesi mengajar riil yang selesai kurang dari 4 (misal karena ada yang libur/ditunda/belum jadwalnya),
@@ -264,12 +287,6 @@ class MilestoneNotificationService
             }
 
             $seenRombelMilestone[$key] = $notif->id;
-
-            // Update session / report references to the true milestone session if available
-            $targetSession = EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombelId)
-                ->where('nomor_pertemuan', $pertemuanKe)
-                ->with(['laporanMengajar.instruktur', 'instruktur', 'rombel.ekstrakurikuler.sekolah'])
-                ->first();
 
             $changed = false;
             $oldDatesJson = json_encode($data['tanggal_mengajar_4'] ?? []);
@@ -328,6 +345,186 @@ class MilestoneNotificationService
             'updated' => $updatedCount,
             'unchanged' => $unchangedCount,
             'total_processed' => $notifications->count(),
+        ];
+    }
+
+    /**
+     * Generate or update monthly payout notifications for schools where school pays instructor directly
+     * (is_sekolah_bayar_instruktur = true). Cutoff is strictly the last day of the calendar month.
+     * Captures all completed/conducted sessions within the calendar month.
+     */
+    public function generateMonthlySchoolPayoutNotifications(?Carbon $targetMonth = null): array
+    {
+        $targetMonth = $targetMonth ? $targetMonth->copy() : now();
+        $startOfMonth = $targetMonth->copy()->startOfMonth();
+        $endOfMonth = $targetMonth->copy()->endOfMonth();
+        $monthKey = $targetMonth->format('Y-m');
+        $monthLabel = $targetMonth->translatedFormat('F Y');
+
+        // Query sessions belonging to is_sekolah_bayar_instruktur schools within this month
+        $sessions = EkstrakurikulerSession::whereHas('rombel.ekstrakurikuler.sekolah', function ($q) {
+                $q->where('is_sekolah_bayar_instruktur', true);
+            })
+            ->where(function ($q) use ($startOfMonth, $endOfMonth) {
+                $q->whereBetween('tanggal_pelaksanaan', [$startOfMonth->toDateString(), $endOfMonth->toDateString()])
+                  ->orWhere(function ($sq) use ($startOfMonth, $endOfMonth) {
+                      $sq->whereNull('tanggal_pelaksanaan')
+                         ->whereBetween('tanggal_terjadwal', [$startOfMonth->toDateString(), $endOfMonth->toDateString()]);
+                  });
+            })
+            ->with([
+                'rombel.ekstrakurikuler.sekolah',
+                'instruktur',
+                'laporanMengajar.instruktur'
+            ])
+            ->get();
+
+        // Exclude non-teaching statuses; require completed status or existing report
+        $completedSessions = $sessions->filter(function ($s) {
+            if (in_array($s->status, self::EXCLUDED_STATUSES)) {
+                return false;
+            }
+            return ($s->status === EkstrakurikulerSession::STATUS_SELESAI) || ($s->laporanMengajar !== null);
+        });
+
+        $groupedByRombel = $completedSessions->groupBy('ekstrakurikuler_rombel_id');
+
+        $createdCount = 0;
+        $updatedCount = 0;
+
+        foreach ($groupedByRombel as $rombelId => $rSessions) {
+            if (!$rombelId || $rSessions->isEmpty()) {
+                continue;
+            }
+
+            // Sort chronologically by actual teaching date
+            $sortedSessions = $rSessions->sort(function ($a, $b) {
+                $dateA = $a->laporanMengajar?->jadwal_mengajar ?? $a->tanggal_pelaksanaan ?? $a->tanggal_terjadwal;
+                $dateB = $b->laporanMengajar?->jadwal_mengajar ?? $b->tanggal_pelaksanaan ?? $b->tanggal_terjadwal;
+                return strcmp($dateA, $dateB);
+            })->values();
+
+            $firstSession = $sortedSessions->first();
+            $sekolah = $firstSession->rombel?->ekstrakurikuler?->sekolah;
+            $sekolahNama = $sekolah?->namasekolah ?? 'Sekolah';
+            $kategori = $firstSession->rombel?->ekstrakurikuler?->kategori_program ?? 'Ekskul';
+            $rombelNama = $firstSession->rombel?->nama_rombel ?? '-';
+
+            // Collect unique instructor names for this rombel in this month
+            $instructorNames = $sortedSessions->map(function ($s) {
+                return $s->laporanMengajar?->instruktur?->nama_lengkap ?? $s->instruktur?->nama_lengkap;
+            })->filter()->unique()->values();
+
+            $instrukturNama = $instructorNames->isNotEmpty() 
+                ? $instructorNames->implode(', ') 
+                : 'Instruktur';
+
+            $totalSesi = $sortedSessions->count();
+            $totalMinutes = 0;
+            $teachingDates = [];
+
+            foreach ($sortedSessions as $s) {
+                $tgl = null;
+                if ($s->laporanMengajar && $s->laporanMengajar->jadwal_mengajar) {
+                    $tgl = Carbon::parse($s->laporanMengajar->jadwal_mengajar)->format('d-m-Y');
+                } elseif ($s->tanggal_pelaksanaan) {
+                    $tgl = Carbon::parse($s->tanggal_pelaksanaan)->format('d-m-Y');
+                } elseif ($s->tanggal_terjadwal) {
+                    $tgl = Carbon::parse($s->tanggal_terjadwal)->format('d-m-Y');
+                }
+
+                $jam = null;
+                if ($s->laporanMengajar && $s->laporanMengajar->jam_mulai && $s->laporanMengajar->jam_selesai) {
+                    $jam = substr($s->laporanMengajar->jam_mulai, 0, 5) . ' - ' . substr($s->laporanMengajar->jam_selesai, 0, 5);
+                } elseif ($s->jam_mulai_aktual && $s->jam_selesai_aktual) {
+                    $jam = substr($s->jam_mulai_aktual, 0, 5) . ' - ' . substr($s->jam_selesai_aktual, 0, 5);
+                } elseif ($s->jam_mulai_terjadwal && $s->jam_selesai_terjadwal) {
+                    $jam = substr($s->jam_mulai_terjadwal, 0, 5) . ' - ' . substr($s->jam_selesai_terjadwal, 0, 5);
+                }
+
+                // Duration in minutes
+                $mins = $s->durasi_aktual ?: $s->durasi_terjadwal;
+                if (!$mins && $s->jam_mulai_terjadwal && $s->jam_selesai_terjadwal) {
+                    $mins = Carbon::parse($s->jam_mulai_terjadwal)->diffInMinutes(Carbon::parse($s->jam_selesai_terjadwal));
+                }
+                $totalMinutes += ($mins ?: 60);
+
+                $insSession = $s->laporanMengajar?->instruktur?->nama_lengkap ?? $s->instruktur?->nama_lengkap;
+
+                $teachingDates[] = [
+                    'session_id' => $s->id,
+                    'laporan_id' => $s->laporanMengajar?->id,
+                    'pertemuan_ke' => $s->nomor_pertemuan,
+                    'tanggal' => $tgl,
+                    'jam' => $jam,
+                    'instruktur' => $insSession,
+                ];
+            }
+
+            $hours = floor($totalMinutes / 60);
+            $remainingMins = $totalMinutes % 60;
+            $totalJamFormatted = $hours > 0 
+                ? ($remainingMins > 0 ? "{$hours} Jam {$remainingMins} Menit" : "{$hours} Jam")
+                : "{$remainingMins} Menit";
+
+            $reportDetailUrl = route('laporan-mengajar.index', ['search' => $sekolahNama]);
+
+            $dataPayload = [
+                'is_priority' => true,
+                'priority_level' => 'high',
+                'type' => 'monthly_school_payout',
+                'badge' => '🔥 PRIORITAS: SEKOLAH BAYAR INSTRUKTUR',
+                'bulan_key' => $monthKey,
+                'bulan_label' => $monthLabel,
+                'cutoff_date' => $endOfMonth->format('d-m-Y'),
+                'rombel_id' => $rombelId,
+                'sekolah_nama' => $sekolahNama,
+                'kategori' => $kategori,
+                'rombel' => $rombelNama,
+                'instruktur_nama' => $instrukturNama,
+                'total_sesi' => $totalSesi,
+                'total_jam' => $totalJamFormatted,
+                'total_menit' => $totalMinutes,
+                'tanggal_mengajar' => $teachingDates,
+                'report_detail_url' => $reportDetailUrl,
+            ];
+
+            $title = "🔥 [PRIORITAS] Cutoff Akhir Bulan ({$monthLabel}) — {$sekolahNama}";
+            $message = "{$sekolahNama} — {$kategori} ({$rombelNama}). Instruktur {$instrukturNama} menyelesaikan {$totalSesi} sesi ({$totalJamFormatted}) pada periode {$monthLabel}. Pembayaran langsung oleh sekolah.";
+
+            $existing = Notification::where('type', 'monthly_school_payout')
+                ->where(function ($q) use ($rombelId, $monthKey) {
+                    $q->where('data->rombel_id', $rombelId)
+                      ->where('data->bulan_key', $monthKey);
+                })
+                ->first();
+
+            if ($existing) {
+                $existing->update([
+                    'title' => $title,
+                    'message' => $message,
+                    'data' => $dataPayload,
+                ]);
+                $updatedCount++;
+            } else {
+                Notification::create([
+                    'type' => 'monthly_school_payout',
+                    'target_roles' => 'admin,webmaster,admin_sistem',
+                    'title' => $title,
+                    'message' => $message,
+                    'data' => $dataPayload,
+                    'is_read' => false,
+                ]);
+                $createdCount++;
+            }
+        }
+
+        return [
+            'month' => $monthKey,
+            'month_label' => $monthLabel,
+            'created' => $createdCount,
+            'updated' => $updatedCount,
+            'total_rombels' => count($groupedByRombel),
         ];
     }
 }

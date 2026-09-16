@@ -518,4 +518,103 @@ class AdminMilestoneNotificationTest extends TestCase
         // Premature notification must be purged
         $this->assertDatabaseMissing('notifications', ['id' => $prematureNotif->id]);
     }
+
+    public function test_sekolah_bayar_instruktur_skips_standard_milestone_notification(): void
+    {
+        $instructor = User::create([
+            'nama_lengkap' => 'Instructor Bayar',
+            'email' => 'bayar@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'instruktur',
+            'status' => 'Aktif',
+            'verification_status' => 'approved',
+        ]);
+
+        $sekolah = Sekolah::create([
+            'kodlan' => 'ERL99999',
+            'namasekolah' => 'SDS Strada Dipamarga Test',
+            'jenjang' => 'SD',
+            'status' => 'Aktif',
+            'kec' => 'Kecamatan Test',
+            'kotkab' => 'Kota Jakarta Timur',
+            'kota' => 'JAKARTA TIMUR',
+            'provinsi' => 'DKI Jakarta',
+            'is_sekolah_bayar_instruktur' => true,
+        ]);
+
+        $ekskul = Ekstrakurikuler::create([
+            'nama_program' => 'Coding Scratch',
+            'sekolah_id' => $sekolah->id,
+            'sekolah_kodlan' => $sekolah->kodlan,
+            'kategori_program' => 'Coding Scratch',
+            'total_siswa' => 15,
+            'total_ruangan' => 1,
+            'total_rombel' => 1,
+            'total_pertemuan' => 12,
+            'tanggal_mulai' => '2026-08-01',
+            'tanggal_selesai' => '2026-11-30',
+            'tahun_ajaran' => '2026/2027',
+            'status' => 'aktif',
+            'created_by' => $instructor->id,
+        ]);
+
+        $rombel = EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nomor_rombel' => 1,
+            'nama_rombel' => 'Rombel 1',
+            'jumlah_siswa' => 15,
+            'tanggal_mulai' => '2026-08-01',
+            'tanggal_selesai' => '2026-11-30',
+            'hari' => 'senin',
+            'jam_mulai' => '13:00',
+            'jam_selesai' => '14:30',
+            'total_pertemuan' => 12,
+            'user_id_instruktur' => $instructor->id,
+        ]);
+
+        for ($i = 1; $i <= 4; $i++) {
+            $s = $rombel->sessions()->where('nomor_pertemuan', $i)->first();
+            $s->update([
+                'status' => EkstrakurikulerSession::STATUS_SELESAI,
+                'tanggal_pelaksanaan' => "2026-08-0{$i}",
+            ]);
+            LaporanMengajar::create([
+                'ekstrakurikuler_session_id' => $s->id,
+                'user_id_instruktur' => $instructor->id,
+                'pertemuan_ke' => $i,
+                'rombel' => $rombel->nama_rombel,
+                'sekolah_kodlan' => $sekolah->kodlan,
+                'jadwal_mengajar' => "2026-08-0{$i}",
+                'jam_mulai' => '13:00',
+                'jam_selesai' => '14:30',
+                'kategori_pengajaran' => 'Coding Scratch',
+                'materi_pengajaran' => "Materi {$i}",
+                'jumlah_siswa_hadir' => 12,
+                'refleksi_siswa' => '-',
+                'refleksi_capaian' => '-',
+                'keaktifan' => 'aktif',
+                'pemahaman_materi' => 'paham',
+            ]);
+        }
+
+        $session4 = $rombel->sessions()->where('nomor_pertemuan', 4)->first();
+        $laporan4 = $session4->laporanMengajar;
+
+        $service = new MilestoneNotificationService();
+        $notif = $service->checkAndTriggerMilestoneNotification($session4, $laporan4);
+
+        // Standard milestone notification must be skipped (null)
+        $this->assertNull($notif);
+        $this->assertEquals(0, Notification::where('type', 'milestone_report')->count());
+
+        // But monthly cutoff payout generation must create the monthly_school_payout notification
+        $stats = $service->generateMonthlySchoolPayoutNotifications(\Carbon\Carbon::parse('2026-08-01'));
+        $this->assertEquals(1, $stats['created']);
+
+        $payoutNotif = Notification::where('type', 'monthly_school_payout')->first();
+        $this->assertNotNull($payoutNotif);
+        $this->assertTrue($payoutNotif->data['is_priority']);
+        $this->assertEquals(4, $payoutNotif->data['total_sesi']);
+        $this->assertEquals('2026-08', $payoutNotif->data['bulan_key']);
+    }
 }

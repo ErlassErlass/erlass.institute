@@ -922,6 +922,9 @@
                                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold notif-filter-btn" data-filter="milestone" onclick="filterNotifTab('milestone', this, event)" style="font-size: 0.70rem;">
                                         <i class="bi bi-flag me-1 text-primary"></i>Milestone <span class="badge bg-secondary text-white ms-1" id="tabCountMilestone">0</span>
                                     </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold notif-filter-btn" data-filter="payout" onclick="filterNotifTab('payout', this, event)" style="font-size: 0.70rem;">
+                                        <i class="bi bi-fire me-1 text-warning"></i>Prioritas <span class="badge bg-danger text-white ms-1" id="tabCountPayout">0</span>
+                                    </button>
                                 </div>
 
                                 <div id="notifListContainer" style="max-height: 400px; overflow-y: auto;">
@@ -1457,6 +1460,11 @@
                     const mCount = currentNotifList.filter(n => n.type === 'milestone_report').length;
                     tabMilestone.textContent = mCount;
                 }
+                const tabPayout = document.getElementById('tabCountPayout');
+                if (tabPayout) {
+                    const pCount = currentNotifList.filter(n => n.type === 'monthly_school_payout').length;
+                    tabPayout.textContent = pCount;
+                }
 
                 if (res.fonnte_status) {
                     const topbarWrapper = document.getElementById('topbarFonnteStatusWrapper');
@@ -1504,6 +1512,8 @@
             filtered = currentNotifList.filter(n => n.type === 'ticket_created' || n.type === 'ticket_reply');
         } else if (activeNotifFilter === 'milestone') {
             filtered = currentNotifList.filter(n => n.type === 'milestone_report');
+        } else if (activeNotifFilter === 'payout') {
+            filtered = currentNotifList.filter(n => n.type === 'monthly_school_payout');
         }
 
         if (filtered.length === 0) {
@@ -1513,6 +1523,9 @@
             }
             if (activeNotifFilter === 'milestone') {
                 emptyMsg = activeNotifStatus === 'unread' ? 'Tidak ada notifikasi milestone laporan' : 'Tidak ada riwayat milestone dibaca';
+            }
+            if (activeNotifFilter === 'payout') {
+                emptyMsg = activeNotifStatus === 'unread' ? 'Tidak ada notifikasi cutoff akhir bulan belum dibaca' : 'Tidak ada riwayat cutoff dibaca';
             }
 
             container.innerHTML = `
@@ -1588,6 +1601,53 @@
                                 <a href="${ticketUrl}" class="btn btn-primary btn-sm py-0.5 px-2.5 fw-bold rounded-pill" style="font-size:0.72rem;">
                                     <i class="bi bi-chat-text-fill me-1"></i>${isReadMode ? 'Lihat Tiket' : 'Buka & Jawab'}
                                 </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- Case 1.5: Prioritas Cutoff Akhir Bulan (Sekolah Bayar Instruktur) ---
+            if (n.type === 'monthly_school_payout') {
+                const datesHtml = (d.tanggal_mengajar || []).map(t => 
+                    `<span class="badge bg-white text-dark border me-1 mb-1 shadow-sm" style="font-size:0.68rem; font-weight:600;"><i class="bi bi-check-circle-fill text-success me-1" style="font-size:0.60rem;"></i>P${t.pertemuan_ke}: ${t.tanggal}${t.jam ? ` (${t.jam})` : ''}</span>`
+                ).join('');
+
+                const reportUrl = d.report_detail_url || ("{{ route('laporan-mengajar.index') }}?search=" + encodeURIComponent(d.sekolah_nama || ''));
+
+                return `
+                    <div class="p-3 border-bottom notif-item" id="notif-item-${n.id}" style="background: ${isReadMode ? '#FFFBF7' : '#FFF7ED'}; border-left: 4px solid ${isReadMode ? '#94A3B8' : '#F97316'} !important; transition: background 0.15s;">
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="badge text-white" style="background-color: #F97316; font-size:0.68rem; font-weight:700;">
+                                    <i class="bi bi-fire me-1"></i>PRIORITAS: ${escJs(d.bulan_label || 'AKHIR BULAN')}
+                                </span>
+                                <span class="badge bg-dark text-white" style="font-size:0.65rem; font-weight:700;">
+                                    ${d.total_sesi || 0} Sesi (${escJs(d.total_jam || '-')})
+                                </span>
+                                ${isReadMode ? `<span class="badge bg-light text-muted border" style="font-size:0.62rem;"><i class="bi bi-check2-circle text-success me-1"></i>Sudah Dibaca</span>` : ''}
+                            </div>
+                            <small class="text-muted" style="font-size:0.68rem;">${formatTimeAgo(n.created_at)}</small>
+                        </div>
+                        <div class="fw-bold text-dark" style="font-size:0.85rem; color: #9A3412 !important;">${escJs(d.sekolah_nama || 'Sekolah')}</div>
+                        <div class="text-secondary small mb-2" style="font-size:0.75rem;">
+                            <strong>${escJs(d.kategori)}</strong> • ${escJs(d.rombel)} • Ins: <strong>${escJs(d.instruktur_nama)}</strong>
+                        </div>
+                        <div class="mb-2 p-2 rounded bg-white border border-warning-subtle">
+                            <div class="small fw-bold mb-1 d-flex justify-content-between" style="font-size:0.7rem; color: #C2410C;">
+                                <span><i class="bi bi-calendar2-check-fill me-1" style="color: #F97316;"></i>${d.total_sesi || 0} Sesi Mengajar (${escJs(d.bulan_label || '')}):</span>
+                                <span class="badge bg-warning-subtle text-dark">${escJs(d.total_jam || '')}</span>
+                            </div>
+                            <div class="d-flex flex-wrap">${datesHtml}</div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between pt-1" style="font-size:0.75rem;">
+                            <span class="badge bg-light text-secondary border" style="font-size:0.68rem;"><i class="bi bi-building-check me-1" style="color: #EA580C;"></i>Sekolah Bayar Langsung</span>
+                            <div class="d-flex gap-1 align-items-center">
+                                <a href="${reportUrl}" class="btn btn-sm text-white py-0 px-2 fw-bold" style="background-color: #EA580C; font-size:0.7rem;"><i class="bi bi-eye me-1"></i>Detail</a>
+                                ${isReadMode 
+                                    ? `<button class="btn btn-outline-warning btn-sm py-0 px-2 rounded-pill fw-semibold" title="Kembalikan ke Belum Dibaca" onclick="markNotifAsUnread('${n.id}', event)" style="font-size:0.7rem;"><i class="bi bi-arrow-counterclockwise me-1"></i>Batal Dibaca</button>`
+                                    : `<button class="btn btn-outline-secondary btn-sm py-0 px-1.5 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead('${n.id}', event)" style="font-size:0.7rem;"><i class="bi bi-check2"></i></button>`
+                                }
                             </div>
                         </div>
                     </div>
