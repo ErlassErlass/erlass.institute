@@ -304,4 +304,22 @@ class NotificationController extends Controller
 
         return response()->json($status);
     }
+
+    /**
+     * Recalibrate all milestone notifications (purge premature, purge duplicates, sync dates & hours).
+     */
+    public function recalibrateMilestones(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user || !in_array($user->role, ['webmaster', 'admin_sistem', 'admin', 'debug_user'])) {
+            abort(403, 'Unauthorized');
+        }
+
+        $stats = app(\App\Services\MilestoneNotificationService::class)->recalibrateExistingMilestoneNotifications();
+
+        $msg = "Rekalibrasi milestone berhasil: {$stats['deleted']} notifikasi prematur/anomali dibersihkan, {$stats['duplicates_purged']} duplikat dieliminasi, dan {$stats['updated']} tanggal mengajar diperbarui.";
+
+        return redirect()->route('admin.notifications.index')
+            ->with('success', $msg);
+    }
 }

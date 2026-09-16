@@ -1596,7 +1596,7 @@
 
             // --- Case 2: Milestone Laporan (4, 8, 12... 32) ---
             const tgl4Html = (d.tanggal_mengajar_4 || []).map(t => 
-                `<span class="badge bg-white text-dark border me-1 mb-1 shadow-sm" style="font-size:0.68rem; font-weight:600;">P${t.pertemuan_ke}: ${t.tanggal}</span>`
+                `<span class="badge bg-white text-dark border me-1 mb-1 shadow-sm" style="font-size:0.68rem; font-weight:600;">P${t.pertemuan_ke}: ${t.tanggal}${t.jam ? ` (${t.jam})` : ''}</span>`
             ).join('');
 
             return `

@@ -25,6 +25,12 @@
             </p>
         </div>
         <div class="d-flex align-items-center gap-2">
+            <form action="{{ route('admin.notifications.recalibrate') }}" method="POST" onsubmit="return confirm('Jalankan rekalibrasi milestone? Sistem akan memeriksa ulang seluruh 4 sesi riil, membersihkan notifikasi prematur/anomali, membuang duplikat, dan menyinkronkan tanggal mengajar.');">
+                @csrf
+                <button type="submit" class="btn btn-outline-warning btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-xs" title="Sinkronkan ulang tanggal mengajar riil dan bersihkan notifikasi anomali">
+                    <i class="bi bi-arrow-repeat me-1"></i>Rekalibrasi Milestone
+                </button>
+            </form>
             <form action="{{ route('admin.notifications.read-all') }}" method="POST" onsubmit="return confirm('Tandai seluruh notifikasi yang belum dibaca sebagai sudah dibaca?');">
                 @csrf
                 <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-xs">
@@ -334,6 +340,9 @@
                                         <span class="badge bg-white text-dark border shadow-xs py-1 px-2" style="font-size: 0.72rem; font-weight: 600;">
                                             <i class="bi bi-check-circle-fill text-success me-1" style="font-size: 0.65rem;"></i>
                                             P.{{ $t['pertemuan_ke'] ?? '?' }}: {{ $t['tanggal'] ?? '-' }}
+                                            @if(!empty($t['jam']))
+                                                <span class="text-muted fw-normal ms-1" style="font-size: 0.68rem;">({{ $t['jam'] }})</span>
+                                            @endif
                                         </span>
                                     @endforeach
                                 </div>

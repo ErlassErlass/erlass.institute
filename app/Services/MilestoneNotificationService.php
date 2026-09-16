@@ -22,6 +22,7 @@ class MilestoneNotificationService
     /**
      * Trigger milestone notification if pertemuan_ke is a multiple of 4 (e.g. 4, 8, 12, 16, 20, 24, 28, 32).
      * Strictly filters out holidays (libur), postponed (ditunda), and non-conducted sessions.
+     * Prevents duplicate notifications for the same rombel and milestone.
      */
     public function checkAndTriggerMilestoneNotification(EkstrakurikulerSession $session, LaporanMengajar $laporan): ?Notification
     {
@@ -75,6 +76,31 @@ class MilestoneNotificationService
 
         $title = "🔔 Laporan Milestone Pertemuan Ke-{$pertemuanKe} Selesai";
         $message = "{$sekolahNama} — {$kategori} ({$rombelNama}). Instruktur {$instrukturNama} telah menyelesaikan laporan pertemuan ke-{$pertemuanKe}.";
+
+        // Check if a milestone notification for this exact rombel and milestone already exists
+        $existingNotifs = Notification::where('type', 'milestone_report')
+            ->where(function ($q) use ($rombelId, $pertemuanKe) {
+                $q->where('data->rombel_id', $rombelId)
+                  ->where('data->pertemuan_ke', $pertemuanKe);
+            })
+            ->orderBy('id', 'desc')
+            ->get();
+
+        if ($existingNotifs->isNotEmpty()) {
+            $primary = $existingNotifs->first();
+            $primary->update([
+                'title' => $title,
+                'message' => $message,
+                'data' => $dataPayload,
+            ]);
+
+            // Purge any redundant extra duplicate notifications
+            if ($existingNotifs->count() > 1) {
+                $existingNotifs->slice(1)->each->delete();
+            }
+
+            return $primary;
+        }
 
         return Notification::create([
             'type' => 'milestone_report',
@@ -142,23 +168,64 @@ class MilestoneNotificationService
                 $tgl = Carbon::parse($bSession->tanggal_terjadwal)->format('d-m-Y');
             }
 
+            if (!$tgl) {
+                return [];
+            }
+
+            $jam = null;
+            if ($bSession->laporanMengajar && $bSession->laporanMengajar->jam_mulai && $bSession->laporanMengajar->jam_selesai) {
+                $jam = substr($bSession->laporanMengajar->jam_mulai, 0, 5) . ' - ' . substr($bSession->laporanMengajar->jam_selesai, 0, 5);
+            } elseif ($isCurrent && $currentLaporan && $currentLaporan->jam_mulai && $currentLaporan->jam_selesai) {
+                $jam = substr($currentLaporan->jam_mulai, 0, 5) . ' - ' . substr($currentLaporan->jam_selesai, 0, 5);
+            } elseif ($bSession->jam_mulai_aktual && $bSession->jam_selesai_aktual) {
+                $jam = substr($bSession->jam_mulai_aktual, 0, 5) . ' - ' . substr($bSession->jam_selesai_aktual, 0, 5);
+            } elseif ($bSession->jam_mulai_terjadwal && $bSession->jam_selesai_terjadwal) {
+                $jam = substr($bSession->jam_mulai_terjadwal, 0, 5) . ' - ' . substr($bSession->jam_selesai_terjadwal, 0, 5);
+            }
+
             $tanggalMengajarList[] = [
                 'pertemuan_ke' => $bSession->nomor_pertemuan,
-                'tanggal' => $tgl ?: '-',
+                'tanggal' => $tgl,
+                'jam' => $jam,
             ];
         }
 
-        return count($tanggalMengajarList) === 4 ? $tanggalMengajarList : [];
+        if (count($tanggalMengajarList) !== 4) {
+            return [];
+        }
+
+        // Integrity check: if dates are identical between two sessions, ensure they are distinct sessions
+        for ($i = 0; $i < 3; $i++) {
+            for ($j = $i + 1; $j < 4; $j++) {
+                if ($tanggalMengajarList[$i]['tanggal'] === $tanggalMengajarList[$j]['tanggal']) {
+                    $sA = $blockSessions->firstWhere('nomor_pertemuan', $tanggalMengajarList[$i]['pertemuan_ke']);
+                    $sB = $blockSessions->firstWhere('nomor_pertemuan', $tanggalMengajarList[$j]['pertemuan_ke']);
+                    if ($sA && $sB && $sA->id === $sB->id) {
+                        return [];
+                    }
+                }
+            }
+        }
+
+        return $tanggalMengajarList;
     }
 
     /**
-     * Recalibrate existing milestone notifications in database to ensure
-     * libur / ditunda sessions are excluded, and any notification with < 4 completed sessions is purged.
+     * Recalibrate existing milestone notifications in database:
+     * - Purges premature notifications (< 4 completed sessions)
+     * - Deletes duplicate milestone notifications for the same rombel and milestone
+     * - Corrects and updates teaching dates and session times
      */
-    public function recalibrateExistingMilestoneNotifications(): int
+    public function recalibrateExistingMilestoneNotifications(): array
     {
-        $notifications = Notification::where('type', 'milestone_report')->get();
-        $processedCount = 0;
+        $notifications = Notification::where('type', 'milestone_report')->orderBy('id', 'desc')->get();
+        
+        $deletedCount = 0;
+        $duplicatesCount = 0;
+        $updatedCount = 0;
+        $unchangedCount = 0;
+
+        $seenRombelMilestone = [];
 
         foreach ($notifications as $notif) {
             $data = $notif->data ?? [];
@@ -173,27 +240,94 @@ class MilestoneNotificationService
 
             if (!$rombelId || $pertemuanKe <= 0) {
                 $notif->delete();
-                $processedCount++;
+                $deletedCount++;
+                continue;
+            }
+
+            $key = "{$rombelId}_{$pertemuanKe}";
+
+            // If we already saw a newer/valid notification for this milestone, delete this duplicate
+            if (isset($seenRombelMilestone[$key])) {
+                $notif->delete();
+                $duplicatesCount++;
                 continue;
             }
 
             $recalibratedDates = $this->getTeachingDatesForMilestone($rombelId, $pertemuanKe);
 
-            // Jika sesi mengajar riil yang selesai kurang dari 4 (misal karena ada yang libur/ditunda),
+            // Jika sesi mengajar riil yang selesai kurang dari 4 (misal karena ada yang libur/ditunda/belum jadwalnya),
             // maka milestone tersebut belum lengkap dan harus dihapus dari daftar notifikasi.
             if (count($recalibratedDates) < 4) {
                 $notif->delete();
-                $processedCount++;
+                $deletedCount++;
                 continue;
             }
 
+            $seenRombelMilestone[$key] = $notif->id;
+
+            // Update session / report references to the true milestone session if available
+            $targetSession = EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombelId)
+                ->where('nomor_pertemuan', $pertemuanKe)
+                ->with(['laporanMengajar.instruktur', 'instruktur', 'rombel.ekstrakurikuler.sekolah'])
+                ->first();
+
+            $changed = false;
+            $oldDatesJson = json_encode($data['tanggal_mengajar_4'] ?? []);
+            $newDatesJson = json_encode($recalibratedDates);
+
+            if ($oldDatesJson !== $newDatesJson) {
+                $data['tanggal_mengajar_4'] = $recalibratedDates;
+                $changed = true;
+            }
+
+            if ($targetSession) {
+                if (($data['session_id'] ?? null) !== $targetSession->id) {
+                    $data['session_id'] = $targetSession->id;
+                    $changed = true;
+                }
+                if ($targetSession->laporanMengajar && ($data['laporan_id'] ?? null) !== $targetSession->laporanMengajar->id) {
+                    $data['laporan_id'] = $targetSession->laporanMengajar->id;
+                    $data['report_detail_url'] = route('laporan-mengajar.show', $targetSession->laporanMengajar->id);
+                    $data['jumlah_hadir'] = $targetSession->laporanMengajar->jumlah_siswa_hadir;
+                    if ($targetSession->laporanMengajar->foto_absensi_siswa) {
+                        $data['foto_absensi_url'] = asset('storage/' . $targetSession->laporanMengajar->foto_absensi_siswa);
+                    }
+                    if ($targetSession->laporanMengajar->foto_kegiatan) {
+                        $data['foto_kegiatan_url'] = asset('storage/' . $targetSession->laporanMengajar->foto_kegiatan);
+                    }
+                    $changed = true;
+                }
+                $sekolahNama = $targetSession->rombel?->ekstrakurikuler?->sekolah?->namasekolah;
+                if ($sekolahNama && ($data['sekolah_nama'] ?? null) !== $sekolahNama) {
+                    $data['sekolah_nama'] = $sekolahNama;
+                    $changed = true;
+                }
+                $instrukturNama = $targetSession->laporanMengajar?->instruktur?->nama_lengkap 
+                               ?? $targetSession->instruktur?->nama_lengkap;
+                if ($instrukturNama && ($data['instruktur_nama'] ?? null) !== $instrukturNama) {
+                    $data['instruktur_nama'] = $instrukturNama;
+                    $changed = true;
+                }
+            }
+
             $data['rombel_id'] = $rombelId;
-            $data['tanggal_mengajar_4'] = $recalibratedDates;
-            $notif->data = $data;
-            $notif->save();
-            $processedCount++;
+            $data['pertemuan_ke'] = $pertemuanKe;
+
+            if ($changed) {
+                $notif->data = $data;
+                $notif->save();
+                $updatedCount++;
+            } else {
+                $unchangedCount++;
+            }
         }
 
-        return $processedCount;
+        return [
+            'deleted' => $deletedCount,
+            'duplicates_purged' => $duplicatesCount,
+            'updated' => $updatedCount,
+            'unchanged' => $unchangedCount,
+            'total_processed' => $notifications->count(),
+        ];
     }
 }

@@ -388,4 +388,134 @@ class AdminMilestoneNotificationTest extends TestCase
         $this->assertFalse($notif->is_read);
         $this->assertNull($notif->read_at);
     }
+
+    public function test_duplicate_milestone_notification_is_prevented_and_updates_existing(): void
+    {
+        $instructor = User::create([
+            'nama_lengkap' => 'Sasqia Octaviana',
+            'email' => 'sasqia@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'instruktur',
+            'status' => 'Aktif',
+            'verification_status' => 'approved',
+        ]);
+
+        $sekolah = Sekolah::create([
+            'kodlan' => 'ERL41600',
+            'namasekolah' => 'SDS Muhammadiyah 06',
+            'jenjang' => 'SD',
+            'status' => 'aktif',
+            'kec' => 'Tebet',
+            'kotkab' => 'Kota Jakarta Selatan',
+            'kota' => 'JAKARTA SELATAN',
+            'provinsi' => 'DKI Jakarta',
+        ]);
+
+        $ekskul = Ekstrakurikuler::create([
+            'nama_program' => 'Coding Scratch',
+            'sekolah_id' => $sekolah->id,
+            'sekolah_kodlan' => $sekolah->kodlan,
+            'kategori_program' => 'Coding Scratch',
+            'total_siswa' => 15,
+            'total_ruangan' => 1,
+            'total_rombel' => 1,
+            'total_pertemuan' => 12,
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addMonths(3)->toDateString(),
+            'tahun_ajaran' => '2025/2026',
+            'status' => 'aktif',
+            'created_by' => $instructor->id,
+        ]);
+
+        $rombel = EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nomor_rombel' => 1,
+            'nama_rombel' => 'Rombel 1',
+            'jumlah_siswa' => 15,
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addMonths(3)->toDateString(),
+            'hari' => 'kamis',
+            'jam_mulai' => '13:00',
+            'jam_selesai' => '14:30',
+            'total_pertemuan' => 12,
+            'user_id_instruktur' => $instructor->id,
+        ]);
+
+        for ($i = 1; $i <= 4; $i++) {
+            $s = $rombel->sessions()->where('nomor_pertemuan', $i)->first();
+            $s->update(['status' => EkstrakurikulerSession::STATUS_SELESAI]);
+            LaporanMengajar::create([
+                'ekstrakurikuler_session_id' => $s->id,
+                'user_id_instruktur' => $instructor->id,
+                'pertemuan_ke' => $i,
+                'rombel' => $rombel->nama_rombel,
+                'sekolah_kodlan' => $sekolah->kodlan,
+                'jadwal_mengajar' => "2026-08-0{$i}",
+                'jam_mulai' => '13:00',
+                'jam_selesai' => '14:30',
+                'kategori_pengajaran' => 'Coding Scratch',
+                'materi_pengajaran' => "Materi {$i}",
+                'jumlah_siswa_hadir' => 13,
+                'refleksi_siswa' => '-',
+                'refleksi_capaian' => '-',
+                'keaktifan' => 'aktif',
+                'pemahaman_materi' => 'paham',
+            ]);
+        }
+
+        $session4 = $rombel->sessions()->where('nomor_pertemuan', 4)->first();
+        $laporan4 = $session4->laporanMengajar;
+
+        $service = new MilestoneNotificationService();
+        $notif1 = $service->checkAndTriggerMilestoneNotification($session4, $laporan4);
+        $this->assertNotNull($notif1);
+
+        $initialCount = Notification::where('type', 'milestone_report')->count();
+        $this->assertEquals(1, $initialCount);
+
+        // Second trigger for the same rombel and milestone must NOT duplicate
+        $notif2 = $service->checkAndTriggerMilestoneNotification($session4, $laporan4);
+        $this->assertNotNull($notif2);
+        $this->assertEquals($notif1->id, $notif2->id);
+        $this->assertEquals(1, Notification::where('type', 'milestone_report')->count());
+    }
+
+    public function test_recalibration_purges_premature_notifications(): void
+    {
+        $admin = User::create([
+            'nama_lengkap' => 'Admin Test 2',
+            'email' => 'adm2@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin_sistem',
+            'status' => 'Aktif',
+        ]);
+
+        // Manually create a premature notification for a non-existent or incomplete rombel
+        $prematureNotif = Notification::create([
+            'type' => 'milestone_report',
+            'title' => '🔔 Laporan Milestone Pertemuan Ke-4 Selesai',
+            'message' => 'Premature alert',
+            'data' => [
+                'rombel_id' => 99999, // non-existent rombel
+                'pertemuan_ke' => 4,
+                'tanggal_mengajar_4' => [
+                    ['pertemuan_ke' => 1, 'tanggal' => '20-08-2026'],
+                    ['pertemuan_ke' => 2, 'tanggal' => '03-09-2026'],
+                    ['pertemuan_ke' => 3, 'tanggal' => '03-09-2026'],
+                    ['pertemuan_ke' => 4, 'tanggal' => '10-09-2026'],
+                ]
+            ],
+            'is_read' => false,
+        ]);
+
+        $this->assertDatabaseHas('notifications', ['id' => $prematureNotif->id]);
+
+        // Test POST /admin/notifications/recalibrate
+        $response = $this->actingAs($admin)->post(route('admin.notifications.recalibrate'));
+        $response->assertRedirect(route('admin.notifications.index'));
+        $response->assertSessionHas('success');
+
+        // Premature notification must be purged
+        $this->assertDatabaseMissing('notifications', ['id' => $prematureNotif->id]);
+    }
 }
