@@ -873,7 +873,8 @@ class GoogleSheetsService
      * Tab 9: Master Profil & Rekening Instruktur (Instruktur Utama & Asisten)
      * Kolom: ID User, Nama Instruktur, Peran Mengajar, Status Akun, NIK, NPWP,
      *        Nama Bank, Nomor Rekening, Atas Nama Rekening, Rekening Lengkap (Gabungan),
-     *        No. Telepon / WA, Email, Domisili Kota, Sesi Instruktur Utama, Sesi Asisten, Total Sesi Terjadwal
+     *        No. Telepon / WA, Email, Domisili Kota, Sesi Instruktur Utama, Sesi Asisten, Total Sesi Terjadwal,
+     *        Kompetensi (Paling Kanan)
      */
     public function syncTabProfilInstruktur(?string $token = null): array
     {
@@ -894,6 +895,7 @@ class GoogleSheetsService
             'Sesi Instruktur Utama',
             'Sesi Asisten',
             'Total Sesi Terjadwal',
+            'Kompetensi',
         ];
 
         // Hitung statistik sesi utama vs asisten per instruktur
@@ -967,6 +969,12 @@ class GoogleSheetsService
                 ? "'" . trim($rawPhone)
                 : '-';
 
+            // Kompetensi (Kompetensi 1 & 2 dari Akun User)
+            $k1 = trim((string) $u->kompetensi_1);
+            $k2 = trim((string) $u->kompetensi_2);
+            $kompetensiParts = array_unique(array_filter([$k1, $k2], fn($k) => $k !== '' && $k !== '-'));
+            $kompetensi = !empty($kompetensiParts) ? implode(', ', $kompetensiParts) : '-';
+
             $rows[] = [
                 $u->id,
                 $u->nama_lengkap ?? $u->name ?? '-',
@@ -984,6 +992,7 @@ class GoogleSheetsService
                 $uCount,
                 $aCount,
                 $totCount,
+                $kompetensi,
             ];
         }
 

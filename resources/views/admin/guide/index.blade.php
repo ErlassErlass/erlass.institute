@@ -648,7 +648,7 @@
                                 <li><code>Rekap_Pertemuan_Ekskul</code>: Rekap publik materi &amp; link foto.</li>
                                 <li><code>Daftar_Program_Ekskul</code>: Portofolio program ekskul seluruh sekolah.</li>
                                 <li><code>Rekap_Honor_Instruktur</code>: Rekapitulasi honor riil per sesi mengajar.</li>
-                                <li><code>Profil_Instruktur</code>: Master profil &amp; rekening (Bank, No Rek, Atas Nama, &amp; Rekening Gabungan), NIK, dan kontak.</li>
+                                <li><code>Profil_Instruktur</code>: Master profil &amp; rekening (Bank, No Rek, Atas Nama, &amp; Rekening Gabungan), NIK, kontak, dan kompetensi.</li>
                             </ul>
                         </div>
                     </div>

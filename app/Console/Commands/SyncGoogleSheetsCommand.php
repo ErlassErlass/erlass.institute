@@ -19,7 +19,7 @@ class SyncGoogleSheetsCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Sinkronisasi data database ke Google Spreadsheet target (5 Tab)';
+    protected $description = 'Sinkronisasi data database ke Google Spreadsheet target (9 Tab)';
 
     /**
      * Execute the console command.
@@ -32,7 +32,7 @@ class SyncGoogleSheetsCommand extends Command
         $tab = $this->option('tab');
 
         if ($tab === 'all') {
-            $this->info("Menyinkronkan seluruh 7 tab...");
+            $this->info("Menyinkronkan seluruh 9 tab...");
             $result = $sheetsService->syncAllData();
             $this->info("Sukses! Waktu: " . ($result['timestamp'] ?? now()));
             foreach ($result['results'] ?? [] as $tabName => $res) {
@@ -49,6 +49,8 @@ class SyncGoogleSheetsCommand extends Command
                 'honor', 'Rekap_Honor' => $sheetsService->syncTabHonor($token),
                 'rekap_pertemuan', 'Rekap_Pertemuan_Ekskul' => $sheetsService->syncTabRekapPertemuan($token),
                 'program', 'program_ekskul', 'Daftar_Program_Ekskul' => $sheetsService->syncTabProgramEkskul($token),
+                'rekap_honor', 'rekap_honor_instruktur', 'Rekap_Honor_Instruktur' => $sheetsService->syncTabRekapHonorInstruktur($token),
+                'profil', 'profil_instruktur', 'Profil_Instruktur' => $sheetsService->syncTabProfilInstruktur($token),
                 default => null,
             };
 
