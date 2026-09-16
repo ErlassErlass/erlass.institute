@@ -132,6 +132,7 @@
                     <select name="type" class="form-select form-select-sm rounded-pill" onchange="this.form.submit()" style="font-size: 0.78rem;">
                         <option value="all" @selected($type === 'all')>Semua Kategori</option>
                         <option value="milestone" @selected($type === 'milestone')>Milestone Pertemuan (4, 8, 12..)</option>
+                        <option value="gateway_alert" @selected($type === 'gateway_alert' || $type === 'gateway')>WhatsApp Gateway (Fonnte)</option>
                     </select>
                 </div>
 
@@ -181,16 +182,21 @@
                     @php
                         $data = $notif->data ?? [];
                         $isMilestone = ($notif->type === 'milestone_report');
+                        $isGatewayAlert = ($notif->type === 'gateway_alert');
                         $tgl4 = $data['tanggal_mengajar_4'] ?? [];
                     @endphp
                     <div class="list-group-item p-3 border-bottom transition-all notif-row-{{ $notif->id }}" 
-                         style="background: {{ $notif->is_read ? '#FAFAFA' : '#FFFFFF' }}; border-left: 5px solid {{ $notif->is_read ? '#CBD5E1' : '#0EA5E9' }} !important;">
+                         style="background: {{ $notif->is_read ? '#FAFAFA' : ($isGatewayAlert ? '#FEF2F2' : '#FFFFFF') }}; border-left: 5px solid {{ $notif->is_read ? '#CBD5E1' : ($isGatewayAlert ? '#EF4444' : '#0EA5E9') }} !important;">
                         
                         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-2">
                             <div class="d-flex flex-wrap align-items-center gap-1.5">
                                 @if($isMilestone)
                                     <span class="badge {{ $notif->is_read ? 'bg-secondary' : 'bg-primary' }} text-white fw-bold py-1 px-2" style="font-size: 0.72rem;">
                                         <i class="bi bi-flag-fill me-1"></i>Milestone Pertemuan Ke-{{ $data['pertemuan_ke'] ?? '?' }}
+                                    </span>
+                                @elseif($isGatewayAlert)
+                                    <span class="badge {{ $notif->is_read ? 'bg-secondary' : 'bg-danger' }} text-white fw-bold py-1 px-2" style="font-size: 0.72rem;">
+                                        <i class="bi bi-whatsapp me-1"></i>WhatsApp Gateway
                                     </span>
                                 @else
                                     <span class="badge bg-dark text-white fw-bold py-1 px-2" style="font-size: 0.72rem;">
@@ -215,6 +221,12 @@
 
                             {{-- Actions --}}
                             <div class="d-flex align-items-center gap-1.5">
+                                @if($isGatewayAlert)
+                                    <a href="{{ $data['action_url'] ?? 'https://md.fonnte.com/' }}" target="_blank" class="btn btn-sm btn-danger py-0.5 px-2.5 rounded-pill fw-bold text-white shadow-xs" style="font-size: 0.72rem;">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i>Buka Dashboard Fonnte
+                                    </a>
+                                @endif
+
                                 @if(!empty($data['foto_absensi_url']))
                                     <a href="{{ $data['foto_absensi_url'] }}" target="_blank" class="btn btn-sm btn-outline-primary py-0.5 px-2.5 rounded-pill fw-semibold" style="font-size: 0.72rem;">
                                         <i class="bi bi-file-earmark-image me-1"></i>Absensi
@@ -246,21 +258,44 @@
                             {{ $notif->title }}
                         </div>
 
-                        <div class="text-secondary small mb-2" style="font-size: 0.80rem;">
-                            <span class="text-dark fw-semibold"><i class="bi bi-building me-1 text-primary"></i>{{ $data['sekolah_nama'] ?? 'Sekolah' }}</span>
-                            @if(!empty($data['kategori']))
-                                • <span class="badge bg-light text-dark border">{{ $data['kategori'] }}</span>
-                            @endif
-                            @if(!empty($data['rombel']))
-                                • <span>{{ $data['rombel'] }}</span>
-                            @endif
-                            @if(!empty($data['instruktur_nama']))
-                                • Instruktur: <strong class="text-dark">{{ $data['instruktur_nama'] }}</strong>
-                            @endif
-                            @if(isset($data['jumlah_hadir']))
-                                • <span class="text-success fw-bold"><i class="bi bi-people-fill me-1"></i>{{ $data['jumlah_hadir'] }} Siswa Hadir</span>
-                            @endif
-                        </div>
+                        @if($isGatewayAlert)
+                            <div class="p-2.5 rounded-3 bg-white border border-danger-subtle my-2">
+                                <div class="text-danger fw-semibold small mb-1">
+                                    <i class="bi bi-exclamation-triangle-fill me-1 text-danger"></i>{{ $notif->body }}
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 text-muted small" style="font-size: 0.75rem;">
+                                    @if(!empty($data['device']))
+                                        <span><strong>Device:</strong> {{ $data['device'] }}</span>
+                                    @endif
+                                    @if(!empty($data['reason']))
+                                        <span>• <strong>Status/Alasan:</strong> <span class="badge bg-danger text-white">{{ $data['reason'] }}</span></span>
+                                    @endif
+                                    @if(!empty($data['time']))
+                                        <span>• <strong>Waktu Deteksi:</strong> {{ $data['time'] }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        @elseif($isMilestone)
+                            <div class="text-secondary small mb-2" style="font-size: 0.80rem;">
+                                <span class="text-dark fw-semibold"><i class="bi bi-building me-1 text-primary"></i>{{ $data['sekolah_nama'] ?? 'Sekolah' }}</span>
+                                @if(!empty($data['kategori']))
+                                    • <span class="badge bg-light text-dark border">{{ $data['kategori'] }}</span>
+                                @endif
+                                @if(!empty($data['rombel']))
+                                    • <span>{{ $data['rombel'] }}</span>
+                                @endif
+                                @if(!empty($data['instruktur_nama']))
+                                    • Instruktur: <strong class="text-dark">{{ $data['instruktur_nama'] }}</strong>
+                                @endif
+                                @if(isset($data['jumlah_hadir']))
+                                    • <span class="text-success fw-bold"><i class="bi bi-people-fill me-1"></i>{{ $data['jumlah_hadir'] }} Siswa Hadir</span>
+                                @endif
+                            </div>
+                        @else
+                            <div class="text-secondary small mb-2" style="font-size: 0.80rem;">
+                                {{ $notif->body }}
+                            </div>
+                        @endif
 
                         {{-- 4 Teaching Dates Pill Grid --}}
                         @if(!empty($tgl4) && is_array($tgl4))

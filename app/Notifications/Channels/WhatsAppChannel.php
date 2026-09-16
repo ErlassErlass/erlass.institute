@@ -145,7 +145,18 @@ class WhatsAppChannel
                 return true;
             }
 
+            $errorMsg = $body['reason'] ?? ($body['message'] ?? $response->body());
             Log::error("WhatsApp (Fonnte): Gagal kirim ke {$target}. HTTP {$response->status()}. Response: " . $response->body());
+
+            // Deteksi otomatis jika perangkat Fonnte terputus (disconnected)
+            if (stripos($errorMsg, 'disconnect') !== false) {
+                try {
+                    app(\App\Services\FonnteHealthService::class)->notifyWebmasterDisconnected($errorMsg, $body['device'] ?? null);
+                } catch (\Throwable $th) {
+                    Log::error("FonnteHealthService trigger error in WhatsAppChannel: " . $th->getMessage());
+                }
+            }
+
             return false;
 
         } catch (\Exception $e) {

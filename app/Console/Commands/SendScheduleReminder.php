@@ -222,9 +222,20 @@ MSG;
                 'countryCode' => '62',
             ]);
 
-            if ($response->successful()) {
+            $body = $response->json();
+
+            if ($response->successful() && ($body['status'] ?? false)) {
                 Log::info("SendScheduleReminder: Sent to {$target}");
                 return true;
+            }
+
+            $reason = $body['reason'] ?? ($body['message'] ?? $response->body());
+            if (stripos($reason, 'disconnect') !== false) {
+                try {
+                    app(\App\Services\FonnteHealthService::class)->notifyWebmasterDisconnected($reason, $body['device'] ?? null);
+                } catch (\Throwable $th) {
+                    Log::error("FonnteHealthService trigger error in SendScheduleReminder: " . $th->getMessage());
+                }
             }
 
             Log::error("SendScheduleReminder: Failed to send to {$target}: " . $response->body());

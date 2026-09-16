@@ -39,17 +39,23 @@ class NotificationController extends Controller
             });
 
         $ticketCount = (clone $activeTicketsQuery)->count();
-        $milestoneUnreadCount = Notification::where('is_read', false)
-            ->where('type', 'milestone_report')
+        $systemUnreadCount = Notification::where('is_read', false)
+            ->where(function ($q) use ($user) {
+                $q->whereNull('target_roles')
+                  ->orWhere('target_roles', 'like', "%{$user->role}%");
+            })
             ->count();
 
-        $unreadCount = $ticketCount + $milestoneUnreadCount;
+        $unreadCount = $ticketCount + $systemUnreadCount;
         $readCount = Notification::where('is_read', true)->count();
 
         if ($viewStatus === 'read') {
-            // Read milestone notifications
-            $milestoneNotifications = Notification::where('is_read', true)
-                ->where('type', 'milestone_report')
+            // Read system notifications
+            $systemNotifications = Notification::where('is_read', true)
+                ->where(function ($q) use ($user) {
+                    $q->whereNull('target_roles')
+                      ->orWhere('target_roles', 'like', "%{$user->role}%");
+                })
                 ->orderBy('read_at', 'desc')
                 ->orderBy('updated_at', 'desc')
                 ->take(30)
@@ -68,7 +74,7 @@ class NotificationController extends Controller
                 ->get()
                 ->map(fn($ticket) => $this->formatTicketNotification($ticket, true));
 
-            $notifications = $ticketNotifications->concat($milestoneNotifications)
+            $notifications = $ticketNotifications->concat($systemNotifications)
                 ->sortByDesc(fn($n) => is_array($n) ? ($n['updated_at'] ?? $n['created_at']) : ($n->read_at ?? $n->updated_at))
                 ->values();
         } else {
@@ -78,13 +84,16 @@ class NotificationController extends Controller
                 ->get()
                 ->map(fn($ticket) => $this->formatTicketNotification($ticket, false));
 
-            $milestoneNotifications = Notification::where('is_read', false)
-                ->where('type', 'milestone_report')
+            $systemNotifications = Notification::where('is_read', false)
+                ->where(function ($q) use ($user) {
+                    $q->whereNull('target_roles')
+                      ->orWhere('target_roles', 'like', "%{$user->role}%");
+                })
                 ->orderBy('created_at', 'desc')
                 ->take(30)
                 ->get();
 
-            $notifications = $ticketNotifications->concat($milestoneNotifications)
+            $notifications = $ticketNotifications->concat($systemNotifications)
                 ->sortByDesc('created_at')
                 ->values();
         }
@@ -94,7 +103,7 @@ class NotificationController extends Controller
             'unread_count' => $unreadCount,
             'read_count' => $readCount,
             'ticket_count' => $ticketCount,
-            'milestone_count' => $milestoneUnreadCount,
+            'milestone_count' => $systemUnreadCount,
             'notifications' => $notifications,
         ]);
     }
@@ -244,6 +253,8 @@ class NotificationController extends Controller
 
         if ($type === 'milestone') {
             $query->where('type', 'milestone_report');
+        } elseif ($type === 'gateway' || $type === 'gateway_alert') {
+            $query->where('type', 'gateway_alert');
         } elseif ($type !== 'all') {
             $query->where('type', $type);
         }
@@ -262,6 +273,7 @@ class NotificationController extends Controller
         $unreadCount = Notification::where('is_read', false)->count();
         $readCount = Notification::where('is_read', true)->count();
         $milestoneCount = Notification::where('type', 'milestone_report')->count();
+        $gatewayCount = Notification::where('type', 'gateway_alert')->count();
 
         return view('admin.notifications.index', compact(
             'notifications',
@@ -271,7 +283,8 @@ class NotificationController extends Controller
             'totalCount',
             'unreadCount',
             'readCount',
-            'milestoneCount'
+            'milestoneCount',
+            'gatewayCount'
         ));
     }
 }

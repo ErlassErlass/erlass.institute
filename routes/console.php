@@ -42,6 +42,12 @@ if (app()->runningInConsole()) {
                   ->withoutOverlapping()
                   ->appendOutputTo(storage_path('logs/warnings-detect.log'));
 
+         // Health Check Fonnte WhatsApp Gateway: cek status koneksi setiap 15 menit
+         $schedule->command('fonnte:check-status')
+                  ->everyFifteenMinutes()
+                  ->withoutOverlapping()
+                  ->appendOutputTo(storage_path('logs/fonnte-health.log'));
+
          // Purge Temp Exports: bersihkan file ZIP ekspor yang berumur > 30 menit
          $schedule->call(function () {
              $dir = \Illuminate\Support\Facades\Storage::disk('local')->path('temp-exports');
