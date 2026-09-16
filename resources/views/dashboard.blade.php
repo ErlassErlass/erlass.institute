@@ -894,6 +894,7 @@
                                 @foreach($warning_list as $warning)
                                     @php
                                         $typeLabel = match($warning->warning_type) {
+                                            'gateway_disconnect' => 'WhatsApp Gateway Terputus',
                                             'no_instructor' => 'Tanpa Instruktur (H-1)',
                                             'not_confirmed' => 'Belum Ada Konfirmasi Sesi',
                                             'missing_report' => 'Laporan Mengajar Belum Diisi (>24h)',
@@ -908,7 +909,10 @@
                                         $actionUrl = null;
                                         $actionText = null;
 
-                                        if ($warning->sourceable instanceof \App\Models\EkstrakurikulerSession) {
+                                        if ($warning->warning_type === 'gateway_disconnect') {
+                                            $actionUrl = 'https://md.fonnte.com/';
+                                            $actionText = 'Buka Dashboard Fonnte';
+                                        } elseif ($warning->sourceable instanceof \App\Models\EkstrakurikulerSession) {
                                             $session = $warning->sourceable;
                                             $sekolahNama = $session->rombel?->ekstrakurikuler?->sekolah?->namasekolah;
                                             $rombelNama = $session->rombel?->nama_rombel;
@@ -957,7 +961,7 @@
                                             <p class="mb-0 text-dark small fw-medium text-break" style="line-height: 1.5;">{{ $warning->notes }}</p>
                                             <div class="flex-shrink-0 d-flex align-items-center gap-2 flex-wrap justify-content-start justify-content-md-end">
                                                 @if($actionUrl)
-                                                    <a href="{{ $actionUrl }}" class="btn btn-xs btn-primary py-1 px-3 rounded-pill fw-bold" style="font-size: 0.75rem; whitespace: nowrap;">
+                                                    <a href="{{ $actionUrl }}" {{ str_starts_with($actionUrl, 'http') ? 'target="_blank" rel="noopener noreferrer"' : '' }} class="btn btn-xs btn-primary py-1 px-3 rounded-pill fw-bold" style="font-size: 0.75rem; whitespace: nowrap;">
                                                         <i class="bi bi-box-arrow-up-right me-1"></i> {{ $actionText }}
                                                     </a>
                                                 @endif

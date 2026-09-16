@@ -9,7 +9,6 @@ use App\Models\Warning;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class FonnteHealthService
 {
@@ -162,31 +161,12 @@ class FonnteHealthService
             Log::error('FonnteHealthService: Gagal membuat System Warning: ' . $e->getMessage());
         }
 
-        // 3. Email Alert ke Seluruh Webmaster
-        $webmasters = User::where('role', 'webmaster')->whereNotNull('email')->get();
-        foreach ($webmasters as $wm) {
-            try {
-                Mail::send('emails.fonnte_disconnect', [
-                    'webmaster' => $wm,
-                    'device' => $device,
-                    'reason' => $reason,
-                    'time' => now()->translatedFormat('d F Y H:i:s') . ' WIB',
-                ], function ($message) use ($wm) {
-                    $message->to($wm->email, $wm->nama_lengkap)
-                            ->subject('🚨 [PERINGATAN KRITIS] Perangkat WhatsApp Fonnte Terputus (Disconnected)');
-                });
-                Log::info("FonnteHealthService: Email alert terkirim ke Webmaster: {$wm->email}");
-            } catch (\Exception $e) {
-                Log::error("FonnteHealthService: Gagal kirim email alert ke {$wm->email}: " . $e->getMessage());
-            }
-        }
-
-        // 4. Activity Log
+        // 3. Activity Log
         try {
             ActivityLog::create([
                 'user_id' => 1,
                 'action' => 'fonnte_disconnect_alert',
-                'description' => "Perangkat WhatsApp Fonnte ({$device}) terputus: {$reason}. Notifikasi peringatan telah dikirim ke Webmaster.",
+                'description' => "Perangkat WhatsApp Fonnte ({$device}) terputus: {$reason}. Peringatan sistem dan notifikasi telah dibuat.",
                 'subject_type' => null,
                 'subject_id' => null,
                 'ip_address' => request()->ip() ?? '127.0.0.1',
@@ -234,24 +214,7 @@ class FonnteHealthService
                 'is_read' => false,
             ]);
 
-            // 3. Email Pemulihan ke Webmaster
-            $webmasters = User::where('role', 'webmaster')->whereNotNull('email')->get();
-            foreach ($webmasters as $wm) {
-                try {
-                    Mail::send('emails.fonnte_reconnected', [
-                        'webmaster' => $wm,
-                        'device' => $device,
-                        'time' => now()->translatedFormat('d F Y H:i:s') . ' WIB',
-                    ], function ($message) use ($wm) {
-                        $message->to($wm->email, $wm->nama_lengkap)
-                                ->subject('✅ [PULIH] Perangkat WhatsApp Fonnte Telah Tersambung Kembali');
-                    });
-                } catch (\Exception $e) {
-                    Log::error("FonnteHealthService: Gagal kirim email pemulihan ke {$wm->email}: " . $e->getMessage());
-                }
-            }
-
-            // 4. Activity Log
+            // 3. Activity Log
             ActivityLog::create([
                 'user_id' => 1,
                 'action' => 'fonnte_reconnected',
