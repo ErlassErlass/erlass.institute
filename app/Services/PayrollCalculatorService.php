@@ -6,6 +6,7 @@ use App\Models\EkstrakurikulerSession;
 use App\Models\PayrollBatch;
 use App\Models\PayrollItem;
 use App\Models\SalaryRate;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -30,15 +31,17 @@ class PayrollCalculatorService
         // 1. Tentukan jumlah siswa HADIR (bukan jumlah siswa terdaftar/rombel).
         $studentCount = 0;
 
-        // Prioritas 1: Jumlah siswa HADIR dari absensi laporan mengajar
+        // Prioritas 1: Jumlah siswa HADIR dari absensi laporan mengajar (tabel absensi atau input langsung jumlah_siswa_hadir)
         if ($session->laporanMengajar) {
             $attendanceCount = $session->laporanMengajar->absensi()->where('status', 'hadir')->count();
             if ($attendanceCount > 0) {
                 $studentCount = $attendanceCount;
+            } elseif ($session->laporanMengajar->jumlah_siswa_hadir !== null && (int)$session->laporanMengajar->jumlah_siswa_hadir > 0) {
+                $studentCount = (int) $session->laporanMengajar->jumlah_siswa_hadir;
             }
         }
 
-        // Prioritas 2 (Fallback): Jika data absensi belum ada, gunakan jumlah siswa rombel
+        // Prioritas 2 (Fallback): Jika data absensi & input form belum ada, gunakan jumlah siswa rombel
         if ($studentCount === 0) {
             $rombel = $session->rombel;
             if ($rombel) {
@@ -54,19 +57,21 @@ class PayrollCalculatorService
             $studentCount = $session->laporanMengajar->absensi()->count();
         }
 
-        // Jika peran adalah Asisten Instruktur: Flat Rp 100.000 / sesi, Transport Rp 0, Denda Rp 0
+        // Jika peran adalah Asisten Instruktur: Flat Rp 100.000 / sesi, dapat uang transport sesuai jarak, Denda Rp 0
         if ($role === 'asisten') {
             $baseRate = 100000.00;
             $productBonus = 0.00;
             $calculatedFee = 100000.00;
             $finalFee = $session->override_fee !== null ? (float) $session->override_fee : $calculatedFee;
+            $asistenUser = $session->asisten;
+            $transportFee = $this->calculateTransportFee($session, $asistenUser);
 
             return [
                 'student_count' => $studentCount,
                 'base_rate' => $baseRate,
                 'product_bonus' => $productBonus,
                 'calculated_fee' => $calculatedFee,
-                'transport_fee' => 0.00,
+                'transport_fee' => $transportFee,
                 'actual_checkin_status' => $session->actual_checkin_status ?? 'on_time',
                 'actual_checkin_penalty' => 0.00,
                 'net_fee' => max(0.00, $finalFee)
@@ -170,33 +175,7 @@ class PayrollCalculatorService
         $calculatedFee = $baseRate + $productBonus;
 
         // 6. Perhitungan Biaya Transportasi Operasional sesuai Memo No. 536/EPI/V/2025 & Kebijakan Baru:
-        $transportFee = 0.00;
-        $ekskul = $session->ekstrakurikuler;
-        $sekolah = $ekskul ? $ekskul->sekolah : null;
-        $instructor = $session->instruktur;
-
-        $isGuruInternal = false;
-        if ($instructor) {
-            $isGuruInternal = (bool) ($instructor->is_guru_internal ?? false);
-        }
-        $isKantorErlass = ($ekskul && stripos($ekskul->alamat_lengkap ?? '', 'Kantor Erlass') !== false);
-
-        if ($isGuruInternal || $isKantorErlass) {
-            $transportFee = 0.00;
-        } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km < 10.0 && (float)$ekskul->jarak_km > 0) {
-            // Sekolah berjarak < 10 KM dari Pejaten: Sewa Kendaraan saja = Rp 7.500 (tanpa komponen bensin)
-            $transportFee = 7500.00;
-        } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km >= 10.0) {
-            // Sekolah berjarak >= 10 KM dari Pejaten: (Jarak KM x Rp 350 x 2 PP) + Rp 7.500 (Sewa Kendaraan)
-            $distKm = (float) $ekskul->jarak_km;
-            $bensinPP = $distKm * 350.00 * 2; // Bensin 2x PP (Pulang-Pergi)
-            $sewaKendaraan = 7500.00; // Fixed flat fee 1x
-            $transportFee = $bensinPP + $sewaKendaraan;
-        } elseif ($sekolah && $sekolah->kustom_transport_fee !== null) {
-            $transportFee = (float)$sekolah->kustom_transport_fee * 2; // 2x PP
-        } else {
-            $transportFee = 0.00;
-        }
+        $transportFee = $this->calculateTransportFee($session, $session->instruktur);
 
         // 7. Penggunaan nilai koreksi manual (Override Fee) jika Admin mengisi nilai khusus
         $finalFee = $session->override_fee !== null ? (float) $session->override_fee : $calculatedFee;
@@ -211,6 +190,38 @@ class PayrollCalculatorService
             'actual_checkin_penalty' => $penalty,
             'net_fee' => max(0.00, $finalFee - $penalty)
         ];
+    }
+
+    /**
+     * Menghitung biaya transportasi operasional untuk sesi mengajar tertentu (Utama maupun Asisten).
+     */
+    public function calculateTransportFee(EkstrakurikulerSession $session, ?User $instructor = null): float
+    {
+        $ekskul = $session->ekstrakurikuler;
+        $sekolah = $ekskul ? $ekskul->sekolah : null;
+
+        $isGuruInternal = false;
+        if ($instructor) {
+            $isGuruInternal = (bool) ($instructor->is_guru_internal ?? false);
+        }
+        $isKantorErlass = ($ekskul && stripos($ekskul->alamat_lengkap ?? '', 'Kantor Erlass') !== false);
+
+        if ($isGuruInternal || $isKantorErlass) {
+            return 0.00;
+        } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km < 10.0 && (float)$ekskul->jarak_km > 0) {
+            // Sekolah berjarak < 10 KM dari Pejaten: Sewa Kendaraan saja = Rp 7.500 (tanpa komponen bensin)
+            return 7500.00;
+        } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km >= 10.0) {
+            // Sekolah berjarak >= 10 KM dari Pejaten: (Jarak KM x Rp 350 x 2 PP) + Rp 7.500 (Sewa Kendaraan)
+            $distKm = (float) $ekskul->jarak_km;
+            $bensinPP = $distKm * 350.00 * 2; // Bensin 2x PP (Pulang-Pergi)
+            $sewaKendaraan = 7500.00; // Fixed flat fee 1x
+            return $bensinPP + $sewaKendaraan;
+        } elseif ($sekolah && $sekolah->kustom_transport_fee !== null) {
+            return (float)$sekolah->kustom_transport_fee * 2; // 2x PP
+        }
+
+        return 0.00;
     }
 
     /**
@@ -388,11 +399,33 @@ class PayrollCalculatorService
                     ];
                 }
 
-                // 2. Proses Penugasan Asisten Instruktur (Flat Rp 100.000 / sesi, Transport Rp 0)
+                // 2. Proses Penugasan Asisten Instruktur (Flat Rp 100.000 / sesi, Transport Sesuai Jarak & Deduplikasi)
                 foreach ($asistenDuties as $duty) {
                     $session = $duty['session'];
-                    $asistenFee = 100000.00;
+                    $calc = $this->calculateSessionFee($session, 'asisten');
+                    $asistenFee = $session->override_fee !== null ? (float) $session->override_fee : (float) $calc['calculated_fee'];
                     $totalAsistenFee += $asistenFee;
+
+                    $sessionDate = $session->tanggal_pelaksanaan
+                        ? Carbon::parse($session->tanggal_pelaksanaan)->toDateString()
+                        : ($session->tanggal_terjadwal
+                            ? Carbon::parse($session->tanggal_terjadwal)->toDateString()
+                            : 'unknown');
+
+                    $sekolahKey = 'default';
+                    if ($session->ekstrakurikuler && $session->ekstrakurikuler->sekolah_kodlan) {
+                        $sekolahKey = $session->ekstrakurikuler->sekolah_kodlan;
+                    }
+
+                    $transportKey = $sekolahKey . '|' . $sessionDate;
+                    $sessionTransport = 0.00;
+
+                    if (!isset($transportPaidKeys[$transportKey])) {
+                        $sessionTransport = (float) $calc['transport_fee'];
+                        $transportPaidKeys[$transportKey] = true;
+                    }
+
+                    $totalTransportFee += $sessionTransport;
 
                     $session->update([
                         'payment_status' => 'processing',
@@ -401,11 +434,11 @@ class PayrollCalculatorService
                     $processedAsisten[] = [
                         'session' => $session,
                         'base_fee' => $asistenFee,
-                        'transport_fee' => 0.00,
+                        'transport_fee' => $sessionTransport,
                         'penalty_fee' => 0.00,
                         'bonus_fee' => 0.00,
-                        'net_fee' => $asistenFee,
-                        'override_fee' => null,
+                        'net_fee' => $asistenFee + $sessionTransport,
+                        'override_fee' => $session->override_fee,
                     ];
                 }
 
@@ -468,11 +501,11 @@ class PayrollCalculatorService
                         'user_id' => $userId,
                         'role' => 'asisten',
                         'base_fee' => $itemData['base_fee'],
-                        'transport_fee' => 0.00,
+                        'transport_fee' => $itemData['transport_fee'],
                         'penalty_fee' => 0.00,
                         'bonus_fee' => 0.00,
                         'net_fee' => $itemData['net_fee'],
-                        'override_fee' => null,
+                        'override_fee' => $itemData['override_fee'],
                     ]);
 
                     // Update legacy single foreign key if null

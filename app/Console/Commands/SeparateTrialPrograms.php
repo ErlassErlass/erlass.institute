@@ -117,6 +117,7 @@ class SeparateTrialPrograms extends Command
                 $trialProgram = Ekstrakurikuler::create([
                     'kategori_program' => 'Free Trial Class',
                     'sekolah_kodlan'   => $program->sekolah_kodlan,
+                    'jarak_km'         => $program->jarak_km,
                     'total_siswa'      => $rombel->jumlah_siswa ?: 15,
                     'total_ruangan'    => 1,
                     'total_rombel'     => 1,

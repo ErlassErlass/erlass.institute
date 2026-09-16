@@ -369,9 +369,14 @@ class GoogleSheetsService
             $namaSekolah = $sekolah?->namasekolah ?? $r->sekolah_nama ?? $r->sekolah_kodlan ?? 'N/A';
             $kodeSekolah = $sekolah?->kodlan ?? $ekskul?->sekolah_kodlan ?? $r->sekolah_kodlan ?? '-';
             $meta = $r->metadata_json ?? [];
-            $program = $ekskul?->nama_ekskul ?: ($ekskul?->kategori_program ?? $meta['program'] ?? $r->kategori_pengajaran ?? '-');
+            $isSpecialCategory = !empty($r->kategori_pengajaran) && !in_array(strtolower($r->kategori_pengajaran), ['ekstrakurikuler', 'reguler']);
+            $program = $isSpecialCategory
+                ? $r->kategori_pengajaran
+                : ($ekskul?->nama_ekskul ?: ($ekskul?->kategori_program ?? $meta['program'] ?? $r->kategori_pengajaran ?? '-'));
             $rombel = $session?->rombel?->nama_rombel ?? $r->rombel ?? 'Rombel 1';
-            $pertemuan = $session?->nomor_pertemuan ?? $r->pertemuan_ke ?? 1;
+            $pertemuan = ($r->pertemuan_ke && $r->pertemuan_ke > 0)
+                ? $r->pertemuan_ke
+                : (($session && $session->nomor_pertemuan > 0) ? $session->nomor_pertemuan : 1);
 
             $meta = $r->metadata_json ?? [];
             $approvalStatus = $meta['status_approval_kendala'] ?? ($r->isSevereLate() ? 'pending_approval' : 'approved');
@@ -800,10 +805,13 @@ class GoogleSheetsService
                     : '-');
 
             // Program & rombel
-            $programEkskul = $session?->rombel?->ekstrakurikuler?->nama_ekskul
-                ?: ($session?->rombel?->ekstrakurikuler?->kategori_program
-                    ?? $r->kategori_pengajaran
-                    ?? '-');
+            $isSpecialCategory = !empty($r->kategori_pengajaran) && !in_array(strtolower($r->kategori_pengajaran), ['ekstrakurikuler', 'reguler']);
+            $programEkskul = $isSpecialCategory
+                ? $r->kategori_pengajaran
+                : ($session?->rombel?->ekstrakurikuler?->nama_ekskul
+                    ?: ($session?->rombel?->ekstrakurikuler?->kategori_program
+                        ?? $r->kategori_pengajaran
+                        ?? '-'));
 
             $namaRombel = $session?->rombel?->nama_rombel
                 ?? $r->rombel
@@ -1015,9 +1023,14 @@ class GoogleSheetsService
         $sekolah = $ekskul?->sekolah;
         $namaSekolah = $sekolah?->namasekolah ?? $r->sekolah_nama ?? $r->sekolah_kodlan ?? 'N/A';
         $kodeSekolah = $sekolah?->kodlan ?? $ekskul?->sekolah_kodlan ?? $r->sekolah_kodlan ?? '-';
-        $program = $ekskul?->nama_ekskul ?: ($ekskul?->kategori_program ?? $r->kategori_pengajaran ?? '-');
+        $isSpecialCategory = !empty($r->kategori_pengajaran) && !in_array(strtolower($r->kategori_pengajaran), ['ekstrakurikuler', 'reguler']);
+        $program = $isSpecialCategory
+            ? $r->kategori_pengajaran
+            : ($ekskul?->nama_ekskul ?: ($ekskul?->kategori_program ?? $r->kategori_pengajaran ?? '-'));
         $rombel = $session?->rombel?->nama_rombel ?? $r->rombel ?? 'Rombel 1';
-        $pertemuan = $session?->nomor_pertemuan ?? $r->pertemuan_ke ?? 1;
+        $pertemuan = ($r->pertemuan_ke && $r->pertemuan_ke > 0)
+            ? $r->pertemuan_ke
+            : (($session && $session->nomor_pertemuan > 0) ? $session->nomor_pertemuan : 1);
 
         $meta = $r->metadata_json ?? [];
         $approvalStatus = $meta['status_approval_kendala'] ?? ($r->isSevereLate() ? 'pending_approval' : 'approved');
@@ -1175,6 +1188,7 @@ class GoogleSheetsService
         $this->syncTabRekapPertemuan();
         $this->syncTabProgramEkskul();
         $this->syncTabRekapHonorInstruktur();
+        $this->syncTabProfilInstruktur();
 
         return [
             self::TAB_KPI => Cache::get("google_sheets_data_" . self::TAB_KPI, []),

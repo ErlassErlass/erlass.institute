@@ -327,9 +327,15 @@ class LaporanMengajar extends Model
                     ->where('kategori_program', $categoryName)
                     ->first();
                 if (! $ekskul) {
+                    $defaultJarak = \App\Models\Ekstrakurikuler::where('sekolah_kodlan', $this->sekolah_kodlan)
+                        ->whereNotNull('jarak_km')
+                        ->where('jarak_km', '>', 0)
+                        ->value('jarak_km');
+
                     $ekskul = \App\Models\Ekstrakurikuler::create([
                         'sekolah_kodlan' => $this->sekolah_kodlan,
                         'kategori_program' => $categoryName,
+                        'jarak_km' => $defaultJarak,
                         'total_siswa' => 15,
                         'total_ruangan' => 1,
                         'total_rombel' => 1,
@@ -362,9 +368,15 @@ class LaporanMengajar extends Model
             } else {
                 $ekskul = \App\Models\Ekstrakurikuler::where('sekolah_kodlan', $this->sekolah_kodlan)->first();
                 if (! $ekskul) {
+                    $defaultJarak = \App\Models\Ekstrakurikuler::where('sekolah_kodlan', $this->sekolah_kodlan)
+                        ->whereNotNull('jarak_km')
+                        ->where('jarak_km', '>', 0)
+                        ->value('jarak_km');
+
                     $ekskul = \App\Models\Ekstrakurikuler::create([
                         'sekolah_kodlan' => $this->sekolah_kodlan,
                         'kategori_program' => $this->kategori_pengajaran ?? 'Reguler',
+                        'jarak_km' => $defaultJarak,
                         'total_siswa' => 15,
                         'total_ruangan' => 1,
                         'total_rombel' => 1,

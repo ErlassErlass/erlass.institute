@@ -422,21 +422,9 @@ class PayrollTest extends TestCase
         $this->assertEquals(0.00, $calc3['transport_fee']);
     }
 
-    public function test_assistant_fee_is_flat_100k_and_no_transport()
+    public function test_assistant_fee_is_flat_100k_and_has_transport()
     {
-        $assistant = User::create([
-            'nama_lengkap' => 'Assistant Test',
-            'email' => 'assistant@test.com',
-            'password' => bcrypt('password'),
-            'role' => 'instruktur',
-            'status' => 'Aktif',
-            'tanggal_lahir' => '1995-05-05',
-            'agama' => 'Lainnya',
-            'pend_terakhir' => 'SMA',
-            'kompetensi_1' => 'General',
-            'no_telephone' => '081298765432',
-        ]);
-
+        $assistant = User::factory()->create(['role' => 'instruktur']);
         $sekolah = Sekolah::factory()->create(['kodlan' => 'SCH003', 'namasekolah' => 'Sekolah Asisten']);
         $ekskul = Ekstrakurikuler::factory()->create([
             'sekolah_kodlan' => 'SCH003',
@@ -470,7 +458,7 @@ class PayrollTest extends TestCase
         $calcAsisten = $service->calculateSessionFee($session, 'asisten');
 
         $this->assertEquals(100000.00, $calcAsisten['base_rate']);
-        $this->assertEquals(0.00, $calcAsisten['transport_fee']);
+        $this->assertEquals(21500.00, $calcAsisten['transport_fee']);
         $this->assertEquals(0.00, $calcAsisten['actual_checkin_penalty']);
         $this->assertEquals(100000.00, $calcAsisten['net_fee']);
     }
@@ -595,10 +583,10 @@ class PayrollTest extends TestCase
         $this->assertEquals(1, $asistenItem->total_sessions_asisten);
         $this->assertEquals(0.00, $asistenItem->total_base_fee);
         $this->assertEquals(100000.00, $asistenItem->total_asisten_fee);
-        $this->assertEquals(0.00, $asistenItem->total_transport_fee);
-        $this->assertEquals(100000.00, $asistenItem->total_gross_salary);
-        $this->assertEquals(2500.00, $asistenItem->tax_amount); // round(100000 * 0.025)
-        $this->assertEquals(97500.00, $asistenItem->net_salary); // round(100000 * 0.975)
+        $this->assertEquals(14500.00, $asistenItem->total_transport_fee);
+        $this->assertEquals(114500.00, $asistenItem->total_gross_salary);
+        $this->assertEquals(2863.00, $asistenItem->tax_amount); // round(114500 * 0.025)
+        $this->assertEquals(111638.00, $asistenItem->net_salary); // round(114500 * 0.975)
 
         // Check pivot records in payroll_item_session
         $this->assertDatabaseHas('payroll_item_session', [
@@ -614,7 +602,7 @@ class PayrollTest extends TestCase
             'ekstrakurikuler_session_id' => $session->id,
             'role' => 'asisten',
             'base_fee' => 100000.00,
-            'transport_fee' => 0.00,
+            'transport_fee' => 14500.00,
         ]);
     }
 
