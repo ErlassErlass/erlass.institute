@@ -18,8 +18,16 @@
                         <input type="date" id="dashRescheduleNewDate" required class="form-control">
                     </div>
                     <div class="mb-3">
-                        <label for="dashRescheduleReason" class="form-label fw-bold text-dark">Alasan Penjadwalan Ulang</label>
-                        <textarea id="dashRescheduleReason" rows="2" class="form-control" placeholder="Contoh: Mengganti sesi libur tanggal merah..."></textarea>
+                        <label for="dashRescheduleReason" class="form-label fw-bold text-dark">Alasan Penjadwalan Ulang <span class="text-danger">*</span></label>
+                        <select id="dashRescheduleReason" required class="form-select">
+                            <option value="" disabled selected>-- Pilih Alasan Reschedule --</option>
+                            <option value="Libur Nasional">Libur Nasional</option>
+                            <option value="Libur Sekolah">Libur Sekolah</option>
+                            <option value="Permintaan PIC">Permintaan PIC</option>
+                            <option value="Ujian">Ujian</option>
+                            <option value="Acara Sekolah">Acara Sekolah</option>
+                            <option value="Tidak Diketahui">Tidak Diketahui</option>
+                        </select>
                     </div>
                     <div class="form-check form-switch p-3 bg-warning-subtle rounded-3 border border-warning-subtle">
                         <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="dashRescheduleCascade" value="1">

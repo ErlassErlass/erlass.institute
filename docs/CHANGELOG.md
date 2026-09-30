@@ -2,6 +2,25 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.36] - 2026-09-30
+
+### Standardisasi Alasan Reschedule Sesi Menjadi Dropdown Murni
+
+- **Penyelarasan Input Alasan Reschedule Menggunakan Dropdown Murni (`modal-reschedule.blade.php`, `reschedule.blade.php`, `show.blade.php`, `dashboard.blade.php`)**:
+  - Mengubah kolom input alasan penjadwalan ulang (*reschedule*) dari isian bebas (*textarea*) menjadi komponen `<select>` dropdown murni (*pure dropdown*) di seluruh modal reschedule (Dashboard Admin To-Do List Reschedule, Halaman Detail Sesi Ekstrakurikuler, dan Halaman Detail Program Ekstrakurikuler).
+  - Menyediakan 6 pilihan opsi alasan baku & terstandarisasi:
+    1. `Libur Nasional`
+    2. `Libur Sekolah`
+    3. `Permintaan PIC`
+    4. `Ujian`
+    5. `Acara Sekolah`
+    6. `Tidak Diketahui`
+  - Menetapkan atribut `required` dan penanda bintang merah (`*`) pada field alasan agar pengguna wajib memilih salah satu opsi terstandarisasi sebelum menyimpan jadwal baru.
+  - Menambahkan validasi sisi klien (*client-side validation guard*) di fungsi JavaScript `submitDashboardReschedule()`, event listener form `rescheduleForm`, dan fungsi `submitReschedule()` untuk mencegah pengiriman alasan kosong.
+- **Otomasi Pengujian & Validasi Fitur (`RescheduleDropdownTest.php`)**:
+  - Menambahkan rangkaian unit/feature test komprehensif yang memvalidasi ketersediaan elemen `<select>` beserta 6 opsi baku pada modal dashboard, detail sesi, dan detail ekskul.
+  - Memvalidasi keberhasilan mutasi API rescheduling sesi dan pencatatan riwayat catatan menggunakan seluruh opsi alasan baku.
+
 ## [2.9.35] - 2026-09-30
 
 ### Fitur Monitoring Sesi Belum Laporan Versi Excel & Google Sheets Integration Tab Ke-11

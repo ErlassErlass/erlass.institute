@@ -869,6 +869,10 @@
         e.preventDefault();
         const newDate = document.getElementById('new_date').value;
         const reason = document.getElementById('reschedule_reason').value;
+        if (!reason) {
+            alert('Harap pilih alasan reschedule terlebih dahulu.');
+            return;
+        }
         const cascade = document.getElementById('reschedule_cascade')?.checked || false;
         
         const btn = this.querySelector('button[type="submit"]');

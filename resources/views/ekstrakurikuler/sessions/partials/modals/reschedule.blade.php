@@ -13,8 +13,16 @@
                         <input type="date" name="tanggal_pengganti" id="new_date" required class="form-control">
                     </div>
                     <div class="mb-3">
-                        <label for="reschedule_reason" class="form-label fw-bold">Alasan Penjadwalan Ulang</label>
-                        <textarea name="alasan" id="reschedule_reason" rows="2" class="form-control" placeholder="Contoh: Mengganti sesi libur tanggal merah..."></textarea>
+                        <label for="reschedule_reason" class="form-label fw-bold">Alasan Penjadwalan Ulang <span class="text-danger">*</span></label>
+                        <select name="alasan" id="reschedule_reason" required class="form-select">
+                            <option value="" disabled selected>-- Pilih Alasan Reschedule --</option>
+                            <option value="Libur Nasional">Libur Nasional</option>
+                            <option value="Libur Sekolah">Libur Sekolah</option>
+                            <option value="Permintaan PIC">Permintaan PIC</option>
+                            <option value="Ujian">Ujian</option>
+                            <option value="Acara Sekolah">Acara Sekolah</option>
+                            <option value="Tidak Diketahui">Tidak Diketahui</option>
+                        </select>
                     </div>
                     <div class="form-check form-switch p-3 bg-light rounded-3 border">
                         <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="reschedule_cascade" name="cascade_shift" value="1">

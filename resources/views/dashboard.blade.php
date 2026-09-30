@@ -1308,6 +1308,11 @@ function submitDashboardReschedule(e) {
     const btn = document.getElementById('btnDashSubmitReschedule');
     const spin = document.getElementById('dashSpinReschedule');
 
+    if (!reason) {
+        alert('Harap pilih alasan reschedule terlebih dahulu.');
+        return;
+    }
+
     btn.disabled = true;
     spin.classList.remove('d-none');
 

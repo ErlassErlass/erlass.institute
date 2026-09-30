@@ -1063,9 +1063,16 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Alasan</label>
-                    <textarea id="rescheduleAlasan" class="form-control" rows="2"
-                              placeholder="Mis: Libur nasional, cuaca buruk, dll."></textarea>
+                    <label for="rescheduleAlasan" class="form-label fw-semibold">Alasan <span class="text-danger">*</span></label>
+                    <select id="rescheduleAlasan" class="form-select" required>
+                        <option value="" disabled selected>-- Pilih Alasan Reschedule --</option>
+                        <option value="Libur Nasional">Libur Nasional</option>
+                        <option value="Libur Sekolah">Libur Sekolah</option>
+                        <option value="Permintaan PIC">Permintaan PIC</option>
+                        <option value="Ujian">Ujian</option>
+                        <option value="Acara Sekolah">Acara Sekolah</option>
+                        <option value="Tidak Diketahui">Tidak Diketahui</option>
+                    </select>
                 </div>
 
                 <hr>
@@ -1138,7 +1145,7 @@ function submitReschedule() {
     const btn = document.getElementById('btnConfirmReschedule');
 
     if (!alasan) {
-        alert('Harap isi alasan terlebih dahulu.');
+        alert('Harap pilih alasan reschedule terlebih dahulu.');
         return;
     }
 
