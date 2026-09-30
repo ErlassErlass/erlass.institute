@@ -35,8 +35,11 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
     16. *Status Keterlambatan* (Contoh: "Hari Ini (Belum Laporan)", "Terlambat 3 Hari")
     17. *Sales PIC Sekolah*
     18. *Link Sesi Langsung ke Web*
-- **Pengujian Otomatis (`GoogleSheetsMonitoringTest.php`)**:
-  - Menambahkan 4 pengujian fitur komprehensif yang menguji akses dashboard admin, ekspor CSV, filter tanggal & laporan, unduhan file Excel .xlsx, serta respons struktur API Feed Google Apps Script.
+- **Penyempurnaan Visual Alert KPI Ketepatan Laporan & Presensi Check-in (`admin-stats.blade.php`, `DashboardPunctualityColorTest.php`)**:
+  - **Dynamic Target-Based Red Alert (#dc2626)**: Mengubah presentasi angka persentase pada kartu *Ketepatan Laporan (SLA H+1)* dan *Presensi Check-in Sesi* dari warna ungu/indigo statis menjadi dinamis.
+  - **Zero Tolerance Threshold (< 100%)**: Mengingat standar operasional menargetkan 100%, ketika angka capaian berada di bawah 100% (contoh: 91%), angka persentase, garis border atas kartu, dan background ikon dokumen otomatis berwarna **Merah Tegas & Modern (`#dc2626`)** sebagai visual alert bahwa target belum tercapai dan terdapat laporan susulan.
+  - **Goal Achieved Indicator (= 100%)**: Saat capaian mencapai 100% sempurna, tampilan kartu dan angka otomatis berubah menjadi **Hijau Sukses (`#10b981`)**.
+  - **Automated Feature Testing**: Menambahkan pengujian `tests/Feature/DashboardPunctualityColorTest.php` untuk memverifikasi akurasi rendering warna merah saat < 100% dan hijau saat 100%.
 
 ## [2.9.34] - 2026-09-30
 
