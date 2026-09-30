@@ -23,6 +23,7 @@ class Ekstrakurikuler extends Model
      */
     protected $fillable = [
         'kategori_program',
+        'jenis_program',
         'deskripsi',
         'jenis_pembayaran',
         'jenis_alat',
@@ -174,6 +175,106 @@ class Ekstrakurikuler extends Model
     const FASILITAS_TIDAK_DIKETAHUI = 'tidak_diketahui';
 
     /**
+     * Konstanta untuk jenis program (Ekskul vs Pelatihan)
+     */
+    const JENIS_EKSTRAKURIKULER = 'ekstrakurikuler';
+    const JENIS_PELATIHAN = 'pelatihan';
+
+    /**
+     * Cek apakah program ini adalah Pelatihan.
+     */
+    public function isPelatihan(): bool
+    {
+        return ($this->jenis_program === self::JENIS_PELATIHAN) ||
+               str_starts_with($this->kategori_program ?? '', 'Pelatihan');
+    }
+
+    /**
+     * Kata kunci program non-tagihan yang TIDAK BOLEH dibuatkan invoice.
+     * Hanya Ekskul dan Pelatihan yang dapat di-invoice.
+     */
+    public const NON_INVOICEABLE_KEYWORDS = [
+        'free trial',
+        'trial class',
+        'sosialisasi',
+        'pameran',
+        'pendampingan',
+        'lomba',
+        'inkul',
+        'intrakurikuler',
+    ];
+
+    /**
+     * Cek apakah program ini dapat di-invoice (HANYA Ekskul dan Pelatihan).
+     * Program lain (Free Trial, Sosialisasi, Pameran, Lomba, Inkul, dll.) tidak dapat di-invoice.
+     */
+    public function isInvoiceable(): bool
+    {
+        $kat = trim($this->kategori_program ?? '');
+        $lowerKat = strtolower($kat);
+
+        // 1. Cek blacklist non-invoiceable
+        foreach (self::NON_INVOICEABLE_KEYWORDS as $keyword) {
+            if (str_contains($lowerKat, $keyword)) {
+                return false;
+            }
+        }
+
+        // 2. Program Pelatihan selalu invoiceable
+        if ($this->isPelatihan()) {
+            return true;
+        }
+
+        // 3. Program Ekstrakurikuler reguler
+        if ($this->jenis_program === self::JENIS_EKSTRAKURIKULER || str_starts_with($kat, 'Ekskul')) {
+            return true;
+        }
+
+        // 4. Fallback nama materi ekskul (misal dari factory tanpa prefix Ekskul)
+        $materiValid = ['coding', 'scratch', 'english', 'pictoblox', 'robotik', 'microbit', 'micro:bit', 'arduino', 'jimu', 'explorer', 'erboblox'];
+        foreach ($materiValid as $mv) {
+            if (str_contains($lowerKat, $mv)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Scope Eloquent untuk memfilter hanya program Ekskul dan Pelatihan yang dapat di-invoice.
+     */
+    public function scopeInvoiceable($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('jenis_program', self::JENIS_PELATIHAN)
+              ->orWhere('jenis_program', self::JENIS_EKSTRAKURIKULER)
+              ->orWhere('kategori_program', 'LIKE', 'Ekskul%')
+              ->orWhere('kategori_program', 'LIKE', 'Pelatihan%')
+              ->orWhere('kategori_program', 'LIKE', '%Coding%')
+              ->orWhere('kategori_program', 'LIKE', '%English%')
+              ->orWhere('kategori_program', 'LIKE', '%Robotik%')
+              ->orWhere('kategori_program', 'LIKE', '%Pictoblox%');
+        })
+        ->where('kategori_program', 'NOT LIKE', '%Free Trial%')
+        ->where('kategori_program', 'NOT LIKE', '%Trial Class%')
+        ->where('kategori_program', 'NOT LIKE', '%Sosialisasi%')
+        ->where('kategori_program', 'NOT LIKE', '%Pameran%')
+        ->where('kategori_program', 'NOT LIKE', '%Pendampingan%')
+        ->where('kategori_program', 'NOT LIKE', '%Lomba%')
+        ->where('kategori_program', 'NOT LIKE', '%Inkul%')
+        ->where('kategori_program', 'NOT LIKE', '%Intrakurikuler%');
+    }
+
+    /**
+     * Cek apakah program ini adalah Ekstrakurikuler reguler.
+     */
+    public function isEkstrakurikuler(): bool
+    {
+        return !$this->isPelatihan();
+    }
+
+    /**
      * Accessor untuk nama_ekstrakurikuler (alias kategori_program).
      */
     public function getNamaEkstrakurikulerAttribute(): string
@@ -186,7 +287,11 @@ class Ekstrakurikuler extends Model
      */
     public function butuhKonfigurasiAlat(): bool
     {
-        return in_array($this->kategori_program, self::KATEGORI_BUTUH_ALAT);
+        if (in_array($this->kategori_program, self::KATEGORI_BUTUH_ALAT)) {
+            return true;
+        }
+        $name = strtolower($this->kategori_program ?? '');
+        return str_contains($name, 'robotik') || str_contains($name, 'microbit') || str_contains($name, 'micro:bit');
     }
 
     /**

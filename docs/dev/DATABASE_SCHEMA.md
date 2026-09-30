@@ -449,6 +449,20 @@ erDiagram
 17. **KALENDER AKADEMIK SEKOLAH (`school_calendars`)**:
     *   Kalender khusus per sekolah (libur internal, ujian, kegiatan sekolah) yang dapat memblokir pembuatan sesi mengajar jika bertanda `is_blocking = true`.
 
+18. **INVOICE APPROVALS (`invoice_approvals`)**:
+    *   Tabel induk penagihan resmi level sekolah.
+    *   Primary Key: `id`, Foreign Key: `sekolah_kodlan` merujuk ke `sekolah.kodlan`.
+    *   Menyimpan agregasi sekolah: `total_rombel`, total `jumlah_siswa_billable`, `skema_tagihan`, `periode_label`, rentang sesi, dan `nomor_invoice`.
+    *   Alur verifikasi 2 tahap: Operasional (`operasional_status`, `operasional_approved_at`) dan Akunting (`akunting_status`, `akunting_approved_at`).
+    *   Nomor invoice berstatus draft (`DRAFT-INV/...`) hingga disetujui Akunting, kemudian difinalisasi menjadi nomor resmi (`INV/...`).
+
+19. **INVOICE APPROVAL ITEMS (`invoice_approval_items`)**:
+    *   Rincian tagihan per rombel dalam invoice sekolah (relasi 1-to-N dari `invoice_approvals`).
+    *   Foreign Key: `invoice_approval_id` dan `ekstrakurikuler_rombel_id`.
+    *   Menyimpan rentang sesi (`sesi_dari`, `sesi_sampai`, `jumlah_sesi`) dan hitungan siswa sistem (`jumlah_siswa_billable`).
+    *   Audit trail koreksi manual per rombel: `koreksi_siswa_billable`, `koreksi_catatan`, `koreksi_by`, `koreksi_at`.
+    *   Unique index pada `[invoice_approval_id, ekstrakurikuler_rombel_id]`.
+
 
 ### Catatan Keamanan & Integritas
 *   **Soft Deletes**: Digunakan pada tabel `ekstrakurikuler` dan `siswa` untuk mencegah kehilangan data tidak sengaja.

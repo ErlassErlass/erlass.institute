@@ -168,7 +168,37 @@ Menghubungkan data operasional mengajar dengan penghitungan honorarium instruktu
 
 ---
 
+## 9. Modul Penagihan & Program Pelatihan (September 2026) [COMPLETED]
+
+### A. Program Pelatihan (Workshop / Harian):
+- **Kategori Pelatihan Mandiri**: Kategori program menggabungkan Pelatihan dan Ekskul dalam single dropdown dengan optgroup. Produk pelatihan mencakup Coding Scratch, English Course, Pictoblox AI, Robotik Micro:bit, Robotik Arduino, dll.
+- **Dukungan Single-Day Workshop**: Mendukung pelatihan 1 hari (`tanggal_mulai == tanggal_selesai`, `total_pertemuan = 1`).
+- **Penjadwalan Harian**: Frekuensi harian menjadwalkan sesi secara berurutan hari per hari.
+- **Durasi Bebas**: Validasi durasi 60-90 menit dibebaskan khusus untuk program Pelatihan agar dapat menyelenggarakan workshop intensif seharian.
+
+### B. Modul Penagihan (Invoice Approval & Generation):
+- **1 Invoice per Sekolah dengan Rincian per Rombel**:
+  - Struktur penagihan berpusat pada entitas Sekolah (`sekolah_kodlan`), di mana 1 dokumen invoice resmi merangkum seluruh rombel aktif di sekolah tersebut.
+  - Tabel rincian `invoice_approval_items` merinci sesi, siswa billable, dan koreksi per rombel.
+- **Aturan Keserentakan Penagihan**:
+  - Sekolah baru masuk kategori siap tagih jika seluruh rombel aktif (Ekskul & Pelatihan) di sekolah tersebut telah menyelesaikan target sesi periode yang bersangkutan.
+  - Program non-tagihan (Free Trial, Sosialisasi, Pameran, Lomba, Inkul) secara sistematis dikecualikan.
+- **Smart Ready-to-Bill Detection & Urutan Prioritas**:
+  - Deteksi otomatis berdasarkan skema tagihan: `per_4_pertemuan` (per 4 sesi selesai) atau `bulanan` (akhir bulan).
+  - Urutan antrean tagihan memprioritaskan hari keterlambatan (`days_overdue DESC`), dilengkapi badge keterlambatan dan tanggal target pembuatan.
+  - Shortcut 1-Klik Generate dan Bulk Generate untuk memproses draft instan.
+- **Siklus Penomoran Draft ke Final**:
+  - Format awal: `DRAFT-INV/ERLASS/YYYYMM/KODLAN/NNN` selama status draft / pending.
+  - Otomatis difinalisasi menjadi `INV/ERLASS/YYYYMM/KODLAN/NNN` saat disetujui Akunting.
+- **Koreksi Granular Siswa Billable**:
+  - Koreksi manual siswa billable dapat dilakukan per rombel item dengan audit trail lengkap (alasan min 10 karakter, user id, timestamp).
+  - Total tagihan siswa sekolah terakumulasi secara otomatis.
+- **Cetak Tagihan PDF Resmi**:
+  - Dokumen PDF tagihan resmi dengan identitas sekolah, tabel rincian item rombel, total siswa, dan catatan komitmen kontrak.
+
+---
+
 ## Kesimpulan
 
-Sistem saat ini telah bertransformasi penuh menjadi **AOQCS Terpadu** yang stabil, mencakup seluruh siklus operasional: inisiasi pesanan (SP), manajemen rombel & asisten, kontrol kehadiran H-1 & presensi detail, penilaian & portofolio digital, warning engine quality control, hingga otomatisasi payroll keuangan instruktur.
+Sistem saat ini telah bertransformasi penuh menjadi **AOQCS Terpadu** yang stabil, mencakup seluruh siklus operasional: inisiasi pesanan (SP), manajemen rombel & asisten, kontrol kehadiran H-1 & presensi detail, penilaian & portofolio digital, warning engine quality control, otomatisasi payroll instruktur, manajemen program pelatihan workshop, hingga penerbitan invoice penagihan resmi per sekolah.
 

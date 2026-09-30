@@ -147,6 +147,30 @@ class EkstrakurikulerRombel extends Model
     }
 
     /**
+     * Relasi ke InvoiceApproval.
+     */
+    public function invoiceApprovals(): HasMany
+    {
+        return $this->hasMany(InvoiceApproval::class, 'ekstrakurikuler_rombel_id');
+    }
+
+    /**
+     * Dapatkan data batch tagihan yang siap digenerate jika memenuhi syarat.
+     */
+    public function getEligibleInvoice(?\Carbon\Carbon $asOfDate = null): ?array
+    {
+        return app(\App\Services\InvoiceService::class)->getEligibleInvoiceForRombel($this, $asOfDate);
+    }
+
+    /**
+     * Cek apakah rombel ini termasuk dalam program yang dapat dibuatkan invoice (Hanya Ekskul dan Pelatihan).
+     */
+    public function isInvoiceable(): bool
+    {
+        return $this->ekstrakurikuler?->isInvoiceable() ?? false;
+    }
+
+    /**
      * Relasi ke siswa yang terdaftar di rombel ini.
      */
     public function siswa(): BelongsToMany

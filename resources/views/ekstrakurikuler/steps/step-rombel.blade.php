@@ -2,6 +2,8 @@
 @php
     $totalRombel = $formData['total_rombel'] ?? 5;
     $currentRombelData = $formData['rombels'][$rombelNumber] ?? [];
+    $isPelatihan = str_starts_with($formData['kategori_program'] ?? '', 'Pelatihan') || (($formData['jenis_program'] ?? '') === 'pelatihan');
+    $defaultPertemuan = $isPelatihan ? 1 : '';
 @endphp
 
 <div class="section-title">
@@ -13,7 +15,13 @@
         <i class="fas fa-info-circle mr-2"></i>
         <div>
             <strong>Rombel {{ $rombelNumber }} dari {{ $totalRombel }}</strong><br>
-            <small>Atur jadwal dan detail pembelajaran untuk rombongan belajar ini</small>
+            <small>
+                @if($isPelatihan)
+                    Atur jadwal dan detail pelaksanaan program Pelatihan (Frekuensi Harian / Workshop)
+                @else
+                    Atur jadwal dan detail pembelajaran untuk rombongan belajar ini
+                @endif
+            </small>
         </div>
     </div>
 </div>
@@ -27,22 +35,26 @@
         <div class="col-md-6">
             <div class="form-group mb-3">
                 <label for="rombel_{{ $rombelNumber }}_total_pertemuan" class="form-label">
-                    <i class="fas fa-calendar-alt"></i> Jumlah Pertemuan <span class="required-indicator">*</span>
+                    <i class="fas fa-calendar-alt"></i> Jumlah Pertemuan / Hari <span class="required-indicator">*</span>
                 </label>
                 <input type="number" 
                        class="form-control @error('rombel_' . $rombelNumber . '_total_pertemuan') is-invalid @enderror" 
                        id="rombel_{{ $rombelNumber }}_total_pertemuan" 
                        name="rombel_{{ $rombelNumber }}_total_pertemuan" 
-                       value="{{ old('rombel_' . $rombelNumber . '_total_pertemuan', $currentRombelData['total_pertemuan'] ?? '') }}" 
+                       value="{{ old('rombel_' . $rombelNumber . '_total_pertemuan', $currentRombelData['total_pertemuan'] ?? $defaultPertemuan) }}" 
                        min="1" 
                        max="50"
-                       placeholder="0"
+                       placeholder="1"
                        required>
                 @error('rombel_' . $rombelNumber . '_total_pertemuan')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
                 <small class="form-text text-muted">
-                    Total pertemuan untuk rombel ini
+                    @if($isPelatihan)
+                        Total hari pelaksanaan pelatihan (1 untuk pelatihan 1 hari, 2 untuk 2 hari, dst)
+                    @else
+                        Total pertemuan untuk rombel ini
+                    @endif
                 </small>
             </div>
         </div>
@@ -162,7 +174,11 @@
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
                 <small class="form-text text-muted">
-                    Waktu mulai kegiatan (Durasi mengajar per sesi: 60 s.d. 90 menit)
+                    @if($isPelatihan)
+                        Waktu pelaksanaan kegiatan (durasi fleksibel untuk pelatihan)
+                    @else
+                        Waktu mulai kegiatan (Durasi mengajar per sesi: 60 s.d. 90 menit)
+                    @endif
                 </small>
             </div>
         </div>
@@ -258,19 +274,32 @@
     </div>
 </div>
 
+@if($isPelatihan)
+<div class="alert alert-info mt-4">
+    <h6><i class="fas fa-info-circle"></i> Info Penjadwalan Pelatihan:</h6>
+    <ul class="mb-0">
+        <li>Pelatihan menggunakan jadwal harian (bisa 1 hari, 2 hari, 3 hari, dst.)</li>
+        <li>Opsi 1 hari: Tanggal Mulai dan Tanggal Selesai otomatis di hari yang sama</li>
+        <li>Hari pelaksanaan otomatis sinkron dengan tanggal yang dipilih</li>
+        <li>Durasi waktu mengajar fleksibel sesuai kebutuhan agenda pelatihan</li>
+    </ul>
+</div>
+@else
 <div class="alert alert-warning mt-4">
     <h6><i class="fas fa-exclamation-triangle"></i> Perhatian:</h6>
     <ul class="mb-0">
         <li>Pastikan tidak ada bentrok jadwal dengan rombel lain</li>
         <li>Pertimbangkan hari libur sekolah dalam penentuan tanggal</li>
-        <li>Durasi setiap pertemuan diasumsikan 2 jam</li>
+        <li>Durasi setiap pertemuan: 60 s.d. 90 menit</li>
         <li>Sistem akan menggunakan frekuensi mingguan (1x per minggu)</li>
     </ul>
 </div>
+@endif
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const rombelNumber = {{ $rombelNumber }};
+    const isPelatihan = @json($isPelatihan);
     const totalPertemuanInput = document.getElementById(`rombel_${rombelNumber}_total_pertemuan`);
     const tanggalMulaiInput = document.getElementById(`rombel_${rombelNumber}_tanggal_mulai`);
     const tanggalSelesaiInput = document.getElementById(`rombel_${rombelNumber}_tanggal_selesai`);
@@ -278,6 +307,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const jamMulaiInput = document.getElementById(`rombel_${rombelNumber}_jam_mulai`);
     const jumlahSiswaInput = document.getElementById(`rombel_${rombelNumber}_jumlah_siswa`);
     
+    const dayIndexToName = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
+    const dayMapping = {
+        'senin': 1, 'selasa': 2, 'rabu': 3, 'kamis': 4, 
+        'jumat': 5, 'sabtu': 6, 'minggu': 0
+    };
+
+    function parseDateYmd(dateStr) {
+        if (!dateStr) return null;
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+            return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        }
+        return new Date(dateStr);
+    }
+
+    function formatDateYmd(d) {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function syncHariFromTanggalMulai() {
+        const tanggalMulai = tanggalMulaiInput.value;
+        if (!tanggalMulai) return;
+        const d = parseDateYmd(tanggalMulai);
+        if (d && !isNaN(d.getTime())) {
+            const dayName = dayIndexToName[d.getDay()];
+            if (hariSelect.value !== dayName) {
+                hariSelect.value = dayName;
+            }
+        }
+    }
+
     function updateScheduleCalculation() {
         const totalPertemuan = parseInt(totalPertemuanInput.value) || 0;
         const tanggalMulai = tanggalMulaiInput.value;
@@ -285,31 +348,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const hari = hariSelect.value;
         const jamMulai = jamMulaiInput.value;
         
-        if (totalPertemuan > 0 && tanggalMulai && tanggalSelesai && hari) {
-            // Calculate actual occurrences of the target day within the range
-            const startDate = new Date(tanggalMulai);
-            const endDate = new Date(tanggalSelesai);
-            
-            const dayMapping = {
-                'senin': 1, 'selasa': 2, 'rabu': 3, 'kamis': 4, 
-                'jumat': 5, 'sabtu': 6, 'minggu': 0
-            };
-            const targetDay = dayMapping[hari];
-            
-            // Count occurrences of target day
-            let availableSlots = 0;
-            let current = new Date(startDate);
-            while (current <= endDate) {
-                if (current.getDay() === targetDay) {
-                    availableSlots++;
-                }
-                current.setDate(current.getDate() + 1);
+        if (totalPertemuan > 0 && tanggalMulai && tanggalSelesai && (isPelatihan || hari)) {
+            const startDate = parseDateYmd(tanggalMulai);
+            const endDate = parseDateYmd(tanggalSelesai);
+            if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                return;
             }
             
-            document.getElementById('total_weeks').textContent = availableSlots;
+            let availableSlots = 0;
+            if (isPelatihan) {
+                const diffTime = endDate.getTime() - startDate.getTime();
+                availableSlots = Math.max(1, Math.round(diffTime / (1000 * 3600 * 24)) + 1);
+                document.getElementById('total_weeks').textContent = `${availableSlots} Hari`;
+            } else {
+                const targetDay = dayMapping[hari];
+                let current = new Date(startDate);
+                while (current <= endDate) {
+                    if (current.getDay() === targetDay) {
+                        availableSlots++;
+                    }
+                    current.setDate(current.getDate() + 1);
+                }
+                document.getElementById('total_weeks').textContent = availableSlots;
+            }
             
             // Calculate duration estimate
-            const durationEstimate = `${totalPertemuan} x 2 jam = ${totalPertemuan * 2} jam`;
+            const durationEstimate = `${totalPertemuan} pertemuan / sesi`;
             document.getElementById('duration_estimate').textContent = durationEstimate;
             
             // Determine schedule status
@@ -338,25 +402,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function generateSchedulePreview(totalPertemuan, startDate, hari, jamMulai) {
-        const dayMapping = {
-            'senin': 1, 'selasa': 2, 'rabu': 3, 'kamis': 4, 
-            'jumat': 5, 'sabtu': 6, 'minggu': 0
-        };
-        
-        const targetDay = dayMapping[hari];
-        let currentDate = new Date(startDate);
-        
-        // Find first occurrence of the target day
-        while (currentDate.getDay() !== targetDay) {
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-        
         let previewHtml = '<div class="row">';
-        const maxPreview = Math.min(totalPertemuan, 6); // Show max 6 sessions in preview
+        const maxPreview = Math.min(totalPertemuan, 6);
+        
+        let currentDate = new Date(startDate);
+        if (!isPelatihan) {
+            const targetDay = dayMapping[hari];
+            while (currentDate.getDay() !== targetDay) {
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+        }
         
         for (let i = 1; i <= maxPreview; i++) {
             const sessionDate = new Date(currentDate);
-            sessionDate.setDate(sessionDate.getDate() + (i - 1) * 7);
+            if (isPelatihan) {
+                sessionDate.setDate(sessionDate.getDate() + (i - 1));
+            } else {
+                sessionDate.setDate(sessionDate.getDate() + (i - 1) * 7);
+            }
             
             const formattedDate = sessionDate.toLocaleDateString('id-ID', {
                 weekday: 'long',
@@ -371,7 +434,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="card-body p-2">
                             <h6 class="card-title mb-1">Pertemuan ${i}</h6>
                             <small class="text-muted">${formattedDate}</small><br>
-                            <small class="text-info">${jamMulai} - ${calculateEndTime(jamMulai)}</small>
+                            <small class="text-info">${jamMulai || '--:--'} - ${calculateEndTime(jamMulai)}</small>
                         </div>
                     </div>
                 </div>
@@ -395,13 +458,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function calculateEndTime(startTime) {
-        if (!startTime) return '';
-        
+        if (!startTime) return '--:--';
         const [hours, minutes] = startTime.split(':').map(Number);
-        const endHours = hours + 2; // Assume 2 hours duration
-        const endMinutes = minutes;
-        
-        return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
+        const endHours = hours + (isPelatihan ? 2 : 1.5);
+        const endH = Math.floor(endHours) % 24;
+        const endM = Math.floor((endHours % 1) * 60) + (minutes || 0);
+        return `${String(endH).padStart(2, '0')}:${String(endM % 60).padStart(2, '0')}`;
     }
     
     function autoCalculateEndDate() {
@@ -409,48 +471,57 @@ document.addEventListener('DOMContentLoaded', function() {
         const tanggalMulai = tanggalMulaiInput.value;
         const hari = hariSelect.value;
         
-        if (totalPertemuan > 0 && tanggalMulai && hari) {
-            const dayMapping = {
-                'senin': 1, 'selasa': 2, 'rabu': 3, 'kamis': 4, 
-                'jumat': 5, 'sabtu': 6, 'minggu': 0
-            };
+        if (totalPertemuan > 0 && tanggalMulai) {
+            const startDate = parseDateYmd(tanggalMulai);
+            if (!startDate || isNaN(startDate.getTime())) return;
             
-            const startDate = new Date(tanggalMulai);
-            const targetDay = dayMapping[hari];
-            
-            // Find first occurrence of the target day
-            let currentDate = new Date(startDate);
-            while (currentDate.getDay() !== targetDay) {
-                currentDate.setDate(currentDate.getDate() + 1);
+            if (isPelatihan) {
+                // Untuk Pelatihan: interval harian (1 hari: tanggal mulai = tanggal selesai)
+                const lastMeetingDate = new Date(startDate);
+                lastMeetingDate.setDate(lastMeetingDate.getDate() + (totalPertemuan - 1));
+                const formattedEndDate = formatDateYmd(lastMeetingDate);
+                
+                tanggalSelesaiInput.value = formattedEndDate;
+                if (tanggalSelesaiInput._flatpickr) {
+                    tanggalSelesaiInput._flatpickr.setDate(formattedEndDate, true);
+                }
+            } else if (hari) {
+                const targetDay = dayMapping[hari];
+                let currentDate = new Date(startDate);
+                while (currentDate.getDay() !== targetDay) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                const lastMeetingDate = new Date(currentDate);
+                lastMeetingDate.setDate(lastMeetingDate.getDate() + (totalPertemuan - 1) * 7);
+                const formattedEndDate = formatDateYmd(lastMeetingDate);
+                
+                tanggalSelesaiInput.value = formattedEndDate;
+                if (tanggalSelesaiInput._flatpickr) {
+                    tanggalSelesaiInput._flatpickr.setDate(formattedEndDate, true);
+                }
             }
-            
-            // Calculate end date (exactly at the last meeting)
-            const lastMeetingDate = new Date(currentDate);
-            lastMeetingDate.setDate(lastMeetingDate.getDate() + (totalPertemuan - 1) * 7);
-            
-            const formattedEndDate = lastMeetingDate.toISOString().split('T')[0];
-            tanggalSelesaiInput.value = formattedEndDate;
         }
     }
     
     // Add event listeners
     totalPertemuanInput.addEventListener('input', function() {
-        updateScheduleCalculation();
         autoCalculateEndDate();
+        updateScheduleCalculation();
     });
     
     tanggalMulaiInput.addEventListener('change', function() {
-        updateScheduleCalculation();
+        if (isPelatihan) {
+            syncHariFromTanggalMulai();
+        }
         autoCalculateEndDate();
-        
-        // Update min date for end date
+        updateScheduleCalculation();
         tanggalSelesaiInput.min = this.value;
     });
     
     tanggalSelesaiInput.addEventListener('change', updateScheduleCalculation);
     hariSelect.addEventListener('change', function() {
-        updateScheduleCalculation();
         autoCalculateEndDate();
+        updateScheduleCalculation();
     });
     jamMulaiInput.addEventListener('change', updateScheduleCalculation);
     
@@ -473,7 +544,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Initial calculation
+    // Initial calculation on page load
+    if (isPelatihan && tanggalMulaiInput.value) {
+        syncHariFromTanggalMulai();
+    }
     updateScheduleCalculation();
 });
 </script>

@@ -218,6 +218,11 @@
                             default => 'bg-secondary text-white'
                         };
                     @endphp
+                    @if($ekstrakurikuler->isPelatihan())
+                        <span class="badge bg-light text-primary px-3 py-2 rounded-pill fs-7 fw-semibold shadow-sm">
+                            <i class="bi bi-mortarboard-fill text-primary me-1"></i> Pelatihan
+                        </span>
+                    @endif
                     <span class="badge {{ $statusBadgeClass }} px-3 py-2 rounded-pill fs-7 fw-semibold shadow-sm">
                         <i class="bi bi-circle-fill me-1 small"></i> {{ $ekstrakurikuler->status_label }}
                     </span>
@@ -569,6 +574,46 @@
                                         {{ $rombel->pertemuan_selesai }} dari {{ $rombel->total_pertemuan }} pertemuan selesai
                                     </small>
                                 </div>
+
+                                {{-- 1-Click Invoice Shortcut if Eligible --}}
+                                @php
+                                    $eligibleBatch = $rombel->getEligibleInvoice();
+                                    $isOverdue = ($eligibleBatch['days_overdue'] ?? 0) > 0;
+                                @endphp
+                                @if($eligibleBatch)
+                                <div class="p-2.5 mb-3 rounded-3 border {{ $isOverdue ? 'border-danger border-opacity-50 bg-danger bg-opacity-10' : 'border-success border-opacity-25 bg-success bg-opacity-10' }} d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div>
+                                        <div class="fw-bold {{ $isOverdue ? 'text-danger' : 'text-success' }} small d-flex align-items-center gap-1">
+                                            <i class="bi {{ $isOverdue ? 'bi-exclamation-triangle-fill' : 'bi-lightning-charge-fill' }}"></i> 
+                                            Siap Ditagih: {{ $eligibleBatch['periode_label'] }}
+                                            @if($isOverdue)
+                                                <span class="badge bg-danger text-white rounded-pill px-2 py-0.5 ms-1" style="font-size: .7rem;">
+                                                    {{ $eligibleBatch['keterlambatan_label'] }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div class="text-muted fs-8">
+                                            Sesi {{ $eligibleBatch['sesi_dari'] }}–{{ $eligibleBatch['sesi_sampai'] }} selesai
+                                            @if(!empty($eligibleBatch['target_date_formatted']))
+                                                &bull; Target: {{ $eligibleBatch['target_date_formatted'] }}
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <form action="{{ route('invoice.quick-generate') }}" method="POST" class="d-inline mb-0">
+                                        @csrf
+                                        <input type="hidden" name="ekstrakurikuler_rombel_id" value="{{ $rombel->id }}">
+                                        <input type="hidden" name="skema_tagihan" value="{{ $eligibleBatch['skema_tagihan'] }}">
+                                        <input type="hidden" name="periode_label" value="{{ $eligibleBatch['periode_label'] }}">
+                                        <input type="hidden" name="periode_nomor" value="{{ $eligibleBatch['periode_nomor'] ?? '' }}">
+                                        <input type="hidden" name="sesi_dari" value="{{ $eligibleBatch['sesi_dari'] }}">
+                                        <input type="hidden" name="sesi_sampai" value="{{ $eligibleBatch['sesi_sampai'] }}">
+                                        <input type="hidden" name="tahun_ajaran" value="{{ $eligibleBatch['tahun_ajaran'] }}">
+                                        <button type="submit" class="btn btn-sm {{ $isOverdue ? 'btn-danger' : 'btn-success' }} rounded-pill px-3 shadow-xs fw-semibold text-white">
+                                            <i class="bi bi-lightning-charge-fill me-1"></i> Buat Invoice (1-Klik)
+                                        </button>
+                                    </form>
+                                </div>
+                                @endif
 
                                 <!-- Instructors -->
                                 @if($rombel->instruktur || $rombel->asisten)

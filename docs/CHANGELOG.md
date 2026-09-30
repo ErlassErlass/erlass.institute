@@ -2,6 +2,167 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.40] - 2026-09-30
+
+### Arsitektur Penagihan: 1 Invoice per Sekolah dengan Rincian Item per Rombel
+
+#### Refactoring Struktur & Database
+- **Tabel Induk Invoice Sekolah (`invoice_approvals`)**:
+  - Field `sekolah_kodlan` kini menjadi entitas penagihan utama (FK ke `sekolah.kodlan`).
+  - Menampung total rombel (`total_rombel`) dan total siswa billable terakumulasi dari seluruh rombel di sekolah tersebut.
+  - Kolom `ekstrakurikuler_rombel_id` dipertahankan sebagai nullable untuk kompatibilitas riwayat lama.
+- **Tabel Baru Rincian Tagihan per Rombel (`invoice_approval_items`)**:
+  - Menyimpan rincian tiap kelas/rombel dalam 1 invoice sekolah:
+    - `invoice_approval_id`: Relasi ke invoice sekolah.
+    - `ekstrakurikuler_rombel_id`: ID rombel terkait.
+    - `sesi_dari`, `sesi_sampai`, `jumlah_sesi`: Rentang sesi yang ditagihkan per rombel.
+    - `jumlah_siswa_billable`: Hitungan sistem (kehadiran unik/laporan/kuota siswa).
+    - `koreksi_siswa_billable`, `koreksi_catatan`, `koreksi_by`, `koreksi_at`: Audit trail koreksi mandiri per rombel.
+  - Unique constraint pada `[invoice_approval_id, ekstrakurikuler_rombel_id]` untuk menjamin integritas data.
+
+#### Aturan Penagihan & Kelayakan (Eligibility)
+- **Tunggu Semua Rombel Selesai**:
+  - Sekolah baru masuk kategori siap tagih jika **seluruh rombel aktif** (Ekskul & Pelatihan) di sekolah tersebut telah menuntaskan target pertemuannya untuk periode yang bersangkutan.
+  - Jika salah satu rombel di sekolah tersebut belum menyelesaikan kuota pertemuannya, penagihan sekolah ditahan sampai seluruh rombel selesai.
+- **Eksklusif Ekskul & Pelatihan**: Program non-tagihan (Free Trial, Sosialisasi, Pameran, Lomba, Inkul) tetap dikecualikan secara ketat dari perhitungan invoice.
+
+#### Penomoran Invoice: Draft hingga Finalisasi Resmi
+- **Prefix Draft Saat Pending**:
+  - Saat digenerate pertama kali oleh sistem/operasional, nomor invoice diawali `DRAFT-` (contoh: `DRAFT-INV/ERLASS/202609/SMP01/001`).
+  - Badge peringatan `DRAFT` ditampilkan secara visual di header tabel dan halaman rincian invoice.
+- **Finalisasi Otomatis saat Disetujui Akunting**:
+  - Begitu Akunting/Finance menyetujui invoice (`approveAkunting`), nomor invoice otomatis difinalisasi menjadi nomor resmi tanpa prefix draft: `INV/ERLASS/202609/SMP01/001`.
+  - Tombol unduh PDF resmi baru terbuka setelah nomor menjadi final dan invoice fully approved.
+
+#### Koreksi Granular per Item Rombel
+- Admin dan Operasional dapat mengajukan koreksi jumlah siswa billable langsung pada rombel tertentu via modal popup di halaman detail invoice (`/invoice/{id}`).
+- Total siswa billable efektif invoice dihitung secara otomatis sebagai penjumlahan dari seluruh rombel (`$invoice->billable_efektif`).
+- Riwayat catatan koreksi dan nama pengkoreksi tercatat rapi per baris rombel.
+
+#### Tampilan UI & Cetak PDF Resmi
+- **Halaman Show (`invoice.show`)**: Menampilkan tabel breakdown "Rincian Tagihan per Rombel" dengan kolom Nama Rombel, Program, Rentang Sesi, Hitungan Sistem, Koreksi Manual, dan Billable Efektif.
+- **Cetak PDF (`invoice.pdf`)**: Desain dokumen tagihan resmi menyajikan identitas sekolah di kop/identitas invoice, tabel rincian item rombel di badan tagihan, dan grand total siswa billable di bagian bawah.
+
+## [2.9.39] - 2026-09-30
+
+### Smart Ready-to-Bill Detection, 1-Click Invoice Shortcut, & School Code Search
+
+#### Fitur Baru: Pencarian & Pembatasan Sekolah
+- **Pencarian Kode Sekolah di Ekskul**: Input search pada halaman daftar ekstrakurikuler (`https://erlass.institute/ekstrakurikuler?sort=priority`) kini mendukung pencarian langsung berdasarkan kode sekolah (`ekstrakurikuler.sekolah_kodlan` dan `sekolah.kodlan`).
+- **Sekolah Hanya yang Memiliki Ekskul/Pelatihan**: Dropdown pilihan sekolah pada form pembuatan invoice (`/invoice/create`) dan filter daftar invoice (`/invoice`) kini dibatasi hanya untuk sekolah yang memiliki program tagihan aktif (`Sekolah::has('invoiceableEkstrakurikulers')`).
+- **Format Label Kode Sekolah**: Semua opsi dropdown sekolah menyertakan kode sekolah dengan format jelas `[KODLAN] Nama Sekolah (Skema)`.
+
+#### Fitur Baru: Pembatasan Penagihan Hanya Ekskul & Pelatihan
+- **Eksklusif Hanya Ekskul & Pelatihan (`isInvoiceable`)**:
+  - Sistem penagihan (invoice) **hanya memproses program berjenis Ekstrakurikuler dan Pelatihan**.
+  - Program-program selain Ekskul dan Pelatihan (**Free Trial Class, Sosialisasi bersama Sales, Pameran, Pendampingan Lomba, Inkul / Intrakurikuler**) secara sistematis dan otomatis **dikecualikan (tidak include)**:
+    - Tidak akan pernah dideteksi pada daftar rombel siap ditagihkan (`getAllEligibleRombels`).
+    - Tidak akan memunculkan banner/shortcut "⚡ Siap Ditagih" pada detail rombel.
+    - Ditolak jika dipaksa dibuat manual via form `/invoice/create` atau API `/invoice/quick-generate`.
+    - Dikecualikan dari endpoint JSON dropdown rombel `/invoice/rombels-by-sekolah`.
+
+#### Fitur Baru: Smart Ready-to-Bill Detection & Shortcut 1-Klik
+- **Deteksi Otomatis Rombel Siap Ditagihkan (`InvoiceService`)**:
+  - **Skema `per_4_pertemuan`**: Sistem mendeteksi otomatis jika terdapat 4 sesi selesai yang belum pernah ditagihkan sebelumnya:
+    - Sesi 1–4 -> `Inv Bulan 1`
+    - Sesi 5–8 -> `Inv Bulan 2`
+    - Sesi 9–12 -> `Inv Bulan 3`, dst.
+  - **Skema `bulanan`**: Sistem mendeteksi rombel dengan sesi selesai di bulan kalender tertentu yang belum ada invoice-nya, dengan syarat di akhir bulan (tanggal >= 24 atau semua sesi terjadwal di bulan tersebut telah berstatus selesai/batal).
+- **Urutan Prioritas & Tracking Keterlambatan Invoice**:
+  - **Urutan Prioritas Tagihan Wajib**: Daftar rombel siap ditagihkan diurutkan secara ketat berdasarkan keterlambatan: `days_overdue DESC` (rombel yang paling lama terlambat dari target pembuatan muncul di paling atas), kemudian `target_date ASC`, lalu `sekolah_nama ASC`.
+  - **Target Pembuatan & Badge Keterlambatan**:
+    - Kolom baru **Target Pembuatan** menampilkan tanggal patokan selesainya batch/akhir bulan.
+    - Kolom baru **Keterlambatan** menampilkan badge status dinamis: `Terlambat X hari` (merah untuk >= 7 hari, kuning untuk 1-6 hari) atau `Hari Ini` (info biru).
+- **Shortcut 1-Klik di Halaman Detail Rombel (`/ekstrakurikuler/{id}`)**:
+  - Kartu Rombel menampilkan badge status `⚡ Siap Ditagih: Inv Bulan X` beserta tombol **"Buat Invoice (1-Klik)"**.
+  - Jika tagihan telah melewati target pembuatan, banner rombel berubah menjadi highlight merah dengan badge peringatan `Terlambat X hari` dan tombol berwarna merah untuk menegaskan urgensi operasional.
+  - Mengklik tombol langsung membuat draft invoice `pending_operasional` dengan nomor invoice, periode, dan siswa billable terisi otomatis tanpa perlu mengisi form manual.
+- **Panel "Rombel Siap Ditagihkan" di Halaman Invoice (`/invoice`)**:
+  - Menampilkan daftar semua rombel yang saat ini eligible terurut dari yang paling terlambat beserta tombol **"1-Klik Generate"** per baris.
+  - Dilengkapi tombol **"⚡ Generate Semua (Bulk)"** untuk memproses seluruh rombel yang siap ditagih dalam satu kali klik.
+
+## [2.9.38] - 2026-09-30
+
+### Program Pelatihan (Workshop / Harian) & Logika Penjadwalan Fleksibel
+
+#### Fitur Baru: Kategori Pelatihan pada Form Pembuatan Program
+- **Single Dropdown dengan Pengelompokan `<optgroup>`**:
+  - Pilihan kategori program pada `ekstrakurikuler/create` (Step 1) digabung dalam satu dropdown dengan kelompok **Program Pelatihan** di bagian atas (depan) dan **Program Ekstrakurikuler** di bagian bawah.
+  - Produk materi Pelatihan identik dengan Ekskul: Coding Scratch, English Course, Pictoblox AI, Robotik Micro:bit, Robotik Arduino, Robotik Explorer, Robotik Jimu, dll.
+  - Seeding 9 produk Pelatihan baru ke tabel `products` (`PCR`, `PER`, `PPR`, `PRR-MB`, `PRR-ALK`, `PRR-MLK`, `PRR-RE`, `PRR-RB`, `PRR-RJ`).
+- **Dukungan Pelatihan 1 Hari (Single-Day Workshop)**:
+  - Pelatihan dapat diselenggarakan dalam 1 hari dengan tanggal awal dan tanggal akhir di hari yang sama (`tanggal_mulai == tanggal_selesai`) dan `total_pertemuan = 1`.
+  - Step 4 (Rombel Count) otomatis default ke 1 rombel untuk Pelatihan.
+  - Step 5 (Rombel Info & Sesi) otomatis menghitung tanggal selesai sama dengan tanggal mulai jika pertemuan = 1.
+- **Logika Penjadwalan Harian (`frekuensi = harian`)**:
+  - Untuk program Pelatihan, jadwal pertemuan digenerate secara harian berturut-turut (`frekuensi_harian`) bukan mingguan, mendukung pelatihan 1 hari, 2 hari, 3 hari, dst.
+  - `SchedulingService` diperbarui agar frekuensi harian langsung menjadwalkan sesi mulai dari `tanggal_mulai` dan bertambah harian (+1 hari).
+- **Jam & Durasi Lebih Fleksibel**:
+  - Batasan durasi 60-90 menit dihilangkan khusus untuk Pelatihan, memungkinkan pelaksanaan workshop intensif seharian (contoh: 08:00 - 15:00 atau 6-7 jam).
+  - Program reguler Ekstrakurikuler tetap mempertahankan batas wajar 60-90 menit.
+- **Deteksi Otomatis Alat & Badge UI**:
+  - Pilihan konfigurasi alat (Robotik / Micro:bit) otomatis aktif jika memilih Pelatihan materi robotik.
+  - Badge khusus warna Indigo/Ungu bertuliskan **Pelatihan** ditambahkan pada daftar program (`index`), detail program (`show`), dan ringkasan wizard step final.
+
+## [2.9.37] - 2026-09-30
+
+### Sistem Invoice Tagihan — Dual Approval, 4 Skema, Koreksi Manual
+
+#### Fitur Baru: Manajemen Invoice Per Rombel Per Periode
+
+- **Tabel Database Baru (`invoice_approvals`)**: Menyimpan status invoice per rombel per periode tagihan. Kolom mencakup identitas tagihan, skema, range sesi, jumlah siswa billable sistem, dual approval status (Operasional + Akunting), kolom koreksi manual (audit trail), dan metadata PDF.
+- **Kolom Baru (`sekolah.skema_tagihan`)**: Enum 4 nilai (`bulanan`, `semester`, `tahunan`, `per_4_pertemuan`). Default `per_4_pertemuan` untuk semua sekolah baru. 21 sekolah prioritas di-seed ke `bulanan` via migration.
+- **Model `InvoiceApproval`**: Relasi lengkap ke rombel, user operasional, akunting, koreksi, dan created_by. Accessor `billable_efektif` (koreksi override sistem). Helper `statusLabel()`, `statusBadgeClass()`, `isApproved()`, `hasKoreksi()`, `generateNomorInvoice()`, `catatanKontrakText()`.
+- **Model `Sekolah` Update**: Tambah `skema_tagihan` ke fillable/casts, helper `skemaTagihanLabel()`, relasi `invoiceApprovals()`.
+
+#### Alur Approval Invoice
+
+```
+Admin Buat Invoice → PENDING_OPERASIONAL
+    ↓ Approve Operasional (siapa yang login)
+PENDING_AKUNTING
+    ↓ Approve Akunting (siapa yang login)
+APPROVED → PDF Tersedia
+```
+
+#### Koreksi Billable (Handling Selisih Data)
+
+- Admin dapat mengoreksi jumlah siswa billable hasil hitungan sistem jika ada selisih data lapangan.
+- Koreksi dicatat sebagai audit trail lengkap: user, waktu, alasan (min. 10 karakter).
+- Nilai efektif yang tampil di PDF = `koreksi_siswa_billable` jika ada, fallback ke `jumlah_siswa_billable`.
+- Admin dapat reset koreksi kembali ke hitungan sistem kapan saja (sebelum fully approved).
+
+#### Skema Tagihan
+
+| Skema | Keterangan | Default |
+|---|---|---|
+| `bulanan` | Kalender bulanan (Agustus–Mei) | 21 sekolah prioritas |
+| `semester` | ~16 pertemuan per semester | - |
+| `tahunan` | ~32 pertemuan per tahun ajaran | - |
+| `per_4_pertemuan` | Rolling batch setiap 4 pertemuan | **Semua sekolah baru** |
+
+- Skema sekolah dapat diubah admin kapan saja via endpoint `POST /sekolah/{kodlan}/skema-tagihan`.
+
+#### Catatan Kontrak Wajib (No-Cancellation Policy)
+
+- Teks wajib berikut tampil di **setiap PDF invoice** yang diterbitkan:
+  > *"Sesi pembelajaran TIDAK DAPAT DIBATALKAN secara sepihak untuk pengurangan biaya tagihan. Apabila terdapat kendala operasional internal sekolah, pertemuan wajib dialihkan ke tanggal pengganti melalui prosedur Reschedule resmi."*
+
+#### Files Changed
+
+- `database/migrations/2026_09_30_070000_create_invoice_approvals_table.php` *(NEW)*
+- `database/migrations/2026_09_30_070100_add_skema_tagihan_to_sekolah_table.php` *(NEW)*
+- `database/migrations/2026_09_30_070200_add_koreksi_to_invoice_approvals_table.php` *(NEW)*
+- `app/Models/InvoiceApproval.php` *(NEW)*
+- `app/Models/Sekolah.php` *(UPDATED — skema_tagihan, skemaTagihanLabel, invoiceApprovals)*
+- `app/Http/Controllers/InvoiceController.php` *(NEW)*
+- `resources/views/invoice/index.blade.php` *(NEW)*
+- `resources/views/invoice/show.blade.php` *(NEW — koreksi panel, approval stepper)*
+- `resources/views/invoice/pdf.blade.php` *(NEW — template PDF dengan catatan kontrak)*
+- `routes/web.php` *(UPDATED — 9 invoice routes + 1 skema route)*
+
+---
+
 ## [2.9.36] - 2026-09-30
 
 ### Standardisasi Alasan Reschedule Sesi Menjadi Dropdown Murni

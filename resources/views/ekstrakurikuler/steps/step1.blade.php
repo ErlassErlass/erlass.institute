@@ -16,11 +16,28 @@
                     required>
                 <option value="">Pilih Kategori Program</option>
                 @if(isset($activeProducts) && $activeProducts->isNotEmpty())
-                    @foreach($activeProducts as $product)
-                        <option value="{{ $product->nama_produk }}" {{ old('kategori_program', $formData['kategori_program'] ?? '') == $product->nama_produk ? 'selected' : '' }}>
-                            {{ $product->nama_produk }}
-                        </option>
-                    @endforeach
+                    @php
+                        $pelatihanProducts = $activeProducts->filter(fn($p) => str_starts_with($p->nama_produk, 'Pelatihan') || ($p->jenis ?? '') === 'Pelatihan');
+                        $ekskulProducts = $activeProducts->filter(fn($p) => !str_starts_with($p->nama_produk, 'Pelatihan') && ($p->jenis ?? '') !== 'Pelatihan');
+                    @endphp
+                    @if($pelatihanProducts->isNotEmpty())
+                        <optgroup label="🏢 Program Pelatihan (Workshop / Harian)">
+                            @foreach($pelatihanProducts as $product)
+                                <option value="{{ $product->nama_produk }}" {{ old('kategori_program', $formData['kategori_program'] ?? '') == $product->nama_produk ? 'selected' : '' }}>
+                                    {{ $product->nama_produk }}
+                                </option>
+                            @endforeach
+                        </optgroup>
+                    @endif
+                    @if($ekskulProducts->isNotEmpty())
+                        <optgroup label="🎓 Program Ekstrakurikuler (Reguler / Mingguan)">
+                            @foreach($ekskulProducts as $product)
+                                <option value="{{ $product->nama_produk }}" {{ old('kategori_program', $formData['kategori_program'] ?? '') == $product->nama_produk ? 'selected' : '' }}>
+                                    {{ $product->nama_produk }}
+                                </option>
+                            @endforeach
+                        </optgroup>
+                    @endif
                 @else
                     @foreach([
                         \App\Models\Ekstrakurikuler::KATEGORI_CODING_SCRATCH,
@@ -40,7 +57,7 @@
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
             <small class="form-text text-muted">
-                Pilih kategori program ekstrakurikuler yang akan dijalankan
+                Pilih kategori program Pelatihan atau Ekstrakurikuler yang akan dijalankan
             </small>
         </div>
     </div>
@@ -207,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function toggleEquipment() {
         const selectedKategori = kategoriSelect.value;
-        const showEquipment = kategoriButuhAlat.includes(selectedKategori);
+        const showEquipment = kategoriButuhAlat.includes(selectedKategori) || /robotik|micro:?bit/i.test(selectedKategori);
         
         equipmentSection.style.display = showEquipment ? '' : 'none';
         

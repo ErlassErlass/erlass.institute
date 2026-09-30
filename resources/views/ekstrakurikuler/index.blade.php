@@ -257,7 +257,14 @@
                                 @forelse($ekstrakurikulers as $ekstrakurikuler)
                                 <tr>
                                     <td class="ps-3">{{ $ekstrakurikulers->firstItem() + $loop->index }}</td>
-                                    <td><div class="fw-bold text-dark">{{ $ekstrakurikuler->kategori_program }}</div></td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-1">
+                                            @if($ekstrakurikuler->isPelatihan())
+                                                <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1" style="font-size: 0.72rem;">Pelatihan</span>
+                                            @endif
+                                            <span class="fw-bold text-dark">{{ $ekstrakurikuler->kategori_program }}</span>
+                                        </div>
+                                    </td>
                                     <td><div class="fw-bold text-dark">{{ $ekstrakurikuler->sekolah?->namasekolah ?? '-' }}</div><small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ $ekstrakurikuler->sekolah?->kota ?? '-' }}</small></td>
                                     <td class="text-center fw-semibold text-secondary">{{ $ekstrakurikuler->total_siswa ?? 0 }}</td>
                                     <td>
@@ -335,7 +342,12 @@
                         @endphp
                         <div class="card mb-3 shadow-sm border-0 border-start border-4 border-primary" style="border-radius: 8px;">
                             <div class="card-body">
-                                <h6 class="fw-bold text-primary mb-1">{{ $ekstrakurikuler->kategori_program }}</h6>
+                                <div class="d-flex align-items-center gap-1 mb-1">
+                                    @if($ekstrakurikuler->isPelatihan())
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-0" style="font-size: 0.68rem;">Pelatihan</span>
+                                    @endif
+                                    <h6 class="fw-bold text-primary mb-0">{{ $ekstrakurikuler->kategori_program }}</h6>
+                                </div>
                                 <p class="small mb-2 text-dark fw-semibold">{{ $ekstrakurikuler->sekolah?->namasekolah }}</p>
                                 @php $progress = $ekstrakurikuler->getProgressPertemuan(); @endphp
                                 <div class="mb-3">

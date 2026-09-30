@@ -149,8 +149,10 @@ class EkstrakurikulerQueryService
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('ekstrakurikuler.kategori_program', 'like', "%{$searchTerm}%")
+                    ->orWhere('ekstrakurikuler.sekolah_kodlan', 'like', "%{$searchTerm}%")
                     ->orWhereHas('sekolah', function ($subQuery) use ($searchTerm) {
-                        $subQuery->where('namasekolah', 'like', "%{$searchTerm}%");
+                        $subQuery->where('namasekolah', 'like', "%{$searchTerm}%")
+                            ->orWhere('kodlan', 'like', "%{$searchTerm}%");
                     });
             });
         }

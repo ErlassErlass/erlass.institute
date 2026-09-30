@@ -97,13 +97,17 @@ class SchedulingService
         $skipHolidays = $options['skip_holidays'] ?? true;
         $totalTarget  = $rombel->total_pertemuan ?? 24;
 
+        $isHarian = ($rombel->frekuensi === EkstrakurikulerRombel::FREKUENSI_HARIAN);
+
         // Tanggal awal penjadwalan
         $currentDate = Carbon::parse($rombel->tanggal_mulai);
         $endDate     = Carbon::parse($rombel->tanggal_selesai);
 
-        // Cari hari pertama yang sesuai dengan hari jadwal rombel
-        while ($currentDate->dayOfWeek !== $targetDayOfWeek && $currentDate->lte($endDate)) {
-            $currentDate->addDay();
+        // Cari hari pertama yang sesuai dengan hari jadwal rombel (hanya jika mingguan/bukan harian)
+        if (! $isHarian) {
+            while ($currentDate->dayOfWeek !== $targetDayOfWeek && $currentDate->lte($endDate)) {
+                $currentDate->addDay();
+            }
         }
 
         // Kumpulkan tanggal yang sudah dipakai (untuk deteksi duplikat)
@@ -118,8 +122,10 @@ class SchedulingService
 
                 // Hitung currentDate berikutnya dari tanggal anchor ini
                 $currentDate = $existingDate->copy()->addDays($intervalDays);
-                while ($currentDate->dayOfWeek !== $targetDayOfWeek) {
-                    $currentDate->addDay();
+                if (! $isHarian) {
+                    while ($currentDate->dayOfWeek !== $targetDayOfWeek) {
+                        $currentDate->addDay();
+                    }
                 }
                 continue;
             }
@@ -202,9 +208,11 @@ class SchedulingService
             default => 7
         };
 
-        // Cari hari pertama yang sesuai dengan jadwal
-        while ($currentDate->dayOfWeek !== $targetDayOfWeek && $currentDate->lte($endDate)) {
-            $currentDate->addDay();
+        // Cari hari pertama yang sesuai dengan jadwal (hanya jika mingguan/bukan harian)
+        if ($rombel->frekuensi !== EkstrakurikulerRombel::FREKUENSI_HARIAN) {
+            while ($currentDate->dayOfWeek !== $targetDayOfWeek && $currentDate->lte($endDate)) {
+                $currentDate->addDay();
+            }
         }
 
         $sessionCount = 0;

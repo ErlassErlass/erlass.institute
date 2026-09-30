@@ -8,6 +8,11 @@
     <strong>Informasi:</strong> Tentukan struktur kelas untuk program ekstrakurikuler ini. Data ini akan mempengaruhi tahap-tahap selanjutnya.
 </div>
 
+@php
+    $isPelatihan = str_starts_with($formData['kategori_program'] ?? '', 'Pelatihan') || (($formData['jenis_program'] ?? '') === 'pelatihan');
+    $defaultRombel = $isPelatihan ? 1 : ($formData['total_rombel'] ?? 2);
+@endphp
+
 <div class="row">
     <div class="col-md-4">
         <div class="form-group mb-3">
@@ -67,7 +72,7 @@
                 <option value="">Pilih Jumlah Rombel</option>
                 @for($i = 1; $i <= 10; $i++)
                     <option value="{{ $i }}" 
-                            {{ old('total_rombel', $formData['total_rombel'] ?? '') == $i ? 'selected' : '' }}>
+                            {{ old('total_rombel', $formData['total_rombel'] ?? $defaultRombel) == $i ? 'selected' : '' }}>
                         {{ $i }} Rombel
                     </option>
                 @endfor

@@ -30,6 +30,11 @@ class Sekolah extends Model
      */
     protected $table = 'sekolah';
 
+    const SKEMA_BULANAN         = 'bulanan';
+    const SKEMA_SEMESTER        = 'semester';
+    const SKEMA_TAHUNAN         = 'tahunan';
+    const SKEMA_PER_4_PERTEMUAN = 'per_4_pertemuan';
+
     /**
      * Mendefinisikan 'kodlan' sebagai Primary Key.
      */
@@ -65,15 +70,30 @@ class Sekolah extends Model
         'lokasi_default',
         'kustom_transport_fee',
         'is_sekolah_bayar_instruktur',
+        'skema_tagihan',
     ];
 
     /**
      * Casting tipe data kolom.
      */
     protected $casts = [
-        'kustom_transport_fee' => 'decimal:2',
+        'kustom_transport_fee'        => 'decimal:2',
         'is_sekolah_bayar_instruktur' => 'boolean',
     ];
+
+    /**
+     * Label human-readable untuk skema tagihan.
+     */
+    public function skemaTagihanLabel(): string
+    {
+        return match ($this->skema_tagihan ?? 'per_4_pertemuan') {
+            'bulanan'         => 'Bulanan (Kalender)',
+            'semester'        => 'Per Semester (~16 sesi)',
+            'tahunan'         => 'Per Tahun (~32 sesi)',
+            'per_4_pertemuan' => 'Per 4 Pertemuan (Rolling Batch)',
+            default           => 'Per 4 Pertemuan (Rolling Batch)',
+        };
+    }
 
     /**
      * Relasi ke model Siswa.
@@ -93,6 +113,22 @@ class Sekolah extends Model
     public function ekstrakurikuler()
     {
         return $this->hasMany(Ekstrakurikuler::class, 'sekolah_kodlan', 'kodlan');
+    }
+
+    /**
+     * Alias plural untuk relasi ke Ekstrakurikuler.
+     */
+    public function ekstrakurikulers()
+    {
+        return $this->hasMany(Ekstrakurikuler::class, 'sekolah_kodlan', 'kodlan');
+    }
+
+    /**
+     * Relasi ke Ekstrakurikuler yang dapat di-invoice (Hanya Ekskul dan Pelatihan).
+     */
+    public function invoiceableEkstrakurikulers()
+    {
+        return $this->hasMany(Ekstrakurikuler::class, 'sekolah_kodlan', 'kodlan')->invoiceable();
     }
 
     /**
@@ -122,5 +158,21 @@ class Sekolah extends Model
         }
 
         return !empty($parts) ? implode(', ', $parts) : ($this->kotkab ?? 'Lokasi N/A');
+    }
+
+    /**
+     * Relasi ke InvoiceApproval melalui Ekstrakurikuler → Rombel.
+     * Digunakan untuk laporan rekap invoice per sekolah.
+     */
+    public function invoiceApprovals()
+    {
+        return $this->hasManyThrough(
+            \App\Models\InvoiceApproval::class,
+            Ekstrakurikuler::class,
+            'sekolah_kodlan', // FK di ekstrakurikuler
+            'ekstrakurikuler_rombel_id', // FK di invoice_approvals (via rombel)
+            'kodlan',         // Local key di sekolah
+            'id'              // Local key di ekstrakurikuler
+        );
     }
 }

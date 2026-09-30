@@ -36,6 +36,9 @@ class EkstrakurikulerFormService
                     continue;
                 }
 
+                $isPelatihan = str_starts_with($formData['kategori_program'] ?? '', 'Pelatihan') || (($formData['jenis_program'] ?? '') === 'pelatihan');
+                $frekuensi = $isPelatihan ? \App\Models\EkstrakurikulerRombel::FREKUENSI_HARIAN : \App\Models\EkstrakurikulerRombel::FREKUENSI_MINGGUAN;
+
                 // Create temporary rombel object untuk preview
                 $tempRombel = new \App\Models\EkstrakurikulerRombel([
                     'nama_rombel' => "Rombel {$index}",
@@ -46,7 +49,7 @@ class EkstrakurikulerFormService
                     'jam_mulai' => $rombelData['jam_mulai'],
                     'jam_selesai' => $rombelData['jam_selesai'] ?? \Carbon\Carbon::parse($rombelData['jam_mulai'])->addMinutes(90)->format('H:i'),
                     'total_pertemuan' => $rombelData['total_pertemuan'],
-                    'frekuensi' => \App\Models\EkstrakurikulerRombel::FREKUENSI_MINGGUAN,
+                    'frekuensi' => $frekuensi,
                 ]);
 
                 // Calculate session dates using SchedulingService
@@ -169,10 +172,15 @@ class EkstrakurikulerFormService
      */
     protected function extractStep1Data(Request $request): array
     {
-        return $request->only([
+        $data = $request->only([
             'kategori_program', 'user_id_sales', 'region', 'city', 
             'jenis_alat', 'jumlah_siswa_per_alat', 'deskripsi',
         ]);
+
+        $kategori = $data['kategori_program'] ?? '';
+        $data['jenis_program'] = str_starts_with($kategori, 'Pelatihan') ? 'pelatihan' : 'ekstrakurikuler';
+
+        return $data;
     }
 
     /**
@@ -344,7 +352,10 @@ class EkstrakurikulerFormService
      */
     protected function getRombelValidationRules(int $step): array
     {
+        $formData = $this->getFormData();
+        $isPelatihan = str_starts_with($formData['kategori_program'] ?? '', 'Pelatihan') || (($formData['jenis_program'] ?? '') === 'pelatihan');
         $rombelNumber = $step - 4;
+
         return [
             "rombel_{$rombelNumber}_total_pertemuan" => 'required|integer|min:1',
             "rombel_{$rombelNumber}_tanggal_mulai" => 'required|date',
@@ -355,8 +366,7 @@ class EkstrakurikulerFormService
                 'nullable',
                 'date_format:H:i',
                 'after:rombel_' . $rombelNumber . '_jam_mulai',
-                function ($attribute, $value, $fail) use ($rombelNumber) {
-                    // Validasi durasi mengajar per sesi (minimal 60 menit, maksimal 90 menit)
+                function ($attribute, $value, $fail) use ($rombelNumber, $isPelatihan) {
                     $jamMulai = request()->input("rombel_{$rombelNumber}_jam_mulai");
                     if ($jamMulai && $value) {
                         try {
@@ -364,8 +374,14 @@ class EkstrakurikulerFormService
                             $end = \Carbon\Carbon::createFromFormat('H:i', $value);
                             if ($end < $start) $end->addDay();
                             $diff = $start->diffInMinutes($end);
-                            if ($diff < 60) $fail('Durasi mengajar minimal 60 menit (1 jam).');
-                            if ($diff > 90) $fail('Durasi mengajar maksimal 90 menit (1,5 jam).');
+                            if (!$isPelatihan) {
+                                // Validasi ekskul reguler (60 s.d. 90 menit)
+                                if ($diff < 60) $fail('Durasi mengajar minimal 60 menit (1 jam).');
+                                if ($diff > 90) $fail('Durasi mengajar maksimal 90 menit (1,5 jam).');
+                            } else {
+                                // Validasi pelatihan fleksibel (minimal 30 menit, tanpa batas atas 90 menit)
+                                if ($diff < 30) $fail('Durasi pelatihan minimal 30 menit.');
+                            }
                         } catch (\Throwable $e) {}
                     }
                 }
@@ -638,9 +654,14 @@ class EkstrakurikulerFormService
         
 
         return \Illuminate\Support\Facades\DB::transaction(function () use ($formData, $tanggalMulaiEarliest, $tanggalSelesaiLatest, $totalPertemuanAll, $totalSiswaRombel) {
+            $isPelatihan = str_starts_with($formData['kategori_program'] ?? '', 'Pelatihan') || (($formData['jenis_program'] ?? '') === 'pelatihan');
+            $jenisProgram = $isPelatihan ? \App\Models\Ekstrakurikuler::JENIS_PELATIHAN : \App\Models\Ekstrakurikuler::JENIS_EKSTRAKURIKULER;
+            $frekuensi = $isPelatihan ? \App\Models\EkstrakurikulerRombel::FREKUENSI_HARIAN : \App\Models\Ekstrakurikuler::FREKUENSI_MINGGUAN;
+
             // Create ekstrakurikuler
             $ekstrakurikuler = \App\Models\Ekstrakurikuler::create([
                 'kategori_program' => $formData['kategori_program'],
+                'jenis_program' => $jenisProgram,
                 'user_id_sales' => $formData['user_id_sales'],
                 'region' => $formData['region'] ?? null,
                 'status' => \App\Models\Ekstrakurikuler::STATUS_AKTIF,
@@ -668,7 +689,7 @@ class EkstrakurikulerFormService
                 'tanggal_mulai' => $tanggalMulaiEarliest,
                 'tanggal_selesai' => $tanggalSelesaiLatest,
                 'total_pertemuan' => $totalPertemuanAll,
-                'frekuensi' => \App\Models\Ekstrakurikuler::FREKUENSI_MINGGUAN,
+                'frekuensi' => $frekuensi,
                 'created_by' => auth()->id(),
                 'updated_by' => auth()->id(),
             ]);
@@ -684,6 +705,7 @@ class EkstrakurikulerFormService
                             'nama_rombel' => "Rombel {$rombelNumber}",
                             'nomor_rombel' => $rombelNumber,
                             'total_pertemuan' => $rombelData['total_pertemuan'],
+                            'frekuensi' => $frekuensi,
                             'tanggal_mulai' => $rombelData['tanggal_mulai'],
                             'tanggal_selesai' => $rombelData['tanggal_selesai'],
                             'hari' => $rombelData['hari'],

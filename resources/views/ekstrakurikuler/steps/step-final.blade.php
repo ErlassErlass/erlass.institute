@@ -13,6 +13,17 @@
     <h6 class="summary-title"><i class="fas fa-info-circle"></i> Informasi Program</h6>
     
     <div class="summary-row">
+        <span class="summary-label">Jenis Program:</span>
+        <span class="summary-value">
+            @if(str_starts_with($formData['kategori_program'] ?? '', 'Pelatihan') || (($formData['jenis_program'] ?? '') === 'pelatihan'))
+                <span class="badge badge-info">Pelatihan</span>
+            @else
+                <span class="badge badge-primary">Ekstrakurikuler</span>
+            @endif
+        </span>
+    </div>
+
+    <div class="summary-row">
         <span class="summary-label">Kategori Program:</span>
         <span class="summary-value">{{ $formData['kategori_program'] ?? '-' }}</span>
     </div>

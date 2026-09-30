@@ -1,0 +1,77 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class InvoiceApprovalItem extends Model
+{
+    use HasFactory;
+
+    protected $table = 'invoice_approval_items';
+
+    protected $fillable = [
+        'invoice_approval_id',
+        'ekstrakurikuler_rombel_id',
+        'sesi_dari',
+        'sesi_sampai',
+        'jumlah_sesi',
+        'jumlah_siswa_billable',
+        'koreksi_siswa_billable',
+        'koreksi_catatan',
+        'koreksi_by',
+        'koreksi_at',
+    ];
+
+    protected $casts = [
+        'sesi_dari'              => 'integer',
+        'sesi_sampai'            => 'integer',
+        'jumlah_sesi'            => 'integer',
+        'jumlah_siswa_billable'  => 'integer',
+        'koreksi_siswa_billable' => 'integer',
+        'koreksi_at'             => 'datetime',
+    ];
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Relations
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(InvoiceApproval::class, 'invoice_approval_id');
+    }
+
+    public function rombel(): BelongsTo
+    {
+        return $this->belongsTo(EkstrakurikulerRombel::class, 'ekstrakurikuler_rombel_id');
+    }
+
+    public function koreksiUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'koreksi_by');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Accessors & Helpers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Jumlah siswa billable yang berlaku (jika ada koreksi manual, pakai koreksi).
+     */
+    public function getBillableEfektifAttribute(): int
+    {
+        return $this->koreksi_siswa_billable !== null
+            ? (int) $this->koreksi_siswa_billable
+            : (int) $this->jumlah_siswa_billable;
+    }
+
+    /**
+     * Apakah item rombel ini memiliki koreksi manual.
+     */
+    public function hasKoreksi(): bool
+    {
+        return $this->koreksi_siswa_billable !== null;
+    }
+}

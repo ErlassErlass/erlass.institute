@@ -16,15 +16,16 @@ class SekolahFactory extends Factory
         $namaSekolah = $jenjang.' Negeri '.fake()->numberBetween(1, 20).' '.$kec;
 
         return [
-            'kodlan' => strtoupper(substr($provinsi, 0, 3)).'-'.strtoupper(substr($kota, 0, 3)).'-'.fake()->unique()->numerify('###'),
-            'namasekolah' => $namaSekolah,
-            'jenjang' => $jenjang,
-            'status' => fake()->randomElement(['Negeri', 'Swasta']),
-            'pd' => fake()->numberBetween(150, 500),
-            'kec' => $kec,
-            'kotkab' => $kotkab,
-            'kota' => $kota,
-            'provinsi' => $provinsi,
+            'kodlan'        => strtoupper(substr($provinsi, 0, 3)).'-'.strtoupper(substr($kota, 0, 3)).'-'.fake()->unique()->numerify('###'),
+            'namasekolah'   => $namaSekolah,
+            'jenjang'       => $jenjang,
+            'status'        => fake()->randomElement(['Negeri', 'Swasta']),
+            'pd'            => fake()->numberBetween(150, 500),
+            'kec'           => $kec,
+            'kotkab'        => $kotkab,
+            'kota'          => $kota,
+            'provinsi'      => $provinsi,
+            'skema_tagihan' => 'per_4_pertemuan', // default
         ];
     }
 }

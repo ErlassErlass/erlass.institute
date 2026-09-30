@@ -428,30 +428,42 @@ document.addEventListener('DOMContentLoaded', function() {
     // Note: initDatepickers() is called in app.js
 
     // Auto-calculate end date based on meetings and frequency
+    const isPelatihanGlobal = @json(str_starts_with($formData['kategori_program'] ?? '', 'Pelatihan') || (($formData['jenis_program'] ?? '') === 'pelatihan'));
     const pertemuanInput = document.querySelector('input[name*="_total_pertemuan"]');
     const startDateInput = document.querySelector('input[name*="_tanggal_mulai"]');
     const endDateInput = document.querySelector('input[name*="_tanggal_selesai"]');
     const hariSelect = document.querySelector('select[name*="_hari"]');
     
-    if (pertemuanInput && startDateInput && endDateInput && hariSelect) {
+    if (pertemuanInput && startDateInput && endDateInput) {
         function calculateEndDate() {
-            const meetings = parseInt(pertemuanInput.value);
+            const meetings = parseInt(pertemuanInput.value) || 0;
             const startDate = startDateInput.value;
-            const day = hariSelect.value;
             
-            if (meetings && startDate && day) {
-                // Calculate end date based on weekly frequency
-                const start = new Date(startDate);
-                const daysToAdd = (meetings - 1) * 7;
-                const endDate = new Date(start.getTime() + (daysToAdd * 24 * 60 * 60 * 1000));
-                
-                endDateInput.value = endDate.toISOString().split('T')[0];
+            if (meetings > 0 && startDate) {
+                const parts = startDate.split('-');
+                if (parts.length === 3) {
+                    const start = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                    const daysToAdd = isPelatihanGlobal ? (meetings - 1) : (meetings - 1) * 7;
+                    const end = new Date(start);
+                    end.setDate(end.getDate() + daysToAdd);
+                    const yyyy = end.getFullYear();
+                    const mm = String(end.getMonth() + 1).padStart(2, '0');
+                    const dd = String(end.getDate()).padStart(2, '0');
+                    const formattedEndDate = `${yyyy}-${mm}-${dd}`;
+                    endDateInput.value = formattedEndDate;
+                    if (endDateInput._flatpickr) {
+                        endDateInput._flatpickr.setDate(formattedEndDate, true);
+                    }
+                }
             }
         }
         
         pertemuanInput.addEventListener('change', calculateEndDate);
+        pertemuanInput.addEventListener('input', calculateEndDate);
         startDateInput.addEventListener('change', calculateEndDate);
-        hariSelect.addEventListener('change', calculateEndDate);
+        if (hariSelect) {
+            hariSelect.addEventListener('change', calculateEndDate);
+        }
     }
 
     // Form validation

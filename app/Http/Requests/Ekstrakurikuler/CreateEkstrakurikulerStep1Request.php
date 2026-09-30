@@ -23,11 +23,18 @@ class CreateEkstrakurikulerStep1Request extends FormRequest
      */
     public function rules(): array
     {
+        $activeProducts = \App\Models\Product::where('is_aktif', true)->pluck('nama_produk')->toArray();
+        if (empty($activeProducts)) {
+            $activeProducts = [
+                'Coding Scratch', 'English Course', 'Micro:bit Learning Kit', 'Pictoblox AI', 'Robotik Explorer', 'Robotik Jimu'
+            ];
+        }
+
         $rules = [
             'kategori_program' => [
                 'required',
                 'string',
-                'in:Coding Scratch,English Course,Micro:bit Learning Kit,Pictoblox AI,Robotik Explorer,Robotik Jimu'
+                'in:' . implode(',', $activeProducts),
             ],
             'user_id_sales' => 'required|exists:salesmen,id',
             'region' => 'nullable|string|in:JAKARTA,DEPOK,BOGOR,TANGERANG,BEKASI',
@@ -36,8 +43,8 @@ class CreateEkstrakurikulerStep1Request extends FormRequest
         ];
 
         // Conditional equipment validation for robotics/microbit programs
-        $kategori = $this->input('kategori_program');
-        if (in_array($kategori, Ekstrakurikuler::KATEGORI_BUTUH_ALAT)) {
+        $kategori = strtolower($this->input('kategori_program') ?? '');
+        if (in_array($this->input('kategori_program'), Ekstrakurikuler::KATEGORI_BUTUH_ALAT) || str_contains($kategori, 'robotik') || str_contains($kategori, 'microbit')) {
             $rules['jenis_alat'] = 'required|string|in:per_siswa,per_kelompok';
             
             if ($this->input('jenis_alat') === 'per_kelompok') {

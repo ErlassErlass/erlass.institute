@@ -401,6 +401,29 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/rekap-absensi/rombels', [AbsensiController::class, 'getRombelsBySekolah'])->name('rekap-absensi.rombels');
     Route::get('/rekap-absensi', [AbsensiController::class, 'rekap'])->name('rekap-absensi');
     Route::get('/absensi/rekap/{tanggal}', [AbsensiController::class, 'rekapByDate'])->name('absensi.rekap.date');
+
+    // ── Invoice Routes ────────────────────────────────────────────────────────
+    Route::prefix('invoice')->name('invoice.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\InvoiceController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\InvoiceController::class, 'create'])->name('create');
+        Route::get('/rombels-by-sekolah', [\App\Http\Controllers\InvoiceController::class, 'rombelsBySekolah'])->name('rombels');
+        Route::post('/quick-generate', [\App\Http\Controllers\InvoiceController::class, 'quickGenerate'])->name('quick-generate');
+        Route::post('/bulk-generate', [\App\Http\Controllers\InvoiceController::class, 'bulkGenerate'])->name('bulk-generate');
+        Route::post('/', [\App\Http\Controllers\InvoiceController::class, 'store'])->name('store');
+        Route::get('/{invoice}', [\App\Http\Controllers\InvoiceController::class, 'show'])->name('show');
+        // Approval Operasional/Akademik
+        Route::post('/{invoice}/approve-operasional', [\App\Http\Controllers\InvoiceController::class, 'approveOperasional'])->name('approve.operasional');
+        // Approval Akunting/Finance
+        Route::post('/{invoice}/approve-akunting', [\App\Http\Controllers\InvoiceController::class, 'approveAkunting'])->name('approve.akunting');
+        // Koreksi billable (admin override hitungan sistem)
+        Route::post('/{invoice}/koreksi', [\App\Http\Controllers\InvoiceController::class, 'koreksi'])->name('koreksi');
+        Route::post('/{invoice}/koreksi-reset', [\App\Http\Controllers\InvoiceController::class, 'resetKoreksi'])->name('koreksi.reset');
+        // Download PDF (hanya jika fully approved)
+        Route::get('/{invoice}/pdf', [\App\Http\Controllers\InvoiceController::class, 'downloadPdf'])->name('pdf');
+    });
+
+    // Update skema tagihan sekolah (admin bisa ubah dari default per_4_pertemuan)
+    Route::post('/sekolah/{kodlan}/skema-tagihan', [\App\Http\Controllers\InvoiceController::class, 'updateSkemaSekolah'])->name('sekolah.skema.update');
     
     // Resource route must be AFTER specific sub-paths if collision is possible (like /absensi/rekap vs /absensi/{id})
     // OR restrict it if show/edit/update aren't used via this resource route.
