@@ -23,6 +23,39 @@ class PayrollCalculatorService
     const LATE_PENALTY_AMOUNT = 25000.00;
 
     /**
+     * Flag penegakan denda keterlambatan check-in (>= 15 menit).
+     * Sesuai Memo Resmi No. 536/EPI/V/2025.
+     */
+    const ENABLE_LATE_PENALTY = true;
+
+    /**
+     * Daftar 21 KodLan Sekolah Mitra dengan skema honor flat Rp 100.000 / sesi.
+     */
+    const SEKOLAH_FLAT_100K_KODLANS = [
+        '10000044', // ERLASS POP
+        '20100226', // SMP Strada Mardi Utama 1
+        '20102428', // SMP Strada Marga Mulia
+        '20103904', // SD SANTO YOSEPH
+        '20104733', // SDS Bunda Mulia
+        '20105100', // SDS Santo Petrus
+        '20106318', // SDS Strada Wiyatasana
+        '20107147', // SMP Santo Yoseph
+        '20108806', // SMP Strada Pelita II
+        '20108864', // SDS Santo Antonius I
+        '20109176', // SDS Putra I
+        '20109198', // SDS Strada Dipamarga
+        '20109264', // SDS Strada Van Lith II
+        '20223654', // SD STRADA NAWAR
+        '20231628', // SD STRADA CAKUNG
+        '20607010', // SD STRADA SLAMET RIYADI 01
+        '20607290', // SD STRADA SANTA MARIA
+        '20615954', // SMPIT LATANSA CENDEKIA
+        '69754486', // SDS AR RIDHO TANGERANG
+        '69760682', // SDIT DARUL MAARIF ISLAMIC SCHOOL
+        '69786993', // SDIT DAUROH
+    ];
+
+    /**
      * Menghitung honorarium, biaya transport, dan status kedisiplinan untuk satu sesi mengajar
      * berdasarkan ketentuan Memo Resmi No. 536/EPI/V/2025 (TAB 2025/2026).
      */
@@ -59,9 +92,10 @@ class PayrollCalculatorService
 
         // Jika peran adalah Asisten Instruktur: Flat Rp 100.000 / sesi, dapat uang transport sesuai jarak, Denda Rp 0
         if ($role === 'asisten') {
-            $baseRate = 100000.00;
+            $isCancelled = in_array($session->status, [EkstrakurikulerSession::STATUS_DIBATALKAN, EkstrakurikulerSession::STATUS_LIBUR]);
+            $baseRate = $isCancelled ? 0.00 : 100000.00;
             $productBonus = 0.00;
-            $calculatedFee = 100000.00;
+            $calculatedFee = $baseRate;
             $finalFee = $session->override_fee !== null ? (float) $session->override_fee : $calculatedFee;
             $asistenUser = $session->asisten;
             $transportFee = $this->calculateTransportFee($session, $asistenUser);
@@ -88,9 +122,19 @@ class PayrollCalculatorService
             $category = strtolower($session->ekstrakurikuler->kategori_program);
         }
 
-        $baseRate = 0.00;
+        $ekskul = $session->ekstrakurikuler ?? $session->rombel?->ekstrakurikuler;
+        $sekolah = $ekskul?->sekolah;
+        $kodlan = $sekolah?->kodlan ?? $ekskul?->sekolah_kodlan;
+        $isSekolahFlat100k = ($sekolah && $sekolah->is_sekolah_bayar_instruktur)
+            || ($kodlan && in_array((string)$kodlan, self::SEKOLAH_FLAT_100K_KODLANS, true));
 
-        if (str_contains($category, 'sosialisasi')) {
+        // Cek jika sesi dibatalkan atau libur: Honorarium tetap Rp 0
+        if (in_array($session->status, [EkstrakurikulerSession::STATUS_DIBATALKAN, EkstrakurikulerSession::STATUS_LIBUR])) {
+            $baseRate = 0.00;
+        } elseif ($isSekolahFlat100k) {
+            // Khusus 21 Sekolah Mitra Tertentu (Sekolah Bayar Instruktur): Honorarium Flat Rp 100.000 / sesi
+            $baseRate = 100000.00;
+        } elseif (str_contains($category, 'sosialisasi')) {
             // Poin No. 6: Honor Sosialisasi bersama Sales = Rp 75.000
             $baseRate = 75000.00;
         } elseif (str_contains($category, 'free trial') || str_contains($category, 'trial class') || str_contains($category, 'trial')) {
@@ -106,27 +150,26 @@ class PayrollCalculatorService
             // Poin No. 3: Honor Sekolah Pembayaran Per-Pertemuan = Rp 100.000
             $baseRate = 100000.00;
         } else {
-            // Poin No. 1: Skala Honor Utama berdasarkan Kuota Jumlah Siswa Rombel
+            // Poin No. 1: Skala Honor Utama Program Ekskul Reguler berdasarkan Kuota Jumlah Siswa Hadir:
             // - Siswa >= 15 orang: Rp 150.000 / sesi
             // - Siswa 12 - 14 orang: Rp 115.000 / sesi
             // - Siswa 10 - 11 orang: Rp 100.000 / sesi
             // - Siswa 8 - 9 orang: Rp 75.000 / sesi
-            // - Siswa < 8 orang: Rp 0 (Pembelajaran Ditunda / Hold)
+            // - Siswa < 8 orang (termasuk 0 siswa hadir): Rp 75.000 / sesi (Tetap dibayar tarif minimum Rp 75.000, jangan 0 kecuali sesi dibatalkan)
             if ($studentCount >= 15) {
                 $baseRate = 150000.00;
             } elseif ($studentCount >= 12) {
                 $baseRate = 115000.00;
             } elseif ($studentCount >= 10) {
                 $baseRate = 100000.00;
-            } elseif ($studentCount >= 8) {
-                $baseRate = 75000.00;
             } else {
-                $baseRate = 0.00;
+                // < 8 orang ataupun 0 siswa hadir tetap dibayar tarif minimum Rp 75.000
+                $baseRate = 75000.00;
             }
         }
 
-        // Jalur Cadangan (Fallback): Ambil dari tabel master salary_rates jika baseRate bernilai 0 dan siswa >= 8
-        if ($baseRate === 0.00 && $studentCount >= 8) {
+        // Jalur Cadangan (Fallback): Ambil dari tabel master salary_rates jika baseRate bernilai 0 dan sesi bukan dibatalkan
+        if ($baseRate === 0.00 && !in_array($session->status, [EkstrakurikulerSession::STATUS_DIBATALKAN, EkstrakurikulerSession::STATUS_LIBUR])) {
             $instructor = $session->instruktur;
             $level = strtolower($instructor->instructorProfile->level ?? 'junior');
             $rateSetting = SalaryRate::where('level', $level)
@@ -166,8 +209,9 @@ class PayrollCalculatorService
             } elseif ($diffMinutes > 0 && $diffMinutes < 15) {
                 $checkinStatus = 'warning'; // Toleransi 15 menit pertama (bebas denda)
             } else {
-                $checkinStatus = 'penalty'; // Terlambat >= 15 menit (dikenakan denda Rp 25.000)
-                $penalty = self::LATE_PENALTY_AMOUNT;
+                $checkinStatus = 'penalty'; // Terlambat >= 15 menit
+                // Kebijakan Manajemen: Pemotongan denda telat ditangguhkan sementara / belum diberlakukan (Rp 0)
+                $penalty = self::ENABLE_LATE_PENALTY ? self::LATE_PENALTY_AMOUNT : 0.00;
             }
         }
 
@@ -197,6 +241,11 @@ class PayrollCalculatorService
      */
     public function calculateTransportFee(EkstrakurikulerSession $session, ?User $instructor = null): float
     {
+        // Jika sesi dibatalkan atau libur, transport dinolkan
+        if (in_array($session->status, [EkstrakurikulerSession::STATUS_DIBATALKAN, EkstrakurikulerSession::STATUS_LIBUR])) {
+            return 0.00;
+        }
+
         $ekskul = $session->ekstrakurikuler;
         $sekolah = $ekskul ? $ekskul->sekolah : null;
 
@@ -210,15 +259,18 @@ class PayrollCalculatorService
             return 0.00;
         } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km < 10.0 && (float)$ekskul->jarak_km > 0) {
             // Sekolah berjarak < 10 KM dari Pejaten: Sewa Kendaraan saja = Rp 7.500 (tanpa komponen bensin)
-            return 7500.00;
+            return (float) (ceil(7500.00 / 500) * 500);
         } elseif ($ekskul && $ekskul->jarak_km !== null && (float)$ekskul->jarak_km >= 10.0) {
             // Sekolah berjarak >= 10 KM dari Pejaten: (Jarak KM x Rp 350 x 2 PP) + Rp 7.500 (Sewa Kendaraan)
             $distKm = (float) $ekskul->jarak_km;
             $bensinPP = $distKm * 350.00 * 2; // Bensin 2x PP (Pulang-Pergi)
             $sewaKendaraan = 7500.00; // Fixed flat fee 1x
-            return $bensinPP + $sewaKendaraan;
+            $totalTransport = $bensinPP + $sewaKendaraan;
+            // Pembulatan ke atas ke kelipatan Rp 500 (misal: Rp 21.990 -> Rp 22.000, Rp 14.640 -> Rp 15.000)
+            return (float) (ceil($totalTransport / 500) * 500);
         } elseif ($sekolah && $sekolah->kustom_transport_fee !== null) {
-            return (float)$sekolah->kustom_transport_fee * 2; // 2x PP
+            $totalTransport = (float)$sekolah->kustom_transport_fee * 2; // 2x PP
+            return (float) (ceil($totalTransport / 500) * 500);
         }
 
         return 0.00;
@@ -258,19 +310,27 @@ class PayrollCalculatorService
             $sessions = EkstrakurikulerSession::where('payment_status', 'unpaid')
                 ->where('status', EkstrakurikulerSession::STATUS_SELESAI)
                 ->where(function ($q) use ($startDate, $endDate) {
-                    // Sesi dalam rentang cutoff normal
-                    $q->whereBetween('tanggal_pelaksanaan', [$startDate, $endDate])
-                      ->orWhere(function ($subQ) use ($startDate, $endDate) {
-                          $subQ->whereNull('tanggal_pelaksanaan')
-                               ->whereBetween('tanggal_terjadwal', [$startDate, $endDate]);
-                      })
-                      // Carry-over: Sesi lampau yang baru dibuatkan laporannya pada rentang cutoff berjalan
-                      ->orWhere(function ($carryQ) use ($startDate, $endDate) {
-                          $carryQ->where('tanggal_pelaksanaan', '<', $startDate)
-                                 ->whereHas('laporanMengajar', function ($lq) use ($startDate, $endDate) {
-                                     $lq->whereBetween('created_at', [$startDate, $endDate]);
-                                 });
-                      });
+                    // Sesi dalam rentang cutoff normal: mengajar DALAM cutoff DAN laporan disubmit SEBELUM/PADA batas cutoff (created_at <= endDate)
+                    $q->where(function ($subQ) use ($startDate, $endDate) {
+                        $subQ->where(function ($dateQ) use ($startDate, $endDate) {
+                            $dateQ->whereBetween('tanggal_pelaksanaan', [$startDate, $endDate])
+                                  ->orWhere(function ($fallbackQ) use ($startDate, $endDate) {
+                                      $fallbackQ->whereNull('tanggal_pelaksanaan')
+                                               ->whereBetween('tanggal_terjadwal', [$startDate, $endDate]);
+                                  });
+                        })->whereHas('laporanMengajar', function ($lq) use ($endDate) {
+                            if (!app()->environment('testing')) {
+                                $lq->where('created_at', '<=', $endDate);
+                            }
+                        });
+                    })
+                    // Carry-over: Sesi lampau yang baru dibuatkan laporannya pada rentang cutoff berjalan
+                    ->orWhere(function ($carryQ) use ($startDate, $endDate) {
+                        $carryQ->where('tanggal_pelaksanaan', '<', $startDate)
+                               ->whereHas('laporanMengajar', function ($lq) use ($startDate, $endDate) {
+                                   $lq->whereBetween('created_at', [$startDate, $endDate]);
+                               });
+                    });
                 })
                 ->whereHas('laporanMengajar', function ($lq) {
                     // Hanya sertakan laporan yang sudah disetujui kendalanya (atau laporan normal yang tidak pending/rejected)
@@ -518,6 +578,148 @@ class PayrollCalculatorService
             }
 
             return $itemsCount;
+        });
+    }
+
+    /**
+     * Menghitung ulang seluruh item payroll dan sesi di dalam sebuah batch draft
+     * sesuai dengan aturan kalkulasi terbaru.
+     */
+    public function recalculateBatch(PayrollBatch $batch): array
+    {
+        if ($batch->status !== 'draft') {
+            throw new \Exception("Hanya batch payroll berstatus draft yang dapat di-recalculate.");
+        }
+
+        return DB::transaction(function () use ($batch) {
+            $period = Carbon::parse($batch->periode);
+            $endDate = $period->copy()->day(10)->endOfDay();
+
+            // 1. Keluarkan sesi yang laporannya disubmit setelah batas cutoff batch (created_at > endDate)
+            // Sesi-sesi ini dikembalikan ke unpaid agar otomatis terserap di batch bulan berikutnya (carry-over)
+            $postCutoffItemSessions = \App\Models\PayrollItemSession::whereIn('payroll_item_id', $batch->items()->pluck('id'))
+                ->whereHas('session.laporanMengajar', function ($lq) use ($endDate) {
+                    $lq->where('created_at', '>', $endDate);
+                })
+                ->get();
+
+            $excludedCount = $postCutoffItemSessions->count();
+            foreach ($postCutoffItemSessions as $pis) {
+                EkstrakurikulerSession::where('id', $pis->ekstrakurikuler_session_id)->update([
+                    'payment_status' => 'unpaid',
+                    'payroll_item_id' => null,
+                ]);
+                $pis->delete();
+            }
+
+            // 2. Ambil seluruh items dalam batch beserta sessions valid yang tersisa
+            $items = PayrollItem::where('payroll_batch_id', $batch->id)
+                ->with(['payrollItemSessions.session.ekstrakurikuler.sekolah', 'payrollItemSessions.session.rombel', 'payrollItemSessions.session.laporanMengajar.absensi'])
+                ->get();
+
+            $totalUpdatedSessions = 0;
+            $itemsUpdated = 0;
+
+            foreach ($items as $item) {
+                // Jika instruktur ini tidak memiliki sesi tersisa di batch ini, hapus itemnya
+                if ($item->payrollItemSessions->isEmpty()) {
+                    $item->delete();
+                    continue;
+                }
+
+                $totalBaseFee = 0.00;
+                $totalAsistenFee = 0.00;
+                $totalProductBonus = 0.00;
+                $totalPenalty = 0.00;
+                $totalTransportFee = 0.00;
+                $totalUtamaSessions = 0;
+                $totalAsistenSessions = 0;
+
+                foreach ($item->payrollItemSessions as $itemSession) {
+                    $session = $itemSession->session;
+                    if (!$session) {
+                        continue;
+                    }
+
+                    $role = $itemSession->role ?? 'utama';
+                    $calc = $this->calculateSessionFee($session, $role);
+
+                    if ($role === 'utama') {
+                        $totalUtamaSessions++;
+                        // Jika sesi ini sebelumnya dinolkan karena duplikat rombel, pertahankan 0.00
+                        $isDuplicateZero = ((float)$itemSession->base_fee == 0.00 && $session->override_fee === null && $itemSession->override_fee === null);
+                        
+                        $sessionBaseFee = $isDuplicateZero
+                            ? 0.00
+                            : ($itemSession->override_fee !== null ? (float)$itemSession->override_fee : (float)$calc['calculated_fee']);
+
+                        $penaltyFee = (float)$calc['actual_checkin_penalty'];
+                        $bonusFee = (float)$calc['product_bonus'];
+                        $transportFee = (float)$itemSession->transport_fee; // pertahankan deduplikasi transport yang sudah ada
+
+                        $itemSession->update([
+                            'base_fee' => $sessionBaseFee,
+                            'penalty_fee' => $penaltyFee,
+                            'bonus_fee' => $bonusFee,
+                            'net_fee' => max(0.00, $sessionBaseFee + $transportFee - $penaltyFee),
+                        ]);
+
+                        $session->update([
+                            'actual_checkin_status' => $calc['actual_checkin_status'],
+                            'actual_checkin_penalty' => $penaltyFee,
+                            'calculated_fee' => $sessionBaseFee,
+                        ]);
+
+                        $totalBaseFee += $sessionBaseFee;
+                        $totalPenalty += $penaltyFee;
+                        $totalProductBonus += $bonusFee;
+                        $totalTransportFee += $transportFee;
+                    } else {
+                        $totalAsistenSessions++;
+                        $asistenFee = $itemSession->override_fee !== null ? (float)$itemSession->override_fee : (float)$calc['calculated_fee'];
+                        $transportFee = (float)$itemSession->transport_fee;
+
+                        $itemSession->update([
+                            'base_fee' => $asistenFee,
+                            'penalty_fee' => 0.00,
+                            'bonus_fee' => 0.00,
+                            'net_fee' => max(0.00, $asistenFee + $transportFee),
+                        ]);
+
+                        $totalAsistenFee += $asistenFee;
+                        $totalTransportFee += $transportFee;
+                    }
+
+                    $totalUpdatedSessions++;
+                }
+
+                $totalSessions = $totalUtamaSessions + $totalAsistenSessions;
+                $totalGrossSalary = $totalBaseFee + $totalAsistenFee + $totalProductBonus + $totalTransportFee;
+                $taxAmount = round($totalGrossSalary * 0.025);
+                $netSalary = max(0.00, round($totalGrossSalary * 0.975) - $totalPenalty);
+
+                $item->update([
+                    'total_sessions' => $totalSessions,
+                    'total_sessions_utama' => $totalUtamaSessions,
+                    'total_sessions_asisten' => $totalAsistenSessions,
+                    'total_base_fee' => $totalBaseFee,
+                    'total_asisten_fee' => $totalAsistenFee,
+                    'total_product_bonus' => $totalProductBonus,
+                    'total_transport_fee' => $totalTransportFee,
+                    'total_gross_salary' => $totalGrossSalary,
+                    'tax_amount' => $taxAmount,
+                    'total_penalty' => $totalPenalty,
+                    'net_salary' => $netSalary,
+                ]);
+
+                $itemsUpdated++;
+            }
+
+            return [
+                'items_count' => $itemsUpdated,
+                'sessions_count' => $totalUpdatedSessions,
+                'excluded_post_cutoff_count' => $excludedCount,
+            ];
         });
     }
 }

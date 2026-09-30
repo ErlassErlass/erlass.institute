@@ -154,9 +154,30 @@
         overflow-x: auto;
         position: relative;
         border-radius: 0 0 var(--sd-radius) var(--sd-radius);
-        contain: paint;
         will-change: scroll-position;
         -webkit-overflow-scrolling: touch;
+    }
+
+    /* Scrollbar styling for smooth and visible horizontal scrolling */
+    .sd-table-scroll-container::-webkit-scrollbar,
+    #pane-wilayah-sekolah .table-responsive::-webkit-scrollbar {
+        height: 10px;
+        width: 8px;
+    }
+    .sd-table-scroll-container::-webkit-scrollbar-track,
+    #pane-wilayah-sekolah .table-responsive::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 6px;
+    }
+    .sd-table-scroll-container::-webkit-scrollbar-thumb,
+    #pane-wilayah-sekolah .table-responsive::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 6px;
+        border: 2px solid #f1f5f9;
+    }
+    .sd-table-scroll-container::-webkit-scrollbar-thumb:hover,
+    #pane-wilayah-sekolah .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
     }
 
     /* Rendering performance optimization for long table rows */
@@ -164,6 +185,11 @@
     .avail-row {
         content-visibility: auto;
         contain-intrinsic-size: 0 45px;
+    }
+
+    /* Availability Table Minimum Width for natural horizontal scroll */
+    #availabilityTable {
+        min-width: 1560px;
     }
 
     /* Freeze / Sticky Columns and Header for Availability Table */
@@ -208,6 +234,7 @@
         min-width: 130px;
         background-color: #ffffff;
         border-right: 2px solid #cbd5e1 !important;
+        box-shadow: 4px 0 8px -2px rgba(15, 23, 42, 0.08);
     }
     /* Fixed Intersection (top-left cells fixed in both axes) */
     .sd-sticky-table thead th.sd-col-no {
@@ -237,6 +264,26 @@
     .sd-sticky-table tr.avail-row:hover td.sd-col-name,
     .sd-sticky-table tr.avail-row:hover td.sd-col-domisili {
         background-color: #f8fafc !important;
+    }
+
+    /* Mobile responsive: release sticky freeze on small screens so table can be swiped freely */
+    @media (max-width: 767.98px) {
+        .sd-sticky-table th.sd-col-no,
+        .sd-sticky-table td.sd-col-no,
+        .sd-sticky-table th.sd-col-name,
+        .sd-sticky-table td.sd-col-name,
+        .sd-sticky-table th.sd-col-domisili,
+        .sd-sticky-table td.sd-col-domisili,
+        .sd-sticky-table thead th.sd-col-no,
+        .sd-sticky-table thead th.sd-col-name,
+        .sd-sticky-table thead th.sd-col-domisili {
+            position: static !important;
+            box-shadow: none !important;
+            border-right: 1px solid #e2e8f0 !important;
+        }
+        #availabilityTable {
+            min-width: 1250px;
+        }
     }
 
     /* Instructors Table (Tab 1) Sticky Header */
@@ -845,7 +892,7 @@
                     </div>
                 </div>
 
-                {{-- Counter & Reset --}}
+                {{-- Counter, Reset & Export --}}
                 <div class="d-flex align-items-center gap-2 ms-auto">
                     <span class="badge bg-light text-muted border px-2.5 py-1.5" style="font-size:.78rem;">
                         Menampilkan: <strong id="visibleInstructorsCount" class="text-primary">{{ $availability_instructors->count() }}</strong> / {{ $availability_instructors->count() }} instruktur
@@ -853,6 +900,13 @@
                     <button type="button" id="resetAvailFiltersBtn" class="btn btn-outline-secondary btn-sm py-1 px-2.5" style="font-size:.78rem;">
                         <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filter
                     </button>
+                    <a href="{{ route('admin.analytics.schedule-distribution.export-availability') }}"
+                       id="btnExportAvailExcel"
+                       class="btn btn-success btn-sm fw-bold px-3 py-1 text-nowrap"
+                       style="font-size:.78rem;"
+                       title="Export tabel ketersediaan sesuai filter aktif ke Excel">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                    </a>
                 </div>
             </div>
 
@@ -906,12 +960,12 @@
                             <th class="sd-col-no" style="width:48px; min-width:48px;">No</th>
                             <th class="sd-col-name" style="min-width:200px; width:220px;">Instruktur</th>
                             <th class="sd-col-domisili" style="min-width:130px; width:140px;">Domisili</th>
-                            <th class="text-center day-header" data-day="Senin" style="min-width:115px;">Senin</th>
-                            <th class="text-center day-header" data-day="Selasa" style="min-width:115px;">Selasa</th>
-                            <th class="text-center day-header" data-day="Rabu" style="min-width:115px;">Rabu</th>
-                            <th class="text-center day-header" data-day="Kamis" style="min-width:115px;">Kamis</th>
-                            <th class="text-center day-header" data-day="Jumat" style="min-width:115px;">Jumat</th>
-                            <th class="text-center day-header" data-day="Sabtu" style="min-width:115px;">Sabtu</th>
+                            <th class="text-center day-header" data-day="Senin" style="min-width:180px; width:180px;">Senin</th>
+                            <th class="text-center day-header" data-day="Selasa" style="min-width:180px; width:180px;">Selasa</th>
+                            <th class="text-center day-header" data-day="Rabu" style="min-width:180px; width:180px;">Rabu</th>
+                            <th class="text-center day-header" data-day="Kamis" style="min-width:180px; width:180px;">Kamis</th>
+                            <th class="text-center day-header" data-day="Jumat" style="min-width:180px; width:180px;">Jumat</th>
+                            <th class="text-center day-header" data-day="Sabtu" style="min-width:180px; width:180px;">Sabtu</th>
                             <th class="text-center" style="min-width:90px;">Sesi Bln Ini</th>
                         </tr>
                     </thead>
@@ -1351,7 +1405,37 @@
         }
         updateDayColumnVisibility('');
         applyAvailabilityFilters();
+        syncAvailExportUrl(); // reset export URL too
     });
+
+    // ── Sync Export Excel URL dengan filter aktif (week + kota + day) ─────────
+    const baseExportAvailUrl = "{{ route('admin.analytics.schedule-distribution.export-availability') }}";
+    const weekPickerEl       = document.getElementById('weekPicker');
+
+    function syncAvailExportUrl() {
+        const params = new URLSearchParams();
+        const week = weekPickerEl ? weekPickerEl.value : '';
+        if (week) params.set('week', week);
+        const kota = kotaFilter ? kotaFilter.value : '';
+        if (kota) params.set('kota', kota);
+        const day = dayFilter ? dayFilter.value : '';
+        if (day) params.set('day', day);
+
+        const exportBtn = document.getElementById('btnExportAvailExcel');
+        if (exportBtn) {
+            exportBtn.href = params.toString()
+                ? `${baseExportAvailUrl}?${params.toString()}`
+                : baseExportAvailUrl;
+        }
+    }
+
+    // Wire to filter changes
+    weekPickerEl?.addEventListener('change', syncAvailExportUrl);
+    kotaFilter?.addEventListener('change', syncAvailExportUrl);
+    dayFilter?.addEventListener('change', syncAvailExportUrl);
+
+    // Init on page load
+    syncAvailExportUrl();
 
     // ── 1 Opsi A: Sesuaikan kolom hari saat filter per hari dipilih ───────────
     function updateDayColumnVisibility(selectedDay) {
@@ -1372,8 +1456,8 @@
                 th.style.width = '';
             } else {
                 th.classList.remove('day-col-highlight', 'day-col-expanded');
-                th.style.minWidth = '115px';
-                th.style.width = '';
+                th.style.minWidth = '180px';
+                th.style.width = '180px';
             }
         });
 
@@ -1812,6 +1896,53 @@
         btn.addEventListener('shown.bs.tab', function(e) {
             history.replaceState(null, null, e.target.getAttribute('data-bs-target'));
         });
+    });
+
+    // ── Drag-to-Scroll / Mouse Grab (Geser Tabel dengan Klik & Tarik Mouse) ──
+    function initDragToScroll(container) {
+        if (!container) return;
+        let isDown = false;
+        let startX = 0;
+        let initialScrollLeft = 0;
+
+        container.style.cursor = 'grab';
+
+        container.addEventListener('mousedown', (e) => {
+            // Hindari drag saat mengklik tautan, tombol aksi, input, dsb.
+            if (e.target.closest('a, button, input, select, textarea, .dropdown-menu, label, .form-check-input, .badge[onclick]')) {
+                return;
+            }
+
+            isDown = true;
+            container.style.cursor = 'grabbing';
+            container.style.userSelect = 'none';
+            startX = e.pageX - container.offsetLeft;
+            initialScrollLeft = container.scrollLeft;
+        });
+
+        const stopDragging = () => {
+            if (isDown) {
+                isDown = false;
+                container.style.cursor = 'grab';
+                container.style.removeProperty('user-select');
+            }
+        };
+
+        window.addEventListener('mouseup', stopDragging);
+        container.addEventListener('mouseleave', stopDragging);
+
+        container.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - container.offsetLeft;
+            const walk = (x - startX) * 1.5; // Kepekaan geser mouse
+            container.scrollLeft = initialScrollLeft - walk;
+        });
+    }
+
+    // Terapkan ke kontainer tabel di Tab 1, Tab 2, dan Tab 3
+    document.querySelectorAll('#pane-ketersediaan .sd-table-scroll-container, #pane-wilayah-sekolah .table-responsive, #pane-distribusi .sd-table-scroll-container').forEach(el => {
+        initDragToScroll(el);
     });
 </script>
 @endpush

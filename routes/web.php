@@ -186,6 +186,8 @@ Route::middleware(['auth'])->group(function () {
         // Session CRUD
         Route::get('sessions', [EkstrakurikulerSessionController::class, 'index'])
             ->name('sessions.index');
+        Route::get('sessions/export-excel', [EkstrakurikulerSessionController::class, 'exportExcel'])
+            ->name('sessions.export-excel');
         Route::get('sessions/calendar', [EkstrakurikulerSessionController::class, 'calendar'])
             ->name('sessions.calendar');
         Route::get('sessions/{session}', [EkstrakurikulerSessionController::class, 'show'])
@@ -360,6 +362,8 @@ Route::middleware(['auth'])->group(function () {
             ->name('analytics.schedule-distribution.export');
         Route::get('analytics/schedule-distribution/export-schools', [\App\Http\Controllers\DashboardAnalyticsController::class, 'exportSchoolScheduleDistribution'])
             ->name('analytics.schedule-distribution.export-schools');
+        Route::get('analytics/schedule-distribution/export-availability', [\App\Http\Controllers\DashboardAnalyticsController::class, 'exportAvailability'])
+            ->name('analytics.schedule-distribution.export-availability');
         Route::get('analytics/schedule-distribution', [\App\Http\Controllers\DashboardAnalyticsController::class, 'scheduleDistribution'])
             ->name('analytics.schedule-distribution');
         Route::get('analytics/availability-check', [\App\Http\Controllers\DashboardAnalyticsController::class, 'availabilityCheck'])
@@ -380,6 +384,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('payroll/batches/{batch}/export-csv', [PayrollController::class, 'exportCsv'])->name('payroll.batches.export-csv');
         Route::get('payroll/batches/{batch}/export-pdf', [PayrollController::class, 'exportPdf'])->name('payroll.batches.export-pdf');
         Route::post('payroll/batches/{batch}/process', [PayrollController::class, 'processBatch'])->name('payroll.batches.process');
+        Route::post('payroll/batches/{batch}/recalculate', [PayrollController::class, 'recalculateBatch'])->name('payroll.batches.recalculate');
         Route::post('payroll/batches/{batch}/pay', [PayrollController::class, 'payBatch'])->name('payroll.batches.pay');
         Route::delete('payroll/batches/{batch}', [PayrollController::class, 'destroyBatch'])->name('payroll.batches.destroy');
 

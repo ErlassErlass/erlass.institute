@@ -138,7 +138,7 @@
     <!-- Filter Section -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('ekstrakurikuler.sessions.index') }}">
+            <form method="GET" action="{{ route('ekstrakurikuler.sessions.index') }}" id="sessionsFilterForm">
                 <div class="row g-3">
                     <!-- Status Filter -->
                     <div class="col-md-6 col-lg-3">
@@ -216,6 +216,9 @@
                                 </button>
                                 <a href="{{ route('ekstrakurikuler.sessions.index', ['reset_filter' => 1]) }}" class="btn btn-light border">
                                     <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                                </a>
+                                <a href="{{ route('ekstrakurikuler.sessions.export-excel', request()->all()) }}" class="btn btn-success text-white border" id="btnExportExcel" onclick="exportScheduleToExcel(event)" title="Export seluruh sesi yang sesuai filter ke file Excel (.xlsx)">
+                                    <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
                                 </a>
                                 <button type="button" class="btn btn-warning text-dark border" onclick="exportScheduleToImage()">
                                     <i class="bi bi-image me-1"></i> Export Gambar
@@ -1044,6 +1047,28 @@ function showBulkCancelForm() {
 }
 function showBulkTimeUpdateForm() {
     new bootstrap.Modal(document.getElementById('bulkActionModal')).show();
+}
+
+function exportScheduleToExcel(event) {
+    if (event) event.preventDefault();
+    const form = document.getElementById('sessionsFilterForm');
+    if (form) {
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData);
+        
+        // Preserve sort_by and sort_dir if active in query
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('sort_by') && !params.has('sort_by')) {
+            params.set('sort_by', urlParams.get('sort_by'));
+        }
+        if (urlParams.has('sort_dir') && !params.has('sort_dir')) {
+            params.set('sort_dir', urlParams.get('sort_dir'));
+        }
+
+        window.location.href = "{{ route('ekstrakurikuler.sessions.export-excel') }}?" + params.toString();
+    } else {
+        window.location.href = "{{ route('ekstrakurikuler.sessions.export-excel', request()->all()) }}";
+    }
 }
 
 function exportScheduleToImage() {

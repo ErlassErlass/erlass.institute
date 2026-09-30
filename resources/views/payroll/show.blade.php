@@ -49,6 +49,12 @@
                                 <i class="bi bi-check-circle me-1"></i> Verifikasi Batch
                             </button>
                         </form>
+                        <form action="{{ route('admin.payroll.batches.recalculate', $batch->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghitung ulang (recalculate) Batch {{ $batch->code }} ini?')">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-warning text-dark">
+                                <i class="bi bi-arrow-repeat me-1"></i> Recalculate Batch
+                            </button>
+                        </form>
                         <form action="{{ route('admin.payroll.batches.destroy', $batch->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus Draft Batch {{ $batch->code }} ini? Sesi mengajar akan dikembalikan ke status unpaid.')">
                             @csrf
                             @method('DELETE')
@@ -91,7 +97,7 @@
                             <small class="text-muted d-block mb-1">Total Sesi Terbayar</small>
                             <span class="fw-bold text-dark fs-5">{{ $batch->items->sum('total_sessions') }} Sesi</span>
                             <small class="text-muted d-block" style="font-size: 0.75rem;">
-                                ({{ $batch->items->sum('total_sessions_utama') }} Utama, {{ $batch->items->sum('total_sessions_asisten') }} Asisten)
+                                ({{ $batch->items->sum('total_sessions_utama') }} Instruktur, {{ $batch->items->sum('total_sessions_asisten') }} Asisten)
                             </small>
                         </div>
                         <div class="col-sm-6 col-md-3">
@@ -176,8 +182,8 @@
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4">Instruktur</th>
-                            <th class="text-center">Sesi (U / A)</th>
-                            <th class="text-end">Honor Utama</th>
+                            <th class="text-center">Sesi (I / A)</th>
+                            <th class="text-end">Honor Instruktur</th>
                             <th class="text-end">Honor Asisten</th>
                             <th class="text-end">Transport</th>
                             <th class="text-end">Pajak (2.5%)</th>
@@ -196,7 +202,7 @@
                                 <td class="text-center">
                                     <strong>{{ $item->total_sessions }}</strong> Sesi
                                     <div class="text-muted small" style="font-size: 0.75rem;">
-                                        ({{ $item->total_sessions_utama }} U / {{ $item->total_sessions_asisten }} A)
+                                        ({{ $item->total_sessions_utama }} I / {{ $item->total_sessions_asisten }} A)
                                     </div>
                                 </td>
                                 <td class="text-end">Rp {{ number_format($item->total_base_fee, 0, ',', '.') }}</td>

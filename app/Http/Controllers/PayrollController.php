@@ -138,6 +138,28 @@ class PayrollController extends Controller
     }
 
     /**
+     * Recalculate a draft payroll batch (Admin).
+     */
+    public function recalculateBatch($id)
+    {
+        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $batch = $id instanceof PayrollBatch ? $id : PayrollBatch::findOrFail($id);
+
+        if ($batch->status !== 'draft') {
+            return redirect()->route('admin.payroll.batches.show', $batch->id)
+                ->with('error', 'Hanya batch berstatus Draft yang dapat di-recalculate.');
+        }
+
+        $result = $this->calculator->recalculateBatch($batch);
+
+        return redirect()->route('admin.payroll.batches.show', $batch->id)
+            ->with('success', "Batch payroll {$batch->code} berhasil di-recalculate! ({$result['items_count']} instruktur, {$result['sessions_count']} sesi diperbarui).");
+    }
+
+    /**
      * Mark a payroll batch as fully paid (Admin).
      */
     public function payBatch($id)
@@ -329,8 +351,8 @@ class PayrollController extends Controller
 
         $headers1 = [
             'No', 'ID Instruktur', 'Nama Lengkap Instruktur', 'Nama Bank', 'Nomor Rekening',
-            'Nama Pemilik Rekening', 'No HP / WA', 'Sesi Utama', 'Sesi Asisten', 'Total Sesi',
-            'Honor Utama (Rp)', 'Honor Asisten (Rp)', 'Transport (Rp)', 'Total Kotor (Rp)',
+            'Nama Pemilik Rekening', 'No HP / WA', 'Sesi Instruktur', 'Sesi Asisten', 'Total Sesi',
+            'Honor Instruktur (Rp)', 'Honor Asisten (Rp)', 'Transport (Rp)', 'Total Kotor (Rp)',
             'Pajak 2.5% (Rp)', 'Denda (Rp)', 'Nominal Netto (Rp)', 'Keterangan'
         ];
         $sheet1->fromArray($headers1, NULL, 'A4');
@@ -412,7 +434,7 @@ class PayrollController extends Controller
 
         $headers2 = [
             'No', 'Kode Batch', 'Periode', 'ID Instruktur', 'Nama Instruktur',
-            'Sesi Utama', 'Sesi Asisten', 'Total Sesi', 'Honor Utama (Rp)',
+            'Sesi Instruktur', 'Sesi Asisten', 'Total Sesi', 'Honor Instruktur (Rp)',
             'Honor Asisten (Rp)', 'Bonus (Rp)', 'Transport (Rp)', 'Total Kotor (Rp)',
             'Pajak 2.5% (Rp)', 'Denda (Rp)', 'Gaji Netto (Rp)', 'Status'
         ];
@@ -493,7 +515,7 @@ class PayrollController extends Controller
 
         $headers3 = [
             'No', 'ID Sesi', 'Tanggal Sesi', 'Sekolah Mitra', 'Program / Rombel',
-            'ID Pengajar', 'Nama Penerima Honor', 'Instruktur Utama', 'Asisten Instruktur',
+            'ID Pengajar', 'Pelaksana Mengajar / Penerima Honor', 'Penanggung Jawab Kelas (Instruktur Utama)', 'Asisten Instruktur',
             'Peran Mengajar', 'Honor Dasar / Asisten (Rp)', 'Transport (Rp)',
             'Denda Checkin (Rp)', 'Net Fee Sesi (Rp)', 'Status Sesi'
         ];
@@ -548,7 +570,7 @@ class PayrollController extends Controller
                     ?? optional(optional($session->rombel)->asisten)->nama_lengkap 
                     ?? '-';
 
-                $peranDisplay = ($role === 'asisten') ? 'Asisten Instruktur' : 'Instruktur Utama';
+                $peranDisplay = ($role === 'asisten') ? 'Asisten Instruktur' : 'Instruktur';
 
                 $sheet3->setCellValue("A{$rowIdx3}", $no3++);
                 $sheet3->setCellValue("B{$rowIdx3}", $session->id);
@@ -620,8 +642,8 @@ class PayrollController extends Controller
         // Headers
         fputcsv($output, [
             'No', 'ID Instruktur', 'Nama Lengkap', 'Nama Bank', 'Nomor Rekening',
-            'Pemilik Rekening', 'No HP', 'Sesi Utama', 'Sesi Asisten', 'Total Sesi',
-            'Honor Utama (Rp)', 'Honor Asisten (Rp)', 'Transport (Rp)', 'Total Kotor (Rp)',
+            'Pemilik Rekening', 'No HP', 'Sesi Instruktur', 'Sesi Asisten', 'Total Sesi',
+            'Honor Instruktur (Rp)', 'Honor Asisten (Rp)', 'Transport (Rp)', 'Total Kotor (Rp)',
             'Pajak 2.5% (Rp)', 'Denda (Rp)', 'Nominal Netto (Rp)', 'Keterangan'
         ]);
 

@@ -40,7 +40,7 @@
                 <div class="col-md-6">
                     <div class="p-3 bg-white rounded border h-100">
                         <div class="fw-bold text-primary mb-2">
-                            <i class="bi bi-people-fill me-1"></i> Skala Rombel & Honor Mengajar Utama
+                            <i class="bi bi-people-fill me-1"></i> Skala Rombel & Honor Mengajar Instruktur
                         </div>
                         <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
                             <li><span class="badge bg-success me-1">≥ 15 Siswa</span> <strong>Rp 150.000</strong> / sesi <span class="text-muted">(Berjalan)</span></li>
@@ -81,7 +81,7 @@
                         <tr>
                             <th class="ps-4">Periode</th>
                             <th>Kode Batch</th>
-                            <th class="text-center">Sesi (U/A)</th>
+                            <th class="text-center">Sesi (I/A)</th>
                             <th class="text-end">Honor Mengajar</th>
                             <th class="text-end">Honor Asisten</th>
                             <th class="text-end">Uang Transport</th>
@@ -110,7 +110,7 @@
                                 <td class="text-center">
                                     <strong>{{ $item->total_sessions }}</strong> Sesi
                                     <div class="text-muted small" style="font-size: 0.75rem;">
-                                        ({{ $sesiU }} U / {{ $sesiA }} A)
+                                        ({{ $sesiU }} I / {{ $sesiA }} A)
                                     </div>
                                 </td>
                                 <td class="text-end">Rp {{ number_format($item->total_base_fee, 0, ',', '.') }}</td>

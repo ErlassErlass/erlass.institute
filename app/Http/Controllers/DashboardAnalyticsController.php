@@ -630,4 +630,27 @@ class DashboardAnalyticsController extends Controller
             $fileName
         );
     }
+
+    /**
+     * Export instructor availability matrix to Excel.
+     *
+     * GET /admin/analytics/schedule-distribution/export-availability
+     *     ?week=2026-W37&kota=Bekasi&day=Senin
+     */
+    public function exportAvailability(Request $request)
+    {
+        $weekStr    = $request->input('week', now()->format('Y') . '-W' . now()->format('W'));
+        $kotaFilter = $request->input('kota');
+        $dayFilter  = $request->input('day');
+
+        // Build a human-readable week label for filename
+        $fileWeek = str_replace('-', '_', $weekStr); // 2026_W37
+        $kotaPart = $kotaFilter ? '_' . preg_replace('/[^A-Za-z0-9]/', '', $kotaFilter) : '';
+        $fileName = 'Ketersediaan_Instruktur_' . $fileWeek . $kotaPart . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\AvailabilityExport($weekStr, $kotaFilter, $dayFilter),
+            $fileName
+        );
+    }
 }

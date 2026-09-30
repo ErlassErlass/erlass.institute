@@ -50,6 +50,11 @@ class InstructorProfileController extends Controller
         if ($user->role !== 'instruktur') {
             abort(403);
         }
+        if ($request->has('nama_bank')) {
+            $request->merge([
+                'nama_bank' => \App\Models\InstructorProfile::normalizeBankName($request->input('nama_bank')),
+            ]);
+        }
 
         $request->validate([
             // Personal Info

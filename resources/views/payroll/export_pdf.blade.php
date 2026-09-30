@@ -78,10 +78,10 @@
                     <th>ID</th>
                     <th>Nama Instruktur</th>
                     <th>Bank & Rekening</th>
-                    <th class="text-center">U</th>
-                    <th class="text-center">A</th>
+                    <th class="text-center" title="Sesi Instruktur">I</th>
+                    <th class="text-center" title="Sesi Asisten">A</th>
                     <th class="text-center">Total</th>
-                    <th class="text-end">Honor Utama</th>
+                    <th class="text-end">Honor Instruktur</th>
                     <th class="text-end">Honor Asisten</th>
                     <th class="text-end">Transport</th>
                     <th class="text-end">Total Kotor</th>
@@ -171,9 +171,9 @@
                 <tr class="table-light">
                     <th class="text-center" style="width: 30px;">No</th>
                     <th>Nama Instruktur</th>
-                    <th class="text-center">Sesi (U/A)</th>
+                    <th class="text-center">Sesi (I/A)</th>
                     <th class="text-center">Total</th>
-                    <th class="text-end">Honor Utama</th>
+                    <th class="text-end">Honor Instruktur</th>
                     <th class="text-end">Honor Asisten</th>
                     <th class="text-end">Bonus</th>
                     <th class="text-end">Transport</th>
@@ -229,7 +229,7 @@
 
     <!-- Table 3: Session Audit Details -->
     <div class="mb-5">
-        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">3. AUDIT RINCIAN PER SESI MENGAJAR (INSTRUKTUR UTAMA & ASISTEN)</h6>
+        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">3. AUDIT RINCIAN PER SESI MENGAJAR (PENANGGUNG JAWAB & PELAKSANA)</h6>
         <table class="table table-bordered table-pdf align-middle" style="font-size: 8pt;">
             <thead>
                 <tr class="table-light">
@@ -237,8 +237,8 @@
                     <th>ID</th>
                     <th>Tanggal</th>
                     <th>Sekolah Mitra & Program</th>
-                    <th>Penerima Honor</th>
-                    <th>Instruktur Utama</th>
+                    <th>Pelaksana / Penerima Honor</th>
+                    <th>Penanggung Jawab Kelas (Instruktur Utama)</th>
                     <th>Asisten Instruktur</th>
                     <th class="text-center">Peran</th>
                     <th class="text-end">Honor (Rp)</th>
@@ -299,7 +299,7 @@
                             ?? optional(optional($session->rombel)->asisten)->nama_lengkap 
                             ?? '-';
 
-                        $peranDisplay = ($role === 'asisten') ? 'Asisten' : 'Utama';
+                        $peranDisplay = ($role === 'asisten') ? 'Asisten' : 'Instruktur';
                     @endphp
                     <tr>
                         <td class="text-center">{{ $sessNo++ }}</td>

@@ -139,11 +139,11 @@
                         <!-- Note Box (Session Counts) -->
                         <div class="p-2 bg-white rounded border border-dashed text-muted small mb-3">
                             <div class="d-flex justify-content-between mb-1">
-                                <span>Total Mengajar Instruktur Utama:</span>
+                                <span>Total Mengajar Instruktur:</span>
                                 <strong class="text-dark">{{ $sesiU }} Pertemuan</strong>
                             </div>
                             <div class="d-flex justify-content-between">
-                                <span>Total Mengajar Assistant Instruktur:</span>
+                                <span>Total Mengajar Asisten Instruktur:</span>
                                 <strong class="text-dark">{{ $sesiA }} Pertemuan</strong>
                             </div>
                         </div>
@@ -226,7 +226,7 @@
                                         </td>
                                         <td class="text-center">
                                             <span class="badge {{ $role === 'asisten' ? 'bg-info bg-opacity-25 text-dark border border-info' : 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25' }} px-2 py-1">
-                                                {{ $role === 'asisten' ? 'Asisten' : 'Utama' }}
+                                                {{ $role === 'asisten' ? 'Asisten' : 'Instruktur' }}
                                             </span>
                                         </td>
                                         <td>

@@ -253,7 +253,7 @@
                     <h5 class="fw-bold text-dark mb-1">
                         <i class="bi bi-code-square text-success me-2"></i>Pasang Menu Sync Otomatis di Google Sheets
                     </h5>
-                    <p class="text-muted small mb-0">Cukup salin script berikut ke <strong>Ekstensi (Extensions) &gt; Apps Script</strong> di Google Spreadsheet Anda untuk mengisi seluruh 7 tab secara otomatis dan membuat tombol menu sinkronisasi.</p>
+                    <p class="text-muted small mb-0">Cukup salin script berikut ke <strong>Ekstensi (Extensions) &gt; Apps Script</strong> di Google Spreadsheet Anda untuk mengisi seluruh 10 tab secara otomatis dan membuat tombol menu sinkronisasi.</p>
                 </div>
                 <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="copyAppsScript()">
                     <i class="bi bi-clipboard-check me-1"></i> Salin Script
@@ -264,7 +264,7 @@
             <div class="position-relative">
                 <pre class="bg-dark text-light p-3 rounded-4 small mb-0" style="max-height: 250px; overflow-y: auto;" id="appsScriptCode"><code>/**
  * ERLASS INSTITUTE - GOOGLE SPREADSHEETS AUTO-SYNC
- * Mengisi & menyinkronkan seluruh 7 Tab Data secara otomatis.
+ * Mengisi & menyinkronkan seluruh 10 Tab Data secara otomatis.
  */
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
@@ -299,7 +299,10 @@ function SINKRONKAN_SEMUA_DATA() {
     'Absensi_Siswa': '#0891b2',
     'Rekap_Honor': '#dc2626',
     'Rekap_Pertemuan_Ekskul': '#7c3aed',
-    'Daftar_Program_Ekskul': '#2563eb'
+    'Daftar_Program_Ekskul': '#2563eb',
+    'Rekap_Honor_Instruktur': '#059669',
+    'Profil_Instruktur': '#0284c7',
+    'Data_Siswa': '#d97706'
   };
 
   for (var tabName in tabs) {
@@ -332,7 +335,7 @@ function SINKRONKAN_SEMUA_DATA() {
     try { ss.deleteSheet(sheet1); } catch(e) {}
   }
   
-  SpreadsheetApp.getActiveSpreadsheet().toast('✅ Sukses! Seluruh 7 Tab telah terisi lengkap.', 'Selesai', 5);
+  SpreadsheetApp.getActiveSpreadsheet().toast('✅ Sukses! Seluruh 10 Tab telah terisi lengkap.', 'Selesai', 5);
 }</code></pre>
             </div>
         </div>

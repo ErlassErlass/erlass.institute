@@ -34,8 +34,8 @@ class UserPolicy
      */
     public function viewAny(User $user): bool
     {
-        // Hanya webmaster yang bisa melihat daftar user
-        return in_array($user->role, ['webmaster', 'admin_sistem']);
+        // Webmaster, Admin Sistem, dan Primary Admin bisa melihat daftar user
+        return in_array($user->role, ['webmaster', 'admin_sistem']) || $user->isPrimaryAdmin();
     }
 
     /**
@@ -43,8 +43,8 @@ class UserPolicy
      */
     public function view(User $user, User $model): bool
     {
-        // Webmaster bisa melihat semua user
-        if ($user->role === 'webmaster') {
+        // Webmaster, Admin Sistem, dan Primary Admin (termasuk Ahmad Yusril) bisa melihat semua user
+        if (in_array($user->role, ['webmaster', 'admin_sistem']) || $user->isPrimaryAdmin()) {
             return true;
         }
 
@@ -53,11 +53,11 @@ class UserPolicy
     }
 
     /**
-     * Menentukan siapa yang boleh membuat user baru (khusus webmaster).
+     * Menentukan siapa yang boleh membuat user baru.
      */
     public function create(User $user): bool
     {
-        return $user->role === 'webmaster';
+        return in_array($user->role, ['webmaster', 'admin_sistem']) || $user->isPrimaryAdmin();
     }
 
     /**
@@ -65,8 +65,8 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        // Primary admin (Webmaster & Adinda Wardania) bisa edit user lain
-        if ($user->isPrimaryAdmin()) {
+        // Primary admin & Admin Sistem bisa edit user lain
+        if ($user->isPrimaryAdmin() || in_array($user->role, ['webmaster', 'admin_sistem'])) {
             return true;
         }
 

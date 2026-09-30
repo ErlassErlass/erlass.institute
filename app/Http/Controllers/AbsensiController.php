@@ -54,11 +54,37 @@ class AbsensiController extends Controller
         }
 
         // Ambil data absensi yang sudah ada untuk laporan ini (untuk edit)
-        $existingAbsensi = Absensi::where('laporan_mengajar_id', $laporanMengajar->id)
-            ->get()
-            ->mapWithKeys(function ($item) {
-                return [$item->siswa_id => ($item->status === 'hadir' ? 1 : 0)];
-            });
+        $rawAbsensi = Absensi::with('siswa')
+            ->where('laporan_mengajar_id', $laporanMengajar->id)
+            ->get();
+
+        $existingAbsensi = $rawAbsensi->mapWithKeys(function ($item) {
+            return [$item->siswa_id => ($item->status === 'hadir' ? 1 : 0)];
+        });
+
+        // Fallback by name jika ada siswa aktif di rombel yang ID-nya berubah/dibuat ulang
+        if ($siswas->isNotEmpty()) {
+            $usedRawIds = [];
+            foreach ($siswas as $st) {
+                if (!isset($existingAbsensi[$st->id])) {
+                    $stNameClean = strtolower(trim(preg_replace('/[^a-zA-Z0-9]/', '', $st->nama_lengkap)));
+                    foreach ($rawAbsensi as $item) {
+                        if (in_array($item->id, $usedRawIds)) {
+                            continue;
+                        }
+                        $recName = $item->siswa?->nama_lengkap;
+                        if ($recName) {
+                            $recClean = strtolower(trim(preg_replace('/[^a-zA-Z0-9]/', '', $recName)));
+                            if ($stNameClean !== '' && $stNameClean === $recClean) {
+                                $existingAbsensi[$st->id] = ($item->status === 'hadir' ? 1 : 0);
+                                $usedRawIds[] = $item->id;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         return view('absensi.create', compact(
             'laporanMengajar',
@@ -683,11 +709,6 @@ class AbsensiController extends Controller
         $ekstrakurikuler = $rombel->ekstrakurikuler;
         $sekolah = $ekstrakurikuler->sekolah;
         
-        // Get active students in this rombel
-        $students = $rombel->siswaAktif()
-            ->orderBy('nama_lengkap')
-            ->get();
-            
         // Calculate Academic Year
         $date = $session->tanggal_terjadwal ?? $session->tanggal_pelaksanaan ?? now();
         $academicYear = $date->month >= 7 
@@ -695,7 +716,7 @@ class AbsensiController extends Controller
             : ($date->year - 1) . '/' . $date->year;
 
         // Fetch ALL regular sessions (nomor_pertemuan > 0) for this Rombel ordered by meeting number with eager loading
-        $allSessions = \App\Models\EkstrakurikulerSession::with(['laporanMengajar.absensis', 'rombel.ekstrakurikuler'])
+        $allSessions = \App\Models\EkstrakurikulerSession::with(['laporanMengajar.absensis.siswa', 'rombel.ekstrakurikuler'])
             ->where('ekstrakurikuler_rombel_id', $session->ekstrakurikuler_rombel_id)
             ->where('nomor_pertemuan', '>', 0)
             ->orderBy('nomor_pertemuan')
@@ -739,15 +760,68 @@ class AbsensiController extends Controller
             }
         }
 
+        // Collect IDs of all students who have attendance recorded in any session of this batch
+        $attendedStudentIds = $batchSessions->flatMap(function ($s) {
+            return $s->laporanMengajar?->absensis?->pluck('siswa_id') ?? collect();
+        })->filter()->unique()->values()->toArray();
+
+        // Get active students in this rombel + any student who has attendance in this batch
+        $students = $rombel->siswa()
+            ->where(function ($query) use ($attendedStudentIds) {
+                $query->where('siswa_ekstrakurikuler.status', 'aktif');
+                if (!empty($attendedStudentIds)) {
+                    $query->orWhereIn('siswa.id', $attendedStudentIds);
+                }
+            })
+            ->orderBy('nama_lengkap')
+            ->get();
+
+        // Fallback: in case student with attendance was detached from rombel pivot
+        $existingStudentIds = $students->pluck('id')->toArray();
+        $missingStudentIds = array_diff($attendedStudentIds, $existingStudentIds);
+        if (!empty($missingStudentIds)) {
+            $missingStudents = \App\Models\Siswa::whereIn('id', $missingStudentIds)->get();
+            $students = $students->concat($missingStudents)->sortBy('nama_lengkap')->values();
+        }
+
         // Fetch Attendance Data (Absensi) for these sessions
         // We need to map [session_id][student_id] => status
         $attendanceMap = [];
         foreach ($batchSessions as $s) {
             if ($s->laporanMengajar) {
-                // Use eager loaded absensis
+                // Primary: map by direct siswa_id
                 foreach ($s->laporanMengajar->absensis as $record) {
                     // 1 = Hadir, 0 = Tidak Hadir
                     $attendanceMap[$s->id][$record->siswa_id] = ($record->status === 'hadir' ? 1 : 0);
+                }
+
+                // Defensive Fallback: jika siswa pernah dibuat ulang/diimport ulang (beda ID tapi nama sama),
+                // cocokkan siswa aktif yang belum terpetakan dengan absensi berdasarkan nama
+                $usedRecordIds = [];
+                foreach ($students as $st) {
+                    if (!isset($attendanceMap[$s->id][$st->id])) {
+                        $stNameClean = strtolower(trim(preg_replace('/[^a-zA-Z0-9]/', '', $st->nama_lengkap)));
+                        foreach ($s->laporanMengajar->absensis as $record) {
+                            if (in_array($record->id, $usedRecordIds)) {
+                                continue;
+                            }
+                            $recName = $record->siswa?->nama_lengkap;
+                            if ($recName) {
+                                $recNameClean = strtolower(trim(preg_replace('/[^a-zA-Z0-9]/', '', $recName)));
+                                if ($stNameClean !== '' && $stNameClean === $recNameClean) {
+                                    $attendanceMap[$s->id][$st->id] = ($record->status === 'hadir' ? 1 : 0);
+                                    $usedRecordIds[] = $record->id;
+                                    break;
+                                }
+                                similar_text($stNameClean, $recNameClean, $simPercent);
+                                if ($simPercent >= 90) {
+                                    $attendanceMap[$s->id][$st->id] = ($record->status === 'hadir' ? 1 : 0);
+                                    $usedRecordIds[] = $record->id;
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

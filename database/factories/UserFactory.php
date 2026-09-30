@@ -92,7 +92,26 @@ class UserFactory extends Factory
             'verification_status' => 'approved',
             'verified_at' => fake()->dateTimeBetween('-6 months', 'now'),
             'verified_by' => 1, // Assume verified by first webmaster
-        ]);
+        ])->afterCreating(function (\App\Models\User $user) {
+            \App\Models\InstructorProfile::firstOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'nama_panggilan' => $user->nama_lengkap,
+                    'nama_bank' => 'BCA',
+                    'no_rekening' => '1234567890',
+                    'nama_rekening' => $user->nama_lengkap,
+                    'nik' => '3171012345678901',
+                    'pekerjaan_terakhir' => 'Pengajar IT',
+                    'jenjang_mengajar' => 'SD, SMP',
+                    'universitas_jurusan' => 'Universitas Indonesia',
+                    'mata_minus' => 'Normal',
+                    'alat_mengajar' => json_encode(['Laptop']),
+                    'kendaraan' => 'Pribadi',
+                    'jenis_kendaraan' => 'Motor',
+                    'waktu_mengajar' => ['Senin' => ['08:00', '12:00']],
+                ]
+            );
+        });
     }
 
     /**

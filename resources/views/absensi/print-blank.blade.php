@@ -320,7 +320,11 @@
                             </td>
                         @endfor
                         
-                        <td class="col-ket"></td>
+                        <td class="col-ket">
+                            @if(isset($student->pivot) && $student->pivot->status === 'keluar')
+                                <span style="font-size: 6.5pt; color: #dc2626; font-weight: 600;">Keluar</span>
+                            @endif
+                        </td>
                     </tr>
                     @endforeach
                     

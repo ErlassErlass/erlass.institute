@@ -30,6 +30,7 @@ class GoogleSheetsService
     const TAB_PROGRAM_EKSKUL = 'Daftar_Program_Ekskul';
     const TAB_REKAP_HONOR_INSTRUKTUR = 'Rekap_Honor_Instruktur';
     const TAB_PROFIL_INSTRUKTUR = 'Profil_Instruktur';
+    const TAB_DATA_SISWA = 'Data_Siswa';
 
     public function __construct()
     {
@@ -178,6 +179,7 @@ class GoogleSheetsService
                 self::TAB_PROGRAM_EKSKUL,
                 self::TAB_REKAP_HONOR_INSTRUKTUR,
                 self::TAB_PROFIL_INSTRUKTUR,
+                self::TAB_DATA_SISWA,
             ];
 
             $requests = [];
@@ -256,6 +258,27 @@ class GoogleSheetsService
                 ];
             }
 
+            // Dapatkan sheetId untuk TAB_DATA_SISWA agar kolom NISN (Kolom B) dikunci sebagai Plain Text
+            $siswaSheet = collect($meta['sheets'] ?? [])->firstWhere('properties.title', self::TAB_DATA_SISWA);
+            if ($siswaSheet && isset($siswaSheet['properties']['sheetId'])) {
+                $requests[] = [
+                    'repeatCell' => [
+                        'range' => [
+                            'sheetId' => $siswaSheet['properties']['sheetId'],
+                            'startColumnIndex' => 1, // Kolom B (NISN)
+                            'endColumnIndex' => 2,
+                            'startRowIndex' => 1,
+                        ],
+                        'cell' => [
+                            'userEnteredFormat' => [
+                                'numberFormat' => ['type' => 'TEXT'],
+                            ],
+                        ],
+                        'fields' => 'userEnteredFormat.numberFormat',
+                    ],
+                ];
+            }
+
             if (!empty($requests)) {
                 $batchResponse = Http::withToken($token)->timeout(8)->post("https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}:batchUpdate", [
                     'requests' => $requests,
@@ -290,6 +313,7 @@ class GoogleSheetsService
             self::TAB_PROGRAM_EKSKUL => $this->syncTabProgramEkskul($token),
             self::TAB_REKAP_HONOR_INSTRUKTUR => $this->syncTabRekapHonorInstruktur($token),
             self::TAB_PROFIL_INSTRUKTUR => $this->syncTabProfilInstruktur($token),
+            self::TAB_DATA_SISWA => $this->syncTabDataSiswa($token),
         ];
 
         Cache::put('google_sheets_last_sync', now()->toDateTimeString(), 86400 * 30);
@@ -1011,6 +1035,87 @@ class GoogleSheetsService
     }
 
     /**
+     * Tab 10: Master Data Siswa Ekstrakurikuler
+     * Kolom: No, NISN, Nama Lengkap, Sekolah, Kelas, Program, Ekskul
+     */
+    public function syncTabDataSiswa(?string $token = null): array
+    {
+        $headers = [
+            'No',
+            'NISN',
+            'Nama Lengkap',
+            'Sekolah',
+            'Kelas',
+            'Program',
+            'Ekskul',
+        ];
+
+        $students = DB::table('siswa_ekstrakurikuler as se')
+            ->join('siswa as s', 's.id', '=', 'se.siswa_id')
+            ->leftJoin('ekstrakurikuler as e', 'e.id', '=', 'se.ekstrakurikuler_id')
+            ->leftJoin('sekolah as sek', 'sek.kodlan', '=', 'e.sekolah_kodlan')
+            ->leftJoin('ekstrakurikuler_rombel as r', 'r.id', '=', 'se.ekstrakurikuler_rombel_id')
+            ->whereNull('se.deleted_at')
+            ->where('se.status', 'aktif')
+            ->select([
+                's.id as siswa_id',
+                's.nisn',
+                's.nama_lengkap',
+                DB::raw('COALESCE(sek.namasekolah, "-") as nama_sekolah'),
+                DB::raw('COALESCE(s.kelas, s.rombel, r.nama_rombel, "-") as kelas'),
+                DB::raw('COALESCE(e.kategori_program, "-") as kategori_program'),
+                DB::raw('COALESCE(r.nama_rombel, "-") as nama_rombel'),
+            ])
+            ->orderBy('sek.namasekolah')
+            ->orderBy('e.kategori_program')
+            ->orderBy('s.nama_lengkap')
+            ->get();
+
+        $rows = [$headers];
+        $no = 1;
+
+        foreach ($students as $st) {
+            $rawNisn = trim((string) $st->nisn);
+            $nisn = ($rawNisn !== '' && $rawNisn !== '-') ? "'" . $rawNisn : '-';
+
+            $kat = $st->kategori_program;
+            $program = '-';
+            if ($kat && $kat !== '-') {
+                if (stripos($kat, 'robotik') !== false) {
+                    $program = 'Robotik';
+                } elseif (stripos($kat, 'coding') !== false || stripos($kat, 'scratch') !== false) {
+                    $program = 'Coding';
+                } elseif (stripos($kat, 'pictoblox') !== false || stripos($kat, 'ai') !== false) {
+                    $program = 'Artificial Intelligence (AI)';
+                } elseif (stripos($kat, 'english') !== false) {
+                    $program = 'English Course';
+                } elseif (stripos($kat, 'inkul') !== false) {
+                    $program = 'Intrakurikuler (Inkul)';
+                } else {
+                    $program = $kat;
+                }
+            }
+
+            $ekskul = $kat;
+            if ($st->nama_rombel && $st->nama_rombel !== '-') {
+                $ekskul .= " ({$st->nama_rombel})";
+            }
+
+            $rows[] = [
+                $no++,
+                $nisn,
+                $st->nama_lengkap ?? '-',
+                $st->nama_sekolah ?? '-',
+                $st->kelas ?? '-',
+                $program,
+                $ekskul,
+            ];
+        }
+
+        return $this->writeTab(self::TAB_DATA_SISWA, $rows, $token);
+    }
+
+    /**
      * Append a single Laporan row in Realtime.
      */
     public function appendLaporanRealtime(LaporanMengajar $r): bool
@@ -1159,6 +1264,7 @@ class GoogleSheetsService
                 self::TAB_PROGRAM_EKSKUL => $this->syncTabProgramEkskul(),
                 self::TAB_REKAP_HONOR_INSTRUKTUR => $this->syncTabRekapHonorInstruktur(),
                 self::TAB_PROFIL_INSTRUKTUR => $this->syncTabProfilInstruktur(),
+                self::TAB_DATA_SISWA => $this->syncTabDataSiswa(),
                 default => null,
             };
             $data = Cache::get("google_sheets_data_{$tabTitle}", []);
@@ -1176,7 +1282,7 @@ class GoogleSheetsService
     }
 
     /**
-     * Get array data of all 7 tabs.
+     * Get array data of all 10 tabs.
      */
     public function getAllTabsData(): array
     {
@@ -1189,6 +1295,7 @@ class GoogleSheetsService
         $this->syncTabProgramEkskul();
         $this->syncTabRekapHonorInstruktur();
         $this->syncTabProfilInstruktur();
+        $this->syncTabDataSiswa();
 
         return [
             self::TAB_KPI => Cache::get("google_sheets_data_" . self::TAB_KPI, []),
@@ -1200,6 +1307,7 @@ class GoogleSheetsService
             self::TAB_PROGRAM_EKSKUL => Cache::get("google_sheets_data_" . self::TAB_PROGRAM_EKSKUL, []),
             self::TAB_REKAP_HONOR_INSTRUKTUR => Cache::get("google_sheets_data_" . self::TAB_REKAP_HONOR_INSTRUKTUR, []),
             self::TAB_PROFIL_INSTRUKTUR => Cache::get("google_sheets_data_" . self::TAB_PROFIL_INSTRUKTUR, []),
+            self::TAB_DATA_SISWA => Cache::get("google_sheets_data_" . self::TAB_DATA_SISWA, []),
         ];
     }
 }

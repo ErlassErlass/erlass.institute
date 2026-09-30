@@ -142,7 +142,29 @@
                 </div>
 
                 <div class="row g-3 mt-1 align-items-center">
-                    <div class="col-md-2">
+                    <div class="col-md-3 col-sm-6">
+                        <label for="pertemuan_ke" class="form-label small text-muted text-uppercase fw-bold">Pertemuan / Milestone</label>
+                        <select name="pertemuan_ke" id="pertemuan_ke" class="form-select border-light-subtle bg-white" onchange="this.form.submit()">
+                            <option value="">Semua Pertemuan</option>
+                            <optgroup label="⭐ Milestone (Kelipatan 4)">
+                                <option value="kelipatan_4" @selected(request('pertemuan_ke') == 'kelipatan_4')>⚡ Semua Kelipatan 4 (P.4 - P.32)</option>
+                                <option value="4" @selected(request('pertemuan_ke') == '4')>Pertemuan 4</option>
+                                <option value="8" @selected(request('pertemuan_ke') == '8')>Pertemuan 8</option>
+                                <option value="12" @selected(request('pertemuan_ke') == '12')>Pertemuan 12</option>
+                                <option value="16" @selected(request('pertemuan_ke') == '16')>Pertemuan 16</option>
+                                <option value="20" @selected(request('pertemuan_ke') == '20')>Pertemuan 20</option>
+                                <option value="24" @selected(request('pertemuan_ke') == '24')>Pertemuan 24</option>
+                                <option value="28" @selected(request('pertemuan_ke') == '28')>Pertemuan 28</option>
+                                <option value="32" @selected(request('pertemuan_ke') == '32')>Pertemuan 32</option>
+                            </optgroup>
+                            <optgroup label="Pertemuan Lainnya">
+                                @foreach([1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15, 17, 18, 19, 21, 22, 23, 25, 26, 27, 29, 30, 31] as $p)
+                                    <option value="{{ $p }}" @selected(request('pertemuan_ke') == (string)$p)>Pertemuan {{ $p }}</option>
+                                @endforeach
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-sm-6">
                         <label for="per_page" class="form-label small text-muted text-uppercase fw-bold">Tampilkan</label>
                         <select name="per_page" id="per_page" class="form-select border-light-subtle bg-white" onchange="this.form.submit()">
                             <option value="25" @selected(request('per_page', 25) == 25)>25 Baris</option>
@@ -151,7 +173,7 @@
                             <option value="all" @selected(request('per_page') == 'all')>⚡ Semua Data</option>
                         </select>
                     </div>
-                    <div class="col-md-10 d-flex justify-content-end align-items-end gap-2">
+                    <div class="col-md-7 d-flex justify-content-end align-items-end gap-2 mt-sm-auto mt-2">
                         <button type="submit" class="btn btn-primary"><i class="bi bi-funnel me-1"></i> Terapkan Filter</button>
                         <a href="{{ route('laporan-mengajar.index') }}" class="btn btn-light text-muted border border-light-subtle" title="Reset Filter"><i class="bi bi-arrow-counterclockwise me-1"></i> Reset</a>
                         <div class="btn-group">
@@ -457,19 +479,27 @@
         });
 
         // Add auto-submit functionality to dropdown filters
-        document.querySelectorAll('#instruktur_id, #kategori').forEach(el => {
+        document.querySelectorAll('#instruktur_id, #kategori, #pertemuan_ke').forEach(el => {
             el.addEventListener('change', () => document.getElementById('filterForm').submit());
         });
 
-        // Handle Export links, preserving current filters
+        // Handle Export links, preserving current filters from form
         document.querySelectorAll('.export-link').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 const format = this.dataset.format;
-                const params = new URLSearchParams(window.location.search);
+                const form = document.getElementById('filterForm');
+                const formData = new FormData(form);
+                const params = new URLSearchParams();
+
+                for (const [key, value] of formData.entries()) {
+                    if (value && typeof value === 'string' && value.trim() !== '') {
+                        params.append(key, value.trim());
+                    }
+                }
+
                 let exportUrl = "{{ route('laporan-mengajar.export', ['format' => '__FORMAT__']) }}";
-                
-                exportUrl = exportUrl.replace('__FORMAT__', format) + '?' + params.toString();
+                exportUrl = exportUrl.replace('__FORMAT__', format) + (params.toString() ? '?' + params.toString() : '');
                 window.location.href = exportUrl;
             });
         });

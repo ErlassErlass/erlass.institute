@@ -254,4 +254,46 @@ class LaporanMengajarTest extends TestCase
             // Missing user_id_instruktur which should be required
         ]);
     }
+
+    public function test_deleting_laporan_resets_ekstrakurikuler_session_status(): void
+    {
+        $ekskul = \App\Models\Ekstrakurikuler::factory()->create([
+            'sekolah_kodlan' => $this->sekolah->kodlan,
+        ]);
+        $rombel = \App\Models\EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nama_rombel' => 'Rombel 1',
+            'nomor_rombel' => 1,
+            'total_pertemuan' => 1,
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addDays(7)->toDateString(),
+            'hari' => 'senin',
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '09:30',
+            'jumlah_siswa' => 0,
+            'status' => 'berlangsung',
+        ]);
+        $session = \App\Models\EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombel->id)->first();
+        $session->update([
+            'status' => \App\Models\EkstrakurikulerSession::STATUS_SELESAI,
+            'user_id_instruktur' => $this->instructor->id,
+            'jam_mulai_aktual' => '08:05:00',
+            'jam_selesai_aktual' => '09:30:00',
+        ]);
+
+        $laporan = LaporanMengajar::factory()->create([
+            'user_id_instruktur' => $this->instructor->id,
+            'sekolah_kodlan' => $this->sekolah->kodlan,
+            'ekstrakurikuler_session_id' => $session->id,
+        ]);
+
+        $this->assertEquals(\App\Models\EkstrakurikulerSession::STATUS_SELESAI, $session->fresh()->status);
+
+        $laporan->delete();
+
+        $sessionFresh = $session->fresh();
+        $this->assertEquals(\App\Models\EkstrakurikulerSession::STATUS_BERLANGSUNG, $sessionFresh->status);
+        $this->assertNull($sessionFresh->jam_selesai_aktual);
+    }
 }
+

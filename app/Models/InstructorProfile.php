@@ -34,6 +34,7 @@ class InstructorProfile extends Model
             'Kota Bogor',
             'Kabupaten Bogor',
             'Depok',
+            'Kota Depok',
             'Kota Tangerang',
             'Kabupaten Tangerang',
             'Tangerang Selatan',
@@ -55,6 +56,7 @@ class InstructorProfile extends Model
             'BRI',
             'BNI',
             'BSI',
+            'BJB',
             'SEABANK',
             'BTN',
             'JAGO',
@@ -108,6 +110,9 @@ class InstructorProfile extends Model
         }
         if (str_contains($upper, 'BSI') || str_contains($upper, 'SYARIAH INDONESIA')) {
             return 'BSI';
+        }
+        if (str_contains($upper, 'BJB') || str_contains($upper, 'JAWA BARAT') || str_contains($upper, 'JABAR')) {
+            return 'BJB';
         }
         if (str_contains($upper, 'SEABANK') || str_contains($upper, 'SEBANK') || str_contains($upper, 'SEA BANK')) {
             return 'SEABANK';

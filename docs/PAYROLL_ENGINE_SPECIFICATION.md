@@ -26,9 +26,9 @@ Ditentukan berdasarkan akumulasi jumlah siswa **HADIR** dalam sesi:
 | **12 s.d. 14 orang siswa** | **Rp 115.000** | **Berjalan** |
 | **10 s.d. 11 orang siswa** | **Rp 100.000** | **Berjalan** |
 | **8 s.d. 9 orang siswa** | **Rp 75.000** | **Minimum** |
-| **$< 8$ orang siswa** | **Rp 0** | **Hold (Ditunda)** |
+| **$< 8$ orang siswa (termasuk 0 hadir)** | **Rp 75.000** | **Minimum Tetap Dibayar (Kecuali program/sesi dibatalkan = Rp 0)** |
 
-> **Catatan Warning Engine:** Rombel aktif dengan kuota siswa $< 8$ orang otomatis memicu **Peringatan Kuning (Quality Control Log)** di Dashboard Manajemen.
+> **Catatan Warning Engine:** Sesi reguler yang sudah terlaksana (selesai) dengan jumlah siswa $< 8$ orang (termasuk jika 0 siswa hadir karena izin/kegiatan sekolah) tetap dibayarkan honor tarif minimum Rp 75.000 (tidak boleh Rp 0), kecuali sesi berstatus dibatalkan atau libur. Rombel aktif dengan siswa $< 8$ orang tetap memicu **Peringatan Kuning (Quality Control Log)** di Dashboard Manajemen.
 
 ---
 
@@ -58,7 +58,7 @@ Berdasarkan format resmi slip gaji Erlass (contoh real: Dimas Maulana, Periode 1
 
 ```
 +-----------------------------------------------------------------------------------+
-| 1. TOTAL PENERIMAAN KOTOR (GROSS)                                                 |
+| 1. TOTAL PENERIMAAN KOTOR  (GROSS)                                                 |
 |    = Honor Utama + Honor Asisten + Bonus Produk + Transport Utama                 |
 +-----------------------------------------------------------------------------------+
 | 2. POTONGAN PAJAK (2.5%)                                                          |
@@ -82,15 +82,16 @@ Berdasarkan format resmi slip gaji Erlass (contoh real: Dimas Maulana, Periode 1
 
 ---
 
-## 4. Ketentuan Biaya Transportasi Operasional (Instruktur Utama)
+## 4. Ketentuan Biaya Transportasi Operasional (Instruktur Utama & Asisten)
 
-> **Kebijakan Aktif:** Transport dihitung **2x Pulang-Pergi (PP)** dan hanya dibayar **1x per sekolah per hari** untuk Instruktur Utama.
+> **Kebijakan Aktif:** Transport dihitung **2x Pulang-Pergi (PP)** dan hanya dibayar **1x per sekolah per hari** untuk Instruktur Utama maupun Asisten. Seluruh hasil perhitungan biaya transport **dibulatkan ke atas ke kelipatan Rp 500** (`ceil(transport / 500) * 500`). Sesi yang dibatalkan / libur mendapat transport Rp 0.
 
 1. **Guru Internal Sekolah & Sesi di Kantor Erlass**:
    - Biaya Transportasi: **Rp 0** (Hanya membayarkan honorarium mengajar).
 2. **Sekolah Berjarak $\ge 10\text{ KM}$ dari Pejaten**:
    $$\text{Biaya Bensin 2x PP} = \text{Jarak KM} \times \text{Rp 350} \times 2$$
-   $$\text{Biaya Transport Total} = \text{Biaya Bensin 2x PP} + \text{Rp 7.500 (Sewa Kendaraan)}$$
+   $$\text{Biaya Transport Kotor} = \text{Biaya Bensin 2x PP} + \text{Rp 7.500 (Sewa Kendaraan)}$$
+   $$\text{Biaya Transport Final} = \text{Pembulatan ke atas ke kelipatan Rp 500}$$
 3. **Sekolah Berjarak $< 10\text{ KM}$ dari Pejaten**:
    - Biaya Transport Total: **Rp 7.500 (Sewa Kendaraan Saja)**.
 4. **Deduplikasi Per Sekolah Per Hari**:

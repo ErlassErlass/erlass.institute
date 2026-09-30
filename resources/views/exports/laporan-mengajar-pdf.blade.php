@@ -25,6 +25,7 @@
         <thead>
             <tr>
                 <th>Tanggal</th>
+                <th style="width: 40px; text-align: center;">P.</th>
                 <th>Instruktur</th>
                 <th>Sekolah</th>
                 <th>Rombel</th>
@@ -37,6 +38,7 @@
     @forelse($laporan as $item)
         <tr>
             <td>{{ \Carbon\Carbon::parse($item->jadwal_mengajar)->format('d/m/Y') }}</td>
+            <td style="text-align: center; font-weight: bold;">P.{{ $item->pertemuan_ke }}</td>
             <td>
                 {{ $item->instruktur->nama_lengkap ?? 'N/A' }}
                 @if($item->asisten)
@@ -63,7 +65,7 @@
         </tr>
     @empty
         <tr>
-            <td colspan="7" class="text-center">Tidak ada data</td>
+            <td colspan="8" class="text-center">Tidak ada data</td>
         </tr>
     @endforelse
 </tbody>

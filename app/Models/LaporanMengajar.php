@@ -108,6 +108,17 @@ class LaporanMengajar extends Model
 
             // Hapus data absensi terkait agar tidak melanggar foreign key constraint
             $laporan->absensi()->delete();
+
+            // Reset status sesi ekstrakurikuler jika laporan ini terhubung ke sesi ekstrakurikuler
+            if ($laporan->ekstrakurikuler_session_id) {
+                $session = \App\Models\EkstrakurikulerSession::find($laporan->ekstrakurikuler_session_id);
+                if ($session && $session->status === \App\Models\EkstrakurikulerSession::STATUS_SELESAI) {
+                    $session->update([
+                        'status' => $session->jam_mulai_aktual ? \App\Models\EkstrakurikulerSession::STATUS_BERLANGSUNG : \App\Models\EkstrakurikulerSession::STATUS_TERJADWAL,
+                        'jam_selesai_aktual' => null,
+                    ]);
+                }
+            }
         });
     }
 

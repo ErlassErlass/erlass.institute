@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\EkstrakurikulerSessionExport;
 use App\Models\EkstrakurikulerRombel;
 use App\Models\EkstrakurikulerSession;
 use App\Models\RombelInstructorHistory;
@@ -9,6 +10,7 @@ use App\Models\User;
 use App\Services\CalendarService;
 use App\Services\SchedulingService;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -59,7 +61,73 @@ class EkstrakurikulerSessionController extends Controller
             session(['ekstrakurikuler_sessions_filters' => $currentFilters]);
         }
 
-        $query = EkstrakurikulerSession::with(['ekstrakurikuler.sekolah', 'rombel.ekstrakurikuler.sekolah', 'rombel.ekstrakurikuler.sales', 'instruktur', 'asisten', 'laporanMengajar']);
+        $user = auth()->user();
+        $query = $this->buildSessionsQuery($request);
+        $sessions = $query->paginate(20)->withQueryString();
+
+        // Data untuk filter dropdown (hanya untuk admin/webmaster)
+        $instructors = collect();
+        if ($user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
+            $instructors = User::teachingStaff()
+                ->orderBy('nama_lengkap', 'asc')
+                ->select('id', 'nama_lengkap')
+                ->get();
+        }
+
+        $rombels = collect();
+
+        return view('ekstrakurikuler.sessions.index', compact(
+            'sessions', 'instructors', 'rombels'
+        ));
+    }
+
+    /**
+     * Export daftar sessions sesuai filter ke file Excel (.xlsx).
+     */
+    public function exportExcel(Request $request)
+    {
+        // If request query is empty but session has saved filters, merge them
+        if (empty($request->query()) && session()->has('ekstrakurikuler_sessions_filters')) {
+            $savedFilters = session('ekstrakurikuler_sessions_filters');
+            if (is_array($savedFilters)) {
+                $request->merge($savedFilters);
+            }
+        }
+
+        $query = $this->buildSessionsQuery($request);
+        $sessions = $query->get();
+
+        $filename = 'Jadwal_Sesi_Ekstrakurikuler';
+        if ($request->filled('tanggal_dari')) {
+            $filename .= '_' . str_replace('-', '', $request->tanggal_dari);
+            if ($request->filled('tanggal_sampai') && $request->tanggal_sampai !== $request->tanggal_dari) {
+                $filename .= '_sd_' . str_replace('-', '', $request->tanggal_sampai);
+            }
+        } else {
+            $filename .= '_' . date('Ymd_His');
+        }
+        $filename .= '.xlsx';
+
+        return Excel::download(
+            new EkstrakurikulerSessionExport($sessions),
+            $filename
+        );
+    }
+
+    /**
+     * Build sessions query based on filters, roles, and sorting.
+     */
+    protected function buildSessionsQuery(Request $request)
+    {
+        $query = EkstrakurikulerSession::with([
+            'ekstrakurikuler.sekolah',
+            'ekstrakurikuler.sales',
+            'rombel.ekstrakurikuler.sekolah',
+            'rombel.ekstrakurikuler.sales',
+            'instruktur',
+            'asisten',
+            'laporanMengajar'
+        ]);
 
         // Filter berdasarkan status
         if ($request->filled('status')) {
@@ -220,22 +288,7 @@ class EkstrakurikulerSessionController extends Controller
             }
         }
 
-        $sessions = $query->paginate(20)->withQueryString();
-
-        // Data untuk filter dropdown (hanya untuk admin/webmaster)
-        $instructors = collect();
-        if ($user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
-            $instructors = User::teachingStaff()
-                ->orderBy('nama_lengkap', 'asc')
-                ->select('id', 'nama_lengkap')
-                ->get();
-        }
-
-        $rombels = collect();
-
-        return view('ekstrakurikuler.sessions.index', compact(
-            'sessions', 'instructors', 'rombels'
-        ));
+        return $query;
     }
 
     /**

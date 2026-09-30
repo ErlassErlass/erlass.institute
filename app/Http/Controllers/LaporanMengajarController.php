@@ -78,6 +78,23 @@ class LaporanMengajarController extends Controller
             }
         }
 
+        // Filter by pertemuan_ke (supports specific numbers, multiples of 4 / milestone, array, or comma-separated)
+        if ($request->filled('pertemuan_ke')) {
+            $val = $request->pertemuan_ke;
+            if ($val === 'kelipatan_4' || $val === 'milestone') {
+                $laporanQuery->whereIn('pertemuan_ke', [4, 8, 12, 16, 20, 24, 28, 32]);
+            } elseif (is_numeric($val)) {
+                $laporanQuery->where('pertemuan_ke', (int) $val);
+            } elseif (is_array($val)) {
+                $laporanQuery->whereIn('pertemuan_ke', array_map('intval', $val));
+            } elseif (strpos($val, ',') !== false) {
+                $nums = array_filter(array_map('trim', explode(',', $val)), 'is_numeric');
+                if (!empty($nums)) {
+                    $laporanQuery->whereIn('pertemuan_ke', array_map('intval', $nums));
+                }
+            }
+        }
+
         // Date range filter with improved validation
         if ($request->filled('date_range')) {
             try {

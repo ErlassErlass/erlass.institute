@@ -39,9 +39,10 @@
     </div>
     
     <div class="card-body p-4 p-md-5">
-        <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" id="instructorProfileForm">
+        <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" id="instructorProfileForm" novalidate>
             @csrf
             @method('patch')
+            <input type="hidden" name="active_tab" id="active_tab" value="{{ request('tab', 'account') }}">
 
             <div class="tab-content" id="instructorProfileTabsContent">
                 <!-- Tab 1: Account Info & Domisili -->
@@ -103,8 +104,8 @@
                             <input type="text" id="gelar_depan" name="gelar_depan" class="form-control" value="{{ old('gelar_depan', $profile->gelar_depan ?? '') }}" placeholder="Dr. / Ir.">
                         </div>
                         <div class="col-md-8">
-                            <label for="nama_panggilan" class="form-label small text-muted text-uppercase fw-bold">Nama Panggilan <span class="text-danger">*</span></label>
-                            <input type="text" id="nama_panggilan" name="nama_panggilan" class="form-control @error('nama_panggilan') is-invalid @enderror" value="{{ old('nama_panggilan', $profile->nama_panggilan ?? '') }}" required>
+                            <label for="nama_panggilan" class="form-label small text-muted text-uppercase fw-bold">Nama Panggilan</label>
+                            <input type="text" id="nama_panggilan" name="nama_panggilan" class="form-control @error('nama_panggilan') is-invalid @enderror" value="{{ old('nama_panggilan', $profile->nama_panggilan ?? '') }}">
                             @error('nama_panggilan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-2">
@@ -118,8 +119,8 @@
                             @error('no_telephone') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-6">
-                            <label for="no_hp_2" class="form-label small text-muted text-uppercase fw-bold">No. HP Darurat (Keluarga) <span class="text-danger">*</span></label>
-                            <input type="text" id="no_hp_2" name="no_hp_2" class="form-control @error('no_hp_2') is-invalid @enderror" value="{{ old('no_hp_2', $profile->no_hp_2 ?? '') }}" required>
+                            <label for="no_hp_2" class="form-label small text-muted text-uppercase fw-bold">No. HP Darurat (Keluarga)</label>
+                            <input type="text" id="no_hp_2" name="no_hp_2" class="form-control @error('no_hp_2') is-invalid @enderror" value="{{ old('no_hp_2', $profile->no_hp_2 ?? '') }}">
                             @error('no_hp_2') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
@@ -141,8 +142,8 @@
                             @error('agama') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-4">
-                            <label for="status_pernikahan" class="form-label small text-muted text-uppercase fw-bold">Status Pernikahan <span class="text-danger">*</span></label>
-                            <select id="status_pernikahan" name="status_pernikahan" class="form-select @error('status_pernikahan') is-invalid @enderror" required>
+                            <label for="status_pernikahan" class="form-label small text-muted text-uppercase fw-bold">Status Pernikahan</label>
+                            <select id="status_pernikahan" name="status_pernikahan" class="form-select @error('status_pernikahan') is-invalid @enderror">
                                 <option value="Lajang" {{ old('status_pernikahan', $profile->status_pernikahan ?? '') == 'Lajang' ? 'selected' : '' }}>Lajang</option>
                                 <option value="Menikah" {{ old('status_pernikahan', $profile->status_pernikahan ?? '') == 'Menikah' ? 'selected' : '' }}>Menikah</option>
                                 <option value="Duda/Janda" {{ old('status_pernikahan', $profile->status_pernikahan ?? '') == 'Duda/Janda' ? 'selected' : '' }}>Duda/Janda</option>
@@ -151,13 +152,13 @@
                         </div>
 
                         <div class="col-md-8">
-                            <label for="alamat_domisili" class="form-label small text-muted text-uppercase fw-bold">Alamat Domisili <span class="text-danger">*</span></label>
-                            <textarea id="alamat_domisili" name="alamat_domisili" rows="2" class="form-control @error('alamat_domisili') is-invalid @enderror" placeholder="Alamat lengkap domisili saat ini" required>{{ old('alamat_domisili', $profile->alamat_domisili ?? '') }}</textarea>
+                            <label for="alamat_domisili" class="form-label small text-muted text-uppercase fw-bold">Alamat Domisili</label>
+                            <textarea id="alamat_domisili" name="alamat_domisili" rows="2" class="form-control @error('alamat_domisili') is-invalid @enderror" placeholder="Alamat lengkap domisili saat ini">{{ old('alamat_domisili', $profile->alamat_domisili ?? '') }}</textarea>
                             @error('alamat_domisili') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-4">
-                            <label for="kota_domisili" class="form-label small text-muted text-uppercase fw-bold">Kota Domisili <span class="text-danger">*</span></label>
-                            <input type="text" id="kota_domisili" name="kota_domisili" class="form-control @error('kota_domisili') is-invalid @enderror" value="{{ old('kota_domisili', $profile->kota_domisili ?? '') }}" required placeholder="Contoh: Jakarta Selatan">
+                            <label for="kota_domisili" class="form-label small text-muted text-uppercase fw-bold">Kota Domisili</label>
+                            <input type="text" id="kota_domisili" name="kota_domisili" class="form-control @error('kota_domisili') is-invalid @enderror" value="{{ old('kota_domisili', $profile->kota_domisili ?? '') }}" placeholder="Contoh: Depok">
                             @error('kota_domisili') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                     </div>
@@ -329,18 +330,18 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label for="universitas_jurusan" class="form-label small text-muted text-uppercase fw-bold">Universitas & Jurusan <span class="text-danger">*</span></label>
-                            <input type="text" id="universitas_jurusan" name="universitas_jurusan" class="form-control @error('universitas_jurusan') is-invalid @enderror" value="{{ old('universitas_jurusan', $profile->universitas_jurusan ?? '') }}" required placeholder="Contoh: Universitas Indonesia - Fisika">
+                            <label for="universitas_jurusan" class="form-label small text-muted text-uppercase fw-bold">Universitas & Jurusan</label>
+                            <input type="text" id="universitas_jurusan" name="universitas_jurusan" class="form-control @error('universitas_jurusan') is-invalid @enderror" value="{{ old('universitas_jurusan', $profile->universitas_jurusan ?? '') }}" placeholder="Contoh: Universitas Indonesia - Fisika">
                             @error('universitas_jurusan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-6">
-                            <label for="pekerjaan_terakhir" class="form-label small text-muted text-uppercase fw-bold">Pekerjaan Terakhir <span class="text-danger">*</span></label>
-                            <input type="text" id="pekerjaan_terakhir" name="pekerjaan_terakhir" class="form-control @error('pekerjaan_terakhir') is-invalid @enderror" value="{{ old('pekerjaan_terakhir', $profile->pekerjaan_terakhir ?? '') }}" required>
+                            <label for="pekerjaan_terakhir" class="form-label small text-muted text-uppercase fw-bold">Pekerjaan Terakhir</label>
+                            <input type="text" id="pekerjaan_terakhir" name="pekerjaan_terakhir" class="form-control @error('pekerjaan_terakhir') is-invalid @enderror" value="{{ old('pekerjaan_terakhir', $profile->pekerjaan_terakhir ?? '') }}">
                             @error('pekerjaan_terakhir') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-6">
-                            <label for="jenjang_mengajar" class="form-label small text-muted text-uppercase fw-bold">Jenjang Mengajar <span class="text-danger">*</span></label>
-                            <input type="text" id="jenjang_mengajar" name="jenjang_mengajar" class="form-control @error('jenjang_mengajar') is-invalid @enderror" value="{{ old('jenjang_mengajar', $profile->jenjang_mengajar ?? '') }}" required placeholder="Contoh: SD, SMP, SMA">
+                            <label for="jenjang_mengajar" class="form-label small text-muted text-uppercase fw-bold">Jenjang Mengajar</label>
+                            <input type="text" id="jenjang_mengajar" name="jenjang_mengajar" class="form-control @error('jenjang_mengajar') is-invalid @enderror" value="{{ old('jenjang_mengajar', $profile->jenjang_mengajar ?? '') }}" placeholder="Contoh: SD, SMP, SMA">
                             @error('jenjang_mengajar') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-6">
@@ -358,18 +359,18 @@
                     
                     <div class="row g-3">
                         <div class="col-md-3">
-                            <label for="tinggi_badan" class="form-label small text-muted text-uppercase fw-bold">Tinggi Badan (cm) <span class="text-danger">*</span></label>
-                            <input type="number" id="tinggi_badan" name="tinggi_badan" class="form-control @error('tinggi_badan') is-invalid @enderror" value="{{ old('tinggi_badan', $profile ? explode('cm', explode('/', $profile->tinggi_berat_badan)[0] ?? '')[0] ?? '' : '') }}" required>
+                            <label for="tinggi_badan" class="form-label small text-muted text-uppercase fw-bold">Tinggi Badan (cm)</label>
+                            <input type="number" id="tinggi_badan" name="tinggi_badan" class="form-control @error('tinggi_badan') is-invalid @enderror" value="{{ old('tinggi_badan', $profile ? explode('cm', explode('/', $profile->tinggi_berat_badan)[0] ?? '')[0] ?? '' : '') }}">
                             @error('tinggi_badan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-3">
-                            <label for="berat_badan" class="form-label small text-muted text-uppercase fw-bold">Berat Badan (kg) <span class="text-danger">*</span></label>
-                            <input type="number" id="berat_badan" name="berat_badan" class="form-control @error('berat_badan') is-invalid @enderror" value="{{ old('berat_badan', $profile ? explode('kg', explode('/', $profile->tinggi_berat_badan)[1] ?? '')[0] ?? '' : '') }}" required>
+                            <label for="berat_badan" class="form-label small text-muted text-uppercase fw-bold">Berat Badan (kg)</label>
+                            <input type="number" id="berat_badan" name="berat_badan" class="form-control @error('berat_badan') is-invalid @enderror" value="{{ old('berat_badan', $profile ? explode('kg', explode('/', $profile->tinggi_berat_badan)[1] ?? '')[0] ?? '' : '') }}">
                             @error('berat_badan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-3">
-                            <label for="mata_minus" class="form-label small text-muted text-uppercase fw-bold">Mata Minus <span class="text-danger">*</span></label>
-                            <input type="text" id="mata_minus" name="mata_minus" class="form-control @error('mata_minus') is-invalid @enderror" value="{{ old('mata_minus', $profile->mata_minus ?? '') }}" required placeholder="Normal / -1.5">
+                            <label for="mata_minus" class="form-label small text-muted text-uppercase fw-bold">Mata Minus</label>
+                            <input type="text" id="mata_minus" name="mata_minus" class="form-control @error('mata_minus') is-invalid @enderror" value="{{ old('mata_minus', $profile->mata_minus ?? '') }}" placeholder="Normal / -1.5">
                             @error('mata_minus') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-3">
@@ -378,8 +379,8 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="kendaraan" class="form-label small text-muted text-uppercase fw-bold">Kendaraan <span class="text-danger">*</span></label>
-                            <select id="kendaraan" name="kendaraan" class="form-select @error('kendaraan') is-invalid @enderror" required>
+                            <label for="kendaraan" class="form-label small text-muted text-uppercase fw-bold">Kendaraan</label>
+                            <select id="kendaraan" name="kendaraan" class="form-select @error('kendaraan') is-invalid @enderror">
                                 <option value="Pribadi" {{ old('kendaraan', $profile->kendaraan ?? '') == 'Pribadi' ? 'selected' : '' }}>Pribadi</option>
                                 <option value="Umum" {{ old('kendaraan', $profile->kendaraan ?? '') == 'Umum' ? 'selected' : '' }}>Umum</option>
                                 <option value="Antar Jemput" {{ old('kendaraan', $profile->kendaraan ?? '') == 'Antar Jemput' ? 'selected' : '' }}>Antar Jemput</option>
@@ -387,8 +388,8 @@
                             @error('kendaraan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-6">
-                            <label for="jenis_kendaraan" class="form-label small text-muted text-uppercase fw-bold">Jenis Kendaraan <span class="text-danger">*</span></label>
-                            <input type="text" id="jenis_kendaraan" name="jenis_kendaraan" class="form-control @error('jenis_kendaraan') is-invalid @enderror" value="{{ old('jenis_kendaraan', $profile->jenis_kendaraan ?? '') }}" required placeholder="Motor / Mobil / MRT / Busway">
+                            <label for="jenis_kendaraan" class="form-label small text-muted text-uppercase fw-bold">Jenis Kendaraan</label>
+                            <input type="text" id="jenis_kendaraan" name="jenis_kendaraan" class="form-control @error('jenis_kendaraan') is-invalid @enderror" value="{{ old('jenis_kendaraan', $profile->jenis_kendaraan ?? '') }}" placeholder="Motor / Mobil / MRT / Busway">
                             @error('jenis_kendaraan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
@@ -584,10 +585,17 @@
     document.addEventListener('DOMContentLoaded', function() {
         const tabEl = document.querySelectorAll('#instructorProfileTabs button');
         const submitContainer = document.getElementById('submitProfileBtnContainer');
+        const activeTabInput = document.getElementById('active_tab');
 
         tabEl.forEach(tab => {
             tab.addEventListener('shown.bs.tab', function(event) {
                 const targetId = event.target.id;
+                if (activeTabInput) {
+                    if (targetId === 'docs-tab') activeTabInput.value = 'bank';
+                    else if (targetId === 'account-tab') activeTabInput.value = 'account';
+                    else if (targetId === 'professional-tab') activeTabInput.value = 'professional';
+                    else if (targetId === 'schedule-tab') activeTabInput.value = 'schedule';
+                }
                 if (targetId === 'security-tab' || targetId === 'reports-tab') {
                     if (submitContainer) submitContainer.classList.add('d-none');
                 } else {
@@ -598,10 +606,21 @@
 
         // Auto-switch to tab on URL parameter (?tab=bank) or hash or validation errors or password update status
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('tab') === 'bank' || urlParams.get('tab') === 'docs' || window.location.hash === '#docs-pane') {
+        const tabParam = urlParams.get('tab');
+        if (tabParam === 'bank' || tabParam === 'docs' || window.location.hash === '#docs-pane') {
             const docsTabBtn = document.getElementById('docs-tab');
             if (docsTabBtn) {
                 bootstrap.Tab.getOrCreateInstance(docsTabBtn).show();
+            }
+        } else if (tabParam === 'professional' || window.location.hash === '#professional-pane') {
+            const profTabBtn = document.getElementById('professional-tab');
+            if (profTabBtn) {
+                bootstrap.Tab.getOrCreateInstance(profTabBtn).show();
+            }
+        } else if (tabParam === 'schedule' || window.location.hash === '#schedule-pane') {
+            const schedTabBtn = document.getElementById('schedule-tab');
+            if (schedTabBtn) {
+                bootstrap.Tab.getOrCreateInstance(schedTabBtn).show();
             }
         } else if (@json($errors->updatePassword->any()) || @json(session('status') === 'password-updated')) {
             const secTabBtn = document.getElementById('security-tab');
@@ -619,6 +638,24 @@
                     }
                 }
             }
+        }
+
+        // Catch any native invalid event (if triggered) and switch to the tab containing the invalid input
+        const profileForm = document.getElementById('instructorProfileForm');
+        if (profileForm) {
+            profileForm.addEventListener('invalid', function(e) {
+                const target = e.target;
+                const pane = target.closest('.tab-pane');
+                if (pane && !pane.classList.contains('active')) {
+                    const targetTab = document.querySelector(`[data-bs-target="#${pane.id}"]`);
+                    if (targetTab) {
+                        bootstrap.Tab.getOrCreateInstance(targetTab).show();
+                        setTimeout(() => {
+                            target.focus();
+                        }, 100);
+                    }
+                }
+            }, true);
         }
 
         // 📋 Handle Salin Teks

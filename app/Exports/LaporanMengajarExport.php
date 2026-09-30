@@ -24,6 +24,7 @@ class LaporanMengajarExport implements FromCollection, WithHeadings, WithMapping
     {
         return [
             'Tanggal',
+            'Pertemuan Ke-',
             'Instruktur',
             'Asisten',
             'Sekolah',
@@ -47,6 +48,7 @@ class LaporanMengajarExport implements FromCollection, WithHeadings, WithMapping
     {
         return [
             \Carbon\Carbon::parse($laporan->jadwal_mengajar)->format('d/m/Y'),
+            $laporan->pertemuan_ke ?? '-',
             $laporan->instruktur->nama_lengkap ?? 'N/A',
             $laporan->asisten->nama_lengkap ?? 'N/A',
             $laporan->sekolah->namasekolah ?? $laporan->sekolah_nama ?? 'N/A',

@@ -175,7 +175,7 @@ class PayrollTest extends TestCase
         $this->assertEquals('on_time', $calc['actual_checkin_status']);
         $this->assertEquals(0.00, $calc['actual_checkin_penalty']);
         $this->assertEquals(200000.00, $calc['net_fee']);
-        $this->assertEquals(16250.00, $calc['transport_fee']); // (12.5 * 350 * 2) + 7500 = 16250
+        $this->assertEquals(16500.00, $calc['transport_fee']); // (12.5 * 350 * 2) + 7500 = 16250 -> ceil to 500 = 16500
 
         // Case 2: Late checkin (penalty applied)
         $sessionLate = $rombel->sessions()->where('nomor_pertemuan', 2)->first();
@@ -191,6 +191,38 @@ class PayrollTest extends TestCase
         $this->assertEquals('penalty', $calcLate['actual_checkin_status']);
         $this->assertEquals(25000.00, $calcLate['actual_checkin_penalty']);
         $this->assertEquals(175000.00, $calcLate['net_fee']);
+
+        // Case 3: Student count < 8 (including 0 students) in regular ekskul session still paid minimum 75k
+        $rombelSmall = EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nama_rombel' => 'Small Class',
+            'nomor_rombel' => 99,
+            'jumlah_siswa' => 0,
+            'ruangan' => 'Lab',
+            'tanggal_mulai' => '2026-06-01',
+            'tanggal_selesai' => '2026-12-01',
+            'hari' => 'senin',
+            'jam_mulai' => '14:00',
+            'jam_selesai' => '16:00',
+            'total_pertemuan' => 1,
+            'status' => 'berlangsung',
+        ]);
+        $sessionSmall = $rombelSmall->sessions()->first();
+        $sessionSmall->update([
+            'tanggal_pelaksanaan' => '2026-06-22',
+            'jam_mulai_aktual' => '14:00',
+            'jam_selesai_aktual' => '16:00',
+            'status' => 'selesai',
+            'user_id_instruktur' => $instructor->id,
+        ]);
+        $calcSmall = $service->calculateSessionFee($sessionSmall);
+        $this->assertEquals(75000.00, $calcSmall['base_rate']); // Minimum 75k even if 0 students
+
+        // Case 4: Cancelled or Libur session receives 0 fee
+        $sessionSmall->update(['status' => 'dibatalkan']);
+        $calcCancelled = $service->calculateSessionFee($sessionSmall);
+        $this->assertEquals(0.00, $calcCancelled['base_rate']);
+        $this->assertEquals(0.00, $calcCancelled['transport_fee']);
     }
 
     public function test_monthly_payroll_generation_and_transitions()
@@ -658,7 +690,7 @@ class PayrollTest extends TestCase
 
         $response = $this->actingAs($admin)->get(route('admin.payroll.batches.export-pdf', $batch->id));
         $response->assertStatus(200);
-        $response->assertSee('Honor Utama');
+        $response->assertSee('Honor Instruktur');
         $response->assertSee('Honor Asisten');
         $response->assertSee('Pajak (2.5%)');
         $response->assertSee('AUDIT RINCIAN PER SESI MENGAJAR');

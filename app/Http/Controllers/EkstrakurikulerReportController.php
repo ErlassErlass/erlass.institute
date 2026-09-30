@@ -91,8 +91,20 @@ class EkstrakurikulerReportController extends Controller
     {
         // Enforce policy: Session must be scheduled or in progress
         if (!in_array($session->status, ['terjadwal', 'berlangsung'])) {
-            return redirect()->route('ekstrakurikuler.sessions.show', $session)
-                ->with('error', 'Laporan tidak dapat dibuat untuk sesi dengan status ' . $session->status_label);
+            // Auto-heal: Jika status sesi 'selesai' namun belum ada laporan (misal laporan terdahulu dihapus),
+            // kembalikan ke status aktif agar instruktur tidak mengalami deadlock saat membuat laporan.
+            if ($session->status === 'selesai' && !$session->laporanMengajar()->exists()) {
+                $session->update([
+                    'status' => $session->jam_mulai_aktual ? 'berlangsung' : 'terjadwal',
+                    'jam_selesai_aktual' => null,
+                ]);
+            } elseif ($session->laporanMengajar) {
+                return redirect()->route('laporan-mengajar.show', $session->laporanMengajar)
+                    ->with('info', 'Laporan untuk sesi ini sudah selesai dibuat.');
+            } else {
+                return redirect()->route('ekstrakurikuler.sessions.show', $session)
+                    ->with('error', 'Laporan tidak dapat dibuat untuk sesi dengan status ' . $session->status_label);
+            }
         }
 
         // Authorization: Only assigned instructor/assistant or Admin
@@ -250,8 +262,18 @@ class EkstrakurikulerReportController extends Controller
 
         // Guard Check 1: Session status must be scheduled or in progress
         if (!in_array($session->status, ['terjadwal', 'berlangsung'])) {
-            return redirect()->route('ekstrakurikuler.sessions.show', $session)
-                ->with('error', 'Laporan tidak dapat dibuat untuk sesi dengan status ' . $session->status_label);
+            if ($session->status === 'selesai' && !$session->laporanMengajar()->exists()) {
+                $session->update([
+                    'status' => $session->jam_mulai_aktual ? 'berlangsung' : 'terjadwal',
+                    'jam_selesai_aktual' => null,
+                ]);
+            } elseif ($session->laporanMengajar) {
+                return redirect()->route('laporan-mengajar.show', $session->laporanMengajar)
+                    ->with('info', 'Laporan sudah dibuat sebelumnya untuk sesi ini.');
+            } else {
+                return redirect()->route('ekstrakurikuler.sessions.show', $session)
+                    ->with('error', 'Laporan tidak dapat dibuat untuk sesi dengan status ' . $session->status_label);
+            }
         }
 
         // Guard Check 2: Report must not already exist

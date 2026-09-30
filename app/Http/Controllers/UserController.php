@@ -393,6 +393,12 @@ class UserController extends Controller
     {
         $user = $request->user();
 
+        if ($request->has('nama_bank')) {
+            $request->merge([
+                'nama_bank' => \App\Models\InstructorProfile::normalizeBankName($request->input('nama_bank')),
+            ]);
+        }
+
         $rules = [
             'nama_lengkap' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
@@ -411,11 +417,11 @@ class UserController extends Controller
                 // Personal Info
                 'gelar_depan' => 'nullable|string|max:50',
                 'gelar_belakang' => 'nullable|string|max:50', 
-                'nama_panggilan' => 'required|string|max:100',
-                'no_hp_2' => 'required|string|max:20',
-                'alamat_domisili' => 'required|string',
-                'kota_domisili' => ['required', 'string', \Illuminate\Validation\Rule::in(\App\Models\InstructorProfile::listKotaDomisili())],
-                'status_pernikahan' => 'required|string|max:50',
+                'nama_panggilan' => 'nullable|string|max:100',
+                'no_hp_2' => 'nullable|string|max:20',
+                'alamat_domisili' => 'nullable|string',
+                'kota_domisili' => ['nullable', 'string', \Illuminate\Validation\Rule::in(\App\Models\InstructorProfile::listKotaDomisili())],
+                'status_pernikahan' => 'nullable|string|max:50',
 
                 // Documents (nullable if already exists)
                 'foto_ktp' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
@@ -423,9 +429,9 @@ class UserController extends Controller
                 'cv' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
 
                 // Professional
-                'pekerjaan_terakhir' => 'required|string',
-                'jenjang_mengajar' => 'required|string',
-                'universitas_jurusan' => 'required|string',
+                'pekerjaan_terakhir' => 'nullable|string',
+                'jenjang_mengajar' => 'nullable|string',
+                'universitas_jurusan' => 'nullable|string',
                 
                 // Financial & Legal
                 'nama_bank' => [
@@ -435,20 +441,20 @@ class UserController extends Controller
                 ],
                 'no_rekening' => ['required', 'string', 'regex:/^[0-9]+$/', 'min:5', 'max:30'],
                 'no_npwp' => 'nullable|string',
-                'nik' => 'required|string|min:16|max:16',
+                'nik' => 'required',
 
                 // Health & Logistics
-                'tinggi_badan' => 'required|numeric|min:100|max:250',
-                'berat_badan' => 'required|numeric|min:30|max:200',
+                'tinggi_badan' => 'nullable|numeric|min:100|max:250',
+                'berat_badan' => 'nullable|numeric|min:30|max:200',
                 'riwayat_penyakit' => 'nullable|string',
-                'mata_minus' => 'required|string',
-                'alat_mengajar' => 'required|array',
+                'mata_minus' => 'nullable|string',
+                'alat_mengajar' => 'nullable|array',
                 'catatan_alat' => 'nullable|string',
-                'kendaraan' => 'required|string',
-                'jenis_kendaraan' => 'required|string',
+                'kendaraan' => 'nullable|string',
+                'jenis_kendaraan' => 'nullable|string',
                 
                 // Schedule
-                'waktu_mengajar' => 'required|array',
+                'waktu_mengajar' => 'nullable|array',
             ]);
         }
 
@@ -538,32 +544,36 @@ class UserController extends Controller
 
                 $user->update(['verification_documents' => $docPaths]);
 
+                $existingProfile = $user->instructorProfile;
+
                 $profileData = [
-                    'gelar_depan' => $request->gelar_depan,
-                    'gelar_belakang' => $request->gelar_belakang,
-                    'nama_panggilan' => $request->nama_panggilan,
-                    'no_hp_2' => $request->no_hp_2,
-                    'alamat_domisili' => $request->alamat_domisili,
-                    'kota_domisili' => $request->kota_domisili,
-                    'status_pernikahan' => $request->status_pernikahan,
-                    'foto_ktp' => $docPaths['foto_ktp'] ?? ($user->instructorProfile?->foto_ktp ?? null),
-                    'foto_npwp' => $docPaths['foto_npwp'] ?? ($user->instructorProfile?->foto_npwp ?? null),
-                    'cv_link' => $docPaths['cv_link'] ?? ($user->instructorProfile?->cv_link ?? null),
-                    'pekerjaan_terakhir' => $request->pekerjaan_terakhir,
-                    'jenjang_mengajar' => $request->jenjang_mengajar,
-                    'universitas_jurusan' => $request->universitas_jurusan,
-                    'nama_bank' => $request->nama_bank,
-                    'no_rekening' => $request->no_rekening,
-                    'no_npwp' => $request->no_npwp,
-                    'nik' => $request->nik,
-                    'tinggi_berat_badan' => $request->tinggi_badan . 'cm / ' . $request->berat_badan . 'kg',
-                    'riwayat_penyakit' => $request->riwayat_penyakit,
-                    'mata_minus' => $request->mata_minus,
-                    'alat_mengajar' => json_encode($request->alat_mengajar),
-                    'catatan_alat' => $request->catatan_alat,
-                    'kendaraan' => $request->kendaraan,
-                    'jenis_kendaraan' => $request->jenis_kendaraan,
-                    'waktu_mengajar' => $request->waktu_mengajar,
+                    'gelar_depan' => $request->has('gelar_depan') ? $request->gelar_depan : ($existingProfile?->gelar_depan),
+                    'gelar_belakang' => $request->has('gelar_belakang') ? $request->gelar_belakang : ($existingProfile?->gelar_belakang),
+                    'nama_panggilan' => $request->filled('nama_panggilan') ? $request->nama_panggilan : ($existingProfile?->nama_panggilan ?: explode(' ', $user->nama_lengkap)[0]),
+                    'no_hp_2' => $request->filled('no_hp_2') ? $request->no_hp_2 : ($existingProfile?->no_hp_2 ?: $user->no_telephone),
+                    'alamat_domisili' => $request->filled('alamat_domisili') ? $request->alamat_domisili : ($existingProfile?->alamat_domisili ?: '-'),
+                    'kota_domisili' => $request->filled('kota_domisili') ? $request->kota_domisili : ($existingProfile?->kota_domisili ?: 'Depok'),
+                    'status_pernikahan' => $request->filled('status_pernikahan') ? $request->status_pernikahan : ($existingProfile?->status_pernikahan ?: 'Lajang'),
+                    'foto_ktp' => $docPaths['foto_ktp'] ?? ($existingProfile?->foto_ktp ?? null),
+                    'foto_npwp' => $docPaths['foto_npwp'] ?? ($existingProfile?->foto_npwp ?? null),
+                    'cv_link' => $docPaths['cv_link'] ?? ($existingProfile?->cv_link ?? null),
+                    'pekerjaan_terakhir' => $request->filled('pekerjaan_terakhir') ? $request->pekerjaan_terakhir : ($existingProfile?->pekerjaan_terakhir ?: '-'),
+                    'jenjang_mengajar' => $request->filled('jenjang_mengajar') ? $request->jenjang_mengajar : ($existingProfile?->jenjang_mengajar ?: '-'),
+                    'universitas_jurusan' => $request->filled('universitas_jurusan') ? $request->universitas_jurusan : ($existingProfile?->universitas_jurusan ?: '-'),
+                    'nama_bank' => $request->filled('nama_bank') ? $request->nama_bank : ($existingProfile?->nama_bank),
+                    'no_rekening' => $request->filled('no_rekening') ? $request->no_rekening : ($existingProfile?->no_rekening),
+                    'no_npwp' => $request->has('no_npwp') ? $request->no_npwp : ($existingProfile?->no_npwp),
+                    'nik' => $request->filled('nik') ? $request->nik : ($existingProfile?->nik),
+                    'tinggi_berat_badan' => ($request->filled('tinggi_badan') && $request->filled('berat_badan'))
+                        ? ($request->tinggi_badan . 'cm / ' . $request->berat_badan . 'kg')
+                        : ($existingProfile?->tinggi_berat_badan ?: null),
+                    'riwayat_penyakit' => $request->has('riwayat_penyakit') ? $request->riwayat_penyakit : ($existingProfile?->riwayat_penyakit),
+                    'mata_minus' => $request->filled('mata_minus') ? $request->mata_minus : ($existingProfile?->mata_minus ?: 'Normal'),
+                    'alat_mengajar' => $request->has('alat_mengajar') ? json_encode($request->alat_mengajar) : ($existingProfile?->alat_mengajar ?: null),
+                    'catatan_alat' => $request->has('catatan_alat') ? $request->catatan_alat : ($existingProfile?->catatan_alat),
+                    'kendaraan' => $request->filled('kendaraan') ? $request->kendaraan : ($existingProfile?->kendaraan ?: 'Pribadi'),
+                    'jenis_kendaraan' => $request->filled('jenis_kendaraan') ? $request->jenis_kendaraan : ($existingProfile?->jenis_kendaraan ?: '-'),
+                    'waktu_mengajar' => $request->has('waktu_mengajar') ? $request->waktu_mengajar : ($existingProfile?->waktu_mengajar ?: null),
                 ];
 
                 \App\Models\InstructorProfile::updateOrCreate(
@@ -581,7 +591,13 @@ class UserController extends Controller
 
             \Illuminate\Support\Facades\DB::commit();
 
-            return redirect()->route('profile.edit')->with('success', 'Profile updated successfully!');
+            $tab = $request->input('active_tab');
+            $redirectUrl = route('profile.edit');
+            if ($tab && in_array($tab, ['bank', 'docs', 'professional', 'schedule', 'account'])) {
+                $redirectUrl .= '?tab=' . $tab;
+            }
+
+            return redirect($redirectUrl)->with('success', 'Profil berhasil diperbarui!');
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\DB::rollBack();
             return back()->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()])->withInput();

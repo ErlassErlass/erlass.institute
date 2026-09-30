@@ -59,6 +59,9 @@ class StoreLaporanMengajarRequest extends FormRequest
                 function ($attribute, $value, $fail) {
                     try {
                         $inputDate = \Carbon\Carbon::parse($value)->startOfDay();
+                        if ($inputDate->isBefore(now()->subDays(30)->startOfDay()) && !$this->filled('alasan_kendala_keterlambatan')) {
+                            $fail('Tanggal mengajar lebih dari 30 hari yang lalu memerlukan catatan kendala keterlambatan.');
+                        }
                         if ($inputDate->isAfter(now()->endOfDay())) {
                             $fail('Tanggal mengajar tidak boleh di masa depan.');
                         }

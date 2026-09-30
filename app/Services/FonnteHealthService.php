@@ -130,6 +130,10 @@ class FonnteHealthService
      */
     public function notifyWebmasterDisconnected(string $reason, ?string $device = null, bool $force = false): void
     {
+        if (app()->environment('testing')) {
+            return;
+        }
+
         $device = $device ?: '621282537012';
 
         // Set persistent disconnect flag in cache
@@ -206,6 +210,10 @@ class FonnteHealthService
      */
     public function notifyWebmasterReconnected(?string $device = null): void
     {
+        if (app()->environment('testing')) {
+            return;
+        }
+
         $device = $device ?: '621282537012';
 
         $wasDisconnected = Cache::get(self::CACHE_DISCONNECT_FLAG, false)

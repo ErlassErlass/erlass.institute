@@ -2,6 +2,31 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.34] - 2026-09-30
+
+### Auto-Heal & Cascading Laporan Mengajar, Integrasi Bank BJB & Normalisasi, Fix Form Profil Multi-Tab Deadlock, Otorisasi View User Admin Sistem (Ahmad Yusril), serta Penyempurnaan Payroll & Distribusi Jadwal
+
+- **Auto-Heal & Cascading Guard Laporan Mengajar (`EkstrakurikulerReportController.php`, `LaporanMengajar.php`, `EkstrakurikulerReportGuardTest.php`)**:
+  - **Auto-Heal Sesi Selesai Tanpa Laporan**: Mengatasi sesi berstatus `selesai` yang kehilangan laporan mengajar (`!$session->laporanMengajar()->exists()`, kasus Sesi #61930) dengan mengembalikan statusnya secara otomatis ke `berlangsung` (jika sudah check-in) atau `terjadwal`, sehingga proses pembuatan laporan dapat langsung dilanjutkan tanpa terhalang guard.
+  - **Smart Redirect Laporan Selesai**: Jika sesi memang sudah memiliki laporan, sistem tidak lagi memunculkan pesan error penolakan, melainkan otomatis mengarahkan pengguna (*redirect*) ke halaman detail laporan mengajar terkait (`laporan-mengajar.show`).
+  - **Cascading Reset on Deleting**: Menambahkan model event hook pada `LaporanMengajar::deleting` sehingga ketika laporan mengajar dihapus, status sesi ekstrakurikuler otomatis dikembalikan ke `terjadwal` (atau `berlangsung` jika memiliki jam check-in aktual).
+- **Dukungan Bank BJB & Standarisasi Bank (`InstructorProfile.php`, `ProfileTest.php`)**:
+  - Menambahkan `'BJB'` ke dalam master list bank `InstructorProfile::listNamaBank()`.
+  - Mengimplementasikan normalisasi variasi penulisan bank (`"Bank BJB"`, `"BJB Syariah"`, `"Bank Jabar"`, `"PT Bank Pembangunan Daerah Jawa Barat dan Banten"`) otomatis menjadi singkatan baku `'BJB'`.
+  - Menambahkan `'Kota Depok'` ke dalam `InstructorProfile::listKotaDomisili()`.
+- **Perbaikan Form Profil Multi-Tab & Eliminasi Silent Abort Browser (`instructor-tabs.blade.php`, `UserController.php`, `ProfileTest.php`)**:
+  - **Eliminasi HTML5 Constraint Validation Deadlock**: Menambahkan atribut `novalidate` dan listener *capturing invalid event* pada form `#instructorProfileForm`. Hal ini mencegah browser (Chrome, Edge, Safari) membatalkan submit formulir secara senyap (*silent failure*) ketika pengguna menyimpan tab *Bank & Berkas* sementara field `required` di tab lain (*Data Akun* & *Karir*) sedang disembunyikan (`display: none`).
+  - **Fleksibilitas Validasi Atribut Sekunder**: Mengubah aturan validasi di `UserController@updateProfile` agar atribut fisik/logistik sekunder (*tinggi badan, berat badan, mata minus, kendaraan, jenis kendaraan, alat mengajar, waktu mengajar*) bersifat `nullable` dengan fallback cerdas ke profil lama di DB. Instruktur kini dapat menyimpan nomor rekening bank secara independen tanpa dipaksa melengkapi data fisik/logistik.
+  - **Preservasi Tab Aktif**: Menambahkan input tersembunyi `active_tab` sehingga setelah tombol simpan diklik, instruktur tetap berada pada tab yang bersangkutan dengan notifikasi sukses.
+  - **Unblock Instruktur Hanri Basel**: Memperbarui profil Bank BJB, nomor rekening, NIK, dan NPWP untuk Hanri Basel (`user_id = 267`), sehingga kelengkapan rekening langsung berstatus valid (`hasCompleteBankDetails = YES`) dan penugasan mengajar di SDIT Nur Fatahillah dapat dilaporkan.
+- **Otorisasi Hak Akses Melihat User untuk Admin Sistem / Ahmad Yusril (`UserPolicy.php`, `User.php`, `UserManagementTest.php`)**:
+  - Memperbarui method `UserPolicy::view()` yang sebelumnya hanya mengizinkan role `webmaster`, kini mengizinkan role `admin_sistem` dan user dalam `isPrimaryAdmin()` (Ahmad Yusril Firdaus, `id = 94`).
+  - Menyelaraskan method `viewAny()`, `create()`, dan `update()` di `UserPolicy` serta method `canManageUsers()` di `User.php`.
+  - Mengaktifkan tombol aksi **Detail** (ikon mata) dan link profil pengguna di tabel `/users` untuk seluruh Administrator Sistem.
+- **Penyempurnaan Payroll, Presensi Fisik, & Distribusi Jadwal (`PayrollCalculatorService.php`, `AbsensiController.php`, `DashboardAnalyticsController.php`, `AvailabilityExport.php`, `EkstrakurikulerSessionExport.php`)**:
+  - Menambahkan perhitungan komprehensif honor & transport asisten, auto-populate jarak kilometer, dan penyempurnaan template PDF export.
+  - Menambahkan fitur ekspor ketersediaan instruktur mingguan (`AvailabilityExport`) dan ekspor sesi ekstrakurikuler (`EkstrakurikulerSessionExport`).
+
 ## [2.9.33] - 2026-09-16
 
 ### Perbaikan Pelaporan Mengajar (Topik Materi & Pre-Validation), Fix Silent Abort Check-in GPS, & Koreksi Data Sekolah Laporan #332
