@@ -2,6 +2,42 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.35] - 2026-09-30
+
+### Fitur Monitoring Sesi Belum Laporan Versi Excel & Google Sheets Integration Tab Ke-11
+
+- **Tab Ke-11 Integrasi Google Spreadsheet (`Monitoring_Belum_Laporan`) (`GoogleSheetsService.php`, `GoogleSheetsController.php`, `index.blade.php`)**:
+  - **Penambahan Tab Ke-11 di Dashboard Admin**: Menambahkan kartu Tab #11 *Monitoring Belum Laporan* di dashboard `/admin/google-sheets` lengkap dengan badge peringatan merah, jumlah baris data tertunda, dan opsi ekspor.
+  - **Sinkronisasi Otomatis API & Apps Script Feed**: Mengintegrasikan tab `Monitoring_Belum_Laporan` ke dalam method `syncAllData()`, `ensureTabsExist()`, dan API feed endpoint `/api/google-sheets/feed`. Tab baru otomatis dibuat dan diperbarui di dokumen Google Spreadsheet target dengan warna merah (`#dc2626`) dan pembekuan baris header (*frozen row*).
+  - **Penguncian Format Teks Kolom Penting**: Memastikan kolom ID Sesi (Kolom B) dan Nomor WhatsApp/HP (Kolom L) di Google Spreadsheet diformat sebagai *Plain Text* (`'TEXT'`) agar angka 0 di awal nomor telepon tidak terpotong.
+- **Ekspor Versi Excel Asli (.xlsx) & CSV (`MonitoringBelumLaporanExport.php`, `GoogleSheetsController.php`, `web.php`)**:
+  - **Class Ekspor Excel Berstandar Tinggi**: Membuat `App\Exports\MonitoringBelumLaporanExport` menggunakan `Maatwebsite\Excel` dengan fitur auto-size kolom, heading bergaya *Tailwind Red-600* kontras tinggi, border halus, teks rata tengah untuk kode/tanggal/status, dan format teks untuk nomor telepon & ID sesi.
+  - **Rute Ekspor Khusus**: Menambahkan endpoint `admin/google-sheets/export-excel/{tab}` (`google-sheets.export-excel`) untuk mengunduh dokumen `.xlsx` langsung dengan satu klik.
+  - **Dua Tombol Aksi di Dashboard**: Menampilkan tombol *"Unduh Excel (.xlsx)"* dan *"Unduh CSV"* berdampingan pada kartu tab #11 di `/admin/google-sheets`.
+- **Kriteria Filter & 18 Kolom Data Komprehensif (Sesuai Kesepakatan Opsi A)**:
+  - **Kriteria Filter Tepat Sasaran**: Memfilter sesi yang tanggal pelaksanaannya sudah tiba atau lewat (`tanggal_terjadwal <= today`), status bukan `dibatalkan`, dan belum memiliki laporan mengajar (`whereDoesntHave('laporanMengajar')`), diurutkan secara FIFO (tanggal terlama ke terbaru).
+  - **18 Kolom Lengkap & Actionable**:
+    1. *No.*
+    2. *ID Sesi*
+    3. *Tanggal Sesi*
+    4. *Hari*
+    5. *Jam Sesi*
+    6. *Kode Sekolah*
+    7. *Nama Sekolah*
+    8. *Program Ekskul*
+    9. *Rombel*
+    10. *Pertemuan Ke*
+    11. *Nama Instruktur*
+    12. *No. WhatsApp / HP Instruktur* (Langsung siap dihubungi tim operasional)
+    13. *Nama Asisten*
+    14. *Status Sesi*
+    15. *Jam Check-in Aktual*
+    16. *Status Keterlambatan* (Contoh: "Hari Ini (Belum Laporan)", "Terlambat 3 Hari")
+    17. *Sales PIC Sekolah*
+    18. *Link Sesi Langsung ke Web*
+- **Pengujian Otomatis (`GoogleSheetsMonitoringTest.php`)**:
+  - Menambahkan 4 pengujian fitur komprehensif yang menguji akses dashboard admin, ekspor CSV, filter tanggal & laporan, unduhan file Excel .xlsx, serta respons struktur API Feed Google Apps Script.
+
 ## [2.9.34] - 2026-09-30
 
 ### Auto-Heal & Cascading Laporan Mengajar, Integrasi Bank BJB & Normalisasi, Fix Form Profil Multi-Tab Deadlock, Otorisasi View User Admin Sistem (Ahmad Yusril), serta Penyempurnaan Payroll & Distribusi Jadwal

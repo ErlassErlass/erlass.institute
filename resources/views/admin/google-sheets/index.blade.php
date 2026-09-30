@@ -175,7 +175,12 @@
                         </span>
                     </div>
                     <div class="d-flex gap-2">
-                        <a href="{{ route('admin.google-sheets.export', $tab['key']) }}" class="btn btn-sm btn-outline-secondary w-100 rounded-pill fw-semibold">
+                        @if(!empty($tab['has_excel']))
+                        <a href="{{ route('admin.google-sheets.export-excel', $tab['key']) }}" class="btn btn-sm btn-outline-success w-100 rounded-pill fw-semibold" title="Unduh format Microsoft Excel">
+                            <i class="bi bi-file-earmark-excel me-1"></i> Unduh Excel (.xlsx)
+                        </a>
+                        @endif
+                        <a href="{{ route('admin.google-sheets.export', $tab['key']) }}" class="btn btn-sm btn-outline-secondary w-100 rounded-pill fw-semibold" title="Unduh format CSV">
                             <i class="bi bi-download me-1"></i> Unduh CSV
                         </a>
                     </div>
@@ -253,7 +258,7 @@
                     <h5 class="fw-bold text-dark mb-1">
                         <i class="bi bi-code-square text-success me-2"></i>Pasang Menu Sync Otomatis di Google Sheets
                     </h5>
-                    <p class="text-muted small mb-0">Cukup salin script berikut ke <strong>Ekstensi (Extensions) &gt; Apps Script</strong> di Google Spreadsheet Anda untuk mengisi seluruh 10 tab secara otomatis dan membuat tombol menu sinkronisasi.</p>
+                    <p class="text-muted small mb-0">Cukup salin script berikut ke <strong>Ekstensi (Extensions) &gt; Apps Script</strong> di Google Spreadsheet Anda untuk mengisi seluruh 11 tab secara otomatis dan membuat tombol menu sinkronisasi.</p>
                 </div>
                 <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="copyAppsScript()">
                     <i class="bi bi-clipboard-check me-1"></i> Salin Script
@@ -264,7 +269,7 @@
             <div class="position-relative">
                 <pre class="bg-dark text-light p-3 rounded-4 small mb-0" style="max-height: 250px; overflow-y: auto;" id="appsScriptCode"><code>/**
  * ERLASS INSTITUTE - GOOGLE SPREADSHEETS AUTO-SYNC
- * Mengisi & menyinkronkan seluruh 10 Tab Data secara otomatis.
+ * Mengisi & menyinkronkan seluruh 11 Tab Data secara otomatis.
  */
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
@@ -302,7 +307,8 @@ function SINKRONKAN_SEMUA_DATA() {
     'Daftar_Program_Ekskul': '#2563eb',
     'Rekap_Honor_Instruktur': '#059669',
     'Profil_Instruktur': '#0284c7',
-    'Data_Siswa': '#d97706'
+    'Data_Siswa': '#d97706',
+    'Monitoring_Belum_Laporan': '#dc2626'
   };
 
   for (var tabName in tabs) {
@@ -335,7 +341,7 @@ function SINKRONKAN_SEMUA_DATA() {
     try { ss.deleteSheet(sheet1); } catch(e) {}
   }
   
-  SpreadsheetApp.getActiveSpreadsheet().toast('✅ Sukses! Seluruh 10 Tab telah terisi lengkap.', 'Selesai', 5);
+  SpreadsheetApp.getActiveSpreadsheet().toast('✅ Sukses! Seluruh 11 Tab telah terisi lengkap.', 'Selesai', 5);
 }</code></pre>
             </div>
         </div>
@@ -366,7 +372,7 @@ document.getElementById('btnSyncAll').addEventListener('click', function() {
     btn.disabled = true;
     icon.classList.add('spinner-border', 'spinner-border-sm');
     icon.classList.remove('bi-arrow-repeat');
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Menyinkronkan 5 Tab...';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Menyinkronkan 11 Tab...';
 
     fetch("{{ route('admin.google-sheets.sync') }}", {
         method: 'POST',

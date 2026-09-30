@@ -31,6 +31,7 @@ class GoogleSheetsService
     const TAB_REKAP_HONOR_INSTRUKTUR = 'Rekap_Honor_Instruktur';
     const TAB_PROFIL_INSTRUKTUR = 'Profil_Instruktur';
     const TAB_DATA_SISWA = 'Data_Siswa';
+    const TAB_MONITORING_BELUM_LAPORAN = 'Monitoring_Belum_Laporan';
 
     public function __construct()
     {
@@ -180,6 +181,7 @@ class GoogleSheetsService
                 self::TAB_REKAP_HONOR_INSTRUKTUR,
                 self::TAB_PROFIL_INSTRUKTUR,
                 self::TAB_DATA_SISWA,
+                self::TAB_MONITORING_BELUM_LAPORAN,
             ];
 
             $requests = [];
@@ -279,6 +281,43 @@ class GoogleSheetsService
                 ];
             }
 
+            // Dapatkan sheetId untuk TAB_MONITORING_BELUM_LAPORAN agar kolom ID Sesi (Kolom B) dan No HP (Kolom L) dikunci sebagai Plain Text
+            $monSheet = collect($meta['sheets'] ?? [])->firstWhere('properties.title', self::TAB_MONITORING_BELUM_LAPORAN);
+            if ($monSheet && isset($monSheet['properties']['sheetId'])) {
+                $requests[] = [
+                    'repeatCell' => [
+                        'range' => [
+                            'sheetId' => $monSheet['properties']['sheetId'],
+                            'startColumnIndex' => 1, // Kolom B (ID Sesi)
+                            'endColumnIndex' => 2,
+                            'startRowIndex' => 1,
+                        ],
+                        'cell' => [
+                            'userEnteredFormat' => [
+                                'numberFormat' => ['type' => 'TEXT'],
+                            ],
+                        ],
+                        'fields' => 'userEnteredFormat.numberFormat',
+                    ],
+                ];
+                $requests[] = [
+                    'repeatCell' => [
+                        'range' => [
+                            'sheetId' => $monSheet['properties']['sheetId'],
+                            'startColumnIndex' => 11, // Kolom L (No. WhatsApp / HP)
+                            'endColumnIndex' => 12,
+                            'startRowIndex' => 1,
+                        ],
+                        'cell' => [
+                            'userEnteredFormat' => [
+                                'numberFormat' => ['type' => 'TEXT'],
+                            ],
+                        ],
+                        'fields' => 'userEnteredFormat.numberFormat',
+                    ],
+                ];
+            }
+
             if (!empty($requests)) {
                 $batchResponse = Http::withToken($token)->timeout(8)->post("https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}:batchUpdate", [
                     'requests' => $requests,
@@ -296,7 +335,7 @@ class GoogleSheetsService
     }
 
     /**
-     * Execute a Full Initial Sync of all 7 tabs.
+     * Execute a Full Initial Sync of all 11 tabs.
      */
     public function syncAllData(): array
     {
@@ -314,6 +353,7 @@ class GoogleSheetsService
             self::TAB_REKAP_HONOR_INSTRUKTUR => $this->syncTabRekapHonorInstruktur($token),
             self::TAB_PROFIL_INSTRUKTUR => $this->syncTabProfilInstruktur($token),
             self::TAB_DATA_SISWA => $this->syncTabDataSiswa($token),
+            self::TAB_MONITORING_BELUM_LAPORAN => $this->syncTabMonitoringBelumLaporan($token),
         ];
 
         Cache::put('google_sheets_last_sync', now()->toDateTimeString(), 86400 * 30);
@@ -1116,6 +1156,115 @@ class GoogleSheetsService
     }
 
     /**
+     * Tab 11: Monitoring Belum Laporan
+     */
+    public function syncTabMonitoringBelumLaporan(?string $token = null): array
+    {
+        $headers = [
+            'No',
+            'ID Sesi',
+            'Tanggal Sesi',
+            'Hari',
+            'Jam Sesi',
+            'Kode Sekolah',
+            'Nama Sekolah',
+            'Program Ekskul',
+            'Rombel',
+            'Pertemuan Ke',
+            'Nama Instruktur',
+            'No. WhatsApp / HP',
+            'Nama Asisten',
+            'Status Sesi',
+            'Jam Checkin Aktual',
+            'Status Keterlambatan',
+            'Sales PIC',
+            'Link Sesi',
+        ];
+
+        $sessions = EkstrakurikulerSession::with([
+            'ekstrakurikuler.sekolah',
+            'ekstrakurikuler.sales',
+            'rombel.ekstrakurikuler.sekolah',
+            'rombel.ekstrakurikuler.sales',
+            'instruktur.instructorProfile',
+            'asisten',
+        ])
+        ->whereDoesntHave('laporanMengajar')
+        ->where('status', '!=', 'dibatalkan')
+        ->whereDate('tanggal_terjadwal', '<=', Carbon::today())
+        ->orderBy('tanggal_terjadwal', 'asc')
+        ->orderBy('jam_mulai_terjadwal', 'asc')
+        ->orderBy('id', 'asc')
+        ->get();
+
+        $rows = [$headers];
+        $no = 1;
+
+        foreach ($sessions as $s) {
+            $ekskul = $s->ekstrakurikuler;
+            $rombel = $s->rombel;
+            $sekolah = $ekskul?->sekolah ?? $rombel?->ekstrakurikuler?->sekolah;
+
+            $tglObj = $s->tanggal_terjadwal ? Carbon::parse($s->tanggal_terjadwal) : null;
+            $tanggalSesi = $tglObj ? $tglObj->format('d/m/Y') : '-';
+            $hari = $tglObj ? $tglObj->locale('id')->isoFormat('dddd') : (ucfirst($rombel?->hari ?? '-'));
+
+            $jamMulai = $s->jam_mulai_terjadwal ? Carbon::parse($s->jam_mulai_terjadwal)->format('H:i') : '-';
+            $jamSelesai = $s->jam_selesai_terjadwal ? Carbon::parse($s->jam_selesai_terjadwal)->format('H:i') : '-';
+            $jamSesi = ($jamMulai !== '-' || $jamSelesai !== '-') ? "{$jamMulai} - {$jamSelesai}" : '-';
+
+            $kodeSekolah = $sekolah?->kodlan ?? $ekskul?->sekolah_kodlan ?? '-';
+            $namaSekolah = $sekolah?->namasekolah ?? $ekskul?->sekolah_kodlan ?? 'N/A';
+            $program = $ekskul?->nama_ekskul ?: ($ekskul?->kategori_program ?? '-');
+            $rombelNama = $rombel?->nama_rombel ?? ($rombel?->nomor_rombel ? 'Rombel ' . $rombel->nomor_rombel : 'Rombel 1');
+
+            $instruktur = $s->instruktur;
+            $prof = $instruktur?->instructorProfile;
+            $rawPhone = $instruktur?->no_telephone ?: ($prof?->no_hp ?? $prof?->no_wa ?? $prof?->no_telepon);
+            $phone = ($rawPhone && trim($rawPhone) !== '' && trim($rawPhone) !== '-') ? "'" . trim($rawPhone) : '-';
+
+            $keterlambatan = '-';
+            if ($tglObj) {
+                $diff = (int) $tglObj->startOfDay()->diffInDays(Carbon::today(), false);
+                if ($diff === 0) {
+                    $keterlambatan = 'Hari Ini (Belum Laporan)';
+                } elseif ($diff > 0) {
+                    $keterlambatan = "Terlambat {$diff} Hari";
+                } else {
+                    $keterlambatan = 'Mendatang';
+                }
+            }
+
+            $sales = $ekskul?->sales?->nama_lengkap 
+                ?? $ekskul?->sales?->name 
+                ?? ($rombel?->ekstrakurikuler?->sales?->nama_lengkap ?? '-');
+
+            $rows[] = [
+                $no++,
+                $s->id,
+                $tanggalSesi,
+                $hari,
+                $jamSesi,
+                $kodeSekolah,
+                $namaSekolah,
+                $program,
+                $rombelNama,
+                $s->nomor_pertemuan ?? '-',
+                $instruktur?->nama_lengkap ?? $instruktur?->name ?? 'Belum Ditugaskan',
+                $phone,
+                $s->asisten?->nama_lengkap ?? $s->asisten?->name ?? '-',
+                ucfirst($s->status),
+                $s->jam_mulai_aktual ? Carbon::parse($s->jam_mulai_aktual)->format('H:i:s') : '-',
+                $keterlambatan,
+                $sales,
+                url("/ekstrakurikuler/sessions/{$s->id}"),
+            ];
+        }
+
+        return $this->writeTab(self::TAB_MONITORING_BELUM_LAPORAN, $rows, $token);
+    }
+
+    /**
      * Append a single Laporan row in Realtime.
      */
     public function appendLaporanRealtime(LaporanMengajar $r): bool
@@ -1265,6 +1414,7 @@ class GoogleSheetsService
                 self::TAB_REKAP_HONOR_INSTRUKTUR => $this->syncTabRekapHonorInstruktur(),
                 self::TAB_PROFIL_INSTRUKTUR => $this->syncTabProfilInstruktur(),
                 self::TAB_DATA_SISWA => $this->syncTabDataSiswa(),
+                self::TAB_MONITORING_BELUM_LAPORAN => $this->syncTabMonitoringBelumLaporan(),
                 default => null,
             };
             $data = Cache::get("google_sheets_data_{$tabTitle}", []);
@@ -1282,7 +1432,7 @@ class GoogleSheetsService
     }
 
     /**
-     * Get array data of all 10 tabs.
+     * Get array data of all 11 tabs.
      */
     public function getAllTabsData(): array
     {
@@ -1296,6 +1446,7 @@ class GoogleSheetsService
         $this->syncTabRekapHonorInstruktur();
         $this->syncTabProfilInstruktur();
         $this->syncTabDataSiswa();
+        $this->syncTabMonitoringBelumLaporan();
 
         return [
             self::TAB_KPI => Cache::get("google_sheets_data_" . self::TAB_KPI, []),
@@ -1308,6 +1459,7 @@ class GoogleSheetsService
             self::TAB_REKAP_HONOR_INSTRUKTUR => Cache::get("google_sheets_data_" . self::TAB_REKAP_HONOR_INSTRUKTUR, []),
             self::TAB_PROFIL_INSTRUKTUR => Cache::get("google_sheets_data_" . self::TAB_PROFIL_INSTRUKTUR, []),
             self::TAB_DATA_SISWA => Cache::get("google_sheets_data_" . self::TAB_DATA_SISWA, []),
+            self::TAB_MONITORING_BELUM_LAPORAN => Cache::get("google_sheets_data_" . self::TAB_MONITORING_BELUM_LAPORAN, []),
         ];
     }
 }

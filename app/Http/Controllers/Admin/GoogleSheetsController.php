@@ -100,6 +100,14 @@ class GoogleSheetsController extends Controller
                 'icon' => 'bi-mortarboard-fill text-warning',
                 'cached_rows' => count(Cache::get('google_sheets_data_' . GoogleSheetsService::TAB_DATA_SISWA, [])),
             ],
+            [
+                'key' => GoogleSheetsService::TAB_MONITORING_BELUM_LAPORAN,
+                'name' => '11. Monitoring Belum Laporan',
+                'description' => 'Daftar seluruh sesi ekskul yang sudah tiba/lewat jadwalnya namun belum disubmit laporan mengajarnya oleh instruktur.',
+                'icon' => 'bi-exclamation-octagon-fill text-danger',
+                'cached_rows' => count(Cache::get('google_sheets_data_' . GoogleSheetsService::TAB_MONITORING_BELUM_LAPORAN, [])),
+                'has_excel' => true,
+            ],
         ];
 
         return view('admin.google-sheets.index', compact(
@@ -114,7 +122,7 @@ class GoogleSheetsController extends Controller
     }
 
     /**
-     * Trigger instant Full Sync of all 7 tabs.
+     * Trigger instant Full Sync of all 11 tabs.
      */
     public function syncNow(Request $request)
     {
@@ -124,12 +132,12 @@ class GoogleSheetsController extends Controller
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Sinkronisasi seluruh 7 tab ke Google Spreadsheet berhasil!',
+                    'message' => 'Sinkronisasi seluruh 11 tab ke Google Spreadsheet berhasil!',
                     'data' => $result,
                 ]);
             }
 
-            return back()->with('success', 'Sinkronisasi seluruh 7 tab ke Google Spreadsheet berhasil!');
+            return back()->with('success', 'Sinkronisasi seluruh 11 tab ke Google Spreadsheet berhasil!');
         } catch (\Throwable $e) {
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
@@ -190,6 +198,9 @@ class GoogleSheetsController extends Controller
             'siswa' => GoogleSheetsService::TAB_DATA_SISWA,
             'data_siswa' => GoogleSheetsService::TAB_DATA_SISWA,
             'Data_Siswa' => GoogleSheetsService::TAB_DATA_SISWA,
+            'monitoring_belum_laporan' => GoogleSheetsService::TAB_MONITORING_BELUM_LAPORAN,
+            'Monitoring_Belum_Laporan' => GoogleSheetsService::TAB_MONITORING_BELUM_LAPORAN,
+            'belum_laporan' => GoogleSheetsService::TAB_MONITORING_BELUM_LAPORAN,
         ];
 
         $tabKey = $validTabs[$tab] ?? $tab;
@@ -199,6 +210,27 @@ class GoogleSheetsController extends Controller
         return response($csv)
             ->header('Content-Type', 'text/csv')
             ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
+    }
+
+    /**
+     * Direct download Excel (.xlsx) export of a specific tab.
+     */
+    public function exportExcel(string $tab)
+    {
+        $validTabs = [
+            'monitoring_belum_laporan' => GoogleSheetsService::TAB_MONITORING_BELUM_LAPORAN,
+            'Monitoring_Belum_Laporan' => GoogleSheetsService::TAB_MONITORING_BELUM_LAPORAN,
+            'belum_laporan' => GoogleSheetsService::TAB_MONITORING_BELUM_LAPORAN,
+        ];
+
+        $tabKey = $validTabs[$tab] ?? $tab;
+
+        if ($tabKey === GoogleSheetsService::TAB_MONITORING_BELUM_LAPORAN) {
+            $filename = 'Monitoring_Belum_Laporan_' . now()->format('Ymd_His') . '.xlsx';
+            return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\MonitoringBelumLaporanExport(), $filename);
+        }
+
+        return $this->exportCsv($tab);
     }
 
     /**

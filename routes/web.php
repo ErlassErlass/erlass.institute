@@ -485,6 +485,8 @@ Route::middleware(['auth'])->group(function () {
             ->name('google-sheets.config');
         Route::get('google-sheets/export/{tab}', [App\Http\Controllers\Admin\GoogleSheetsController::class, 'exportCsv'])
             ->name('google-sheets.export');
+        Route::get('google-sheets/export-excel/{tab}', [App\Http\Controllers\Admin\GoogleSheetsController::class, 'exportExcel'])
+            ->name('google-sheets.export-excel');
     });
 });
 
