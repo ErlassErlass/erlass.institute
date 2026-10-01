@@ -453,8 +453,10 @@ erDiagram
     *   Tabel induk penagihan resmi level sekolah.
     *   Primary Key: `id`, Foreign Key: `sekolah_kodlan` merujuk ke `sekolah.kodlan`.
     *   Menyimpan agregasi sekolah: `total_rombel`, total `jumlah_siswa_billable`, `skema_tagihan`, `periode_label`, rentang sesi, dan `nomor_invoice`.
-    *   Alur verifikasi 2 tahap: Operasional (`operasional_status`, `operasional_approved_at`) dan Akunting (`akunting_status`, `akunting_approved_at`).
-    *   Nomor invoice berstatus draft (`DRAFT-INV/...`) hingga disetujui Akunting, kemudian difinalisasi menjadi nomor resmi (`INV/...`).
+    *   Alur verifikasi 2 tahap dengan gerbang checklist:
+        *   **Pemeriksaan Produk (Operasional)**: `operasional_status`, `operasional_approved_at`, `is_konfirmasi_pic` (flag konfirmasi sekolah), `pic_konfirmasi_nama` (nama PIC sekolah), `pic_konfirmasi_catatan`, dan `operasional_checklist` (JSON: presensi, modul materi, kesesuaian data billable).
+        *   **Distribusi & Dokumen (Akunting)**: `akunting_status`, `akunting_approved_at`, `is_invoice_tercetak` (flag cetak fisik/digital PDF), dan `akunting_checklist` (JSON: rekening Erlass valid, nominal tarif diverifikasi, berkas siap edar).
+    *   Nomor invoice berstatus draft (`DRAFT-INV/...`) hingga disetujui Akunting, kemudian difinalisasi otomatis menjadi nomor resmi (`INV/...`).
 
 19. **INVOICE APPROVAL ITEMS (`invoice_approval_items`)**:
     *   Rincian tagihan per rombel dalam invoice sekolah (relasi 1-to-N dari `invoice_approvals`).

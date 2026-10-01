@@ -10,6 +10,7 @@ Selamat datang di repositori dokumentasi resmi **Erlass Institute**. Seluruh dok
 Dokumentasi non-teknis mengenai alur kerja dan operasional harian organisasi.
 
 *   [**`PANDUAN_LENGKAP_ADMIN.md`**](user/PANDUAN_LENGKAP_ADMIN.md) — Panduan resmi operasional & SOP komprehensif Administrator & Webmaster (v2.9.18).
+*   [**`PANDUAN_INVOICE_DAN_PENAGIHAN.md`**](user/PANDUAN_INVOICE_DAN_PENAGIHAN.md) — Panduan resmi operasional & SOP penagihan invoice, evaluasi antrean, dual-approval Operasional & Akunting, serta penerbitan PDF resmi.
 *   [**`PANDUAN_LENGKAP_INSTRUKTUR.md`**](user/PANDUAN_LENGKAP_INSTRUKTUR.md) — Panduan resmi langkah demi langkah operasional Instruktur & Asisten.
 *   [**`USER_GUIDE.md`**](user/USER_GUIDE.md) — Panduan pengoperasian web berdasarkan role pengguna.
 *   [**`SOP_TUPOKSI.md`**](user/SOP_TUPOKSI.md) — SOP operasional dan pembagian tugas masing-masing jabatan.

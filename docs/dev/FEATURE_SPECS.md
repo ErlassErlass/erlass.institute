@@ -180,21 +180,38 @@ Menghubungkan data operasional mengajar dengan penghitungan honorarium instruktu
 - **1 Invoice per Sekolah dengan Rincian per Rombel**:
   - Struktur penagihan berpusat pada entitas Sekolah (`sekolah_kodlan`), di mana 1 dokumen invoice resmi merangkum seluruh rombel aktif di sekolah tersebut.
   - Tabel rincian `invoice_approval_items` merinci sesi, siswa billable, dan koreksi per rombel.
-- **Aturan Keserentakan Penagihan**:
+- **Standarisasi Penamaan Kolom & Pemisahan Periode**:
+  - Tabel antrean menggunakan 8 kolom baku: `Sekolah`, `Rombel & Program (Item)`, `Skema Tagihan`, `Periode Tagihan`, `Total Siswa Billable`, `Target Invoice`, `Keterlambatan`, dan `Aksi`.
+  - Kolom **Skema Tagihan** menampilkan nama skema bersih (`Bulanan`, `Per 4 Pertemuan`, `Semesteran`, `Tahunan`).
+  - Kolom **Periode Tagihan** menampung seluruh detail waktu spesifik:
+    - Bulanan: `Agustus 2026`, `September 2026`, dst.
+    - Semesteran: `Semester 1 — Jul–Des 2026`, `Semester 2 — Jan–Jun 2027`.
+    - Tahunan: `Tahun 2026`.
+    - Per 4 Pertemuan: `Sesi 1–4`, `Sesi 5–8`, `Sesi 9–12` (dilengkapi indikator bulan sesi riil terakhir).
+  - Filter dropdown skema real-time di header antrean terintegrasi dengan pencarian live search sekolah.
+- **Aturan Keserentakan Penagihan & Bulan Laporan Terakhir**:
   - Sekolah baru masuk kategori siap tagih jika seluruh rombel aktif (Ekskul & Pelatihan) di sekolah tersebut telah menyelesaikan target sesi periode yang bersangkutan.
+  - Alokasi bulan tagihan dihitung dinamis dari tanggal sesi/laporan mengajar terakhir yang terlaksana dalam siklus tersebut.
   - Program non-tagihan (Free Trial, Sosialisasi, Pameran, Lomba, Inkul) secara sistematis dikecualikan.
 - **Smart Ready-to-Bill Detection & Urutan Prioritas**:
-  - Deteksi otomatis berdasarkan skema tagihan: `per_4_pertemuan` (per 4 sesi selesai) atau `bulanan` (akhir bulan).
-  - Urutan antrean tagihan memprioritaskan hari keterlambatan (`days_overdue DESC`), dilengkapi badge keterlambatan dan tanggal target pembuatan.
+  - Deteksi otomatis 4 skema: `per_4_pertemuan`, `bulanan`, `semester`, dan `tahunan`.
+  - Urutan antrean tagihan memprioritaskan hari keterlambatan (`days_overdue DESC`), dilengkapi badge keterlambatan dan tanggal Target Invoice.
   - Shortcut 1-Klik Generate dan Bulk Generate untuk memproses draft instan.
 - **Siklus Penomoran Draft ke Final**:
   - Format awal: `DRAFT-INV/ERLASS/YYYYMM/KODLAN/NNN` selama status draft / pending.
   - Otomatis difinalisasi menjadi `INV/ERLASS/YYYYMM/KODLAN/NNN` saat disetujui Akunting.
+- **Gerbang Checklist Approval Bertingkat (Dual Approval Gates)**:
+  - **Gate 1 - Operasional / Pemeriksaan Produk (PIC Dinda)**:
+    - Wajib konfirmasi PIC sekolah (`is_konfirmasi_pic = true`) dan mencatat nama PIC sekolah yang dihubungi (`pic_konfirmasi_nama`).
+    - Checklist pemeriksaan produk: presensi lengkap, materi/modul tersampaikan, dan data siswa billable sesuai konfirmasi.
+  - **Gate 2 - Akunting / Cetak Dokumen (PIC Rendy)**:
+    - Wajib konfirmasi dokumen fisik/digital invoice telah tercetak (`is_invoice_tercetak = true`).
+    - Checklist akunting: nomor invoice & rekening Erlass valid, nominal tarif diverifikasi, dan berkas siap edar.
 - **Koreksi Granular Siswa Billable**:
   - Koreksi manual siswa billable dapat dilakukan per rombel item dengan audit trail lengkap (alasan min 10 karakter, user id, timestamp).
   - Total tagihan siswa sekolah terakumulasi secara otomatis.
 - **Cetak Tagihan PDF Resmi**:
-  - Dokumen PDF tagihan resmi dengan identitas sekolah, tabel rincian item rombel, total siswa, dan catatan komitmen kontrak.
+  - Dokumen PDF tagihan resmi dengan identitas sekolah, tabel rincian item rombel, total siswa, rincian hasil verifikasi pemeriksa, dan catatan komitmen kontrak.
 
 ---
 
