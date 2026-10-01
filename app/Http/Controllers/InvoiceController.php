@@ -162,7 +162,24 @@ class InvoiceController extends Controller
 
     public function quickGenerate(Request $request)
     {
-        // 1. Jika dikirim sekolah_kodlan (Format Utama: Per Sekolah)
+        // 1. Jika dikirim ekstrakurikuler_id (Format Utama: Per Program)
+        if ($request->filled('ekstrakurikuler_id')) {
+            $ekskul = Ekstrakurikuler::with('sekolah')->findOrFail($request->ekstrakurikuler_id);
+            $eligible = $this->invoiceService->getEligibleInvoiceForProgram($ekskul);
+
+            if (!$eligible) {
+                return back()->withErrors([
+                    'msg' => "Program {$ekskul->kategori_program} di sekolah ini belum memenuhi syarat penagihan.",
+                ]);
+            }
+
+            $invoice = $this->invoiceService->createInvoiceForSekolah($eligible, Auth::id());
+
+            return redirect()->route('invoice.show', $invoice)
+                ->with('success', "⚡ Invoice {$invoice->nomor_invoice} berhasil dibuat untuk {$ekskul->kategori_program} ({$invoice->total_rombel} rombel). Menunggu approval Operasional.");
+        }
+
+        // 2. Jika dikirim sekolah_kodlan (Fallback: Ambil program pertama yang siap)
         if ($request->filled('sekolah_kodlan')) {
             $validated = $request->validate([
                 'sekolah_kodlan' => 'required|exists:sekolah,kodlan',
@@ -173,7 +190,7 @@ class InvoiceController extends Controller
 
             if (!$eligible) {
                 return back()->withErrors([
-                    'msg' => "Sekolah {$sekolah->namasekolah} belum memenuhi syarat penagihan (pastikan seluruh rombel telah menuntaskan target pertemuannya).",
+                    'msg' => "Sekolah {$sekolah->namasekolah} belum memenuhi syarat penagihan (pastikan rombel telah menuntaskan target pertemuannya).",
                 ]);
             }
 
@@ -442,10 +459,14 @@ class InvoiceController extends Controller
         // Update timestamp PDF
         $invoice->update(['pdf_generated_at' => now()]);
 
+        // Ambil rincian presensi & laporan mengajar lengkap (format cetak absensi)
+        $attendanceData = $this->invoiceService->getAttendanceDataForInvoice($invoice);
+
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoice.pdf', [
             'invoice'        => $invoice,
             'isDraft'        => !$invoice->isApproved(),
             'catatanKontrak' => InvoiceApproval::catatanKontrakText(),
+            'attendanceData' => $attendanceData,
         ]);
 
         $filename = str_replace('/', '-', $invoice->nomor_invoice) . '.pdf';

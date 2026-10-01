@@ -21,6 +21,8 @@ class InvoiceApproval extends Model
 
     protected $fillable = [
         'sekolah_kodlan',
+        'ekstrakurikuler_id',
+        'kategori_program',
         'ekstrakurikuler_rombel_id',
         'skema_tagihan',
         'periode_label',
@@ -112,6 +114,30 @@ class InvoiceApproval extends Model
         return false;
     }
 
+    /**
+     * Nama program ekskul / pelatihan untuk invoice ini.
+     */
+    public function getProgramNamaAttribute(): string
+    {
+        if (!empty($this->attributes['kategori_program'] ?? null)) {
+            return $this->attributes['kategori_program'];
+        }
+
+        if ($this->ekstrakurikuler?->kategori_program) {
+            return $this->ekstrakurikuler->kategori_program;
+        }
+
+        if ($this->rombel?->ekstrakurikuler?->kategori_program) {
+            return $this->rombel->ekstrakurikuler->kategori_program;
+        }
+
+        if ($this->relationLoaded('items') && $this->items->isNotEmpty()) {
+            return $this->items->first()->rombel?->ekstrakurikuler?->kategori_program ?? 'Program Ekskul';
+        }
+
+        return 'Program Ekskul';
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Relations
     // ─────────────────────────────────────────────────────────────────────────
@@ -119,6 +145,11 @@ class InvoiceApproval extends Model
     public function sekolah(): BelongsTo
     {
         return $this->belongsTo(Sekolah::class, 'sekolah_kodlan', 'kodlan');
+    }
+
+    public function ekstrakurikuler(): BelongsTo
+    {
+        return $this->belongsTo(Ekstrakurikuler::class, 'ekstrakurikuler_id');
     }
 
     public function items(): \Illuminate\Database\Eloquent\Relations\HasMany

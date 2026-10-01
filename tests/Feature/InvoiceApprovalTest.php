@@ -642,16 +642,19 @@ class InvoiceApprovalTest extends TestCase
         $service = app(\App\Services\InvoiceService::class);
         $eligibleList = $service->getAllEligibleRombels();
 
-        // 1 sekolah eligible dengan 2 rombel item: Ekskul dan Pelatihan
-        $this->assertCount(1, $eligibleList);
-        $this->assertEquals($sekolah->kodlan, $eligibleList[0]['sekolah_kodlan']);
-        $this->assertCount(2, $eligibleList[0]['items']);
+        // 2 program eligible dipisah per program: Ekskul dan Pelatihan
+        $this->assertCount(2, $eligibleList);
+        $programs = collect($eligibleList)->pluck('kategori_program')->toArray();
+        $this->assertContains('Ekskul Coding Scratch', $programs);
+        $this->assertContains('Pelatihan Robotik Microbit', $programs);
+        $this->assertNotContains('Free Trial Class', $programs);
+        $this->assertNotContains('Sosialisasi bersama Sales', $programs);
 
-        $itemRombelIds = collect($eligibleList[0]['items'])->pluck('ekstrakurikuler_rombel_id')->toArray();
-        $this->assertContains($rombelEkskul->id, $itemRombelIds);
-        $this->assertContains($rombelPelatihan->id, $itemRombelIds);
-        $this->assertNotContains($rombelTrial->id, $itemRombelIds);
-        $this->assertNotContains($rombelSos->id, $itemRombelIds);
+        $allItemRombelIds = collect($eligibleList)->flatMap(fn($el) => collect($el['items'])->pluck('ekstrakurikuler_rombel_id'))->toArray();
+        $this->assertContains($rombelEkskul->id, $allItemRombelIds);
+        $this->assertContains($rombelPelatihan->id, $allItemRombelIds);
+        $this->assertNotContains($rombelTrial->id, $allItemRombelIds);
+        $this->assertNotContains($rombelSos->id, $allItemRombelIds);
 
         // Shortcut eligible untuk rombel trial harus null
         $this->assertNull($service->getEligibleInvoiceForRombel($rombelTrial));

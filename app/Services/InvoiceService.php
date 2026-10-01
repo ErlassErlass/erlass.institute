@@ -10,6 +10,7 @@ use App\Models\InvoiceApproval;
 use App\Models\InvoiceApprovalItem;
 use App\Models\LaporanMengajar;
 use App\Models\Sekolah;
+use App\Models\Siswa;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -78,27 +79,36 @@ class InvoiceService
     }
 
     /**
-     * Cek apakah sebuah sekolah siap ditagih (eligible for billing) dan kembalikan metadatanya jika siap.
+     * Cek apakah sebuah program (Ekstrakurikuler) di sekolah siap ditagih (eligible for billing).
      * 
      * Aturan:
-     * 1. 1 Invoice diterbitkan per Sekolah, berisi rincian item untuk seluruh rombel di sekolah tersebut.
-     * 2. Tunggu SEMUA rombel (Ekskul & Pelatihan) di sekolah tersebut selesai dulu baru diterbitkan 1 invoice bersamaan.
-     * 3. Skema per_4_pertemuan: Semua rombel harus sudah menyelesaikan 4 sesi berikutnya.
-     * 4. Skema bulanan: Semua rombel harus sudah menyelesaikan seluruh sesi terjadwal di bulan tersebut (di akhir bulan).
+     * 1. Invoice dipisahkan per Program (Ekskul/Pelatihan) di suatu Sekolah.
+     * 2. Jika suatu program memiliki beberapa rombel (misal Rombel 1 & Rombel 2), seluruh rombel
+     *    dalam program tersebut harus sudah memenuhi target pertemuannya.
+     * 3. Skema per_4_pertemuan: Semua rombel dalam program harus selesai 4 sesi di batch ini.
+     * 4. Skema bulanan: Sesi terjadwal di bulan tersebut telah diselesaikan.
      */
-    public function getEligibleInvoiceForSekolah(Sekolah $sekolah, ?Carbon $asOfDate = null): ?array
+    public function getEligibleInvoiceForProgram(Ekstrakurikuler $ekskul, ?Carbon $asOfDate = null): ?array
     {
+        if ($ekskul->status === Ekstrakurikuler::STATUS_DIBATALKAN || 
+            $ekskul->status === Ekstrakurikuler::STATUS_DITOLAK || 
+            !$ekskul->isInvoiceable()) {
+            return null;
+        }
+
+        $ekskul->loadMissing('sekolah');
+        $sekolah = $ekskul->sekolah;
+        if (!$sekolah) {
+            return null;
+        }
+
         $asOfDate = $asOfDate ? $asOfDate->copy() : Carbon::now();
 
-        // Dapatkan seluruh rombel aktif milik sekolah ini yang berstatus Ekskul / Pelatihan
-        $rombels = EkstrakurikulerRombel::whereHas('ekstrakurikuler', function ($q) use ($sekolah) {
-            $q->where('sekolah_kodlan', $sekolah->kodlan)
-              ->whereNotIn('status', [Ekstrakurikuler::STATUS_DIBATALKAN, Ekstrakurikuler::STATUS_DITOLAK])
-              ->invoiceable();
-        })
-        ->where('status', '!=', EkstrakurikulerRombel::STATUS_DIBATALKAN)
-        ->with(['sessions', 'ekstrakurikuler'])
-        ->get();
+        // Seluruh rombel aktif milik program ini
+        $rombels = $ekskul->rombels()
+            ->where('status', '!=', EkstrakurikulerRombel::STATUS_DIBATALKAN)
+            ->with(['sessions', 'ekstrakurikuler'])
+            ->get();
 
         if ($rombels->isEmpty()) {
             return null;
@@ -106,8 +116,13 @@ class InvoiceService
 
         $skema = $sekolah->skema_tagihan ?? Sekolah::SKEMA_PER_4_PERTEMUAN;
 
-        // Invoices aktif yang sudah ada untuk sekolah ini
+        // Invoices aktif yang sudah ada untuk program ini
         $existingInvoices = InvoiceApproval::where('sekolah_kodlan', $sekolah->kodlan)
+            ->where(function ($q) use ($ekskul, $rombels) {
+                $q->where('ekstrakurikuler_id', $ekskul->id)
+                  ->orWhereIn('ekstrakurikuler_rombel_id', $rombels->pluck('id'))
+                  ->orWhereHas('items', fn($sub) => $sub->whereIn('ekstrakurikuler_rombel_id', $rombels->pluck('id')));
+            })
             ->where('status', '!=', InvoiceApproval::STATUS_REJECTED)
             ->get();
 
@@ -130,7 +145,6 @@ class InvoiceService
                     ->where('status', 'selesai')
                     ->count();
 
-                // Syarat: Tunggu SEMUA rombel di sekolah selesai 4 sesi
                 if ($completedInBatch < 4) {
                     return null;
                 }
@@ -150,9 +164,10 @@ class InvoiceService
 
                 $billable = $this->calculateBillable($rombel->id, $dari, $sampai);
                 $items[] = [
+                    'ekstrakurikuler_id'        => $ekskul->id,
                     'ekstrakurikuler_rombel_id' => $rombel->id,
                     'rombel_nama'               => $rombel->nama_rombel,
-                    'kategori_program'          => $rombel->ekstrakurikuler->kategori_program,
+                    'kategori_program'          => $ekskul->kategori_program,
                     'sesi_dari'                 => $dari,
                     'sesi_sampai'               => $sampai,
                     'jumlah_sesi'               => $billable['session_count'],
@@ -174,14 +189,15 @@ class InvoiceService
             return [
                 'sekolah_kodlan'            => $sekolah->kodlan,
                 'sekolah_nama'              => $sekolah->namasekolah,
+                'ekstrakurikuler_id'        => $ekskul->id,
+                'kategori_program'          => $ekskul->kategori_program,
                 'ekstrakurikuler_rombel_id' => $items[0]['ekstrakurikuler_rombel_id'] ?? null,
                 'rombel_nama'               => count($items) === 1 ? $items[0]['rombel_nama'] : (count($items) . ' Rombel'),
-                'kategori_program'          => count($items) === 1 ? $items[0]['kategori_program'] : 'Gabungan Program',
                 'skema_tagihan'             => Sekolah::SKEMA_PER_4_PERTEMUAN,
                 'periode_label'             => "Inv Bulan {$nextBatch}",
                 'bulan_laporan_terakhir'    => $bulanLaporanTerakhir,
                 'periode_nomor'             => $nextBatch,
-                'tahun_ajaran'              => $rombels->first()->ekstrakurikuler->tahun_ajaran ?? '2026/2027',
+                'tahun_ajaran'              => $ekskul->tahun_ajaran ?? '2026/2027',
                 'sesi_dari'                 => $dari,
                 'sesi_sampai'               => $sampai,
                 'target_date'               => $latestTargetDate->toDateString(),
@@ -196,7 +212,7 @@ class InvoiceService
         }
 
         // ─────────────────────────────────────────────────────────────────────
-        // 2. Skema Bulanan (Akhir Bulan & Semua Rombel Selesai)
+        // 2. Skema Bulanan
         // ─────────────────────────────────────────────────────────────────────
         if ($skema === Sekolah::SKEMA_BULANAN) {
             $allCompletedSessions = EkstrakurikulerSession::whereIn('ekstrakurikuler_rombel_id', $rombels->pluck('id'))
@@ -223,7 +239,7 @@ class InvoiceService
                 $monthName = $bulanNames[$month] ?? Carbon::create($year, $month, 1)->format('F');
                 $periodeLabel = "{$monthName} {$year}";
 
-                // Cek apakah invoice sekolah untuk bulan ini sudah ada
+                // Cek apakah invoice program untuk bulan ini sudah ada
                 $alreadyInvoiced = $existingInvoices->contains(function ($inv) use ($periodeLabel) {
                     return str_contains(strtolower($inv->periode_label), strtolower($periodeLabel));
                 });
@@ -261,32 +277,23 @@ class InvoiceService
                     continue;
                 }
 
-                // Syarat: Tunggu SEMUA rombel di sekolah tersebut selesai dulu
-                $allRombelsDone = true;
                 $items = [];
                 $latestTargetDate = null;
-
                 foreach ($rombels as $rombel) {
-                    $rombelSessionsInMonth = $rombel->sessions()
+                    $rombelSessions = $rombel->sessions()
                         ->whereBetween('tanggal_terjadwal', [$monthStart->toDateString(), $monthEnd->toDateString()])
+                        ->where('status', 'selesai')
                         ->get();
 
-                    $hasPending = $rombelSessionsInMonth->contains(fn($s) => !in_array($s->status, ['selesai', 'dibatalkan', 'libur', 'diganti']));
-                    $completedRombel = $rombelSessionsInMonth->where('status', 'selesai');
-
-                    if ($hasPending || $completedRombel->isEmpty()) {
-                        $allRombelsDone = false;
-                        break;
+                    if ($rombelSessions->isEmpty()) {
+                        continue;
                     }
 
-                    $sesiDari   = $completedRombel->min('nomor_pertemuan');
-                    $sesiSampai = $completedRombel->max('nomor_pertemuan');
-                    $lastSess   = $completedRombel->sortByDesc('tanggal_terjadwal')->first();
-                    $tDate      = $lastSess?->tanggal_pelaksanaan ?? $lastSess?->tanggal_terjadwal ?? $monthEnd;
-
-                    if (is_string($tDate)) {
-                        $tDate = Carbon::parse($tDate);
-                    }
+                    $sesiDari   = $rombelSessions->min('nomor_pertemuan');
+                    $sesiSampai = $rombelSessions->max('nomor_pertemuan');
+                    $lastSess   = $rombelSessions->sortByDesc('tanggal_terjadwal')->first();
+                    $tDate      = $lastSess?->tanggal_pelaksanaan ?? $lastSess?->tanggal_terjadwal ?? $asOfDate;
+                    if (is_string($tDate)) $tDate = Carbon::parse($tDate);
 
                     if (!$latestTargetDate || $tDate->gt($latestTargetDate)) {
                         $latestTargetDate = $tDate;
@@ -294,9 +301,10 @@ class InvoiceService
 
                     $billable = $this->calculateBillable($rombel->id, $sesiDari, $sesiSampai);
                     $items[] = [
+                        'ekstrakurikuler_id'        => $ekskul->id,
                         'ekstrakurikuler_rombel_id' => $rombel->id,
                         'rombel_nama'               => $rombel->nama_rombel,
-                        'kategori_program'          => $rombel->ekstrakurikuler->kategori_program,
+                        'kategori_program'          => $ekskul->kategori_program,
                         'sesi_dari'                 => $sesiDari,
                         'sesi_sampai'               => $sesiSampai,
                         'jumlah_sesi'               => $billable['session_count'],
@@ -304,24 +312,25 @@ class InvoiceService
                     ];
                 }
 
-                if (!$allRombelsDone || empty($items)) {
+                if (empty($items)) {
                     continue;
                 }
 
-                $latestTargetDate = $latestTargetDate ?? $asOfDate;
+                $latestTargetDate = $latestTargetDate ?? $monthEnd;
                 $daysOverdue = max(0, (int) $latestTargetDate->diffInDays($asOfDate, false));
 
                 return [
                     'sekolah_kodlan'            => $sekolah->kodlan,
                     'sekolah_nama'              => $sekolah->namasekolah,
+                    'ekstrakurikuler_id'        => $ekskul->id,
+                    'kategori_program'          => $ekskul->kategori_program,
                     'ekstrakurikuler_rombel_id' => $items[0]['ekstrakurikuler_rombel_id'] ?? null,
                     'rombel_nama'               => count($items) === 1 ? $items[0]['rombel_nama'] : (count($items) . ' Rombel'),
-                    'kategori_program'          => count($items) === 1 ? $items[0]['kategori_program'] : 'Gabungan Program',
                     'skema_tagihan'             => Sekolah::SKEMA_BULANAN,
                     'periode_label'             => $periodeLabel,
-                    'bulan_laporan_terakhir'    => $periodeLabel,
+                    'bulan_laporan_terakhir'    => $latestTargetDate->translatedFormat('F Y'),
                     'periode_nomor'             => $month,
-                    'tahun_ajaran'              => $rombels->first()->ekstrakurikuler->tahun_ajaran ?? '2026/2027',
+                    'tahun_ajaran'              => $ekskul->tahun_ajaran ?? '2026/2027',
                     'target_date'               => $latestTargetDate->toDateString(),
                     'target_date_formatted'     => $latestTargetDate->translatedFormat('d M Y'),
                     'days_overdue'              => $daysOverdue,
@@ -337,18 +346,16 @@ class InvoiceService
         }
 
         // ─────────────────────────────────────────────────────────────────────
-        // 3. Skema Semesteran (Semester 1 — Jul–Des / Semester 2 — Jan–Jun)
+        // 3. Skema Semesteran
         // ─────────────────────────────────────────────────────────────────────
         if ($skema === Sekolah::SKEMA_SEMESTER) {
             $year = $asOfDate->year;
             $month = $asOfDate->month;
             if ($month >= 7) {
-                $semNum = 1;
                 $periodeLabel = "Semester 1 — Jul–Des {$year}";
                 $startDate = Carbon::create($year, 7, 1)->startOfDay();
                 $endDate = Carbon::create($year, 12, 31)->endOfDay();
             } else {
-                $semNum = 2;
                 $periodeLabel = "Semester 2 — Jan–Jun {$year}";
                 $startDate = Carbon::create($year, 1, 1)->startOfDay();
                 $endDate = Carbon::create($year, 6, 30)->endOfDay();
@@ -386,9 +393,10 @@ class InvoiceService
 
                 $billable = $this->calculateBillable($rombel->id, $sesiDari, $sesiSampai);
                 $items[] = [
+                    'ekstrakurikuler_id'        => $ekskul->id,
                     'ekstrakurikuler_rombel_id' => $rombel->id,
                     'rombel_nama'               => $rombel->nama_rombel,
-                    'kategori_program'          => $rombel->ekstrakurikuler->kategori_program,
+                    'kategori_program'          => $ekskul->kategori_program,
                     'sesi_dari'                 => $sesiDari,
                     'sesi_sampai'               => $sesiSampai,
                     'jumlah_sesi'               => $billable['session_count'],
@@ -400,20 +408,21 @@ class InvoiceService
                 return null;
             }
 
-            $latestTargetDate = $latestTargetDate ?? $asOfDate;
+            $latestTargetDate = $latestTargetDate ?? $endDate;
             $daysOverdue = max(0, (int) $latestTargetDate->diffInDays($asOfDate, false));
 
             return [
                 'sekolah_kodlan'            => $sekolah->kodlan,
                 'sekolah_nama'              => $sekolah->namasekolah,
+                'ekstrakurikuler_id'        => $ekskul->id,
+                'kategori_program'          => $ekskul->kategori_program,
                 'ekstrakurikuler_rombel_id' => $items[0]['ekstrakurikuler_rombel_id'] ?? null,
                 'rombel_nama'               => count($items) === 1 ? $items[0]['rombel_nama'] : (count($items) . ' Rombel'),
-                'kategori_program'          => count($items) === 1 ? $items[0]['kategori_program'] : 'Gabungan Program',
                 'skema_tagihan'             => Sekolah::SKEMA_SEMESTER,
                 'periode_label'             => $periodeLabel,
                 'bulan_laporan_terakhir'    => $latestTargetDate->translatedFormat('F Y'),
-                'periode_nomor'             => $semNum,
-                'tahun_ajaran'              => $rombels->first()->ekstrakurikuler->tahun_ajaran ?? "{$year}/" . ($year + 1),
+                'periode_nomor'             => $month >= 7 ? 1 : 2,
+                'tahun_ajaran'              => $ekskul->tahun_ajaran ?? '2026/2027',
                 'target_date'               => $latestTargetDate->toDateString(),
                 'target_date_formatted'     => $latestTargetDate->translatedFormat('d M Y'),
                 'days_overdue'              => $daysOverdue,
@@ -426,7 +435,7 @@ class InvoiceService
         }
 
         // ─────────────────────────────────────────────────────────────────────
-        // 4. Skema Tahunan (Tahun 2026 / Sesuai Tahun Kalender/Ajaran)
+        // 4. Skema Tahunan
         // ─────────────────────────────────────────────────────────────────────
         if ($skema === Sekolah::SKEMA_TAHUNAN) {
             $year = $asOfDate->year;
@@ -464,9 +473,10 @@ class InvoiceService
 
                 $billable = $this->calculateBillable($rombel->id, $sesiDari, $sesiSampai);
                 $items[] = [
+                    'ekstrakurikuler_id'        => $ekskul->id,
                     'ekstrakurikuler_rombel_id' => $rombel->id,
                     'rombel_nama'               => $rombel->nama_rombel,
-                    'kategori_program'          => $rombel->ekstrakurikuler->kategori_program,
+                    'kategori_program'          => $ekskul->kategori_program,
                     'sesi_dari'                 => $sesiDari,
                     'sesi_sampai'               => $sesiSampai,
                     'jumlah_sesi'               => $billable['session_count'],
@@ -484,14 +494,15 @@ class InvoiceService
             return [
                 'sekolah_kodlan'            => $sekolah->kodlan,
                 'sekolah_nama'              => $sekolah->namasekolah,
+                'ekstrakurikuler_id'        => $ekskul->id,
+                'kategori_program'          => $ekskul->kategori_program,
                 'ekstrakurikuler_rombel_id' => $items[0]['ekstrakurikuler_rombel_id'] ?? null,
                 'rombel_nama'               => count($items) === 1 ? $items[0]['rombel_nama'] : (count($items) . ' Rombel'),
-                'kategori_program'          => count($items) === 1 ? $items[0]['kategori_program'] : 'Gabungan Program',
                 'skema_tagihan'             => Sekolah::SKEMA_TAHUNAN,
                 'periode_label'             => $periodeLabel,
                 'bulan_laporan_terakhir'    => $latestTargetDate->translatedFormat('F Y'),
                 'periode_nomor'             => $year,
-                'tahun_ajaran'              => $rombels->first()->ekstrakurikuler->tahun_ajaran ?? "{$year}/" . ($year + 1),
+                'tahun_ajaran'              => $ekskul->tahun_ajaran ?? "{$year}/" . ($year + 1),
                 'target_date'               => $latestTargetDate->toDateString(),
                 'target_date_formatted'     => $latestTargetDate->translatedFormat('d M Y'),
                 'days_overdue'              => $daysOverdue,
@@ -507,23 +518,52 @@ class InvoiceService
     }
 
     /**
-     * Dapatkan semua sekolah yang saat ini eligible (siap ditagih),
-     * diurutkan berdasarkan prioritas keterlambatan (paling lama terlambat di atas).
+     * Dapatkan daftar proposal invoice untuk sebuah sekolah (dipisah per program).
      */
-    public function getAllEligibleSekolahs(?Carbon $asOfDate = null): Collection
+    public function getEligibleInvoicesForSekolah(Sekolah $sekolah, ?Carbon $asOfDate = null): Collection
+    {
+        $ekskuls = $sekolah->ekstrakurikulers()
+            ->whereNotIn('status', [Ekstrakurikuler::STATUS_DIBATALKAN, Ekstrakurikuler::STATUS_DITOLAK])
+            ->invoiceable()
+            ->with(['sekolah', 'rombels.sessions'])
+            ->get();
+
+        $results = collect();
+        foreach ($ekskuls as $ekskul) {
+            $eligible = $this->getEligibleInvoiceForProgram($ekskul, $asOfDate);
+            if ($eligible) {
+                $eligible['sekolah'] = $sekolah;
+                $results->push($eligible);
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Backward-compatibility: ambil eligible program pertama untuk sekolah tersebut.
+     */
+    public function getEligibleInvoiceForSekolah(Sekolah $sekolah, ?Carbon $asOfDate = null): ?array
+    {
+        return $this->getEligibleInvoicesForSekolah($sekolah, $asOfDate)->first();
+    }
+
+    /**
+     * Dapatkan semua program yang saat ini eligible (siap ditagih),
+     * dipisahkan per program dan diurutkan berdasarkan keterlambatan (paling overdue di atas).
+     */
+    public function getAllEligiblePrograms(?Carbon $asOfDate = null): Collection
     {
         $sekolahs = Sekolah::has('invoiceableEkstrakurikulers')->get();
         $eligibleList = collect();
 
         foreach ($sekolahs as $sekolah) {
-            $eligible = $this->getEligibleInvoiceForSekolah($sekolah, $asOfDate);
-            if ($eligible) {
-                $eligible['sekolah'] = $sekolah;
-                $eligibleList->push($eligible);
+            $programEligibles = $this->getEligibleInvoicesForSekolah($sekolah, $asOfDate);
+            foreach ($programEligibles as $el) {
+                $eligibleList->push($el);
             }
         }
 
-        // Urutkan berdasarkan keterlambatan: days_overdue DESC (paling wajib/terlambat di paling atas)
         return $eligibleList->sortBy([
             ['days_overdue', 'desc'],
             ['target_date', 'asc'],
@@ -532,15 +572,23 @@ class InvoiceService
     }
 
     /**
+     * Alias getAllEligibleSekolahs untuk memanggil getAllEligiblePrograms.
+     */
+    public function getAllEligibleSekolahs(?Carbon $asOfDate = null): Collection
+    {
+        return $this->getAllEligiblePrograms($asOfDate);
+    }
+
+    /**
      * Alias backward-compatibility untuk getAllEligibleRombels.
      */
     public function getAllEligibleRombels(?Carbon $asOfDate = null): Collection
     {
-        return $this->getAllEligibleSekolahs($asOfDate);
+        return $this->getAllEligiblePrograms($asOfDate);
     }
 
     /**
-     * Dapatkan status eligible untuk rombel tertentu (berdasarkan sekolahnya).
+     * Dapatkan status eligible untuk rombel tertentu (berdasarkan programnya).
      */
     public function getEligibleInvoiceForRombel(EkstrakurikulerRombel $rombel, ?Carbon $asOfDate = null): ?array
     {
@@ -549,17 +597,17 @@ class InvoiceService
             return null;
         }
 
-        $sekolah = $ekskul->sekolah;
-        if (!$sekolah) return null;
+        $eligibleProgram = $this->getEligibleInvoiceForProgram($ekskul, $asOfDate);
+        if (!$eligibleProgram) {
+            return null;
+        }
 
-        $eligibleSekolah = $this->getEligibleInvoiceForSekolah($sekolah, $asOfDate);
-        if (!$eligibleSekolah) return null;
+        $rombelItem = collect($eligibleProgram['items'])->firstWhere('ekstrakurikuler_rombel_id', $rombel->id);
+        if (!$rombelItem) {
+            return null;
+        }
 
-        // Cari item rombel ini di dalam list item sekolah
-        $rombelItem = collect($eligibleSekolah['items'])->firstWhere('ekstrakurikuler_rombel_id', $rombel->id);
-        if (!$rombelItem) return null;
-
-        return array_merge($eligibleSekolah, [
+        return array_merge($eligibleProgram, [
             'ekstrakurikuler_rombel_id' => $rombel->id,
             'rombel_nama'               => $rombel->nama_rombel,
             'sesi_dari'                 => $rombelItem['sesi_dari'],
@@ -569,8 +617,8 @@ class InvoiceService
     }
 
     /**
-     * Eksekusi pembuatan invoice resmi per sekolah (dengan rincian item per rombel).
-     * Nomor invoice berstatus DRAFT saat pending approval ("nomornya draft saja ya").
+     * Eksekusi pembuatan invoice resmi (dengan rincian item per rombel).
+     * Nomor invoice berstatus DRAFT saat pending approval.
      */
     public function createInvoiceForSekolah(array|string $data, ?int $userId = null): InvoiceApproval
     {
@@ -590,16 +638,6 @@ class InvoiceService
         $sekolah = Sekolah::where('kodlan', $kodlan)->firstOrFail();
         $periodeLabel = $data['periode_label'];
 
-        // Cek apakah invoice sekolah untuk periode ini sudah ada
-        $existing = InvoiceApproval::where('sekolah_kodlan', $kodlan)
-            ->where('periode_label', $periodeLabel)
-            ->where('status', '!=', InvoiceApproval::STATUS_REJECTED)
-            ->first();
-
-        if ($existing) {
-            return $existing;
-        }
-
         $items = $data['items'] ?? [];
         $totalSiswa = 0;
         $maxSesi = 0;
@@ -609,13 +647,38 @@ class InvoiceService
             $maxSesi = max($maxSesi, $item['jumlah_sesi'] ?? 0);
         }
 
+        $primaryRombelId = $data['ekstrakurikuler_rombel_id'] ?? ($items[0]['ekstrakurikuler_rombel_id'] ?? null);
+        $ekskulId = $data['ekstrakurikuler_id'] ?? null;
+        $kategoriProgram = $data['kategori_program'] ?? null;
+
+        if (!$ekskulId && $primaryRombelId) {
+            $rombelModel = EkstrakurikulerRombel::find($primaryRombelId);
+            $ekskulId = $rombelModel?->ekstrakurikuler_id;
+            $kategoriProgram = $kategoriProgram ?: $rombelModel?->ekstrakurikuler?->kategori_program;
+        }
+
+        // Cek apakah invoice untuk sekolah & program & periode ini sudah ada
+        $existingQuery = InvoiceApproval::where('sekolah_kodlan', $kodlan)
+            ->where('periode_label', $periodeLabel)
+            ->where('status', '!=', InvoiceApproval::STATUS_REJECTED);
+
+        if (!empty($ekskulId)) {
+            $existingQuery->where('ekstrakurikuler_id', $ekskulId);
+        }
+
+        $existing = $existingQuery->first();
+        if ($existing) {
+            return $existing;
+        }
+
         // Format nomor draft: DRAFT-INV/ERLASS/YYYYMM/KODLAN/NNN
         $nomorDraft = InvoiceApproval::generateNomorInvoice($kodlan, $periodeLabel, true);
-        $primaryRombelId = $data['ekstrakurikuler_rombel_id'] ?? ($items[0]['ekstrakurikuler_rombel_id'] ?? null);
 
-        return DB::transaction(function () use ($kodlan, $data, $items, $totalSiswa, $maxSesi, $nomorDraft, $userId, $primaryRombelId) {
+        return DB::transaction(function () use ($kodlan, $data, $items, $totalSiswa, $maxSesi, $nomorDraft, $userId, $primaryRombelId, $ekskulId, $kategoriProgram) {
             $invoice = InvoiceApproval::create([
                 'sekolah_kodlan'            => $kodlan,
+                'ekstrakurikuler_id'        => $ekskulId,
+                'kategori_program'          => $kategoriProgram,
                 'ekstrakurikuler_rombel_id' => $primaryRombelId,
                 'skema_tagihan'             => $data['skema_tagihan'],
                 'periode_label'             => $data['periode_label'],
@@ -671,15 +734,18 @@ class InvoiceService
         );
 
         $sekolahData = [
-            'sekolah_kodlan' => $kodlan,
-            'skema_tagihan'  => $data['skema_tagihan'],
-            'periode_label'  => $data['periode_label'],
-            'periode_nomor'  => $data['periode_nomor'] ?? null,
-            'tahun_ajaran'   => $data['tahun_ajaran'] ?? ($rombel->ekstrakurikuler->tahun_ajaran ?? '2026/2027'),
-            'sesi_dari'      => $data['sesi_dari'] ?? null,
-            'sesi_sampai'    => $data['sesi_sampai'] ?? null,
-            'items'          => [
+            'sekolah_kodlan'     => $kodlan,
+            'ekstrakurikuler_id' => $rombel->ekstrakurikuler_id,
+            'kategori_program'   => $rombel->ekstrakurikuler->kategori_program,
+            'skema_tagihan'      => $data['skema_tagihan'],
+            'periode_label'      => $data['periode_label'],
+            'periode_nomor'      => $data['periode_nomor'] ?? null,
+            'tahun_ajaran'       => $data['tahun_ajaran'] ?? ($rombel->ekstrakurikuler->tahun_ajaran ?? '2026/2027'),
+            'sesi_dari'          => $data['sesi_dari'] ?? null,
+            'sesi_sampai'        => $data['sesi_sampai'] ?? null,
+            'items'              => [
                 [
+                    'ekstrakurikuler_id'        => $rombel->ekstrakurikuler_id,
                     'ekstrakurikuler_rombel_id' => $rombel->id,
                     'rombel_nama'               => $rombel->nama_rombel,
                     'kategori_program'          => $rombel->ekstrakurikuler->kategori_program,
@@ -692,5 +758,161 @@ class InvoiceService
         ];
 
         return $this->createInvoiceForSekolah($sekolahData, $userId);
+    }
+
+    /**
+     * Mengambil data rincian presensi & laporan mengajar lengkap (mengadopsi format cetak absensi)
+     * untuk setiap rombel dalam invoice yang bersangkutan.
+     */
+    public function getAttendanceDataForInvoice(InvoiceApproval $invoice): array
+    {
+        $invoice->loadMissing([
+            'sekolah',
+            'ekstrakurikuler.sales',
+            'rombel.ekstrakurikuler.sales',
+            'rombel.instruktur',
+            'items.rombel.ekstrakurikuler.sales',
+            'items.rombel.instruktur',
+            'items.rombel.siswa',
+        ]);
+
+        $rombelCollection = collect();
+        if ($invoice->items && $invoice->items->isNotEmpty()) {
+            foreach ($invoice->items as $item) {
+                if ($item->rombel) {
+                    $rombelCollection->push([
+                        'rombel'      => $item->rombel,
+                        'sesi_dari'   => $item->sesi_dari ?: $invoice->sesi_dari,
+                        'sesi_sampai' => $item->sesi_sampai ?: $invoice->sesi_sampai,
+                    ]);
+                }
+            }
+        } elseif ($invoice->rombel) {
+            $rombelCollection->push([
+                'rombel'      => $invoice->rombel,
+                'sesi_dari'   => $invoice->sesi_dari,
+                'sesi_sampai' => $invoice->sesi_sampai,
+            ]);
+        }
+
+        $results = [];
+
+        foreach ($rombelCollection as $entry) {
+            $rombel     = $entry['rombel'];
+            $sesiDari   = $entry['sesi_dari'];
+            $sesiSampai = $entry['sesi_sampai'];
+            $ekskul     = $rombel->ekstrakurikuler;
+            $sekolah    = $ekskul?->sekolah ?? $invoice->sekolah;
+
+            // Query sesi-sesi yang ditagihkan
+            $querySessions = $rombel->sessions()
+                ->where('nomor_pertemuan', '>', 0)
+                ->with(['laporanMengajar.absensis.siswa', 'instruktur', 'asisten'])
+                ->orderBy('nomor_pertemuan');
+
+            if ($sesiDari && $sesiSampai) {
+                $querySessions->whereBetween('nomor_pertemuan', [$sesiDari, $sesiSampai]);
+            } else {
+                $querySessions->take(4);
+            }
+
+            $sessions = $querySessions->get();
+
+            // Identifikasi siswa yang aktif di rombel + yang tercatat pernah hadir
+            $attendedStudentIds = $sessions->flatMap(function ($s) {
+                return $s->laporanMengajar?->absensis?->pluck('siswa_id') ?? collect();
+            })->filter()->unique()->values()->toArray();
+
+            $students = $rombel->siswa()
+                ->where(function ($query) use ($attendedStudentIds) {
+                    $query->where('siswa_ekstrakurikuler.status', 'aktif');
+                    if (!empty($attendedStudentIds)) {
+                        $query->orWhereIn('siswa.id', $attendedStudentIds);
+                    }
+                })
+                ->orderBy('nama_lengkap')
+                ->get();
+
+            $existingStudentIds = $students->pluck('id')->toArray();
+            $missingStudentIds = array_diff($attendedStudentIds, $existingStudentIds);
+            if (!empty($missingStudentIds)) {
+                $missingStudents = Siswa::whereIn('id', $missingStudentIds)->get();
+                $students = $students->concat($missingStudents)->sortBy('nama_lengkap')->values();
+            }
+
+            // Mapping absensi [sessionId][studentId] => 1/0
+            $attendanceMap = [];
+            foreach ($sessions as $s) {
+                if ($s->laporanMengajar) {
+                    foreach ($s->laporanMengajar->absensis as $record) {
+                        $attendanceMap[$s->id][$record->siswa_id] = ($record->status === 'hadir' ? 1 : 0);
+                    }
+
+                    // Matching nama jika ID berbeda
+                    $usedRecordIds = [];
+                    foreach ($students as $st) {
+                        if (!isset($attendanceMap[$s->id][$st->id])) {
+                            $stNameClean = strtolower(trim(preg_replace('/[^a-zA-Z0-9]/', '', $st->nama_lengkap)));
+                            foreach ($s->laporanMengajar->absensis as $record) {
+                                if (in_array($record->id, $usedRecordIds)) {
+                                    continue;
+                                }
+                                $recName = $record->siswa?->nama_lengkap;
+                                if ($recName) {
+                                    $recNameClean = strtolower(trim(preg_replace('/[^a-zA-Z0-9]/', '', $recName)));
+                                    if ($stNameClean !== '' && $stNameClean === $recNameClean) {
+                                        $attendanceMap[$s->id][$st->id] = ($record->status === 'hadir' ? 1 : 0);
+                                        $usedRecordIds[] = $record->id;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Rincian Laporan Mengajar per Sesi
+            $sessionReports = [];
+            foreach ($sessions as $s) {
+                $lap = $s->laporanMengajar;
+                $tgl = $s->tanggal_pelaksanaan ?? $s->tanggal_terjadwal;
+                if ($tgl && is_string($tgl)) {
+                    $tgl = Carbon::parse($tgl);
+                }
+
+                $sessionReports[] = [
+                    'session_id'      => $s->id,
+                    'nomor_pertemuan' => $s->nomor_pertemuan,
+                    'tanggal'         => $tgl ? $tgl->translatedFormat('d F Y') : '-',
+                    'tanggal_short'   => $tgl ? $tgl->format('d/m') : '-',
+                    'instruktur'      => $s->instruktur?->nama_lengkap ?? $s->instruktur?->name ?? ($rombel->instruktur?->nama_lengkap ?? 'Instruktur Erlass'),
+                    'materi'          => $lap?->materi ?: ($s->topik_materi ?: 'Materi pembelajaran modul'),
+                    'total_hadir'     => $lap ? $lap->absensis->where('status', 'hadir')->count() : 0,
+                    'total_absen'     => $lap ? $lap->absensis->where('status', '!=', 'hadir')->count() : 0,
+                ];
+            }
+
+            $firstInstruktur = $sessions->first()?->instruktur?->nama_lengkap 
+                ?? $sessions->first()?->instruktur?->name 
+                ?? ($rombel->instruktur?->nama_lengkap ?? 'Instruktur Pengajar');
+
+            $results[] = [
+                'rombel'          => $rombel,
+                'program_nama'    => $ekskul?->kategori_program ?? 'Program Ekskul',
+                'rombel_nama'     => $rombel->nama_rombel,
+                'school_name'     => $sekolah?->namasekolah ?? '-',
+                'pic_name'        => $invoice->pic_konfirmasi_nama ?? $ekskul?->penanggung_jawab ?? '-',
+                'sales_name'      => $ekskul?->sales?->nama_lengkap ?? $ekskul?->sales?->name ?? '-',
+                'instructor_name' => $firstInstruktur,
+                'academic_year'   => $invoice->tahun_ajaran ?? ($ekskul?->tahun_ajaran ?? '2026/2027'),
+                'sessions'        => $sessions,
+                'students'        => $students,
+                'attendanceMap'   => $attendanceMap,
+                'sessionReports'  => $sessionReports,
+            ];
+        }
+
+        return $results;
     }
 }

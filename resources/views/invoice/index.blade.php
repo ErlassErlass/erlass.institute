@@ -120,12 +120,13 @@
                             {{ $item['sekolah_nama'] }}
                         </td>
                         <td>
-                            <div class="fw-semibold text-dark small">
-                                <i class="bi bi-diagram-3 me-1 text-primary"></i>{{ $item['total_rombel'] }} Rombel
+                            <div class="fw-bold text-dark small">
+                                <i class="bi bi-mortarboard-fill me-1 text-primary"></i>{{ $item['kategori_program'] ?? 'Program Ekskul' }}
                             </div>
-                            <div class="d-flex flex-wrap gap-1 mt-1">
+                            <div class="text-muted small mt-0.5" style="font-size: .75rem;">
+                                <i class="bi bi-diagram-3 me-1"></i>{{ $item['total_rombel'] }} Rombel: 
                                 @foreach($item['items'] ?? [] as $it)
-                                    <span class="badge bg-light text-muted border font-monospace" style="font-size: .7rem;" title="{{ $it['kategori_program'] }}">
+                                    <span class="badge bg-light text-muted border font-monospace me-1" style="font-size: .68rem;">
                                         {{ $it['rombel_nama'] }} ({{ $it['jumlah_siswa_billable'] }} sw)
                                     </span>
                                 @endforeach
@@ -197,6 +198,9 @@
                                 <form action="{{ route('invoice.quick-generate') }}" method="POST" class="d-inline mb-0">
                                     @csrf
                                     <input type="hidden" name="sekolah_kodlan" value="{{ $item['sekolah_kodlan'] }}">
+                                    @if(!empty($item['ekstrakurikuler_id']))
+                                        <input type="hidden" name="ekstrakurikuler_id" value="{{ $item['ekstrakurikuler_id'] }}">
+                                    @endif
                                     @if(!empty($item['ekstrakurikuler_rombel_id']))
                                         <input type="hidden" name="ekstrakurikuler_rombel_id" value="{{ $item['ekstrakurikuler_rombel_id'] }}">
                                     @endif
