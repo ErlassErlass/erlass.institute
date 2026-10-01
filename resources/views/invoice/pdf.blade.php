@@ -6,16 +6,14 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 12mm 15mm 12mm 15mm;
+            margin: 15mm 18mm 12mm 18mm;
         }
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
         }
         body {
             font-family: 'DejaVu Sans', 'Helvetica', Arial, sans-serif;
-            font-size: 8pt;
+            font-size: 7.8pt;
             line-height: 1.3;
             color: #1e293b;
             background: #ffffff;
@@ -48,7 +46,7 @@
             display: inline-block;
             padding: 2px 7px;
             border-radius: 3px;
-            font-size: 7pt;
+            font-size: 6.8pt;
             font-weight: bold;
             letter-spacing: 0.3px;
         }
@@ -84,28 +82,29 @@
     <table style="border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 7px;">
         <tr>
             {{-- Kiri: Logo & Info Perusahaan --}}
-            <td style="width: 50%; vertical-align: top;">
-                <div style="font-size: 18pt; font-weight: bold; color: #0f172a; letter-spacing: 1px; line-height: 1;">
+            <td style="width: 54%; vertical-align: top;">
+                <div style="font-size: 17pt; font-weight: bold; color: #0f172a; letter-spacing: 1px; line-height: 1;">
                     ERLASS
                 </div>
-                <div style="font-size: 8pt; font-weight: bold; color: #334155; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px;">
+                <div style="font-size: 7.8pt; font-weight: bold; color: #334155; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px;">
                     PT. Erlass Prokreatif Indonesia
                 </div>
-                <div style="font-size: 7pt; color: #64748b; margin-top: 2px; line-height: 1.3;">
-                    Pejaten Office Park · Jakarta &amp; Bali, Indonesia<br>
+                <div style="font-size: 6.3pt; color: #64748b; margin-top: 2px; line-height: 1.35;">
+                    Pejaten Office Park Blok D, Jl. WarungBuncit Raya no. 79, RT.1/RW.7,<br>
+                    Pejaten Bar., Ps. Minggu, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12790<br>
                     Website: erlass.institute &middot; Email: finance@erlass.institute
                 </div>
             </td>
 
             {{-- Kanan: Judul Invoice & Nomor Resmi (Tanpa wrap patah) --}}
-            <td style="width: 50%; vertical-align: top; text-align: right;">
-                <div style="font-size: 14pt; font-weight: bold; color: #0f172a; letter-spacing: 0.5px; line-height: 1;">
+            <td style="width: 46%; vertical-align: top; text-align: right;">
+                <div style="font-size: 13.5pt; font-weight: bold; color: #0f172a; letter-spacing: 0.5px; line-height: 1;">
                     FAKTUR TAGIHAN
                 </div>
                 <div style="font-size: 6.8pt; color: #64748b; text-transform: uppercase; margin-top: 3px;">
                     Nomor Invoice
                 </div>
-                <div style="font-size: 9.5pt; font-weight: bold; color: #0f172a; white-space: nowrap; margin-top: 1px;">
+                <div style="font-size: 9pt; font-weight: bold; color: #0f172a; white-space: nowrap; margin-top: 1px;">
                     {{ $invoice->nomor_invoice }}
                 </div>
                 <div style="margin-top: 4px;">
@@ -442,9 +441,9 @@
 
         // Responsive density for up to 42 students on 1 single page
         if ($totalStudents > 35) {
-            $rowPadding = '1px 2px';
-            $rowFontSize = '6.2pt';
-            $lineHeight = '1.05';
+            $rowPadding = '0.5px 2px';
+            $rowFontSize = '5.8pt';
+            $lineHeight = '1.0';
         } elseif ($totalStudents > 25) {
             $rowPadding = '1.5px 3px';
             $rowFontSize = '6.6pt';
@@ -540,32 +539,32 @@
             <div style="font-size: 7.2pt; font-weight: bold; color: #0f172a; margin-bottom: 2px; text-transform: uppercase;">
                 Rincian Pelaksanaan Materi Mengajar Tiap Sesi:
             </div>
-            <table style="font-size: 6.6pt; border: 1px solid #cbd5e1;">
+            <table style="font-size: 6pt; border: 1px solid #cbd5e1;">
                 <thead>
                     <tr style="background: #f1f5f9; color: #0f172a; text-align: left;">
-                        <th style="border: 1px solid #cbd5e1; padding: 2.5px 4px; width: 14%;">Pertemuan</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 2.5px 4px; width: 14%;">Tanggal</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 2.5px 4px; width: 20%;">Instruktur</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 2.5px 4px; width: 40%;">Materi Pokok Bahasan</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 2.5px 4px; width: 12%; text-align: center;">Kehadiran</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 1.5px 3px; width: 14%;">Pertemuan</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 1.5px 3px; width: 14%;">Tanggal</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 1.5px 3px; width: 20%;">Instruktur</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 1.5px 3px; width: 40%;">Materi Pokok Bahasan</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 1.5px 3px; width: 12%; text-align: center;">Kehadiran</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($att['sessionReports'] as $report)
                     <tr>
-                        <td style="border: 1px solid #cbd5e1; padding: 2px 4px; font-weight: bold; color: #0f172a;">
+                        <td style="border: 1px solid #cbd5e1; padding: 1px 3px; font-weight: bold; color: #0f172a;">
                             Pertemuan {{ $report['nomor_pertemuan'] }}
                         </td>
-                        <td style="border: 1px solid #cbd5e1; padding: 2px 4px;">
+                        <td style="border: 1px solid #cbd5e1; padding: 1px 3px;">
                             {{ $report['tanggal'] }}
                         </td>
-                        <td style="border: 1px solid #cbd5e1; padding: 2px 4px;">
+                        <td style="border: 1px solid #cbd5e1; padding: 1px 3px;">
                             {{ $report['instruktur'] }}
                         </td>
-                        <td style="border: 1px solid #cbd5e1; padding: 2px 4px;">
+                        <td style="border: 1px solid #cbd5e1; padding: 1px 3px;">
                             {{ $report['materi'] }}
                         </td>
-                        <td style="border: 1px solid #cbd5e1; padding: 2px 4px; text-align: center; font-weight: bold; color: #166534;">
+                        <td style="border: 1px solid #cbd5e1; padding: 1px 3px; text-align: center; font-weight: bold; color: #166534;">
                             {{ $report['total_hadir'] }} Hadir
                         </td>
                     </tr>
@@ -575,10 +574,10 @@
         </div>
 
         {{-- Tanda Tangan Konfirmasi Lampiran --}}
-        <table style="border: none; margin-top: 5px; margin-bottom: 2px;">
+        <table style="border: none; margin-top: 4px; margin-bottom: 2px;">
             <tr>
                 <td style="width: 50%; text-align: center; vertical-align: top; border: none; padding-right: 30px;">
-                    <div style="font-size: 6.8pt; color: #64748b; margin-bottom: 18px;">
+                    <div style="font-size: 6.8pt; color: #64748b; margin-bottom: 8px;">
                         Mengetahui &amp; Memvalidasi,<br><strong>PIC Sekolah / Koordinator</strong>
                     </div>
                     <div style="border-top: 1px solid #0f172a; padding-top: 2px; font-size: 6.8pt; font-weight: bold; color: #0f172a;">
@@ -586,7 +585,7 @@
                     </div>
                 </td>
                 <td style="width: 50%; text-align: center; vertical-align: top; border: none; padding-left: 30px;">
-                    <div style="font-size: 6.8pt; color: #64748b; margin-bottom: 18px;">
+                    <div style="font-size: 6.8pt; color: #64748b; margin-bottom: 8px;">
                         Diverifikasi Oleh,<br><strong>Instruktur Pengajar</strong>
                     </div>
                     <div style="border-top: 1px solid #0f172a; padding-top: 2px; font-size: 6.8pt; font-weight: bold; color: #0f172a;">
