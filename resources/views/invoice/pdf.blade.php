@@ -6,7 +6,7 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 10mm 12mm 10mm 12mm;
+            margin: 12mm 15mm 12mm 15mm;
         }
         * {
             margin: 0;
@@ -81,7 +81,7 @@
 <div class="keep-together">
 
     {{-- ─── 1. KOP SURAT / HEADER RESMI PERUSAHAAN ─────────────────────── --}}
-    <table style="border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 10px;">
+    <table style="border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 7px;">
         <tr>
             {{-- Kiri: Logo & Info Perusahaan --}}
             <td style="width: 50%; vertical-align: top;">
@@ -127,9 +127,9 @@
 
     {{-- Banner Notifikasi Khusus Draft Invoice --}}
     @if($isDraft ?? false)
-    <table style="margin-bottom: 10px; background: #fffbeb; border: 1px dashed #d97706; border-radius: 4px;">
+    <table style="margin-bottom: 7px; background: #fffbeb; border: 1px dashed #d97706; border-radius: 4px;">
         <tr>
-            <td style="padding: 5px 8px; text-align: center;">
+            <td style="padding: 4px 8px; text-align: center;">
                 <div style="font-size: 7.2pt; font-weight: bold; color: #92400e; letter-spacing: 0.3px;">
                     DRAFT FAKTUR TAGIHAN &mdash; DOKUMEN VERIFIKASI KEHADIRAN SISWA DENGAN PIC SEKOLAH
                 </div>
@@ -152,7 +152,7 @@
         };
         $totalRombel = $invoice->total_rombel ?: ($invoice->items->count() ?: 1);
     @endphp
-    <table style="margin-bottom: 12px; font-size: 7.8pt;">
+    <table style="margin-bottom: 8px; font-size: 7.8pt;">
         <tr>
             {{-- Kolom Kiri: Tagihan Kepada (Bill To) --}}
             <td style="width: 52%; vertical-align: top; padding-right: 14px;">
@@ -207,7 +207,7 @@
     </table>
 
     {{-- ─── 3. TABEL UTAMA TAGIHAN (ACCOUNTING INVOICE TABLE) ───────────── --}}
-    <table style="margin-bottom: 12px; font-size: 7.5pt; border: 1px solid #334155;">
+    <table style="margin-bottom: 8px; font-size: 7.5pt; border: 1px solid #334155;">
         <thead>
             <tr style="background: #0f172a; color: #ffffff;">
                 <th style="padding: 5px 6px; width: 5%; text-align: center; border: 1px solid #334155;">NO</th>
@@ -262,10 +262,10 @@
             </tr>
             @endif
             <tr style="background: #f1f5f9; font-size: 8pt;">
-                <td colspan="4" style="padding: 6px 8px; text-align: right; font-weight: bold; color: #0f172a; border: 1px solid #334155;">
+                <td colspan="4" style="padding: 5px 8px; text-align: right; font-weight: bold; color: #0f172a; border: 1px solid #334155;">
                     TOTAL SISWA BILLABLE YANG DITAGIHKAN:
                 </td>
-                <td style="padding: 6px 8px; text-align: right; font-weight: bold; font-size: 9.5pt; color: #1e3a8a; border: 1px solid #334155;">
+                <td style="padding: 5px 8px; text-align: right; font-weight: bold; font-size: 9.5pt; color: #1e3a8a; border: 1px solid #334155;">
                     {{ $invoice->billable_efektif }} Siswa
                 </td>
             </tr>
@@ -273,17 +273,17 @@
     </table>
 
     {{-- Ringkasan Parameter Tagihan Baris Rapi --}}
-    <table style="margin-bottom: 12px; font-size: 7.2pt; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px;">
+    <table style="margin-bottom: 8px; font-size: 7.2pt; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px;">
         <tr>
-            <td style="padding: 5px 8px; width: 33.3%; text-align: center; border-right: 1px solid #e2e8f0;">
+            <td style="padding: 4px 8px; width: 33.3%; text-align: center; border-right: 1px solid #e2e8f0;">
                 <span style="color: #64748b;">Total Rombel:</span>
                 <strong style="color: #0f172a; font-size: 8pt;">{{ $totalRombel }} Rombel</strong>
             </td>
-            <td style="padding: 5px 8px; width: 33.4%; text-align: center; border-right: 1px solid #e2e8f0;">
+            <td style="padding: 4px 8px; width: 33.4%; text-align: center; border-right: 1px solid #e2e8f0;">
                 <span style="color: #64748b;">Total Pertemuan:</span>
                 <strong style="color: #0f172a; font-size: 8pt;">{{ $invoice->jumlah_sesi }} Sesi Terlaksana</strong>
             </td>
-            <td style="padding: 5px 8px; width: 33.3%; text-align: center;">
+            <td style="padding: 4px 8px; width: 33.3%; text-align: center;">
                 <span style="color: #64748b;">Presensi Terverifikasi:</span>
                 <strong style="color: #166534; font-size: 8pt;">{{ $invoice->billable_efektif }} Siswa Aktif</strong>
             </td>
@@ -291,17 +291,17 @@
     </table>
 
     {{-- ─── 4. OTORISASI & PERSETUJUAN RESMI (CORPORATE SIGNATURE BLOCKS) ─ --}}
-    <div style="font-size: 7.2pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px; margin-bottom: 6px;">
+    <div style="font-size: 7.2pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px; margin-bottom: 5px;">
         LEMBAR PENGESAHAN &amp; PERSETUJUAN RESMI:
     </div>
-    <table style="margin-bottom: 10px;">
+    <table style="margin-bottom: 8px;">
         <tr>
             {{-- Kolom Kiri: Verifikasi Operasional / Akademik --}}
-            <td style="width: 48%; vertical-align: top; border: 1px solid #cbd5e1; border-radius: 4px; padding: 7px 9px; background: #ffffff;">
+            <td style="width: 48%; vertical-align: top; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 9px; background: #ffffff;">
                 <div style="font-size: 6.8pt; font-weight: bold; color: #64748b; text-transform: uppercase;">
                     1. OPERASIONAL / AKADEMIK (VERIFIKASI PIC)
                 </div>
-                <div style="font-size: 7.2pt; margin-top: 3px;">
+                <div style="font-size: 7.2pt; margin-top: 2px;">
                     Status:
                     @if($invoice->operasional_status === 'approved')
                         <strong style="color: #166534;">[SUDAH DIKONFIRMASI PIC SEKOLAH]</strong>
@@ -309,11 +309,11 @@
                         <span style="color: #b45309; font-weight: bold;">[DRAFT &mdash; MENUNGGU KONFIRMASI]</span>
                     @endif
                 </div>
-                <div style="font-size: 6.8pt; color: #475569; margin-top: 2px;">
+                <div style="font-size: 6.8pt; color: #475569; margin-top: 1px;">
                     PIC Dihubungi: <strong>{{ $invoice->pic_konfirmasi_nama ?: ($invoice->sekolah?->penanggung_jawab ?: 'Koordinator Sekolah') }}</strong>
                 </div>
 
-                <div style="height: 32px;"></div>
+                <div style="height: 26px;"></div>
 
                 <div style="border-top: 1px solid #0f172a; padding-top: 2px; font-weight: bold; font-size: 7.8pt; color: #0f172a;">
                     {{ $invoice->operasionalUser?->nama_lengkap ?? $invoice->operasionalUser?->name ?? 'Tim Operasional Erlass' }}
@@ -326,11 +326,11 @@
             <td style="width: 4%;"></td>
 
             {{-- Kolom Kanan: Approval Keuangan / Akunting --}}
-            <td style="width: 48%; vertical-align: top; border: 1px solid #cbd5e1; border-radius: 4px; padding: 7px 9px; background: #ffffff;">
+            <td style="width: 48%; vertical-align: top; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 9px; background: #ffffff;">
                 <div style="font-size: 6.8pt; font-weight: bold; color: #64748b; text-transform: uppercase;">
                     2. KEUANGAN / AKUNTING (PENERBITAN FAKTUR)
                 </div>
-                <div style="font-size: 7.2pt; margin-top: 3px;">
+                <div style="font-size: 7.2pt; margin-top: 2px;">
                     Status:
                     @if($invoice->akunting_status === 'approved')
                         <strong style="color: #166534;">[TELAH DISETUJUI &amp; DITERBITKAN]</strong>
@@ -338,11 +338,11 @@
                         <span style="color: #b45309; font-weight: bold;">[MENUNGGU PERSETUJUAN AKUNTING]</span>
                     @endif
                 </div>
-                <div style="font-size: 6.8pt; color: #475569; margin-top: 2px;">
+                <div style="font-size: 6.8pt; color: #475569; margin-top: 1px;">
                     Catatan: {{ $invoice->akunting_catatan ?: '-' }}
                 </div>
 
-                <div style="height: 32px;"></div>
+                <div style="height: 26px;"></div>
 
                 <div style="border-top: 1px solid #0f172a; padding-top: 2px; font-weight: bold; font-size: 7.8pt; color: #0f172a;">
                     {{ $invoice->akuntingUser?->nama_lengkap ?? $invoice->akuntingUser?->name ?? 'Bagian Keuangan Erlass' }}
@@ -355,7 +355,7 @@
     </table>
 
     {{-- ─── 5. KETENTUAN KHUSUS & CATATAN KONTRAK ───────────────────────── --}}
-    <div style="border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 4px; padding: 6px 9px; margin-bottom: 8px;">
+    <div style="border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 4px; padding: 5px 8px; margin-bottom: 6px;">
         <div style="font-size: 6.8pt; font-weight: bold; color: #334155; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px;">
             KETENTUAN &amp; CATATAN TAGIHAN:
         </div>
