@@ -2,6 +2,40 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.41] - 2026-10-01
+
+### Klasifikasi Resmi 21 Sekolah Skema Tagihan Bulanan
+
+#### Pembaruan Database & Seeder
+- **Klasifikasi 21 Sekolah Prioritas ke Skema `bulanan`**:
+  - Diterapkan melalui migration `2026_10_01_000000_update_prioritas_sekolah_skema_bulanan`.
+  - Daftar 21 sekolah resmi dengan skema tagihan kalender bulanan (ditagihkan di akhir bulan berjalan):
+    1. `[10000044]` ERLASS POP
+    2. `[20100226]` SMP Strada Mardi Utama 1
+    3. `[20102428]` SMP Strada Marga Mulia
+    4. `[20103904]` SD SANTO YOSEPH
+    5. `[20104733]` SDS Bunda Mulia
+    6. `[20105100]` SDS Santo Petrus
+    7. `[20106318]` SDS Strada Wiyatasana
+    8. `[20107147]` SMP Santo Yoseph
+    9. `[20108806]` SMP Strada Pelita II
+    10. `[20108864]` SDS Santo Antonius I
+    11. `[20109176]` SDS Putra I
+    12. `[20109198]` SDS Strada Dipamarga
+    13. `[20109264]` SDS Strada Van Lith II
+    14. `[20223654]` SD STRADA NAWAR
+    15. `[20231628]` SD STRADA CAKUNG
+    16. `[20607010]` SD STRADA SLAMET RIYADI 01
+    17. `[20607290]` SD STRADA SANTA MARIA
+    18. `[20615954]` SMPIT LATANSA CENDEKIA
+    19. `[69754486]` SDS AR RIDHO TANGERANG
+    20. `[69760682]` SDIT DARUL MAARIF ISLAMIC SCHOOL
+    21. `[69786993]` SDIT DAUROH
+- **Pembersihan Data Sekolah Denpasar**:
+  - 19 sekolah sementara (Denpasar) yang sebelumnya digunakan saat pengujian awal telah direset kembali ke skema default `per_4_pertemuan`.
+- **Sekolah Non-Prioritas**:
+  - Seluruh sekolah lain di luar 21 sekolah di atas tetap berjalan dengan skema default `per_4_pertemuan` (rolling batch per 4 pertemuan selesai).
+
 ## [2.9.40] - 2026-09-30
 
 ### Arsitektur Penagihan: 1 Invoice per Sekolah dengan Rincian Item per Rombel
