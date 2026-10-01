@@ -163,6 +163,14 @@ class InvoiceService
             $latestTargetDate = $latestTargetDate ?? $asOfDate;
             $daysOverdue = max(0, (int) $latestTargetDate->diffInDays($asOfDate, false));
 
+            $bulanNames = [
+                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+            ];
+            $bulanTerakhirNama = $bulanNames[$latestTargetDate->month] ?? $latestTargetDate->translatedFormat('F');
+            $bulanLaporanTerakhir = "{$bulanTerakhirNama} {$latestTargetDate->year}";
+
             return [
                 'sekolah_kodlan'            => $sekolah->kodlan,
                 'sekolah_nama'              => $sekolah->namasekolah,
@@ -171,6 +179,7 @@ class InvoiceService
                 'kategori_program'          => count($items) === 1 ? $items[0]['kategori_program'] : 'Gabungan Program',
                 'skema_tagihan'             => Sekolah::SKEMA_PER_4_PERTEMUAN,
                 'periode_label'             => "Inv Bulan {$nextBatch}",
+                'bulan_laporan_terakhir'    => $bulanLaporanTerakhir,
                 'periode_nomor'             => $nextBatch,
                 'tahun_ajaran'              => $rombels->first()->ekstrakurikuler->tahun_ajaran ?? '2026/2027',
                 'sesi_dari'                 => $dari,
@@ -310,6 +319,7 @@ class InvoiceService
                     'kategori_program'          => count($items) === 1 ? $items[0]['kategori_program'] : 'Gabungan Program',
                     'skema_tagihan'             => Sekolah::SKEMA_BULANAN,
                     'periode_label'             => $periodeLabel,
+                    'bulan_laporan_terakhir'    => $periodeLabel,
                     'periode_nomor'             => $month,
                     'tahun_ajaran'              => $rombels->first()->ekstrakurikuler->tahun_ajaran ?? '2026/2027',
                     'target_date'               => $latestTargetDate->toDateString(),
@@ -324,6 +334,173 @@ class InvoiceService
             }
 
             return null;
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // 3. Skema Semesteran (Semester 1 — Jul–Des / Semester 2 — Jan–Jun)
+        // ─────────────────────────────────────────────────────────────────────
+        if ($skema === Sekolah::SKEMA_SEMESTER) {
+            $year = $asOfDate->year;
+            $month = $asOfDate->month;
+            if ($month >= 7) {
+                $semNum = 1;
+                $periodeLabel = "Semester 1 — Jul–Des {$year}";
+                $startDate = Carbon::create($year, 7, 1)->startOfDay();
+                $endDate = Carbon::create($year, 12, 31)->endOfDay();
+            } else {
+                $semNum = 2;
+                $periodeLabel = "Semester 2 — Jan–Jun {$year}";
+                $startDate = Carbon::create($year, 1, 1)->startOfDay();
+                $endDate = Carbon::create($year, 6, 30)->endOfDay();
+            }
+
+            $alreadyInvoiced = $existingInvoices->contains(function ($inv) use ($periodeLabel) {
+                return str_contains(strtolower($inv->periode_label), strtolower($periodeLabel));
+            });
+
+            if ($alreadyInvoiced) {
+                return null;
+            }
+
+            $items = [];
+            $latestTargetDate = null;
+            foreach ($rombels as $rombel) {
+                $rombelSessions = $rombel->sessions()
+                    ->whereBetween('tanggal_terjadwal', [$startDate->toDateString(), $endDate->toDateString()])
+                    ->where('status', 'selesai')
+                    ->get();
+
+                if ($rombelSessions->isEmpty()) {
+                    continue;
+                }
+
+                $sesiDari   = $rombelSessions->min('nomor_pertemuan');
+                $sesiSampai = $rombelSessions->max('nomor_pertemuan');
+                $lastSess   = $rombelSessions->sortByDesc('tanggal_terjadwal')->first();
+                $tDate      = $lastSess?->tanggal_pelaksanaan ?? $lastSess?->tanggal_terjadwal ?? $asOfDate;
+                if (is_string($tDate)) $tDate = Carbon::parse($tDate);
+
+                if (!$latestTargetDate || $tDate->gt($latestTargetDate)) {
+                    $latestTargetDate = $tDate;
+                }
+
+                $billable = $this->calculateBillable($rombel->id, $sesiDari, $sesiSampai);
+                $items[] = [
+                    'ekstrakurikuler_rombel_id' => $rombel->id,
+                    'rombel_nama'               => $rombel->nama_rombel,
+                    'kategori_program'          => $rombel->ekstrakurikuler->kategori_program,
+                    'sesi_dari'                 => $sesiDari,
+                    'sesi_sampai'               => $sesiSampai,
+                    'jumlah_sesi'               => $billable['session_count'],
+                    'jumlah_siswa_billable'     => $billable['billable_count'],
+                ];
+            }
+
+            if (empty($items)) {
+                return null;
+            }
+
+            $latestTargetDate = $latestTargetDate ?? $asOfDate;
+            $daysOverdue = max(0, (int) $latestTargetDate->diffInDays($asOfDate, false));
+
+            return [
+                'sekolah_kodlan'            => $sekolah->kodlan,
+                'sekolah_nama'              => $sekolah->namasekolah,
+                'ekstrakurikuler_rombel_id' => $items[0]['ekstrakurikuler_rombel_id'] ?? null,
+                'rombel_nama'               => count($items) === 1 ? $items[0]['rombel_nama'] : (count($items) . ' Rombel'),
+                'kategori_program'          => count($items) === 1 ? $items[0]['kategori_program'] : 'Gabungan Program',
+                'skema_tagihan'             => Sekolah::SKEMA_SEMESTER,
+                'periode_label'             => $periodeLabel,
+                'bulan_laporan_terakhir'    => $latestTargetDate->translatedFormat('F Y'),
+                'periode_nomor'             => $semNum,
+                'tahun_ajaran'              => $rombels->first()->ekstrakurikuler->tahun_ajaran ?? "{$year}/" . ($year + 1),
+                'target_date'               => $latestTargetDate->toDateString(),
+                'target_date_formatted'     => $latestTargetDate->translatedFormat('d M Y'),
+                'days_overdue'              => $daysOverdue,
+                'keterlambatan_label'       => $daysOverdue > 0 ? "Terlambat {$daysOverdue} hari" : "Hari Ini (Jatuh Tempo)",
+                'keterlambatan_badge'       => $daysOverdue >= 7 ? 'bg-danger text-white' : ($daysOverdue > 0 ? 'bg-warning text-dark' : 'bg-info text-white'),
+                'total_rombel'              => count($items),
+                'total_siswa_billable'      => array_sum(array_column($items, 'jumlah_siswa_billable')),
+                'items'                     => $items,
+            ];
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // 4. Skema Tahunan (Tahun 2026 / Sesuai Tahun Kalender/Ajaran)
+        // ─────────────────────────────────────────────────────────────────────
+        if ($skema === Sekolah::SKEMA_TAHUNAN) {
+            $year = $asOfDate->year;
+            $periodeLabel = "Tahun {$year}";
+
+            $alreadyInvoiced = $existingInvoices->contains(function ($inv) use ($periodeLabel) {
+                return str_contains(strtolower($inv->periode_label), strtolower($periodeLabel));
+            });
+
+            if ($alreadyInvoiced) {
+                return null;
+            }
+
+            $items = [];
+            $latestTargetDate = null;
+            foreach ($rombels as $rombel) {
+                $rombelSessions = $rombel->sessions()
+                    ->where('status', 'selesai')
+                    ->whereYear('tanggal_terjadwal', $year)
+                    ->get();
+
+                if ($rombelSessions->isEmpty()) {
+                    continue;
+                }
+
+                $sesiDari   = $rombelSessions->min('nomor_pertemuan');
+                $sesiSampai = $rombelSessions->max('nomor_pertemuan');
+                $lastSess   = $rombelSessions->sortByDesc('tanggal_terjadwal')->first();
+                $tDate      = $lastSess?->tanggal_pelaksanaan ?? $lastSess?->tanggal_terjadwal ?? $asOfDate;
+                if (is_string($tDate)) $tDate = Carbon::parse($tDate);
+
+                if (!$latestTargetDate || $tDate->gt($latestTargetDate)) {
+                    $latestTargetDate = $tDate;
+                }
+
+                $billable = $this->calculateBillable($rombel->id, $sesiDari, $sesiSampai);
+                $items[] = [
+                    'ekstrakurikuler_rombel_id' => $rombel->id,
+                    'rombel_nama'               => $rombel->nama_rombel,
+                    'kategori_program'          => $rombel->ekstrakurikuler->kategori_program,
+                    'sesi_dari'                 => $sesiDari,
+                    'sesi_sampai'               => $sesiSampai,
+                    'jumlah_sesi'               => $billable['session_count'],
+                    'jumlah_siswa_billable'     => $billable['billable_count'],
+                ];
+            }
+
+            if (empty($items)) {
+                return null;
+            }
+
+            $latestTargetDate = $latestTargetDate ?? $asOfDate;
+            $daysOverdue = max(0, (int) $latestTargetDate->diffInDays($asOfDate, false));
+
+            return [
+                'sekolah_kodlan'            => $sekolah->kodlan,
+                'sekolah_nama'              => $sekolah->namasekolah,
+                'ekstrakurikuler_rombel_id' => $items[0]['ekstrakurikuler_rombel_id'] ?? null,
+                'rombel_nama'               => count($items) === 1 ? $items[0]['rombel_nama'] : (count($items) . ' Rombel'),
+                'kategori_program'          => count($items) === 1 ? $items[0]['kategori_program'] : 'Gabungan Program',
+                'skema_tagihan'             => Sekolah::SKEMA_TAHUNAN,
+                'periode_label'             => $periodeLabel,
+                'bulan_laporan_terakhir'    => $latestTargetDate->translatedFormat('F Y'),
+                'periode_nomor'             => $year,
+                'tahun_ajaran'              => $rombels->first()->ekstrakurikuler->tahun_ajaran ?? "{$year}/" . ($year + 1),
+                'target_date'               => $latestTargetDate->toDateString(),
+                'target_date_formatted'     => $latestTargetDate->translatedFormat('d M Y'),
+                'days_overdue'              => $daysOverdue,
+                'keterlambatan_label'       => $daysOverdue > 0 ? "Terlambat {$daysOverdue} hari" : "Hari Ini (Jatuh Tempo)",
+                'keterlambatan_badge'       => $daysOverdue >= 7 ? 'bg-danger text-white' : ($daysOverdue > 0 ? 'bg-warning text-dark' : 'bg-info text-white'),
+                'total_rombel'              => count($items),
+                'total_siswa_billable'      => array_sum(array_column($items, 'jumlah_siswa_billable')),
+                'items'                     => $items,
+            ];
         }
 
         return null;

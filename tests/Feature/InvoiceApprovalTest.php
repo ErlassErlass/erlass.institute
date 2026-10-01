@@ -586,7 +586,7 @@ class InvoiceApprovalTest extends TestCase
         // Pastikan tampilan index blade merender badge keterlambatan dan target pembuatan
         $response = $this->actingAs($admin)->get('/invoice');
         $response->assertStatus(200);
-        $response->assertSee('Target Pembuatan');
+        $response->assertSee('Target Invoice');
         $response->assertSee('Keterlambatan');
     }
 
@@ -761,4 +761,98 @@ class InvoiceApprovalTest extends TestCase
         $this->assertEquals(23, $invoice->billable_efektif);
         $this->assertTrue($invoice->hasKoreksi());
     }
+
+    /** @test */
+    public function operasional_approval_saves_pic_confirmation_and_checklists(): void
+    {
+        $admin = $this->makeAdmin();
+        $invoice = InvoiceApproval::factory()->create([
+            'status'             => InvoiceApproval::STATUS_PENDING_OPERASIONAL,
+            'operasional_status' => 'pending',
+            'akunting_status'    => 'pending',
+        ]);
+
+        $response = $this->actingAs($admin)->post("/invoice/{$invoice->id}/approve-operasional", [
+            'action'                 => 'approved',
+            'catatan'                => 'Semua presensi telah dicek',
+            'is_konfirmasi_pic'      => '1',
+            'pic_konfirmasi_nama'    => 'Ibu Maria (Wakasek Kurikulum)',
+            'pic_konfirmasi_catatan' => 'Konfirmasi via WhatsApp jam 10:00',
+            'operasional_checklist'  => [
+                'presensi_diverifikasi' => true,
+                'materi_tersampaikan'   => true,
+                'billable_sesuai_pic'   => true,
+            ],
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $invoice->refresh();
+
+        $this->assertEquals('approved', $invoice->operasional_status);
+        $this->assertEquals(InvoiceApproval::STATUS_PENDING_AKUNTING, $invoice->status);
+        $this->assertTrue($invoice->is_konfirmasi_pic);
+        $this->assertEquals('Ibu Maria (Wakasek Kurikulum)', $invoice->pic_konfirmasi_nama);
+        $this->assertEquals('Konfirmasi via WhatsApp jam 10:00', $invoice->pic_konfirmasi_catatan);
+        $this->assertIsArray($invoice->operasional_checklist);
+        $this->assertTrue($invoice->operasional_checklist['presensi_diverifikasi']);
+    }
+
+    /** @test */
+    public function akunting_approval_saves_invoice_tercetak_and_checklists(): void
+    {
+        $admin = $this->makeAdmin();
+        $invoice = InvoiceApproval::factory()->create([
+            'status'             => InvoiceApproval::STATUS_PENDING_AKUNTING,
+            'operasional_status' => 'approved',
+            'akunting_status'    => 'pending',
+        ]);
+
+        $response = $this->actingAs($admin)->post("/invoice/{$invoice->id}/approve-akunting", [
+            'action'              => 'approved',
+            'catatan'             => 'Invoice tercetak rangkap 2',
+            'is_invoice_tercetak' => '1',
+            'akunting_checklist'  => [
+                'rekening_valid'       => true,
+                'nominal_tarif_sesuai' => true,
+                'berkas_siap_edar'     => true,
+            ],
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $invoice->refresh();
+
+        $this->assertEquals('approved', $invoice->akunting_status);
+        $this->assertEquals(InvoiceApproval::STATUS_APPROVED, $invoice->status);
+        $this->assertTrue($invoice->is_invoice_tercetak);
+        $this->assertIsArray($invoice->akunting_checklist);
+        $this->assertTrue($invoice->akunting_checklist['rekening_valid']);
+    }
+
+    /** @test */
+    public function invoice_table_headers_match_user_exact_specifications(): void
+    {
+        $admin = $this->makeAdmin();
+
+        $sekolah = Sekolah::factory()->create(['kodlan' => 'SEK-TBL', 'namasekolah' => 'Sekolah Tabel Test', 'skema_tagihan' => 'per_4_pertemuan']);
+        $ekskul  = \App\Models\Ekstrakurikuler::factory()->create(['sekolah_kodlan' => $sekolah->kodlan, 'status' => 'aktif']);
+        $rombel  = EkstrakurikulerRombel::factory()->create(['ekstrakurikuler_id' => $ekskul->id, 'nama_rombel' => 'Rombel Tabel']);
+        $rombel->sessions()->whereBetween('nomor_pertemuan', [1, 4])->update([
+            'status' => 'selesai',
+            'tanggal_terjadwal' => '2026-09-15',
+            'tanggal_pelaksanaan' => '2026-09-15',
+        ]);
+
+        $response = $this->actingAs($admin)->get('/invoice');
+
+        $response->assertStatus(200);
+        $response->assertSeeText('Sekolah');
+        $response->assertSeeText('Rombel & Program (Item)', false);
+        $response->assertSeeText('Skema Tagihan');
+        $response->assertSeeText('Periode Tagihan');
+        $response->assertSeeText('Total Siswa Billable');
+        $response->assertSeeText('Target Invoice');
+        $response->assertSeeText('Keterlambatan');
+        $response->assertSeeText('Semua Skema');
+    }
 }
+

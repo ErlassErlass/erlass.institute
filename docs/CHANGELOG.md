@@ -2,6 +2,32 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.43] - 2026-10-01
+
+### Penataan Header Tabel Antrean Invoice & Checklist Approval Operasional & Akunting
+
+#### UI & Standarisasi Penamaan Kolom
+- **Penataan Ulang Header Kolom Antrean Invoice (`index.blade.php`)**:
+  - Kolom tabel diselaraskan sesuai arahan operasional:
+    - `Sekolah`
+    - `Rombel & Program (Item)`
+    - `Skema Tagihan` (nama skema bersih: `Bulanan`, `Semesteran`, `Tahunan`, `Per 4 Pertemuan`)
+    - `Periode Tagihan` (detail waktu: Bulanan seperti `Agustus 2026`, `September 2026`; Semesteran seperti `Semester 1 — Jul–Des 2026`; Tahunan seperti `Tahun 2026`; Per 4 Pertemuan seperti `Sesi 1–4`, `Sesi 5–8`, `Sesi 9–12` dengan info bulan laporan terakhir)
+    - `Total Siswa Billable`
+    - `Target Invoice` (menggantikan istilah lama *Target Pembuatan*)
+    - `Keterlambatan`
+    - `Aksi`
+- **Filter Dropdown Skema Tagihan Terpadu**:
+  - Menambahkan filter dropdown skema (`Semua Skema`, `Bulanan`, `Per 4 Pertemuan`, `Semesteran`, `Tahunan`) di header card antrean yang bekerja secara real-time bersama input pencarian nama sekolah.
+
+#### Checklist Konfirmasi & Approval Bertingkat (`show.blade.php` & `InvoiceController.php`)
+- **Checklist Operasional (Pemeriksaan Produk & Konfirmasi PIC Sekolah)**:
+  - Form persetujuan tim Operasional kini mewajibkan konfirmasi dari PIC sekolah (`is_konfirmasi_pic`), pengisian nama PIC sekolah yang dihubungi (`pic_konfirmasi_nama`), serta checklist pemeriksaan produk (presensi, modul materi tersampaikan, kesesuaian data billable).
+- **Checklist Akunting (Invoice Tercetak & Siap Edar)**:
+  - Form persetujuan tim Akunting kini menyertakan verifikasi bahwa invoice telah dicetak / dokumen PDF siap edar (`is_invoice_tercetak`), nomor rekening Erlass valid, tarif diverifikasi, dan berkas siap dikirim ke sekolah.
+- **Audit Trail Hasil Pemeriksaan**:
+  - Menampilkan ringkasan hasil checklist PIC dan pencetakan invoice pada card riwayat pemeriksa setelah disetujui.
+
 ## [2.9.42] - 2026-10-01
 
 ### Perbaikan Evaluasi Sesi Libur & Filter Pencarian Antrean Invoice

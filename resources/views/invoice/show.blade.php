@@ -413,23 +413,65 @@
             @if($invoice->status === 'pending_operasional' && auth()->user()->can('approveOperasional', $invoice))
             <div class="card border-warning shadow-sm mb-4" style="border-radius: .75rem;">
                 <div class="card-header border-0 py-3 px-4" style="background: #fffbeb;">
-                    <h6 class="fw-bold text-warning mb-0"><i class="bi bi-person-check me-2"></i>Approval Operasional / Akademik</h6>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h6 class="fw-bold text-warning-emphasis mb-0">
+                            <i class="bi bi-person-check-fill me-2"></i>Approval Operasional / Pemeriksaan Produk
+                        </h6>
+                        <span class="badge bg-warning text-dark small">Pemeriksa: Operasional</span>
+                    </div>
                 </div>
                 <div class="card-body px-4 py-3">
                     <form action="{{ route('invoice.approve.operasional', $invoice) }}" method="POST">
                         @csrf
+                        
+                        {{-- Checklist Konfirmasi PIC Sekolah --}}
+                        <div class="p-3 bg-light rounded-3 mb-3 border">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="is_konfirmasi_pic" id="chk_pic_confirm" value="1" checked required>
+                                <label class="form-check-label small fw-bold text-dark" for="chk_pic_confirm">
+                                    <i class="bi bi-patch-check-fill text-success me-1"></i>Telah mendapat konfirmasi dari PIC Sekolah
+                                </label>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small text-muted mb-1">Nama PIC Sekolah yang Dihubungi <span class="text-danger">*</span></label>
+                                <input type="text" name="pic_konfirmasi_nama" class="form-control form-control-sm bg-white" 
+                                       placeholder="Contoh: Ibu Maria / Pak Budi (Wakasek / Koordinator Ekskul)" required>
+                            </div>
+                            <div class="text-muted small mb-2 fw-semibold" style="font-size: .75rem;">
+                                <i class="bi bi-clipboard2-check me-1"></i>Item Pemeriksaan Produk:
+                            </div>
+                            <div class="form-check small mb-1">
+                                <input class="form-check-input" type="checkbox" name="operasional_checklist[presensi_diverifikasi]" id="op_chk_1" value="1" checked required>
+                                <label class="form-check-label text-secondary" for="op_chk_1">
+                                    Presensi & sesi mengajar instruktur telah lengkap diverifikasi
+                                </label>
+                            </div>
+                            <div class="form-check small mb-1">
+                                <input class="form-check-input" type="checkbox" name="operasional_checklist[materi_tersampaikan]" id="op_chk_2" value="1" checked required>
+                                <label class="form-check-label text-secondary" for="op_chk_2">
+                                    Modul / materi dan laporan akhir sesi telah sesuai standar
+                                </label>
+                            </div>
+                            <div class="form-check small">
+                                <input class="form-check-input" type="checkbox" name="operasional_checklist[billable_sesuai_pic]" id="op_chk_3" value="1" checked required>
+                                <label class="form-check-label text-secondary" for="op_chk_3">
+                                    Total siswa billable ({{ $invoice->billable_efektif }} siswa) telah sesuai data PIC sekolah
+                                </label>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold">Catatan (opsional)</label>
+                            <label class="form-label small fw-semibold">Catatan Pemeriksa (opsional)</label>
                             <textarea name="catatan" class="form-control form-control-sm" rows="2"
-                                      placeholder="Catatan pemeriksa..."></textarea>
+                                      placeholder="Catatan hasil verifikasi PIC & pemeriksaan produk..."></textarea>
                         </div>
                         <div class="d-flex gap-2">
                             <button type="submit" name="action" value="approved"
-                                    class="btn btn-success btn-sm flex-fill">
-                                <i class="bi bi-check-lg me-1"></i>Setujui
+                                    class="btn btn-success btn-sm flex-fill fw-bold">
+                                <i class="bi bi-check-circle me-1"></i>Setujui & Teruskan ke Akunting
                             </button>
                             <button type="submit" name="action" value="rejected"
-                                    class="btn btn-outline-danger btn-sm flex-fill"
+                                    class="btn btn-outline-danger btn-sm"
                                     onclick="return confirm('Tolak invoice ini?')">
                                 <i class="bi bi-x-lg me-1"></i>Tolak
                             </button>
@@ -443,23 +485,60 @@
             @if($invoice->status === 'pending_akunting' && auth()->user()->can('approveAkunting', $invoice))
             <div class="card border-info shadow-sm mb-4" style="border-radius: .75rem;">
                 <div class="card-header border-0 py-3 px-4" style="background: #eff6ff;">
-                    <h6 class="fw-bold text-info mb-0"><i class="bi bi-bank me-2"></i>Approval Akunting / Finance</h6>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h6 class="fw-bold text-primary mb-0">
+                            <i class="bi bi-bank2 me-2"></i>Approval Akunting & Distribusi Invoice
+                        </h6>
+                        <span class="badge bg-primary text-white small">Penerima: Akunting / Finance</span>
+                    </div>
                 </div>
                 <div class="card-body px-4 py-3">
                     <form action="{{ route('invoice.approve.akunting', $invoice) }}" method="POST">
                         @csrf
+
+                        {{-- Checklist Akunting setelah invoice tercetak --}}
+                        <div class="p-3 bg-light rounded-3 mb-3 border">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="is_invoice_tercetak" id="chk_inv_tercetak" value="1" checked required>
+                                <label class="form-check-label small fw-bold text-dark" for="chk_inv_tercetak">
+                                    <i class="bi bi-printer-fill text-primary me-1"></i>Invoice telah tercetak / dokumen PDF resmi siap diterbitkan
+                                </label>
+                            </div>
+                            <div class="text-muted small mb-2 fw-semibold" style="font-size: .75rem;">
+                                <i class="bi bi-clipboard2-check me-1"></i>Item Verifikasi Akunting:
+                            </div>
+                            <div class="form-check small mb-1">
+                                <input class="form-check-input" type="checkbox" name="akunting_checklist[rekening_valid]" id="ak_chk_1" value="1" checked required>
+                                <label class="form-check-label text-secondary" for="ak_chk_1">
+                                    Nomor invoice, nama sekolah & rekening Erlass terverifikasi
+                                </label>
+                            </div>
+                            <div class="form-check small mb-1">
+                                <input class="form-check-input" type="checkbox" name="akunting_checklist[nominal_tarif_sesuai]" id="ak_chk_2" value="1" checked required>
+                                <label class="form-check-label text-secondary" for="ak_chk_2">
+                                    Tarif per siswa dan total tagihan akurat sesuai kesepakatan
+                                </label>
+                            </div>
+                            <div class="form-check small">
+                                <input class="form-check-input" type="checkbox" name="akunting_checklist[berkas_siap_edar]" id="ak_chk_3" value="1" checked required>
+                                <label class="form-check-label text-secondary" for="ak_chk_3">
+                                    Berkas siap dikirimkan secara resmi ke pihak sekolah
+                                </label>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold">Catatan (opsional)</label>
+                            <label class="form-label small fw-semibold">Catatan Akunting (opsional)</label>
                             <textarea name="catatan" class="form-control form-control-sm" rows="2"
-                                      placeholder="Catatan akunting..."></textarea>
+                                      placeholder="Catatan akunting / finance..."></textarea>
                         </div>
                         <div class="d-flex gap-2">
                             <button type="submit" name="action" value="approved"
-                                    class="btn btn-success btn-sm flex-fill">
-                                <i class="bi bi-check-lg me-1"></i>Final Approve
+                                    class="btn btn-success btn-sm flex-fill fw-bold">
+                                <i class="bi bi-check-all me-1"></i>Final Approve (Terbitkan Nomor Resmi)
                             </button>
                             <button type="submit" name="action" value="rejected"
-                                    class="btn btn-outline-danger btn-sm flex-fill"
+                                    class="btn btn-outline-danger btn-sm"
                                     onclick="return confirm('Tolak invoice ini?')">
                                 <i class="bi bi-x-lg me-1"></i>Tolak
                             </button>
@@ -470,22 +549,52 @@
             @endif
 
             {{-- Catatan Operasional & Akunting ────────────────────────── --}}
-            @if($invoice->operasional_catatan || $invoice->akunting_catatan)
+            @if($invoice->operasional_catatan || $invoice->akunting_catatan || $invoice->is_konfirmasi_pic || $invoice->is_invoice_tercetak)
             <div class="card border-0 shadow-sm" style="border-radius: .75rem;">
                 <div class="card-header border-0 py-3 px-4" style="background: #f8fafc;">
-                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-chat-left-text me-2"></i>Catatan Pemeriksa</h6>
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-clipboard-data me-2"></i>Hasil Verifikasi & Catatan Pemeriksa</h6>
                 </div>
                 <div class="card-body px-4 py-3">
-                    @if($invoice->operasional_catatan)
-                    <div class="mb-3">
-                        <div class="text-muted small fw-semibold">Operasional / Akademik</div>
-                        <div class="bg-light rounded p-2 small mt-1">{{ $invoice->operasional_catatan }}</div>
+                    @if($invoice->operasional_status === 'approved' || $invoice->is_konfirmasi_pic)
+                    <div class="mb-3 pb-3 border-bottom">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <div class="fw-semibold small text-primary">
+                                <i class="bi bi-person-check-fill me-1"></i>Pemeriksaan Produk (Operasional)
+                            </div>
+                            <span class="badge bg-success-subtle text-success small"><i class="bi bi-check2-circle me-1"></i>Terverifikasi</span>
+                        </div>
+                        @if($invoice->pic_konfirmasi_nama)
+                            <div class="small text-muted mb-1">
+                                <strong>PIC Sekolah:</strong> {{ $invoice->pic_konfirmasi_nama }}
+                            </div>
+                        @endif
+                        @if($invoice->is_konfirmasi_pic)
+                            <div class="small text-success mb-1">
+                                <i class="bi bi-check-circle-fill me-1"></i>Telah konfirmasi dengan PIC Sekolah
+                            </div>
+                        @endif
+                        @if($invoice->operasional_catatan)
+                            <div class="bg-light rounded p-2 small mt-1 text-dark">{{ $invoice->operasional_catatan }}</div>
+                        @endif
                     </div>
                     @endif
-                    @if($invoice->akunting_catatan)
+
+                    @if($invoice->akunting_status === 'approved' || $invoice->is_invoice_tercetak)
                     <div>
-                        <div class="text-muted small fw-semibold">Akunting / Finance</div>
-                        <div class="bg-light rounded p-2 small mt-1">{{ $invoice->akunting_catatan }}</div>
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <div class="fw-semibold small text-primary">
+                                <i class="bi bi-bank2 me-1"></i>Verifikasi Akunting & Cetak
+                            </div>
+                            <span class="badge bg-success-subtle text-success small"><i class="bi bi-check2-circle me-1"></i>Invoice Tercetak</span>
+                        </div>
+                        @if($invoice->is_invoice_tercetak)
+                            <div class="small text-success mb-1">
+                                <i class="bi bi-printer-fill me-1"></i>Dokumen invoice fisik/digital siap diedarkan
+                            </div>
+                        @endif
+                        @if($invoice->akunting_catatan)
+                            <div class="bg-light rounded p-2 small mt-1 text-dark">{{ $invoice->akunting_catatan }}</div>
+                        @endif
                     </div>
                     @endif
                 </div>

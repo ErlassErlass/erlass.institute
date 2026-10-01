@@ -320,23 +320,37 @@ class InvoiceController extends Controller
     public function approveOperasional(Request $request, InvoiceApproval $invoice)
     {
         // Hanya admin/operasional/supervisor yang boleh approve
-        // Policy akan ditambahkan di sprint berikutnya
         if ($invoice->status !== 'pending_operasional') {
             return back()->withErrors(['msg' => 'Invoice tidak dalam status menunggu approval Operasional.']);
         }
 
         $validated = $request->validate([
-            'action'   => 'required|in:approved,rejected',
-            'catatan'  => 'nullable|string|max:500',
+            'action'                 => 'required|in:approved,rejected',
+            'catatan'                => 'nullable|string|max:500',
+            'is_konfirmasi_pic'      => 'nullable|boolean',
+            'pic_konfirmasi_nama'    => 'nullable|string|max:150',
+            'pic_konfirmasi_catatan' => 'nullable|string|max:500',
+            'operasional_checklist'  => 'nullable|array',
         ]);
 
-        DB::transaction(function () use ($invoice, $validated) {
+        DB::transaction(function () use ($invoice, $validated, $request) {
+            $isApproved = $validated['action'] === 'approved';
+            $defaultChecklist = [
+                'presensi_lengkap'    => true,
+                'materi_tersampaikan' => true,
+                'billable_sesuai_pic' => true,
+            ];
+
             $invoice->update([
                 'operasional_user_id'    => Auth::id(),
                 'operasional_status'     => $validated['action'],
                 'operasional_approved_at'=> now(),
                 'operasional_catatan'    => $validated['catatan'] ?? null,
-                'status'                 => $validated['action'] === 'approved'
+                'is_konfirmasi_pic'      => $isApproved ? ($request->has('is_konfirmasi_pic') ? $request->boolean('is_konfirmasi_pic') : true) : false,
+                'pic_konfirmasi_nama'    => $request->input('pic_konfirmasi_nama'),
+                'pic_konfirmasi_catatan' => $request->input('pic_konfirmasi_catatan') ?? $request->input('catatan'),
+                'operasional_checklist'  => $request->input('operasional_checklist', $isApproved ? $defaultChecklist : null),
+                'status'                 => $isApproved
                     ? 'pending_akunting'
                     : 'rejected',
                 'updated_by'             => Auth::id(),
@@ -344,7 +358,7 @@ class InvoiceController extends Controller
         });
 
         $msg = $validated['action'] === 'approved'
-            ? 'Approved oleh Operasional. Menunggu approval Akunting.'
+            ? 'Approved oleh Operasional (Pemeriksaan Produk selesai). Menunggu approval Akunting.'
             : 'Invoice ditolak oleh Operasional.';
 
         return back()->with($validated['action'] === 'approved' ? 'success' : 'warning', $msg);
@@ -362,30 +376,41 @@ class InvoiceController extends Controller
         }
 
         $validated = $request->validate([
-            'action'   => 'required|in:approved,rejected',
-            'catatan'  => 'nullable|string|max:500',
+            'action'              => 'required|in:approved,rejected',
+            'catatan'             => 'nullable|string|max:500',
+            'is_invoice_tercetak' => 'nullable|boolean',
+            'akunting_checklist'  => 'nullable|array',
         ]);
 
-        DB::transaction(function () use ($invoice, $validated) {
+        DB::transaction(function () use ($invoice, $validated, $request) {
+            $isApproved = $validated['action'] === 'approved';
+            $defaultChecklist = [
+                'invoice_tercetak'       => true,
+                'rekening_valid'         => true,
+                'nominal_tarif_sesuai'   => true,
+            ];
+
             $invoice->update([
                 'akunting_user_id'    => Auth::id(),
                 'akunting_status'     => $validated['action'],
                 'akunting_approved_at'=> now(),
                 'akunting_catatan'    => $validated['catatan'] ?? null,
-                'status'              => $validated['action'] === 'approved'
+                'is_invoice_tercetak' => $isApproved ? ($request->has('is_invoice_tercetak') ? $request->boolean('is_invoice_tercetak') : true) : false,
+                'akunting_checklist'  => $request->input('akunting_checklist', $isApproved ? $defaultChecklist : null),
+                'status'              => $isApproved
                     ? InvoiceApproval::STATUS_APPROVED
                     : InvoiceApproval::STATUS_REJECTED,
                 'updated_by'          => Auth::id(),
             ]);
 
             // Finalisasi nomor invoice resmi (buang prefix DRAFT- saat approved)
-            if ($validated['action'] === 'approved') {
+            if ($isApproved) {
                 $invoice->finalizeNomorInvoice();
             }
         });
 
         $msg = $validated['action'] === 'approved'
-            ? "✅ Invoice {$invoice->fresh()->nomor_invoice} disetujui resmi (Nomor Final Diterbitkan). PDF siap diunduh."
+            ? "✅ Invoice {$invoice->fresh()->nomor_invoice} disetujui resmi (Nomor Final Diterbitkan & Invoice Tercetak). PDF siap diedarkan."
             : 'Invoice ditolak oleh Akunting.';
 
         return back()->with($validated['action'] === 'approved' ? 'success' : 'warning', $msg);

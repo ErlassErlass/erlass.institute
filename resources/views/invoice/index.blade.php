@@ -78,10 +78,17 @@
                     <small class="text-muted">1 Invoice per Sekolah (rincian item per rombel) — Diurutkan prioritas keterlambatan pembuatan invoice</small>
                 </div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
-                <div class="input-group input-group-sm" style="width: 250px;">
+                <select id="filterEligibleSkema" class="form-select form-select-sm bg-light border" style="width: 175px;" onchange="filterEligibleSchools()">
+                    <option value="">Semua Skema</option>
+                    <option value="bulanan">🗓️ Bulanan</option>
+                    <option value="per_4_pertemuan">🔄 Per 4 Pertemuan</option>
+                    <option value="semester">📚 Semesteran</option>
+                    <option value="tahunan">🎓 Tahunan</option>
+                </select>
+                <div class="input-group input-group-sm" style="width: 230px;">
                     <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted small"></i></span>
                     <input type="text" id="searchEligibleTable" class="form-control bg-light border-start-0" 
-                           placeholder="Cari nama / kode sekolah..." onkeyup="filterEligibleSchools(this.value)">
+                           placeholder="Cari sekolah..." onkeyup="filterEligibleSchools()">
                 </div>
                 <form action="{{ route('invoice.bulk-generate') }}" method="POST" onsubmit="return confirm('Generate invoice untuk semua {{ $eligibleList->count() }} sekolah yang siap ditagihkan?');">
                     @csrf
@@ -97,17 +104,17 @@
                     <tr class="text-uppercase text-muted" style="font-size: .75rem; letter-spacing: .5px;">
                         <th class="ps-4">Sekolah</th>
                         <th>Rombel & Program (Item)</th>
-                        <th>Skema</th>
-                        <th>Periode Siap Tagih</th>
+                        <th>Skema Tagihan</th>
+                        <th>Periode Tagihan</th>
                         <th class="text-center">Total Siswa Billable</th>
-                        <th>Target Pembuatan</th>
+                        <th>Target Invoice</th>
                         <th>Keterlambatan</th>
                         <th class="text-end pe-4">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y" id="eligibleTableBody">
                     @foreach($eligibleList as $item)
-                    <tr>
+                    <tr data-skema="{{ $item['skema_tagihan'] }}">
                         <td class="ps-4 fw-semibold text-dark">
                             <span class="badge bg-light text-secondary border font-monospace me-1">[{{ $item['sekolah_kodlan'] }}]</span>
                             {{ $item['sekolah_nama'] }}
@@ -125,22 +132,44 @@
                             </div>
                         </td>
                         <td>
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1">
+                            <span class="badge {{ match($item['skema_tagihan']) {
+                                'bulanan'         => 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25',
+                                'semester'        => 'bg-purple bg-opacity-10 text-purple border border-purple border-opacity-25',
+                                'tahunan'         => 'bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25',
+                                default           => 'bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25',
+                            } }} px-2 py-1">
                                 {{ match($item['skema_tagihan']) {
-                                    'bulanan' => 'Bulanan',
-                                    'semester' => 'Semester',
-                                    'tahunan' => 'Tahunan',
-                                    default => 'Per 4 Sesi',
+                                    'bulanan'         => 'Bulanan',
+                                    'semester'        => 'Semesteran',
+                                    'tahunan'         => 'Tahunan',
+                                    default           => 'Per 4 Pertemuan',
                                 } }}
                             </span>
                         </td>
                         <td>
-                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">
-                                <i class="bi bi-check2-circle me-1"></i>{{ $item['periode_label'] }}
-                                @if(!empty($item['sesi_dari']) && !empty($item['sesi_sampai']))
-                                    (Sesi {{ $item['sesi_dari'] }}–{{ $item['sesi_sampai'] }})
+                            @if($item['skema_tagihan'] === 'bulanan')
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1">
+                                    <i class="bi bi-calendar3 me-1"></i>{{ $item['periode_label'] }}
+                                </span>
+                            @elseif($item['skema_tagihan'] === 'semester')
+                                <span class="badge bg-purple bg-opacity-10 text-purple border border-purple border-opacity-25 px-2.5 py-1">
+                                    <i class="bi bi-calendar-range me-1"></i>{{ $item['periode_label'] }}
+                                </span>
+                            @elseif($item['skema_tagihan'] === 'tahunan')
+                                <span class="badge bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25 px-2.5 py-1">
+                                    <i class="bi bi-calendar-check me-1"></i>{{ $item['periode_label'] }}
+                                </span>
+                            @else
+                                {{-- Per 4 Pertemuan: detail waktu / sesi --}}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1">
+                                    <i class="bi bi-layers me-1"></i>Sesi {{ $item['sesi_dari'] }}–{{ $item['sesi_sampai'] }}
+                                </span>
+                                @if(!empty($item['bulan_laporan_terakhir']))
+                                    <div class="text-muted small mt-1" style="font-size: 0.72rem;">
+                                        <i class="bi bi-calendar-event me-1"></i>Lap: <strong class="text-dark">{{ $item['bulan_laporan_terakhir'] }}</strong>
+                                    </div>
                                 @endif
-                            </span>
+                            @endif
                         </td>
                         <td class="text-center">
                             <span class="badge bg-light text-dark border fw-bold px-2.5 py-1.5">
@@ -259,8 +288,8 @@
                         <tr>
                             <th class="ps-4 py-3 text-muted small fw-semibold">No. Invoice</th>
                             <th class="py-3 text-muted small fw-semibold">Sekolah / Rombel</th>
-                            <th class="py-3 text-muted small fw-semibold">Periode</th>
-                            <th class="py-3 text-muted small fw-semibold">Skema</th>
+                            <th class="py-3 text-muted small fw-semibold">Periode Tagihan</th>
+                            <th class="py-3 text-muted small fw-semibold">Skema Tagihan</th>
                             <th class="py-3 text-muted small fw-semibold text-center">Siswa Billable</th>
                             <th class="py-3 text-muted small fw-semibold text-center">Operasional</th>
                             <th class="py-3 text-muted small fw-semibold text-center">Akunting</th>
@@ -308,13 +337,13 @@
                                     };
                                     $skemaLabel = match($inv->skema_tagihan) {
                                         'bulanan'         => 'Bulanan',
-                                        'semester'        => 'Semester',
+                                        'semester'        => 'Semesteran',
                                         'tahunan'         => 'Tahunan',
-                                        'per_4_pertemuan' => 'Per 4 Sesi',
+                                        'per_4_pertemuan' => 'Per 4 Pertemuan',
                                         default           => '-',
                                     };
                                 @endphp
-                                <span class="badge bg-{{ $skemaColor }}-subtle text-{{ $skemaColor }} border border-{{ $skemaColor }}-subtle rounded-pill px-2 small">
+                                <span class="badge bg-{{ $skemaColor }}-subtle text-{{ $skemaColor }} border border-{{ $skemaColor }}-subtle rounded-pill px-2.5 py-1 small">
                                     {{ $skemaLabel }}
                                 </span>
                             </td>
@@ -389,16 +418,16 @@
 
 @push('scripts')
 <script>
-function filterEligibleSchools(query) {
-    const q = (query || '').toLowerCase().trim();
+function filterEligibleSchools() {
+    const q = (document.getElementById('searchEligibleTable')?.value || '').toLowerCase().trim();
+    const skema = (document.getElementById('filterEligibleSkema')?.value || '').toLowerCase().trim();
     const rows = document.querySelectorAll('#eligibleTableBody tr');
     rows.forEach(row => {
-        if (!q) {
-            row.style.display = '';
-        } else {
-            const text = row.innerText.toLowerCase();
-            row.style.display = text.includes(q) ? '' : 'none';
-        }
+        const text = row.innerText.toLowerCase();
+        const rowSkema = (row.getAttribute('data-skema') || '').toLowerCase();
+        const matchesQuery = !q || text.includes(q);
+        const matchesSkema = !skema || rowSkema === skema;
+        row.style.display = (matchesQuery && matchesSkema) ? '' : 'none';
     });
 }
 </script>
