@@ -2,6 +2,16 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.42] - 2026-10-01
+
+### Perbaikan Evaluasi Sesi Libur & Filter Pencarian Antrean Invoice
+
+#### Bug Fixes & Peningkatan Layanan Invoice
+- **Penanganan Status Sesi Libur (`libur`) & Diganti (`diganti`)**:
+  - Memperbaiki [InvoiceService.php](file:///var/www/webapperlass/app/Services/InvoiceService.php) agar sesi berstatus `libur` dan `diganti` diakui sebagai status tuntas/resolved dan tidak lagi menghambat kelayakan evaluasi invoice bulanan (seperti pada SDS Strada Wiyatasana yang memiliki sesi libur di bulan September).
+- **Pencarian Cepat di Antrean Sekolah Siap Ditagihkan**:
+  - Menambahkan fitur live search instan pada card header antrean invoice [index.blade.php](file:///var/www/webapperlass/resources/views/invoice/index.blade.php) sehingga admin dapat langsung mencari nama sekolah (misal: "Wiyatasana") di antara ratusan sekolah yang siap ditagihkan.
+
 ## [2.9.41] - 2026-10-01
 
 ### Klasifikasi Resmi 21 Sekolah Skema Tagihan Bulanan

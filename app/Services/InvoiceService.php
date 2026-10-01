@@ -240,7 +240,7 @@ class InvoiceService
                             ->count();
                         $finished = EkstrakurikulerSession::whereIn('ekstrakurikuler_rombel_id', $rombels->pluck('id'))
                             ->whereBetween('tanggal_terjadwal', [$monthStart->toDateString(), $monthEnd->toDateString()])
-                            ->whereIn('status', ['selesai', 'dibatalkan'])
+                            ->whereIn('status', ['selesai', 'dibatalkan', 'libur', 'diganti'])
                             ->count();
                         if ($totalSched > 0 && $finished >= $totalSched) {
                             $isEndOfMonth = true;
@@ -262,7 +262,7 @@ class InvoiceService
                         ->whereBetween('tanggal_terjadwal', [$monthStart->toDateString(), $monthEnd->toDateString()])
                         ->get();
 
-                    $hasPending = $rombelSessionsInMonth->contains(fn($s) => !in_array($s->status, ['selesai', 'dibatalkan']));
+                    $hasPending = $rombelSessionsInMonth->contains(fn($s) => !in_array($s->status, ['selesai', 'dibatalkan', 'libur', 'diganti']));
                     $completedRombel = $rombelSessionsInMonth->where('status', 'selesai');
 
                     if ($hasPending || $completedRombel->isEmpty()) {

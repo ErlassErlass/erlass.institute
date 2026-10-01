@@ -77,13 +77,19 @@
                     <h6 class="mb-0 fw-bold text-dark">Sekolah Siap Ditagihkan ({{ $eligibleList->count() }})</h6>
                     <small class="text-muted">1 Invoice per Sekolah (rincian item per rombel) — Diurutkan prioritas keterlambatan pembuatan invoice</small>
                 </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="input-group input-group-sm" style="width: 250px;">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted small"></i></span>
+                    <input type="text" id="searchEligibleTable" class="form-control bg-light border-start-0" 
+                           placeholder="Cari nama / kode sekolah..." onkeyup="filterEligibleSchools(this.value)">
+                </div>
+                <form action="{{ route('invoice.bulk-generate') }}" method="POST" onsubmit="return confirm('Generate invoice untuk semua {{ $eligibleList->count() }} sekolah yang siap ditagihkan?');">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-success fw-bold px-3 py-1.5 rounded-pill shadow-xs text-nowrap">
+                        <i class="bi bi-lightning-charge-fill me-1"></i> Generate Semua (Bulk)
+                    </button>
+                </form>
             </div>
-            <form action="{{ route('invoice.bulk-generate') }}" method="POST" onsubmit="return confirm('Generate invoice untuk semua {{ $eligibleList->count() }} sekolah yang siap ditagihkan?');">
-                @csrf
-                <button type="submit" class="btn btn-sm btn-success fw-bold px-3 py-1.5 rounded-pill shadow-xs">
-                    <i class="bi bi-lightning-charge-fill me-1"></i> Generate Semua (Bulk)
-                </button>
-            </form>
         </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -99,7 +105,7 @@
                         <th class="text-end pe-4">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y">
+                <tbody class="divide-y" id="eligibleTableBody">
                     @foreach($eligibleList as $item)
                     <tr>
                         <td class="ps-4 fw-semibold text-dark">
@@ -380,3 +386,21 @@
 
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function filterEligibleSchools(query) {
+    const q = (query || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('#eligibleTableBody tr');
+    rows.forEach(row => {
+        if (!q) {
+            row.style.display = '';
+        } else {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(q) ? '' : 'none';
+        }
+    });
+}
+</script>
+@endpush
+
