@@ -23,7 +23,7 @@
                     <h1 class="h2 fw-bold text-dark mb-2">Manajemen Invoice Tagihan</h1>
                     <p class="text-muted mb-0 fs-6" style="max-width: 680px;">
                         Penerbitan & persetujuan invoice per rombel dengan 4 skema tagihan.
-                        Wajib melewati approval <strong>Operasional</strong> + <strong>Akunting</strong> sebelum PDF dapat diunduh.
+                        PDF Draft dapat diunduh langsung untuk <strong>konfirmasi PIC Sekolah</strong>, dan PDF Resmi terbit otomatis setelah disetujui penuh oleh <strong>Operasional</strong> + <strong>Akunting</strong>.
                     </p>
                 </div>
                 <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
@@ -382,12 +382,16 @@
                                 </span>
                             </td>
                             <td class="text-end pe-4">
-                                <a href="{{ route('invoice.show', $inv) }}" class="btn btn-sm btn-outline-primary">
+                                <a href="{{ route('invoice.show', $inv) }}" class="btn btn-sm btn-outline-primary" title="Lihat Detail">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 @if($inv->isApproved())
-                                <a href="{{ route('invoice.pdf', $inv) }}" class="btn btn-sm btn-success" target="_blank">
+                                <a href="{{ route('invoice.pdf', $inv) }}" class="btn btn-sm btn-success" target="_blank" title="Unduh PDF Resmi">
                                     <i class="bi bi-download"></i>
+                                </a>
+                                @else
+                                <a href="{{ route('invoice.pdf', $inv) }}" class="btn btn-sm btn-outline-warning text-dark" target="_blank" title="Unduh PDF Draft (Konfirmasi PIC)">
+                                    <i class="bi bi-file-earmark-pdf"></i>
                                 </a>
                                 @endif
                             </td>

@@ -422,8 +422,10 @@ class InvoiceController extends Controller
 
     public function downloadPdf(InvoiceApproval $invoice)
     {
-        if (!$invoice->isApproved()) {
-            return back()->withErrors(['msg' => 'Invoice belum fully approved.']);
+        // Dokumen invoice dapat diunduh baik saat status DRAFT (untuk keperluan konfirmasi Operasional ke PIC Sekolah)
+        // maupun saat APPROVED (dokumen penagihan resmi bernomor final).
+        if ($invoice->status === InvoiceApproval::STATUS_REJECTED) {
+            return back()->withErrors(['msg' => 'Invoice berstatus ditolak dan tidak dapat diunduh.']);
         }
 
         $invoice->load([
@@ -442,6 +444,7 @@ class InvoiceController extends Controller
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoice.pdf', [
             'invoice'        => $invoice,
+            'isDraft'        => !$invoice->isApproved(),
             'catatanKontrak' => InvoiceApproval::catatanKontrakText(),
         ]);
 

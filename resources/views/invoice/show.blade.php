@@ -31,7 +31,11 @@
         <div class="ms-auto d-flex gap-2">
             @if($invoice->isApproved())
             <a href="{{ route('invoice.pdf', $invoice) }}" class="btn btn-success" target="_blank">
-                <i class="bi bi-download me-2"></i>Unduh PDF
+                <i class="bi bi-download me-2"></i>Unduh PDF Resmi
+            </a>
+            @else
+            <a href="{{ route('invoice.pdf', $invoice) }}" class="btn btn-outline-warning text-dark fw-semibold" target="_blank" title="Unduh draft invoice untuk konfirmasi kehadiran & absensi ke PIC Sekolah">
+                <i class="bi bi-file-earmark-pdf me-2 text-warning"></i>Unduh PDF Draft (Konfirmasi PIC)
             </a>
             @endif
             <span class="badge fs-6 bg-{{ $invoice->statusBadgeClass() }} d-flex align-items-center px-3">
@@ -379,8 +383,8 @@
                              'detail' => $invoice->akunting_status === 'approved'
                                 ? '✅ ' . ($invoice->akuntingUser?->name ?? '-') . ' · ' . ($invoice->akunting_approved_at?->format('d/m/Y H:i') ?? '')
                                 : ($invoice->akunting_status === 'rejected' ? '❌ Ditolak' : '⏳ Menunggu')],
-                            ['label' => 'PDF Siap Diunduh', 'done' => $invoice->isApproved(), 'color' => 'success',
-                             'detail' => $invoice->isApproved() ? '✅ Invoice fully approved' : '⏳ Menunggu semua approval'],
+                            ['label' => 'PDF Resmi Diterbitkan', 'done' => $invoice->isApproved(), 'color' => 'success',
+                             'detail' => $invoice->isApproved() ? '✅ Invoice approved & nomor resmi terbit' : '⏳ Nomor resmi INV/... terbit setelah disetujui Akunting'],
                         ];
                     @endphp
                     <div class="d-flex flex-column gap-3">
@@ -421,6 +425,16 @@
                     </div>
                 </div>
                 <div class="card-body px-4 py-3">
+                    {{-- Quick Download PDF Draft untuk Operasional --}}
+                    <div class="mb-3 p-2 px-3 bg-warning-subtle border border-warning-subtle rounded-3 d-flex align-items-center justify-content-between">
+                        <div class="small text-warning-emphasis">
+                            <i class="bi bi-file-earmark-text me-1"></i> <strong>Kirim rekap ke PIC?</strong> Unduh dokumen draft pra-tagihan untuk konfirmasi:
+                        </div>
+                        <a href="{{ route('invoice.pdf', $invoice) }}" class="btn btn-sm btn-warning text-dark fw-semibold" target="_blank">
+                            <i class="bi bi-download me-1"></i>Unduh PDF Draft
+                        </a>
+                    </div>
+
                     <form action="{{ route('invoice.approve.operasional', $invoice) }}" method="POST">
                         @csrf
                         

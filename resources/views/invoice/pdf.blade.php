@@ -55,10 +55,12 @@
         .approval-grid { display: flex; gap: 16px; }
         .approval-box { flex: 1; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; }
         .approval-box.approved { border-color: #bbf7d0; background: #f0fdf4; }
+        .approval-box.pending { border-color: #fde68a; background: #fffbeb; }
         .approval-box .ap-role { font-size: 8pt; color: #64748b; text-transform: uppercase; font-weight: 600; }
         .approval-box .ap-name { font-size: 10pt; font-weight: 600; color: #1e3a8a; margin-top: 4px; }
         .approval-box .ap-date { font-size: 8.5pt; color: #64748b; margin-top: 2px; }
         .approval-box .ap-status { font-size: 8pt; font-weight: 700; color: #166534; margin-top: 6px; }
+        .approval-box.pending .ap-status { color: #b45309; }
         .ttd-area { text-align: center; margin-top: 10px; border-top: 1px dashed #94a3b8; padding-top: 4px; }
         .ttd-area .ttd-label { font-size: 7.5pt; color: #94a3b8; }
 
@@ -92,12 +94,30 @@
         <div class="invoice-meta">
             <div class="inv-label">Nomor Invoice</div>
             <div class="inv-number">{{ $invoice->nomor_invoice }}</div>
-            <div class="inv-status">✅ APPROVED</div>
-            <div style="font-size:7.5pt; color:#64748b; margin-top:4px;">
-                Diterbitkan: {{ $invoice->akunting_approved_at?->translatedFormat('d F Y') ?? now()->translatedFormat('d F Y') }}
-            </div>
+            @if($isDraft ?? false)
+                <div class="inv-status" style="background: #fef3c7; color: #92400e; border: 1px solid #fcd34d;">⚠️ DRAFT — KONFIRMASI PIC</div>
+                <div style="font-size:7.5pt; color:#b45309; margin-top:4px; font-weight:600;">
+                    Dokumen Pra-Tagihan (Konfirmasi PIC)
+                </div>
+            @else
+                <div class="inv-status">✅ APPROVED</div>
+                <div style="font-size:7.5pt; color:#64748b; margin-top:4px;">
+                    Diterbitkan: {{ $invoice->akunting_approved_at?->translatedFormat('d F Y') ?? now()->translatedFormat('d F Y') }}
+                </div>
+            @endif
         </div>
     </div>
+
+    @if($isDraft ?? false)
+    <div style="background: #fffbeb; border: 1.5px dashed #f59e0b; border-radius: 8px; padding: 10px 16px; margin-bottom: 18px; text-align: center;">
+        <div style="font-size: 9.5pt; font-weight: bold; color: #b45309;">
+            📄 DRAFT INVOICE — KHUSUS UNTUK KONFIRMASI DATA DENGAN PIC SEKOLAH
+        </div>
+        <div style="font-size: 7.5pt; color: #78350f; margin-top: 2px;">
+            Dokumen ini merupakan rincian pra-tagihan sementara untuk validasi kehadiran & absensi siswa. Nomor resmi akan diterbitkan setelah persetujuan tim Operasional & Akunting.
+        </div>
+    </div>
+    @endif
 
     {{-- ─── INFO GRID ──────────────────────────────────────────────────── --}}
     <div class="info-grid">
@@ -234,11 +254,17 @@
     <div class="approval-section">
         <div class="section-title">Status Persetujuan</div>
         <div class="approval-grid">
-            <div class="approval-box approved">
-                <div class="ap-role">Operasional / Akademik</div>
-                <div class="ap-name">{{ $invoice->operasionalUser?->name ?? '-' }}</div>
-                <div class="ap-date">{{ $invoice->operasional_approved_at?->translatedFormat('d F Y, H:i') ?? '-' }} WIB</div>
-                <div class="ap-status">✅ Disetujui</div>
+            <div class="approval-box {{ $invoice->operasional_status === 'approved' ? 'approved' : 'pending' }}">
+                <div class="ap-role">Operasional / Akademik (Konfirmasi PIC)</div>
+                <div class="ap-name">{{ $invoice->operasionalUser?->nama_lengkap ?? $invoice->operasionalUser?->name ?? '-' }}</div>
+                <div class="ap-date">{{ $invoice->operasional_approved_at?->translatedFormat('d F Y, H:i') ? $invoice->operasional_approved_at->translatedFormat('d F Y, H:i') . ' WIB' : 'Menunggu konfirmasi' }}</div>
+                <div class="ap-status">
+                    @if($invoice->operasional_status === 'approved')
+                        ✅ Disetujui (Konfirmasi PIC OK)
+                    @else
+                        ⏳ Menunggu Konfirmasi PIC
+                    @endif
+                </div>
                 @if($invoice->operasional_catatan)
                 <div style="font-size:7.5pt; color:#64748b; margin-top:4px;">Catatan: {{ $invoice->operasional_catatan }}</div>
                 @endif
@@ -246,11 +272,17 @@
                     <div class="ttd-label">Tanda Tangan Digital</div>
                 </div>
             </div>
-            <div class="approval-box approved">
-                <div class="ap-role">Akunting / Finance</div>
-                <div class="ap-name">{{ $invoice->akuntingUser?->name ?? '-' }}</div>
-                <div class="ap-date">{{ $invoice->akunting_approved_at?->translatedFormat('d F Y, H:i') ?? '-' }} WIB</div>
-                <div class="ap-status">✅ Disetujui</div>
+            <div class="approval-box {{ $invoice->akunting_status === 'approved' ? 'approved' : 'pending' }}">
+                <div class="ap-role">Akunting / Finance (Cetak & Tagih)</div>
+                <div class="ap-name">{{ $invoice->akuntingUser?->nama_lengkap ?? $invoice->akuntingUser?->name ?? '-' }}</div>
+                <div class="ap-date">{{ $invoice->akunting_approved_at?->translatedFormat('d F Y, H:i') ? $invoice->akunting_approved_at->translatedFormat('d F Y, H:i') . ' WIB' : 'Menunggu approval' }}</div>
+                <div class="ap-status">
+                    @if($invoice->akunting_status === 'approved')
+                        ✅ Disetujui & Siap Ditagihkan
+                    @else
+                        ⏳ Menunggu Cetak & Approval Akunting
+                    @endif
+                </div>
                 @if($invoice->akunting_catatan)
                 <div style="font-size:7.5pt; color:#64748b; margin-top:4px;">Catatan: {{ $invoice->akunting_catatan }}</div>
                 @endif

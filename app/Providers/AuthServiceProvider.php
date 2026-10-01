@@ -23,6 +23,7 @@ class AuthServiceProvider extends ServiceProvider
         Ekstrakurikuler::class => EkstrakurikulerPolicy::class,
         \App\Models\EkstrakurikulerSession::class => \App\Policies\EkstrakurikulerSessionPolicy::class,
         \App\Models\ActivityLog::class => \App\Policies\ActivityLogPolicy::class,
+        \App\Models\InvoiceApproval::class => \App\Policies\InvoiceApprovalPolicy::class,
     ];
 
     /**

@@ -304,17 +304,20 @@ class InvoiceApprovalTest extends TestCase
     }
 
     /** @test */
-    public function pdf_download_blocked_if_not_fully_approved(): void
+    public function pdf_draft_can_be_downloaded_for_pic_confirmation_before_fully_approved(): void
     {
         $admin   = $this->makeAdmin();
         $invoice = InvoiceApproval::factory()->create([
-            'status' => 'pending_akunting',
+            'status' => 'pending_operasional',
+            'operasional_status' => 'pending',
+            'akunting_status' => 'pending',
         ]);
 
         $response = $this->actingAs($admin)
             ->get("/invoice/{$invoice->id}/pdf");
 
-        $response->assertSessionHasErrors(['msg']);
+        $response->assertStatus(200);
+        $this->assertStringContainsString('application/pdf', $response->headers->get('content-type', ''));
     }
 
     /** @test */
