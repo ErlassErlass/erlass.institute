@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Warning;
 use App\Models\Certificate;
 use App\Models\ReportCard;
+use App\Models\InvoiceApproval;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -388,6 +389,23 @@ class DashboardController extends Controller
                 ->latest('updated_at')
                 ->take(6)
                 ->get(),
+            // Invoice Pending (menunggu approval operasional atau akunting)
+            'pending_invoices' => in_array(auth()->user()->role, ['admin', 'admin_sistem', 'webmaster'])
+                ? InvoiceApproval::with(['sekolah:kodlan,namasekolah', 'createdByUser:id,nama_lengkap'])
+                    ->whereIn('status', [
+                        InvoiceApproval::STATUS_PENDING_OPERASIONAL,
+                        InvoiceApproval::STATUS_PENDING_AKUNTING,
+                    ])
+                    ->orderBy('created_at', 'asc')
+                    ->take(8)
+                    ->get()
+                : collect(),
+            'total_pending_invoices' => in_array(auth()->user()->role, ['admin', 'admin_sistem', 'webmaster'])
+                ? InvoiceApproval::whereIn('status', [
+                        InvoiceApproval::STATUS_PENDING_OPERASIONAL,
+                        InvoiceApproval::STATUS_PENDING_AKUNTING,
+                    ])->count()
+                : 0,
         ];
 
         return array_merge($adminData, $this->getChartData());

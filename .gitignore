@@ -34,3 +34,6 @@ debug_*.json
 # Local backup files
 *Backup*.csv
 *.csv.bak
+*.sql
+scratch/
+scratch_*.php

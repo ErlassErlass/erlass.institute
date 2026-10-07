@@ -443,62 +443,68 @@ Sertifikat diterbitkan untuk siswa yang memenuhi kriteria kelulusan:
 ## FASE 10: Invoice Sekolah & Payroll Instruktur (Hilir — Keuangan)
 ## ──────────────────────────────────────────────
 
-**PIC**: Admin Keuangan / Webmaster  
-**Frekuensi**: Bulanan (akhir bulan)
+**PIC**: Admin Sistem (Akademik: Dinda & Novandi, Finance/Akunting: Rendy / User #290) & Webmaster  
+**Alat**: Menu **Faktur & Invoice** (`/invoice`) + Modul **Payroll** (`/payroll`)
 
-### 10.1 Rekapitulasi Absensi untuk Invoice Sekolah
+### 10.1 Evaluasi Antrean Penagihan Sekolah (`/invoice`)
 
-1. Buka menu `/rekap-absensi` (Rekap Invoice).
-2. Filter berdasarkan **Sekolah** dan **Rombel** yang akan ditagih.
-3. **Aturan Penagihan Resmi (Billable Rule)**:
-   - Sistem menggunakan siklus **periode 4 pertemuan**.
-   - Siswa dianggap **Billable** (dapat ditagihkan ke sekolah) jika hadir **minimal 2 kali** dari 4 pertemuan dalam periode tersebut.
-   - Tampilan: Sel berwarna **Hijau** = siswa billable. Angka "3/4" = hadir 3 dari 4 sesi.
-4. Export data rekap ke **Excel** untuk lampiran invoice ke pihak sekolah.
+1. Buka menu **Faktur & Invoice** (`/invoice`) di bawah grup *Kompensasi & Payroll*.
+2. Sistem secara otomatis mengevaluasi seluruh program dan rombel di database:
+   - **Prinsip 1 Sekolah = 1 Invoice**: Seluruh rombel program di sekolah yang sama digabung ke dalam satu faktur resmi (*itemised billing*).
+   - **Aturan Keserentakan (All Rombels Done)**: Suatu sekolah baru masuk ke antrean *Siap Ditagihkan* apabila **seluruh rombel aktif** di sekolah tersebut telah menyelesaikan target pertemuannya.
+   - **Pemisahan Bersih Skema vs Periode Tagihan**:
+     - *Skema Tagihan*: Nama jenis kontrak (`Per 4 Pertemuan`, `Bulanan`, `Semesteran`, `Tahunan`).
+     - *Periode Tagihan*: Detail waktu riil (misal: `Sesi 1–4`, `Agustus 2026`, atau `Semester 1 — Jul–Des 2026`).
+3. Antrean diurutkan berdasarkan tingkat urgensi keterlambatan (*merah: $\ge$ 7 hari, kuning: 1–6 hari, biru: hari ini*).
+4. Klik **`Buat Invoice`** pada baris sekolah target. Sistem menerbitkan draft invoice dengan nomor unik:
+   `DRAFT/ERLASS/YYYYMM/[KODLAN]/[NNN]` (tanpa kata INV) dengan status `pending_operasional`.
 
-### 10.2 Persiapan & Kalkulasi Payroll Instruktur
+### 10.2 Dual-Approval Gate: Operasional & Akunting
+
+Proses persetujuan bertingkat menjamin keabsahan layanan di lapangan sebelum penagihan finansial resmi:
+
+| Tahapan Gate | PIC Penanggung Jawab | Tugas & Verifikasi Wajib | Output / Status |
+| :--- | :--- | :--- | :--- |
+| **Gate 1: Admin Produksi** | **Dinda & Novandi** (Admin Produksi / Operasional) | 1. Hubungi PIC sekolah / PIC CSR.<br/>2. Centang checklist presensi lengkap & bukti chat.<br/>3. Koreksi siswa billable & tetapkan siswa gratis (jika ada dispensasi).<br/>4. Klik *Verifikasi & Teruskan ke Akunting* (tidak ada opsi tolak). | Status: `pending_akunting` |
+| **Gate 2: Staff Akunting** | **Rendy** (Staff Akunting / Finance) | 1. Verifikasi nominal tarif, total tagihan & rekening resmi.<br/>2. Opsi A: Klik *Setujui & Terbitkan Invoice Resmi*.<br/>3. Opsi B: Klik *Kembalikan ke Produksi (Minta Revisi)* dengan catatan wajib jika terdapat ketidaksesuaian data (status mundur ke `pending_operasional`). | Status: `approved`<br/>(Nomor resmi: `INV/...`) |
+
+### 10.3 Penerbitan Faktur Final & Cetak PDF
+
+1. Setelah disetujui Gate 2 (Akunting), sistem secara otomatis:
+   - **Mengganti prefix `DRAFT/` menjadi `INV/`** sehingga nomor invoice berubah permanen menjadi `INV/ERLASS/YYYYMM/[KODLAN]/[NNN]`.
+   - Mengunci invoice dari koreksi lebih lanjut dan mencatat audit trail lengkap.
+2. Klik tombol hijau **`Unduh PDF Resmi`** untuk mengunduh faktur resmi bertanda tangan digital dan stempel perusahaan (bebas watermark draft, siap edar).
+3. Berkas fisik / PDF diserahkan ke pihak bendahara sekolah atau yayasan untuk pencairan dana.
+
+### 10.4 Persiapan & Kalkulasi Payroll Instruktur
 
 1. Buka menu **Payroll** → klik **Buat Batch Payroll Baru**.
-2. Pilih periode bulan yang akan diproses → status batch dimulai sebagai **Draft**.
+2. Pilih periode bulan yang akan diproses (siklus reguler: 11 s.d. 10 bulan berikutnya) → status batch dimulai sebagai **Draft**.
 3. Sistem otomatis menghitung honorarium setiap instruktur berdasarkan:
 
 | Komponen | Cara Hitung |
 |----------|------------|
-| **Gaji Pokok Mengajar** | Jumlah sesi selesai × Tarif Dasar sesuai Level Instruktur |
-| **Bonus Materi/Produk** | Sesuai kategori program yang diajarkan (Scratch, Python, Microbit, Robotik) |
-| **Denda Keterlambatan** | −Rp 25.000 per sesi jika check-in terlambat >15 menit |
-| **Bonus Manual (Custom)** | Ditambahkan manual oleh admin keuangan (misal: bonus acara khusus) |
-| **Potongan Manual (Custom)** | Dipotong manual oleh admin (misal: pinjaman, potongan lain) |
+| **Honor Instruktur Utama** | Jumlah sesi selesai × Tarif Dasar sesuai Level Instruktur |
+| **Honor Asisten Instruktur** | Flat rate **Rp 100.000** per sesi mengajar |
+| **Bonus Materi/Produk** | Sesuai kepakaran kategori program (Scratch, Python, Micro:bit, Robotik) |
+| **Uang Transport Utama** | Disesuaikan dengan zona sekolah mitra |
+| **Denda Keterlambatan** | −Rp 25.000 per sesi jika check-in GPS terlambat >15 menit |
+| **Pajak Penghasilan (2.5%)** | Dipotong otomatis: $\text{round}(\text{Penerimaan Kotor} \times 0.025)$ |
+| **Gaji Bersih (Netto)** | $\text{round}(\text{Penerimaan Kotor} \times 0.975) - \text{Total Denda Check-in}$ |
 
-**Tabel Tarif Level Instruktur**:
-| Level | Keterangan |
-|-------|-----------|
-| Junior | Instruktur baru, ≤1 tahun pengalaman |
-| Madya | Instruktur menengah, 1–2 tahun |
-| Senior | Instruktur berpengalaman, 2–4 tahun |
-| Expert | Instruktur ahli, >4 tahun + sertifikasi |
-| Master Trainer | Trainer tier tertinggi, dapat melatih instruktur lain |
+### 10.5 Review, Override & Finalisasi Payroll
 
-### 10.3 Review, Override & Finalisasi Payroll
-
-1. **Review Detail**: Pada halaman detail batch, admin dapat melihat rincian per instruktur: total sesi, tarif dasar, bonus, denda, dan total bersih.
+1. **Review Detail**: Pada halaman detail batch, admin dapat melihat rincian per instruktur: total sesi, tarif dasar, honor asisten, bonus, denda, dan total bersih.
 2. **Override Sesi**: Admin dapat mengubah nominal tarif per sesi tertentu jika ada kondisi khusus (misal: sesi pengganti, tarif negosiasi khusus).
-3. **Tambah Catatan**: Setiap penyesuaian dilengkapi catatan yang tersimpan sebagai audit trail.
-4. Ubah status batch ke **Processed** → semua data sesi **dikunci** (tidak dapat diubah).
-5. Lakukan verifikasi akhir dan pembayaran → ubah status ke **Paid** → pencatatan lunas selesai.
+3. Ubah status batch ke **Processed** → semua data sesi **dikunci** (tidak dapat diubah).
+4. Unduh **Excel Transfer Bank (`.xlsx`)**, **Jurnal Akuntansi**, atau **CSV Mass Transfer** (BCA/Mandiri/BNI).
+5. Lakukan pembayaran via perbankan → ubah status ke **Paid** → pencatatan lunas selesai.
 
-### 10.4 Portal Slip Gaji Instruktur
+### 10.6 Portal Slip Gaji Instruktur
 
 Setelah status batch berubah menjadi **Paid**:
 1. Instruktur login → buka menu **Slip Gaji Saya**.
-2. Dapat melihat struk rinci bulan tersebut:
-   - Total sesi mengajar.
-   - Rincian tarif per sesi.
-   - Bonus kepakaran program.
-   - Denda keterlambatan (jika ada).
-   - Penyesuaian manual dari admin.
-   - **Total Bersih** yang dibayarkan.
-3. Instruktur dapat mengunduh slip gaji dalam format PDF.
+2. Instruktur dapat melihat rincian transparan komponen honor dan mengunduh slip gaji resmi dalam format PDF.
 
 ---
 
@@ -574,27 +580,31 @@ Jika siswa perlu dipindahkan ke kelas/rombel lain:
 ## MATRIKS HAK AKSES PER ROLE (QUICK REFERENCE)
 ## ══════════════════════════════════════════════
 
-| Fitur / Aksi | Webmaster | Admin Sistem | Admin Ops | Sales | Instruktur |
-|---|:---:|:---:|:---:|:---:|:---:|
-| Verifikasi Instruktur | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Kelola User / Role | ✅ | ✅ (terbatas) | ❌ | ❌ | ❌ |
-| Buat Program Ekskul | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Approve Program | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Import Siswa (Excel) | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Tambah Siswa Saat Laporan | ✅ | ✅ | ✅ | ❌ | ✅ (Quick Add) |
-| Generate Jadwal Sesi | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Edit / Batalkan Sesi | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Lihat Semua Jadwal | ✅ | ✅ | ✅ | ❌ | ❌ (Milik sendiri) |
-| Buat Laporan Mengajar | ✅ | ✅ | ✅ | ❌ | ✅ (Milik sendiri) |
-| Lihat Semua Laporan | ✅ | ✅ | ✅ | ❌ | ❌ (Milik sendiri) |
-| Rekap Absensi / Invoice | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Input Nilai Siswa | ✅ | ✅ | ✅ | ❌ | ✅ (Milik sendiri) |
-| Generate Rapor & Sertifikat | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Kelola Master Tarif Payroll | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Proses Batch Payroll | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Lihat Slip Gaji Sendiri | ✅ | ✅ | ❌ | ❌ | ✅ |
-| Kirim Broadcast WA Massal | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Kirim Reminder Manual | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Fitur / Aksi | Webmaster | Admin Sistem | Sales | Instruktur |
+|---|:---:|:---:|:---:|:---:|
+| Verifikasi Instruktur | ✅ | ✅ | ❌ | ❌ |
+| Kelola User / Role | ✅ | ✅ (terbatas) | ❌ | ❌ |
+| Buat Program Ekskul | ✅ | ✅ | ✅ | ❌ |
+| Approve Program | ✅ | ✅ | ❌ | ❌ |
+| Import Siswa (Excel) | ✅ | ✅ | ❌ | ❌ |
+| Tambah Siswa Saat Laporan | ✅ | ✅ | ❌ | ✅ (Quick Add) |
+| Generate Jadwal Sesi | ✅ | ✅ | ❌ | ❌ |
+| Edit / Reschedule Sesi | ✅ | ✅ | ❌ | ❌ |
+| Lihat Semua Jadwal | ✅ | ✅ | ❌ | ❌ (Milik sendiri) |
+| Buat Laporan Mengajar | ✅ | ✅ | ❌ | ✅ (Milik sendiri) |
+| Lihat Semua Laporan | ✅ | ✅ | ❌ | ❌ (Milik sendiri) |
+| Evaluasi Antrean Siap Tagih | ✅ | ✅ | ❌ | ❌ |
+| Generate Draft Invoice | ✅ | ✅ | ❌ | ❌ |
+| Gate 1: Approval Operasional | ✅ | ✅ (PIC Dinda & Novandi) | ❌ | ❌ |
+| Gate 2: Approval Akunting | ✅ | ✅ (PIC Rendy / #290) | ❌ | ❌ |
+| Download PDF Invoice Resmi | ✅ | ✅ | ❌ | ❌ |
+| Input Nilai Siswa | ✅ | ✅ | ❌ | ✅ (Milik sendiri) |
+| Generate Rapor & Sertifikat | ✅ | ✅ | ❌ | ❌ |
+| Kelola Master Tarif Payroll | ✅ | ✅ | ❌ | ❌ |
+| Proses Batch Payroll | ✅ | ✅ | ❌ | ❌ |
+| Lihat Slip Gaji Sendiri | ✅ | ✅ | ❌ | ✅ |
+| Kirim Broadcast WA Massal | ✅ | ✅ | ❌ | ❌ |
+| Kirim Reminder Manual | ✅ | ✅ | ❌ | ❌ |
 
 ---
 
@@ -615,5 +625,5 @@ Jika siswa perlu dipindahkan ke kelas/rombel lain:
 
 ---
 
-*Dokumen ini diperbarui secara berkala mengikuti perkembangan fitur sistem Erlass. Versi terakhir: **Juni 2026**.*  
+*Dokumen ini diperbarui secara berkala mengikuti perkembangan fitur sistem Erlass. Versi terakhir: **Oktober 2026 (v2.9.31)**.*  
 *Lihat juga: [SOP_TUPOKSI.md](./SOP_TUPOKSI.md) | [ROLE_ACCESS_MATRIX.md](./ROLE_ACCESS_MATRIX.md) | [USER_GUIDE.md](./USER_GUIDE.md)*

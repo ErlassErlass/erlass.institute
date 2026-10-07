@@ -60,6 +60,9 @@
                                 <td class="font-monospace text-muted ps-4">{{ $item->kodlan }}</td>
                                 <td>
                                     <div class="fw-bold text-dark">{{ $item->namasekolah }}</div>
+                                    @if ($item->jarak_km !== null)
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 0.75rem;"><i class="bi bi-geo-alt me-1"></i>{{ number_format($item->jarak_km, 1) }} km</span>
+                                    @endif
                                 </td>
                                 <td><span class="badge bg-light text-dark border">{{ $item->provinsi }}</span></td>
                                 <td>{{ $item->kec }}</td>
@@ -105,6 +108,9 @@
                                 <div>
                                     <h6 class="fw-bold mb-1 text-primary">{{ $item->namasekolah }}</h6>
                                     <span class="badge bg-light text-dark border font-monospace">{{ $item->kodlan }}</span>
+                                    @if ($item->jarak_km !== null)
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-1"><i class="bi bi-geo-alt me-1"></i>{{ number_format($item->jarak_km, 1) }} km</span>
+                                    @endif
                                 </div>
                             </div>
                             

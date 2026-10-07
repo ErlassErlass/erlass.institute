@@ -6,7 +6,9 @@ use App\Models\Absensi;
 use App\Models\Ekstrakurikuler;
 use App\Models\EkstrakurikulerRombel;
 use App\Models\EkstrakurikulerSession;
+use App\Models\InvoiceApproval;
 use App\Models\LaporanMengajar;
+use App\Models\Sekolah;
 use App\Models\User;
 use App\Services\PunctualityKpiService;
 use Carbon\Carbon;
@@ -32,6 +34,8 @@ class GoogleSheetsService
     const TAB_PROFIL_INSTRUKTUR = 'Profil_Instruktur';
     const TAB_DATA_SISWA = 'Data_Siswa';
     const TAB_MONITORING_BELUM_LAPORAN = 'Monitoring_Belum_Laporan';
+    const TAB_INVOICE = 'Rekap_Invoice';
+    const TAB_INVOICE_MARKETING = 'Detail_Invoice_Marketing';
 
     public function __construct()
     {
@@ -182,6 +186,8 @@ class GoogleSheetsService
                 self::TAB_PROFIL_INSTRUKTUR,
                 self::TAB_DATA_SISWA,
                 self::TAB_MONITORING_BELUM_LAPORAN,
+                self::TAB_INVOICE,
+                self::TAB_INVOICE_MARKETING,
             ];
 
             $requests = [];
@@ -318,6 +324,48 @@ class GoogleSheetsService
                 ];
             }
 
+            // Dapatkan sheetId untuk TAB_INVOICE agar kolom KODLAN (Kolom G) dikunci sebagai Plain Text
+            $invSheet = collect($meta['sheets'] ?? [])->firstWhere('properties.title', self::TAB_INVOICE);
+            if ($invSheet && isset($invSheet['properties']['sheetId'])) {
+                $requests[] = [
+                    'repeatCell' => [
+                        'range' => [
+                            'sheetId' => $invSheet['properties']['sheetId'],
+                            'startColumnIndex' => 6, // Kolom G (KODLAN)
+                            'endColumnIndex' => 7,
+                            'startRowIndex' => 1,
+                        ],
+                        'cell' => [
+                            'userEnteredFormat' => [
+                                'numberFormat' => ['type' => 'TEXT'],
+                            ],
+                        ],
+                        'fields' => 'userEnteredFormat.numberFormat',
+                    ],
+                ];
+            }
+
+            // Dapatkan sheetId untuk TAB_INVOICE_MARKETING agar kolom KODLAN (Kolom F) dikunci sebagai Plain Text
+            $invMktSheet = collect($meta['sheets'] ?? [])->firstWhere('properties.title', self::TAB_INVOICE_MARKETING);
+            if ($invMktSheet && isset($invMktSheet['properties']['sheetId'])) {
+                $requests[] = [
+                    'repeatCell' => [
+                        'range' => [
+                            'sheetId' => $invMktSheet['properties']['sheetId'],
+                            'startColumnIndex' => 5, // Kolom F (KODLAN)
+                            'endColumnIndex' => 6,
+                            'startRowIndex' => 1,
+                        ],
+                        'cell' => [
+                            'userEnteredFormat' => [
+                                'numberFormat' => ['type' => 'TEXT'],
+                            ],
+                        ],
+                        'fields' => 'userEnteredFormat.numberFormat',
+                    ],
+                ];
+            }
+
             if (!empty($requests)) {
                 $batchResponse = Http::withToken($token)->timeout(8)->post("https://sheets.googleapis.com/v4/spreadsheets/{$this->spreadsheetId}:batchUpdate", [
                     'requests' => $requests,
@@ -354,6 +402,8 @@ class GoogleSheetsService
             self::TAB_PROFIL_INSTRUKTUR => $this->syncTabProfilInstruktur($token),
             self::TAB_DATA_SISWA => $this->syncTabDataSiswa($token),
             self::TAB_MONITORING_BELUM_LAPORAN => $this->syncTabMonitoringBelumLaporan($token),
+            self::TAB_INVOICE => $this->syncTabInvoice($token),
+            self::TAB_INVOICE_MARKETING => $this->syncTabInvoiceMarketing($token),
         ];
 
         Cache::put('google_sheets_last_sync', now()->toDateTimeString(), 86400 * 30);
@@ -689,24 +739,48 @@ class GoogleSheetsService
     }
 
     /**
-     * Tab 7: Daftar Program Ekskul Lengkap (Portofolio Program Seluruh Sekolah)
+     * Tab 7: Daftar Program Ekskul Lengkap (Portofolio Program Seluruh Sekolah Dipisah per Rombel)
      */
     public function syncTabProgramEkskul(?string $token = null): array
     {
         $headers = [
-            'ID Program', 'Kode Sekolah', 'Nama Sekolah', 'Jenjang', 'Kota / Wilayah', 
-            'Jarak dari POP (KM)', 'Program Ekskul', 'Status Program', 'Sales Representative', 
-            'Kepala Sekolah', 'Penanggung Jawab (PIC)', 'No Telepon / HP PIC', 'Tanggal Mulai', 
-            'Tanggal Selesai', 'Frekuensi', 'Total Rombel', 'Rincian Rombel & Jadwal', 
-            'Instruktur Bertugas', 'Target Kuota Siswa', 'Siswa Aktif Terdaftar', 
-            'Target Pertemuan (per Rombel)', 'Total Sesi Terjadwal', 'Pertemuan Selesai', 
-            'Sisa Pertemuan', 'Progres Belajar (%)', 'Konfigurasi Alat / Kit', 
-            'Alamat Lengkap Sekolah', 'Link Detail Portal'
+            'ID Program', 
+            'ID Rombel',
+            'Kode Sekolah', 
+            'Nama Sekolah', 
+            'Jenjang', 
+            'Kota / Wilayah', 
+            'Jarak dari POP (KM)', 
+            'Program Ekskul', 
+            'Status Program', 
+            'Nama Rombel', 
+            'Hari & Jam Belajar', 
+            'Instruktur Utama', 
+            'Asisten Instruktur', 
+            'Status Rombel',
+            'Target Kuota Siswa', 
+            'Siswa Aktif Terdaftar', 
+            'Target Pertemuan', 
+            'Total Sesi Terjadwal', 
+            'Pertemuan Selesai', 
+            'Sisa Pertemuan', 
+            'Progres Belajar (%)', 
+            'Total Rombel di Program',
+            'Sales Representative', 
+            'Kepala Sekolah', 
+            'Penanggung Jawab (PIC)', 
+            'No Telepon / HP PIC', 
+            'Tanggal Mulai', 
+            'Tanggal Selesai', 
+            'Frekuensi', 
+            'Konfigurasi Alat / Kit', 
+            'Alamat Lengkap Sekolah', 
+            'Link Detail Portal'
         ];
 
         $programs = Ekstrakurikuler::with([
             'sekolah',
-            'sales',
+            'sales.user',
             'rombels.instruktur',
             'rombels.asisten',
             'rombels.activeEnrollments',
@@ -722,78 +796,122 @@ class GoogleSheetsService
         foreach ($programs as $p) {
             $sekolah = $p->sekolah;
             $sales = $p->sales;
-
-            $rombelDetails = [];
-            $instructors = [];
-            $totalCompleted = 0;
-            $totalSessions = 0;
-            $totalActiveStudents = 0;
-
-            foreach ($p->rombels as $r) {
-                $days = $r->hari_belajar ? ucfirst($r->hari_belajar) : '';
-                $times = ($r->jam_mulai ? Carbon::parse($r->jam_mulai)->format('H:i') : '') 
-                    . ($r->jam_selesai ? '-' . Carbon::parse($r->jam_selesai)->format('H:i') : '');
-                $scheduleStr = trim("{$days} {$times}");
-                $rombelDetails[] = $r->nama_rombel . ($scheduleStr ? " ({$scheduleStr})" : '');
-
-                if ($r->instruktur) {
-                    $instructors[] = $r->instruktur->nama_lengkap ?? $r->instruktur->name;
-                }
-                if ($r->asisten) {
-                    $instructors[] = ($r->asisten->nama_lengkap ?? $r->asisten->name) . ' (Asst)';
-                }
-
-                $totalSessions += $r->sessions->count();
-                $totalCompleted += $r->sessions->where('status', 'selesai')->count();
-                $totalActiveStudents += $r->activeEnrollments->count();
-            }
-
-            $rombelSummary = !empty($rombelDetails) ? implode('; ', $rombelDetails) : '-';
-            $instructorSummary = !empty($instructors) ? implode(', ', array_unique($instructors)) : '-';
-
-            $targetPertemuan = $p->total_pertemuan ?? 16;
-            $expectedTotal = $totalSessions > 0 ? $totalSessions : ($targetPertemuan * max(1, $p->rombels->count()));
-            $sisaPertemuan = max(0, $expectedTotal - $totalCompleted);
-            $progressPersen = $expectedTotal > 0 ? round(($totalCompleted / $expectedTotal) * 100, 1) . '%' : '0%';
-
+            $jarakKm = $p->jarak_km !== null ? (float) $p->jarak_km : '-';
+            $portalUrl = "{$baseUrl}/ekstrakurikuler/{$p->id}";
+            $salesName = $sales?->nama_salesman ?? ($sales?->user?->nama_lengkap ?? '-');
+            $kepalaSekolah = $p->kepala_sekolah ?? '-';
+            $pic = $p->penanggung_jawab ?? '-';
+            $noTelp = (!empty($p->no_telepon) && $p->no_telepon !== '-') ? "'" . trim($p->no_telepon) : '-';
+            $tglMulai = $p->tanggal_mulai ? Carbon::parse($p->tanggal_mulai)->format('d/m/Y') : '-';
+            $tglSelesai = $p->tanggal_selesai ? Carbon::parse($p->tanggal_selesai)->format('d/m/Y') : '-';
+            $frekuensi = $p->frekuensi_label ?? ($p->frekuensi ? ucfirst($p->frekuensi) : '-');
             $alatStr = $p->jenis_alat ?: 'Standar';
             if ($p->jumlah_siswa_per_alat) {
                 $alatStr .= " (1 alat / {$p->jumlah_siswa_per_alat} siswa)";
             }
+            $alamat = $p->alamat_lengkap ?? $sekolah?->alamat ?? '-';
+            $totalRombel = $p->rombels->count();
 
-            $jarakKm = $p->jarak_km !== null ? (float) $p->jarak_km : '-';
-            $portalUrl = "{$baseUrl}/ekstrakurikuler/{$p->id}";
+            // Jika program belum memiliki rombel, tetap tampilkan 1 baris ringkasan program
+            if ($p->rombels->isEmpty()) {
+                $targetPertemuan = $p->total_pertemuan ?? 16;
+                $rows[] = [
+                    $p->id,
+                    '-',
+                    $sekolah?->kodlan ?? $p->sekolah_kodlan ?? '-',
+                    $sekolah?->namasekolah ?? 'N/A',
+                    $sekolah?->jenjang ?? '-',
+                    $sekolah?->kota ?? '-',
+                    $jarakKm,
+                    $p->nama_ekskul ?: ($p->kategori_program ?? '-'),
+                    ucfirst($p->status ?? 'aktif'),
+                    'Belum Ada Rombel',
+                    '-',
+                    'Belum Ditugaskan',
+                    '-',
+                    '-',
+                    $p->total_siswa ?? 0,
+                    0,
+                    $targetPertemuan,
+                    0,
+                    0,
+                    $targetPertemuan,
+                    '0%',
+                    0,
+                    $salesName,
+                    $kepalaSekolah,
+                    $pic,
+                    $noTelp,
+                    $tglMulai,
+                    $tglSelesai,
+                    $frekuensi,
+                    $alatStr,
+                    $alamat,
+                    $portalUrl,
+                ];
+                continue;
+            }
 
-            $rows[] = [
-                $p->id,
-                $sekolah?->kodlan ?? $p->sekolah_kodlan ?? '-',
-                $sekolah?->namasekolah ?? 'N/A',
-                $sekolah?->jenjang ?? '-',
-                $sekolah?->kota ?? '-',
-                $jarakKm,
-                $p->nama_ekskul ?: ($p->kategori_program ?? '-'),
-                ucfirst($p->status ?? 'aktif'),
-                $sales?->nama_salesman ?? ($sales?->user?->nama_lengkap ?? '-'),
-                $p->kepala_sekolah ?? '-',
-                $p->penanggung_jawab ?? '-',
-                (!empty($p->no_telepon) && $p->no_telepon !== '-') ? "'" . trim($p->no_telepon) : '-',
-                $p->tanggal_mulai ? Carbon::parse($p->tanggal_mulai)->format('d/m/Y') : '-',
-                $p->tanggal_selesai ? Carbon::parse($p->tanggal_selesai)->format('d/m/Y') : '-',
-                $p->frekuensi_label ?? ($p->frekuensi ? ucfirst($p->frekuensi) : '-'),
-                $p->rombels->count(),
-                $rombelSummary,
-                $instructorSummary,
-                $p->total_siswa ?? 0,
-                $totalActiveStudents,
-                $targetPertemuan,
-                $totalSessions,
-                $totalCompleted,
-                $sisaPertemuan,
-                $progressPersen,
-                $alatStr,
-                $p->alamat_lengkap ?? $sekolah?->alamat ?? '-',
-                $portalUrl,
-            ];
+            // Jika program memiliki rombel, tampilkan masing-masing rombel di baris terpisah
+            foreach ($p->rombels as $r) {
+                $days = $r->hari_belajar ? ucfirst($r->hari_belajar) : ($r->hari ? ucfirst($r->hari) : '');
+                $times = ($r->jam_mulai ? Carbon::parse($r->jam_mulai)->format('H:i') : '') 
+                    . ($r->jam_selesai ? '-' . Carbon::parse($r->jam_selesai)->format('H:i') : '');
+                $scheduleStr = trim("{$days} {$times}") ?: '-';
+
+                $instrukturUtama = $r->instruktur?->nama_lengkap ?? $r->instruktur?->name ?? 'Belum Ditugaskan';
+                $asisten = $r->asisten?->nama_lengkap ?? $r->asisten?->name ?? '-';
+                $statusRombel = ucfirst($r->status ?? 'berlangsung');
+
+                $targetKuota = $r->jumlah_siswa > 0 ? $r->jumlah_siswa : ($p->total_siswa ?? 0);
+                $siswaAktif = $r->activeEnrollments->count();
+
+                $targetPertemuan = $r->total_pertemuan ?: ($p->total_pertemuan ?? 16);
+                $totalSessions = $r->sessions->count();
+                $completedSessions = $r->sessions->where('status', 'selesai')->count();
+                $expectedTotal = $totalSessions > 0 ? $totalSessions : $targetPertemuan;
+                $sisaPertemuan = max(0, $expectedTotal - $completedSessions);
+                $progressPersen = $expectedTotal > 0 ? round(($completedSessions / $expectedTotal) * 100, 1) . '%' : '0%';
+
+                $rombelTglMulai = $r->tanggal_mulai ? Carbon::parse($r->tanggal_mulai)->format('d/m/Y') : $tglMulai;
+                $rombelTglSelesai = $r->tanggal_selesai ? Carbon::parse($r->tanggal_selesai)->format('d/m/Y') : $tglSelesai;
+                $rombelFrekuensi = $r->frekuensi ? ucfirst($r->frekuensi) : $frekuensi;
+
+                $rows[] = [
+                    $p->id,
+                    $r->id,
+                    $sekolah?->kodlan ?? $p->sekolah_kodlan ?? '-',
+                    $sekolah?->namasekolah ?? 'N/A',
+                    $sekolah?->jenjang ?? '-',
+                    $sekolah?->kota ?? '-',
+                    $jarakKm,
+                    $p->nama_ekskul ?: ($p->kategori_program ?? '-'),
+                    ucfirst($p->status ?? 'aktif'),
+                    $r->nama_rombel ?? "Rombel {$r->nomor_rombel}",
+                    $scheduleStr,
+                    $instrukturUtama,
+                    $asisten,
+                    $statusRombel,
+                    $targetKuota,
+                    $siswaAktif,
+                    $targetPertemuan,
+                    $totalSessions,
+                    $completedSessions,
+                    $sisaPertemuan,
+                    $progressPersen,
+                    $totalRombel,
+                    $salesName,
+                    $kepalaSekolah,
+                    $pic,
+                    $noTelp,
+                    $rombelTglMulai,
+                    $rombelTglSelesai,
+                    $rombelFrekuensi,
+                    $alatStr,
+                    $alamat,
+                    $portalUrl,
+                ];
+            }
         }
 
         return $this->writeTab(self::TAB_PROGRAM_EKSKUL, $rows, $token);
@@ -1265,6 +1383,373 @@ class GoogleSheetsService
     }
 
     /**
+     * Tab 12: Rekap Invoice & Penagihan
+     */
+    public function syncTabInvoice(?string $token = null): array
+    {
+        $headers = [
+            'No',
+            'ID Invoice',
+            'Nomor Invoice',
+            'Status Dokumen',
+            'Posisi Meja Approval',
+            'Durasi Menggantung',
+            'KODLAN',
+            'Nama Sekolah Mitra',
+            'Program Ekskul',
+            'Skema Tagihan',
+            'Periode Tagihan',
+            'Tahun Ajaran',
+            'Total Rombel',
+            'Rincian Rombel & Siswa',
+            'Total Siswa Billable',
+            'Status Koreksi',
+            'Jumlah Sesi',
+            'Gate 1: Admin Produksi (Verifikasi)',
+            'Gate 1: Staf Pemeriksa',
+            'Gate 1: Tgl Verifikasi',
+            'Gate 1: Konfirmasi PIC Sekolah',
+            'Gate 1: Nama PIC Dihubungi',
+            'Gate 2: Staff Akunting (Approval)',
+            'Gate 2: Staf Akunting',
+            'Gate 2: Tgl Approval',
+            'Gate 2: Status Cetak Dokumen',
+            'Dibuat Oleh',
+            'Tanggal Dibuat',
+            'Terakhir Diperbarui',
+            'Link Invoice Aplikasi',
+        ];
+
+        $invoices = InvoiceApproval::with([
+            'sekolah',
+            'items.rombel.ekstrakurikuler',
+            'rombel.ekstrakurikuler',
+            'operasionalUser',
+            'akuntingUser',
+            'createdByUser',
+        ])
+        ->orderBy('id', 'desc')
+        ->get();
+
+        $rows = [$headers];
+        $no = 1;
+
+        foreach ($invoices as $inv) {
+            $sekolah = $inv->sekolah ?? $inv->rombel?->ekstrakurikuler?->sekolah;
+            $namaSekolah = $sekolah?->namasekolah ?? $inv->sekolah_kodlan ?? '-';
+            $kodlan = $sekolah?->kodlan ?? $inv->sekolah_kodlan ?? '-';
+
+            // Posisi Meja Approval & Status Gantung
+            $posisiMeja = match($inv->status) {
+                'pending_operasional' => 'Menunggu Gate 1 (Admin Produksi)',
+                'pending_akunting'    => 'Menunggu Gate 2 (Staff Akunting)',
+                'approved'            => 'Disetujui Resmi (Faktur INV)',
+                'rejected'            => 'Ditolak',
+                'draft'               => 'Draft Baru',
+                default               => ucfirst($inv->status),
+            };
+
+            // Aging / Hari Menggantung
+            $durasiGantung = '-';
+            if (in_array($inv->status, ['draft', 'pending_operasional', 'pending_akunting'])) {
+                $days = (int) ($inv->created_at ? $inv->created_at->diffInDays(now()) : 0);
+                $durasiGantung = $days === 0 ? 'Hari Ini (< 24 jam)' : "{$days} Hari Menggantung";
+            } elseif ($inv->status === 'approved') {
+                $durasiGantung = 'Selesai (Approved)';
+            }
+
+            // Rincian Rombel
+            if ($inv->items && $inv->items->isNotEmpty()) {
+                $rincianRombel = $inv->items->map(function ($it) {
+                    $rNama = $it->rombel?->nama_rombel ?? 'Rombel';
+                    return "{$rNama}: {$it->billable_efektif} siswa";
+                })->implode(' | ');
+            } else {
+                $rincianRombel = $inv->rombel?->nama_rombel ?? 'Rombel 1';
+            }
+
+            $skemaLabel = match($inv->skema_tagihan) {
+                'bulanan'         => 'Bulanan',
+                'semester'        => 'Semesteran',
+                'tahunan'         => 'Tahunan',
+                'per_4_pertemuan' => 'Per 4 Pertemuan',
+                default           => ucfirst(str_replace('_', ' ', $inv->skema_tagihan ?? '-')),
+            };
+
+            $statusKoreksi = $inv->hasKoreksi() 
+                ? 'Ada Koreksi Manual' 
+                : 'Sesuai Presensi Sistem';
+
+            $rows[] = [
+                $no++,
+                $inv->id,
+                $inv->nomor_invoice ?? '-',
+                strtoupper($inv->status),
+                $posisiMeja,
+                $durasiGantung,
+                "'" . trim($kodlan),
+                $namaSekolah,
+                $inv->program_nama,
+                $skemaLabel,
+                $inv->periode_label,
+                $inv->tahun_ajaran ?? '-',
+                $inv->total_rombel ?? ($inv->items ? $inv->items->count() : 1),
+                $rincianRombel,
+                $inv->billable_efektif,
+                $statusKoreksi,
+                $inv->jumlah_sesi ?? '-',
+                ucfirst($inv->operasional_status ?? 'pending'),
+                $inv->operasionalUser?->nama_lengkap ?? $inv->operasionalUser?->name ?? ($inv->operasional_status === 'approved' ? 'Admin' : '-'),
+                $inv->operasional_approved_at ? $inv->operasional_approved_at->format('d/m/Y H:i') : '-',
+                $inv->is_konfirmasi_pic ? 'Sudah Konfirmasi' : 'Belum Konfirmasi',
+                $inv->pic_konfirmasi_nama ?? '-',
+                ucfirst($inv->akunting_status ?? 'pending'),
+                $inv->akuntingUser?->nama_lengkap ?? $inv->akuntingUser?->name ?? ($inv->akunting_status === 'approved' ? 'Akunting' : '-'),
+                $inv->akunting_approved_at ? $inv->akunting_approved_at->format('d/m/Y H:i') : '-',
+                $inv->is_invoice_tercetak ? 'Sudah Tercetak' : 'Belum Tercetak',
+                $inv->createdByUser?->nama_lengkap ?? $inv->createdByUser?->name ?? 'Admin',
+                $inv->created_at ? $inv->created_at->format('d/m/Y H:i') : '-',
+                $inv->updated_at ? $inv->updated_at->format('d/m/Y H:i') : '-',
+                url("/invoice/{$inv->id}"),
+            ];
+        }
+
+        return $this->writeTab(self::TAB_INVOICE, $rows, $token);
+    }
+
+    /**
+     * Tab 13: Detail Invoice Marketing (Pivot Ready)
+     * Data granular per item rombel/program untuk Pivot Table Marketing:
+     * Group Leader, Sales, Kode Sales, Area, Sekolah, Billable Efektif murni angka, Aging Hari murni angka, status verifikasi.
+     */
+    public function syncTabInvoiceMarketing(?string $token = null): array
+    {
+        $headers = [
+            'No',
+            'Group Leader',
+            'Nama Sales',
+            'Kode Sales',
+            'Area Sales',
+            'KODLAN',
+            'Nama Sekolah Mitra',
+            'Program Ekskul',
+            'Nama Rombel',
+            'Instruktur Rombel',
+            'No. Invoice',
+            'Tipe Invoice',
+            'Periode Tagihan',
+            'Bulan Tagihan',
+            'Tahun Tagihan',
+            'Tahun Ajaran',
+            'Skema Tagihan',
+            'Siswa Billable Efektif',
+            'Siswa Terdaftar (Sistem)',
+            'Siswa Gratis',
+            'Koreksi Siswa',
+            'Status Koreksi',
+            'Catatan Koreksi',
+            'Jumlah Sesi Pertemuan',
+            'Sesi Dari',
+            'Sesi Sampai',
+            'Status Invoice',
+            'Posisi Meja Approval',
+            'Aging Hari',
+            'Status Konfirmasi PIC',
+            'Nama PIC Sekolah',
+            'Jabatan PIC Sekolah',
+            'Admin Produksi (Gate 1)',
+            'Waktu Gate 1',
+            'Staff Akunting (Gate 2)',
+            'Waktu Gate 2',
+            'Status Cetak Fisik',
+            'Pembuat Invoice',
+            'Tanggal Dibuat',
+            'Waktu Dibuat',
+            'Link Invoice Web',
+        ];
+
+        $invoices = InvoiceApproval::with([
+            'sekolah',
+            'items.rombel.ekstrakurikuler.sales',
+            'items.rombel.instruktur',
+            'rombel.ekstrakurikuler.sales',
+            'rombel.instruktur',
+            'ekstrakurikuler.sales',
+            'operasionalUser',
+            'akuntingUser',
+            'createdByUser',
+        ])->orderBy('created_at', 'desc')->get();
+
+        $rows = [$headers];
+        $no = 1;
+
+        foreach ($invoices as $inv) {
+            $sekolah = $inv->sekolah ?? $inv->rombel?->ekstrakurikuler?->sekolah;
+            $namaSekolah = $sekolah?->namasekolah ?? $inv->sekolah_kodlan ?? '-';
+            $kodlan = $sekolah?->kodlan ?? $inv->sekolah_kodlan ?? '-';
+
+            $isOfficial = !str_starts_with($inv->nomor_invoice ?? '', 'DRAFT');
+            $tipeInvoice = $isOfficial ? 'Resmi (INV)' : 'Draft (DRAFT)';
+
+            // Status label
+            $statusLabel = $inv->statusLabel();
+
+            // Posisi Meja Approval
+            $posisiMeja = match($inv->status) {
+                'pending_operasional' => ($inv->akunting_status === 'rejected' ? 'Gate 1 (Revisi Produksi)' : 'Gate 1 (Admin Produksi)'),
+                'pending_akunting'    => 'Gate 2 (Staff Akunting)',
+                'approved'            => 'Disetujui Resmi (Faktur INV)',
+                'rejected'            => 'Ditolak',
+                'draft'               => 'Draft Baru',
+                default               => ucfirst($inv->status),
+            };
+
+            // Aging hari murni angka untuk Pivot
+            $agingHari = 0;
+            if (in_array($inv->status, ['draft', 'pending_operasional', 'pending_akunting'])) {
+                $agingHari = (int) ($inv->created_at ? $inv->created_at->diffInDays(now()) : 0);
+            }
+
+            $skemaLabel = match($inv->skema_tagihan) {
+                'bulanan'          => 'Bulanan',
+                'semester'         => 'Semesteran',
+                'tahunan'          => 'Tahunan',
+                'per_4_pertemuan'  => 'Per 4 Pertemuan',
+                'csr_reguler_soga' => 'CSR Reguler SOGA',
+                default            => ucfirst(str_replace('_', ' ', $inv->skema_tagihan ?? '-')),
+            };
+
+            // Periode bulan untuk pivot filter
+            $bulanTagihan = $inv->created_at ? $inv->created_at->format('Y-m') : '-';
+            $tahunTagihan = $inv->created_at ? (int) $inv->created_at->format('Y') : 0;
+            $tglDibuat = $inv->created_at ? $inv->created_at->format('Y-m-d') : '-';
+            $waktuDibuat = $inv->created_at ? $inv->created_at->format('d/m/Y H:i') : '-';
+
+            $items = $inv->items;
+            if ($items->isEmpty()) {
+                // Fallback single rombel invoice
+                $sales = $inv->rombel?->ekstrakurikuler?->sales 
+                    ?? $inv->ekstrakurikuler?->sales;
+
+                $instruktur = $inv->rombel?->instruktur?->nama_lengkap ?? $inv->rombel?->instruktur?->name ?? '-';
+
+                $billableEfektif = (int) $inv->billable_efektif;
+                $terdaftarSistem = (int) ($inv->jumlah_siswa_billable ?? 0);
+                $siswaGratis = (int) ($inv->jumlah_siswa_gratis ?? 0);
+                $koreksiSiswa = $inv->koreksi_siswa_billable !== null ? (int) $inv->koreksi_siswa_billable : 0;
+                $statusKoreksi = $inv->hasKoreksi() ? 'Ada Koreksi Manual' : 'Sesuai Presensi Sistem';
+
+                $rows[] = [
+                    $no++,
+                    $sales?->group_leader ?? '-',
+                    $sales?->nama_salesman ?? '-',
+                    $sales?->kode_salesman ?? '-',
+                    $sales?->area ?? '-',
+                    "'" . trim($kodlan),
+                    $namaSekolah,
+                    $inv->program_nama,
+                    $inv->rombel?->nama_rombel ?? 'Rombel 1',
+                    $instruktur,
+                    $inv->nomor_invoice ?? '-',
+                    $tipeInvoice,
+                    $inv->periode_label,
+                    $bulanTagihan,
+                    $tahunTagihan,
+                    $inv->tahun_ajaran ?? '-',
+                    $skemaLabel,
+                    $billableEfektif,
+                    $terdaftarSistem,
+                    $siswaGratis,
+                    $koreksiSiswa,
+                    $statusKoreksi,
+                    $inv->koreksi_catatan ?? '-',
+                    (int) ($inv->jumlah_sesi ?? 0),
+                    (int) ($inv->sesi_dari ?? 1),
+                    (int) ($inv->sesi_sampai ?? ($inv->jumlah_sesi ?? 1)),
+                    $statusLabel,
+                    $posisiMeja,
+                    $agingHari,
+                    $inv->is_konfirmasi_pic ? 'Sudah Konfirmasi' : 'Belum Konfirmasi',
+                    $inv->pic_nama ?: '-',
+                    $inv->pic_jabatan ?: '-',
+                    $inv->operasionalUser?->nama_lengkap ?? $inv->operasionalUser?->name ?? ($inv->operasional_status === 'approved' ? 'Admin' : '-'),
+                    $inv->operasional_approved_at ? $inv->operasional_approved_at->format('d/m/Y H:i') : '-',
+                    $inv->akuntingUser?->nama_lengkap ?? $inv->akuntingUser?->name ?? ($inv->akunting_status === 'approved' ? 'Akunting' : '-'),
+                    $inv->akunting_approved_at ? $inv->akunting_approved_at->format('d/m/Y H:i') : '-',
+                    $inv->is_invoice_tercetak ? 'Sudah Tercetak' : 'Belum Tercetak',
+                    $inv->createdByUser?->nama_lengkap ?? $inv->createdByUser?->name ?? 'Admin',
+                    $tglDibuat,
+                    $waktuDibuat,
+                    url("/invoice/{$inv->id}"),
+                ];
+            } else {
+                foreach ($items as $it) {
+                    $sales = $it->rombel?->ekstrakurikuler?->sales 
+                        ?? $inv->rombel?->ekstrakurikuler?->sales 
+                        ?? $inv->ekstrakurikuler?->sales;
+
+                    $instruktur = $it->rombel?->instruktur?->nama_lengkap ?? $it->rombel?->instruktur?->name ?? '-';
+
+                    $billableEfektif = (int) $it->billable_efektif;
+                    $terdaftarSistem = (int) ($it->jumlah_siswa_billable ?? 0);
+                    $siswaGratis = (int) ($it->jumlah_siswa_gratis ?? 0);
+                    $koreksiSiswa = $it->koreksi_siswa_billable !== null ? (int) $it->koreksi_siswa_billable : 0;
+                    $statusKoreksi = $it->hasKoreksi() ? 'Ada Koreksi Manual' : 'Sesuai Presensi Sistem';
+
+                    $programItem = $it->rombel?->ekstrakurikuler?->nama_ekskul 
+                        ?: ($it->rombel?->ekstrakurikuler?->kategori_program ?? $inv->program_nama);
+
+                    $rows[] = [
+                        $no++,
+                        $sales?->group_leader ?? '-',
+                        $sales?->nama_salesman ?? '-',
+                        $sales?->kode_salesman ?? '-',
+                        $sales?->area ?? '-',
+                        "'" . trim($kodlan),
+                        $namaSekolah,
+                        $programItem,
+                        $it->rombel?->nama_rombel ?? 'Rombel',
+                        $instruktur,
+                        $inv->nomor_invoice ?? '-',
+                        $tipeInvoice,
+                        $inv->periode_label,
+                        $bulanTagihan,
+                        $tahunTagihan,
+                        $inv->tahun_ajaran ?? '-',
+                        $skemaLabel,
+                        $billableEfektif,
+                        $terdaftarSistem,
+                        $siswaGratis,
+                        $koreksiSiswa,
+                        $statusKoreksi,
+                        $it->koreksi_catatan ?? $inv->koreksi_catatan ?? '-',
+                        (int) ($it->jumlah_sesi ?? $inv->jumlah_sesi ?? 0),
+                        (int) ($it->sesi_dari ?? $inv->sesi_dari ?? 1),
+                        (int) ($it->sesi_sampai ?? $inv->sesi_sampai ?? 1),
+                        $statusLabel,
+                        $posisiMeja,
+                        $agingHari,
+                        $inv->is_konfirmasi_pic ? 'Sudah Konfirmasi' : 'Belum Konfirmasi',
+                        $inv->pic_nama ?: '-',
+                        $inv->pic_jabatan ?: '-',
+                        $inv->operasionalUser?->nama_lengkap ?? $inv->operasionalUser?->name ?? ($inv->operasional_status === 'approved' ? 'Admin' : '-'),
+                        $inv->operasional_approved_at ? $inv->operasional_approved_at->format('d/m/Y H:i') : '-',
+                        $inv->akuntingUser?->nama_lengkap ?? $inv->akuntingUser?->name ?? ($inv->akunting_status === 'approved' ? 'Akunting' : '-'),
+                        $inv->akunting_approved_at ? $inv->akunting_approved_at->format('d/m/Y H:i') : '-',
+                        $inv->is_invoice_tercetak ? 'Sudah Tercetak' : 'Belum Tercetak',
+                        $inv->createdByUser?->nama_lengkap ?? $inv->createdByUser?->name ?? 'Admin',
+                        $tglDibuat,
+                        $waktuDibuat,
+                        url("/invoice/{$inv->id}"),
+                    ];
+                }
+            }
+        }
+
+        return $this->writeTab(self::TAB_INVOICE_MARKETING, $rows, $token);
+    }
+
+    /**
      * Append a single Laporan row in Realtime.
      */
     public function appendLaporanRealtime(LaporanMengajar $r): bool
@@ -1415,6 +1900,8 @@ class GoogleSheetsService
                 self::TAB_PROFIL_INSTRUKTUR => $this->syncTabProfilInstruktur(),
                 self::TAB_DATA_SISWA => $this->syncTabDataSiswa(),
                 self::TAB_MONITORING_BELUM_LAPORAN => $this->syncTabMonitoringBelumLaporan(),
+                self::TAB_INVOICE => $this->syncTabInvoice(),
+                self::TAB_INVOICE_MARKETING => $this->syncTabInvoiceMarketing(),
                 default => null,
             };
             $data = Cache::get("google_sheets_data_{$tabTitle}", []);
@@ -1432,7 +1919,7 @@ class GoogleSheetsService
     }
 
     /**
-     * Get array data of all 11 tabs.
+     * Get array data of all 12 tabs.
      */
     public function getAllTabsData(): array
     {
@@ -1447,6 +1934,7 @@ class GoogleSheetsService
         $this->syncTabProfilInstruktur();
         $this->syncTabDataSiswa();
         $this->syncTabMonitoringBelumLaporan();
+        $this->syncTabInvoice();
 
         return [
             self::TAB_KPI => Cache::get("google_sheets_data_" . self::TAB_KPI, []),
@@ -1460,6 +1948,8 @@ class GoogleSheetsService
             self::TAB_PROFIL_INSTRUKTUR => Cache::get("google_sheets_data_" . self::TAB_PROFIL_INSTRUKTUR, []),
             self::TAB_DATA_SISWA => Cache::get("google_sheets_data_" . self::TAB_DATA_SISWA, []),
             self::TAB_MONITORING_BELUM_LAPORAN => Cache::get("google_sheets_data_" . self::TAB_MONITORING_BELUM_LAPORAN, []),
+            self::TAB_INVOICE => Cache::get("google_sheets_data_" . self::TAB_INVOICE, []),
+            self::TAB_INVOICE_MARKETING => Cache::get("google_sheets_data_" . self::TAB_INVOICE_MARKETING, []),
         ];
     }
 }

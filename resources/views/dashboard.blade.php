@@ -407,11 +407,12 @@
     @endif
     @endif
 
-    <!-- Main Content Grid -->
-    <div class="row g-4">
-        <!-- Left/Main Column -->
+    @if(Auth::user()->role === 'instruktur')
+    {{-- ===== INSTRUKTUR LAYOUT (Jadwal & Sidebar) ===== --}}
+    <div class="row g-4 mb-4">
+        <!-- Left Column: Jadwal Hari Ini & Agenda Mendatang -->
         <div class="col-lg-8 col-12">
-            <!-- Today's Schedule (Visible to ALL roles) -->
+            <!-- Today's Schedule -->
             <div class="dashboard-card mb-4" id="tour-instructor-today">
                 <div class="dashboard-card-header p-3 px-4 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
@@ -424,7 +425,6 @@
                     @endif
                 </div>
                 <div class="card-body p-0">
-                    @if(Auth::user()->role === 'instruktur')
                     <div class="px-3 pt-3 pb-1">
                         <div class="alert alert-primary border-0 rounded-3 p-3 mb-2 d-flex align-items-start gap-3 shadow-xs" style="background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); border-left: 4px solid #2563EB !important;">
                             <div class="bg-primary text-white rounded-circle p-1.5 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
@@ -440,7 +440,6 @@
                             </div>
                         </div>
                     </div>
-                    @endif
                     @if(isset($todays_schedule) && $todays_schedule->count() > 0)
                         <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
                             <table class="table table-hover align-middle mb-0" style="font-size: 0.84rem;">
@@ -549,7 +548,6 @@
             </div>
 
             <!-- Upcoming Schedule (Instructors only) -->
-            @if(Auth::user()->role === 'instruktur')
             <div class="dashboard-card mb-4">
                 <div class="dashboard-card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold text-dark">
@@ -615,398 +613,720 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Right Column: Wajib Dilaporkan & Bantuan Darurat -->
+        <div class="col-lg-4 col-12">
+            @if(isset($instructor_todo_list) && $instructor_todo_list->count() > 0)
+            <div class="dashboard-card mb-4" style="border-left: 6px solid #F59E0B !important;">
+                <div class="card-header bg-warning-subtle text-warning-emphasis fw-bold d-flex justify-content-between align-items-center p-3">
+                    <span class="d-flex align-items-center"><i class="bi bi-exclamation-triangle-fill text-warning me-2 fs-5"></i>WAJIB DILAPORKAN ({{ $instructor_todo_list->count() }})</span>
+                </div>
+                <div class="card-body p-0 todo-scrollable" style="max-height: 450px; overflow-y: auto;">
+                    <div class="list-group list-group-flush">
+                        @foreach($instructor_todo_list as $todo)
+                            <div class="list-group-item p-3 border-bottom hover-bg-light">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <h6 class="mb-0 fw-bold text-dark text-truncate" style="max-width: 75%;" title="{{ $todo->rombel?->ekstrakurikuler?->kategori_program ?? $todo->ekstrakurikuler?->kategori_program ?? 'Ekstrakurikuler' }}">
+                                        {{ $todo->rombel?->ekstrakurikuler?->kategori_program ?? $todo->ekstrakurikuler?->kategori_program ?? 'Ekstrakurikuler' }}
+                                    </h6>
+                                    <span class="badge bg-secondary rounded-pill" style="font-size: 0.7rem;">P.{{ $todo->nomor_pertemuan }}</span>
+                                </div>
+                                <div class="text-muted small mb-3">
+                                    <div class="mb-1 text-truncate" title="{{ $todo->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $todo->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah' }}">
+                                        <i class="bi bi-building me-1"></i> {{ $todo->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $todo->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah' }}
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
+                                        <span>
+                                            <i class="bi bi-calendar-event me-1"></i> {{ \Carbon\Carbon::parse($todo->tanggal_terjadwal)->format('d M Y') }}
+                                            @if($todo->jam_mulai_terjadwal && $todo->jam_selesai_terjadwal)
+                                                <span class="mx-1">•</span>
+                                                <i class="bi bi-clock me-1"></i> {{ $todo->jadwal_waktu }}
+                                            @endif
+                                        </span>
+                                        @if($todo->isPast())
+                                            @php
+                                                $waktuRefTodo = $todo->waktu_selesai_full ?? $todo->tanggal_terjadwal;
+                                            @endphp
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle" style="font-size: 0.65rem;">
+                                                Terlambat {{ $waktuRefTodo->diffForHumans() }}
+                                            </span>
+                                        @else
+                                            <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning-subtle" style="font-size: 0.65rem;">
+                                                Hari Ini
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <a href="{{ route('ekstrakurikuler.sessions.report.create', $todo->id) }}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm w-100 d-flex align-items-center justify-content-center">
+                                    Buat Laporan <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
             @endif
 
-            <!-- Verification Center (Admin Only) -->
-            @if(Auth::user()->role === 'admin_sistem' || Auth::user()->role === 'webmaster' || Auth::user()->role === 'admin')
-                <!-- Admin Helpdesk & Ticket Control Center -->
-                @if(isset($ticket_stats) && ($ticket_stats['open'] > 0 || $ticket_stats['unread_admin'] > 0 || (isset($admin_actionable_tickets) && $admin_actionable_tickets->count() > 0)))
-                <div class="dashboard-card mb-4" id="tour-admin-ticket-control" style="border-left: 6px solid #4F46E5 !important;">
-                    <div class="card-header bg-indigo-subtle text-indigo-emphasis fw-bold d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 p-3" style="background: #EEF2FF; color: #3730A3;">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: #4F46E5 !important;">
-                                <i class="bi bi-ticket-detailed-fill" style="font-size: 0.85rem;"></i>
-                            </div>
-                            <span class="fw-bold">🎫 PUSAT KENDALI TIKET & KENDALA INSTRUKTUR ({{ $ticket_stats['open'] }} Menunggu Respon)</span>
+            <!-- Emergency Helpdesk / Bantuan Darurat -->
+            <div class="dashboard-card mb-4" style="background: #F0FDF4; border: 1px solid #BBF7D0;">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-dark mb-2 d-flex align-items-center">
+                        <i class="bi bi-chat-dots-fill text-success me-2 fs-5"></i> Bantuan &amp; Kontak Darurat
+                    </h6>
+                    <p class="text-muted small mb-3">
+                        Mengalami kendala saat mengajar atau butuh bantuan admin akademik Erlass? Hubungi kami langsung.
+                    </p>
+                    @php
+                        $waAdminPhone = '6282114631380';
+                        $waAdminText = urlencode("Halo Admin Akademik Erlass, saya " . Auth::user()->nama_lengkap . " (Instruktur). Saya butuh bantuan terkait operasional mengajar.");
+                    @endphp
+                    <a href="https://wa.me/{{ $waAdminPhone }}?text={{ $waAdminText }}" target="_blank" rel="noopener" class="btn btn-success w-100 rounded-pill d-flex align-items-center justify-content-center gap-2 shadow-sm fw-bold">
+                        <i class="bi bi-whatsapp"></i> Chat Admin Akademik
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    @else
+    {{-- ===== ADMIN / MANAGEMENT VIEW (NO 8-4 AT ALL, FULL WIDTH & 6,6) ===== --}}
+
+    {{-- 3. JADWAL HARI INI (FULL WIDTH col-12) --}}
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="dashboard-card" id="tour-instructor-today">
+                <div class="dashboard-card-header p-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-calendar2-week-fill text-primary"></i>
+                        <span>Jadwal Hari Ini</span>
+                        <span class="text-muted fs-6 fw-normal">({{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM Y') }})</span>
+                    </h5>
+                    @if(isset($todays_schedule))
+                        <span class="badge bg-primary rounded-pill px-3 py-2 fw-semibold">{{ $todays_schedule->count() }} Sesi Hari Ini</span>
+                    @endif
+                </div>
+                <div class="card-body p-0">
+                    @if(isset($todays_schedule) && $todays_schedule->count() > 0)
+                        <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+                            <table class="table table-hover align-middle mb-0" style="font-size: 0.84rem;">
+                                <thead class="table-light sticky-top" style="z-index: 5; background-color: #F8FAFC;">
+                                    <tr class="text-secondary text-uppercase fw-bold" style="font-size: 0.72rem; letter-spacing: 0.05em; border-bottom: 2px solid #E2E8F0;">
+                                        <th class="ps-3 py-2.5" style="width: 125px;">JAM</th>
+                                        <th class="py-2.5" style="min-width: 210px;">SEKOLAH &amp; PROGRAM</th>
+                                        <th class="py-2.5" style="min-width: 150px;">INSTRUKTUR</th>
+                                        <th class="text-center py-2.5" style="width: 105px;">STATUS</th>
+                                        <th class="text-end pe-3 py-2.5" style="width: 155px;">AKSI</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($todays_schedule as $session)
+                                        <tr>
+                                            <td class="ps-3 py-2 fw-bold text-dark text-nowrap" style="font-size: 0.8rem;">
+                                                <i class="bi bi-clock-fill text-primary me-1" style="font-size: 0.75rem;"></i> {{ $session->jam_mulai_terjadwal->format('H:i') }} - {{ $session->jam_selesai_terjadwal->format('H:i') }}
+                                            </td>
+                                            <td class="py-2">
+                                                <div class="fw-bold text-dark lh-sm mb-1" style="font-size: 0.85rem;">
+                                                    {{ $session->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $session->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah' }}
+                                                </div>
+                                                <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                                    <span class="text-secondary fw-semibold" style="font-size: 0.75rem;">{{ $session->rombel?->ekstrakurikuler?->kategori_program ?? $session->ekstrakurikuler?->kategori_program ?? 'Ekstrakurikuler' }}</span>
+                                                    <span class="badge bg-light text-dark border px-1.5 py-0.5" style="font-size: 0.7rem;">{{ $session->rombel?->nama_rombel ?? 'Rombel' }}</span>
+                                                    @if($session->rombel?->ekstrakurikuler?->google_maps_link ?? $session->ekstrakurikuler?->google_maps_link)
+                                                        <a href="{{ $session->rombel?->ekstrakurikuler?->google_maps_link ?? $session->ekstrakurikuler?->google_maps_link }}" target="_blank" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill text-decoration-none px-1.5 py-0.5" title="Buka Google Maps" style="font-size: 0.68rem;">
+                                                            <i class="bi bi-geo-alt-fill"></i> Maps
+                                                        </a>
+                                                    @endif
+                                                    @php
+                                                        $ekskulObj = $session->rombel?->ekstrakurikuler ?? $session->ekstrakurikuler;
+                                                    @endphp
+                                                    @if($ekskulObj?->no_telepon)
+                                                        @php
+                                                            $cleanPhone = preg_replace('/[^0-9]/', '', $ekskulObj->no_telepon);
+                                                            if (str_starts_with($cleanPhone, '0')) {
+                                                                $cleanPhone = '62' . substr($cleanPhone, 1);
+                                                            }
+                                                            $waText = urlencode("Halo " . ($ekskulObj->penanggung_jawab ?? 'Bapak/Ibu') . ", saya admin Erlass untuk ekstrakurikuler " . ($ekskulObj->kategori_program ?? '') . ".");
+                                                        @endphp
+                                                        <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" rel="noopener" class="wa-contact-chip py-0 px-1.5" title="WhatsApp PJ: {{ $ekskulObj->penanggung_jawab ?? '' }}" style="font-size: 0.68rem;">
+                                                            <span class="wa-dot"></span> WA
+                                                        </a>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                            <td class="py-2">
+                                                @if($session->instruktur)
+                                                    <div class="d-flex align-items-center gap-1.5">
+                                                        <div class="avatar-sm bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 26px; height: 26px; font-size: 10px; min-width: 26px;">
+                                                            {{ substr($session->instruktur->nama_lengkap, 0, 1) }}
+                                                        </div>
+                                                        <span class="text-dark fw-semibold text-truncate" style="font-size: 0.8rem; max-width: 130px;" title="{{ $session->instruktur->nama_lengkap }}">
+                                                            {{ $session->instruktur->nama_lengkap }}
+                                                        </span>
+                                                    </div>
+                                                @else
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0.5" style="font-size: 0.7rem;">Belum Ditugaskan</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-center py-2">
+                                                @php
+                                                    $statusClass = match($session->status) {
+                                                        'terjadwal' => 'primary',
+                                                        'berlangsung' => 'warning',
+                                                        'selesai' => 'success',
+                                                        'dibatalkan' => 'danger',
+                                                        'ditunda' => 'secondary',
+                                                        default => 'secondary'
+                                                    };
+                                                @endphp
+                                                <span class="badge bg-{{ $statusClass }}-subtle text-{{ $statusClass }} border border-{{ $statusClass }}-subtle px-2.5 py-1 rounded-pill" style="font-size: 0.72rem; font-weight: 600;">
+                                                    {{ $session->status_label }}
+                                                </span>
+                                            </td>
+                                            <td class="text-end pe-3 py-2 text-nowrap">
+                                                <div class="d-inline-flex align-items-center gap-1">
+                                                    @if($session->laporanMengajar)
+                                                        <a href="{{ route('laporan-mengajar.show', $session->laporanMengajar->id) }}" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 fw-semibold shadow-xs" title="Lihat Laporan Selesai" style="font-size: 0.75rem;">
+                                                            <i class="bi bi-check-circle-fill me-1"></i> Laporan Selesai
+                                                        </a>
+                                                    @elseif(in_array($session->status, ['terjadwal', 'berlangsung']))
+                                                        <a href="{{ route('ekstrakurikuler.sessions.report.create', $session->id) }}" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 fw-bold shadow-xs" title="Buat Laporan & Presensi Sesi Ini" style="font-size: 0.75rem;">
+                                                            <i class="bi bi-pencil-square me-1"></i> Buat Laporan
+                                                        </a>
+                                                    @endif
+                                                    <a href="{{ route('ekstrakurikuler.sessions.show', $session->id) }}" class="btn btn-sm btn-light border rounded-pill px-2 py-1" title="Detail Sesi" style="font-size: 0.75rem;">
+                                                        <i class="bi bi-arrow-right"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            @if($ticket_stats['urgent_high'] > 0)
-                                <span class="badge bg-danger rounded-pill px-2.5 py-1 fw-bold">
-                                    <i class="bi bi-fire me-1"></i>{{ $ticket_stats['urgent_high'] }} Prioritas Mendesak
-                                </span>
-                            @endif
-                            <a href="{{ route('tickets.index') }}" class="btn btn-sm text-white fw-semibold rounded-pill px-3 py-1 shadow-sm" style="font-size: 0.78rem; background: #4F46E5; border-color: #4F46E5;">
-                                Kelola Semua Tiket <i class="bi bi-arrow-right ms-1"></i>
+                    @else
+                        <div class="p-5 text-center text-muted">
+                            <i class="bi bi-calendar-check fs-1 mb-3 d-block text-primary opacity-50"></i>
+                            <h6 class="fw-bold text-dark mb-1">Tidak ada jadwal kegiatan hari ini</h6>
+                            <p class="mb-0 small text-secondary">Semua sesi mengajar berjalan sesuai rencana.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- 4. TODO ADMIN (2x2 GRID, 6+6 PER BARIS) --}}
+    {{-- Baris 1: Tiket Instruktur (col-6) & Reschedule Sesi (col-6) --}}
+    <div class="row g-4 mb-4">
+        {{-- Tiket Instruktur --}}
+        <div class="col-lg-6 col-12">
+            <div class="dashboard-card h-100 d-flex flex-column" id="tour-admin-ticket-control" style="border-left: 6px solid #4F46E5 !important;">
+                <div class="card-header bg-indigo-subtle text-indigo-emphasis fw-bold d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 p-3" style="background: #EEF2FF; color: #3730A3;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: #4F46E5 !important;">
+                            <i class="bi bi-ticket-detailed-fill" style="font-size: 0.85rem;"></i>
+                        </div>
+                        <span class="fw-bold">🎫 TIKET INSTRUKTUR ({{ $ticket_stats['open'] ?? 0 }} Menunggu)</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        @if(($ticket_stats['urgent_high'] ?? 0) > 0)
+                            <span class="badge bg-danger rounded-pill px-2.5 py-1 fw-bold">
+                                <i class="bi bi-fire me-1"></i>{{ $ticket_stats['urgent_high'] }} Urgent
+                            </span>
+                        @endif
+                        <a href="{{ route('tickets.index') }}" class="btn btn-sm text-white fw-semibold rounded-pill px-3 py-1 shadow-sm" style="font-size: 0.78rem; background: #4F46E5; border-color: #4F46E5;">
+                            Kelola <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Counter Grid -->
+                <div class="p-3 bg-light border-bottom">
+                    <div class="row g-2 text-center">
+                        <div class="col-6">
+                            <div class="p-2 bg-white rounded-3 border shadow-sm">
+                                <div class="small text-muted" style="font-size: 0.72rem;">Menunggu Respon</div>
+                                <div class="fs-5 fw-bold text-danger">{{ $ticket_stats['open'] ?? 0 }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 bg-white rounded-3 border shadow-sm">
+                                <div class="small text-muted" style="font-size: 0.72rem;">Prioritas Urgent/High</div>
+                                <div class="fs-5 fw-bold text-warning">{{ $ticket_stats['urgent_high'] ?? 0 }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if(isset($admin_actionable_tickets) && $admin_actionable_tickets->count() > 0)
+                <div class="list-group list-group-flush flex-grow-1" style="max-height: 340px; overflow-y: auto;">
+                    @foreach($admin_actionable_tickets->take(4) as $actTicket)
+                        @php
+                            $isUrgent = $actTicket->prioritas === 'urgent';
+                            $isHigh = $actTicket->prioritas === 'high';
+                        @endphp
+                        <div class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-3" style="{{ $isUrgent ? 'background: #FEF2F2;' : '' }}">
+                            <div class="w-100 w-md-auto">
+                                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                    <a href="{{ route('tickets.show', $actTicket->id) }}" class="font-monospace fw-bold text-decoration-none" style="font-size: 0.85rem; color: #4F46E5;">
+                                        {{ $actTicket->ticket_number }}
+                                    </a>
+                                    @if($isUrgent)
+                                        <span class="badge bg-danger text-white rounded-pill px-2 py-0.5 fw-bold" style="font-size: 0.68rem;"><i class="bi bi-fire me-1"></i>Urgent</span>
+                                    @elseif($isHigh)
+                                        <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 fw-bold" style="font-size: 0.68rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>High</span>
+                                    @else
+                                        <span class="badge bg-secondary text-white rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">Normal</span>
+                                    @endif
+                                    <span class="badge bg-light text-dark border" style="font-size: 0.68rem;">{{ $actTicket->kategori_label }}</span>
+                                    @if($actTicket->has_unread_reply_for_admin)
+                                        <span class="badge bg-info text-dark rounded-pill" style="font-size: 0.68rem;"><i class="bi bi-chat-dots-fill me-1"></i>Baru</span>
+                                    @endif
+                                </div>
+                                <h6 class="mb-0 fw-bold text-dark text-truncate" style="font-size: 0.88rem; max-width: 280px;" title="{{ $actTicket->judul }}">{{ $actTicket->judul }}</h6>
+                                <div class="text-muted small" style="font-size: 0.76rem;">
+                                    <i class="bi bi-person-fill text-primary me-1"></i>{{ $actTicket->user->nama_lengkap ?? 'Instruktur' }}
+                                    <span class="mx-1">•</span>
+                                    <span class="fst-italic">{{ $actTicket->created_at->diffForHumans() }}</span>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <a href="{{ route('tickets.show', $actTicket->id) }}" class="btn btn-sm text-white fw-bold rounded-pill px-3 py-1 shadow-sm" style="font-size: 0.75rem; background: #4F46E5; border-color: #4F46E5;">
+                                    <i class="bi bi-chat-left-text-fill me-1"></i> Tanggapi
+                                </a>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                @else
+                <div class="p-4 text-center text-muted my-auto">
+                    <i class="bi bi-ticket-perforated fs-2 text-success opacity-50 mb-2 d-block"></i>
+                    <span class="small fw-semibold">Tidak ada tiket instruktur tertunda</span>
+                </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Reschedule Sesi --}}
+        <div class="col-lg-6 col-12">
+            <div class="dashboard-card h-100 d-flex flex-column" id="tour-admin-pending-reschedule" style="border-left: 6px solid #F59E0B !important;">
+                <div class="card-header bg-warning-subtle text-warning-emphasis fw-bold d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 p-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-calendar-range-fill text-warning fs-5"></i>
+                        <span>📌 RESCHEDULE ({{ $total_pending_reschedule ?? ($pending_reschedule_sessions ? $pending_reschedule_sessions->count() : 0) }} Sesi)</span>
+                    </div>
+                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold">Wajib</span>
+                </div>
+                @if(isset($pending_reschedule_sessions) && $pending_reschedule_sessions->count() > 0)
+                <div class="list-group list-group-flush flex-grow-1" style="max-height: 380px; overflow-y: auto;">
+                    @foreach($pending_reschedule_sessions as $pSession)
+                        <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3">
+                            <div class="w-100 w-sm-auto">
+                                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.88rem;">
+                                        {{ $pSession->rombel->ekstrakurikuler->sekolah->namasekolah ?? 'Sekolah' }}
+                                    </h6>
+                                    <span class="badge bg-secondary rounded-pill" style="font-size: 0.7rem;">P.{{ $pSession->nomor_pertemuan }}</span>
+                                    @if($pSession->status === 'libur')
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-bold" style="font-size: 0.7rem;">Libur</span>
+                                    @else
+                                        <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.7rem;">Ditunda</span>
+                                    @endif
+                                </div>
+                                <div class="text-muted small">
+                                    <span class="fw-bold text-primary">{{ $pSession->rombel->ekstrakurikuler->kategori_program ?? 'Ekskul' }}</span>
+                                    <span class="mx-1">•</span>
+                                    {{ $pSession->rombel->nama_rombel ?? 'Rombel' }}
+                                    <br>
+                                    <i class="bi bi-calendar-x me-1 text-danger"></i> {{ $pSession->tanggal_terjadwal ? \Carbon\Carbon::parse($pSession->tanggal_terjadwal)->format('d M Y') : '-' }}
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <button type="button"
+                                        class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 shadow-sm"
+                                        onclick="openDashboardRescheduleModal({{ $pSession->id }}, '{{ addslashes($pSession->rombel->ekstrakurikuler->sekolah->namasekolah ?? 'Sekolah') }}', '{{ addslashes($pSession->rombel->nama_rombel ?? 'Rombel') }}', {{ $pSession->nomor_pertemuan }}, '{{ $pSession->tanggal_terjadwal ? $pSession->tanggal_terjadwal->format('Y-m-d') : '' }}')">
+                                    <i class="bi bi-calendar2-range me-1"></i> Reschedule
+                                </button>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                @else
+                <div class="p-4 text-center text-muted my-auto">
+                    <i class="bi bi-calendar-check-fill fs-2 text-success opacity-50 mb-2 d-block"></i>
+                    <span class="small fw-semibold">Tidak ada sesi yang memerlukan reschedule</span>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- Baris 2: Invoice Pending (col-6) & Belum Lapor (col-6) - BERSEBELAHAN --}}
+    <div class="row g-4 mb-4">
+        {{-- Invoice Pending --}}
+        <div class="col-lg-6 col-12">
+            <div class="dashboard-card h-100 d-flex flex-column" id="tour-admin-pending-invoice" style="border-left: 6px solid #8B5CF6 !important;">
+                <div class="card-header fw-bold d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 p-3" style="background: #F5F3FF; color: #5B21B6;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: #8B5CF6;">
+                            <i class="bi bi-receipt-cutoff" style="font-size: 0.85rem;"></i>
+                        </div>
+                        <span class="fw-bold">🧾 INVOICE PENDING ({{ $total_pending_invoices ?? 0 }} Belum Disetujui)</span>
+                    </div>
+                    <a href="{{ route('invoice.index') }}" class="btn btn-sm text-white fw-semibold rounded-pill px-3 py-1 shadow-sm" style="font-size: 0.78rem; background: #8B5CF6; border-color: #8B5CF6;">
+                        Kelola <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+
+                @if(isset($pending_invoices) && $pending_invoices->count() > 0)
+                <div class="list-group list-group-flush flex-grow-1" style="max-height: 380px; overflow-y: auto;">
+                    @foreach($pending_invoices as $inv)
+                        <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 p-3">
+                            <div class="w-100">
+                                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                    <h6 class="mb-0 fw-bold text-dark text-truncate" style="font-size: 0.88rem; max-width: 260px;" title="{{ $inv->sekolah?->namasekolah ?? 'Sekolah' }}">
+                                        {{ $inv->sekolah?->namasekolah ?? 'Sekolah' }}
+                                    </h6>
+                                    @if($inv->status === \App\Models\InvoiceApproval::STATUS_PENDING_OPERASIONAL)
+                                        <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.68rem;">Operasional</span>
+                                    @else
+                                        <span class="badge bg-info text-dark fw-bold" style="font-size: 0.68rem;">Akunting</span>
+                                    @endif
+                                </div>
+                                <div class="text-muted small" style="font-size: 0.76rem;">
+                                    <i class="bi bi-calendar me-1"></i>
+                                    {{ $inv->periode_label ?? ($inv->tahun_ajaran ?? '-') }}
+                                    <span class="mx-1">•</span>
+                                    <i class="bi bi-person me-1"></i>{{ $inv->createdByUser?->nama_lengkap ?? '-' }}
+                                    <span class="mx-1">•</span>
+                                    <strong style="color: #7C3AED;">{{ $inv->jumlah_siswa_billable ?? $inv->koreksi_siswa_billable ?? 0 }} siswa</strong>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <a href="{{ route('invoice.show', $inv->id) }}" class="btn btn-sm fw-bold rounded-pill px-3 py-1 shadow-sm text-white" style="font-size: 0.75rem; background: #8B5CF6; border-color: #8B5CF6;">
+                                    <i class="bi bi-check2-square me-1"></i> Review
+                                </a>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                @else
+                <div class="p-4 text-center text-muted my-auto">
+                    <i class="bi bi-check-circle-fill fs-2 text-success opacity-50 mb-2 d-block"></i>
+                    <span class="small fw-semibold">Semua invoice telah disetujui / tidak ada antrean pending</span>
+                </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Belum Lapor --}}
+        <div class="col-lg-6 col-12">
+            <div class="dashboard-card h-100 d-flex flex-column" id="tour-admin-pending-reports" style="border-left: 6px solid #0EA5E9 !important;">
+                <div class="card-header bg-info-subtle text-info-emphasis fw-bold d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 p-3">
+                    <span><i class="bi bi-clipboard-data me-2"></i>BELUM LAPOR ({{ $admin_pending_reports ? $admin_pending_reports->count() : 0 }} Sesi Teratas)</span>
+                    <small class="text-muted fst-italic">Urut Deadline</small>
+                </div>
+                @if(isset($admin_pending_reports) && $admin_pending_reports->count() > 0)
+                <div class="list-group list-group-flush flex-grow-1" style="max-height: 380px; overflow-y: auto;">
+                    @foreach($admin_pending_reports as $report)
+                        <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3">
+                            <div class="w-100 w-sm-auto">
+                                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.88rem;">
+                                        {{ $report->instruktur->nama_lengkap ?? 'Tanpa Instruktur' }}
+                                    </h6>
+                                    <span class="badge bg-secondary rounded-pill" style="font-size: 0.7rem;">P.{{ $report->nomor_pertemuan }}</span>
+                                    @if($report->isPast())
+                                        @php
+                                            $waktuRef = $report->waktu_selesai_full ?? $report->tanggal_terjadwal;
+                                        @endphp
+                                        <span class="badge bg-danger" style="font-size: 0.7rem;">Terlambat {{ $waktuRef->diffForHumans() }}</span>
+                                    @else
+                                        <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">Hari Ini</span>
+                                    @endif
+                                </div>
+                                <div class="text-muted small">
+                                    <span class="fw-bold text-primary">{{ $report->rombel?->ekstrakurikuler?->kategori_program ?? $report->ekstrakurikuler?->kategori_program ?? 'Ekskul' }}</span>
+                                    <span class="mx-1">•</span>
+                                    {{ $report->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $report->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah' }}
+                                    <br>
+                                    <i class="bi bi-calendar-event me-1"></i> {{ \Carbon\Carbon::parse($report->tanggal_terjadwal)->format('d M Y') }}
+                                </div>
+                            </div>
+                            <div class="w-100 w-sm-auto text-end text-sm-start flex-shrink-0">
+                                @php
+                                    $cleanInstrukturPhone = '';
+                                    if (!empty($report->instruktur->no_telephone)) {
+                                        $cleanInstrukturPhone = preg_replace('/[^0-9]/', '', $report->instruktur->no_telephone);
+                                        if (str_starts_with($cleanInstrukturPhone, '0')) {
+                                            $cleanInstrukturPhone = '62' . substr($cleanInstrukturPhone, 1);
+                                        }
+                                    }
+                                @endphp
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm w-100 w-sm-auto"
+                                        onclick="openDashboardFonnteModal({{ $report->id }}, '{{ addslashes($report->instruktur->nama_lengkap ?? 'Instruktur') }}', '{{ $cleanInstrukturPhone }}', '{{ addslashes($report->rombel?->ekstrakurikuler?->kategori_program ?? $report->ekstrakurikuler?->kategori_program ?? '') }}', '{{ addslashes($report->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $report->ekstrakurikuler?->sekolah?->namasekolah ?? '') }}', '{{ $report->tanggal_terjadwal ? $report->tanggal_terjadwal->format('d/m/Y') : '' }}')">
+                                    <i class="bi bi-whatsapp me-1"></i> Ingatkan
+                                </button>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                @else
+                <div class="p-4 text-center text-muted my-auto">
+                    <i class="bi bi-clipboard-check-fill fs-2 text-success opacity-50 mb-2 d-block"></i>
+                    <span class="small fw-semibold">Seluruh laporan mengajar sudah terisi lengkap</span>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- 5. TREN CHARTS (FULL WIDTH 2 KOLOM 6+6) --}}
+    <div class="row g-4 mb-4" id="section-charts-trend">
+        <!-- Tren Laporan -->
+        <div class="col-lg-6 col-12">
+            <div class="dashboard-card h-100">
+                <div class="card-header bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-graph-up me-2 text-primary"></i>Tren Laporan</h5>
+                    <small class="text-muted">30 Hari Terakhir</small>
+                </div>
+                <div class="card-body p-4">
+                    <canvas id="activityChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tren Kehadiran -->
+        <div class="col-lg-6 col-12">
+            <div class="dashboard-card h-100">
+                <div class="card-header bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-people-fill me-2 text-success"></i>Tren Kehadiran</h5>
+                    <small class="text-muted">6 Bulan Terakhir</small>
+                </div>
+                <div class="card-body p-4" style="min-height: 250px; position: relative;">
+                    <canvas id="attendanceChart" style="max-height: 250px; width: 100%;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- 6. PUSAT VERIFIKASI + DISTRIBUSI SISWA (POSISI 5 - COL 6,6) --}}
+    <div class="row g-4 mb-4" id="section-verifikasi-distribusi">
+        <!-- Pusat Verifikasi -->
+        <div class="col-lg-6 col-12">
+            <div class="dashboard-card h-100" id="tour-admin-late-approval">
+                <div class="card-header bg-white py-3 border-bottom px-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-shield-check me-2 text-primary"></i>Pusat Verifikasi</h5>
+                        <span class="badge bg-primary rounded-pill px-3 py-1">Admin Area</span>
+                    </div>
+                </div>
+                <div class="card-body p-4 d-flex flex-column justify-content-center">
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-6">
+                            <a href="{{ route('siswa.index', ['temp_nisn' => 1]) }}" class="card text-decoration-none border shadow-sm h-100 rounded-3 {{ $pending_students > 0 ? 'bg-white' : 'bg-light' }}">
+                                <div class="card-body d-flex align-items-center gap-3 p-3">
+                                    <div class="bg-warning bg-opacity-10 p-2.5 rounded-circle text-warning position-relative flex-shrink-0">
+                                        <i class="bi bi-person-exclamation fs-4"></i>
+                                        @if($pending_students > 0)
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger border border-white p-1">
+                                            <span class="visually-hidden">New alerts</span>
+                                        </span>
+                                        @endif
+                                    </div>
+                                    <div class="overflow-hidden">
+                                        <h6 class="mb-0 fw-bold text-dark text-truncate" style="font-size: 0.88rem;">Siswa Perlu NISN</h6>
+                                        <small class="text-muted" style="font-size: 0.75rem;">Siswa TMP manual</small>
+                                    </div>
+                                    <div class="ms-auto flex-shrink-0">
+                                        <span class="badge bg-{{ $pending_students > 0 ? 'danger' : 'secondary' }} rounded-pill" style="font-size: 0.72rem;">{{ $pending_students }} Pending</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <a href="{{ route('users.index', ['role' => 'instruktur', 'status' => 'pending']) }}" class="card text-decoration-none border shadow-sm h-100 rounded-3 {{ $pending_instruktur > 0 ? 'bg-white' : 'bg-light' }}">
+                                <div class="card-body d-flex align-items-center gap-3 p-3">
+                                    <div class="bg-info bg-opacity-10 p-2.5 rounded-circle text-info position-relative flex-shrink-0">
+                                        <i class="bi bi-person-badge fs-4"></i>
+                                        @if($pending_instruktur > 0)
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger border border-white p-1">
+                                            <span class="visually-hidden">New alerts</span>
+                                        </span>
+                                        @endif
+                                    </div>
+                                    <div class="overflow-hidden">
+                                        <h6 class="mb-0 fw-bold text-dark text-truncate" style="font-size: 0.88rem;">Instruktur Baru</h6>
+                                        <small class="text-muted" style="font-size: 0.75rem;">Verifikasi profil</small>
+                                    </div>
+                                    <div class="ms-auto flex-shrink-0">
+                                        <span class="badge bg-{{ $pending_instruktur > 0 ? 'danger' : 'secondary' }} rounded-pill" style="font-size: 0.72rem;">{{ $pending_instruktur }} Pending</span>
+                                    </div>
+                                </div>
                             </a>
                         </div>
                     </div>
-                    
-                    <!-- Counter Grid -->
-                    <div class="p-3 bg-light border-bottom">
-                        <div class="row g-2 text-center">
-                            <div class="col-6 col-md-3">
-                                <div class="p-2 bg-white rounded-3 border shadow-sm">
-                                    <div class="small text-muted" style="font-size: 0.72rem;">Tiket Menunggu Respon</div>
-                                    <div class="fs-5 fw-bold text-danger">{{ $ticket_stats['open'] }}</div>
-                                </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Distribusi Siswa -->
+        <div class="col-lg-6 col-12">
+            <div class="dashboard-card h-100">
+                <div class="card-header bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-bar-chart-steps me-2 text-primary"></i>Distribusi Siswa</h5>
+                    <a href="{{ route('sekolah.distribusi') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 0.78rem;">
+                        Lihat Semua <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body p-4">
+                    @if(isset($sekolah_distribution) && $sekolah_distribution->count() > 0)
+                    <div class="d-flex flex-column gap-3">
+                        @foreach($sekolah_distribution as $sekolah)
+                        <div>
+                            <div class="d-flex justify-content-between mb-1 align-items-end">
+                                <span class="fw-medium text-dark small text-truncate" style="max-width: 75%;">{{ $sekolah->namasekolah }}</span>
+                                <span class="fw-bold text-primary small">{{ $sekolah->siswa_count }} Siswa</span>
                             </div>
-                            <div class="col-6 col-md-3">
-                                <div class="p-2 bg-white rounded-3 border shadow-sm">
-                                    <div class="small text-muted" style="font-size: 0.72rem;">Prioritas Urgent / High</div>
-                                    <div class="fs-5 fw-bold text-warning">{{ $ticket_stats['urgent_high'] }}</div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="p-2 bg-white rounded-3 border shadow-sm">
-                                    <div class="small text-muted" style="font-size: 0.72rem;">Sedang Diproses</div>
-                                    <div class="fs-5 fw-bold text-primary">{{ $ticket_stats['in_progress'] }}</div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="p-2 bg-white rounded-3 border shadow-sm">
-                                    <div class="small text-muted" style="font-size: 0.72rem;">Selesai Dijawab</div>
-                                    <div class="fs-5 fw-bold text-success">{{ $ticket_stats['resolved'] }}</div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar rounded-pill"
+                                    role="progressbar"
+                                    style="width: {{ ($sekolah->siswa_count / max(1, $total_siswa)) * 100 }}%; 
+                                                background-color: #2563EB;"
+                                    aria-valuenow="{{ ($sekolah->siswa_count / max(1, $total_siswa)) * 100 }}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100">
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    @if(isset($admin_actionable_tickets) && $admin_actionable_tickets->count() > 0)
-                    <div class="list-group list-group-flush">
-                        @foreach($admin_actionable_tickets as $actTicket)
-                            @php
-                                $isUrgent = $actTicket->prioritas === 'urgent';
-                                $isHigh = $actTicket->prioritas === 'high';
-                            @endphp
-                            <div class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-3" style="{{ $isUrgent ? 'background: #FEF2F2;' : '' }}">
-                                <div class="w-100 w-md-auto">
-                                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                        <a href="{{ route('tickets.show', $actTicket->id) }}" class="font-monospace fw-bold text-decoration-none" style="font-size: 0.85rem; color: #4F46E5;">
-                                            {{ $actTicket->ticket_number }}
-                                        </a>
-                                        @if($isUrgent)
-                                            <span class="badge bg-danger text-white rounded-pill px-2 py-0.5 fw-bold" style="font-size: 0.68rem;">
-                                                <i class="bi bi-fire me-1"></i>Urgent
-                                            </span>
-                                        @elseif($isHigh)
-                                            <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 fw-bold" style="font-size: 0.68rem;">
-                                                <i class="bi bi-exclamation-triangle-fill me-1"></i>High
-                                            </span>
-                                        @else
-                                            <span class="badge bg-secondary text-white rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">Normal</span>
-                                        @endif
-
-                                        <span class="badge {{ $actTicket->kategori_badge }} rounded-pill" style="font-size: 0.68rem;">
-                                            {{ $actTicket->kategori_label }}
-                                        </span>
-
-                                        @if($actTicket->has_unread_reply_for_admin)
-                                            <span class="badge bg-info text-dark rounded-pill" style="font-size: 0.68rem;">
-                                                <i class="bi bi-chat-dots-fill me-1"></i>Balasan Baru
-                                            </span>
-                                        @endif
-                                        <small class="text-muted ms-auto ms-md-0" style="font-size: 0.72rem;">{{ $actTicket->created_at->diffForHumans() }}</small>
-                                    </div>
-                                    <h6 class="mb-1 fw-bold text-dark" style="font-size: 0.90rem;">
-                                        {{ $actTicket->judul }}
-                                    </h6>
-                                    <div class="text-muted small" style="font-size: 0.78rem;">
-                                        <i class="bi bi-person-fill text-primary me-1"></i><strong>{{ $actTicket->user->nama_lengkap ?? 'Instruktur' }}</strong>
-                                        @if($actTicket->session?->rombel?->ekstrakurikuler?->sekolah)
-                                            <span class="mx-1">•</span>
-                                            <i class="bi bi-building me-1"></i>{{ $actTicket->session->rombel->ekstrakurikuler->sekolah->namasekolah }}
-                                        @endif
-                                        <span class="mx-1">•</span>
-                                        <span class="fst-italic text-secondary">"{{ Str::limit($actTicket->deskripsi, 80) }}"</span>
-                                    </div>
-                                </div>
-                                <div class="w-100 w-md-auto text-end text-md-start d-flex gap-2 justify-content-end align-items-center">
-                                    <a href="{{ route('tickets.show', $actTicket->id) }}" class="btn btn-sm text-white fw-bold rounded-pill px-3 py-1.5 shadow-sm w-100 w-md-auto" style="font-size: 0.78rem; background: #4F46E5; border-color: #4F46E5;">
-                                        <i class="bi bi-chat-left-text-fill me-1"></i> Tanggapi Tiket
-                                    </a>
-                                </div>
-                            </div>
                         @endforeach
+                    </div>
+                    @else
+                    <div class="text-center py-4">
+                        <i class="bi bi-info-circle fs-1 text-muted opacity-50"></i>
+                        <p class="text-muted mt-2 mb-0">Data sekolah tidak tersedia</p>
                     </div>
                     @endif
                 </div>
-                @endif
+            </div>
+        </div>
+    </div>
 
-                <!-- Admin To-Do List: Pending Reschedule / Sesi Libur -->
-                @if(isset($pending_reschedule_sessions) && $pending_reschedule_sessions->count() > 0)
-                <div class="dashboard-card mb-4" id="tour-admin-pending-reschedule" style="border-left: 6px solid #F59E0B !important;">
-                    <div class="card-header bg-warning-subtle text-warning-emphasis fw-bold d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 p-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-calendar-range-fill text-warning fs-5"></i>
-                            <span>📌 TO-DO LIST ADMIN: Antrean Reschedule ({{ $total_pending_reschedule ?? $pending_reschedule_sessions->count() }} Sesi Wajib Dijadwalkan Ulang)</span>
-                        </div>
-                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold">Wajib Reschedule</span>
-                    </div>
-                    <div class="list-group list-group-flush">
-                        @foreach($pending_reschedule_sessions as $pSession)
-                            <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3">
-                                <div class="w-100 w-sm-auto">
-                                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                        <h6 class="mb-0 fw-bold text-dark">
-                                            {{ $pSession->rombel->ekstrakurikuler->sekolah->namasekolah ?? 'Sekolah' }}
-                                        </h6>
-                                        <span class="badge bg-secondary rounded-pill" style="font-size: 0.7rem;">P.{{ $pSession->nomor_pertemuan }}</span>
-                                        @if($pSession->status === 'libur')
-                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-bold" style="font-size: 0.7rem;">Libur Sekolah</span>
-                                        @else
-                                            <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.7rem;">Ditunda</span>
-                                        @endif
-                                    </div>
-                                    <div class="text-muted small">
-                                        <span class="fw-bold text-primary">{{ $pSession->rombel->ekstrakurikuler->kategori_program ?? 'Ekskul' }}</span>
-                                        <span class="mx-1">•</span>
-                                        {{ $pSession->rombel->nama_rombel ?? 'Rombel' }}
-                                        <span class="mx-1">•</span>
-                                        Instruktur: <strong>{{ $pSession->instruktur->nama_lengkap ?? 'Belum Ditugaskan' }}</strong>
-                                        <br>
-                                        <i class="bi bi-calendar-x me-1 text-danger"></i> Tanggal Asal: {{ $pSession->tanggal_terjadwal ? \Carbon\Carbon::parse($pSession->tanggal_terjadwal)->format('d M Y') : '-' }}
-                                        @if($pSession->alasan_pembatalan || $pSession->catatan)
-                                            <span class="mx-1">•</span>
-                                            <span class="fst-italic text-dark">"{{ $pSession->alasan_pembatalan ?? $pSession->catatan }}"</span>
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="w-100 w-sm-auto text-end text-sm-start d-flex gap-2 justify-content-end">
-                                    <button type="button" 
-                                            class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 shadow-sm w-100 w-sm-auto"
-                                            onclick="openDashboardRescheduleModal({{ $pSession->id }}, '{{ addslashes($pSession->rombel->ekstrakurikuler->sekolah->namasekolah ?? 'Sekolah') }}', '{{ addslashes($pSession->rombel->nama_rombel ?? 'Rombel') }}', {{ $pSession->nomor_pertemuan }}, '{{ $pSession->tanggal_terjadwal ? $pSession->tanggal_terjadwal->format('Y-m-d') : '' }}')">
-                                        <i class="bi bi-calendar2-range me-1"></i> Reschedule Sekarang
-                                    </button>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
+    {{-- 7. LOG WARNING QUALITY CONTROL (FULL WIDTH col-12) --}}
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="dashboard-card" id="tour-admin-urgent-sessions">
+                <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark">
+                        <i class="bi bi-shield-fill-exclamation text-danger me-2"></i>Log Warning Quality Control
+                    </h5>
+                    <span class="badge bg-danger rounded-pill px-3 py-1">{{ ($warning_merah ?? 0) + ($warning_kuning ?? 0) }} Aktif</span>
                 </div>
-                @endif
+                <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+                    @if(isset($warning_list) && $warning_list->count() > 0)
+                        <div class="list-group list-group-flush">
+                            @foreach($warning_list as $warning)
+                                @php
+                                    $typeLabel = match($warning->warning_type) {
+                                        'gateway_disconnect' => 'WhatsApp Gateway Terputus',
+                                        'no_instructor' => 'Tanpa Instruktur (H-1)',
+                                        'not_confirmed' => 'Belum Ada Konfirmasi Sesi',
+                                        'missing_report' => 'Laporan Mengajar Belum Diisi (>24h)',
+                                        'low_attendance' => 'Kehadiran Siswa Rendah (<70%)',
+                                        'reschedule_limit' => 'Frekuensi Reschedule Tinggi',
+                                        'behind_target' => 'Tertinggal Target Kurikulum',
+                                        default => ucwords(str_replace('_', ' ', $warning->warning_type))
+                                    };
 
-                <!-- Admin Monitoring: Pending Reports -->
-                @if(isset($admin_pending_reports) && $admin_pending_reports->count() > 0)
-                <div class="dashboard-card mb-4" id="tour-admin-pending-reports" style="border-left: 6px solid #0EA5E9 !important;">
-                    <div class="card-header bg-info-subtle text-info-emphasis fw-bold d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 p-3">
-                        <span><i class="bi bi-clipboard-data me-2"></i>MONITORING: BELUM LAPOR ({{ $admin_pending_reports->count() }} Teratas)</span>
-                        <small class="text-muted fst-italic">Urut Deadline</small>
-                    </div>
-                    <div class="list-group list-group-flush">
-                        @foreach($admin_pending_reports as $report)
-                            <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3">
-                                <div class="w-100 w-sm-auto">
-                                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                        <h6 class="mb-0 fw-bold text-dark">
-                                            {{ $report->instruktur->nama_lengkap ?? 'Tanpa Instruktur' }}
-                                        </h6>
-                                        <span class="badge bg-secondary rounded-pill" style="font-size: 0.7rem;">P.{{ $report->nomor_pertemuan }}</span>
-                                        @if($report->isPast())
-                                            @php
-                                                $waktuRef = $report->waktu_selesai_full ?? $report->tanggal_terjadwal;
-                                            @endphp
-                                            <span class="badge bg-danger" style="font-size: 0.7rem;">Terlambat {{ $waktuRef->diffForHumans() }}</span>
-                                        @else
-                                            <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">Hari Ini</span>
-                                        @endif
-                                    </div>
-                                    <div class="text-muted small">
-                                        <span class="fw-bold text-primary">{{ $report->rombel?->ekstrakurikuler?->kategori_program ?? $report->ekstrakurikuler?->kategori_program ?? 'Ekskul' }}</span>
-                                        <span class="mx-1">•</span>
-                                        {{ $report->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $report->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah' }}
-                                        <br>
-                                        <i class="bi bi-calendar-event me-1"></i> {{ \Carbon\Carbon::parse($report->tanggal_terjadwal)->format('d M Y') }}
-                                        @if($report->jam_mulai_terjadwal && $report->jam_selesai_terjadwal)
-                                            <span class="mx-1">•</span>
-                                            <i class="bi bi-clock me-1"></i> {{ $report->jadwal_waktu }}
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="w-100 w-sm-auto text-end text-sm-start">
-                                    @php
-                                        $cleanInstrukturPhone = '';
-                                        if (!empty($report->instruktur->no_telephone)) {
-                                            $cleanInstrukturPhone = preg_replace('/[^0-9]/', '', $report->instruktur->no_telephone);
-                                            if (str_starts_with($cleanInstrukturPhone, '0')) {
-                                                $cleanInstrukturPhone = '62' . substr($cleanInstrukturPhone, 1);
-                                            }
+                                    $sekolahNama = null;
+                                    $rombelNama = null;
+                                    $actionUrl = null;
+                                    $actionText = null;
+
+                                    if ($warning->warning_type === 'gateway_disconnect') {
+                                        $actionUrl = 'https://md.fonnte.com/';
+                                        $actionText = 'Buka Dashboard Fonnte';
+                                    } elseif ($warning->sourceable instanceof \App\Models\EkstrakurikulerSession) {
+                                        $session = $warning->sourceable;
+                                        $sekolahNama = $session->rombel?->ekstrakurikuler?->sekolah?->namasekolah;
+                                        $rombelNama = $session->rombel?->nama_rombel;
+                                        
+                                        if (in_array($warning->warning_type, ['not_confirmed', 'missing_report'])) {
+                                            $actionUrl = route('ekstrakurikuler.sessions.report.create', $session->id);
+                                            $actionText = 'Isi Laporan Mengajar';
+                                        } elseif ($warning->warning_type === 'no_instructor') {
+                                            $actionUrl = route('ekstrakurikuler.sessions.show', $session->id);
+                                            $actionText = 'Tugaskan Instruktur';
                                         }
-                                    @endphp
-                                    <button type="button" 
-                                            class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm w-100 w-sm-auto"
-                                            onclick="openDashboardFonnteModal({{ $report->id }}, '{{ addslashes($report->instruktur->nama_lengkap ?? 'Instruktur') }}', '{{ $cleanInstrukturPhone }}', '{{ addslashes($report->rombel?->ekstrakurikuler?->kategori_program ?? $report->ekstrakurikuler?->kategori_program ?? '') }}', '{{ addslashes($report->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $report->ekstrakurikuler?->sekolah?->namasekolah ?? '') }}', '{{ $report->tanggal_terjadwal ? $report->tanggal_terjadwal->format('d/m/Y') : '' }}')">
-                                        <i class="bi bi-whatsapp me-1"></i> Ingatkan
-                                    </button>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-                @endif
-
-                <div class="dashboard-card mb-4" id="tour-admin-late-approval">
-                    <div class="card-header bg-white py-3 border-bottom px-4">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-shield-check me-2 text-primary"></i>Pusat Verifikasi</h5>
-                            <span class="badge bg-primary rounded-pill px-3 py-1">Admin Area</span>
-                        </div>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <a href="{{ route('siswa.index', ['temp_nisn' => 1]) }}" class="card text-decoration-none border shadow-sm h-100 rounded-3 {{ $pending_students > 0 ? 'bg-white' : 'bg-light' }}">
-                                    <div class="card-body d-flex align-items-center gap-3">
-                                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning position-relative">
-                                            <i class="bi bi-person-exclamation fs-4"></i>
-                                            @if($pending_students > 0)
-                                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger border border-white p-1">
-                                                <span class="visually-hidden">New alerts</span>
-                                            </span>
+                                    } elseif ($warning->sourceable instanceof \App\Models\EkstrakurikulerRombel) {
+                                        $rombel = $warning->sourceable;
+                                        $sekolahNama = $rombel->ekstrakurikuler?->sekolah?->namasekolah;
+                                        $rombelNama = $rombel->nama_rombel;
+                                        $actionUrl = route('ekstrakurikuler.sessions.index', ['rombel_id' => $rombel->id]);
+                                        $actionText = 'Kelola Jadwal Rombel';
+                                    }
+                                @endphp
+                                <div class="list-group-item p-3 border-bottom" style="border-left: 4px solid {{ $warning->severity === 'red' ? '#f43f5e' : '#f59e0b' }} !important; background-color: {{ $warning->severity === 'red' ? 'rgba(244, 63, 94, 0.03)' : 'rgba(245, 158, 11, 0.03)' }};">
+                                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-2">
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            @if($warning->severity === 'red')
+                                                <i class="bi bi-x-circle-fill text-danger fs-6"></i>
+                                            @else
+                                                <i class="bi bi-exclamation-triangle-fill text-warning fs-6"></i>
                                             @endif
-                                        </div>
-                                        <div>
-                                            <h6 class="mb-1 fw-bold text-dark">Siswa Perlu NISN</h6>
-                                            <small class="text-muted">Siswa ditambah manual (TMP)</small>
-                                        </div>
-                                        <div class="ms-auto">
-                                            <span class="badge bg-{{ $pending_students > 0 ? 'danger' : 'secondary' }} rounded-pill">{{ $pending_students }} Pending</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-md-6">
-                                <a href="{{ route('users.index', ['role' => 'instruktur', 'status' => 'pending']) }}" class="card text-decoration-none border shadow-sm h-100 rounded-3 {{ $pending_instruktur > 0 ? 'bg-white' : 'bg-light' }}">
-                                    <div class="card-body d-flex align-items-center gap-3">
-                                        <div class="bg-info bg-opacity-10 p-3 rounded-circle text-info position-relative">
-                                            <i class="bi bi-person-badge fs-4"></i>
-                                            @if($pending_instruktur > 0)
-                                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger border border-white p-1">
-                                                <span class="visually-hidden">New alerts</span>
+                                            <span class="badge bg-{{ $warning->severity === 'red' ? 'danger' : 'warning text-dark' }} text-uppercase fw-bold" style="font-size: 0.7rem;">
+                                                {{ $typeLabel }}
                                             </span>
-                                            @endif
-                                        </div>
-                                        <div>
-                                            <h6 class="mb-1 fw-bold text-dark">Instruktur Baru</h6>
-                                            <small class="text-muted">Menunggu verifikasi profil</small>
-                                        </div>
-                                        <div class="ms-auto">
-                                            <span class="badge bg-{{ $pending_instruktur > 0 ? 'danger' : 'secondary' }} rounded-pill">{{ $pending_instruktur }} Pending</span>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Warning QC Panel -->
-                <div class="dashboard-card mb-4" id="tour-admin-urgent-sessions">
-                    <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0 fw-bold text-dark">
-                            <i class="bi bi-shield-fill-exclamation text-danger me-2"></i>Log Warning Quality Control
-                        </h5>
-                        <span class="badge bg-danger rounded-pill px-3 py-1">{{ $warning_merah + $warning_kuning }} Aktif</span>
-                    </div>
-                    <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
-                        @if(isset($warning_list) && $warning_list->count() > 0)
-                            <div class="list-group list-group-flush">
-                                @foreach($warning_list as $warning)
-                                    @php
-                                        $typeLabel = match($warning->warning_type) {
-                                            'gateway_disconnect' => 'WhatsApp Gateway Terputus',
-                                            'no_instructor' => 'Tanpa Instruktur (H-1)',
-                                            'not_confirmed' => 'Belum Ada Konfirmasi Sesi',
-                                            'missing_report' => 'Laporan Mengajar Belum Diisi (>24h)',
-                                            'low_attendance' => 'Kehadiran Siswa Rendah (<70%)',
-                                            'reschedule_limit' => 'Frekuensi Reschedule Tinggi',
-                                            'behind_target' => 'Tertinggal Target Kurikulum',
-                                            default => ucwords(str_replace('_', ' ', $warning->warning_type))
-                                        };
-
-                                        $sekolahNama = null;
-                                        $rombelNama = null;
-                                        $actionUrl = null;
-                                        $actionText = null;
-
-                                        if ($warning->warning_type === 'gateway_disconnect') {
-                                            $actionUrl = 'https://md.fonnte.com/';
-                                            $actionText = 'Buka Dashboard Fonnte';
-                                        } elseif ($warning->sourceable instanceof \App\Models\EkstrakurikulerSession) {
-                                            $session = $warning->sourceable;
-                                            $sekolahNama = $session->rombel?->ekstrakurikuler?->sekolah?->namasekolah;
-                                            $rombelNama = $session->rombel?->nama_rombel;
-                                            
-                                            if (in_array($warning->warning_type, ['not_confirmed', 'missing_report'])) {
-                                                $actionUrl = route('ekstrakurikuler.sessions.report.create', $session->id);
-                                                $actionText = 'Isi Laporan Mengajar';
-                                            } elseif ($warning->warning_type === 'no_instructor') {
-                                                $actionUrl = route('ekstrakurikuler.sessions.show', $session->id);
-                                                $actionText = 'Tugaskan Instruktur';
-                                            }
-                                        } elseif ($warning->sourceable instanceof \App\Models\EkstrakurikulerRombel) {
-                                            $rombel = $warning->sourceable;
-                                            $sekolahNama = $rombel->ekstrakurikuler?->sekolah?->namasekolah;
-                                            $rombelNama = $rombel->nama_rombel;
-                                            $actionUrl = route('ekstrakurikuler.sessions.index', ['rombel_id' => $rombel->id]);
-                                            $actionText = 'Kelola Jadwal Rombel';
-                                        }
-                                    @endphp
-                                    <div class="list-group-item p-3 border-bottom" style="border-left: 4px solid {{ $warning->severity === 'red' ? '#f43f5e' : '#f59e0b' }} !important; background-color: {{ $warning->severity === 'red' ? 'rgba(244, 63, 94, 0.03)' : 'rgba(245, 158, 11, 0.03)' }};">
-                                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-2">
-                                            <div class="d-flex align-items-center gap-2 flex-wrap">
-                                                @if($warning->severity === 'red')
-                                                    <i class="bi bi-x-circle-fill text-danger fs-6"></i>
-                                                @else
-                                                    <i class="bi bi-exclamation-triangle-fill text-warning fs-6"></i>
-                                                @endif
-                                                <span class="badge bg-{{ $warning->severity === 'red' ? 'danger' : 'warning text-dark' }} text-uppercase fw-bold" style="font-size: 0.7rem;">
-                                                    {{ $typeLabel }}
+                                            @if($sekolahNama)
+                                                <span class="badge bg-white text-dark border shadow-sm" style="font-size: 0.725rem;">
+                                                    <i class="bi bi-building text-primary me-1"></i> {{ $sekolahNama }}
                                                 </span>
-                                                @if($sekolahNama)
-                                                    <span class="badge bg-white text-dark border shadow-sm" style="font-size: 0.725rem;">
-                                                        <i class="bi bi-building text-primary me-1"></i> {{ $sekolahNama }}
-                                                    </span>
-                                                @endif
-                                                @if($rombelNama)
-                                                    <span class="badge bg-white text-dark border shadow-sm" style="font-size: 0.725rem;">
-                                                        <i class="bi bi-people text-info me-1"></i> {{ $rombelNama }}
-                                                    </span>
-                                                @endif
-                                            </div>
-                                            <small class="text-muted flex-shrink-0"><i class="bi bi-clock me-1"></i>{{ $warning->created_at->diffForHumans() }}</small>
+                                            @endif
+                                            @if($rombelNama)
+                                                <span class="badge bg-white text-dark border shadow-sm" style="font-size: 0.725rem;">
+                                                    <i class="bi bi-people text-info me-1"></i> {{ $rombelNama }}
+                                                </span>
+                                            @endif
                                         </div>
+                                        <small class="text-muted flex-shrink-0"><i class="bi bi-clock me-1"></i>{{ $warning->created_at->diffForHumans() }}</small>
+                                    </div>
 
-                                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                                            <p class="mb-0 text-dark small fw-medium text-break" style="line-height: 1.5;">{{ $warning->notes }}</p>
-                                            <div class="flex-shrink-0 d-flex align-items-center gap-2 flex-wrap justify-content-start justify-content-md-end">
-                                                @if($actionUrl)
-                                                    <a href="{{ $actionUrl }}" {{ str_starts_with($actionUrl, 'http') ? 'target="_blank" rel="noopener noreferrer"' : '' }} class="btn btn-xs btn-primary py-1 px-3 rounded-pill fw-bold" style="font-size: 0.75rem; whitespace: nowrap;">
-                                                        <i class="bi bi-box-arrow-up-right me-1"></i> {{ $actionText }}
-                                                    </a>
-                                                @endif
-                                                <form action="{{ route('admin.warnings.resolve', $warning->id) }}" method="POST" class="d-inline">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-xs btn-outline-success py-1 px-3 rounded-pill" style="font-size: 0.75rem; whitespace: nowrap;">
-                                                        <i class="bi bi-check2 me-1"></i> Resolve
-                                                    </button>
-                                                </form>
-                                            </div>
+                                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                                        <p class="mb-0 text-dark small fw-medium text-break" style="line-height: 1.5;">{{ $warning->notes }}</p>
+                                        <div class="flex-shrink-0 d-flex align-items-center gap-2 flex-wrap justify-content-start justify-content-md-end">
+                                            @if($actionUrl)
+                                                <a href="{{ $actionUrl }}" {{ str_starts_with($actionUrl, 'http') ? 'target="_blank" rel="noopener noreferrer"' : '' }} class="btn btn-xs btn-primary py-1 px-3 rounded-pill fw-bold" style="font-size: 0.75rem; whitespace: nowrap;">
+                                                    <i class="bi bi-box-arrow-up-right me-1"></i> {{ $actionText }}
+                                                </a>
+                                            @endif
+                                            <form action="{{ route('admin.warnings.resolve', $warning->id) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-xs btn-outline-success py-1 px-3 rounded-pill" style="font-size: 0.75rem; whitespace: nowrap;">
+                                                    <i class="bi bi-check2 me-1"></i> Resolve
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
-                                @endforeach
-                            </div>
-                        @else
-                            <div class="p-5 text-center text-muted">
-                                <i class="bi bi-shield-check text-success fs-1 mb-3 d-block"></i>
-                                <h6 class="fw-bold mb-1 text-dark">Semua Sistem Berjalan Normal</h6>
-                                <p class="mb-0 small text-secondary">Tidak ada peringatan QC aktif saat ini.</p>
-                            </div>
-                        @endif
-                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="p-5 text-center text-muted">
+                            <i class="bi bi-shield-check text-success fs-1 mb-3 d-block"></i>
+                            <h6 class="fw-bold mb-1 text-dark">Semua Sistem Berjalan Normal</h6>
+                            <p class="mb-0 small text-secondary">Tidak ada peringatan QC aktif saat ini.</p>
+                        </div>
+                    @endif
                 </div>
-            @endif
+            </div>
+        </div>
+    </div>
 
-            <!-- Live Activities Feed -->
-            <div class="dashboard-card mb-4">
+    {{-- 8. LIVE ACTIVITY FEED (FULL WIDTH col-12) --}}
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="dashboard-card">
                 <div class="card-header bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-2">
                         <div class="spinner-grow text-success spinner-grow-sm" role="status"></div>
@@ -1055,129 +1375,10 @@
                 </div>
             </div>
         </div>
-
-        <!-- Right/Sidebar Column -->
-        <div class="col-lg-4 col-12">
-            @if(Auth::user()->role === 'instruktur')
-                <!-- Instructor To-Do List (Urgent Reports) - Wajib Dilaporkan -->
-                @if(isset($instructor_todo_list) && $instructor_todo_list->count() > 0)
-                <div class="dashboard-card mb-4" style="border-left: 6px solid #F59E0B !important;">
-                    <div class="card-header bg-warning-subtle text-warning-emphasis fw-bold d-flex justify-content-between align-items-center p-3">
-                        <span class="d-flex align-items-center"><i class="bi bi-exclamation-triangle-fill text-warning me-2 fs-5"></i>WAJIB DILAPORKAN ({{ $instructor_todo_list->count() }})</span>
-                    </div>
-                    <div class="card-body p-0 todo-scrollable" style="max-height: 450px; overflow-y: auto;">
-                        <div class="list-group list-group-flush">
-                            @foreach($instructor_todo_list as $todo)
-                                <div class="list-group-item p-3 border-bottom hover-bg-light">
-                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <h6 class="mb-0 fw-bold text-dark text-truncate" style="max-width: 75%;" title="{{ $todo->rombel?->ekstrakurikuler?->kategori_program ?? $todo->ekstrakurikuler?->kategori_program ?? 'Ekstrakurikuler' }}">
-                                            {{ $todo->rombel?->ekstrakurikuler?->kategori_program ?? $todo->ekstrakurikuler?->kategori_program ?? 'Ekstrakurikuler' }}
-                                        </h6>
-                                        <span class="badge bg-secondary rounded-pill" style="font-size: 0.7rem;">P.{{ $todo->nomor_pertemuan }}</span>
-                                    </div>
-                                    <div class="text-muted small mb-3">
-                                        <div class="mb-1 text-truncate" title="{{ $todo->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $todo->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah' }}">
-                                            <i class="bi bi-building me-1"></i> {{ $todo->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? $todo->ekstrakurikuler?->sekolah?->namasekolah ?? 'Sekolah' }}
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
-                                            <span>
-                                                <i class="bi bi-calendar-event me-1"></i> {{ \Carbon\Carbon::parse($todo->tanggal_terjadwal)->format('d M Y') }}
-                                                @if($todo->jam_mulai_terjadwal && $todo->jam_selesai_terjadwal)
-                                                    <span class="mx-1">•</span>
-                                                    <i class="bi bi-clock me-1"></i> {{ $todo->jadwal_waktu }}
-                                                @endif
-                                            </span>
-                                            @if($todo->isPast())
-                                                @php
-                                                    $waktuRefTodo = $todo->waktu_selesai_full ?? $todo->tanggal_terjadwal;
-                                                @endphp
-                                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle" style="font-size: 0.65rem;">
-                                                    Terlambat {{ $waktuRefTodo->diffForHumans() }}
-                                                </span>
-                                            @else
-                                                <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning-subtle" style="font-size: 0.65rem;">
-                                                    Hari Ini
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <a href="{{ route('ekstrakurikuler.sessions.report.create', $todo->id) }}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm w-100 d-flex align-items-center justify-content-center">
-                                        Buat Laporan <i class="bi bi-arrow-right ms-1"></i>
-                                    </a>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-                @endif
-
-                <!-- Emergency Helpdesk / Bantuan Darurat -->
-                <div class="dashboard-card mb-4" style="background: #F0FDF4; border: 1px solid #BBF7D0;">
-                    <div class="card-body p-4">
-                        <h6 class="fw-bold text-dark mb-2 d-flex align-items-center">
-                            <i class="bi bi-chat-dots-fill text-success me-2 fs-5"></i> Bantuan & Kontak Darurat
-                        </h6>
-                        <p class="text-muted small mb-3">
-                            Mengalami kendala saat mengajar atau butuh bantuan admin akademik Erlass? Hubungi kami langsung.
-                        </p>
-                        @php
-                            $waAdminPhone = '6282114631380';
-                            $waAdminText = urlencode("Halo Admin Akademik Erlass, saya " . Auth::user()->nama_lengkap . " (Instruktur). Saya butuh bantuan terkait operasional mengajar.");
-                        @endphp
-                        <a href="https://wa.me/{{ $waAdminPhone }}?text={{ $waAdminText }}" target="_blank" rel="noopener" class="btn btn-success w-100 rounded-pill d-flex align-items-center justify-content-center gap-2 shadow-sm fw-bold">
-                            <i class="bi bi-whatsapp"></i> Chat Admin Akademik
-                        </a>
-                    </div>
-                </div>
-            @else
-                <!-- Charts Partial (Admin Only) -->
-                @include('dashboard.partials.charts')
-
-                <!-- School Distribution (Admin/Webmaster only) -->
-                @if(auth()->user()?->hasAdminAccess())
-                <div class="dashboard-card mb-4">
-                    <div class="card-header bg-white border-bottom px-4 py-3">
-                        <h5 class="mb-0 fw-bold text-dark">Distribusi Siswa</h5>
-                    </div>
-                    <div class="card-body p-4">
-                        @if(isset($sekolah_distribution) && $sekolah_distribution->count() > 0)
-                        <div class="mb-4 d-flex flex-column gap-3">
-                            @foreach($sekolah_distribution as $sekolah)
-                            <div>
-                                <div class="d-flex justify-content-between mb-1 align-items-end">
-                                    <span class="fw-medium text-dark small">{{ Str::limit($sekolah->namasekolah, 25) }}</span>
-                                    <span class="fw-bold text-primary small">{{ $sekolah->siswa_count }}</span>
-                                </div>
-                                <div class="progress" style="height: 6px;">
-                                    <div class="progress-bar rounded-pill"
-                                        role="progressbar"
-                                        style="width: {{ ($sekolah->siswa_count / max(1, $total_siswa)) * 100 }}%; 
-                                                    background-color: #2563EB;"
-                                        aria-valuenow="{{ ($sekolah->siswa_count / max(1, $total_siswa)) * 100 }}"
-                                        aria-valuemin="0"
-                                        aria-valuemax="100">
-                                    </div>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                        <div class="text-center mt-2">
-                            <a href="{{ route('sekolah.distribusi') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                Lihat Semua Sekolah <i class="bi bi-arrow-right ms-1"></i>
-                            </a>
-                        </div>
-                        @else
-                        <div class="text-center py-4">
-                            <i class="bi bi-info-circle fs-1 text-muted opacity-50"></i>
-                            <p class="text-muted mt-2">Data sekolah tidak tersedia</p>
-                        </div>
-                        @endif
-                    </div>
-                </div>
-                @endif
-            @endif
-        </div>
     </div>
+    @endif
+
+
 </div>
 @endsection
 

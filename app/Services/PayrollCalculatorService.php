@@ -271,6 +271,16 @@ class PayrollCalculatorService
         } elseif ($sekolah && $sekolah->kustom_transport_fee !== null) {
             $totalTransport = (float)$sekolah->kustom_transport_fee * 2; // 2x PP
             return (float) (ceil($totalTransport / 500) * 500);
+        } elseif ($sekolah && $sekolah->jarak_km !== null && (float)$sekolah->jarak_km < 10.0 && (float)$sekolah->jarak_km > 0) {
+            // Fallback ke master sekolah jika jarak ekskul null (< 10 KM)
+            return (float) (ceil(7500.00 / 500) * 500);
+        } elseif ($sekolah && $sekolah->jarak_km !== null && (float)$sekolah->jarak_km >= 10.0) {
+            // Fallback ke master sekolah jika jarak ekskul null (>= 10 KM)
+            $distKm = (float) $sekolah->jarak_km;
+            $bensinPP = $distKm * 350.00 * 2;
+            $sewaKendaraan = 7500.00;
+            $totalTransport = $bensinPP + $sewaKendaraan;
+            return (float) (ceil($totalTransport / 500) * 500);
         }
 
         return 0.00;
@@ -634,6 +644,7 @@ class PayrollCalculatorService
                 $totalTransportFee = 0.00;
                 $totalUtamaSessions = 0;
                 $totalAsistenSessions = 0;
+                $transportPaidKeys = [];
 
                 foreach ($item->payrollItemSessions as $itemSession) {
                     $session = $itemSession->session;
@@ -643,6 +654,18 @@ class PayrollCalculatorService
 
                     $role = $itemSession->role ?? 'utama';
                     $calc = $this->calculateSessionFee($session, $role);
+
+                    $sessionDate = $session->tanggal_pelaksanaan
+                        ? Carbon::parse($session->tanggal_pelaksanaan)->toDateString()
+                        : ($session->tanggal_terjadwal ? Carbon::parse($session->tanggal_terjadwal)->toDateString() : 'unknown');
+                    $sekolahKey = $session->ekstrakurikuler?->sekolah_kodlan ?? 'default';
+                    $transportKey = $sekolahKey . '|' . $sessionDate;
+
+                    $transportFee = 0.00;
+                    if (!isset($transportPaidKeys[$transportKey])) {
+                        $transportFee = (float) $calc['transport_fee'];
+                        $transportPaidKeys[$transportKey] = true;
+                    }
 
                     if ($role === 'utama') {
                         $totalUtamaSessions++;
@@ -655,10 +678,10 @@ class PayrollCalculatorService
 
                         $penaltyFee = (float)$calc['actual_checkin_penalty'];
                         $bonusFee = (float)$calc['product_bonus'];
-                        $transportFee = (float)$itemSession->transport_fee; // pertahankan deduplikasi transport yang sudah ada
 
                         $itemSession->update([
                             'base_fee' => $sessionBaseFee,
+                            'transport_fee' => $transportFee,
                             'penalty_fee' => $penaltyFee,
                             'bonus_fee' => $bonusFee,
                             'net_fee' => max(0.00, $sessionBaseFee + $transportFee - $penaltyFee),
@@ -668,6 +691,7 @@ class PayrollCalculatorService
                             'actual_checkin_status' => $calc['actual_checkin_status'],
                             'actual_checkin_penalty' => $penaltyFee,
                             'calculated_fee' => $sessionBaseFee,
+                            'transport_fee' => $transportFee,
                         ]);
 
                         $totalBaseFee += $sessionBaseFee;
@@ -677,13 +701,17 @@ class PayrollCalculatorService
                     } else {
                         $totalAsistenSessions++;
                         $asistenFee = $itemSession->override_fee !== null ? (float)$itemSession->override_fee : (float)$calc['calculated_fee'];
-                        $transportFee = (float)$itemSession->transport_fee;
 
                         $itemSession->update([
                             'base_fee' => $asistenFee,
+                            'transport_fee' => $transportFee,
                             'penalty_fee' => 0.00,
                             'bonus_fee' => 0.00,
                             'net_fee' => max(0.00, $asistenFee + $transportFee),
+                        ]);
+
+                        $session->update([
+                            'transport_fee' => $transportFee,
                         ]);
 
                         $totalAsistenFee += $asistenFee;

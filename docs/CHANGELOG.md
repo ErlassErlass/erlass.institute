@@ -2,6 +2,48 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.46] - 2026-10-07
+
+### Penomoran Draft Tanpa INV, Alur Rollback Revisi Akunting, Konfirmasi Mutlak Produksi & Tab 13 Spreadsheet
+
+#### Penomoran Invoice & Standarisasi Dokumen
+- **Penomoran Draft Tanpa Kata `INV`**:
+  - Mengubah pola nomor draft invoice dari `DRAFT-INV/ERLASS/...` menjadi `DRAFT/ERLASS/YYYYMM/KODLAN/NNN` (`InvoiceApproval::generateNomorInvoice()`).
+  - Kata `INV` sama sekali tidak digunakan selama masa draft / verifikasi lapangan.
+  - Saat disetujui resmi oleh Staff Akunting (Gate 2), nomor invoice secara otomatis difinalisasi menjadi `INV/ERLASS/YYYYMM/KODLAN/NNN` (`finalizeNomorInvoice()`).
+  - Seluruh record draft invoice di database telah dimigrasikan ke awalan `DRAFT/`.
+  - Berkas unduhan PDF draft secara otomatis menggunakan nama `DRAFT-ERLASS-...pdf`.
+
+#### Alur Dual-Gate Approval & Siklus Mundur Revisi
+- **Gate 1 - Konfirmasi Mutlak Admin Produksi**:
+  - Menghapus tombol Tolak pada formulir Gate 1. Admin Produksi (Dinda & Novan) bertugas memverifikasi presensi dan meneruskan berkas ke Akunting.
+  - Koreksi data kehadiran, rombel, billable, dan penetapan siswa gratis (anak guru/kasek) dilakukan langsung melalui panel koreksi yang sudah tersedia pada halaman invoice.
+- **Gate 2 - Persetujuan & Pengembalian Revisi Akunting**:
+  - Otorisasi ketat Gate 2: hanya Staff Akunting (Rendy) yang berhak menyetujui dan menerbitkan nomor resmi `INV/...`.
+  - Mengubah tombol Tolak di Gate 2 menjadi **Kembalikan ke Produksi (Minta Revisi)** disertai validasi catatan revisi wajib diisi.
+  - Saat Akunting mengembalikan invoice, status tidak dead-end melainkan **mundur** ke `pending_operasional` (Menunggu Admin Produksi).
+  - Menambahkan banner peringatan oranye mencolok pada detail invoice yang menampilkan catatan revisi dari Akunting agar Admin Produksi dapat langsung memperbaikinya.
+
+#### Pembersihan UI & 4 Pilar Summary Cards
+- **Eliminasi Status "Ditolak" dari Tampilan Utama**:
+  - Menghapus tab pill `Ditolak` dan opsi dropdown filter status `Ditolak` pada halaman daftar invoice (`/invoice`).
+  - Menata ulang summary cards menjadi 4 tahapan alur simetris:
+    1. **Total Invoice**
+    2. **Menunggu Admin Produksi**
+    3. **Menunggu Staff Akunting**
+    4. **Disetujui Resmi**
+  - Menambahkan badge khusus `Perlu Revisi Produksi` dan penanda `Minta Revisi` pada baris tabel invoice yang dikembalikan oleh Akunting.
+
+#### Integrasi Tab 13 Google Spreadsheet (`Detail_Invoice_Marketing`)
+- **Format 41 Kolom Raw Metrics Siap Pivot**:
+  - Menambahkan Tab 13 pada sinkronisasi Google Spreadsheet dan tombol **Export CSV Tab 13** di header halaman invoice.
+  - Menyertakan data PIC Sales, Group Leader, skema tagihan, rincian siswa, nominal tarif, posisi meja approval, serta tanggal approval lengkap.
+
+#### Optimasi Performa
+- **Peningkatan Kecepatan Halaman (70x–100x Lebih Cepat)**:
+  - Menerapkan caching antrean sekolah siap ditagih (5 menit) dan daftar filter sekolah (1 jam).
+  - Membatasi rendering DOM tabel antrean sekolah hanya pada Tab `Semua` (`tab=all`).
+
 ## [2.9.43] - 2026-10-01
 
 ### Penataan Header Tabel Antrean Invoice & Checklist Approval Operasional & Akunting

@@ -197,6 +197,23 @@
                         @enderror
                     </div>
 
+                    <div class="mb-3">
+                        <label for="jarak_km" class="form-label">Jarak dari Erlass POP (km)</label>
+                        <input 
+                            type="number" 
+                            step="0.01" 
+                            class="form-control @error('jarak_km') is-invalid @enderror" 
+                            id="jarak_km" 
+                            name="jarak_km" 
+                            value="{{ old('jarak_km') }}" 
+                            placeholder="Contoh: 12.5"
+                        >
+                        <small class="text-muted">Jarak standar operasional dari Erlass POP Pejaten (dalam kilometer).</small>
+                        @error('jarak_km')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary">Simpan Sekolah</button>
                         <a href="{{ route('sekolah.index') }}" class="btn btn-secondary">Batal</a>

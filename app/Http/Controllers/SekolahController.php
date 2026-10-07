@@ -86,6 +86,7 @@ class SekolahController extends Controller
             'kota' => 'required|string',
             'provinsi' => 'required|string',
             'kustom_transport_fee' => 'nullable|numeric|min:0',
+            'jarak_km' => 'nullable|numeric|min:0|max:999.99',
         ]);
 
         Sekolah::create($validated);
@@ -110,10 +111,22 @@ class SekolahController extends Controller
             'kotkab' => 'required|string',
             'kota' => 'required|string',
             'provinsi' => 'required|string',
+            'skema_tagihan' => 'nullable|in:bulanan,semester,tahunan,per_4_pertemuan,csr_reguler_soga',
             'kustom_transport_fee' => 'nullable|numeric|min:0',
+            'jarak_km' => 'nullable|numeric|min:0|max:999.99',
         ]);
 
         $sekolah->update($validated);
+
+        if (!empty($validated['skema_tagihan']) && \Illuminate\Support\Facades\Schema::hasColumn('ekstrakurikuler', 'skema_tagihan')) {
+            \App\Models\Ekstrakurikuler::where('sekolah_kodlan', $sekolah->kodlan)
+                ->update(['skema_tagihan' => $validated['skema_tagihan']]);
+        }
+
+        if (array_key_exists('jarak_km', $validated) && $validated['jarak_km'] !== null && \Illuminate\Support\Facades\Schema::hasColumn('ekstrakurikuler', 'jarak_km')) {
+            \App\Models\Ekstrakurikuler::where('sekolah_kodlan', $sekolah->kodlan)
+                ->update(['jarak_km' => $validated['jarak_km']]);
+        }
 
         return redirect()->route('sekolah.index')
             ->with('success', 'School updated successfully!');

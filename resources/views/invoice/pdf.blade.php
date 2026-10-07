@@ -6,15 +6,15 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 15mm 18mm 12mm 18mm;
+            margin: 12mm 15mm 10mm 15mm;
         }
         * {
             box-sizing: border-box;
         }
         body {
             font-family: 'DejaVu Sans', 'Helvetica', Arial, sans-serif;
-            font-size: 7.8pt;
-            line-height: 1.3;
+            font-size: 7.6pt;
+            line-height: 1.25;
             color: #1e293b;
             background: #ffffff;
         }
@@ -41,6 +41,7 @@
         .skema-semester { background: #ede9fe; color: #5b21b6; }
         .skema-tahunan { background: #e2e8f0; color: #334155; }
         .skema-per4 { background: #e0f2fe; color: #0369a1; }
+        .skema-csr { background: #dcfce7; color: #166534; }
 
         .status-badge {
             display: inline-block;
@@ -79,44 +80,40 @@
 <div class="keep-together">
 
     {{-- ─── 1. KOP SURAT / HEADER RESMI PERUSAHAAN ─────────────────────── --}}
-    <table style="border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 7px;">
+    <table style="border-bottom: 2px solid #0f172a; padding-bottom: 5px; margin-bottom: 6px;">
         <tr>
             {{-- Kiri: Logo & Info Perusahaan --}}
             <td style="width: 54%; vertical-align: top;">
-                <div style="font-size: 17pt; font-weight: bold; color: #0f172a; letter-spacing: 1px; line-height: 1;">
+                <div style="font-size: 16pt; font-weight: bold; color: #0f172a; letter-spacing: 1px; line-height: 1;">
                     ERLASS
                 </div>
-                <div style="font-size: 7.8pt; font-weight: bold; color: #334155; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px;">
+                <div style="font-size: 7.5pt; font-weight: bold; color: #334155; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px;">
                     PT. Erlass Prokreatif Indonesia
                 </div>
-                <div style="font-size: 6.3pt; color: #64748b; margin-top: 2px; line-height: 1.35;">
+                <div style="font-size: 6.2pt; color: #64748b; margin-top: 2px; line-height: 1.3;">
                     Pejaten Office Park Blok D, Jl. WarungBuncit Raya no. 79, RT.1/RW.7,<br>
-                    Pejaten Bar., Ps. Minggu, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12790<br>
-                    Website: erlass.institute &middot; Email: finance@erlass.institute
+                    Pejaten Bar., Ps. Minggu, Kota Jakarta Selatan, D.K.I. Jakarta 12790
                 </div>
             </td>
 
-            {{-- Kanan: Judul Invoice & Nomor Resmi (Tanpa wrap patah) --}}
+            {{-- Kanan: Judul Invoice & Nomor Resmi --}}
             <td style="width: 46%; vertical-align: top; text-align: right;">
-                <div style="font-size: 13.5pt; font-weight: bold; color: #0f172a; letter-spacing: 0.5px; line-height: 1;">
+                <div style="font-size: 13pt; font-weight: bold; color: #0f172a; letter-spacing: 0.5px; line-height: 1;">
                     FAKTUR TAGIHAN
                 </div>
-                <div style="font-size: 6.8pt; color: #64748b; text-transform: uppercase; margin-top: 3px;">
+                <div style="font-size: 6.5pt; color: #64748b; text-transform: uppercase; margin-top: 2px;">
                     Nomor Invoice
                 </div>
-                <div style="font-size: 9pt; font-weight: bold; color: #0f172a; white-space: nowrap; margin-top: 1px;">
+                <div style="font-size: 8.8pt; font-weight: bold; color: #0f172a; white-space: nowrap; margin-top: 1px;">
                     {{ $invoice->nomor_invoice }}
                 </div>
-                <div style="margin-top: 4px;">
+                <div style="margin-top: 3px;">
                     @if($isDraft ?? false)
-                        <span class="status-badge status-draft">DRAFT &mdash; KONFIRMASI PIC</span>
-                        <div style="font-size: 6.5pt; color: #b45309; margin-top: 2px; font-weight: bold;">
-                            Pra-Tagihan Sementara (Validasi Kehadiran)
-                        </div>
+                        <span class="status-badge status-draft">DRAFT &mdash; MENUNGGU KONFIRMASI PIC</span>
                     @else
-                        <span class="status-badge status-approved">APPROVED &mdash; SIAP DITAGIHKAN</span>
-                        <div style="font-size: 6.5pt; color: #64748b; margin-top: 2px;">
-                            Diterbitkan: {{ $invoice->akunting_approved_at?->translatedFormat('d F Y') ?? now()->translatedFormat('d F Y') }}
+                        <span class="status-badge status-approved">RESMI &mdash; DISETUJUI PIC SEKOLAH</span>
+                        <div style="font-size: 6.2pt; color: #64748b; margin-top: 1px;">
+                            Dikonfirmasi: {{ $invoice->pic_konfirmasi_tgl?->translatedFormat('d F Y') ?? ($invoice->operasional_approved_at?->translatedFormat('d F Y') ?? now()->translatedFormat('d F Y')) }}
                         </div>
                     @endif
                 </div>
@@ -126,14 +123,11 @@
 
     {{-- Banner Notifikasi Khusus Draft Invoice --}}
     @if($isDraft ?? false)
-    <table style="margin-bottom: 7px; background: #fffbeb; border: 1px dashed #d97706; border-radius: 4px;">
+    <table style="margin-bottom: 6px; background: #fffbeb; border: 1px dashed #d97706; border-radius: 4px;">
         <tr>
-            <td style="padding: 4px 8px; text-align: center;">
-                <div style="font-size: 7.2pt; font-weight: bold; color: #92400e; letter-spacing: 0.3px;">
+            <td style="padding: 3px 6px; text-align: center;">
+                <div style="font-size: 6.8pt; font-weight: bold; color: #92400e;">
                     DRAFT FAKTUR TAGIHAN &mdash; DOKUMEN VERIFIKASI KEHADIRAN SISWA DENGAN PIC SEKOLAH
-                </div>
-                <div style="font-size: 6.5pt; color: #78350f; margin-top: 1px;">
-                    Rincian data presensi dan rombel ini digunakan untuk validasi sebelum penerbitan faktur tagihan resmi oleh Bagian Keuangan.
                 </div>
             </td>
         </tr>
@@ -143,62 +137,83 @@
     {{-- ─── 2. INFORMASI PIHAK KEDUA (BILL TO) & METADATA TAGIHAN ──────── --}}
     @php
         $skemaText = match($invoice->skema_tagihan) {
-            'bulanan'         => 'Bulanan (Kalender)',
-            'semester'        => 'Per Semester (~16 sesi)',
-            'tahunan'         => 'Per Tahun (~32 sesi)',
-            'per_4_pertemuan' => 'Per 4 Pertemuan (Rolling)',
-            default           => '-',
+            'bulanan'          => 'Bulanan (Kalender)',
+            'semester'         => 'Per Semester (~16 sesi)',
+            'tahunan'          => 'Per Tahun (~32 sesi)',
+            'per_4_pertemuan'  => 'Per 4 Pertemuan',
+            'csr_reguler_soga' => 'CSR Reguler SOGA (Solidaritas Erlangga)',
+            default            => '-',
         };
         $totalRombel = $invoice->total_rombel ?: ($invoice->items->count() ?: 1);
     @endphp
-    <table style="margin-bottom: 8px; font-size: 7.8pt;">
+    <table style="margin-bottom: 6px; font-size: 7.5pt;">
         <tr>
             {{-- Kolom Kiri: Tagihan Kepada (Bill To) --}}
-            <td style="width: 52%; vertical-align: top; padding-right: 14px;">
-                <div style="font-size: 6.8pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px; margin-bottom: 4px;">
+            <td style="width: 52%; vertical-align: top; padding-right: 12px;">
+                <div style="font-size: 6.5pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #cbd5e1; padding-bottom: 1px; margin-bottom: 3px;">
                     TAGIHAN KEPADA (BILL TO):
                 </div>
-                <div style="font-size: 10pt; font-weight: bold; color: #0f172a; line-height: 1.2;">
+                @if($invoice->skema_tagihan === \App\Models\Sekolah::SKEMA_CSR_REGULER_SOGA)
+                <div style="font-size: 9.5pt; font-weight: bold; color: #0f172a; line-height: 1.2;">
+                    CSR SOGA (Solidaritas Erlangga)
+                </div>
+                <div style="font-size: 7.2pt; font-weight: bold; color: #1e40af; margin-top: 2px;">
+                    Program Kemitraan: {{ $invoice->sekolah?->namasekolah ?? '-' }}
+                </div>
+                <div style="font-size: 6.8pt; color: #475569; margin-top: 1px;">
+                    Kode Langganan Sekolah: <strong>{{ $invoice->sekolah_kodlan ?? '-' }}</strong>
+                </div>
+                <div style="font-size: 6.8pt; color: #475569; margin-top: 1px; line-height: 1.3;">
+                    Lokasi: {{ $invoice->sekolah?->alamat ?? '-' }}
+                </div>
+                <div style="font-size: 6.8pt; color: #475569; margin-top: 1px;">
+                    Penanggung Jawab: <strong>{{ $invoice->pic_nama ?: 'CSR SOGA (Solidaritas Erlangga)' }}</strong> 
+                    @if($invoice->pic_jabatan) ({{ $invoice->pic_jabatan }}) @endif
+                </div>
+                @else
+                <div style="font-size: 9.5pt; font-weight: bold; color: #0f172a; line-height: 1.2;">
                     {{ $invoice->sekolah?->namasekolah ?? '-' }}
                 </div>
-                <div style="font-size: 7.2pt; color: #475569; margin-top: 2px;">
+                <div style="font-size: 6.8pt; color: #475569; margin-top: 1px;">
                     Kode Langganan: <strong>{{ $invoice->sekolah_kodlan ?? '-' }}</strong>
                 </div>
-                <div style="font-size: 7.2pt; color: #475569; margin-top: 2px; line-height: 1.35;">
+                <div style="font-size: 6.8pt; color: #475569; margin-top: 1px; line-height: 1.3;">
                     {{ $invoice->sekolah?->alamat ?? '-' }}
                 </div>
-                @if($invoice->sekolah?->penanggung_jawab)
-                <div style="font-size: 7.2pt; color: #475569; margin-top: 2px;">
-                    UP / PIC: <strong>{{ $invoice->sekolah->penanggung_jawab }}</strong>
+                @if($invoice->pic_nama)
+                <div style="font-size: 6.8pt; color: #475569; margin-top: 1px;">
+                    UP / PIC: <strong>{{ $invoice->pic_nama }}</strong> 
+                    @if($invoice->pic_jabatan) ({{ $invoice->pic_jabatan }}) @endif
                 </div>
+                @endif
                 @endif
             </td>
 
             {{-- Kolom Kanan: Rincian Program & Sesi --}}
-            <td style="width: 48%; vertical-align: top; border-left: 1.5px solid #e2e8f0; padding-left: 14px;">
-                <div style="font-size: 6.8pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px; margin-bottom: 4px;">
+            <td style="width: 48%; vertical-align: top; border-left: 1.5px solid #e2e8f0; padding-left: 12px;">
+                <div style="font-size: 6.5pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #cbd5e1; padding-bottom: 1px; margin-bottom: 3px;">
                     RINCIAN KONTRAK &amp; PERIODE:
                 </div>
-                <table style="width: 100%; font-size: 7.5pt;">
+                <table style="width: 100%; font-size: 7.2pt;">
                     <tr>
-                        <td style="width: 110px; color: #64748b; padding: 2px 0;">Program</td>
-                        <td style="padding: 2px 0;">: <strong style="color: #0f172a;">{{ $invoice->program_nama }}</strong></td>
+                        <td style="width: 105px; color: #64748b; padding: 1.5px 0;">Program</td>
+                        <td style="padding: 1.5px 0;">: <strong style="color: #0f172a;">{{ $invoice->program_nama }}</strong></td>
                     </tr>
                     <tr>
-                        <td style="color: #64748b; padding: 2px 0;">Tahun Ajaran</td>
-                        <td style="padding: 2px 0;">: {{ $invoice->tahun_ajaran }}</td>
+                        <td style="color: #64748b; padding: 1.5px 0;">Tahun Ajaran</td>
+                        <td style="padding: 1.5px 0;">: {{ $invoice->tahun_ajaran }}</td>
                     </tr>
                     <tr>
-                        <td style="color: #64748b; padding: 2px 0;">Skema Tagihan</td>
-                        <td style="padding: 2px 0;">: <strong style="color: #0f172a;">{{ $skemaText }}</strong></td>
+                        <td style="color: #64748b; padding: 1.5px 0;">Skema Tagihan</td>
+                        <td style="padding: 1.5px 0;">: <strong style="color: #0f172a;">{{ $skemaText }}</strong></td>
                     </tr>
                     <tr>
-                        <td style="color: #64748b; padding: 2px 0;">Periode Tagihan</td>
-                        <td style="padding: 2px 0;">: <strong>{{ $invoice->periode_label }}</strong> @if($invoice->sesi_dari && $invoice->sesi_sampai) <span style="color:#475569;">(Sesi {{ $invoice->sesi_dari }}&ndash;{{ $invoice->sesi_sampai }})</span> @endif</td>
+                        <td style="color: #64748b; padding: 1.5px 0;">Periode Tagihan</td>
+                        <td style="padding: 1.5px 0;">: <strong>{{ $invoice->periode_label }}</strong> @if($invoice->sesi_dari && $invoice->sesi_sampai) <span style="color:#475569;">(Sesi {{ $invoice->sesi_dari }}&ndash;{{ $invoice->sesi_sampai }})</span> @endif</td>
                     </tr>
                     <tr>
-                        <td style="color: #64748b; padding: 2px 0;">Total Rombel</td>
-                        <td style="padding: 2px 0;">: <strong>{{ $totalRombel }} Rombel Belajar</strong></td>
+                        <td style="color: #64748b; padding: 1.5px 0;">Total Rombel</td>
+                        <td style="padding: 1.5px 0;">: <strong>{{ $totalRombel }} Rombel Belajar</strong></td>
                     </tr>
                 </table>
             </td>
@@ -206,65 +221,99 @@
     </table>
 
     {{-- ─── 3. TABEL UTAMA TAGIHAN (ACCOUNTING INVOICE TABLE) ───────────── --}}
-    <table style="margin-bottom: 8px; font-size: 7.5pt; border: 1px solid #334155;">
+    <table style="margin-bottom: 6px; font-size: 7.2pt; border: 1px solid #334155;">
         <thead>
             <tr style="background: #0f172a; color: #ffffff;">
-                <th style="padding: 5px 6px; width: 5%; text-align: center; border: 1px solid #334155;">NO</th>
-                <th style="padding: 5px 8px; width: 45%; text-align: left; border: 1px solid #334155;">PROGRAM &amp; ROMBONGAN BELAJAR</th>
-                <th style="padding: 5px 8px; width: 22%; text-align: center; border: 1px solid #334155;">RENTANG SESI</th>
-                <th style="padding: 5px 8px; width: 13%; text-align: center; border: 1px solid #334155;">JUMLAH SESI</th>
-                <th style="padding: 5px 8px; width: 15%; text-align: right; border: 1px solid #334155;">SISWA BILLABLE</th>
+                <th style="padding: 4px 6px; width: 5%; text-align: center; border: 1px solid #334155;">NO</th>
+                <th style="padding: 4px 8px; width: 45%; text-align: left; border: 1px solid #334155;">PROGRAM &amp; ROMBONGAN BELAJAR</th>
+                <th style="padding: 4px 8px; width: 22%; text-align: center; border: 1px solid #334155;">RENTANG SESI</th>
+                <th style="padding: 4px 8px; width: 13%; text-align: center; border: 1px solid #334155;">JUMLAH SESI</th>
+                <th style="padding: 4px 8px; width: 15%; text-align: right; border: 1px solid #334155;">SISWA HADIR</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($invoice->items as $idx => $item)
-            <tr style="background: {{ $idx % 2 === 0 ? '#ffffff' : '#f8fafc' }};">
-                <td style="padding: 5px 6px; text-align: center; border: 1px solid #cbd5e1; color: #64748b;">
-                    {{ $idx + 1 }}
-                </td>
-                <td style="padding: 5px 8px; border: 1px solid #cbd5e1;">
-                    <div style="font-weight: bold; color: #0f172a;">
-                        {{ $item->rombel?->ekstrakurikuler?->kategori_program ?? $invoice->program_nama }}
-                    </div>
-                    <div style="font-size: 6.8pt; color: #475569; margin-top: 1px;">
-                        Kelas / Rombel: <strong>{{ $item->rombel?->nama_rombel ?? 'Rombel ' . ($idx + 1) }}</strong>
-                    </div>
-                </td>
-                <td style="padding: 5px 8px; text-align: center; border: 1px solid #cbd5e1;">
-                    @if($item->sesi_dari && $item->sesi_sampai)
-                        Sesi {{ $item->sesi_dari }} s/d {{ $item->sesi_sampai }}
-                    @else
-                        {{ $item->jumlah_sesi }} Sesi Selesai
-                    @endif
-                </td>
-                <td style="padding: 5px 8px; text-align: center; border: 1px solid #cbd5e1;">
-                    {{ $item->jumlah_sesi }} Pertemuan
-                </td>
-                <td style="padding: 5px 8px; text-align: right; border: 1px solid #cbd5e1; font-weight: bold; color: #0f172a;">
-                    {{ $item->billable_efektif }} Siswa
-                    @if($item->hasKoreksi())
-                        <div style="font-size: 5.8pt; color: #b45309; font-weight: normal;">(penyesuaian data)</div>
-                    @endif
-                </td>
-            </tr>
-            @endforeach
+            @if($invoice->items->isNotEmpty())
+                @foreach($invoice->items as $idx => $item)
+                <tr style="background: {{ $idx % 2 === 0 ? '#ffffff' : '#f8fafc' }};">
+                    <td style="padding: 4px 6px; text-align: center; border: 1px solid #cbd5e1; color: #64748b;">
+                        {{ $idx + 1 }}
+                    </td>
+                    <td style="padding: 4px 8px; border: 1px solid #cbd5e1;">
+                        <div style="font-weight: bold; color: #0f172a;">
+                            {{ $item->rombel?->ekstrakurikuler?->kategori_program ?? $invoice->program_nama }}
+                        </div>
+                        <div style="font-size: 6.5pt; color: #475569;">
+                            Kelas / Rombel: <strong>{{ $item->rombel?->nama_rombel ?? 'Rombel ' . ($idx + 1) }}</strong>
+                        </div>
+                    </td>
+                    <td style="padding: 4px 8px; text-align: center; border: 1px solid #cbd5e1;">
+                        @if($item->sesi_dari && $item->sesi_sampai)
+                            Sesi {{ $item->sesi_dari }} s/d {{ $item->sesi_sampai }}
+                        @else
+                            {{ $item->jumlah_sesi }} Sesi Selesai
+                        @endif
+                    </td>
+                    <td style="padding: 4px 8px; text-align: center; border: 1px solid #cbd5e1;">
+                        {{ $item->jumlah_sesi }} Pertemuan
+                    </td>
+                    <td style="padding: 4px 8px; text-align: right; border: 1px solid #cbd5e1; font-weight: bold; color: #0f172a;">
+                        {{ $item->jumlah_siswa_billable }} Siswa
+                    </td>
+                </tr>
+                @endforeach
+            @else
+                <tr>
+                    <td style="padding: 4px 6px; text-align: center; border: 1px solid #cbd5e1;">1</td>
+                    <td style="padding: 4px 8px; border: 1px solid #cbd5e1;">
+                        <div style="font-weight: bold;">{{ $invoice->program_nama }}</div>
+                        <div style="font-size: 6.5pt; color: #475569;">Rombel: {{ $invoice->rombel?->nama_rombel ?? 'Utama' }}</div>
+                    </td>
+                    <td style="padding: 4px 8px; text-align: center; border: 1px solid #cbd5e1;">
+                        Sesi {{ $invoice->sesi_dari ?? 1 }} s/d {{ $invoice->sesi_sampai ?? $invoice->jumlah_sesi }}
+                    </td>
+                    <td style="padding: 4px 8px; text-align: center; border: 1px solid #cbd5e1;">
+                        {{ $invoice->jumlah_sesi }} Pertemuan
+                    </td>
+                    <td style="padding: 4px 8px; text-align: right; border: 1px solid #cbd5e1; font-weight: bold;">
+                        {{ $invoice->jumlah_siswa_billable }} Siswa
+                    </td>
+                </tr>
+            @endif
         </tbody>
         <tfoot>
-            @if($invoice->hasKoreksi())
-            <tr style="background: #fffbeb; font-size: 7.2pt;">
-                <td colspan="4" style="padding: 4px 8px; text-align: right; border: 1px solid #cbd5e1; color: #92400e;">
-                    <em>Catatan Penyesuaian: {{ $invoice->koreksi_catatan }} (oleh {{ $invoice->koreksiByUser?->nama_lengkap ?? 'Admin' }})</em>
+            {{-- Baris Potongan Siswa Gratis (Anak Guru/Kasek) --}}
+            @if(($invoice->jumlah_siswa_gratis ?? 0) > 0)
+            <tr style="background: #eff6ff; font-size: 7pt;">
+                <td colspan="4" style="padding: 3px 8px; text-align: right; border: 1px solid #cbd5e1; color: #1e40af;">
+                    <strong>Potongan Siswa Non-Billable (Anak Guru / Kasek / Kebijakan Khusus):</strong><br>
+                    <span style="font-size: 6.2pt; color: #3b82f6;">
+                        Nama Siswa: {{ collect($invoice->siswa_gratis_list ?? [])->pluck('nama')->implode(', ') }}
+                    </span>
                 </td>
-                <td style="padding: 4px 8px; text-align: right; border: 1px solid #cbd5e1; color: #92400e; font-weight: bold;">
+                <td style="padding: 3px 8px; text-align: right; border: 1px solid #cbd5e1; color: #1e40af; font-weight: bold;">
+                    -{{ $invoice->jumlah_siswa_gratis }} Siswa
+                </td>
+            </tr>
+            @endif
+
+            {{-- Baris Koreksi Manual Jika Ada --}}
+            @if($invoice->hasKoreksi())
+            <tr style="background: #fffbeb; font-size: 7pt;">
+                <td colspan="4" style="padding: 3px 8px; text-align: right; border: 1px solid #cbd5e1; color: #92400e;">
+                    <em>Catatan Koreksi Override: {{ $invoice->koreksi_catatan }}</em>
+                </td>
+                <td style="padding: 3px 8px; text-align: right; border: 1px solid #cbd5e1; color: #92400e; font-weight: bold;">
                     Disesuaikan
                 </td>
             </tr>
             @endif
-            <tr style="background: #f1f5f9; font-size: 8pt;">
-                <td colspan="4" style="padding: 5px 8px; text-align: right; font-weight: bold; color: #0f172a; border: 1px solid #334155;">
-                    TOTAL SISWA BILLABLE YANG DITAGIHKAN:
+
+            {{-- Baris Total Billable Akhir --}}
+            <tr style="background: #f1f5f9; font-size: 7.8pt;">
+                <td colspan="4" style="padding: 4px 8px; text-align: right; font-weight: bold; color: #0f172a; border: 1px solid #334155;">
+                    TOTAL SISWA BILLABLE YANG DITAGIHKAN PADA INVOICE:
                 </td>
-                <td style="padding: 5px 8px; text-align: right; font-weight: bold; font-size: 9.5pt; color: #1e3a8a; border: 1px solid #334155;">
+                <td style="padding: 4px 8px; text-align: right; font-weight: bold; font-size: 9.5pt; color: #1e3a8a; border: 1px solid #334155;">
                     {{ $invoice->billable_efektif }} Siswa
                 </td>
             </tr>
@@ -272,110 +321,136 @@
     </table>
 
     {{-- Ringkasan Parameter Tagihan Baris Rapi --}}
-    <table style="margin-bottom: 8px; font-size: 7.2pt; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px;">
+    <table style="margin-bottom: 6px; font-size: 7pt; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px;">
         <tr>
-            <td style="padding: 4px 8px; width: 33.3%; text-align: center; border-right: 1px solid #e2e8f0;">
-                <span style="color: #64748b;">Total Rombel:</span>
-                <strong style="color: #0f172a; font-size: 8pt;">{{ $totalRombel }} Rombel</strong>
+            <td style="padding: 3px 6px; width: 25%; text-align: center; border-right: 1px solid #e2e8f0;">
+                <span style="color: #64748b;">Siswa Hadir:</span>
+                <strong style="color: #0f172a; font-size: 7.8pt;">{{ $invoice->jumlah_siswa_billable }} Orang</strong>
             </td>
-            <td style="padding: 4px 8px; width: 33.4%; text-align: center; border-right: 1px solid #e2e8f0;">
+            <td style="padding: 3px 6px; width: 25%; text-align: center; border-right: 1px solid #e2e8f0;">
+                <span style="color: #64748b;">Siswa Gratis:</span>
+                <strong style="color: #ea580c; font-size: 7.8pt;">{{ $invoice->jumlah_siswa_gratis ?? 0 }} Orang</strong>
+            </td>
+            <td style="padding: 3px 6px; width: 25%; text-align: center; border-right: 1px solid #e2e8f0;">
                 <span style="color: #64748b;">Total Pertemuan:</span>
-                <strong style="color: #0f172a; font-size: 8pt;">{{ $invoice->jumlah_sesi }} Sesi Terlaksana</strong>
+                <strong style="color: #0f172a; font-size: 7.8pt;">{{ $invoice->jumlah_sesi }} Sesi Selesai</strong>
             </td>
-            <td style="padding: 4px 8px; width: 33.3%; text-align: center;">
-                <span style="color: #64748b;">Presensi Terverifikasi:</span>
-                <strong style="color: #166534; font-size: 8pt;">{{ $invoice->billable_efektif }} Siswa Aktif</strong>
+            <td style="padding: 3px 6px; width: 25%; text-align: center;">
+                <span style="color: #64748b;">Ditagihkan:</span>
+                <strong style="color: #166534; font-size: 8.5pt;">{{ $invoice->billable_efektif }} Siswa</strong>
             </td>
         </tr>
     </table>
 
-    {{-- ─── 4. OTORISASI & PERSETUJUAN RESMI (CORPORATE SIGNATURE BLOCKS) ─ --}}
-    <div style="font-size: 7.2pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px; margin-bottom: 5px;">
-        LEMBAR PENGESAHAN &amp; PERSETUJUAN RESMI:
+    {{-- ─── 4. LEMBAR PENGESAHAN & PERSETUJUAN RESMI (GATE 1) ─────────── --}}
+    <div style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #cbd5e1; padding-bottom: 1px; margin-bottom: 4px;">
+        LEMBAR PENGESAHAN &amp; KOMITMEN PEMBUATAN INVOICE:
     </div>
-    <table style="margin-bottom: 8px;">
+    <table style="margin-bottom: 6px;">
         <tr>
-            {{-- Kolom Kiri: Verifikasi Operasional / Akademik --}}
-            <td style="width: 48%; vertical-align: top; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 9px; background: #ffffff;">
-                <div style="font-size: 6.8pt; font-weight: bold; color: #64748b; text-transform: uppercase;">
-                    1. OPERASIONAL / AKADEMIK (VERIFIKASI PIC)
+            {{-- Kolom Kiri: Verifikasi PIC Sekolah --}}
+            <td style="width: 50%; vertical-align: top; border: 1px solid #cbd5e1; border-radius: 4px; padding: 5px 8px; background: #ffffff;">
+                <div style="font-size: 6.6pt; font-weight: bold; color: #1e3a8a; text-transform: uppercase;">
+                    1. VERIFIKASI &amp; PERSETUJUAN {{ $invoice->skema_tagihan === \App\Models\Sekolah::SKEMA_CSR_REGULER_SOGA ? 'PIC CSR SOGA' : 'PIC SEKOLAH' }}
                 </div>
-                <div style="font-size: 7.2pt; margin-top: 2px;">
+                <div style="font-size: 7pt; margin-top: 1px;">
                     Status:
-                    @if($invoice->operasional_status === 'approved')
-                        <strong style="color: #166534;">[SUDAH DIKONFIRMASI PIC SEKOLAH]</strong>
+                    @if($invoice->isApproved())
+                        <strong style="color: #166534;">[SUDAH DIKONFIRMASI {{ $invoice->skema_tagihan === \App\Models\Sekolah::SKEMA_CSR_REGULER_SOGA ? 'CSR SOGA' : 'PIC SEKOLAH' }}]</strong>
                     @else
                         <span style="color: #b45309; font-weight: bold;">[DRAFT &mdash; MENUNGGU KONFIRMASI]</span>
                     @endif
                 </div>
-                <div style="font-size: 6.8pt; color: #475569; margin-top: 1px;">
-                    PIC Dihubungi: <strong>{{ $invoice->pic_konfirmasi_nama ?: ($invoice->sekolah?->penanggung_jawab ?: 'Koordinator Sekolah') }}</strong>
+                <div style="font-size: 6.6pt; color: #475569; margin-top: 1px;">
+                    PIC Dihubungi: <strong>{{ $invoice->pic_nama ?: 'Koordinator Sekolah' }}</strong>
+                    @if($invoice->pic_jabatan) <span style="color:#64748b;">({{ $invoice->pic_jabatan }})</span> @endif
+                </div>
+                <div style="font-size: 6.2pt; color: #64748b; margin-top: 1px;">
+                    Media: Percakapan WhatsApp @if($invoice->bukti_chat_path) <strong>(Bukti Chat Terlampir)</strong> @endif
                 </div>
 
-                <div style="height: 26px;"></div>
-
-                <div style="border-top: 1px solid #0f172a; padding-top: 2px; font-weight: bold; font-size: 7.8pt; color: #0f172a;">
-                    {{ $invoice->operasionalUser?->nama_lengkap ?? $invoice->operasionalUser?->name ?? 'Tim Operasional Erlass' }}
+                {{-- Klausul Komitmen Mutlak --}}
+                <div style="font-size: 5.8pt; color: #991b1b; background: #fef2f2; border: 0.5px solid #fecaca; padding: 2px 4px; border-radius: 2px; margin-top: 3px; line-height: 1.2;">
+                    * Setelah persetujuan ini, tidak dibenarkan ada perubahan data lagi dan invoice mengikat secara sah.
                 </div>
-                <div style="font-size: 6.5pt; color: #64748b;">
-                    {{ $invoice->operasional_approved_at?->translatedFormat('d F Y, H:i') ? 'Dikonfirmasi: ' . $invoice->operasional_approved_at->translatedFormat('d F Y, H:i') . ' WIB' : 'Tgl: ........................................' }}
+
+                <div style="height: 18px;"></div>
+
+                <div style="border-top: 1px solid #0f172a; padding-top: 1px; font-weight: bold; font-size: 7.2pt; color: #0f172a;">
+                    {{ $invoice->pic_nama ?: '( ........................................ )' }}
+                </div>
+                @if($invoice->pic_jabatan)
+                <div style="font-size: 6.2pt; color: #475569;">
+                    {{ $invoice->pic_jabatan }}
+                </div>
+                @endif
+                <div style="font-size: 6.2pt; color: #64748b;">
+                    {{ $invoice->pic_konfirmasi_tgl?->translatedFormat('d F Y, H:i') ? 'Dikonfirmasi: ' . $invoice->pic_konfirmasi_tgl->translatedFormat('d F Y, H:i') . ' WIB' : 'Tgl: ........................................' }}
                 </div>
             </td>
 
-            <td style="width: 4%;"></td>
+            <td style="width: 3%;"></td>
 
-            {{-- Kolom Kanan: Approval Keuangan / Akunting --}}
-            <td style="width: 48%; vertical-align: top; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 9px; background: #ffffff;">
-                <div style="font-size: 6.8pt; font-weight: bold; color: #64748b; text-transform: uppercase;">
-                    2. KEUANGAN / AKUNTING (PENERBITAN FAKTUR)
+            {{-- Kolom Kanan: Operasional Erlass --}}
+            <td style="width: 47%; vertical-align: top; border: 1px solid #cbd5e1; border-radius: 4px; padding: 5px 8px; background: #ffffff;">
+                <div style="font-size: 6.6pt; font-weight: bold; color: #0f172a; text-transform: uppercase;">
+                    2. PEMERIKSA OPERASIONAL ERLASS
                 </div>
-                <div style="font-size: 7.2pt; margin-top: 2px;">
+                <div style="font-size: 7pt; margin-top: 1px;">
                     Status:
-                    @if($invoice->akunting_status === 'approved')
-                        <strong style="color: #166534;">[TELAH DISETUJUI &amp; DITERBITKAN]</strong>
+                    @if($invoice->isApproved())
+                        <strong style="color: #166534;">[VERIFIKASI GATE 1 TUNTAS]</strong>
                     @else
-                        <span style="color: #b45309; font-weight: bold;">[MENUNGGU PERSETUJUAN AKUNTING]</span>
+                        <span style="color: #b45309; font-weight: bold;">[SEDANG DIPERIKSA]</span>
                     @endif
                 </div>
-                <div style="font-size: 6.8pt; color: #475569; margin-top: 1px;">
-                    Catatan: {{ $invoice->akunting_catatan ?: '-' }}
+                <div style="font-size: 6.6pt; color: #475569; margin-top: 1px;">
+                    Staf Pemeriksa: <strong>{{ $invoice->operasionalUser?->nama_lengkap ?? $invoice->operasionalUser?->name ?? 'Dinda / Novandi' }}</strong>
+                </div>
+                <div style="font-size: 6.2pt; color: #64748b; margin-top: 1px;">
+                    Divisi: Operasional &amp; Akademik
                 </div>
 
-                <div style="height: 26px;"></div>
+                <div style="height: 30px;"></div>
 
-                <div style="border-top: 1px solid #0f172a; padding-top: 2px; font-weight: bold; font-size: 7.8pt; color: #0f172a;">
-                    {{ $invoice->akuntingUser?->nama_lengkap ?? $invoice->akuntingUser?->name ?? 'Bagian Keuangan Erlass' }}
+                <div style="border-top: 1px solid #0f172a; padding-top: 1px; font-weight: bold; font-size: 7.2pt; color: #0f172a;">
+                    {{ $invoice->operasionalUser?->nama_lengkap ?? $invoice->operasionalUser?->name ?? 'Tim Operasional Erlass' }}
                 </div>
-                <div style="font-size: 6.5pt; color: #64748b;">
-                    {{ $invoice->akunting_approved_at?->translatedFormat('d F Y, H:i') ? 'Disetujui: ' . $invoice->akunting_approved_at->translatedFormat('d F Y, H:i') . ' WIB' : 'Tgl: ........................................' }}
+                <div style="font-size: 6.2pt; color: #64748b;">
+                    {{ $invoice->operasional_approved_at?->translatedFormat('d F Y, H:i') ? 'Diverifikasi: ' . $invoice->operasional_approved_at->translatedFormat('d F Y, H:i') . ' WIB' : 'Tgl: ........................................' }}
                 </div>
             </td>
         </tr>
     </table>
 
-    {{-- ─── 5. KETENTUAN KHUSUS & CATATAN KONTRAK ───────────────────────── --}}
-    <div style="border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 4px; padding: 5px 8px; margin-bottom: 6px;">
-        <div style="font-size: 6.8pt; font-weight: bold; color: #334155; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px;">
-            KETENTUAN &amp; CATATAN TAGIHAN:
-        </div>
-        <table style="font-size: 6.5pt; color: #475569; line-height: 1.35;">
-            <tr>
-                <td style="width: 14px; vertical-align: top;">&bull;</td>
-                <td>Seluruh sesi pembelajaran yang terjadwal mengikat alokasi penugasan instruktur dan sarana belajar Erlass Prokreatif Indonesia.</td>
-            </tr>
-            <tr>
-                <td style="vertical-align: top;">&bull;</td>
-                <td>Sesi pembelajaran <strong style="color: #0f172a;">tidak dapat dibatalkan secara sepihak</strong> untuk pengurangan biaya tagihan. Apabila terdapat kendala internal sekolah (ujian/libur/acara sekolah), sesi wajib dialihkan melalui prosedur <strong style="color: #0f172a;">Reschedule resmi</strong>.</td>
-            </tr>
-            <tr>
-                <td style="vertical-align: top;">&bull;</td>
-                <td>Pembayaran tagihan ditransfer ke rekening resmi <strong>PT. Erlass Prokreatif Indonesia</strong> sesuai invoice final yang diterbitkan.</td>
-            </tr>
-        </table>
-    </div>
+    {{-- ─── 5. LEMBAR TANDA TERIMA BERKAS KE AKUNTING ─────────────────── --}}
+    <table style="margin-bottom: 5px; border: 1px dashed #64748b; background: #f8fafc; border-radius: 4px; padding: 3px 6px; font-size: 6.5pt;">
+        <tr>
+            <td colspan="2" style="font-weight: bold; color: #0f172a; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 1px;">
+                LEMBAR TANDA TERIMA PENYERAHAN BERKAS KE BAGIAN KEUANGAN / AKUNTING:
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="color: #475569; padding: 2px 0;">
+                Seluruh verifikasi presensi dan nominal siswa billable telah tuntas diverifikasi oleh Operasional. Berkas invoice fisik/digital diserahkan ke Bagian Keuangan untuk proses penagihan resmi.
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 50%; padding-top: 3px;">
+                <span style="color: #64748b;">Diserahkan Oleh (Operasional):</span><br>
+                <strong style="color: #0f172a;">{{ $invoice->operasionalUser?->nama_lengkap ?? $invoice->operasionalUser?->name ?? 'Dinda / Novandi' }}</strong><br>
+                <span style="color: #94a3b8; font-size: 5.8pt;">Tgl: {{ $invoice->operasional_approved_at?->translatedFormat('d F Y') ?? now()->translatedFormat('d F Y') }}</span>
+            </td>
+            <td style="width: 50%; padding-top: 3px; text-align: right;">
+                <span style="color: #64748b;">Diterima Oleh (Keuangan / Akunting):</span><br>
+                <strong style="color: #0f172a;">{{ $invoice->serah_terima_akunting_penerima ?: '( ........................................ )' }}</strong><br>
+                <span style="color: #94a3b8; font-size: 5.8pt;">Tgl: {{ $invoice->serah_terima_akunting_at?->translatedFormat('d F Y') ?? '..... / ..... / 2026' }}</span>
+            </td>
+        </tr>
+    </table>
 
     {{-- ─── 6. FOOTER HALAMAN 1 ────────────────────────────────────────── --}}
-    <table style="border-top: 1px solid #cbd5e1; padding-top: 3px; font-size: 6.2pt; color: #94a3b8;">
+    <table style="border-top: 1px solid #cbd5e1; padding-top: 2px; font-size: 6pt; color: #94a3b8;">
         <tr>
             <td style="width: 60%; vertical-align: middle;">
                 Dicetak pada: {{ now()->translatedFormat('d F Y, H:i') }} WIB &middot; No: {{ $invoice->nomor_invoice }}
@@ -390,46 +465,93 @@
 
 {{-- ═════════════════════════════════════════════════════════════════════════ --}}
 {{-- HALAMAN 2 dst: LAMPIRAN PRESENSI & LAPORAN MENGAJAR RESMI                 --}}
-{{-- Format konsisten dengan dokumen resmi absensi sekolah                    --}}
 {{-- ═════════════════════════════════════════════════════════════════════════ --}}
 @if(!empty($attendanceData))
 @foreach($attendanceData as $attIndex => $att)
 <div class="page-break" style="padding-top: 2px;">
 
     {{-- Header Lampiran Formal --}}
-    <div style="text-align: center; margin-bottom: 6px; border-bottom: 1.5px solid #0f172a; padding-bottom: 4px;">
-        <div style="font-size: 10.5pt; font-weight: bold; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">
+    <div style="text-align: center; margin-bottom: 5px; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px;">
+        <div style="font-size: 10pt; font-weight: bold; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">
             LAMPIRAN REKAPITULASI PRESENSI &amp; LAPORAN MENGAJAR
         </div>
-        <div style="font-size: 8pt; font-weight: bold; color: #475569; text-transform: uppercase; margin-top: 1px;">
+        <div style="font-size: 7.8pt; font-weight: bold; color: #475569; text-transform: uppercase; margin-top: 1px;">
             {{ $att['school_name'] }} &mdash; {{ $att['program_nama'] }} &middot; T.A. {{ $invoice->tahun_ajaran }}
         </div>
-        <div style="font-size: 6.5pt; color: #64748b; margin-top: 1px;">
+        <div style="font-size: 6.2pt; color: #64748b; margin-top: 1px;">
             Lampiran Faktur Tagihan: <strong>{{ $invoice->nomor_invoice }}</strong> &middot; Rombel: <strong>{{ $att['rombel_nama'] }}</strong>
         </div>
     </div>
 
-    {{-- Meta Grid Rombel & Pengajar (Sesuai format resmi print-blank) --}}
-    <table style="margin-bottom: 6px; font-size: 7.2pt; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 4px; padding: 4px 8px;">
+    {{-- Meta Grid Rombel & Pengajar --}}
+    <table style="margin-bottom: 5px; font-size: 7pt; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 4px; padding: 3px 6px;">
         <tr>
-            <td style="width: 15%; color: #64748b; padding: 1.5px 0;">Nama Sekolah</td>
-            <td style="width: 35%; font-weight: bold; padding: 1.5px 0; color: #0f172a;">: {{ $att['school_name'] }}</td>
-            <td style="width: 15%; color: #64748b; padding: 1.5px 0;">Instruktur</td>
-            <td style="width: 35%; font-weight: bold; padding: 1.5px 0; color: #0f172a;">: {{ $att['instructor_name'] }}</td>
+            <td style="width: 15%; color: #64748b; padding: 1px 0;">Nama Sekolah</td>
+            <td style="width: 35%; font-weight: bold; padding: 1px 0; color: #0f172a;">: {{ $att['school_name'] }}</td>
+            <td style="width: 15%; color: #64748b; padding: 1px 0;">Instruktur</td>
+            <td style="width: 35%; font-weight: bold; padding: 1px 0; color: #0f172a;">: {{ $att['instructor_name'] }}</td>
         </tr>
         <tr>
-            <td style="color: #64748b; padding: 1.5px 0;">Program</td>
-            <td style="font-weight: bold; padding: 1.5px 0; color: #0f172a;">: {{ $att['program_nama'] }}</td>
-            <td style="color: #64748b; padding: 1.5px 0;">PIC Sekolah</td>
-            <td style="font-weight: bold; padding: 1.5px 0; color: #0f172a;">: {{ $att['pic_name'] }}</td>
+            <td style="color: #64748b; padding: 1px 0;">Program</td>
+            <td style="font-weight: bold; padding: 1px 0; color: #0f172a;">: {{ $att['program_nama'] }}</td>
+            <td style="color: #64748b; padding: 1px 0;">PIC Sekolah</td>
+            <td style="font-weight: bold; padding: 1px 0; color: #0f172a;">: {{ $invoice->pic_nama ?: ($att['pic_name'] ?: '-') }}</td>
         </tr>
         <tr>
-            <td style="color: #64748b; padding: 1.5px 0;">Rombel</td>
-            <td style="font-weight: bold; padding: 1.5px 0; color: #0f172a;">: {{ $att['rombel_nama'] }}</td>
-            <td style="color: #64748b; padding: 1.5px 0;">Periode / Sesi</td>
-            <td style="font-weight: bold; padding: 1.5px 0; color: #0f172a;">: {{ $invoice->periode_label }} @if($invoice->sesi_dari && $invoice->sesi_sampai)(Sesi {{ $invoice->sesi_dari }}&ndash;{{ $invoice->sesi_sampai }})@endif</td>
+            <td style="color: #64748b; padding: 1px 0;">Rombel</td>
+            <td style="font-weight: bold; padding: 1px 0; color: #0f172a;">: {{ $att['rombel_nama'] }}</td>
+            <td style="color: #64748b; padding: 1px 0;">Periode / Sesi</td>
+            <td style="font-weight: bold; padding: 1px 0; color: #0f172a;">: {{ $invoice->periode_label }} @if($invoice->sesi_dari && $invoice->sesi_sampai)(Sesi {{ $invoice->sesi_dari }}&ndash;{{ $invoice->sesi_sampai }})@endif</td>
         </tr>
     </table>
+
+    {{-- TABEL PERSETUJUAN KONFIRMASI SESI KEHADIRAN (FORMAT RESMI CHECKLIST) --}}
+    <div style="margin-bottom: 5px; border: 1px solid #cbd5e1; background: #ffffff; border-radius: 4px; padding: 4px 6px;">
+        <div style="font-size: 6.8pt; font-weight: bold; color: #0f172a; text-transform: uppercase; margin-bottom: 3px;">
+            Persetujuan Konfirmasi Data Kehadiran per Sesi:
+        </div>
+        <table style="font-size: 6.5pt; width: 100%;">
+            <thead>
+                <tr style="background: #f1f5f9; color: #0f172a; font-weight: bold;">
+                    <th style="padding: 2px 4px; text-align: left; width: 45%;">Sesi Pembelajaran</th>
+                    <th style="padding: 2px 4px; text-align: center; width: 25%;">Jumlah Siswa Hadir</th>
+                    <th style="padding: 2px 4px; text-align: center; width: 15%;">Kecocokan</th>
+                    <th style="padding: 2px 4px; text-align: center; width: 15%;">Setuju</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($att['sessionReports'] as $sIdx => $report)
+                <tr>
+                    <td style="padding: 2px 4px; border-bottom: 0.5px solid #e2e8f0;">
+                        {{ $sIdx + 1 }}. Sesi {{ $report['nomor_pertemuan'] }} &mdash; {{ $report['tanggal'] }}
+                    </td>
+                    <td style="padding: 2px 4px; text-align: center; font-weight: bold; border-bottom: 0.5px solid #e2e8f0;">
+                        {{ $report['total_hadir'] }} orang
+                    </td>
+                    <td style="padding: 2px 4px; text-align: center; color: #166534; border-bottom: 0.5px solid #e2e8f0;">
+                        Sesuai
+                    </td>
+                    <td style="padding: 2px 4px; text-align: center; font-weight: bold; color: #166534; border-bottom: 0.5px solid #e2e8f0;">
+                        [ &#10003; ]
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr style="font-weight: bold; background: #f8fafc;">
+                    <td style="padding: 3px 4px; border-top: 1px solid #cbd5e1;">
+                        Daftar Hadir: {{ $invoice->jumlah_siswa_billable }} orang 
+                        @if(($invoice->jumlah_siswa_gratis ?? 0) > 0)
+                            &middot; Gratis: {{ $invoice->jumlah_siswa_gratis }} orang
+                        @endif
+                    </td>
+                    <td colspan="3" style="padding: 3px 4px; text-align: right; border-top: 1px solid #cbd5e1; color: #1e3a8a; font-size: 7.2pt;">
+                        Jumlah siswa yang ditagihkan pada invoice: <strong>{{ $invoice->billable_efektif }} orang</strong>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 
     @php
         $sessions = $att['sessions'];
@@ -439,26 +561,28 @@
         $colWidth = round(34 / $colCount, 1);
         $totalStudents = $students->count();
 
-        // Responsive density for up to 42 students on 1 single page
+        $gratisIds = collect($invoice->siswa_gratis_list ?? [])->pluck('siswa_id')->toArray();
+
+        // Responsive density
         if ($totalStudents > 35) {
             $rowPadding = '0.5px 2px';
-            $rowFontSize = '5.8pt';
+            $rowFontSize = '5.6pt';
             $lineHeight = '1.0';
         } elseif ($totalStudents > 25) {
-            $rowPadding = '1.5px 3px';
-            $rowFontSize = '6.6pt';
+            $rowPadding = '1px 3px';
+            $rowFontSize = '6.4pt';
             $lineHeight = '1.1';
         } else {
             $rowPadding = '2px 4px';
-            $rowFontSize = '7pt';
+            $rowFontSize = '6.8pt';
             $lineHeight = '1.2';
         }
     @endphp
 
     {{-- Tabel Presensi Siswa --}}
-    <div style="margin-bottom: 6px;">
-        <div style="font-size: 7.2pt; font-weight: bold; color: #0f172a; margin-bottom: 2px; text-transform: uppercase;">
-            Daftar Kehadiran Siswa (Presensi Sesi):
+    <div style="margin-bottom: 5px;">
+        <div style="font-size: 6.8pt; font-weight: bold; color: #0f172a; margin-bottom: 2px; text-transform: uppercase;">
+            Rincian Presensi Nama Siswa:
         </div>
         <table style="width: 100%; border-collapse: collapse; font-size: {{ $rowFontSize }}; line-height: {{ $lineHeight }}; table-layout: fixed;">
             <thead>
@@ -471,19 +595,20 @@
                             $tgl = $sess->tanggal_pelaksanaan ?? $sess->tanggal_terjadwal;
                             $tglShort = $tgl ? (\Carbon\Carbon::parse($tgl)->format('d/m')) : '-';
                         @endphp
-                        <th style="border: 1px solid #334155; padding: 1.5px 1px; width: {{ $colWidth }}%;">
-                            Pert. {{ $sess->nomor_pertemuan }}<br>
-                            <span style="font-size: 5.5pt; font-weight: normal; color: #93c5fd;">{{ $tglShort }}</span>
+                        <th style="border: 1px solid #334155; padding: 1px 1px; width: {{ $colWidth }}%;">
+                            P.{{ $sess->nomor_pertemuan }}<br>
+                            <span style="font-size: 5.2pt; font-weight: normal; color: #93c5fd;">{{ $tglShort }}</span>
                         </th>
                     @endforeach
                     <th style="border: 1px solid #334155; padding: 2px 2px; width: 7%;">Hadir</th>
-                    <th style="border: 1px solid #334155; padding: 2px 2px; width: 6%;">Status</th>
+                    <th style="border: 1px solid #334155; padding: 2px 2px; width: 8%;">Status Tagihan</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($students as $stIdx => $student)
                 @php
                     $hadirCount = 0;
+                    $isStudentGratis = in_array($student->id, $gratisIds);
                 @endphp
                 <tr style="background: {{ $stIdx % 2 === 0 ? '#ffffff' : '#f8fafc' }};">
                     <td style="border: 1px solid #cbd5e1; text-align: center; padding: {{ $rowPadding }}; color: #64748b;">
@@ -503,9 +628,9 @@
                         @endphp
                         <td style="border: 1px solid #cbd5e1; text-align: center; padding: 1px;">
                             @if($stHadir === 1)
-                                <span style="font-weight: bold; color: #166534; font-size: 7.5pt;">&#10003;</span>
+                                <span style="font-weight: bold; color: #166534; font-size: 7pt;">&#10003;</span>
                             @elseif($stHadir === 0)
-                                <span style="color: #dc2626; font-weight: bold; font-size: 7pt;">&times;</span>
+                                <span style="color: #dc2626; font-weight: bold; font-size: 6.5pt;">&times;</span>
                             @else
                                 <span style="color: #94a3b8;">-</span>
                             @endif
@@ -514,11 +639,18 @@
                     <td style="border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0f172a; padding: {{ $rowPadding }};">
                         {{ $hadirCount }}
                     </td>
-                    <td style="border: 1px solid #cbd5e1; text-align: center; padding: {{ $rowPadding }}; font-size: 5.8pt;">
-                        @if(isset($student->pivot) && $student->pivot->status === 'keluar')
+                    <td style="border: 1px solid #cbd5e1; text-align: center; padding: {{ $rowPadding }}; font-size: 5.5pt;">
+                        @php
+                            $minHadirLimit = ($sessions->count() >= 4) ? 2 : max(1, (int) ceil($sessions->count() / 2));
+                        @endphp
+                        @if($isStudentGratis)
+                            <span style="color: #ea580c; font-weight: bold;">GRATIS</span>
+                        @elseif(isset($student->pivot) && $student->pivot->status === 'keluar')
                             <span style="color: #dc2626; font-weight: bold;">Keluar</span>
+                        @elseif($hadirCount < $minHadirLimit)
+                            <span style="color: #64748b; font-weight: bold;">Tidak Ditagihkan (&lt;{{ $minHadirLimit }}x)</span>
                         @else
-                            <span style="color: #166534; font-weight: bold;">Aktif</span>
+                            <span style="color: #166534; font-weight: bold;">Ditagihkan</span>
                         @endif
                     </td>
                 </tr>
@@ -535,11 +667,11 @@
 
     {{-- Rincian Pelaksanaan Materi Mengajar Tiap Sesi & Tanda Tangan --}}
     <div class="keep-together">
-        <div style="margin-bottom: 5px;">
-            <div style="font-size: 7.2pt; font-weight: bold; color: #0f172a; margin-bottom: 2px; text-transform: uppercase;">
-                Rincian Pelaksanaan Materi Mengajar Tiap Sesi:
+        <div style="margin-bottom: 4px;">
+            <div style="font-size: 6.8pt; font-weight: bold; color: #0f172a; margin-bottom: 2px; text-transform: uppercase;">
+                Rincian Materi Pembelajaran per Sesi:
             </div>
-            <table style="font-size: 6pt; border: 1px solid #cbd5e1;">
+            <table style="font-size: 5.8pt; border: 1px solid #cbd5e1;">
                 <thead>
                     <tr style="background: #f1f5f9; color: #0f172a; text-align: left;">
                         <th style="border: 1px solid #cbd5e1; padding: 1.5px 3px; width: 14%;">Pertemuan</th>
@@ -573,35 +705,13 @@
             </table>
         </div>
 
-        {{-- Tanda Tangan Konfirmasi Lampiran --}}
-        <table style="border: none; margin-top: 4px; margin-bottom: 2px;">
-            <tr>
-                <td style="width: 50%; text-align: center; vertical-align: top; border: none; padding-right: 30px;">
-                    <div style="font-size: 6.8pt; color: #64748b; margin-bottom: 8px;">
-                        Mengetahui &amp; Memvalidasi,<br><strong>PIC Sekolah / Koordinator</strong>
-                    </div>
-                    <div style="border-top: 1px solid #0f172a; padding-top: 2px; font-size: 6.8pt; font-weight: bold; color: #0f172a;">
-                        {{ $att['pic_name'] ?: '( ........................................ )' }}
-                    </div>
-                </td>
-                <td style="width: 50%; text-align: center; vertical-align: top; border: none; padding-left: 30px;">
-                    <div style="font-size: 6.8pt; color: #64748b; margin-bottom: 8px;">
-                        Diverifikasi Oleh,<br><strong>Instruktur Pengajar</strong>
-                    </div>
-                    <div style="border-top: 1px solid #0f172a; padding-top: 2px; font-size: 6.8pt; font-weight: bold; color: #0f172a;">
-                        {{ $att['instructor_name'] ?: '( ........................................ )' }}
-                    </div>
-                </td>
-            </tr>
-        </table>
-
         {{-- Footer Lampiran --}}
         <table style="border-top: 1px solid #cbd5e1; padding-top: 2px; margin-top: 2px;">
             <tr>
-                <td style="font-size: 6pt; color: #94a3b8; vertical-align: middle;">
+                <td style="font-size: 5.8pt; color: #94a3b8; vertical-align: middle;">
                     Lampiran Faktur Tagihan: {{ $invoice->nomor_invoice }} &middot; Rombel: {{ $att['rombel_nama'] }}
                 </td>
-                <td style="font-size: 6pt; color: #94a3b8; text-align: right; vertical-align: middle;">
+                <td style="font-size: 5.8pt; color: #94a3b8; text-align: right; vertical-align: middle;">
                     Halaman {{ $attIndex + 2 }} (Lampiran Presensi &amp; Laporan)
                 </td>
             </tr>
@@ -610,6 +720,48 @@
 
 </div>
 @endforeach
+@endif
+
+{{-- ═════════════════════════════════════════════════════════════════════════ --}}
+{{-- HALAMAN 3: LAMPIRAN BUKTI CHAT WHATSAPP DENGAN PIC SEKOLAH               --}}
+{{-- ═════════════════════════════════════════════════════════════════════════ --}}
+@php
+    $buktiChatFile = $invoice->bukti_chat_path ? storage_path('app/public/' . $invoice->bukti_chat_path) : null;
+@endphp
+@if($buktiChatFile && file_exists($buktiChatFile))
+<div class="page-break" style="padding-top: 4px;">
+    <div style="text-align: center; margin-bottom: 8px; border-bottom: 1.5px solid #0f172a; padding-bottom: 4px;">
+        <div style="font-size: 10.5pt; font-weight: bold; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">
+            LAMPIRAN BUKTI KONFIRMASI CHAT WHATSAPP DENGAN PIC SEKOLAH
+        </div>
+        <div style="font-size: 7.5pt; font-weight: bold; color: #475569; text-transform: uppercase; margin-top: 1px;">
+            {{ $invoice->sekolah?->namasekolah ?? '-' }} &middot; Invoice: {{ $invoice->nomor_invoice }}
+        </div>
+        <div style="font-size: 6.5pt; color: #64748b; margin-top: 1px;">
+            PIC Dihubungi: <strong>{{ $invoice->pic_nama ?: 'Koordinator Sekolah' }}</strong> &middot; Tanggal: <strong>{{ $invoice->pic_konfirmasi_tgl?->translatedFormat('d F Y, H:i') ?? $invoice->operasional_approved_at?->translatedFormat('d F Y, H:i') }} WIB</strong>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin: 15px auto; padding: 10px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px; max-width: 90%;">
+        <img src="{{ $buktiChatFile }}" 
+             style="max-width: 95%; max-height: 220mm; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 4px;">
+    </div>
+
+    <div style="font-size: 6.5pt; color: #64748b; text-align: center; margin-top: 6px; font-style: italic;">
+        Dokumen tangkapan layar percakapan WhatsApp di atas adalah bukti persetujuan resmi dan komitmen kehadiran siswa oleh PIC Sekolah untuk penerbitan faktur tagihan ini.
+    </div>
+
+    <table style="border-top: 1px solid #cbd5e1; padding-top: 2px; margin-top: 15px;">
+        <tr>
+            <td style="font-size: 5.8pt; color: #94a3b8; vertical-align: middle;">
+                Lampiran Bukti Chat &middot; No: {{ $invoice->nomor_invoice }}
+            </td>
+            <td style="font-size: 5.8pt; color: #94a3b8; text-align: right; vertical-align: middle;">
+                Lampiran Otorisasi PIC
+            </td>
+        </tr>
+    </table>
+</div>
 @endif
 
 </body>

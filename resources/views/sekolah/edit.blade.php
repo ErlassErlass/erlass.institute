@@ -79,6 +79,21 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+
+                                <div class="mb-3">
+                                    <label for="skema_tagihan" class="form-label fw-semibold">Skema Tagihan Invoice</label>
+                                    <select name="skema_tagihan" id="skema_tagihan" class="form-select @error('skema_tagihan') is-invalid @enderror" required>
+                                        <option value="per_4_pertemuan" {{ old('skema_tagihan', $sekolah->skema_tagihan) === 'per_4_pertemuan' ? 'selected' : '' }}>Per 4 Pertemuan (Default)</option>
+                                        <option value="bulanan" {{ old('skema_tagihan', $sekolah->skema_tagihan) === 'bulanan' ? 'selected' : '' }}>Bulanan (Setiap Akhir Bulan)</option>
+                                        <option value="semester" {{ old('skema_tagihan', $sekolah->skema_tagihan) === 'semester' ? 'selected' : '' }}>Per Semester (Jul–Des / Jan–Jun)</option>
+                                        <option value="tahunan" {{ old('skema_tagihan', $sekolah->skema_tagihan) === 'tahunan' ? 'selected' : '' }}>Tahunan (Per Tahun Ajaran)</option>
+                                        <option value="csr_reguler_soga" {{ old('skema_tagihan', $sekolah->skema_tagihan) === 'csr_reguler_soga' ? 'selected' : '' }}>CSR Reguler SOGA (Solidaritas Erlangga)</option>
+                                    </select>
+                                    <small class="text-muted">Menentukan aturan jatuh tempo penagihan invoice sekolah ini.</small>
+                                    @error('skema_tagihan')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
                             </div>
 
                             {{-- Kolom Kanan --}}
@@ -128,6 +143,15 @@
                                     <input type="number" step="0.01" class="form-control @error('kustom_transport_fee') is-invalid @enderror" id="kustom_transport_fee" name="kustom_transport_fee" value="{{ old('kustom_transport_fee', $sekolah->kustom_transport_fee) }}" placeholder="Contoh: 35000">
                                     <small class="text-muted">Kosongkan jika ingin menggunakan perhitungan default.</small>
                                     @error('kustom_transport_fee')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="jarak_km" class="form-label">Jarak dari Erlass POP (km)</label>
+                                    <input type="number" step="0.01" class="form-control @error('jarak_km') is-invalid @enderror" id="jarak_km" name="jarak_km" value="{{ old('jarak_km', $sekolah->jarak_km) }}" placeholder="Contoh: 12.5">
+                                    <small class="text-muted">Jarak standar operasional dari Erlass POP Pejaten (dalam kilometer). Jika diubah, akan otomatis menyinkronkan seluruh program ekskul di sekolah ini.</small>
+                                    @error('jarak_km')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>

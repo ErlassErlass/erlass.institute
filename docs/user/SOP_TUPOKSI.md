@@ -13,7 +13,8 @@ Admin bertanggung jawab atas pengelolaan data master, penjadwalan, dan monitorin
 1.  **Manajemen Data Master**: Mengelola data Sekolah, Siswa, dan Program Ekstrakurikuler.
 2.  **Penjadwalan (Scheduling)**: Membuat dan mengatur jadwal sesi ekstrakurikuler (Rombel, Waktu, Instruktur).
 3.  **Monitoring & Verifikasi**: Memantau laporan masuk, memverifikasi kehadiran instruktur, dan memastikan laporan lengkap.
-4.  **Manajemen User**: Menambah akun instruktur atau karyawan baru.
+4.  **Manajemen User**: Menambah akun instruktur atau staf karyawan baru (Role resmi: `admin_sistem`).
+5.  **Penagihan & Invoicing Sekolah**: Mengelola antrean sekolah siap tagih, verifikasi kehadiran dengan PIC sekolah, koreksi billable, proses Dual-Approval Gate (Operasional & Akunting), dan penerbitan faktur resmi PDF.
 
 #### **Alur Kerja (Workflow) Admin:**
 
@@ -37,14 +38,29 @@ Admin bertanggung jawab atas pengelolaan data master, penjadwalan, dan monitorin
     *   Assign **Instruktur Utama** dan **Asisten** (jika ada).
 
 **B. Operasional Harian/Mingguan**
-1.  **Monitoring Jadwal**: Cek menu `Jadwal Mengajar` atau Dashboard untuk melihat sesi yang akan berjalan.
+1.  **Monitoring Dashboard Command Center**: Cek Todo Admin 2 Kolom (Tiket/Reschedule di kolom kiri, Invoice/Belum Lapor di kolom kanan) dan Pusat Verifikasi Siswa (Grid 6 : 6).
 2.  **Handle Perubahan Jadwal**:
-    *   Jika Instruktur berhalangan, Admin dapat melakukan **Reschedule** atau **Pembatalan Sesi** di menu `Jadwal Mengajar`.
+    *   Jika Instruktur berhalangan, Admin melakukan **Reschedule** dengan opsi pergeseran berantai (*Cascade Shift*) di menu `Jadwal Mengajar` atau modal dashboard.
 3.  **Review Laporan & Notifikasi**:
     *   Buka menu `Absensi & Laporan > Riwayat Laporan`.
     *   Cek apakah Instruktur sudah submit laporan.
     *   Verifikasi foto kegiatan dan foto absensi fisik.
     *   (Opsional) Kirim **Manual Progress Reminder** WhatsApp ke Orang Tua jika sistem otomatis tertunda atau orang tua meminta resend, melalui halaman *Detail Sesi* yang sudah selesai.
+
+**C. Penagihan & Invoicing Sekolah (Dual-Approval Workflow)**
+1.  **Evaluasi Antrean Siap Tagih**: Buka menu `Kompensasi & Payroll > Faktur & Invoice` (`/invoice`). Sekolah baru masuk antrean jika seluruh rombel aktif telah tuntas menyelesaikan sesinya.
+2.  **Generate Draft Invoice**: Klik **"Buat Invoice"** untuk sekolah terkait. Sistem menerbitkan draft bernomor `DRAFT/ERLASS/...` (tanpa kata INV) dengan status `Menunggu Admin Produksi`.
+3.  **Gate 1 - Verifikasi Admin Produksi (PIC Dinda & Novandi)**:
+    *   Hubungi PIC sekolah / PIC CSR untuk konfirmasi presensi dan bukti chat WhatsApp.
+    *   Lakukan koreksi jumlah siswa billable dan tetapkan siswa gratis (jika ada kebijakan khusus/anak guru).
+    *   Centang checklist kelayakan operasional dan klik **Verifikasi & Teruskan ke Akunting** (tidak ada opsi tolak/batal).
+4.  **Gate 2 - Persetujuan Staff Akunting (PIC Rendy / Finance)**:
+    *   Periksa nominal tarif, total tagihan, dan nomor rekening penampung resmi.
+    *   Jika sesuai, klik **Setujui & Terbitkan Invoice Resmi**.
+    *   Jika terdapat ketidaksesuaian nilai tagihan/rekening, klik **Kembalikan ke Produksi (Minta Revisi)** dengan catatan wajib; status invoice mundur ke Gate 1.
+5.  **Penerbitan Nomor Resmi & Distribusi**:
+    *   Prefix `DRAFT/` otomatis berganti menjadi nomor resmi `INV/ERLASS/...`.
+    *   Unduh PDF resmi bertanda tangan digital dan stempel perusahaan untuk diserahkan ke pihak sekolah mitra.
 
 ---
 

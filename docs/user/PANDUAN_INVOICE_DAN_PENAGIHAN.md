@@ -12,16 +12,19 @@ Dokumen ini merupakan panduan resmi alur penagihan invoice sekolah, mulai dari e
 2. **Aturan Keserentakan (All Rombels Done)**:
    - Sekolah baru masuk ke antrean *Siap Ditagihkan* apabila **seluruh rombel aktif** di sekolah tersebut telah menyelesaikan target sesinya.
 3. **Pemisahan Bersih Skema vs. Periode Tagihan**:
-   - **Skema Tagihan**: Nama jenis kontrak (`Bulanan`, `Per 4 Pertemuan`, `Semesteran`, `Tahunan`).
-   - **Periode Tagihan**: Tempat detail waktu diletakkan (misal: `Agustus 2026`, `Semester 1 — Jul–Des 2026`, atau `Sesi 1–4`).
+   - **Skema Tagihan**: Nama jenis kontrak (`Bulanan`, `Per 4 Pertemuan`, `Semesteran`, `Tahunan`, `CSR Reguler SOGA`).
+   - **Periode Tagihan**: Tempat detail waktu diletakkan (misal: `Agustus 2026`, `Semester 1 — Jul–Des 2026`, `Sesi 1–4`, atau `CSR SOGA — 2026/2027`).
+   - **Skema CSR Reguler SOGA (Solidaritas Erlangga)**:
+     - **Pihak Ditagihkan (Bill To)**: Tertuju resmi kepada **CSR SOGA (Solidaritas Erlangga)**, dengan mencantumkan nama sekolah mitra dan alamat sasaran kegiatan.
+     - **Trigger Penagihan**: Muncul otomatis di antrean setelah **seluruh laporan mengajar sesi kegiatan selesai** (`pending_sessions = 0`).
 4. **Bulan Laporan Terakhir**:
    - Periode bulan tagihan dialokasikan berdasarkan tanggal sesi/laporan mengajar riil terakhir yang diselesaikan oleh instruktur.
 5. **Dual-Approval Gate (Gerbang Persetujuan Bertingkat)**:
-   - **Gate 1 (Operasional - PIC Dinda)**: Wajib konfirmasi dengan PIC Sekolah & checklist pemeriksaan produk.
-   - **Gate 2 (Akunting - PIC Rendy)**: Wajib memastikan invoice telah dicetak & dokumen fisik/PDF siap edar.
+   - **Gate 1 (Admin Produksi - PIC Dinda & Novandi)**: Wajib konfirmasi dengan PIC Sekolah / PIC CSR, penetapan siswa gratis, dan checklist verifikasi kehadiran. Admin Produksi bertugas mengonfirmasi & meneruskan berkas (tidak ada opsi batal/tolak karena koreksi data dilakukan langsung via panel koreksi).
+   - **Gate 2 (Staff Akunting - PIC Rendy)**: Wajib otorisasi Staf Akunting, memverifikasi rekening & nominal tagihan, dan menerbitkan invoice resmi. Jika ditemukan ketidaksesuaian, Akunting mengembalikan berkas ("Kembalikan ke Produksi (Minta Revisi)") dengan catatan wajib; status invoice mundur ke Gate 1.
 6. **Penomoran Draft ke Final**:
-   - Saat dibuat: nomor berlabel DRAFT (`DRAFT-INV/ERLASS/YYYYMM/KODLAN/NNN`).
-   - Saat disetujui Akunting: prefix `DRAFT-` dibuang otomatis menjadi nomor resmi final (`INV/ERLASS/YYYYMM/KODLAN/NNN`).
+   - Saat dibuat: nomor berlabel DRAFT murni tanpa kata INV (`DRAFT/ERLASS/YYYYMM/KODLAN/NNN`).
+   - Saat disetujui Akunting: prefix `DRAFT/` berganti otomatis menjadi nomor resmi final (`INV/ERLASS/YYYYMM/KODLAN/NNN`).
 
 ---
 
@@ -34,33 +37,32 @@ flowchart TD
     B -- "Belum Tuntas" --> A
     B -- "Semua Rombel Selesai" --> C["3. Antrean: 'Sekolah Siap Ditagihkan'<br/><i>(Diurutkan prioritas keterlambatan)</i>"]
     
-    C --> D["4. Klik 'Buat Invoice' (1 Sekolah = 1 Invoice)<br/><i>Nomor terbit: DRAFT-INV/...</i><br/>Status: Menunggu Operasional"]
+    C --> D["4. Klik 'Buat Invoice' (1 Sekolah = 1 Invoice)<br/><i>Nomor terbit: DRAFT/ERLASS/... (Tanpa INV)</i><br/>Status: Menunggu Admin Produksi"]
     
-    D --> E["5. Gate 1: Approval Operasional<br/><i>(PIC Dinda / Tim Akademik)</i>"]
+    D --> E["5. Gate 1: Verifikasi Admin Produksi<br/><i>(PIC Dinda & Novandi)</i>"]
     
-    subgraph Gate1 ["Pemeriksaan Produk & PIC Sekolah"]
-        E --> E1["Hubungi PIC Sekolah (WhatsApp/Telepon)"]
-        E1 --> E2["Isi Checklist & Nama PIC Sekolah"]
-        E2 --> E3["Koreksi Siswa Billable (jika ada selisih)"]
-        E3 --> E4{"Setujui?"}
+    subgraph Gate1 ["Pemeriksaan Presensi & Konfirmasi PIC Sekolah / CSR"]
+        E --> E1["Hubungi PIC Sekolah / CSR SOGA"]
+        E1 --> E2["Isi Bukti Chat & Checklist"]
+        E2 --> E3["Koreksi Siswa Billable & Tetapkan Siswa Gratis (jika ada)"]
+        E3 --> E4["Klik: Verifikasi & Teruskan ke Akunting"]
     end
     
-    E4 -- "Tolak" --> R1["Status: DITOLAK"]
-    E4 -- "Setujui" --> F["Status: Menunggu Akunting"]
+    E4 --> F["Status: Menunggu Staff Akunting"]
     
-    F --> G["6. Gate 2: Approval Akunting<br/><i>(PIC Rendy / Tim Finance)</i>"]
+    F --> G["6. Gate 2: Persetujuan Staff Akunting<br/><i>(PIC Rendy / Tim Akunting)</i>"]
     
-    subgraph Gate2 ["Verifikasi Akunting & Cetak Dokumen"]
+    subgraph Gate2 ["Verifikasi Akunting & Penerbitan Resmi"]
         G --> G1["Cek Nominal, Tarif & Rekening Erlass"]
-        G1 --> G2["Cetak Fisik / Siapkan Dokumen PDF"]
-        G2 --> G3["Centang Checklist 'Invoice Telah Tercetak'"]
-        G3 --> G4{"Final Approve?"}
+        G1 --> G2{"Sesuai?"}
     end
     
-    G4 -- "Tolak" --> R2["Status: DITOLAK"]
-    G4 -- "Setujui" --> H["7. Invoice Resmi Final<br/><i>Nomor: INV/ERLASS/... (Final)</i><br/>Status: Fully Approved"]
+    G2 -- "Ada Ketidaksesuaian (Minta Revisi)" --> R1["Kembalikan ke Meja Produksi<br/><i>Status MUNDUR ke: Menunggu Admin Produksi</i><br/>(Catatan revisi Akunting wajib diisi)"]
+    R1 --> E
     
-    H --> I["8. Download PDF & Distribusi ke Sekolah"]
+    G2 -- "Sesuai / Setujui" --> H["7. Invoice Resmi Final<br/><i>Nomor terbit: INV/ERLASS/...</i><br/>Status: Disetujui Resmi"]
+    
+    H --> I["8. Download PDF Resmi & Distribusi ke Sekolah / CSR"]
 ```
 
 ---
@@ -73,15 +75,15 @@ Panel atas halaman invoice menampilkan tabel **Sekolah Siap Ditagihkan** dengan 
 | :-: | :--- | :--- |
 | 1 | **Sekolah** | Kode KODLAN & nama instansi sekolah (misal: `[20106318] SDS Strada Wiyatasana`). |
 | 2 | **Rombel & Program (Item)** | Total rombel dan pill rincian per rombel beserta jumlah siswa billable per rombel. |
-| 3 | **Skema Tagihan** | Nama skema bersih: `Bulanan`, `Per 4 Pertemuan`, `Semesteran`, atau `Tahunan`. |
-| 4 | **Periode Tagihan** | **Detail waktu/periode penagihan:**<br/>• **Bulanan**: `Agustus 2026`, `September 2026`, dll.<br/>• **Per 4 Pertemuan**: `Sesi 1–4`, `Sesi 5–8` (disertai penanda `Lap: [Bulan] [Tahun]`).<br/>• **Semesteran**: `Semester 1 — Jul–Des 2026`, `Semester 2 — Jan–Jun 2027`.<br/>• **Tahunan**: `Tahun 2026`. |
+| 3 | **Skema Tagihan** | Nama skema bersih: `Bulanan`, `Per 4 Pertemuan`, `Semesteran`, `Tahunan`, atau `CSR SOGA`. |
+| 4 | **Periode Tagihan** | **Detail waktu/periode penagihan:**<br/>• **Bulanan**: `Agustus 2026`, `September 2026`, dll.<br/>• **Per 4 Pertemuan**: `Sesi 1–4`, `Sesi 5–8` (disertai penanda `Lap: [Bulan] [Tahun]`).<br/>• **Semesteran**: `Semester 1 — Jul–Des 2026`, `Semester 2 — Jan–Jun 2027`.<br/>• **Tahunan**: `Tahun 2026`.<br/>• **CSR Reguler SOGA**: `CSR SOGA — 2026/2027` (Ditagihkan ke Solidaritas Erlangga). |
 | 5 | **Total Siswa Billable** | Total siswa billable aktif dari seluruh rombel di sekolah tersebut. |
 | 6 | **Target Invoice** | Tanggal jatuh tempo pembuatan invoice (berdasarkan tanggal sesi terakhir). |
 | 7 | **Keterlambatan** | Indikator urgensi keterlambatan pembuatan invoice:<br/>• Merah: Terlambat ≥ 7 hari.<br/>• Kuning: Terlambat 1–6 hari.<br/>• Biru: Hari ini (Jatuh tempo). |
 | 8 | **Aksi** | Tombol aksi: **"Buat Invoice"** (1-Klik Generate). |
 
 > **Fitur Filter & Search:**
-> Di header card antrean terdapat **Filter Dropdown Skema** (`Semua Skema`, `Bulanan`, `Per 4 Pertemuan`, `Semesteran`, `Tahunan`) serta **Live Search** yang langsung menyaring baris tabel tanpa refresh halaman.
+> Di header card antrean terdapat **Filter Dropdown Skema** (`Semua Skema`, `Bulanan`, `Per 4 Pertemuan`, `Semesteran`, `Tahunan`, `CSR SOGA`) serta **Live Search** yang langsung menyaring baris tabel tanpa refresh halaman.
 
 ---
 
@@ -92,12 +94,12 @@ Panel atas halaman invoice menampilkan tabel **Sekolah Siap Ditagihkan** dengan 
 2. Periksa daftar antrean sekolah pada card hijau **Sekolah Siap Ditagihkan**.
 3. Klik tombol hijau **"Buat Invoice"** pada baris sekolah yang ingin diproses (atau klik **"Generate Semua (Bulk)"** untuk memproses seluruh antrean sekaligus).
 4. Sistem akan membuat draft invoice dengan nomor format:
-   `DRAFT-INV/ERLASS/YYYYMM/[KODLAN]/[NNN]`
-5. Status invoice awal: **`pending_operasional`** (Menunggu Operasional).
+   `DRAFT/ERLASS/YYYYMM/[KODLAN]/[NNN]` (tanpa kata INV)
+5. Status invoice awal: **`pending_operasional`** (Menunggu Admin Produksi).
 
 ---
 
-### Langkah 2: Approval Operasional / Pemeriksaan Produk (PIC Dinda)
+### Langkah 2: Approval Operasional / Pemeriksaan Produk (PIC Dinda & Novandi)
 1. Buka detail invoice yang berstatus *Menunggu Operasional*.
 2. **Koreksi Siswa Billable (Opsional):**
    - Jika terdapat perbedaan kehadiran antara sistem dan data riil sekolah, klik tombol koreksi (ikon pensil) pada item rombel yang bersangkutan.

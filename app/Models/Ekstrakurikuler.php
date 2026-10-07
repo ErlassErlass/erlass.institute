@@ -23,6 +23,7 @@ class Ekstrakurikuler extends Model
      */
     protected $fillable = [
         'kategori_program',
+        'skema_tagihan',
         'jenis_program',
         'deskripsi',
         'jenis_pembayaran',

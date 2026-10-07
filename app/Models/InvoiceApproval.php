@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Salesman;
 
 class InvoiceApproval extends Model
 {
@@ -45,14 +46,23 @@ class InvoiceApproval extends Model
         'operasional_catatan',
         'is_konfirmasi_pic',
         'pic_konfirmasi_nama',
+        'pic_konfirmasi_jabatan',
+        'pic_konfirmasi_tgl',
         'pic_konfirmasi_catatan',
         'operasional_checklist',
+        'bukti_chat_path',
+        'siswa_gratis_list',
+        'jumlah_siswa_gratis',
+        'sesi_verifikasi_data',
         'akunting_user_id',
         'akunting_status',
         'akunting_approved_at',
         'akunting_catatan',
         'is_invoice_tercetak',
         'akunting_checklist',
+        'serah_terima_akunting_at',
+        'serah_terima_akunting_penerima',
+        'serah_terima_akunting_catatan',
         'pdf_generated_at',
         'pdf_path',
         'created_by',
@@ -60,21 +70,26 @@ class InvoiceApproval extends Model
     ];
 
     protected $casts = [
-        'operasional_approved_at' => 'datetime',
-        'akunting_approved_at'    => 'datetime',
-        'pdf_generated_at'        => 'datetime',
-        'koreksi_at'              => 'datetime',
-        'is_konfirmasi_pic'       => 'boolean',
-        'is_invoice_tercetak'     => 'boolean',
-        'operasional_checklist'   => 'array',
-        'akunting_checklist'      => 'array',
-        'jumlah_siswa_billable'   => 'integer',
-        'koreksi_siswa_billable'  => 'integer',
-        'total_rombel'            => 'integer',
-        'jumlah_sesi'             => 'integer',
-        'periode_nomor'           => 'integer',
-        'sesi_dari'               => 'integer',
-        'sesi_sampai'             => 'integer',
+        'operasional_approved_at'  => 'datetime',
+        'akunting_approved_at'     => 'datetime',
+        'pdf_generated_at'         => 'datetime',
+        'koreksi_at'               => 'datetime',
+        'pic_konfirmasi_tgl'       => 'datetime',
+        'serah_terima_akunting_at' => 'datetime',
+        'is_konfirmasi_pic'        => 'boolean',
+        'is_invoice_tercetak'      => 'boolean',
+        'operasional_checklist'    => 'array',
+        'akunting_checklist'       => 'array',
+        'siswa_gratis_list'        => 'array',
+        'sesi_verifikasi_data'     => 'array',
+        'jumlah_siswa_billable'    => 'integer',
+        'koreksi_siswa_billable'   => 'integer',
+        'jumlah_siswa_gratis'      => 'integer',
+        'total_rombel'             => 'integer',
+        'jumlah_sesi'              => 'integer',
+        'periode_nomor'            => 'integer',
+        'sesi_dari'                => 'integer',
+        'sesi_sampai'              => 'integer',
     ];
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -95,7 +110,9 @@ class InvoiceApproval extends Model
             return (int) $this->items->sum('billable_efektif');
         }
 
-        return (int) ($this->jumlah_siswa_billable ?? 0);
+        $base = (int) ($this->jumlah_siswa_billable ?? 0);
+        $gratis = (int) ($this->jumlah_siswa_gratis ?? 0);
+        return max(0, $base - $gratis);
     }
 
     /**
@@ -136,6 +153,53 @@ class InvoiceApproval extends Model
         }
 
         return 'Program Ekskul';
+    }
+
+    /**
+     * Nama PIC selalu dinamis diambil dari master Program Ekskul (Single Source of Truth).
+     */
+    public function getPicNamaAttribute(): string
+    {
+        if ($this->skema_tagihan === Sekolah::SKEMA_CSR_REGULER_SOGA) {
+            return !empty($this->attributes['pic_konfirmasi_nama'])
+                ? $this->attributes['pic_konfirmasi_nama']
+                : 'CSR SOGA (Solidaritas Erlangga)';
+        }
+
+        $pjProgram = $this->ekstrakurikuler?->penanggung_jawab
+            ?? $this->rombel?->ekstrakurikuler?->penanggung_jawab
+            ?? ($this->relationLoaded('items') && $this->items->isNotEmpty() ? $this->items->first()->rombel?->ekstrakurikuler?->penanggung_jawab : null);
+
+        if (!empty($pjProgram)) {
+            return $pjProgram;
+        }
+
+        return $this->attributes['pic_konfirmasi_nama'] ?? '';
+    }
+
+    /**
+     * Jabatan / Peran PIC selalu 'Penanggung Jawab Ekstrakurikuler' sesuai input program ekskul,
+     * atau 'Pihak Penanggung Dana CSR' untuk skema CSR SOGA.
+     */
+    public function getPicJabatanAttribute(): string
+    {
+        if ($this->skema_tagihan === Sekolah::SKEMA_CSR_REGULER_SOGA) {
+            return !empty($this->attributes['pic_konfirmasi_jabatan'])
+                ? $this->attributes['pic_konfirmasi_jabatan']
+                : 'Pihak Penanggung Dana CSR';
+        }
+
+        return 'Penanggung Jawab Ekstrakurikuler';
+    }
+
+    /**
+     * Salesman / Tim Marketing yang bertanggung jawab atas sekolah atau kegiatan invoice ini.
+     */
+    public function getSalesAttribute(): ?Salesman
+    {
+        return $this->rombel?->ekstrakurikuler?->sales
+            ?? $this->ekstrakurikuler?->sales
+            ?? ($this->relationLoaded('items') && $this->items->isNotEmpty() ? $this->items->first()?->rombel?->ekstrakurikuler?->sales : null);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -238,11 +302,15 @@ class InvoiceApproval extends Model
      */
     public function statusLabel(): string
     {
+        if ($this->status === self::STATUS_PENDING_OPERASIONAL && $this->akunting_status === 'rejected') {
+            return 'Perlu Revisi Produksi';
+        }
+
         return match ($this->status) {
             'draft'                => 'Draft',
-            'pending_operasional'  => 'Menunggu Operasional',
-            'pending_akunting'     => 'Menunggu Akunting',
-            'approved'             => 'Disetujui',
+            'pending_operasional'  => 'Menunggu Admin Produksi',
+            'pending_akunting'     => 'Menunggu Staff Akunting',
+            'approved'             => 'Disetujui Resmi',
             'rejected'             => 'Ditolak',
             default                => ucfirst($this->status),
         };
@@ -253,10 +321,14 @@ class InvoiceApproval extends Model
      */
     public function statusBadgeClass(): string
     {
+        if ($this->status === self::STATUS_PENDING_OPERASIONAL && $this->akunting_status === 'rejected') {
+            return 'warning text-dark';
+        }
+
         return match ($this->status) {
             'draft'                => 'secondary',
             'pending_operasional'  => 'warning',
-            'pending_akunting'     => 'info',
+            'pending_akunting'     => 'primary',
             'approved'             => 'success',
             'rejected'             => 'danger',
             default                => 'secondary',
@@ -265,32 +337,39 @@ class InvoiceApproval extends Model
 
     /**
      * Generate nomor invoice otomatis.
-     * Saat draft/pending: DRAFT-INV/ERLASS/YYYYMM/KODLAN/NNN
+     * Saat draft: DRAFT/ERLASS/YYYYMM/KODLAN/NNN (tanpa kata INV)
      * Saat approved: INV/ERLASS/YYYYMM/KODLAN/NNN
      */
     public static function generateNomorInvoice(string $kodlan, string $periodeLabel, bool $isDraft = true): string
     {
         $yearMonth   = now()->format('Ym');
         $cleanKodlan = strtoupper($kodlan);
-        $seqPrefix   = "INV/ERLASS/{$yearMonth}/{$cleanKodlan}";
+        $suffix      = "ERLASS/{$yearMonth}/{$cleanKodlan}";
 
-        $lastNumber = self::where(function ($q) use ($seqPrefix) {
-            $q->where('nomor_invoice', 'like', "{$seqPrefix}/%")
-              ->orWhere('nomor_invoice', 'like', "DRAFT-{$seqPrefix}/%");
+        $lastNumber = self::where(function ($q) use ($suffix) {
+            $q->where('nomor_invoice', 'like', "INV/{$suffix}/%")
+              ->orWhere('nomor_invoice', 'like', "DRAFT/{$suffix}/%")
+              ->orWhere('nomor_invoice', 'like', "DRAFT-INV/{$suffix}/%");
         })->count();
 
-        $seq    = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
-        $number = "{$seqPrefix}/{$seq}";
+        $seq = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
 
-        return $isDraft ? "DRAFT-{$number}" : $number;
+        return $isDraft ? "DRAFT/{$suffix}/{$seq}" : "INV/{$suffix}/{$seq}";
     }
 
     /**
      * Finalisasi nomor invoice dari DRAFT menjadi nomor resmi saat disetujui Akunting.
+     * Contoh: DRAFT/ERLASS/... -> INV/ERLASS/...
      */
     public function finalizeNomorInvoice(): void
     {
-        if (str_starts_with($this->nomor_invoice ?? '', 'DRAFT-')) {
+        if (str_starts_with($this->nomor_invoice ?? '', 'DRAFT/')) {
+            $this->nomor_invoice = 'INV/' . substr($this->nomor_invoice, 6);
+            $this->save();
+        } elseif (str_starts_with($this->nomor_invoice ?? '', 'DRAFT-INV/')) {
+            $this->nomor_invoice = substr($this->nomor_invoice, 6);
+            $this->save();
+        } elseif (str_starts_with($this->nomor_invoice ?? '', 'DRAFT-')) {
             $this->nomor_invoice = substr($this->nomor_invoice, 6);
             $this->save();
         }

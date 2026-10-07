@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Salesman;
 
 class InvoiceApprovalItem extends Model
 {
@@ -23,6 +24,8 @@ class InvoiceApprovalItem extends Model
         'koreksi_catatan',
         'koreksi_by',
         'koreksi_at',
+        'siswa_gratis_list',
+        'jumlah_siswa_gratis',
     ];
 
     protected $casts = [
@@ -31,6 +34,8 @@ class InvoiceApprovalItem extends Model
         'jumlah_sesi'            => 'integer',
         'jumlah_siswa_billable'  => 'integer',
         'koreksi_siswa_billable' => 'integer',
+        'jumlah_siswa_gratis'    => 'integer',
+        'siswa_gratis_list'      => 'array',
         'koreksi_at'             => 'datetime',
     ];
 
@@ -62,9 +67,13 @@ class InvoiceApprovalItem extends Model
      */
     public function getBillableEfektifAttribute(): int
     {
-        return $this->koreksi_siswa_billable !== null
-            ? (int) $this->koreksi_siswa_billable
-            : (int) $this->jumlah_siswa_billable;
+        if ($this->koreksi_siswa_billable !== null) {
+            return (int) $this->koreksi_siswa_billable;
+        }
+
+        $base = (int) ($this->jumlah_siswa_billable ?? 0);
+        $gratis = (int) ($this->jumlah_siswa_gratis ?? 0);
+        return max(0, $base - $gratis);
     }
 
     /**
@@ -73,5 +82,15 @@ class InvoiceApprovalItem extends Model
     public function hasKoreksi(): bool
     {
         return $this->koreksi_siswa_billable !== null;
+    }
+
+    /**
+     * Salesman terkait rombel ini.
+     */
+    public function getSalesAttribute(): ?Salesman
+    {
+        return $this->rombel?->ekstrakurikuler?->sales
+            ?? $this->invoice?->ekstrakurikuler?->sales
+            ?? null;
     }
 }

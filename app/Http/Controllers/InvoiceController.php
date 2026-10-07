@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ekstrakurikuler;
 use App\Models\EkstrakurikulerRombel;
 use App\Models\InvoiceApproval;
 use App\Models\Sekolah;
@@ -9,6 +10,7 @@ use App\Models\EkstrakurikulerSession;
 use App\Models\Absensi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -26,8 +28,10 @@ class InvoiceController extends Controller
     {
         $query = InvoiceApproval::with([
             'sekolah',
-            'items.rombel.ekstrakurikuler',
+            'items.rombel.ekstrakurikuler.sales',
             'rombel.ekstrakurikuler.sekolah',
+            'rombel.ekstrakurikuler.sales',
+            'ekstrakurikuler.sales',
             'operasionalUser',
             'akuntingUser',
         ])->where(function ($q) {
@@ -36,9 +40,27 @@ class InvoiceController extends Controller
               ->orWhereNotNull('sekolah_kodlan');
         });
 
-        // Filter status
+        // Filter tab (Semua vs Menunggu Admin Produksi vs Menunggu Staff Akunting vs Disetujui vs Ditolak)
+        $currentTab = $request->get('tab', 'all');
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        } elseif ($currentTab === 'pending_operasional') {
+            $query->whereIn('status', [
+                InvoiceApproval::STATUS_DRAFT,
+                InvoiceApproval::STATUS_PENDING_OPERASIONAL,
+            ]);
+        } elseif ($currentTab === 'pending_akunting') {
+            $query->where('status', InvoiceApproval::STATUS_PENDING_AKUNTING);
+        } elseif ($currentTab === 'pending' || $currentTab === 'gantung') {
+            $query->whereIn('status', [
+                InvoiceApproval::STATUS_DRAFT,
+                InvoiceApproval::STATUS_PENDING_OPERASIONAL,
+                InvoiceApproval::STATUS_PENDING_AKUNTING,
+            ]);
+        } elseif ($currentTab === 'approved') {
+            $query->where('status', InvoiceApproval::STATUS_APPROVED);
+        } elseif ($currentTab === 'rejected') {
+            $query->where('status', InvoiceApproval::STATUS_REJECTED);
         }
 
         // Filter sekolah
@@ -59,17 +81,26 @@ class InvoiceController extends Controller
             $query->where('skema_tagihan', $request->skema);
         }
 
-        $invoices         = $query->orderByDesc('created_at')->paginate(25);
-        $sekolahs         = Sekolah::has('invoiceableEkstrakurikulers')->orderBy('namasekolah')->get(['kodlan', 'namasekolah', 'skema_tagihan']);
-        $eligibleSekolahs = $this->invoiceService->getAllEligibleSekolahs();
+        $invoices         = $query->orderByDesc('created_at')->paginate(25)->withQueryString();
+
+        // Optimasi Performa: Cache filter sekolah (1 jam) & antrean sekolah siap ditagih (5 menit)
+        $sekolahs = Cache::remember('invoice_sekolahs_filter_list', 3600, function () {
+            return Sekolah::has('invoiceableEkstrakurikulers')->orderBy('namasekolah')->get(['kodlan', 'namasekolah', 'skema_tagihan']);
+        });
+
+        if ($request->has('refresh_antrean')) {
+            Cache::forget('invoice_eligible_programs_cache');
+        }
+
+        $eligibleSekolahs = Cache::remember('invoice_eligible_programs_cache', 300, function () {
+            return $this->invoiceService->getAllEligibleSekolahs();
+        });
         $eligibleRombels  = $eligibleSekolahs; // Alias backward-compatibility
 
         $statusOptions = [
-            'draft'               => 'Draft',
-            'pending_operasional' => 'Menunggu Operasional',
-            'pending_akunting'    => 'Menunggu Akunting',
-            'approved'            => 'Disetujui',
-            'rejected'            => 'Ditolak',
+            'pending_operasional' => 'Menunggu Admin Produksi',
+            'pending_akunting'    => 'Menunggu Staff Akunting',
+            'approved'            => 'Disetujui Resmi',
         ];
 
         // Summary counts
@@ -77,7 +108,26 @@ class InvoiceController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        return view('invoice.index', compact('invoices', 'sekolahs', 'statusOptions', 'summary', 'eligibleSekolahs', 'eligibleRombels'));
+        $operasionalPendingCount = ($summary['draft'] ?? 0) + ($summary['pending_operasional'] ?? 0);
+        $akuntingPendingCount    = $summary['pending_akunting'] ?? 0;
+        $pendingCount            = $operasionalPendingCount + $akuntingPendingCount;
+        $approvedCount           = $summary['approved'] ?? 0;
+        $totalCount              = $summary->sum();
+
+        return view('invoice.index', compact(
+            'invoices', 
+            'sekolahs', 
+            'statusOptions', 
+            'summary', 
+            'eligibleSekolahs', 
+            'eligibleRombels',
+            'currentTab',
+            'operasionalPendingCount',
+            'akuntingPendingCount',
+            'pendingCount',
+            'approvedCount',
+            'totalCount'
+        ));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -88,6 +138,7 @@ class InvoiceController extends Controller
     {
         $invoice->load([
             'sekolah',
+            'ekstrakurikuler',
             'items.rombel.ekstrakurikuler.sales',
             'items.koreksiUser',
             'rombel.ekstrakurikuler.sekolah',
@@ -98,7 +149,9 @@ class InvoiceController extends Controller
             'koreksiByUser',
         ]);
 
-        return view('invoice.show', compact('invoice'));
+        $attendanceData = $this->invoiceService->getAttendanceDataForInvoice($invoice);
+
+        return view('invoice.show', compact('invoice', 'attendanceData'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -162,6 +215,10 @@ class InvoiceController extends Controller
 
     public function quickGenerate(Request $request)
     {
+        if ($request->isMethod('get')) {
+            return redirect()->route('invoice.index');
+        }
+
         // 1. Jika dikirim ekstrakurikuler_id (Format Utama: Per Program)
         if ($request->filled('ekstrakurikuler_id')) {
             $ekskul = Ekstrakurikuler::with('sekolah')->findOrFail($request->ekstrakurikuler_id);
@@ -203,7 +260,7 @@ class InvoiceController extends Controller
         // 2. Format single rombel (Backward Compatibility)
         $validated = $request->validate([
             'ekstrakurikuler_rombel_id' => 'required|exists:ekstrakurikuler_rombel,id',
-            'skema_tagihan'             => 'required|in:bulanan,semester,tahunan,per_4_pertemuan',
+            'skema_tagihan'             => 'required|in:bulanan,semester,tahunan,per_4_pertemuan,csr_reguler_soga',
             'periode_label'             => 'required|string|max:100',
             'tahun_ajaran'              => 'nullable|string|max:9',
             'periode_nomor'             => 'nullable|integer|min:1',
@@ -265,6 +322,8 @@ class InvoiceController extends Controller
             }
         });
 
+        Cache::forget('invoice_eligible_programs_cache');
+
         return redirect()->route('invoice.index')
             ->with('success', "⚡ Berhasil men-generate {$createdCount} invoice sekolah secara massal. Semua masuk status Menunggu Operasional.");
     }
@@ -317,13 +376,18 @@ class InvoiceController extends Controller
 
         $invoice = InvoiceApproval::create([
             ...$validated,
-            'jumlah_siswa_billable' => $billableData['billable_count'],
-            'jumlah_sesi'           => $billableData['session_count'],
-            'nomor_invoice'         => $nomorInv,
-            'status'                => 'pending_operasional',
-            'operasional_status'    => 'pending',
-            'akunting_status'       => 'pending',
-            'created_by'            => Auth::id(),
+            'sekolah_kodlan'         => $kodlan,
+            'ekstrakurikuler_id'     => $rombel->ekstrakurikuler_id,
+            'kategori_program'       => $rombel->ekstrakurikuler?->kategori_program,
+            'jumlah_siswa_billable'  => $billableData['billable_count'],
+            'jumlah_sesi'            => $billableData['session_count'],
+            'nomor_invoice'          => $nomorInv,
+            'pic_konfirmasi_nama'    => $rombel->ekstrakurikuler?->penanggung_jawab,
+            'pic_konfirmasi_jabatan' => 'Penanggung Jawab Ekstrakurikuler',
+            'status'                 => 'pending_operasional',
+            'operasional_status'     => 'pending',
+            'akunting_status'        => 'pending',
+            'created_by'             => Auth::id(),
         ]);
 
         return redirect()->route('invoice.show', $invoice)
@@ -336,101 +400,198 @@ class InvoiceController extends Controller
 
     public function approveOperasional(Request $request, InvoiceApproval $invoice)
     {
-        // Hanya admin/operasional/supervisor yang boleh approve
-        if ($invoice->status !== 'pending_operasional') {
-            return back()->withErrors(['msg' => 'Invoice tidak dalam status menunggu approval Operasional.']);
+        // Boleh approve saat status draft / pending_operasional
+        if ($invoice->status === InvoiceApproval::STATUS_APPROVED) {
+            return back()->withErrors(['msg' => 'Invoice ini sudah disetujui resmi.']);
+        }
+
+        // Fallback cerdas: jika field action kosong dari browser/device, default ke 'approved'
+        if (!$request->filled('action')) {
+            $request->merge(['action' => 'approved']);
         }
 
         $validated = $request->validate([
             'action'                 => 'required|in:approved,rejected',
             'catatan'                => 'nullable|string|max:500',
-            'is_konfirmasi_pic'      => 'nullable|boolean',
             'pic_konfirmasi_nama'    => 'nullable|string|max:150',
+            'pic_konfirmasi_jabatan' => 'nullable|string|max:150',
             'pic_konfirmasi_catatan' => 'nullable|string|max:500',
             'operasional_checklist'  => 'nullable|array',
+            'bukti_chat'             => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:10240',
+            'siswa_gratis_ids'       => 'nullable|array',
+            'siswa_gratis_ids.*'     => 'integer',
+            'siswa_gratis_alasan'    => 'nullable|array',
+            'sesi_verifikasi'        => 'nullable|array',
         ]);
 
         DB::transaction(function () use ($invoice, $validated, $request) {
-            $isApproved = $validated['action'] === 'approved';
+            // Produksi hanya memiliki aksi verifikasi & teruskan (koreksi dilakukan langsung melalui fitur koreksi yang tersedia)
+            $isApproved = true;
+
+            // 1. Upload Bukti Chat Screenshot
+            $buktiChatPath = $invoice->bukti_chat_path;
+            if ($request->hasFile('bukti_chat')) {
+                $buktiChatPath = $request->file('bukti_chat')->store('invoices/bukti_chat', 'public');
+            }
+
+            // 2. Parsing Siswa Gratis (Anak Guru, Kasek, Menteri, Beasiswa)
+            $siswaGratisList = [];
+            if ($request->filled('siswa_gratis_ids') && is_array($request->siswa_gratis_ids)) {
+                $studentIds = array_map('intval', $request->siswa_gratis_ids);
+                $students   = \App\Models\Siswa::whereIn('id', $studentIds)->get(['id', 'nama_lengkap']);
+                $alasanMap  = (array) $request->input('siswa_gratis_alasan', []);
+
+                foreach ($students as $st) {
+                    $alasan = trim($alasanMap[$st->id] ?? 'Anak Guru / Kasek / Kebijakan Khusus');
+                    $siswaGratisList[] = [
+                        'siswa_id' => $st->id,
+                        'nama'     => $st->nama_lengkap,
+                        'alasan'   => $alasan ?: 'Anak Guru / Kebijakan Khusus',
+                    ];
+                }
+            }
+            $jumlahSiswaGratis = count($siswaGratisList);
+
+            // Sesi verifikasi checklist
+            $sesiVerifikasiData = $request->input('sesi_verifikasi', $invoice->sesi_verifikasi_data);
+
             $defaultChecklist = [
-                'presensi_lengkap'    => true,
-                'materi_tersampaikan' => true,
-                'billable_sesuai_pic' => true,
+                'presensi_sesi_cocok'  => true,
+                'bukti_chat_terlampir' => !empty($buktiChatPath),
+                'komitmen_mutlak_pic'  => true,
             ];
 
             $invoice->update([
-                'operasional_user_id'    => Auth::id(),
-                'operasional_status'     => $validated['action'],
+                'operasional_user_id'    => Auth::id(), // otomatis nama yang submit
+                'operasional_status'     => 'approved',
                 'operasional_approved_at'=> now(),
                 'operasional_catatan'    => $validated['catatan'] ?? null,
-                'is_konfirmasi_pic'      => $isApproved ? ($request->has('is_konfirmasi_pic') ? $request->boolean('is_konfirmasi_pic') : true) : false,
-                'pic_konfirmasi_nama'    => $request->input('pic_konfirmasi_nama'),
+                'is_konfirmasi_pic'      => true,
+                'pic_konfirmasi_nama'    => $request->input('pic_konfirmasi_nama') ?: $invoice->pic_nama,
+                'pic_konfirmasi_jabatan' => $request->input('pic_konfirmasi_jabatan') ?: $invoice->pic_jabatan,
+                'pic_konfirmasi_tgl'     => now(),
                 'pic_konfirmasi_catatan' => $request->input('pic_konfirmasi_catatan') ?? $request->input('catatan'),
-                'operasional_checklist'  => $request->input('operasional_checklist', $isApproved ? $defaultChecklist : null),
-                'status'                 => $isApproved
-                    ? 'pending_akunting'
-                    : 'rejected',
+                'operasional_checklist'  => $request->input('operasional_checklist', $defaultChecklist),
+                'bukti_chat_path'        => $buktiChatPath,
+                'siswa_gratis_list'      => $siswaGratisList,
+                'jumlah_siswa_gratis'    => $jumlahSiswaGratis,
+                'sesi_verifikasi_data'   => $sesiVerifikasiData,
+                // GATE 1 SELESAI: Diteruskan ke Meja Staff Akunting (reset status akunting jika sebelumnya dikembalikan untuk revisi)
+                'akunting_user_id'       => null,
+                'akunting_status'        => 'pending',
+                'akunting_approved_at'   => null,
+                'status'                 => InvoiceApproval::STATUS_PENDING_AKUNTING,
                 'updated_by'             => Auth::id(),
             ]);
+
+            // Nomor invoice tetap DRAFT sampai Gate 2 Akunting menyetujui resmi
         });
 
-        $msg = $validated['action'] === 'approved'
-            ? 'Approved oleh Operasional (Pemeriksaan Produk selesai). Menunggu approval Akunting.'
-            : 'Invoice ditolak oleh Operasional.';
+        $stafNama = Auth::user()->nama_lengkap ?? Auth::user()->name;
+        $msg = "✅ Verifikasi Gate 1 diselesaikan oleh {$stafNama}. Invoice diteruskan ke Meja Staff Akunting (Status: Menunggu Staff Akunting).";
 
-        return back()->with($validated['action'] === 'approved' ? 'success' : 'warning', $msg);
+        return back()->with('success', $msg);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // APPROVE AKUNTING
+    // LEMBAR TANDA TERIMA BERKAS AKUNTING (Opsional)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function serahTerimaAkunting(Request $request, InvoiceApproval $invoice)
+    {
+        $validated = $request->validate([
+            'penerima_nama' => 'required|string|max:150',
+            'catatan'       => 'nullable|string|max:500',
+        ], [
+            'penerima_nama.required' => 'Nama staf penerima di bagian Keuangan/Akunting wajib diisi.',
+        ]);
+
+        $invoice->update([
+            'serah_terima_akunting_at'       => now(),
+            'serah_terima_akunting_penerima' => $validated['penerima_nama'],
+            'serah_terima_akunting_catatan'  => $validated['catatan'] ?? null,
+            'is_invoice_tercetak'            => true,
+            'updated_by'                     => Auth::id(),
+        ]);
+
+        return back()->with('success', '✅ Catatan serah terima berkas berhasil disimpan.');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // APPROVE AKUNTING (GATE 2: Persetujuan Staff Akunting & Penerbitan Resmi)
     // ─────────────────────────────────────────────────────────────────────────
 
     public function approveAkunting(Request $request, InvoiceApproval $invoice)
     {
-        // Hanya admin/akunting yang boleh approve
-        if ($invoice->status !== 'pending_akunting') {
-            return back()->withErrors(['msg' => 'Invoice tidak dalam status menunggu approval Akunting.']);
+        // Otorisasi Ketat Gate 2: Novan dan Adinda (Tim Operasional) tidak berhak menyetujui Gate 2 (Staff Akunting)
+        if (!Auth::user()->canApproveGate2Invoice()) {
+            return back()->withErrors([
+                'msg' => 'Akses Ditolak: Anda terdaftar sebagai Admin Produksi/Operasional. Hanya Staff Akunting (Rendy) yang berhak menyetujui dan menerbitkan Invoice Resmi.'
+            ]);
+        }
+
+        if ($invoice->operasional_status !== 'approved') {
+            return back()->withErrors(['msg' => 'Invoice harus diverifikasi oleh Admin Produksi (Gate 1) terlebih dahulu sebelum dapat disetujui Staff Akunting.']);
+        }
+
+        if ($invoice->status === InvoiceApproval::STATUS_APPROVED) {
+            return back()->withErrors(['msg' => 'Invoice ini sudah berstatus Disetujui Resmi.']);
+        }
+
+        if (!$request->filled('action')) {
+            $request->merge(['action' => 'approved']);
         }
 
         $validated = $request->validate([
             'action'              => 'required|in:approved,rejected',
-            'catatan'             => 'nullable|string|max:500',
+            'catatan'             => $request->input('action') === 'rejected' ? 'required|string|max:500' : 'nullable|string|max:500',
             'is_invoice_tercetak' => 'nullable|boolean',
             'akunting_checklist'  => 'nullable|array',
+        ], [
+            'catatan.required' => 'Mohon isi catatan alasan pengembalian invoice ke Admin Produksi.',
         ]);
 
-        DB::transaction(function () use ($invoice, $validated, $request) {
-            $isApproved = $validated['action'] === 'approved';
-            $defaultChecklist = [
-                'invoice_tercetak'       => true,
-                'rekening_valid'         => true,
-                'nominal_tarif_sesuai'   => true,
-            ];
+        $isApproved = $validated['action'] === 'approved';
 
-            $invoice->update([
-                'akunting_user_id'    => Auth::id(),
-                'akunting_status'     => $validated['action'],
-                'akunting_approved_at'=> now(),
-                'akunting_catatan'    => $validated['catatan'] ?? null,
-                'is_invoice_tercetak' => $isApproved ? ($request->has('is_invoice_tercetak') ? $request->boolean('is_invoice_tercetak') : true) : false,
-                'akunting_checklist'  => $request->input('akunting_checklist', $isApproved ? $defaultChecklist : null),
-                'status'              => $isApproved
-                    ? InvoiceApproval::STATUS_APPROVED
-                    : InvoiceApproval::STATUS_REJECTED,
-                'updated_by'          => Auth::id(),
-            ]);
-
-            // Finalisasi nomor invoice resmi (buang prefix DRAFT- saat approved)
+        DB::transaction(function () use ($invoice, $validated, $isApproved, $request) {
             if ($isApproved) {
+                $invoice->update([
+                    'akunting_user_id'     => Auth::id(), // otomatis merekam akun staf yang login & klik
+                    'akunting_status'      => 'approved',
+                    'akunting_approved_at' => now(),
+                    'akunting_catatan'     => $validated['catatan'] ?? null,
+                    'is_invoice_tercetak'  => $request->boolean('is_invoice_tercetak', true),
+                    'akunting_checklist'   => $request->input('akunting_checklist', [
+                        'rekening_valid'       => true,
+                        'nominal_tarif_sesuai' => true,
+                        'berkas_siap_edar'     => true,
+                    ]),
+                    'status'               => InvoiceApproval::STATUS_APPROVED,
+                    'updated_by'           => Auth::id(),
+                ]);
+
+                // Finalisasi nomor invoice resmi jika disetujui (buang prefix DRAFT/ menjadi INV/)
                 $invoice->finalizeNomorInvoice();
+            } else {
+                // Akunting mengembalikan invoice: Status MUNDUR ke Meja Admin Produksi (Gate 1)
+                $invoice->update([
+                    'akunting_user_id'     => Auth::id(),
+                    'akunting_status'      => 'rejected',
+                    'akunting_approved_at' => now(),
+                    'akunting_catatan'     => $validated['catatan'],
+                    'operasional_status'   => 'pending',
+                    'status'               => InvoiceApproval::STATUS_PENDING_OPERASIONAL,
+                    'updated_by'           => Auth::id(),
+                ]);
             }
         });
 
-        $msg = $validated['action'] === 'approved'
-            ? "✅ Invoice {$invoice->fresh()->nomor_invoice} disetujui resmi (Nomor Final Diterbitkan & Invoice Tercetak). PDF siap diedarkan."
-            : 'Invoice ditolak oleh Akunting.';
+        $stafNama = Auth::user()->nama_lengkap ?? Auth::user()->name;
+        $msg = $isApproved
+            ? "✅ Invoice resmi {$invoice->fresh()->nomor_invoice} berhasil disetujui & diterbitkan oleh {$stafNama} (Staff Akunting)."
+            : "↩️ Invoice dikembalikan ke meja Admin Produksi untuk revisi oleh {$stafNama} (Staff Akunting). Alasan: {$validated['catatan']}";
 
-        return back()->with($validated['action'] === 'approved' ? 'success' : 'warning', $msg);
+        return back()->with($isApproved ? 'success' : 'warning', $msg);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -447,6 +608,7 @@ class InvoiceController extends Controller
 
         $invoice->load([
             'sekolah',
+            'ekstrakurikuler',
             'items.rombel.ekstrakurikuler',
             'items.rombel.siswaAktif',
             'items.koreksiUser',
@@ -574,10 +736,15 @@ class InvoiceController extends Controller
         $sekolah = \App\Models\Sekolah::findOrFail($kodlan);
 
         $validated = $request->validate([
-            'skema_tagihan' => 'required|in:bulanan,semester,tahunan,per_4_pertemuan',
+            'skema_tagihan' => 'required|in:bulanan,semester,tahunan,per_4_pertemuan,csr_reguler_soga',
         ]);
 
         $sekolah->update(['skema_tagihan' => $validated['skema_tagihan']]);
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('ekstrakurikuler', 'skema_tagihan')) {
+            \App\Models\Ekstrakurikuler::where('sekolah_kodlan', $kodlan)
+                ->update(['skema_tagihan' => $validated['skema_tagihan']]);
+        }
 
         return back()->with('success',
             "Skema tagihan {$sekolah->namasekolah} diubah ke: " . $sekolah->fresh()->skemaTagihanLabel()
@@ -590,41 +757,10 @@ class InvoiceController extends Controller
 
     /**
      * Hitung jumlah siswa billable (hadir ≥ 2 dari 4 sesi) dalam range pertemuan.
-     * Jika tidak ada range, hitung seluruh pertemuan dalam rombel.
+     * Menggunakan InvoiceService sebagai single source of truth.
      */
     private function calculateBillable(int $rombelId, ?int $sesiDari, ?int $sesiSampai): array
     {
-        $sessionQuery = EkstrakurikulerSession::where('ekstrakurikuler_rombel_id', $rombelId)
-            ->where('nomor_pertemuan', '>', 0);
-
-        if ($sesiDari && $sesiSampai) {
-            $sessionQuery->whereBetween('nomor_pertemuan', [$sesiDari, $sesiSampai]);
-        }
-
-        $sessions     = $sessionQuery->get();
-        $sessionCount = $sessions->count();
-
-        if ($sessionCount === 0) {
-            return ['billable_count' => 0, 'session_count' => 0];
-        }
-
-        $sessionIds = $sessions->pluck('id');
-        $laporanIds = \App\Models\LaporanMengajar::whereIn('ekstrakurikuler_session_id', $sessionIds)
-            ->pluck('id');
-
-        // Hitung per siswa: berapa sesi hadir?
-        $attendanceCounts = Absensi::whereIn('laporan_mengajar_id', $laporanIds)
-            ->where('status', 'hadir')
-            ->select('siswa_id', DB::raw('COUNT(*) as hadir_count'))
-            ->groupBy('siswa_id')
-            ->get();
-
-        // Billable = hadir >= 2 dari 4 sesi
-        $billableCount = $attendanceCounts->where('hadir_count', '>=', 2)->count();
-
-        return [
-            'billable_count' => $billableCount,
-            'session_count'  => $sessionCount,
-        ];
+        return $this->invoiceService->calculateBillable($rombelId, $sesiDari, $sesiSampai);
     }
 }

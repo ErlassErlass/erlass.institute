@@ -198,18 +198,22 @@ Menghubungkan data operasional mengajar dengan penghitungan honorarium instruktu
   - Urutan antrean tagihan memprioritaskan hari keterlambatan (`days_overdue DESC`), dilengkapi badge keterlambatan dan tanggal Target Invoice.
   - Shortcut 1-Klik Generate dan Bulk Generate untuk memproses draft instan.
 - **Siklus Penomoran Draft ke Final**:
-  - Format awal: `DRAFT-INV/ERLASS/YYYYMM/KODLAN/NNN` selama status draft / pending.
-  - Otomatis difinalisasi menjadi `INV/ERLASS/YYYYMM/KODLAN/NNN` saat disetujui Akunting.
+  - Format awal draft: `DRAFT/ERLASS/YYYYMM/KODLAN/NNN` selama status draft / verifikasi (tanpa kata INV).
+  - Otomatis difinalisasi menjadi `INV/ERLASS/YYYYMM/KODLAN/NNN` saat disetujui resmi oleh Staff Akunting (Gate 2).
 - **Gerbang Checklist Approval Bertingkat (Dual Approval Gates)**:
-  - **Gate 1 - Operasional / Pemeriksaan Produk (PIC Dinda)**:
+  - **Gate 1 - Admin Produksi / Verifikasi Lapangan (PIC Dinda & Novandi)**:
     - Wajib konfirmasi PIC sekolah (`is_konfirmasi_pic = true`) dan mencatat nama PIC sekolah yang dihubungi (`pic_konfirmasi_nama`).
-    - Checklist pemeriksaan produk: presensi lengkap, materi/modul tersampaikan, dan data siswa billable sesuai konfirmasi.
-  - **Gate 2 - Akunting / Cetak Dokumen (PIC Rendy)**:
-    - Wajib konfirmasi dokumen fisik/digital invoice telah tercetak (`is_invoice_tercetak = true`).
-    - Checklist akunting: nomor invoice & rekening Erlass valid, nominal tarif diverifikasi, dan berkas siap edar.
-- **Koreksi Granular Siswa Billable**:
+    - Checklist pemeriksaan produk: presensi lengkap, data siswa billable sesuai konfirmasi, dan pengecualian siswa gratis.
+    - Bersifat konfirmasi mutlak (tidak bisa membatalkan/menolak karena koreksi data dilakukan langsung via panel koreksi yang tersedia).
+  - **Gate 2 - Staff Akunting / Penerbitan Resmi (PIC Rendy)**:
+    - Otorisasi ketat khusus Staff Akunting.
+    - Menyetujui dan menerbitkan nomor invoice resmi final (`INV/...`).
+    - Jika ada ketidaksesuaian nilai tagihan/rekening, Akunting mengembalikan berkas ("Kembalikan ke Produksi (Minta Revisi)") dengan catatan wajib; status invoice mundur ke `pending_operasional` untuk diperbaiki Admin Produksi.
+- **Koreksi Granular Siswa Billable & Siswa Gratis**:
   - Koreksi manual siswa billable dapat dilakukan per rombel item dengan audit trail lengkap (alasan min 10 karakter, user id, timestamp).
-  - Total tagihan siswa sekolah terakumulasi secara otomatis.
+  - Penetapan siswa gratis (anak guru, kasek, beasiswa, kebijakan khusus) otomatis mengurangi beban tagihan dengan alasan terdokumentasi.
+- **Tab 13 Google Spreadsheet (`Detail_Invoice_Marketing`)**:
+  - Sinkronisasi sheet data tagihan dengan 41 kolom granular (raw metrics angka murni untuk pivot table, mencakup Group Leader, Sales, Skema, Posisi Meja, dan Tanggal Approval).
 - **Cetak Tagihan PDF Resmi**:
   - Dokumen PDF tagihan resmi dengan identitas sekolah, tabel rincian item rombel, total siswa, rincian hasil verifikasi pemeriksa, dan catatan komitmen kontrak.
 

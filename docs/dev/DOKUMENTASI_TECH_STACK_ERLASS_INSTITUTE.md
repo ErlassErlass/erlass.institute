@@ -343,7 +343,7 @@ Menggunakan **Spatie Laravel Permission** dengan 5 role:
 | `jam_mulai_terjadwal` / `jam_selesai_terjadwal` | time | |
 | `tanggal_pelaksanaan` | date nullable | Aktual pelaksanaan |
 | `jam_mulai_aktual` / `jam_selesai_aktual` | time nullable | |
-| `status` | enum | `terjadwal`, `berlangsung`, `selesai`, `dibatalkan`, `ditunda`, `tidak_hadir` |
+| `status` | enum | `terjadwal`, `berlangsung`, `selesai`, `dibatalkan`, `ditunda`, `tidak_hadir`, `libur`, `diganti` |
 | `user_id_instruktur` | bigint FK nullable | FK → users.id |
 | `user_id_asisten` | bigint FK nullable | FK → users.id |
 | `topik_materi` | varchar nullable | |

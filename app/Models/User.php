@@ -410,5 +410,33 @@ class User extends Authenticatable
 
         return strtoupper(substr($words[0], 0, 1));
     }
+
+    /**
+     * Apakah user adalah staf operasional / admin produksi (Gate 1).
+     */
+    public function isOperasional(): bool
+    {
+        return in_array($this->id, [114, 248])
+            || str_contains(strtolower($this->nama_lengkap ?? ''), 'novan')
+            || str_contains(strtolower($this->nama_lengkap ?? ''), 'adinda');
+    }
+
+    /**
+     * Apakah user berhak menyetujui Gate 2 (Staff Akunting & Penerbitan Resmi).
+     * Novan dan Adinda strictly TIDAK BISA menyetujui Gate 2.
+     */
+    public function canApproveGate2Invoice(): bool
+    {
+        // Novan (248) dan Adinda (114) diblokir dari Gate 2
+        if (in_array($this->id, [114, 248])) {
+            return false;
+        }
+
+        if (str_contains(strtolower($this->nama_lengkap ?? ''), 'novan') || str_contains(strtolower($this->nama_lengkap ?? ''), 'adinda')) {
+            return false;
+        }
+
+        return true;
+    }
 }
 

@@ -76,10 +76,36 @@
             --card-radius: 16px;
             --btn-radius: 12px;
             
+            --bs-purple: #7c3aed;
+            --bs-purple-rgb: 124, 58, 237;
+
             --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
             --shadow-soft: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        }
+
+        /* Purple Utilities for Badges & Accents */
+        .bg-purple {
+            --bs-bg-opacity: 1;
+            background-color: rgba(var(--bs-purple-rgb), var(--bs-bg-opacity)) !important;
+        }
+        .text-purple {
+            --bs-text-opacity: 1;
+            color: rgba(var(--bs-purple-rgb), var(--bs-text-opacity)) !important;
+        }
+        .border-purple {
+            --bs-border-opacity: 1;
+            border-color: rgba(var(--bs-purple-rgb), var(--bs-border-opacity)) !important;
+        }
+        .bg-purple-subtle {
+            background-color: rgba(var(--bs-purple-rgb), 0.12) !important;
+        }
+        .border-purple-subtle {
+            border-color: rgba(var(--bs-purple-rgb), 0.25) !important;
+        }
+        .text-purple-emphasis {
+            color: #6d28d9 !important;
         }
 
         /* Modern Glassmorphism Backdrop & Soft Elevation Modal System */
@@ -679,6 +705,12 @@
 
                     <li class="sidebar-section-title">Kompensasi & Payroll</li>
                     @if(Auth::user()?->hasAdminAccess())
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs(['invoice.*']) ? 'active' : '' }}" href="{{ route('invoice.index') }}">
+                                <i class="bi bi-receipt"></i>
+                                <span>Faktur &amp; Invoice</span>
+                            </a>
+                        </li>
                         <li class="sidebar-item">
                             <a class="sidebar-link {{ request()->routeIs(['admin.salary-rates.*']) ? 'active' : '' }}" href="{{ route('admin.salary-rates.index') }}">
                                 <i class="bi bi-cash-coin"></i>

@@ -81,9 +81,9 @@ class InvoiceApprovalTest extends TestCase
     {
         $cases = [
             'draft'               => 'Draft',
-            'pending_operasional' => 'Menunggu Operasional',
-            'pending_akunting'    => 'Menunggu Akunting',
-            'approved'            => 'Disetujui',
+            'pending_operasional' => 'Menunggu Admin Produksi',
+            'pending_akunting'    => 'Menunggu Staff Akunting',
+            'approved'            => 'Disetujui Resmi',
             'rejected'            => 'Ditolak',
         ];
 
@@ -91,6 +91,13 @@ class InvoiceApprovalTest extends TestCase
             $invoice = new InvoiceApproval(['status' => $status]);
             $this->assertEquals($expectedLabel, $invoice->statusLabel(), "Status '{$status}' mismatch");
         }
+
+        // Khusus status pending_operasional yang dikembalikan oleh akunting untuk revisi
+        $invoiceRevisi = new InvoiceApproval([
+            'status'          => 'pending_operasional',
+            'akunting_status' => 'rejected',
+        ]);
+        $this->assertEquals('Perlu Revisi Produksi', $invoiceRevisi->statusLabel());
     }
 
     /** @test */
@@ -284,23 +291,26 @@ class InvoiceApprovalTest extends TestCase
     }
 
     /** @test */
-    public function rejection_sets_status_to_rejected(): void
+    public function akunting_rejection_rolls_back_status_to_operasional_for_revision(): void
     {
         $admin   = $this->makeAdmin();
         $invoice = InvoiceApproval::factory()->create([
-            'status'             => 'pending_operasional',
-            'operasional_status' => 'pending',
+            'status'             => 'pending_akunting',
+            'operasional_status' => 'approved',
+            'akunting_status'    => 'pending',
         ]);
 
         $this->actingAs($admin)
-            ->post("/invoice/{$invoice->id}/approve-operasional", [
+            ->post("/invoice/{$invoice->id}/approve-akunting", [
                 'action'  => 'rejected',
-                'catatan' => 'Data tidak valid',
+                'catatan' => 'Presensi sesi 3 perlu dikoreksi',
             ]);
 
         $invoice->refresh();
-        $this->assertEquals('rejected', $invoice->status);
-        $this->assertEquals('rejected', $invoice->operasional_status);
+        $this->assertEquals('pending_operasional', $invoice->status);
+        $this->assertEquals('pending', $invoice->operasional_status);
+        $this->assertEquals('rejected', $invoice->akunting_status);
+        $this->assertEquals('Presensi sesi 3 perlu dikoreksi', $invoice->akunting_catatan);
     }
 
     /** @test */
@@ -535,7 +545,7 @@ class InvoiceApprovalTest extends TestCase
         $this->assertNotNull($invSekolah1);
         $this->assertEquals(2, $invSekolah1->total_rombel);
         $this->assertCount(2, $invSekolah1->items);
-        $this->assertStringStartsWith('DRAFT-INV/', $invSekolah1->nomor_invoice);
+        $this->assertStringStartsWith('DRAFT/', $invSekolah1->nomor_invoice);
 
         $response->assertRedirect('/invoice');
     }
@@ -696,8 +706,9 @@ class InvoiceApprovalTest extends TestCase
         $invoice = $service->createInvoiceForSekolah($sekolah->kodlan);
 
         $this->assertNotNull($invoice);
-        // Nomor invoice awal harus memiliki prefix DRAFT-
-        $this->assertStringStartsWith('DRAFT-INV/', $invoice->nomor_invoice);
+        // Nomor invoice awal harus memiliki prefix DRAFT/ (tanpa kata INV)
+        $this->assertStringStartsWith('DRAFT/', $invoice->nomor_invoice);
+        $this->assertStringNotContainsString('INV', substr($invoice->nomor_invoice, 0, 5));
         $this->assertEquals('pending_operasional', $invoice->status);
 
         // Operasional menyetujui
@@ -705,16 +716,16 @@ class InvoiceApprovalTest extends TestCase
             'action' => 'approved',
         ]);
         $invoice->refresh();
-        $this->assertStringStartsWith('DRAFT-INV/', $invoice->nomor_invoice);
+        $this->assertStringStartsWith('DRAFT/', $invoice->nomor_invoice);
         $this->assertEquals('pending_akunting', $invoice->status);
 
-        // Akunting menyetujui -> DRAFT- dilepas menjadi nomor resmi
+        // Akunting menyetujui -> DRAFT/ dilepas menjadi nomor resmi INV/
         $this->actingAs($admin)->post("/invoice/{$invoice->id}/approve-akunting", [
             'action' => 'approved',
         ]);
         $invoice->refresh();
         $this->assertEquals('approved', $invoice->status);
-        $this->assertStringStartsNotWith('DRAFT-', $invoice->nomor_invoice);
+        $this->assertStringStartsNotWith('DRAFT/', $invoice->nomor_invoice);
         $this->assertStringStartsWith('INV/', $invoice->nomor_invoice);
     }
 

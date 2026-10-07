@@ -19,11 +19,12 @@ class InvoiceService
 {
     /**
      * Hitung jumlah siswa billable dari data absensi sistem.
-     * Logika: Jumlah siswa unik yang berstatus 'hadir' di sesi yang termasuk
-     * dalam range yang ditentukan untuk rombel tersebut.
-     * 
-     * Fallback: jika tidak ada data absensi individual, gunakan rata-rata jumlah siswa
-     * yang hadir dari LaporanMengajar, atau jumlah siswa terdaftar di rombel.
+     * Logika: 
+     * - Sesuai aturan penagihan Erlass (USER_GUIDE & SOP), siswa dianggap "Billable" 
+     *   jika hadir minimal 2 kali dalam periode 4 pertemuan (>= 2 sesi).
+     * - Jika sesi < 4, ambang batas minimal 50% kehadiran (atau min 1).
+     * - Fallback: jika tidak ada data absensi individual, gunakan rata-rata jumlah siswa
+     *   yang hadir dari LaporanMengajar, atau kuota jumlah siswa terdaftar di rombel.
      */
     public function calculateBillable(int $rombelId, ?int $sesiDari = null, ?int $sesiSampai = null): array
     {
@@ -51,14 +52,23 @@ class InvoiceService
         // Query laporan mengajar yang terkait sesi-sesi ini
         $laporanIds = LaporanMengajar::whereIn('ekstrakurikuler_session_id', $sessionIds)->pluck('id');
 
-        // Hitung siswa unik yang hadir di sesi-sesi tersebut
-        $uniqueHadir = Absensi::whereIn('laporan_mengajar_id', $laporanIds)
-            ->where('status', 'hadir')
-            ->distinct('siswa_id')
-            ->count('siswa_id');
+        // Cek apakah ada record absensi individual
+        $hasIndividualAbsensi = Absensi::whereIn('laporan_mengajar_id', $laporanIds)->exists();
 
-        if ($uniqueHadir > 0) {
-            $billableCount = $uniqueHadir;
+        if ($hasIndividualAbsensi) {
+            // Hitung frekuensi kehadiran per siswa
+            $attendanceCounts = Absensi::whereIn('laporan_mengajar_id', $laporanIds)
+                ->where('status', 'hadir')
+                ->select('siswa_id', DB::raw('COUNT(*) as hadir_count'))
+                ->groupBy('siswa_id')
+                ->get();
+
+            // Batas minimal kehadiran (Erlass Rule):
+            // Siswa dianggap billable jika hadir minimal 2 kali dalam periode 4 pertemuan (>= 2 sesi).
+            // Jika jumlah sesi kurang dari 4, minimal 50% kehadiran (atau minimal 1).
+            $minHadir = ($sessionCount >= 4) ? 2 : max(1, (int) ceil($sessionCount / 2));
+
+            $billableCount = $attendanceCounts->where('hadir_count', '>=', $minHadir)->count();
         } else {
             // Fallback: rata-rata jumlah_siswa_hadir dari LaporanMengajar
             $avgHadir = LaporanMengajar::whereIn('id', $laporanIds)
@@ -114,7 +124,7 @@ class InvoiceService
             return null;
         }
 
-        $skema = $sekolah->skema_tagihan ?? Sekolah::SKEMA_PER_4_PERTEMUAN;
+        $skema = $ekskul->skema_tagihan ?: ($sekolah->skema_tagihan ?? Sekolah::SKEMA_PER_4_PERTEMUAN);
 
         // Invoices aktif yang sudah ada untuk program ini
         $existingInvoices = InvoiceApproval::where('sekolah_kodlan', $sekolah->kodlan)
@@ -514,6 +524,99 @@ class InvoiceService
             ];
         }
 
+        // ─────────────────────────────────────────────────────────────────────
+        // 5. Skema CSR Reguler SOGA (Solidaritas Erlangga)
+        // ─────────────────────────────────────────────────────────────────────
+        if ($skema === Sekolah::SKEMA_CSR_REGULER_SOGA) {
+            // Rule: "setelah semua laporan mengajar selesai"
+            // 1. Cek apakah program ini sudah pernah dibuatkan invoice aktif
+            if ($existingInvoices->isNotEmpty()) {
+                return null;
+            }
+
+            // 2. Ambil seluruh sesi milik semua rombel di program ini
+            $allSessions = EkstrakurikulerSession::whereIn('ekstrakurikuler_rombel_id', $rombels->pluck('id'))
+                ->get();
+
+            if ($allSessions->isEmpty()) {
+                return null;
+            }
+
+            // Evaluasi: tidak boleh ada sesi yang masih berstatus 'terjadwal' atau 'ditunda'
+            $pendingSessions = $allSessions->whereIn('status', ['terjadwal', 'ditunda'])->count();
+            $completedSessions = $allSessions->where('status', 'selesai')->count();
+
+            // Syarat: Minimal 1 sesi selesai dan SEMUA sesi telah berstatus selesai (tidak ada pending)
+            if ($pendingSessions > 0 || $completedSessions === 0) {
+                return null;
+            }
+
+            $items = [];
+            $latestTargetDate = null;
+            foreach ($rombels as $rombel) {
+                $rombelSessions = $rombel->sessions()
+                    ->where('status', 'selesai')
+                    ->get();
+
+                if ($rombelSessions->isEmpty()) {
+                    continue;
+                }
+
+                $sesiDari   = $rombelSessions->min('nomor_pertemuan') ?? 1;
+                $sesiSampai = $rombelSessions->max('nomor_pertemuan') ?? $rombelSessions->count();
+                $lastSess   = $rombelSessions->sortByDesc('tanggal_terjadwal')->first();
+                $tDate      = $lastSess?->tanggal_pelaksanaan ?? $lastSess?->tanggal_terjadwal ?? $asOfDate;
+                if (is_string($tDate)) $tDate = Carbon::parse($tDate);
+
+                if (!$latestTargetDate || $tDate->gt($latestTargetDate)) {
+                    $latestTargetDate = $tDate;
+                }
+
+                $billable = $this->calculateBillable($rombel->id, $sesiDari, $sesiSampai);
+                $items[] = [
+                    'ekstrakurikuler_id'        => $ekskul->id,
+                    'ekstrakurikuler_rombel_id' => $rombel->id,
+                    'rombel_nama'               => $rombel->nama_rombel,
+                    'kategori_program'          => $ekskul->kategori_program,
+                    'sesi_dari'                 => $sesiDari,
+                    'sesi_sampai'               => $sesiSampai,
+                    'jumlah_sesi'               => $billable['session_count'],
+                    'jumlah_siswa_billable'     => $billable['billable_count'],
+                ];
+            }
+
+            if (empty($items)) {
+                return null;
+            }
+
+            $latestTargetDate = $latestTargetDate ?? $asOfDate;
+            $daysOverdue = max(0, (int) $latestTargetDate->diffInDays($asOfDate, false));
+            $periodeLabel = "CSR SOGA — " . ($ekskul->tahun_ajaran ?? '2026/2027');
+
+            return [
+                'sekolah_kodlan'            => $sekolah->kodlan,
+                'sekolah_nama'              => $sekolah->namasekolah,
+                'ditagihkan_ke'             => 'CSR SOGA (Solidaritas Erlangga)',
+                'ekstrakurikuler_id'        => $ekskul->id,
+                'kategori_program'          => $ekskul->kategori_program,
+                'ekstrakurikuler_rombel_id' => $items[0]['ekstrakurikuler_rombel_id'] ?? null,
+                'rombel_nama'               => count($items) === 1 ? $items[0]['rombel_nama'] : (count($items) . ' Rombel'),
+                'skema_tagihan'             => Sekolah::SKEMA_CSR_REGULER_SOGA,
+                'periode_label'             => $periodeLabel,
+                'bulan_laporan_terakhir'    => $latestTargetDate->translatedFormat('F Y'),
+                'periode_nomor'             => 1,
+                'tahun_ajaran'              => $ekskul->tahun_ajaran ?? '2026/2027',
+                'target_date'               => $latestTargetDate->toDateString(),
+                'target_date_formatted'     => $latestTargetDate->translatedFormat('d M Y'),
+                'days_overdue'              => $daysOverdue,
+                'keterlambatan_label'       => $daysOverdue > 0 ? "Terlambat {$daysOverdue} hari" : "Hari Ini (Jatuh Tempo)",
+                'keterlambatan_badge'       => $daysOverdue >= 7 ? 'bg-danger text-white' : ($daysOverdue > 0 ? 'bg-warning text-dark' : 'bg-info text-white'),
+                'total_rombel'              => count($items),
+                'total_siswa_billable'      => array_sum(array_column($items, 'jumlah_siswa_billable')),
+                'items'                     => $items,
+            ];
+        }
+
         return null;
     }
 
@@ -671,10 +774,19 @@ class InvoiceService
             return $existing;
         }
 
-        // Format nomor draft: DRAFT-INV/ERLASS/YYYYMM/KODLAN/NNN
+        // Format nomor draft: DRAFT/ERLASS/YYYYMM/KODLAN/NNN (tanpa kata INV)
         $nomorDraft = InvoiceApproval::generateNomorInvoice($kodlan, $periodeLabel, true);
 
-        return DB::transaction(function () use ($kodlan, $data, $items, $totalSiswa, $maxSesi, $nomorDraft, $userId, $primaryRombelId, $ekskulId, $kategoriProgram) {
+        $ekskulObj = $ekskulId ? Ekstrakurikuler::find($ekskulId) : null;
+        $defaultPicNama = $ekskulObj?->penanggung_jawab;
+        $defaultPicJabatan = 'Penanggung Jawab Ekstrakurikuler';
+
+        if (($data['skema_tagihan'] ?? '') === Sekolah::SKEMA_CSR_REGULER_SOGA) {
+            $defaultPicNama = 'CSR SOGA (Solidaritas Erlangga)';
+            $defaultPicJabatan = 'Pihak Penanggung Dana CSR';
+        }
+
+        return DB::transaction(function () use ($kodlan, $data, $items, $totalSiswa, $maxSesi, $nomorDraft, $userId, $primaryRombelId, $ekskulId, $kategoriProgram, $defaultPicNama, $defaultPicJabatan) {
             $invoice = InvoiceApproval::create([
                 'sekolah_kodlan'            => $kodlan,
                 'ekstrakurikuler_id'        => $ekskulId,
@@ -690,6 +802,8 @@ class InvoiceService
                 'jumlah_siswa_billable'     => $totalSiswa,
                 'jumlah_sesi'               => $maxSesi,
                 'nomor_invoice'             => $nomorDraft,
+                'pic_konfirmasi_nama'       => $defaultPicNama,
+                'pic_konfirmasi_jabatan'    => $defaultPicJabatan,
                 'status'                    => InvoiceApproval::STATUS_PENDING_OPERASIONAL,
                 'operasional_status'        => 'pending',
                 'akunting_status'           => 'pending',
@@ -706,6 +820,8 @@ class InvoiceService
                     'jumlah_siswa_billable'     => $item['jumlah_siswa_billable'] ?? 0,
                 ]);
             }
+
+            \Illuminate\Support\Facades\Cache::forget('invoice_eligible_programs_cache');
 
             return $invoice;
         });
@@ -902,7 +1018,8 @@ class InvoiceService
                 'program_nama'    => $ekskul?->kategori_program ?? 'Program Ekskul',
                 'rombel_nama'     => $rombel->nama_rombel,
                 'school_name'     => $sekolah?->namasekolah ?? '-',
-                'pic_name'        => $invoice->pic_konfirmasi_nama ?? $ekskul?->penanggung_jawab ?? '-',
+                'pic_name'        => $invoice->pic_nama ?: ($ekskul?->penanggung_jawab ?: '-'),
+                'pic_jabatan'     => $invoice->pic_jabatan,
                 'sales_name'      => $ekskul?->sales?->nama_lengkap ?? $ekskul?->sales?->name ?? '-',
                 'instructor_name' => $firstInstruktur,
                 'academic_year'   => $invoice->tahun_ajaran ?? ($ekskul?->tahun_ajaran ?? '2026/2027'),

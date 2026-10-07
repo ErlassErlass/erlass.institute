@@ -153,11 +153,13 @@ export class FormValidator {
         document.addEventListener('submit', (e) => {
             const form = e.target;
 
-            // Add loading state to submit button
+            // Add loading state to submit button asynchronously so browser captures submit button value in FormData
             const submitBtn = form.querySelector('button[type="submit"]');
             if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
+                setTimeout(() => {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
+                }, 0);
 
                 // Re-enable after 10 seconds as fallback
                 setTimeout(() => {

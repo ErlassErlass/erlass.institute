@@ -141,8 +141,13 @@ erDiagram
         bigint id PK
         bigint ekstrakurikuler_id FK
         string nama_rombel
+        int nomor_rombel
         string hari
         time jam_mulai
+        time jam_selesai
+        int total_pertemuan
+        int pertemuan_selesai
+        enum status "belum_mulai, berlangsung, selesai, dibatalkan"
     }
 
     SISWA_EKSTRAKURIKULER {
@@ -150,16 +155,17 @@ erDiagram
         bigint siswa_id FK
         bigint ekstrakurikuler_id FK
         bigint ekstrakurikuler_rombel_id FK
-        enum status "aktif, keluar, lulus"
+        enum status "aktif, lulus, keluar, pindah, nonaktif"
     }
 
     EKSTRAKURIKULER_SESSION {
         bigint id PK
         bigint ekstrakurikuler_rombel_id FK
+        int nomor_pertemuan
         date tanggal_terjadwal
         time jam_mulai_terjadwal
-        enum status "terjadwal, selesai, dibatalkan, ditunda, libur, diganti"
-        string payment_status "unpaid, processing, paid"
+        enum status "terjadwal, berlangsung, selesai, dibatalkan, ditunda, tidak_hadir, libur, diganti"
+        string payment_status "unpaid, processing, paid, dibatalkan"
         bigint payroll_item_id FK
         string actual_checkin_status "excellent, on_time, warning, penalty"
         decimal actual_checkin_penalty
@@ -452,11 +458,12 @@ erDiagram
 18. **INVOICE APPROVALS (`invoice_approvals`)**:
     *   Tabel induk penagihan resmi level sekolah.
     *   Primary Key: `id`, Foreign Key: `sekolah_kodlan` merujuk ke `sekolah.kodlan`.
-    *   Menyimpan agregasi sekolah: `total_rombel`, total `jumlah_siswa_billable`, `skema_tagihan`, `periode_label`, rentang sesi, dan `nomor_invoice`.
+    *   Menyimpan agregasi sekolah: `total_rombel`, total `jumlah_siswa_billable`, `skema_tagihan` (`bulanan`, `semester`, `tahunan`, `per_4_pertemuan`, `csr_reguler_soga`), `periode_label`, rentang sesi, dan `nomor_invoice`.
     *   Alur verifikasi 2 tahap dengan gerbang checklist:
         *   **Pemeriksaan Produk (Operasional)**: `operasional_status`, `operasional_approved_at`, `is_konfirmasi_pic` (flag konfirmasi sekolah), `pic_konfirmasi_nama` (nama PIC sekolah), `pic_konfirmasi_catatan`, dan `operasional_checklist` (JSON: presensi, modul materi, kesesuaian data billable).
         *   **Distribusi & Dokumen (Akunting)**: `akunting_status`, `akunting_approved_at`, `is_invoice_tercetak` (flag cetak fisik/digital PDF), dan `akunting_checklist` (JSON: rekening Erlass valid, nominal tarif diverifikasi, berkas siap edar).
-    *   Nomor invoice berstatus draft (`DRAFT-INV/...`) hingga disetujui Akunting, kemudian difinalisasi otomatis menjadi nomor resmi (`INV/...`).
+    *   Nomor invoice berstatus draft (`DRAFT/ERLASS/...`, tanpa kata INV) hingga disetujui resmi oleh Staff Akunting (Gate 2), kemudian difinalisasi otomatis menjadi nomor resmi (`INV/ERLASS/...`).
+    *   Siklus Approval: Gate 1 Admin Produksi hanya melakukan verifikasi & konfirmasi (koreksi via fitur yang tersedia). Jika Akunting Gate 2 mengembalikan invoice, status mundur ke `pending_operasional` untuk revisi.
 
 19. **INVOICE APPROVAL ITEMS (`invoice_approval_items`)**:
     *   Rincian tagihan per rombel dalam invoice sekolah (relasi 1-to-N dari `invoice_approvals`).
@@ -464,6 +471,264 @@ erDiagram
     *   Menyimpan rentang sesi (`sesi_dari`, `sesi_sampai`, `jumlah_sesi`) dan hitungan siswa sistem (`jumlah_siswa_billable`).
     *   Audit trail koreksi manual per rombel: `koreksi_siswa_billable`, `koreksi_catatan`, `koreksi_by`, `koreksi_at`.
     *   Unique index pada `[invoice_approval_id, ekstrakurikuler_rombel_id]`.
+
+
+### Siklus Hidup & Status Entitas (Program Ekskul s/d Rombel, Sesi, dan Siswa)
+
+Hirarki operasional pembelajaran dari level program hingga ke tingkat presensi siswa digambarkan sebagai berikut:
+
+```
+[EKSTRAKURIKULER] (Program Tingkat Sekolah)
+       │
+       ├───> [EKSTRAKURIKULER_ROMBEL] (Grup / Rombongan Belajar)
+       │            │
+       │            ├───> [EKSTRAKURIKULER_SESSION] (Sesi Pertemuan Mengajar)
+       │            │            │
+       │            │            └───> [LAPORAN_MENGAJAR] & [ABSENSI]
+       │            │
+       │            └───> [SISWA_EKSTRAKURIKULER] (Enrollment / Keanggotaan Siswa)
+```
+
+---
+
+#### 1. Status Program (`ekstrakurikuler.status`)
+Kolom: `enum('draft','diajukan','disetujui','ditolak','aktif','selesai','dibatalkan')` | Default: `'draft'`
+
+| Status | Label | Arti Bisnis & Kondisi | Transisi Berikutnya |
+|---|---|---|---|
+| `draft` | Draft | Program baru dibuat/disusun oleh admin/sales, data belum lengkap atau belum diajukan. | `diajukan` |
+| `diajukan` | Diajukan | Form wizard telah disubmit, menunggu peninjauan dan persetujuan koordinator/tim akademik (`canBeApproved()`). | `disetujui`, `ditolak` |
+| `disetujui` | Disetujui | Disetujui oleh akademik/manajemen, siap diaktifkan dan digenerate rombel serta sesinya (`canBeActivated()`). | `aktif` |
+| `ditolak` | Ditolak | Pengajuan program ditolak karena alasan administrasi atau operasional. | `draft` (revisi) |
+| `aktif` | Aktif | Program sedang aktif berjalan di sekolah mitra. Rombel aktif dan sesi pertemuan bergulir. | `selesai`, `dibatalkan` |
+| `selesai` | Selesai | Seluruh periode kegiatan program telah selesai tuntas (`canBeCompleted()`). | - |
+| `dibatalkan` | Dibatalkan | Program dihentikan/dibatalkan sebelum tuntas (misal pembatalan kerja sama oleh pihak sekolah). | - |
+
+##### Contoh Record Nyata Database:
+```json
+// Status: aktif (Contoh ID 1 - Program berjalan aktif)
+{
+    "id": 1,
+    "sekolah_kodlan": "20101901",
+    "kategori_program": "Ekskul Robotik Microbit Learning Kit",
+    "status": "aktif",
+    "tahun_ajaran": "2026/2027",
+    "semester": "ganjil",
+    "created_at": "2026-07-21 15:12:03"
+}
+
+// Status: selesai (Contoh ID 15 - Program tuntas seluruh pertemuan)
+{
+    "id": 15,
+    "sekolah_kodlan": "20103617",
+    "kategori_program": "Ekskul Robotik Microbit Learning Kit",
+    "status": "selesai",
+    "created_at": "2026-07-31 08:08:11"
+}
+
+// Status: dibatalkan (Contoh ID 145 - Free Trial / Kelas dibatalkan)
+{
+    "id": 145,
+    "sekolah_kodlan": "20604630",
+    "kategori_program": "Free Trial Class",
+    "status": "dibatalkan",
+    "created_at": "2026-08-05 10:35:21"
+}
+```
+
+---
+
+#### 2. Status Rombel (`ekstrakurikuler_rombel.status`)
+Kolom: `enum('belum_mulai','berlangsung','selesai','dibatalkan')` | Default: `'belum_mulai'`
+
+| Status | Label | Arti Bisnis & Kondisi | Transisi & Logika Sistem |
+|---|---|---|---|
+| `belum_mulai` | Belum Mulai | Rombel baru dibuat saat aktivasi program, belum ada sesi yang berjalan. | Berubah ke `berlangsung` saat sesi pertama berjalan. |
+| `berlangsung` | Berlangsung | Rombel sedang aktif berjalan. Sesi terjadwal sedang berlangsung sesuai hari & jam mengajar. | Berubah ke `selesai` via auto-increment pertemuan. |
+| `selesai` | Selesai | Rombel telah menyelesaikan target seluruh pertemuan. Terpicu otomatis oleh method `incrementPertemuanSelesai()` ketika `pertemuan_selesai >= total_pertemuan`. | - |
+| `dibatalkan` | Dibatalkan | Rombel dibatalkan (misal kuota murid tidak tercapai, digabungkan ke rombel lain, atau program dibatalkan). | - |
+
+##### Aturan Integritas Penghapusan Rombel (`canBeDeleted()`):
+Sistem memiliki pengaman ketat agar rombel tidak dihapus secara tidak sengaja jika sudah terdapat aktivitas operasional/akademik. Rombel **DILARANG DIHAPUS** (`getDeleteRestrictionReason()`) jika:
+1. **Memiliki Siswa Aktif**: Masih ada siswa dengan enrollment `status = 'aktif'` di rombel tersebut (`activeEnrollments()->count() > 0`). Siswa harus dipindahkan (`pindah`) atau dibatalkan (`keluar`) terlebih dahulu.
+2. **Memiliki Laporan Mengajar**: Terdapat sesi pada rombel ini yang sudah memiliki relasi `laporan_mengajar` terbit.
+3. **Memiliki Sesi Non-Terjadwal**: Terdapat sesi yang statusnya bukan `terjadwal` (misalnya `selesai`, `berlangsung`, `ditunda`, atau `libur`).
+4. **Terkunci Payroll / Keuangan**: Sesi dalam rombel telah masuk ke dalam `payroll_items` (penggajian instruktur) atau `invoice_approval_items` (penagihan sekolah).
+
+##### Contoh Record Nyata Database:
+```json
+// Status: berlangsung (Contoh ID 1 - Rombel aktif, 10 dari 32 pertemuan selesai)
+{
+    "id": 1,
+    "ekstrakurikuler_id": 1,
+    "nama_rombel": "Rombel 1",
+    "nomor_rombel": 1,
+    "hari": "kamis",
+    "jam_mulai": "14:30:00",
+    "jam_selesai": "16:30:00",
+    "total_pertemuan": 32,
+    "pertemuan_selesai": 10,
+    "status": "berlangsung",
+    "user_id_instruktur": 122
+}
+
+// Status: selesai (Contoh ID 20 - Rombel telah tuntas 4 dari 4 pertemuan)
+{
+    "id": 20,
+    "ekstrakurikuler_id": 15,
+    "nama_rombel": "Rombel 1",
+    "nomor_rombel": 1,
+    "hari": "jumat",
+    "jam_mulai": "13:00:00",
+    "jam_selesai": "14:30:00",
+    "total_pertemuan": 4,
+    "pertemuan_selesai": 4,
+    "status": "selesai",
+    "user_id_instruktur": 199
+}
+
+// Status: dibatalkan (Contoh ID 406 - Rombel dihentikan sebelum kuota tuntas)
+{
+    "id": 406,
+    "ekstrakurikuler_id": 321,
+    "nama_rombel": "Rombel 1",
+    "nomor_rombel": 1,
+    "hari": "kamis",
+    "jam_mulai": "13:40:00",
+    "jam_selesai": "15:10:00",
+    "total_pertemuan": 32,
+    "pertemuan_selesai": 4,
+    "status": "dibatalkan",
+    "user_id_instruktur": 244
+}
+```
+
+---
+
+#### 3. Status Sesi Pertemuan (`ekstrakurikuler_session.status`)
+Kolom: `enum('terjadwal','berlangsung','selesai','dibatalkan','ditunda','tidak_hadir','libur','diganti')` | Default: `'terjadwal'`
+
+| Status | Label | Arti Bisnis & Kondisi | Dampak Operasional & Finansial |
+|---|---|---|---|
+| `terjadwal` | Terjadwal | Sesi rencana yang telah digenerate otomatis berdasarkan hari dan jam rombel. | Belum ada honor instruktur (`payment_status = 'unpaid'`). |
+| `berlangsung` | Berlangsung | Sesi sedang aktif berjalan pada jam pelaksanaan atau instruktur telah melakukan check-in via GPS. | Menunggu submit Laporan Mengajar & Presensi. |
+| `selesai` | Selesai | Sesi telah selesai dilaksanakan, laporan mengajar & foto absensi telah diverifikasi. | Masuk perhitungan honor instruktur (`payroll_items`) dan dasar tagihan sekolah (`invoice_approvals`). |
+| `dibatalkan` | Dibatalkan | Pertemuan dibatalkan secara permanen karena kondisi khusus / kesepakatan sekolah. | `payment_status = 'dibatalkan'`, tidak ditagihkan ke sekolah. |
+| `ditunda` | Ditunda | Pertemuan diundur karena berhalangan (misal instruktur sakit / ujian sekolah) dan menunggu penetapan jadwal pengganti. | Menunggu proses pengajuan perubahan jadwal (`schedule_changes`). |
+| `tidak_hadir` | Tidak Hadir | Instruktur tidak hadir tanpa konfirmasi / tidak digantikan. | Memicu warning QC (`warnings.warning_type = 'no_instructor'`). |
+| `libur` | Libur | Sesi ditiadakan karena bertepatan dengan Hari Libur Nasional (`holidays`) atau Kalender Sekolah (`school_calendars.is_blocking = true`). | Tidak dihitung sebagai pertemuan mengajar selesai. |
+| `diganti` | Diganti | Sesi telah resmi digantikan oleh sesi pengganti (rescheduled). | Pertemuan dipindahkan ke record sesi pengganti. |
+
+##### Contoh Record Nyata Database:
+```json
+// Status: terjadwal (Contoh ID 7918 - Sesi mendatang)
+{
+    "id": 7918,
+    "ekstrakurikuler_id": 150,
+    "ekstrakurikuler_rombel_id": 179,
+    "nomor_pertemuan": 1,
+    "tanggal_terjadwal": "2026-07-11",
+    "jam_mulai_terjadwal": "09:00:00",
+    "jam_selesai_terjadwal": "11:00:00",
+    "status": "terjadwal",
+    "payment_status": "unpaid",
+    "payroll_item_id": null
+}
+
+// Status: selesai (Contoh ID 7930 - Sesi tuntas & masuk payroll)
+{
+    "id": 7930,
+    "ekstrakurikuler_id": 150,
+    "ekstrakurikuler_rombel_id": 179,
+    "nomor_pertemuan": 13,
+    "tanggal_terjadwal": "2026-07-11",
+    "jam_mulai_terjadwal": "09:00:00",
+    "jam_selesai_terjadwal": "11:00:00",
+    "status": "selesai",
+    "payment_status": "processing",
+    "payroll_item_id": 1912
+}
+
+// Status: libur (Contoh ID 70826 - Sesi libur otomatis karena kalender akademik)
+{
+    "id": 70826,
+    "ekstrakurikuler_id": 370,
+    "ekstrakurikuler_rombel_id": 552,
+    "nomor_pertemuan": 5,
+    "tanggal_terjadwal": "2026-08-10",
+    "jam_mulai_terjadwal": "15:15:00",
+    "jam_selesai_terjadwal": "16:30:00",
+    "status": "libur",
+    "payment_status": "unpaid",
+    "payroll_item_id": null
+}
+
+// Status: ditunda (Contoh ID 18369 - Sesi ditunda)
+{
+    "id": 18369,
+    "ekstrakurikuler_id": 254,
+    "ekstrakurikuler_rombel_id": 310,
+    "nomor_pertemuan": 1,
+    "tanggal_terjadwal": "2026-08-08",
+    "jam_mulai_terjadwal": "10:00:00",
+    "jam_selesai_terjadwal": "11:30:00",
+    "status": "ditunda",
+    "payment_status": "unpaid",
+    "payroll_item_id": null
+}
+```
+
+---
+
+#### 4. Status Enrollment Siswa (`siswa_ekstrakurikuler.status`)
+Kolom: `enum('aktif','lulus','keluar','pindah','nonaktif')` | Default: `'aktif'`
+
+| Status | Label | Arti Bisnis & Kondisi | Perhitungan Tagihan & Kuota |
+|---|---|---|---|
+| `aktif` | Aktif | Siswa terdaftar aktif mengikuti kegiatan di rombel tersebut. | Dihitung dalam `getJumlahSiswaAktual()`, presensi, dan tagihan invoice billable. |
+| `pindah` | Pindah | Siswa dipindahkan ke rombel lain dalam program ekskul yang sama (misal dari Rombel 6 ke Rombel 3). Tanggal keluar tercatat, siswa dibuatkan enrollment baru di rombel tujuan. | Tidak lagi dihitung di rombel lama, tetapi historis presensi di sesi lampau tetap terjaga. |
+| `keluar` | Keluar | Siswa mengundurkan diri / berhenti dari kegiatan ekstrakurikuler. Tanggal keluar & alasan keluar wajib tercatat. | Tidak dihitung dalam kuota aktif dan tagihan periode berikutnya. |
+| `lulus` | Lulus | Siswa telah menyelesaikan seluruh pertemuan dan berhak atas sertifikat digital (`certificates`). | Diikutsertakan dalam penerbitan rapor dan sertifikat. |
+| `nonaktif` | Nonaktif | Dinonaktifkan sementara oleh staf admin untuk verifikasi administrasi. | Kuota ditangguhkan sementara. |
+
+##### Contoh Record Nyata Database:
+```json
+// Status: aktif (Contoh ID 1 - Siswa aktif di Rombel)
+{
+    "id": 1,
+    "siswa_id": 37,
+    "ekstrakurikuler_id": 2,
+    "ekstrakurikuler_rombel_id": 3,
+    "status": "aktif",
+    "tanggal_daftar": "2026-07-28",
+    "tanggal_keluar": null,
+    "alasan_keluar": null
+}
+
+// Status: pindah (Contoh ID 283 - Siswa pindah ke rombel lain)
+{
+    "id": 283,
+    "siswa_id": 375,
+    "ekstrakurikuler_id": 13,
+    "ekstrakurikuler_rombel_id": 17,
+    "status": "pindah",
+    "tanggal_daftar": "2026-07-30",
+    "tanggal_keluar": "2026-08-26",
+    "alasan_keluar": "Pindah rombel (bulk)"
+}
+
+// Status: keluar (Contoh ID 111 - Siswa berhenti dari ekskul)
+{
+    "id": 111,
+    "siswa_id": 177,
+    "ekstrakurikuler_id": 8,
+    "ekstrakurikuler_rombel_id": 10,
+    "status": "keluar",
+    "tanggal_daftar": "2026-07-29",
+    "tanggal_keluar": "2026-08-31",
+    "alasan_keluar": "Berhenti mengikuti ekstrakurikuler"
+}
+```
 
 
 ### Catatan Keamanan & Integritas

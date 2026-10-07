@@ -270,6 +270,9 @@
                     <a href="#section-reset-manual" class="toc-link">
                         <i class="bi bi-arrow-counterclockwise text-danger"></i> 9. Reset Manual &amp; Bypass
                     </a>
+                    <a href="#section-invoice-billing" class="toc-link">
+                        <i class="bi bi-receipt-cutoff" style="color: #8b5cf6;"></i> 10. Penagihan &amp; Invoice
+                    </a>
                 </nav>
 
                 <hr class="my-3">
@@ -291,8 +294,34 @@
                         <i class="bi bi-pin-angle-fill"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0 text-dark">1. Dashboard Command Center &amp; To-Do List Antrean Reschedule</h4>
-                        <small class="text-muted">Pemantauan sesi libur/ditunda dan penjadwalan tanggal pengganti langsung dari dashboard.</small>
+                        <h4 class="fw-bold mb-0 text-dark">1. Dashboard Command Center: Todo Admin (2 Kolom) &amp; Pusat Verifikasi</h4>
+                        <small class="text-muted">Pusat kendali operasional harian: Tiket/Reschedule, Invoice/Belum Lapor, dan Verifikasi Siswa.</small>
+                    </div>
+                </div>
+
+                <!-- Struktur Grid 2 Kolom Command Center -->
+                <div class="p-3 rounded-3 mb-3 bg-light border">
+                    <h6 class="fw-bold text-dark mb-2">
+                        <i class="bi bi-columns-gap text-primary me-1"></i> Penataan Layout Command Center (Grid 6 : 6)
+                    </h6>
+                    <p class="small text-muted mb-2">
+                        Dashboard admin dirancang teratur tanpa ada layout timpang (tidak ada rasio 8–4), dibagi rapi ke dalam 2 kolom seimbang (col-6, col-6):
+                    </p>
+                    <div class="row g-2 small">
+                        <div class="col-md-6">
+                            <div class="p-2.5 bg-white rounded border border-primary border-opacity-25 h-100">
+                                <span class="badge bg-primary rounded-pill px-2 py-0.5 mb-1">Kolom Kiri (col-6)</span>
+                                <strong class="d-block text-dark">Tiket &amp; Antrean Reschedule</strong>
+                                <span class="text-muted">Berisi tiket bantuan instruktur yang butuh respons cepat serta antrean sesi libur/ditunda yang wajib ditentukan tanggal penggantinya.</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-2.5 bg-white rounded border border-purple border-opacity-25 h-100">
+                                <span class="badge rounded-pill px-2 py-0.5 mb-1 text-white" style="background: #8b5cf6;">Kolom Kanan (col-6)</span>
+                                <strong class="d-block text-dark">Invoice Tagihan &amp; Sesi Belum Lapor</strong>
+                                <span class="text-muted">Menampilkan invoice pending approval (Operasional &amp; Akunting) bersebelahan langsung dengan monitoring sesi mengajar yang belum dilaporkan oleh instruktur.</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -305,11 +334,11 @@
                     </p>
                 </div>
 
-                <div class="step-box">
+                <div class="step-box mb-3">
                     <div class="step-number">Alur Operasional</div>
                     <h6 class="fw-bold mb-1">Menjalankan Reschedule dari Widget Dashboard</h6>
                     <ol class="small text-secondary mb-0 ps-3">
-                        <li class="mb-2">Buka <strong>Dashboard Admin</strong> (<code>/dashboard</code>). Jika ada sesi libur yang belum ditentukan tanggal penggantinya, kartu kuning bertajuk <strong>📌 TO-DO LIST ADMIN: Antrean Reschedule (X Sesi Wajib Dijadwalkan Ulang)</strong> akan otomatis muncul di bagian atas.</li>
+                        <li class="mb-2">Buka <strong>Dashboard Admin</strong> (<code>/dashboard</code>). Pada kolom kiri Todo Admin, periksa panel <strong>📌 Antrean Reschedule Sesi Libur</strong>.</li>
                         <li class="mb-2">Pilih sesi yang ingin dijadwalkan, lalu klik tombol <strong>`Reschedule Sekarang`</strong>.</li>
                         <li class="mb-2">Pilih <strong>Tanggal Pengganti Baru</strong> dan masukkan <strong>Alasan Penjadwalan</strong>.</li>
                         <li class="mb-2"><strong>Opsi Pergeseran Berantai (*Cascade Shift*):</strong> Centang kotak <em>"Geser seluruh jadwal pertemuan berikutnya secara berantai"</em> jika Anda ingin memundurkan jadwal pertemuan berikutnya secara proporsional.</li>
@@ -317,11 +346,22 @@
                     </ol>
                 </div>
 
+                <div class="p-3 rounded-3 mb-3 bg-white border">
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-person-check text-success me-1"></i> Bagian 5: Pusat Verifikasi &amp; Distribusi Siswa (6 : 6)</h6>
+                    <p class="small text-muted mb-2">
+                        Tepat di bawah Todo Admin, terdapat 2 panel bersanding seimbang (col-6, col-6):
+                    </p>
+                    <ul class="small text-secondary mb-0 ps-3">
+                        <li class="mb-1"><strong>Pusat Verifikasi Siswa (Kiri - col-6):</strong> Menampilkan daftar siswa yang masih memakai NISN Sementara (TMP) untuk diverifikasi dan ditertibkan nomor induk aslinya.</li>
+                        <li><strong>Distribusi Siswa per Program (Kanan - col-6):</strong> Grafik distribusi sebaran siswa di berbagai program ekstrakurikuler (Scratch, Micro:bit, Python, Robotika, dll).</li>
+                    </ul>
+                </div>
+
                 <div class="callout-info">
                     <div class="d-flex gap-2">
                         <i class="bi bi-shield-lock-fill text-primary fs-5"></i>
                         <div class="small">
-                            <strong>Otorisasi Eksklusif Admin:</strong> Instruktur dilarang memindahkan atau mengubah tanggal sesi (HTTP 403 Forbidden). Hanya akun dengan role <strong>Admin, Admin Sistem, atau Webmaster</strong> yang memiliki wewenang memindahkan tanggal sesi.
+                            <strong>Otorisasi Eksklusif Admin &amp; Admin Sistem:</strong> Instruktur dilarang memindahkan atau mengubah tanggal sesi (HTTP 403 Forbidden). Akun dengan role <strong>Admin Sistem (`admin_sistem`)</strong> dan <strong>Webmaster</strong> memiliki wewenang penuh atas seluruh aksi operasional, reschedule, penagihan invoice, serta approval akunting.
                         </div>
                     </div>
                 </div>
@@ -626,7 +666,7 @@
                         <i class="bi bi-file-earmark-spreadsheet-fill"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0 text-dark">7. Integrasi Google Spreadsheet (9 Tab Data Real-Time)</h4>
+                        <h4 class="fw-bold mb-0 text-dark">7. Integrasi Google Spreadsheet (12 Tab Data Real-Time)</h4>
                         <small class="text-muted">Sinkronisasi streaming data operasional ke master spreadsheet manajemen.</small>
                     </div>
                 </div>
@@ -636,9 +676,9 @@
                 </p>
 
                 <div class="row g-3 mb-3">
-                    <div class="col-md-6">
+                    <div class="col-md-7">
                         <div class="p-3 border rounded-3 bg-light h-100">
-                            <h6 class="fw-bold text-dark"><i class="bi bi-layers-fill text-success me-1"></i> Struktur 9 Tab Master Sheet</h6>
+                            <h6 class="fw-bold text-dark"><i class="bi bi-layers-fill text-success me-1"></i> Struktur 12 Tab Master Sheet</h6>
                             <ul class="small text-secondary mb-0 ps-3">
                                 <li><code>Ringkasan_KPI</code>: Matriks performa instruktur &amp; kedisiplinan.</li>
                                 <li><code>Laporan_Mengajar</code>: Riwayat laporan, topik materi &amp; kehadiran.</li>
@@ -646,17 +686,23 @@
                                 <li><code>Absensi_Siswa</code>: Rekap hadir, sakit, izin, alpha per anak.</li>
                                 <li><code>Rekap_Honor</code>: Estimasi honor kotor, denda &amp; honor bersih bulanan.</li>
                                 <li><code>Rekap_Pertemuan_Ekskul</code>: Rekap publik materi &amp; link foto.</li>
-                                <li><code>Daftar_Program_Ekskul</code>: Portofolio program ekskul seluruh sekolah.</li>
+                                <li><code>Daftar_Program_Ekskul</code>: Portofolio program ekskul dengan pemisahan baris per rombel.</li>
                                 <li><code>Rekap_Honor_Instruktur</code>: Rekapitulasi honor riil per sesi mengajar.</li>
                                 <li><code>Profil_Instruktur</code>: Master profil &amp; rekening (Bank, No Rek, Atas Nama, &amp; Rekening Gabungan), NIK, kontak, serta kompetensi 1 &amp; 2.</li>
+                                <li><code>Data_Siswa</code>: Master direktori data siswa per sekolah &amp; rombel.</li>
+                                <li><code>Monitoring_Belum_Laporan</code>: Antrean sesi selesai yang belum diunggah laporannya oleh instruktur.</li>
+                                <li><code>Rekap_Invoice</code>: Monitoring penagihan invoice: status persetujuan Gate 1 (Operasional / Dinda &amp; Novandi) &amp; Gate 2 (Akunting/Rendy), aging hari menggantung, siswa billable, dan link akses direct.</li>
                             </ul>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <div class="p-3 border rounded-3 bg-light h-100">
-                            <h6 class="fw-bold text-dark"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Fitur Initial Full Sync</h6>
+                            <h6 class="fw-bold text-dark"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Fitur Initial Full Sync &amp; Ekspor</h6>
                             <p class="small text-muted mb-2">
-                                Gunakan tombol <strong>`⚡ Jalankan Full Sync Sekarang`</strong> untuk menyinkronkan seluruh ribuan data historis dari database ke spreadsheet secara instan melalui background queue.
+                                Gunakan tombol <strong>`⚡ Jalankan Full Sync Sekarang`</strong> untuk menyinkronkan seluruh 12 tab secara otomatis ke Google Spreadsheet.
+                            </p>
+                            <p class="small text-muted mb-0">
+                                Setiap tab juga dapat diunduh langsung dalam format <strong>CSV</strong> atau <strong>Excel (.xlsx)</strong> untuk keperluan arsip offline tim finance dan operasional.
                             </p>
                         </div>
                     </div>
@@ -771,6 +817,107 @@
                     <p class="small text-success fw-semibold mt-2 mb-0">
                         <i class="bi bi-check-circle-fill me-1"></i> Setelah status berubah menjadi <code>Berlangsung</code>, instruktur dapat langsung membuat Laporan Mengajar di aplikasi tanpa terblokir aturan FIFO.
                     </p>
+                </div>
+            </div>
+
+            <!-- 10. SOP PENAGIHAN INVOICE & DUAL APPROVAL -->
+            <div class="guide-card" id="section-invoice-billing">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="guide-header-icon" style="background: rgba(139, 92, 246, 0.12); color: #8B5CF6;">
+                        <i class="bi bi-receipt-cutoff"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-dark">10. Penagihan Invoice Sekolah &amp; Dual-Approval Gate (Operasional &amp; Akunting)</h4>
+                        <small class="text-muted">Prosedur evaluasi antrean penagihan, validasi kehadiran ke PIC sekolah, approval bertingkat, dan penerbitan faktur resmi.</small>
+                    </div>
+                </div>
+
+                <div class="p-3.5 rounded-3 mb-4" style="background: #fbf7ff; border: 1.5px solid #e9d5ff;">
+                    <h6 class="fw-bold text-dark mb-2">
+                        <i class="bi bi-lightbulb-fill text-warning me-1"></i> Prinsip Dasar Penagihan (1 Sekolah = 1 Invoice Resmi)
+                    </h6>
+                    <ul class="small text-secondary mb-0 ps-3">
+                        <li class="mb-1"><strong>Keserentakan Semua Rombel (All Rombels Done):</strong> Suatu sekolah baru masuk ke antrean <em>Siap Ditagihkan</em> apabila seluruh rombel aktif di sekolah tersebut telah menyelesaikan target pertemuannya.</li>
+                        <li class="mb-1"><strong>Konsolidasi per Sekolah:</strong> Seluruh rombel program ekskul di suatu sekolah digabung dalam 1 invoice dengan rincian per rombel (itemised billing).</li>
+                        <li class="mb-1"><strong>Skema Fleksibel:</strong> Mendukung skema <code>Per 4 Pertemuan</code> (default), <code>Bulanan</code>, <code>Semesteran</code>, dan <code>Tahunan</code>.</li>
+                        <li><strong>Penomoran Resmi:</strong> Berawal dari <code>DRAFT/ERLASS/...</code> (tanpa kata INV) untuk pra-tagihan konfirmasi, dan otomatis difinalkan menjadi <code>INV/ERLASS/...</code> setelah disetujui resmi oleh Akunting.</li>
+                    </ul>
+                </div>
+
+                <!-- Pembagian Tugas Dual Approval Gate -->
+                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-diagram-3-fill text-primary me-2"></i>Alur Pembagian Peran Dual-Approval Gate</h6>
+
+                <div class="row g-3 mb-4">
+                    <!-- Gate 1: Operasional -->
+                    <div class="col-md-6">
+                        <div class="h-100 p-3 rounded-3 border" style="background: #ffffff; border-color: #3b82f6 !important; border-top: 4px solid #3b82f6 !important;">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-primary rounded-pill px-2.5 py-1 fw-bold">Gate 1</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-0.5 small fw-semibold">PIC: Dinda &amp; Novandi (Admin Produksi)</span>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-person-check-fill text-primary me-1"></i> Verifikasi Admin Produksi</h6>
+                            <p class="small text-muted mb-2">
+                                Fokus pada validasi lapangan &amp; kelengkapan kehadiran sebelum diteruskan ke meja Akunting:
+                            </p>
+                            <ol class="small text-secondary mb-3 ps-3">
+                                <li class="mb-1"><strong>Hubungi PIC Sekolah:</strong> Konfirmasi rekonsiliasi jumlah kehadiran siswa via WhatsApp/telepon &amp; lampirkan bukti chat.</li>
+                                <li class="mb-1"><strong>Cek Checklist Operasional:</strong> Pastikan presensi sesi lengkap dan data siswa billable sesuai konfirmasi.</li>
+                                <li class="mb-1"><strong>Fitur Koreksi &amp; Siswa Gratis:</strong> Tetapkan siswa gratis (anak guru/kasek) atau koreksi nominal langsung via panel koreksi yang tersedia.</li>
+                                <li><strong>Verifikasi &amp; Teruskan:</strong> Klik <em>Verifikasi &amp; Teruskan ke Akunting</em> (tidak ada opsi batal/tolak).</li>
+                            </ol>
+                            <div class="p-2 bg-light rounded text-center small text-primary fw-bold">
+                                Hasil: Status berubah menjadi <code>Menunggu Staff Akunting</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gate 2: Akunting -->
+                    <div class="col-md-6">
+                        <div class="h-100 p-3 rounded-3 border" style="background: #ffffff; border-color: #8b5cf6 !important; border-top: 4px solid #8b5cf6 !important;">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge rounded-pill px-2.5 py-1 fw-bold text-white" style="background: #8b5cf6;">Gate 2</span>
+                                <span class="badge rounded-pill px-2 py-0.5 small fw-semibold" style="color: #7c3aed; background: #f3e8ff;">PIC: Rendy (Staff Akunting / Finance)</span>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-2" style="color: #6d28d9 !important;"><i class="bi bi-cash-stack me-1" style="color: #8b5cf6;"></i> Persetujuan Staff Akunting</h6>
+                            <p class="small text-muted mb-2">
+                                Bertanggung jawab atas kepatuhan finansial, nomor rekening, dan penerbitan nomor invoice resmi:
+                            </p>
+                            <ol class="small text-secondary mb-3 ps-3">
+                                <li class="mb-1"><strong>Verifikasi Finansial:</strong> Cek tarif per anak/per rombel sesuai kontrak MoU sekolah dan nomor rekening resmi PT. Erlass Prokreatif Indonesia.</li>
+                                <li class="mb-1"><strong>Opsi Setujui Resmi:</strong> Klik <em>Setujui &amp; Terbitkan Invoice Resmi</em>. Prefix <code>DRAFT/</code> otomatis berganti menjadi <code>INV/</code>.</li>
+                                <li class="mb-1"><strong>Opsi Pengembalian Revisi:</strong> Jika ada ketidaksesuaian data, klik <em>Kembalikan ke Produksi (Minta Revisi)</em> dengan catatan wajib (status mundur ke Gate 1).</li>
+                                <li><strong>Unduh PDF Resmi:</strong> Unduh PDF invoice resmi bertanda tangan digital dan stempel perusahaan untuk diserahkan ke pihak sekolah.</li>
+                            </ol>
+                            <div class="p-2 rounded text-center small fw-bold" style="background: #f5f3ff; color: #6d28d9;">
+                                Hasil: Status menjadi <code>Disetujui Resmi</code> (Nomor Terbit: <code>INV/...</code>)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Langkah Operasional Ringkas -->
+                <div class="p-3 bg-light rounded-3 border">
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-cursor-fill text-dark me-1"></i> Panduan Akses Cepat di Aplikasi:</h6>
+                    <div class="row g-2 small text-secondary">
+                        <div class="col-md-4">
+                            <div class="p-2 bg-white rounded border h-100">
+                                <strong class="text-dark d-block mb-1">1. Dari Dashboard:</strong>
+                                Pantau widget <strong>Todo Admin: Invoice Pending</strong> pada baris kedua (bersebelahan dengan Belum Lapor).
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-2 bg-white rounded border h-100">
+                                <strong class="text-dark d-block mb-1">2. Dari Sidebar Menu:</strong>
+                                Buka menu <strong>Faktur &amp; Invoice</strong> di bawah grup <em>Kompensasi &amp; Payroll</em> (URL: <code>/invoice</code>).
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-2 bg-white rounded border h-100">
+                                <strong class="text-dark d-block mb-1">3. Ubah Skema Sekolah:</strong>
+                                Melalui form skema di detail sekolah jika ada mitra yang beralih dari Per 4 Pertemuan ke Bulanan/Semesteran.
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

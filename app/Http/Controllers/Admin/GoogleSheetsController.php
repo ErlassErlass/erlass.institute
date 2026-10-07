@@ -75,7 +75,7 @@ class GoogleSheetsController extends Controller
             [
                 'key' => GoogleSheetsService::TAB_PROGRAM_EKSKUL,
                 'name' => '7. Daftar Program Ekskul',
-                'description' => 'Direktori komprehensif portofolio program ekskul seluruh sekolah, status kontrak, sales PIC, rincian jadwal rombel, progres pertemuan, dan kapasitas siswa.',
+                'description' => 'Direktori komprehensif portofolio program ekskul dipisah per rombel, mencakup instruktur bertugas, jadwal belajar, progres pertemuan rombel, dan kapasitas siswa.',
                 'icon' => 'bi-collection-play-fill text-primary',
                 'cached_rows' => count(Cache::get('google_sheets_data_' . GoogleSheetsService::TAB_PROGRAM_EKSKUL, [])),
             ],
@@ -108,6 +108,20 @@ class GoogleSheetsController extends Controller
                 'cached_rows' => count(Cache::get('google_sheets_data_' . GoogleSheetsService::TAB_MONITORING_BELUM_LAPORAN, [])),
                 'has_excel' => true,
             ],
+            [
+                'key' => GoogleSheetsService::TAB_INVOICE,
+                'name' => '12. Rekap Invoice & Penagihan',
+                'description' => 'Monitoring status penagihan invoice: draft menggantung, persetujuan Gate 1 (Operasional / Dinda & Novandi) & Gate 2 (Akunting / Rendy), aging hari, rincian rombel, dan siswa billable.',
+                'icon' => 'bi-receipt-cutoff text-purple',
+                'cached_rows' => count(Cache::get('google_sheets_data_' . GoogleSheetsService::TAB_INVOICE, [])),
+            ],
+            [
+                'key' => GoogleSheetsService::TAB_INVOICE_MARKETING,
+                'name' => '13. Detail Invoice Marketing (Pivot Ready)',
+                'description' => 'Data granular per item rombel/program untuk Pivot Table Marketing: Group Leader, Sales, Kode Sales, Area, Sekolah, Billable Efektif murni angka, Aging Hari murni angka, status verifikasi.',
+                'icon' => 'bi-pie-chart-fill text-success',
+                'cached_rows' => count(Cache::get('google_sheets_data_' . GoogleSheetsService::TAB_INVOICE_MARKETING, [])),
+            ],
         ];
 
         return view('admin.google-sheets.index', compact(
@@ -122,7 +136,7 @@ class GoogleSheetsController extends Controller
     }
 
     /**
-     * Trigger instant Full Sync of all 11 tabs.
+     * Trigger instant Full Sync of all 13 tabs.
      */
     public function syncNow(Request $request)
     {
@@ -132,12 +146,12 @@ class GoogleSheetsController extends Controller
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Sinkronisasi seluruh 11 tab ke Google Spreadsheet berhasil!',
+                    'message' => 'Sinkronisasi seluruh 13 tab ke Google Spreadsheet berhasil!',
                     'data' => $result,
                 ]);
             }
 
-            return back()->with('success', 'Sinkronisasi seluruh 11 tab ke Google Spreadsheet berhasil!');
+            return back()->with('success', 'Sinkronisasi seluruh 13 tab ke Google Spreadsheet berhasil!');
         } catch (\Throwable $e) {
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
@@ -201,6 +215,13 @@ class GoogleSheetsController extends Controller
             'monitoring_belum_laporan' => GoogleSheetsService::TAB_MONITORING_BELUM_LAPORAN,
             'Monitoring_Belum_Laporan' => GoogleSheetsService::TAB_MONITORING_BELUM_LAPORAN,
             'belum_laporan' => GoogleSheetsService::TAB_MONITORING_BELUM_LAPORAN,
+            'invoice' => GoogleSheetsService::TAB_INVOICE,
+            'rekap_invoice' => GoogleSheetsService::TAB_INVOICE,
+            'Rekap_Invoice' => GoogleSheetsService::TAB_INVOICE,
+            'invoice_marketing' => GoogleSheetsService::TAB_INVOICE_MARKETING,
+            'detail_invoice_marketing' => GoogleSheetsService::TAB_INVOICE_MARKETING,
+            'Detail_Invoice_Marketing' => GoogleSheetsService::TAB_INVOICE_MARKETING,
+            'marketing' => GoogleSheetsService::TAB_INVOICE_MARKETING,
         ];
 
         $tabKey = $validTabs[$tab] ?? $tab;

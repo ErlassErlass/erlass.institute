@@ -30,10 +30,11 @@ class Sekolah extends Model
      */
     protected $table = 'sekolah';
 
-    const SKEMA_BULANAN         = 'bulanan';
-    const SKEMA_SEMESTER        = 'semester';
-    const SKEMA_TAHUNAN         = 'tahunan';
-    const SKEMA_PER_4_PERTEMUAN = 'per_4_pertemuan';
+    const SKEMA_BULANAN          = 'bulanan';
+    const SKEMA_SEMESTER         = 'semester';
+    const SKEMA_TAHUNAN          = 'tahunan';
+    const SKEMA_PER_4_PERTEMUAN  = 'per_4_pertemuan';
+    const SKEMA_CSR_REGULER_SOGA = 'csr_reguler_soga';
 
     /**
      * Mendefinisikan 'kodlan' sebagai Primary Key.
@@ -69,6 +70,7 @@ class Sekolah extends Model
         'alamat_lengkap',
         'lokasi_default',
         'kustom_transport_fee',
+        'jarak_km',
         'is_sekolah_bayar_instruktur',
         'skema_tagihan',
     ];
@@ -78,6 +80,7 @@ class Sekolah extends Model
      */
     protected $casts = [
         'kustom_transport_fee'        => 'decimal:2',
+        'jarak_km'                    => 'decimal:2',
         'is_sekolah_bayar_instruktur' => 'boolean',
     ];
 
@@ -87,11 +90,12 @@ class Sekolah extends Model
     public function skemaTagihanLabel(): string
     {
         return match ($this->skema_tagihan ?? 'per_4_pertemuan') {
-            'bulanan'         => 'Bulanan (Kalender)',
-            'semester'        => 'Per Semester (~16 sesi)',
-            'tahunan'         => 'Per Tahun (~32 sesi)',
-            'per_4_pertemuan' => 'Per 4 Pertemuan (Rolling Batch)',
-            default           => 'Per 4 Pertemuan (Rolling Batch)',
+            'bulanan'          => 'Bulanan (Kalender)',
+            'semester'         => 'Per Semester (~16 sesi)',
+            'tahunan'          => 'Per Tahun (~32 sesi)',
+            'per_4_pertemuan'  => 'Per 4 Pertemuan (Rolling Batch)',
+            'csr_reguler_soga' => 'CSR Reguler SOGA (Solidaritas Erlangga)',
+            default            => 'Per 4 Pertemuan (Rolling Batch)',
         };
     }
 
