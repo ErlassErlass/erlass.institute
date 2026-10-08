@@ -955,5 +955,70 @@ class InvoiceApprovalTest extends TestCase
         // Karena sesi 1 di bulan September sudah ter-cover invoice 1-4, maka tidak eligible lagi
         $this->assertNull($eligible);
     }
+
+    /** @test */
+    public function per_4_pertemuan_bills_completed_reports_and_includes_lagging_rombel(): void
+    {
+        $sekolah = Sekolah::factory()->create(['skema_tagihan' => 'per_4_pertemuan']);
+        $ekskul  = \App\Models\Ekstrakurikuler::factory()->create(['sekolah_kodlan' => $sekolah->kodlan]);
+        $rombel1 = EkstrakurikulerRombel::factory()->create(['ekstrakurikuler_id' => $ekskul->id, 'nomor_rombel' => 1]);
+        $rombel2 = EkstrakurikulerRombel::factory()->create(['ekstrakurikuler_id' => $ekskul->id, 'nomor_rombel' => 2]);
+
+        // Rombel 1: 4 sesi selesai (P1, P2, P4, P5 - dengan P3 libur)
+        $rombel1->sessions()->whereIn('nomor_pertemuan', [1, 2, 4, 5])->update(['status' => 'selesai']);
+        $rombel1->sessions()->where('nomor_pertemuan', 3)->update(['status' => 'libur']);
+
+        // Rombel 2: Baru 1 sesi selesai (P1), sisanya terjadwal
+        $rombel2->sessions()->where('nomor_pertemuan', 1)->update(['status' => 'selesai']);
+
+        $service = app(\App\Services\InvoiceService::class);
+        $eligible = $service->getEligibleInvoiceForProgram($ekskul);
+
+        // Harus tetap eligible (Pilihan B: tidak diblokir oleh rombel tertinggal)
+        $this->assertNotNull($eligible);
+        $this->assertEquals('Inv Bulan 1', $eligible['periode_label']);
+        $this->assertEquals(2, $eligible['total_rombel']);
+
+        $item1 = collect($eligible['items'])->firstWhere('ekstrakurikuler_rombel_id', $rombel1->id);
+        $this->assertNotNull($item1);
+        $this->assertEquals(4, $item1['jumlah_sesi']);
+
+        $item2 = collect($eligible['items'])->firstWhere('ekstrakurikuler_rombel_id', $rombel2->id);
+        $this->assertNotNull($item2);
+        $this->assertEquals(1, $item2['jumlah_sesi']);
+    }
+
+    /** @test */
+    public function invoice_modal_atur_skema_and_quick_edit_button_rendered(): void
+    {
+        $admin   = $this->makeAdmin();
+        $sekolah = Sekolah::factory()->create([
+            'kodlan'        => 'SKLPOP1',
+            'namasekolah'   => 'Sekolah Pop Up Test',
+            'skema_tagihan' => 'per_4_pertemuan',
+        ]);
+        $ekskul  = \App\Models\Ekstrakurikuler::factory()->create(['sekolah_kodlan' => $sekolah->kodlan]);
+        $rombel  = EkstrakurikulerRombel::factory()->create(['ekstrakurikuler_id' => $ekskul->id]);
+        $rombel->sessions()->whereBetween('nomor_pertemuan', [1, 4])->update(['status' => 'selesai']);
+
+        \Illuminate\Support\Facades\Cache::forget('invoice_eligible_programs_cache');
+        \Illuminate\Support\Facades\Cache::forget('invoice_sekolahs_filter_list');
+
+        $response = $this->actingAs($admin)->get('/invoice');
+
+        $response->assertOk();
+        // Modal harus ada di DOM
+        $response->assertSee('id="modalAturSkema"', false);
+        $response->assertSee('id="modalSekolahSelect"', false);
+        $response->assertSee('id="modalSkemaSelect"', false);
+        $response->assertSee('id="btnSimpanSkema"', false);
+
+        // Tombol quick edit skema di tabel antrean generate harus memiliki data-bs-toggle & data attributes
+        $response->assertSee('data-bs-toggle="modal"', false);
+        $response->assertSee('data-bs-target="#modalAturSkema"', false);
+        $response->assertSee('data-kodlan="SKLPOP1"', false);
+        $response->assertSee('quickEditSkema', false);
+    }
 }
+
 

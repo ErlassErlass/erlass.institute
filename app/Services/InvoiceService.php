@@ -134,55 +134,104 @@ class InvoiceService
                   ->orWhereHas('items', fn($sub) => $sub->whereIn('ekstrakurikuler_rombel_id', $rombels->pluck('id')));
             })
             ->where('status', '!=', InvoiceApproval::STATUS_REJECTED)
+            ->with('items')
             ->get();
 
         // ─────────────────────────────────────────────────────────────────────
-        // 1. Skema Per 4 Pertemuan
+        // 1. Skema Per 4 Pertemuan (Berbasis Laporan Mengajar yang Selesai)
         // ─────────────────────────────────────────────────────────────────────
         if ($skema === Sekolah::SKEMA_PER_4_PERTEMUAN) {
-            $lastBatch = $existingInvoices->max('periode_nomor') ?? 0;
+            $lastBatch = $existingInvoices->where('skema_tagihan', Sekolah::SKEMA_PER_4_PERTEMUAN)->max('periode_nomor') ?? 0;
             $nextBatch = $lastBatch + 1;
-            $dari      = ($nextBatch - 1) * 4 + 1;
-            $sampai    = $nextBatch * 4;
+
+            $rombelData = [];
+            $hasReadyRombel = false;
+
+            foreach ($rombels as $rombel) {
+                // Ambil seluruh sesi berstatus selesai (laporan mengajar selesai) urut tanggal
+                $completedSessions = $rombel->sessions()
+                    ->where('status', 'selesai')
+                    ->orderBy('tanggal_terjadwal')
+                    ->orderBy('nomor_pertemuan')
+                    ->get();
+
+                // Hitung berapa sesi selesai yang sudah ditagihkan di invoice sebelumnya
+                $alreadyInvoicedCount = 0;
+                foreach ($existingInvoices as $inv) {
+                    $item = $inv->items->firstWhere('ekstrakurikuler_rombel_id', $rombel->id);
+                    if ($item) {
+                        $alreadyInvoicedCount += $item->jumlah_sesi;
+                    } elseif ($inv->ekstrakurikuler_rombel_id == $rombel->id) {
+                        $alreadyInvoicedCount += ($inv->jumlah_sesi ?: 4);
+                    }
+                }
+
+                $unbilled = $completedSessions->slice($alreadyInvoicedCount)->values();
+
+                if ($unbilled->count() >= 4) {
+                    $hasReadyRombel = true;
+                }
+
+                $rombelData[$rombel->id] = [
+                    'rombel'   => $rombel,
+                    'unbilled' => $unbilled,
+                ];
+            }
+
+            // Pilihan B: Minimal ada satu rombel yang sudah mencapai target 4 sesi selesai
+            if (!$hasReadyRombel) {
+                return null;
+            }
 
             $items = [];
             $latestTargetDate = null;
+            $minSesiDari = null;
+            $maxSesiSampai = null;
 
-            foreach ($rombels as $rombel) {
-                // Cek apakah 4 sesi di batch ini sudah selesai
-                $completedInBatch = $rombel->sessions()
-                    ->whereBetween('nomor_pertemuan', [$dari, $sampai])
-                    ->where('status', 'selesai')
-                    ->count();
+            foreach ($rombelData as $rId => $data) {
+                $rombel   = $data['rombel'];
+                $unbilled = $data['unbilled'];
 
-                if ($completedInBatch < 4) {
-                    return null;
+                if ($unbilled->isEmpty()) {
+                    continue; // Rombel ini tidak ada sesi selesai yang belum ditagihkan
                 }
 
-                $lastSession = $rombel->sessions()->where('nomor_pertemuan', $sampai)->first();
-                $tDate = $lastSession?->tanggal_pelaksanaan 
-                    ?? $lastSession?->tanggal_terjadwal 
-                    ?? $asOfDate;
+                // Ambil maksimal 4 sesi untuk batch ini
+                $batchSessions = $unbilled->take(4);
+                $sesiDari   = $batchSessions->min('nomor_pertemuan');
+                $sesiSampai = $batchSessions->max('nomor_pertemuan');
+                $sessionCount = $batchSessions->count();
 
-                if (is_string($tDate)) {
-                    $tDate = Carbon::parse($tDate);
+                if ($minSesiDari === null || $sesiDari < $minSesiDari) {
+                    $minSesiDari = $sesiDari;
                 }
+                if ($maxSesiSampai === null || $sesiSampai > $maxSesiSampai) {
+                    $maxSesiSampai = $sesiSampai;
+                }
+
+                $lastSess = $batchSessions->sortByDesc('tanggal_terjadwal')->first();
+                $tDate = $lastSess?->tanggal_pelaksanaan ?? $lastSess?->tanggal_terjadwal ?? $asOfDate;
+                if (is_string($tDate)) $tDate = Carbon::parse($tDate);
 
                 if (!$latestTargetDate || $tDate->gt($latestTargetDate)) {
                     $latestTargetDate = $tDate;
                 }
 
-                $billable = $this->calculateBillable($rombel->id, $dari, $sampai);
+                $billable = $this->calculateBillable($rombel->id, $sesiDari, $sesiSampai);
                 $items[] = [
                     'ekstrakurikuler_id'        => $ekskul->id,
                     'ekstrakurikuler_rombel_id' => $rombel->id,
                     'rombel_nama'               => $rombel->nama_rombel,
                     'kategori_program'          => $ekskul->kategori_program,
-                    'sesi_dari'                 => $dari,
-                    'sesi_sampai'               => $sampai,
-                    'jumlah_sesi'               => $billable['session_count'],
+                    'sesi_dari'                 => $sesiDari,
+                    'sesi_sampai'               => $sesiSampai,
+                    'jumlah_sesi'               => $sessionCount,
                     'jumlah_siswa_billable'     => $billable['billable_count'],
                 ];
+            }
+
+            if (empty($items)) {
+                return null;
             }
 
             $latestTargetDate = $latestTargetDate ?? $asOfDate;
@@ -208,8 +257,8 @@ class InvoiceService
                 'bulan_laporan_terakhir'    => $bulanLaporanTerakhir,
                 'periode_nomor'             => $nextBatch,
                 'tahun_ajaran'              => $ekskul->tahun_ajaran ?? '2026/2027',
-                'sesi_dari'                 => $dari,
-                'sesi_sampai'               => $sampai,
+                'sesi_dari'                 => $minSesiDari,
+                'sesi_sampai'               => $maxSesiSampai,
                 'target_date'               => $latestTargetDate->toDateString(),
                 'target_date_formatted'     => $latestTargetDate->translatedFormat('d M Y'),
                 'days_overdue'              => $daysOverdue,

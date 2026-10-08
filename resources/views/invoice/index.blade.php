@@ -204,7 +204,15 @@
                                     } }}
                                 </span>
                                 @if(auth()->user()?->hasRole(['admin', 'admin_sistem', 'webmaster']))
-                                <button type="button" class="btn btn-link p-0 text-muted btn-sm" title="Ubah Skema Tagihan Sekolah" onclick="quickEditSkema('{{ $item['sekolah_kodlan'] }}', '{{ addslashes($item['sekolah_nama']) }}', '{{ $item['skema_tagihan'] }}')">
+                                <button type="button" 
+                                        class="btn btn-link p-0 text-muted btn-sm btn-quick-skema" 
+                                        title="Ubah Skema Tagihan Sekolah"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalAturSkema"
+                                        data-kodlan="{{ $item['sekolah_kodlan'] }}"
+                                        data-nama="{{ $item['sekolah_nama'] }}"
+                                        data-skema="{{ $item['skema_tagihan'] }}"
+                                        onclick="quickEditSkema('{{ $item['sekolah_kodlan'] }}', '{{ addslashes($item['sekolah_nama']) }}', '{{ $item['skema_tagihan'] }}')">
                                     <i class="bi bi-pencil-square" style="font-size: 0.8rem;"></i>
                                 </button>
                                 @endif
@@ -745,18 +753,54 @@ function filterEligibleSchools() {
 
 function quickEditSkema(kodlan, nama, currentSkema) {
     const select = document.getElementById('modalSekolahSelect');
-    if (select) {
-        select.value = kodlan;
-        onModalSekolahChange(select);
-    }
+    const form = document.getElementById('formAturSkema');
+    const submitBtn = document.getElementById('btnSimpanSkema');
     const skemaSelect = document.getElementById('modalSkemaSelect');
+
+    if (kodlan) {
+        if (form) {
+            form.action = `/sekolah/${kodlan}/skema-tagihan`;
+        }
+        if (submitBtn) {
+            submitBtn.disabled = false;
+        }
+
+        if (select) {
+            // Cek apakah opsi sekolah sudah ada di dropdown, jika belum ada, tambahkan secara dinamis
+            let found = false;
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].value == kodlan) {
+                    found = true;
+                    select.selectedIndex = i;
+                    break;
+                }
+            }
+            if (!found) {
+                const opt = document.createElement('option');
+                opt.value = kodlan;
+                opt.textContent = `[${kodlan}] ${nama || 'Sekolah'}`;
+                opt.setAttribute('data-skema', currentSkema || 'per_4_pertemuan');
+                opt.setAttribute('data-nama', nama || '');
+                select.appendChild(opt);
+                select.value = kodlan;
+            }
+        }
+    }
+
     if (skemaSelect) {
         skemaSelect.value = currentSkema || 'per_4_pertemuan';
     }
+
+    // Buka modal secara aman (mendukung Bootstrap 5 via window.bootstrap, global bootstrap, atau jQuery fallback)
     const modalEl = document.getElementById('modalAturSkema');
     if (modalEl) {
-        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-        modal.show();
+        const bs = window.bootstrap || (typeof bootstrap !== 'undefined' ? bootstrap : null);
+        if (bs && bs.Modal) {
+            const modal = bs.Modal.getInstance(modalEl) || new bs.Modal(modalEl);
+            modal.show();
+        } else if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+            $(modalEl).modal('show');
+        }
     }
 }
 
@@ -769,16 +813,34 @@ function onModalSekolahChange(selectElem) {
     if (kodlan) {
         form.action = `/sekolah/${kodlan}/skema-tagihan`;
         if (submitBtn) submitBtn.disabled = false;
-        const selectedOption = selectElem.options[selectElem.selectedIndex];
-        const skema = selectedOption.getAttribute('data-skema');
-        if (skema && skemaSelect) {
-            skemaSelect.value = skema;
+        if (selectElem.selectedIndex >= 0 && selectElem.options[selectElem.selectedIndex]) {
+            const selectedOption = selectElem.options[selectElem.selectedIndex];
+            const skema = selectedOption.getAttribute('data-skema');
+            if (skema && skemaSelect) {
+                skemaSelect.value = skema;
+            }
         }
     } else {
         if (form) form.action = '';
         if (submitBtn) submitBtn.disabled = true;
     }
 }
+
+// Inisialisasi event listener agar modal membaca data-attributes tombol pemanggil
+document.addEventListener('DOMContentLoaded', function () {
+    const modalEl = document.getElementById('modalAturSkema');
+    if (modalEl) {
+        modalEl.addEventListener('show.bs.modal', function (event) {
+            const btn = event.relatedTarget;
+            if (btn && btn.getAttribute('data-kodlan')) {
+                const kodlan = btn.getAttribute('data-kodlan');
+                const nama = btn.getAttribute('data-nama');
+                const skema = btn.getAttribute('data-skema');
+                quickEditSkema(kodlan, nama, skema);
+            }
+        });
+    }
+});
 </script>
 @endpush
 

@@ -775,6 +775,10 @@ class InvoiceController extends Controller
                 ->update(['skema_tagihan' => $validated['skema_tagihan']]);
         }
 
+        // Invalidate cache antrean & filter agar perubahan langsung tampak di UI
+        Cache::forget('invoice_eligible_programs_cache');
+        Cache::forget('invoice_sekolahs_filter_list');
+
         return back()->with('success',
             "Skema tagihan {$sekolah->namasekolah} diubah ke: " . $sekolah->fresh()->skemaTagihanLabel()
         );

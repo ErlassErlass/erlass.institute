@@ -2,6 +2,70 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.53] - 2026-10-08
+
+### Perbaikan Modal Penggantian Skema Tagihan pada Tabel Antrean Generate Invoice
+
+#### 1. Perbaikan Tombol & Atribut Modal pada Baris Tabel Antrean (`invoice/index.blade.php`)
+- **Penambahan Native Bootstrap Data Attributes**:
+  - Tombol aksi pensil (*quick edit skema*) pada kolom *Skema Tagihan* di tabel antrean sekolah kini dilengkapi dengan:
+    * `data-bs-toggle="modal"`
+    * `data-bs-target="#modalAturSkema"`
+    * `data-kodlan="{{ $item['sekolah_kodlan'] }}"`
+    * `data-nama="{{ $item['sekolah_nama'] }}"`
+    * `data-skema="{{ $item['skema_tagihan'] }}"`
+  - Memastikan modal Bootstrap dapat dipicu baik melalui native data-API maupun event handler JavaScript tanpa risiko benturan script.
+
+#### 2. Penanganan Eksepsi & Fallback JavaScript (`quickEditSkema`)
+- **Pencegahan Error DOM Undefined**:
+  - Memperbaiki `onModalSekolahChange` agar memvalidasi `selectElem.selectedIndex >= 0` dan keberadaan elemen sebelum mengakses `.getAttribute('data-skema')`, mencegah error fatal `Cannot read properties of undefined`.
+- **Injeksi Opsi Dinamis**:
+  - Jika sekolah pada antrean belum terdaftar di cache dropdown filter `#modalSekolahSelect`, fungsi secara dinamis menambahkan elemen `<option>` baru sehingga nama sekolah dan skema langsung terpilih dan tombol simpan otomatis aktif (`disabled = false`).
+- **Penyelarasan Multi-Environment Bootstrap Modal**:
+  - Mendukung pemanggilan modal melalui `window.bootstrap.Modal`, `bootstrap.Modal`, serta fallback jQuery `$.fn.modal` jika tersedia.
+- **Listener Event `show.bs.modal`**:
+  - Menambahkan listener otomatis ketika modal dibuka via `data-bs-toggle` agar membaca data sekolah langsung dari `event.relatedTarget`.
+
+#### 3. Invalidation Cache Real-Time (`InvoiceController::updateSkemaSekolah`)
+- Menambahkan pembersihan cache otomatis:
+  * `Cache::forget('invoice_eligible_programs_cache')`
+  * `Cache::forget('invoice_sekolahs_filter_list')`
+- Perubahan skema yang disimpan kini langsung terlihat seketika (*instant refresh*) pada tabel antrean dan filter sekolah tanpa menunggu masa kadaluarsa cache.
+
+#### 4. Pengujian Otomatis
+- Ditambahkan test `invoice_modal_atur_skema_and_quick_edit_button_rendered` pada `tests/Feature/InvoiceApprovalTest.php`.
+- Seluruh 41 pengujian `InvoiceApprovalTest` (173 assertions) lulus dengan status hijau (100% *pass*).
+
+## [2.9.52] - 2026-10-08
+
+### Penyempurnaan Skema "Per 4 Pertemuan": Berbasis Laporan Mengajar Selesai & Non-Blocking Rombel Tertinggal / Non-Aktif (Pilihan B)
+
+#### 1. Perhitungan Berbasis Laporan Mengajar Riil yang Selesai (`InvoiceService.php`)
+- **Penetapan Sumber Kebenaran (Source of Truth)**:
+  - Penagihan paket 4 pertemuan tidak lagi bergantung pada nomor urut jadwal kalender yang kaku (misal nomor pertemuan 1–4).
+  - Sistem kini menghitung **akumulasi Laporan Mengajar yang berstatus `selesai`** yang diserahkan oleh instruktur.
+  - Sesi yang berstatus libur, ditunda, atau dibatalkan otomatis dilewati sehingga tidak merusak atau menahan kelipatan 4 sesi.
+- **Dukungan Penuh Tagihan Paket Lintas Bulan**:
+  - Mengakomodasi kebutuhan sekolah yang membayar per paket 4 pertemuan (misalnya 2 sesi terlaksana di Agustus dan 2 sesi di September digabung menjadi 1 invoice paket 4 sesi).
+
+#### 2. Penanganan Rombel Tertinggal / Non-Aktif (Pilihan B: Tanpa Saling Menyandera)
+- **Eliminasi Masalah Deadlock**:
+  - Sebelumnya, jika ada 1 rombel yang tertinggal atau ditutup setelah 1 sesi, seluruh sekolah terblokir selamanya dan tidak pernah bisa menerbitkan invoice.
+  - Sekarang, syarat pemicu (*trigger*) adalah: **minimal ada 1 rombel utama yang telah mencapai target $\ge 4$ laporan selesai**.
+  - Rombel yang sudah mencapai $\ge 4$ sesi ditagihkan 4 sesi penuh.
+  - Rombel yang tertinggal atau telah tidak aktif (misal hanya 1 sesi) **tetap diikutsertakan sesuai sesi riilnya** (1 sesi), sehingga hak jasa instruktur tetap tertagih resmi ke sekolah.
+  - Pada siklus tagihan berikutnya (*next batch*), rombel tertinggal tersebut memiliki 0 sesi *unbilled* sehingga otomatis dilewati dan tidak akan pernah mengganggu proses invoice lagi.
+
+#### 3. Dampak Nyata di Database
+- **SDS SANG TIMUR (`[20105755]`)**:
+  - Langsung **muncul secara otomatis di antrean penagihan resmi** dengan skema `per_4_pertemuan`:
+    * *Robotik Microbit*: Inv Bulan 1 (4 Rombel: Rombel 1–3 @ 4 sesi, Rombel 4 @ 1 sesi; total 125 siswa billable).
+    * *Robotik Jimu*: Inv Bulan 1 (5 Rombel: Rombel 1–4 @ 4 sesi, Rombel 5 @ 3 sesi; total 128 siswa billable).
+
+#### 4. Pengujian Otomatis
+- Ditambahkan feature test `per_4_pertemuan_bills_completed_reports_and_includes_lagging_rombel` pada `tests/Feature/InvoiceApprovalTest.php`.
+- Seluruh 40 skenario pengujian `InvoiceApprovalTest` (164 assertions) berjalan sukses 100% (*green*).
+
 ## [2.9.51] - 2026-10-08
 
 ### Pencegahan Invoice Duplikat pada Migrasi Skema Tagihan (Cross-Skema Deduplication) & Filter Program Non-Invoiceable
