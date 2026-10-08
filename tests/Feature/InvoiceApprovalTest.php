@@ -871,5 +871,55 @@ class InvoiceApprovalTest extends TestCase
         $response->assertSeeText('Keterlambatan');
         $response->assertSeeText('Semua Skema');
     }
+
+    /** @test */
+    public function is_needs_revision_helper_identifies_rejection_properly(): void
+    {
+        $invDraft = new InvoiceApproval([
+            'status' => 'pending_operasional',
+            'akunting_status' => 'pending',
+        ]);
+        $this->assertFalse($invDraft->isNeedsRevision());
+
+        $invRejected = new InvoiceApproval([
+            'status' => 'pending_operasional',
+            'akunting_status' => 'rejected',
+        ]);
+        $this->assertTrue($invRejected->isNeedsRevision());
+        $this->assertEquals('danger', $invRejected->statusBadgeClass());
+        $this->assertEquals('Perlu Revisi Produksi', $invRejected->statusLabel());
+    }
+
+    /** @test */
+    public function revisi_tab_shows_only_rejected_invoices_and_excludes_fresh_drafts(): void
+    {
+        $admin = $this->makeAdmin();
+
+        $freshDraft = InvoiceApproval::factory()->create([
+            'status' => 'pending_operasional',
+            'akunting_status' => 'pending',
+            'nomor_invoice' => 'INV/TEST/FRESH/001',
+        ]);
+
+        $revisiDraft = InvoiceApproval::factory()->create([
+            'status' => 'pending_operasional',
+            'akunting_status' => 'rejected',
+            'akunting_catatan' => 'Mohon revisi nominal sesi rombel',
+            'nomor_invoice' => 'INV/TEST/REVISI/002',
+        ]);
+
+        // Tab pending_operasional should see freshDraft, but NOT revisiDraft
+        $responseOperasional = $this->actingAs($admin)->get('/invoice?tab=pending_operasional');
+        $responseOperasional->assertStatus(200);
+        $responseOperasional->assertSee('INV/TEST/FRESH/001');
+        $responseOperasional->assertDontSee('INV/TEST/REVISI/002');
+
+        // Tab revisi should see revisiDraft, but NOT freshDraft
+        $responseRevisi = $this->actingAs($admin)->get('/invoice?tab=revisi');
+        $responseRevisi->assertStatus(200);
+        $responseRevisi->assertSee('INV/TEST/REVISI/002');
+        $responseRevisi->assertDontSee('INV/TEST/FRESH/001');
+        $responseRevisi->assertSee('Menunggu Revisi');
+    }
 }
 

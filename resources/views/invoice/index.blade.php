@@ -43,10 +43,10 @@
         </div>
     </div>
 
-    {{-- ─── SUMMARY CARDS (4 TAHAPAN PROSES) ────────────────────────────────── --}}
+    {{-- ─── SUMMARY CARDS (5 TAHAPAN PROSES) ────────────────────────────────── --}}
     <div class="row g-3 mb-4">
         {{-- Card 1: Total Invoice --}}
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-4 col-lg">
             <div class="card border-0 shadow-sm text-center h-100"
                  style="border-radius: .75rem; cursor:pointer;"
                  onclick="window.location.href='{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'all'])) }}';">
@@ -58,7 +58,7 @@
             </div>
         </div>
         {{-- Card 2: Menunggu Admin Produksi --}}
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-4 col-lg">
             <div class="card border-0 shadow-sm text-center h-100"
                  style="border-radius: .75rem; cursor:pointer;"
                  onclick="window.location.href='{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'pending_operasional'])) }}';">
@@ -69,8 +69,20 @@
                 </div>
             </div>
         </div>
-        {{-- Card 3: Menunggu Staff Akunting --}}
-        <div class="col-6 col-md-3">
+        {{-- Card 3: Menunggu Revisi (Dikembalikan Akunting) --}}
+        <div class="col-6 col-md-4 col-lg">
+            <div class="card border-0 shadow-sm text-center h-100"
+                 style="border-radius: .75rem; cursor:pointer; {{ $revisiCount > 0 ? 'border: 1.5px solid #ef4444 !important; background: #fff5f5;' : '' }}"
+                 onclick="window.location.href='{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'revisi'])) }}';">
+                <div class="card-body py-3 px-2">
+                    <i class="bi bi-arrow-return-left fs-3 text-danger"></i>
+                    <div class="fw-bold fs-4 mt-1 text-danger">{{ $revisiCount }}</div>
+                    <div class="text-danger fw-semibold small">Menunggu Revisi</div>
+                </div>
+            </div>
+        </div>
+        {{-- Card 4: Menunggu Staff Akunting --}}
+        <div class="col-6 col-md-6 col-lg">
             <div class="card border-0 shadow-sm text-center h-100"
                  style="border-radius: .75rem; cursor:pointer;"
                  onclick="window.location.href='{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'pending_akunting'])) }}';">
@@ -81,8 +93,8 @@
                 </div>
             </div>
         </div>
-        {{-- Card 4: Disetujui Resmi --}}
-        <div class="col-6 col-md-3">
+        {{-- Card 5: Disetujui Resmi --}}
+        <div class="col-6 col-md-6 col-lg">
             <div class="card border-0 shadow-sm text-center h-100"
                  style="border-radius: .75rem; cursor:pointer;"
                  onclick="window.location.href='{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'approved'])) }}';">
@@ -370,6 +382,20 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ $currentTab === 'revisi' || request('status') === 'revisi' ? 'active bg-danger text-white fw-bold shadow-xs' : 'text-dark' }} py-1.5 px-3 position-relative" 
+                       href="{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'revisi'])) }}">
+                        <i class="bi bi-arrow-return-left me-1 {{ $currentTab === 'revisi' || request('status') === 'revisi' ? 'text-white' : 'text-danger' }}"></i>Menunggu Revisi
+                        <span class="badge {{ $currentTab === 'revisi' || request('status') === 'revisi' ? 'bg-white text-danger' : 'bg-danger-subtle text-danger border border-danger' }} ms-1">
+                            {{ $revisiCount }}
+                        </span>
+                        @if($revisiCount > 0 && $currentTab !== 'revisi' && request('status') !== 'revisi')
+                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                                <span class="visually-hidden">Perlu revisi invoice</span>
+                            </span>
+                        @endif
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ $currentTab === 'pending_akunting' || request('status') === 'pending_akunting' ? 'active bg-primary text-white fw-bold' : 'text-dark' }} py-1.5 px-3 position-relative" 
                        href="{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'pending_akunting'])) }}">
                         <i class="bi bi-shield-check me-1"></i>Menunggu Staff Akunting
@@ -543,7 +569,7 @@
                                     </span>
                                     <div class="text-muted" style="font-size:.68rem;">{{ $inv->akunting_approved_at?->format('d/m/Y H:i') }} WIB</div>
                                 @elseif($inv->akunting_status === 'rejected')
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle py-1 px-2.5" title="Dikembalikan Staff Akunting untuk revisi">
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle py-1 px-2.5" title="Dikembalikan Staff Akunting untuk revisi">
                                         <i class="bi bi-arrow-return-left me-1"></i>Minta Revisi
                                     </span>
                                     <div class="text-danger fw-semibold" style="font-size:.68rem;">{{ $inv->akuntingUser?->nama_lengkap ?? $inv->akuntingUser?->name ?? 'Staff Akunting' }}</div>
@@ -616,7 +642,9 @@
                         <tr>
                             <td colspan="9" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox fs-1 d-block mb-2 opacity-25"></i>
-                                @if($currentTab === 'pending_operasional')
+                                @if($currentTab === 'revisi' || request('status') === 'revisi')
+                                    <span class="fw-semibold text-success"><i class="bi bi-check2-circle me-1"></i>Bagus! Tidak ada draft invoice yang perlu direvisi saat ini.</span>
+                                @elseif($currentTab === 'pending_operasional')
                                     <span class="fw-semibold text-success"><i class="bi bi-check2-circle me-1"></i>Tidak ada antrean invoice di Meja Admin Produksi saat ini!</span>
                                 @elseif($currentTab === 'pending_akunting')
                                     <span class="fw-semibold text-success"><i class="bi bi-check2-circle me-1"></i>Tidak ada antrean invoice di Meja Staff Akunting saat ini!</span>

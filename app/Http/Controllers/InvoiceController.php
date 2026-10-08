@@ -40,15 +40,26 @@ class InvoiceController extends Controller
               ->orWhereNotNull('sekolah_kodlan');
         });
 
-        // Filter tab (Semua vs Menunggu Admin Produksi vs Menunggu Staff Akunting vs Disetujui vs Ditolak)
+        // Filter tab (Semua vs Menunggu Admin Produksi vs Menunggu Revisi vs Menunggu Staff Akunting vs Disetujui)
         $currentTab = $request->get('tab', 'all');
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            if ($request->status === 'revisi') {
+                $query->where('status', InvoiceApproval::STATUS_PENDING_OPERASIONAL)
+                      ->where('akunting_status', 'rejected');
+            } else {
+                $query->where('status', $request->status);
+            }
         } elseif ($currentTab === 'pending_operasional') {
             $query->whereIn('status', [
                 InvoiceApproval::STATUS_DRAFT,
                 InvoiceApproval::STATUS_PENDING_OPERASIONAL,
-            ]);
+            ])->where(function ($q) {
+                $q->whereNull('akunting_status')
+                  ->orWhere('akunting_status', '!=', 'rejected');
+            });
+        } elseif ($currentTab === 'revisi' || $currentTab === 'menunggu_revisi') {
+            $query->where('status', InvoiceApproval::STATUS_PENDING_OPERASIONAL)
+                  ->where('akunting_status', 'rejected');
         } elseif ($currentTab === 'pending_akunting') {
             $query->where('status', InvoiceApproval::STATUS_PENDING_AKUNTING);
         } elseif ($currentTab === 'pending' || $currentTab === 'gantung') {
@@ -99,6 +110,7 @@ class InvoiceController extends Controller
 
         $statusOptions = [
             'pending_operasional' => 'Menunggu Admin Produksi',
+            'revisi'              => 'Menunggu Revisi (Dikembalikan Akunting)',
             'pending_akunting'    => 'Menunggu Staff Akunting',
             'approved'            => 'Disetujui Resmi',
         ];
@@ -108,9 +120,20 @@ class InvoiceController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $operasionalPendingCount = ($summary['draft'] ?? 0) + ($summary['pending_operasional'] ?? 0);
+        $revisiCount = InvoiceApproval::where('status', InvoiceApproval::STATUS_PENDING_OPERASIONAL)
+            ->where('akunting_status', 'rejected')
+            ->count();
+
+        $operasionalPendingCount = InvoiceApproval::whereIn('status', [
+                InvoiceApproval::STATUS_DRAFT,
+                InvoiceApproval::STATUS_PENDING_OPERASIONAL,
+            ])->where(function ($q) {
+                $q->whereNull('akunting_status')
+                  ->orWhere('akunting_status', '!=', 'rejected');
+            })->count();
+
         $akuntingPendingCount    = $summary['pending_akunting'] ?? 0;
-        $pendingCount            = $operasionalPendingCount + $akuntingPendingCount;
+        $pendingCount            = $operasionalPendingCount + $revisiCount + $akuntingPendingCount;
         $approvedCount           = $summary['approved'] ?? 0;
         $totalCount              = $summary->sum();
 
@@ -123,6 +146,7 @@ class InvoiceController extends Controller
             'eligibleRombels',
             'currentTab',
             'operasionalPendingCount',
+            'revisiCount',
             'akuntingPendingCount',
             'pendingCount',
             'approvedCount',

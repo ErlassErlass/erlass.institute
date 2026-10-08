@@ -466,7 +466,7 @@ Proses persetujuan bertingkat menjamin keabsahan layanan di lapangan sebelum pen
 | Tahapan Gate | PIC Penanggung Jawab | Tugas & Verifikasi Wajib | Output / Status |
 | :--- | :--- | :--- | :--- |
 | **Gate 1: Admin Produksi** | **Dinda & Novandi** (Admin Produksi / Operasional) | 1. Hubungi PIC sekolah / PIC CSR.<br/>2. Centang checklist presensi lengkap & bukti chat.<br/>3. Koreksi siswa billable & tetapkan siswa gratis (jika ada dispensasi).<br/>4. Klik *Verifikasi & Teruskan ke Akunting* (tidak ada opsi tolak). | Status: `pending_akunting` |
-| **Gate 2: Staff Akunting** | **Rendy** (Staff Akunting / Finance) | 1. Verifikasi nominal tarif, total tagihan & rekening resmi.<br/>2. Opsi A: Klik *Setujui & Terbitkan Invoice Resmi*.<br/>3. Opsi B: Klik *Kembalikan ke Produksi (Minta Revisi)* dengan catatan wajib jika terdapat ketidaksesuaian data (status mundur ke `pending_operasional`). | Status: `approved`<br/>(Nomor resmi: `INV/...`) |
+| **Gate 2: Staff Akunting** | **Rendy** (Staff Akunting / Finance) | 1. Verifikasi nominal tarif, total tagihan & rekening resmi.<br/>2. Opsi A: Klik *Setujui & Terbitkan Invoice Resmi*.<br/>3. Opsi B: Klik *Kembalikan ke Produksi (Minta Revisi)* dengan catatan wajib jika terdapat ketidaksesuaian data (status mundur ke `pending_operasional` dan otomatis masuk ke antrean **Tab Menunggu Revisi**). | Status: `approved`<br/>(Nomor resmi: `INV/...`) |
 
 ### 10.3 Penerbitan Faktur Final & Cetak PDF
 

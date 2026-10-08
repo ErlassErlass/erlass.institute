@@ -298,11 +298,19 @@ class InvoiceApproval extends Model
     }
 
     /**
+     * Apakah invoice ini sedang membutuhkan revisi karena dikembalikan oleh Akunting.
+     */
+    public function isNeedsRevision(): bool
+    {
+        return $this->status === self::STATUS_PENDING_OPERASIONAL && $this->akunting_status === 'rejected';
+    }
+
+    /**
      * Label status yang readable untuk UI.
      */
     public function statusLabel(): string
     {
-        if ($this->status === self::STATUS_PENDING_OPERASIONAL && $this->akunting_status === 'rejected') {
+        if ($this->isNeedsRevision()) {
             return 'Perlu Revisi Produksi';
         }
 
@@ -321,13 +329,13 @@ class InvoiceApproval extends Model
      */
     public function statusBadgeClass(): string
     {
-        if ($this->status === self::STATUS_PENDING_OPERASIONAL && $this->akunting_status === 'rejected') {
-            return 'warning text-dark';
+        if ($this->isNeedsRevision()) {
+            return 'danger';
         }
 
         return match ($this->status) {
             'draft'                => 'secondary',
-            'pending_operasional'  => 'warning',
+            'pending_operasional'  => 'warning text-dark',
             'pending_akunting'     => 'primary',
             'approved'             => 'success',
             'rejected'             => 'danger',

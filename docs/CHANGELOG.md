@@ -2,6 +2,34 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.49] - 2026-10-08
+
+### Penambahan Tab Mandiri "Menunggu Revisi" & 5 Summary Cards Manajemen Invoice
+
+#### Pemisahan Alur Draft Baru vs Draft Revisi Akunting
+- **Tab Mandiri "Menunggu Revisi" (`?tab=revisi`)**:
+  - Menyediakan tab navigasi khusus berwarna merah (*danger*) untuk menampung invoice yang dikembalikan oleh Staff Akunting (Rendy) pada Gate 2.
+  - Memisahkan secara bersih antrean antara:
+    1. **Semua Invoice (`tab=all`)**: Seluruh invoice di sistem.
+    2. **Menunggu Admin Produksi (`tab=pending_operasional`)**: Hanya draft segar baru yang belum pernah diverifikasi oleh Admin Produksi (`akunting_status != 'rejected'`).
+    3. **Menunggu Revisi (`tab=revisi`)**: Draft yang dikembalikan Akunting karena perlu perbaikan nominal, sesi, atau data siswa (`status = pending_operasional AND akunting_status = rejected`).
+    4. **Menunggu Staff Akunting (`tab=pending_akunting`)**: Draft yang telah lolos verifikasi Gate 1 dan siap di-review oleh Staff Akunting.
+    5. **Disetujui Resmi (`tab=approved`)**: Invoice final yang telah disahkan dan terbit nomor resminya (`INV/...`).
+- **5 Summary Cards Interaktif**:
+  - Mengubah barisan ringkasan status di bagian atas halaman `/invoice` menjadi 5 kartu (`col-6 col-md-4 col-lg` responsif):
+    1. *Total Invoice* (Abu-abu / Netral)
+    2. *Menunggu Admin Produksi* (Kuning / Warning)
+    3. *Menunggu Revisi* (Merah / Danger dengan highlight border khusus jika ada antrean revisi aktif)
+    4. *Menunggu Staff Akunting* (Biru / Primary)
+    5. *Disetujui Resmi* (Hijau / Success)
+  - Seluruh kartu dapat diklik langsung untuk memfilter tabel ke tab yang bersangkutan.
+- **Peningkatan UX & Indikator Visual**:
+  - Filter dropdown status kini mencakup opsi *Menunggu Revisi (Dikembalikan Akunting)*.
+  - Badge pada kolom Gate 2 menggunakan style merah lembut (`bg-danger-subtle text-danger border-danger-subtle`) dengan ikon panah balik `bi-arrow-return-left` bertuliskan *Minta Revisi*.
+  - Menambahkan empty state informatif saat tab revisi kosong: *"Bagus! Tidak ada draft invoice yang perlu direvisi saat ini."*
+  - Menambahkan method helper `$invoice->isNeedsRevision(): bool` dan menyelaraskan label badge status menjadi *Perlu Revisi Produksi*.
+  - Melengkapi unit dan feature tests (`InvoiceApprovalTest`) sehingga 38 pengujian otomatis lulus 100% (*green*).
+
 ## [2.9.48] - 2026-10-08
 
 ### Perbaikan Modal Edit Skema Tagihan (Anti-Blur) & Pembaruan Skema Tagihan Sekolah
