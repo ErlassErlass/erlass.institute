@@ -477,11 +477,13 @@ class InvoiceController extends Controller
                 'jumlah_siswa_gratis'    => $jumlahSiswaGratis,
                 'sesi_verifikasi_data'   => $sesiVerifikasiData,
                 // GATE 1 SELESAI: Diteruskan ke Meja Staff Akunting (reset status akunting jika sebelumnya dikembalikan untuk revisi)
-                'akunting_user_id'       => null,
-                'akunting_status'        => 'pending',
-                'akunting_approved_at'   => null,
-                'status'                 => InvoiceApproval::STATUS_PENDING_AKUNTING,
-                'updated_by'             => Auth::id(),
+                'serah_terima_akunting_penerima' => $invoice->serah_terima_akunting_penerima ?: 'Rendy',
+                'serah_terima_akunting_at'       => $invoice->serah_terima_akunting_at ?: now(),
+                'akunting_user_id'               => null,
+                'akunting_status'                => 'pending',
+                'akunting_approved_at'           => null,
+                'status'                         => InvoiceApproval::STATUS_PENDING_AKUNTING,
+                'updated_by'                     => Auth::id(),
             ]);
 
             // Nomor invoice tetap DRAFT sampai Gate 2 Akunting menyetujui resmi
@@ -553,21 +555,24 @@ class InvoiceController extends Controller
 
         $isApproved = $validated['action'] === 'approved';
 
-        DB::transaction(function () use ($invoice, $validated, $isApproved, $request) {
+        $stafNama = Auth::user()->nama_lengkap ?? Auth::user()->name ?? 'Rendy';
+        DB::transaction(function () use ($invoice, $validated, $isApproved, $request, $stafNama) {
             if ($isApproved) {
                 $invoice->update([
-                    'akunting_user_id'     => Auth::id(), // otomatis merekam akun staf yang login & klik
-                    'akunting_status'      => 'approved',
-                    'akunting_approved_at' => now(),
-                    'akunting_catatan'     => $validated['catatan'] ?? null,
-                    'is_invoice_tercetak'  => $request->boolean('is_invoice_tercetak', true),
-                    'akunting_checklist'   => $request->input('akunting_checklist', [
+                    'akunting_user_id'               => Auth::id(), // otomatis merekam akun staf yang login & klik
+                    'akunting_status'                => 'approved',
+                    'akunting_approved_at'           => now(),
+                    'serah_terima_akunting_penerima' => $invoice->serah_terima_akunting_penerima ?: $stafNama,
+                    'serah_terima_akunting_at'       => $invoice->serah_terima_akunting_at ?: now(),
+                    'akunting_catatan'               => $validated['catatan'] ?? null,
+                    'is_invoice_tercetak'            => $request->boolean('is_invoice_tercetak', true),
+                    'akunting_checklist'             => $request->input('akunting_checklist', [
                         'rekening_valid'       => true,
                         'nominal_tarif_sesuai' => true,
                         'berkas_siap_edar'     => true,
                     ]),
-                    'status'               => InvoiceApproval::STATUS_APPROVED,
-                    'updated_by'           => Auth::id(),
+                    'status'                         => InvoiceApproval::STATUS_APPROVED,
+                    'updated_by'                     => Auth::id(),
                 ]);
 
                 // Finalisasi nomor invoice resmi jika disetujui (buang prefix DRAFT/ menjadi INV/)

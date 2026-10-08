@@ -215,7 +215,7 @@ Menghubungkan data operasional mengajar dengan penghitungan honorarium instruktu
 - **Tab 13 Google Spreadsheet (`Detail_Invoice_Marketing`)**:
   - Sinkronisasi sheet data tagihan dengan 41 kolom granular (raw metrics angka murni untuk pivot table, mencakup Group Leader, Sales, Skema, Posisi Meja, dan Tanggal Approval).
 - **Cetak Tagihan PDF Resmi**:
-  - Dokumen PDF tagihan resmi dengan identitas sekolah, tabel rincian item rombel, total siswa, rincian hasil verifikasi pemeriksa, dan catatan komitmen kontrak.
+  - Dokumen PDF tagihan resmi dengan identitas sekolah, tabel rincian item rombel, total siswa, rincian hasil verifikasi pemeriksa, catatan komitmen kontrak, serta **Lembar Tanda Terima Penyerahan Berkas ke Bagian Keuangan/Akunting** yang otomatis terisi lengkap simetris (Diserahkan Oleh: Operasional/Novan, Diterima Oleh: Akunting/Rendy beserta tanggal valid tanpa titik-titik kosong).
 
 ---
 

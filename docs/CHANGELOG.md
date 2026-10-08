@@ -2,6 +2,24 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.47] - 2026-10-08
+
+### Otomasi Pengisian Lengkap Penerima Akunting pada Lembar Tanda Terima PDF
+
+#### Lembar Tanda Terima Berkas Penyerahan ke Keuangan / Akunting
+- **Otomasi Kolom Penerima Akunting**:
+  - Menghapus titik-titik kosong `( ..................................... )` dan `Tgl: ..... / ..... / 2026` pada tabel Lembar Tanda Terima Penyerahan Berkas di Faktur Tagihan PDF (`resources/views/invoice/pdf.blade.php`).
+  - Menyelaraskan format penerima dengan kolom Operasional (*Format Simetris*):
+    - **Diserahkan Oleh (Operasional)**: `Novan` | `Tgl: 07 Oktober 2026`
+    - **Diterima Oleh (Keuangan / Akunting)**: `Rendy` | `Tgl: 07 Oktober 2026`
+- **Perekaman Otomatis di Controller**:
+  - Pada `approveOperasional()` (Gate 1): Saat Operasional menyelesaikan verifikasi, field `serah_terima_akunting_penerima` otomatis terisi `'Rendy'` dan `serah_terima_akunting_at` terisi `now()`.
+  - Pada `approveAkunting()` (Gate 2): Memastikan staf akunting yang bertindak otomatis terekam pada penerima dan timestamp serah terima.
+- **Intelligent Fallback di PDF**:
+  - Memastikan seluruh invoice (baik draft maupun invoice resmi yang sudah diterbitkan) otomatis menampilkan nama Staf Akunting (`Rendy`) dan tanggal yang valid tanpa format kosong.
+- **Standarisasi Database**:
+  - Melakukan sinkronisasi seluruh 51 data invoice yang ada agar atribut tanda terima penyerahan berkas terisi lengkap dengan PIC Akunting resmi.
+
 ## [2.9.46] - 2026-10-07
 
 ### Penomoran Draft Tanpa INV, Alur Rollback Revisi Akunting, Konfirmasi Mutlak Produksi & Tab 13 Spreadsheet

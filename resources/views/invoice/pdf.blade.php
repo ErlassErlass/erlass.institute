@@ -443,8 +443,8 @@
             </td>
             <td style="width: 50%; padding-top: 3px; text-align: right;">
                 <span style="color: #64748b;">Diterima Oleh (Keuangan / Akunting):</span><br>
-                <strong style="color: #0f172a;">{{ $invoice->serah_terima_akunting_penerima ?: '( ........................................ )' }}</strong><br>
-                <span style="color: #94a3b8; font-size: 5.8pt;">Tgl: {{ $invoice->serah_terima_akunting_at?->translatedFormat('d F Y') ?? '..... / ..... / 2026' }}</span>
+                <strong style="color: #0f172a;">{{ $invoice->serah_terima_akunting_penerima ?: ($invoice->akuntingUser?->nama_lengkap ?? 'Rendy') }}</strong><br>
+                <span style="color: #94a3b8; font-size: 5.8pt;">Tgl: {{ ($invoice->serah_terima_akunting_at ?? $invoice->akunting_approved_at ?? $invoice->operasional_approved_at ?? now())->translatedFormat('d F Y') }}</span>
             </td>
         </tr>
     </table>
