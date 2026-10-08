@@ -921,5 +921,39 @@ class InvoiceApprovalTest extends TestCase
         $responseRevisi->assertDontSee('INV/TEST/FRESH/001');
         $responseRevisi->assertSee('Menunggu Revisi');
     }
+
+    /** @test */
+    public function bulanan_skema_skips_month_if_sessions_already_invoiced_under_per_4_pertemuan(): void
+    {
+        $sekolah = Sekolah::factory()->create(['skema_tagihan' => 'bulanan']);
+        $ekskul  = \App\Models\Ekstrakurikuler::factory()->create(['sekolah_kodlan' => $sekolah->kodlan]);
+        $rombel  = EkstrakurikulerRombel::factory()->create(['ekstrakurikuler_id' => $ekskul->id]);
+
+        // Sesi 1 di September 2026
+        $rombel->sessions()->where('nomor_pertemuan', 1)->update([
+            'status'            => 'selesai',
+            'tanggal_terjadwal' => '2026-09-08',
+        ]);
+        $rombel->sessions()->where('nomor_pertemuan', '>', 1)->update([
+            'tanggal_terjadwal' => '2026-10-15',
+        ]);
+
+        // Buat invoice lama dengan skema per_4_pertemuan yang meng-cover sesi 1-4
+        InvoiceApproval::factory()->create([
+            'sekolah_kodlan'     => $sekolah->kodlan,
+            'ekstrakurikuler_id' => $ekskul->id,
+            'periode_label'      => 'Inv Bulan 1',
+            'skema_tagihan'      => 'per_4_pertemuan',
+            'sesi_dari'          => 1,
+            'sesi_sampai'        => 4,
+            'status'             => 'approved',
+        ]);
+
+        $service = app(\App\Services\InvoiceService::class);
+        $eligible = $service->getEligibleInvoiceForProgram($ekskul, \Carbon\Carbon::parse('2026-09-28'));
+
+        // Karena sesi 1 di bulan September sudah ter-cover invoice 1-4, maka tidak eligible lagi
+        $this->assertNull($eligible);
+    }
 }
 

@@ -25,6 +25,10 @@ Dokumen ini merupakan panduan resmi alur penagihan invoice sekolah, mulai dari e
 6. **Penomoran Draft ke Final**:
    - Saat dibuat: nomor berlabel DRAFT murni tanpa kata INV (`DRAFT/ERLASS/YYYYMM/KODLAN/NNN`).
    - Saat disetujui Akunting: prefix `DRAFT/` berganti otomatis menjadi nomor resmi final (`INV/ERLASS/YYYYMM/KODLAN/NNN`).
+7. **Pencegahan Duplikasi Lintas Skema (Cross-Skema Deduplication)**:
+   - Sistem secara cerdas memeriksa riwayat penagihan sesi (`sesi_dari` s.d. `sesi_sampai`). Apabila suatu sekolah bermigrasi skema tagihan (misal dari *Per 4 Pertemuan* ke *Bulanan*), sesi-sesi yang telah terbit invoice resminya tidak akan dimunculkan kembali ke dalam antrean eligible pembuatan invoice baru.
+8. **Penyaringan Program Non-Invoiceable**:
+   - Program yang bersifat non-tagihan (seperti kegiatan *Sosialisasi*, workshop pengenalan gratis, atau program internal sales) secara otomatis disaring keluar dari antrean penagihan melalui scope `invoiceable()`.
 
 ---
 

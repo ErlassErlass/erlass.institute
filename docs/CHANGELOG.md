@@ -2,6 +2,28 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.51] - 2026-10-08
+
+### Pencegahan Invoice Duplikat pada Migrasi Skema Tagihan (Cross-Skema Deduplication) & Filter Program Non-Invoiceable
+
+#### 1. Pencegahan Invoice Duplikat Lintas Skema (`InvoiceService::getEligibleInvoiceForProgram`)
+- **Latar Belakang & Kasus SD Gantari Islamic School (`[70045170]`)**:
+  - Sekolah yang dimigrasikan dari skema `per_4_pertemuan` ke skema `bulanan` sempat memunculkan kembali periode tagihan lama di antrean eligibilitas invoice.
+  - Hal ini terjadi karena pengecekan `alreadyInvoiced` pada skema bulanan sebelumnya hanya mencocokkan string teks nama bulan pada `periode_label` (misalnya `"September 2026"`), sedangkan invoice lama yang sudah berstatus `approved` atau `pending_akunting` menggunakan penamaan format sesi/siklus (misalnya `"Inv Bulan 1"` untuk Sesi 1–4 dan `"Inv Bulan 2"` untuk Sesi 5–8).
+- **Solusi & Logika Baru (`app/Services/InvoiceService.php`)**:
+  - Menambahkan fallback cerdas: Jika pengecekan teks label tidak menemukan kecocokan dan sekolah memiliki invoice aktif, sistem mengumpulkan nomor pertemuan (`nomor_pertemuan`) dari sesi-sesi yang selesai pada bulan terkait.
+  - Sistem kemudian memeriksa apakah seluruh atau sebagian sesi tersebut telah masuk ke dalam jangkauan `sesi_dari` s.d. `sesi_sampai` pada invoice lama dari skema apapun.
+  - Jika sesi telah ter-cover, bulan tersebut langsung ditandai sebagai `alreadyInvoiced = true` dan di-skip dari antrean pembuatan invoice baru.
+  - **Hasil**: SD Gantari Islamic School yang sebelumnya memunculkan invoice duplikat kini menghasilkan **0 antrean eligible** karena seluruh sesi telah tercakup di Invoice #38 (`approved`) dan #39 (`pending_akunting`).
+
+#### 2. Filter Ketat Program Non-Invoiceable
+- **Verifikasi Scope `invoiceable()` (`app/Models/Ekstrakurikuler.php`)**:
+  - Memastikan program promosi internal atau kegiatan pengenalan seperti *Sosialisasi bersama Sales* otomatis tersaring keluar dan tidak pernah masuk ke antrean penagihan sekolah.
+
+#### 3. Penambahan Pengujian Otomatis (Automated Feature Testing)
+- Menambahkan unit/feature test `bulanan_skema_skips_month_if_sessions_already_invoiced_under_per_4_pertemuan` pada `tests/Feature/InvoiceApprovalTest.php`.
+- Seluruh 39 skenario pengujian `InvoiceApprovalTest` (157 assertions) berjalan sukses 100% (*green*).
+
 ## [2.9.50] - 2026-10-08
 
 ### Migrasi Skema Tagihan Default ke Bulanan & Perubahan Judul Dokumen PDF Menjadi "Lampiran Konfirmasi"

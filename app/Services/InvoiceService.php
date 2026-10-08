@@ -250,9 +250,38 @@ class InvoiceService
                 $periodeLabel = "{$monthName} {$year}";
 
                 // Cek apakah invoice program untuk bulan ini sudah ada
+                // Pengecekan 1: cocokkan label periode (untuk invoice bulanan baru)
                 $alreadyInvoiced = $existingInvoices->contains(function ($inv) use ($periodeLabel) {
                     return str_contains(strtolower($inv->periode_label), strtolower($periodeLabel));
                 });
+
+                // Pengecekan 2: jika tidak cocok via label, cek apakah sesi di bulan ini
+                // sudah tercakup oleh invoice lama (misal dengan skema per_4_pertemuan).
+                // Ini menangani kasus migrasi skema sekolah dari per_4_pertemuan ke bulanan.
+                if (!$alreadyInvoiced && $existingInvoices->isNotEmpty()) {
+                    $monthStart2 = Carbon::create($year, $month, 1)->startOfMonth();
+                    $monthEnd2   = $monthStart2->copy()->endOfMonth();
+
+                    // Nomor sesi yang ada di bulan ini (dari semua rombel ekskul ini)
+                    $sessionNosInMonth = EkstrakurikulerSession::whereIn('ekstrakurikuler_rombel_id', $rombels->pluck('id'))
+                        ->whereBetween('tanggal_terjadwal', [$monthStart2->toDateString(), $monthEnd2->toDateString()])
+                        ->where('status', 'selesai')
+                        ->pluck('nomor_pertemuan')
+                        ->unique()
+                        ->values();
+
+                    if ($sessionNosInMonth->isNotEmpty()) {
+                        $alreadyInvoiced = $existingInvoices->contains(function ($inv) use ($sessionNosInMonth) {
+                            // Jika invoice memiliki sesi_dari & sesi_sampai, cek overlap
+                            if ($inv->sesi_dari !== null && $inv->sesi_sampai !== null) {
+                                return $sessionNosInMonth->contains(function ($no) use ($inv) {
+                                    return $no >= $inv->sesi_dari && $no <= $inv->sesi_sampai;
+                                });
+                            }
+                            return false;
+                        });
+                    }
+                }
 
                 if ($alreadyInvoiced) {
                     continue;
