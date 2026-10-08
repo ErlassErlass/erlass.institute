@@ -2,6 +2,28 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.48] - 2026-10-08
+
+### Perbaikan Modal Edit Skema Tagihan (Anti-Blur) & Pembaruan Skema Tagihan Sekolah
+
+#### Perbaikan Modal Popup Edit Skema Tagihan
+- **Solusi Masalah Modal Blur / Terhalang Backdrop**:
+  - Memperbaiki tag penutup `</div>` yang hilang pada elemen `#panel-sekolah-siap-tagih` (`resources/views/invoice/index.blade.php`), mengembalikan keseimbangan hierarki DOM layout secara sempurna.
+  - Memindahkan markup `#modalAturSkema` ke dalam directive `@push('modals') ... @endpush` yang dirender langsung di root `<body>` (sesuai slot `@stack('modals')` pada arsitektur `layouts/app.blade.php`).
+  - Menetapkan `z-index: 1065` pada modal agar selalu tampil tajam di depan backdrop dan tidak terperangkap dalam stacking context `.card` yang memiliki properti `backdrop-filter: blur(10px)`.
+
+#### Pembaruan Skema Tagihan Sekolah
+- **Pembaruan Basis Data Skema**:
+  - **MIS ISTIQLAL** (`[60706389]`): Diubah dari `per_4_pertemuan` → `semester`.
+  - **TK ERLASS** (`[70011335]`): Diubah dari `per_4_pertemuan` → `bulanan`.
+  - **TKS ERLASS BHEXMAN** (`[70011688]`): Diubah dari `per_4_pertemuan` → `bulanan`.
+  - **SD ERLASS BHEXMAN JAKARTA** (`[70036043]`): Diubah dari `per_4_pertemuan` → `bulanan`.
+  - **SD TUNAS METROPOLITAN** (`[20607506]`): Diubah dari `per_4_pertemuan` → `bulanan`.
+  - **SDS Hang Tuah 3** (`[20106272]`): Diubah dari `per_4_pertemuan` → `bulanan`.
+  - **SDI AL IKHLAS** (`[20105810]`): Diubah dari `per_4_pertemuan` → `bulanan`.
+  - **SDS SANG TIMUR** (`[20105755]`): Ditetapkan tetap `per_4_pertemuan`.
+  - **Sawo Manila**: Dikonfirmasi tidak ada di database sehingga tidak diproses.
+
 ## [2.9.47] - 2026-10-08
 
 ### Otomasi Pengisian Lengkap Penerima Akunting pada Lembar Tanda Terima PDF

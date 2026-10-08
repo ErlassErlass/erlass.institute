@@ -111,6 +111,7 @@
                     <h6 class="mb-0 fw-bold text-dark">Sekolah Siap Ditagihkan ({{ $eligibleList->count() }})</h6>
                     <small class="text-muted">1 Invoice per Sekolah (rincian item per rombel) — Diurutkan prioritas keterlambatan pembuatan invoice</small>
                 </div>
+            </div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <select id="filterEligibleSkema" class="form-select form-select-sm bg-light border" style="width: 195px;" onchange="filterEligibleSchools()">
                     <option value="">Semua Skema</option>
@@ -644,9 +645,12 @@
 
 </div>
 
+@endsection
+
+@push('modals')
 {{-- Modal Atur Skema Tagihan Sekolah --}}
 @if(auth()->user()?->hasRole(['admin', 'admin_sistem', 'webmaster']))
-<div class="modal fade" id="modalAturSkema" tabindex="-1" aria-labelledby="modalAturSkemaLabel" aria-hidden="true">
+<div class="modal fade" id="modalAturSkema" tabindex="-1" aria-labelledby="modalAturSkemaLabel" aria-hidden="true" style="z-index: 1065;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <form id="formAturSkema" method="POST" action="">
@@ -694,7 +698,7 @@
     </div>
 </div>
 @endif
-@endsection
+@endpush
 
 @push('scripts')
 <script>
