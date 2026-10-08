@@ -99,7 +99,7 @@
             {{-- Kanan: Judul Invoice & Nomor Resmi --}}
             <td style="width: 46%; vertical-align: top; text-align: right;">
                 <div style="font-size: 13pt; font-weight: bold; color: #0f172a; letter-spacing: 0.5px; line-height: 1;">
-                    FAKTUR TAGIHAN
+                    LAMPIRAN KONFIRMASI
                 </div>
                 <div style="font-size: 6.5pt; color: #64748b; text-transform: uppercase; margin-top: 2px;">
                     Nomor Invoice
@@ -127,7 +127,7 @@
         <tr>
             <td style="padding: 3px 6px; text-align: center;">
                 <div style="font-size: 6.8pt; font-weight: bold; color: #92400e;">
-                    DRAFT FAKTUR TAGIHAN &mdash; DOKUMEN VERIFIKASI KEHADIRAN SISWA DENGAN PIC SEKOLAH
+                    DRAFT LAMPIRAN KONFIRMASI &mdash; DOKUMEN VERIFIKASI KEHADIRAN SISWA DENGAN PIC SEKOLAH
                 </div>
             </td>
         </tr>
@@ -456,7 +456,7 @@
                 Dicetak pada: {{ now()->translatedFormat('d F Y, H:i') }} WIB &middot; No: {{ $invoice->nomor_invoice }}
             </td>
             <td style="width: 40%; text-align: right; vertical-align: middle;">
-                <strong>PT. Erlass Prokreatif Indonesia</strong> &middot; Halaman 1 (Faktur Tagihan)
+                <strong>PT. Erlass Prokreatif Indonesia</strong> &middot; Halaman 1 (Lampiran Konfirmasi)
             </td>
         </tr>
     </table>
@@ -479,7 +479,7 @@
             {{ $att['school_name'] }} &mdash; {{ $att['program_nama'] }} &middot; T.A. {{ $invoice->tahun_ajaran }}
         </div>
         <div style="font-size: 6.2pt; color: #64748b; margin-top: 1px;">
-            Lampiran Faktur Tagihan: <strong>{{ $invoice->nomor_invoice }}</strong> &middot; Rombel: <strong>{{ $att['rombel_nama'] }}</strong>
+            Lampiran Konfirmasi: <strong>{{ $invoice->nomor_invoice }}</strong> &middot; Rombel: <strong>{{ $att['rombel_nama'] }}</strong>
         </div>
     </div>
 
@@ -709,7 +709,7 @@
         <table style="border-top: 1px solid #cbd5e1; padding-top: 2px; margin-top: 2px;">
             <tr>
                 <td style="font-size: 5.8pt; color: #94a3b8; vertical-align: middle;">
-                    Lampiran Faktur Tagihan: {{ $invoice->nomor_invoice }} &middot; Rombel: {{ $att['rombel_nama'] }}
+                    Lampiran Konfirmasi: {{ $invoice->nomor_invoice }} &middot; Rombel: {{ $att['rombel_nama'] }}
                 </td>
                 <td style="font-size: 5.8pt; color: #94a3b8; text-align: right; vertical-align: middle;">
                     Halaman {{ $attIndex + 2 }} (Lampiran Presensi &amp; Laporan)
@@ -748,7 +748,7 @@
     </div>
 
     <div style="font-size: 6.5pt; color: #64748b; text-align: center; margin-top: 6px; font-style: italic;">
-        Dokumen tangkapan layar percakapan WhatsApp di atas adalah bukti persetujuan resmi dan komitmen kehadiran siswa oleh PIC Sekolah untuk penerbitan faktur tagihan ini.
+        Dokumen tangkapan layar percakapan WhatsApp di atas adalah bukti persetujuan resmi dan komitmen kehadiran siswa oleh PIC Sekolah untuk penerbitan lampiran konfirmasi ini.
     </div>
 
     <table style="border-top: 1px solid #cbd5e1; padding-top: 2px; margin-top: 15px;">

@@ -2,6 +2,28 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.50] - 2026-10-08
+
+### Migrasi Skema Tagihan Default ke Bulanan & Perubahan Judul Dokumen PDF Menjadi "Lampiran Konfirmasi"
+
+#### Migrasi Skema Tagihan Default ke Bulanan
+- **Latar Belakang & Solusi Kasus SMP Methodist (`[20106561]`)**:
+  - Pada skema `per_4_pertemuan`, program tidak dapat digenerate jika salah satu sesi ditunda atau berstatus *free trial* (misalnya sesi P1 ditunda di SMP Methodist sehingga sesi P1 s.d. P4 hanya memiliki 3 sesi selesai).
+  - Skema default sekolah kini diubah secara sistemik dari `per_4_pertemuan` ke **`bulanan`** (`Sekolah::SKEMA_BULANAN`).
+  - Seluruh sekolah yang sebelumnya bertipe `per_4_pertemuan` telah dimigrasikan ke `bulanan` (kecuali `[20105755] SDS SANG TIMUR` yang tetap dipertahankan `per_4_pertemuan`, serta sekolah dengan skema `semester`, `tahunan`, dan `csr_reguler_soga`).
+  - **Dampak Langsung**: Antrean siap tagih di halaman `/invoice` meningkat drastis dari 180 menjadi **249 antrean**, dan kedua ekskul di **SMP Methodist** (*Ekskul Coding Scratch* dan *Ekskul Robotik Microbit*) langsung muncul secara otomatis untuk penagihan periode Agustus 2026.
+- **Pembaruan Arsitektur & Fallback**:
+  - Migration database `2026_10_08_050000_set_default_skema_tagihan_to_bulanan`: Mengubah default kolom `skema_tagihan` pada tabel `sekolah` menjadi `bulanan`.
+  - Fallback pada `Sekolah::skemaTagihanLabel()` dan `InvoiceService::getEligibleInvoiceForProgram()` kini mengarah ke `bulanan`.
+  - Model Factory dan Unit/Feature Tests (`InvoiceApprovalTest`) diperbarui dan 38 test lulus 100% *green*.
+
+#### Perubahan Judul PDF: "FAKTUR TAGIHAN" → "LAMPIRAN KONFIRMASI"
+- **Pembaruan Dokumen Cetak / PDF (`resources/views/invoice/pdf.blade.php`)**:
+  - Mengganti judul utama pada header kanan atas dari **`FAKTUR TAGIHAN`** menjadi **`LAMPIRAN KONFIRMASI`** sesuai permintaan resmi.
+  - Memperbarui teks banner notifikasi draft menjadi: *DRAFT LAMPIRAN KONFIRMASI — DOKUMEN VERIFIKASI KEHADIRAN SISWA DENGAN PIC SEKOLAH*.
+  - Menyelaraskan teks catatan kaki dan header halaman lampiran: *Halaman 1 (Lampiran Konfirmasi)* dan *Lampiran Konfirmasi: [Nomor Invoice]*.
+  - Memastikan dokumen yang diserahkan ke pihak sekolah ramah audit administratif sekolah/yayasan tanpa menimbulkan resistensi istilah perpajakan sebelum persetujuan resmi.
+
 ## [2.9.49] - 2026-10-08
 
 ### Penambahan Tab Mandiri "Menunggu Revisi" & 5 Summary Cards Manajemen Invoice

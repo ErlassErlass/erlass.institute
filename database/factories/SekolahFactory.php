@@ -25,7 +25,7 @@ class SekolahFactory extends Factory
             'kotkab'        => $kotkab,
             'kota'          => $kota,
             'provinsi'      => $provinsi,
-            'skema_tagihan' => 'per_4_pertemuan', // default
+            'skema_tagihan' => 'bulanan', // default
         ];
     }
 }

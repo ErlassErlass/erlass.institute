@@ -124,7 +124,7 @@ class InvoiceService
             return null;
         }
 
-        $skema = $ekskul->skema_tagihan ?: ($sekolah->skema_tagihan ?? Sekolah::SKEMA_PER_4_PERTEMUAN);
+        $skema = $ekskul->skema_tagihan ?: ($sekolah->skema_tagihan ?? Sekolah::SKEMA_BULANAN);
 
         // Invoices aktif yang sudah ada untuk program ini
         $existingInvoices = InvoiceApproval::where('sekolah_kodlan', $sekolah->kodlan)

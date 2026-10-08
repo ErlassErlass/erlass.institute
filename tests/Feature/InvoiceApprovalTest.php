@@ -386,10 +386,10 @@ class InvoiceApprovalTest extends TestCase
     }
 
     /** @test */
-    public function default_skema_sekolah_baru_is_per_4_pertemuan(): void
+    public function default_skema_sekolah_baru_is_bulanan(): void
     {
         $sekolah = Sekolah::factory()->create();
-        $this->assertEquals('per_4_pertemuan', $sekolah->skema_tagihan);
+        $this->assertEquals('bulanan', $sekolah->skema_tagihan);
     }
 
     /** @test */

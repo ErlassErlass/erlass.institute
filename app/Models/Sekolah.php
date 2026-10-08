@@ -89,13 +89,13 @@ class Sekolah extends Model
      */
     public function skemaTagihanLabel(): string
     {
-        return match ($this->skema_tagihan ?? 'per_4_pertemuan') {
+        return match ($this->skema_tagihan ?? 'bulanan') {
             'bulanan'          => 'Bulanan (Kalender)',
             'semester'         => 'Per Semester (~16 sesi)',
             'tahunan'          => 'Per Tahun (~32 sesi)',
             'per_4_pertemuan'  => 'Per 4 Pertemuan (Rolling Batch)',
             'csr_reguler_soga' => 'CSR Reguler SOGA (Solidaritas Erlangga)',
-            default            => 'Per 4 Pertemuan (Rolling Batch)',
+            default            => 'Bulanan (Kalender)',
         };
     }
 
