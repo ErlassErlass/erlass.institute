@@ -26,17 +26,21 @@ class InvoiceService
      * - Fallback: jika tidak ada data absensi individual, gunakan rata-rata jumlah siswa
      *   yang hadir dari LaporanMengajar, atau kuota jumlah siswa terdaftar di rombel.
      */
-    public function calculateBillable(int $rombelId, ?int $sesiDari = null, ?int $sesiSampai = null): array
+    public function calculateBillable(int $rombelId, ?int $sesiDari = null, ?int $sesiSampai = null, ?array $sessionNumbers = null): array
     {
         $sessionQuery = EkstrakurikulerSession::withTrashed()
             ->where('ekstrakurikuler_rombel_id', $rombelId)
             ->where('status', 'selesai');
 
-        if ($sesiDari !== null) {
-            $sessionQuery->where('nomor_pertemuan', '>=', $sesiDari);
-        }
-        if ($sesiSampai !== null) {
-            $sessionQuery->where('nomor_pertemuan', '<=', $sesiSampai);
+        if (!empty($sessionNumbers)) {
+            $sessionQuery->whereIn('nomor_pertemuan', $sessionNumbers);
+        } else {
+            if ($sesiDari !== null) {
+                $sessionQuery->where('nomor_pertemuan', '>=', $sesiDari);
+            }
+            if ($sesiSampai !== null) {
+                $sessionQuery->where('nomor_pertemuan', '<=', $sesiSampai);
+            }
         }
 
         $sessionIds   = $sessionQuery->pluck('id')->toArray();
@@ -1054,20 +1058,79 @@ class InvoiceService
                 ?? $sessions->first()?->instruktur?->name 
                 ?? ($rombel->instruktur?->nama_lengkap ?? 'Instruktur Pengajar');
 
+            // Seluruh sesi berstatus selesai pada rombel ini (untuk opsi checklist penambahan sesi)
+            $allCompletedSessions = $rombel->sessions()
+                ->where('nomor_pertemuan', '>', 0)
+                ->where('status', 'selesai')
+                ->with(['laporanMengajar.absensis', 'instruktur'])
+                ->orderBy('nomor_pertemuan')
+                ->get();
+
+            // Cek invoice lain yang sudah disetujui untuk mencegah duplikasi tagihan sesi resmi
+            $otherInvoices = InvoiceApproval::where('status', InvoiceApproval::STATUS_APPROVED)
+                ->where('id', '!=', $invoice->id)
+                ->where(function ($q) use ($rombel) {
+                    $q->where('ekstrakurikuler_rombel_id', $rombel->id)
+                      ->orWhereHas('items', fn($it) => $it->where('ekstrakurikuler_rombel_id', $rombel->id));
+                })
+                ->with('items')
+                ->get();
+
+            $availableSessions = [];
+            foreach ($allCompletedSessions as $cs) {
+                $csLap = $cs->laporanMengajar;
+                $csTgl = $cs->tanggal_pelaksanaan ?? $cs->tanggal_terjadwal;
+                if ($csTgl && is_string($csTgl)) {
+                    $csTgl = Carbon::parse($csTgl);
+                }
+
+                $invoicedIn = null;
+                foreach ($otherInvoices as $oInv) {
+                    $oItem = $oInv->items->firstWhere('ekstrakurikuler_rombel_id', $rombel->id);
+                    $oFrom = $oItem ? $oItem->sesi_dari : $oInv->sesi_dari;
+                    $oTo   = $oItem ? $oItem->sesi_sampai : $oInv->sesi_sampai;
+                    if ($oFrom !== null && $oTo !== null && $cs->nomor_pertemuan >= $oFrom && $cs->nomor_pertemuan <= $oTo) {
+                        $invoicedIn = $oInv->nomor_invoice;
+                        break;
+                    }
+                }
+
+                $isCurrent = ($sesiDari !== null && $sesiSampai !== null)
+                    ? ($cs->nomor_pertemuan >= $sesiDari && $cs->nomor_pertemuan <= $sesiSampai)
+                    : false;
+
+                $availableSessions[] = [
+                    'session_id'      => $cs->id,
+                    'nomor_pertemuan' => $cs->nomor_pertemuan,
+                    'tanggal'         => $csTgl ? $csTgl->translatedFormat('d F Y') : '-',
+                    'tanggal_short'   => $csTgl ? $csTgl->format('d/m') : '-',
+                    'instruktur'      => $cs->instruktur?->nama_lengkap ?? $cs->instruktur?->name ?? 'Instruktur Erlass',
+                    'materi'          => $csLap?->materi ?: ($cs->topik_materi ?: 'Materi pembelajaran modul'),
+                    'total_hadir'     => $csLap ? $csLap->absensis->where('status', 'hadir')->count() : 0,
+                    'is_current'      => $isCurrent,
+                    'invoiced_in'     => $invoicedIn,
+                    'is_selectable'   => is_null($invoicedIn),
+                ];
+            }
+
             $results[] = [
-                'rombel'          => $rombel,
-                'program_nama'    => $ekskul?->kategori_program ?? 'Program Ekskul',
-                'rombel_nama'     => $rombel->nama_rombel,
-                'school_name'     => $sekolah?->namasekolah ?? '-',
-                'pic_name'        => $invoice->pic_nama ?: ($ekskul?->penanggung_jawab ?: '-'),
-                'pic_jabatan'     => $invoice->pic_jabatan,
-                'sales_name'      => $ekskul?->sales?->nama_lengkap ?? $ekskul?->sales?->name ?? '-',
-                'instructor_name' => $firstInstruktur,
-                'academic_year'   => $invoice->tahun_ajaran ?? ($ekskul?->tahun_ajaran ?? '2026/2027'),
-                'sessions'        => $sessions,
-                'students'        => $students,
-                'attendanceMap'   => $attendanceMap,
-                'sessionReports'  => $sessionReports,
+                'rombel'                  => $rombel,
+                'program_nama'            => $ekskul?->kategori_program ?? 'Program Ekskul',
+                'rombel_nama'             => $rombel->nama_rombel,
+                'school_name'             => $sekolah?->namasekolah ?? '-',
+                'pic_name'                => $invoice->pic_nama ?: ($ekskul?->penanggung_jawab ?: '-'),
+                'pic_jabatan'             => $invoice->pic_jabatan,
+                'sales_name'              => $ekskul?->sales?->nama_lengkap ?? $ekskul?->sales?->name ?? '-',
+                'instructor_name'         => $firstInstruktur,
+                'academic_year'           => $invoice->tahun_ajaran ?? ($ekskul?->tahun_ajaran ?? '2026/2027'),
+                'sesi_dari'               => $sesiDari,
+                'sesi_sampai'             => $sesiSampai,
+                'sessions'                => $sessions,
+                'current_session_numbers' => $sessions->pluck('nomor_pertemuan')->toArray(),
+                'students'                => $students,
+                'attendanceMap'           => $attendanceMap,
+                'sessionReports'          => $sessionReports,
+                'availableSessions'       => $availableSessions,
             ];
         }
 

@@ -759,6 +759,113 @@ class InvoiceController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // UPDATE SESI PEMBELAJARAN INVOICE (CHECKLIST SESI SELESAI)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Admin/Operasional dapat memperbarui rentang sesi pertemuan yang ditagihkan
+     * pada invoice berdasarkan checklist sesi yang laporannya telah berstatus selesai.
+     */
+    public function updateSessions(Request $request, InvoiceApproval $invoice)
+    {
+        if ($invoice->isApproved() || $invoice->status === InvoiceApproval::STATUS_APPROVED) {
+            return back()->withErrors(['msg' => 'Invoice yang sudah disetujui resmi oleh Akunting tidak dapat diubah sesinya.']);
+        }
+
+        $validated = $request->validate([
+            'ekstrakurikuler_rombel_id' => 'required|exists:ekstrakurikuler_rombel,id',
+            'sessions'                  => 'required|array|min:1',
+            'sessions.*'                => 'integer|min:1',
+        ], [
+            'sessions.required' => 'Pilih minimal satu sesi pertemuan untuk ditagihkan.',
+            'sessions.min'      => 'Pilih minimal satu sesi pertemuan untuk ditagihkan.',
+        ]);
+
+        $rombelId = (int) $validated['ekstrakurikuler_rombel_id'];
+        $selectedSessions = array_values(array_unique(array_map('intval', $validated['sessions'])));
+        sort($selectedSessions);
+
+        $sesiDari = min($selectedSessions);
+        $sesiSampai = max($selectedSessions);
+        $jumlahSesi = count($selectedSessions);
+
+        // Validasi keterkaitan rombel dengan invoice
+        $hasRombel = ($invoice->ekstrakurikuler_rombel_id == $rombelId) 
+            || $invoice->items()->where('ekstrakurikuler_rombel_id', $rombelId)->exists();
+
+        if (!$hasRombel) {
+            return back()->withErrors(['msg' => 'Rombel yang dipilih tidak terdaftar pada invoice ini.']);
+        }
+
+        // Cek validasi duplikasi sesi pada invoice lain yang sudah resmi disetujui
+        $otherInvoices = InvoiceApproval::where('status', InvoiceApproval::STATUS_APPROVED)
+            ->where('id', '!=', $invoice->id)
+            ->where(function ($q) use ($rombelId) {
+                $q->where('ekstrakurikuler_rombel_id', $rombelId)
+                  ->orWhereHas('items', fn($it) => $it->where('ekstrakurikuler_rombel_id', $rombelId));
+            })
+            ->with('items')
+            ->get();
+
+        foreach ($selectedSessions as $sessNo) {
+            foreach ($otherInvoices as $otherInv) {
+                $otherItem = $otherInv->items->firstWhere('ekstrakurikuler_rombel_id', $rombelId);
+                $oDari = $otherItem ? $otherItem->sesi_dari : $otherInv->sesi_dari;
+                $oSampai = $otherItem ? $otherItem->sesi_sampai : $otherInv->sesi_sampai;
+                if ($oDari !== null && $oSampai !== null && $sessNo >= $oDari && $sessNo <= $oSampai) {
+                    return back()->withErrors([
+                        'msg' => "Sesi {$sessNo} sudah pernah ditagihkan pada Invoice {$otherInv->nomor_invoice}. Harap batalkan centang sesi tersebut.",
+                    ]);
+                }
+            }
+        }
+
+        // Hitung ulang billable untuk rombel ini berdasarkan sesi terpilih
+        $billableData = $this->invoiceService->calculateBillable($rombelId, $sesiDari, $sesiSampai, $selectedSessions);
+        $billableCount = $billableData['billable_count'];
+
+        DB::transaction(function () use ($invoice, $rombelId, $sesiDari, $sesiSampai, $jumlahSesi, $billableCount) {
+            $item = $invoice->items()->where('ekstrakurikuler_rombel_id', $rombelId)->first();
+            if ($item) {
+                $item->update([
+                    'sesi_dari'             => $sesiDari,
+                    'sesi_sampai'           => $sesiSampai,
+                    'jumlah_sesi'           => $jumlahSesi,
+                    'jumlah_siswa_billable' => $billableCount,
+                ]);
+            }
+
+            if ($invoice->items()->count() <= 1) {
+                $invoice->update([
+                    'sesi_dari'             => $sesiDari,
+                    'sesi_sampai'           => $sesiSampai,
+                    'jumlah_sesi'           => $jumlahSesi,
+                    'jumlah_siswa_billable' => $billableCount,
+                    'pdf_generated_at'      => null,
+                    'updated_by'            => Auth::id(),
+                ]);
+            } else {
+                $allItems = $invoice->items()->get();
+                $minSesi = $allItems->min('sesi_dari');
+                $maxSesi = $allItems->max('sesi_sampai');
+                $maxJumlahSesi = $allItems->max('jumlah_sesi');
+                $totalBillable = $allItems->sum('jumlah_siswa_billable');
+
+                $invoice->update([
+                    'sesi_dari'             => $minSesi,
+                    'sesi_sampai'           => $maxSesi,
+                    'jumlah_sesi'           => $maxJumlahSesi,
+                    'jumlah_siswa_billable' => $totalBillable,
+                    'pdf_generated_at'      => null,
+                    'updated_by'            => Auth::id(),
+                ]);
+            }
+        });
+
+        return back()->with('success', "⚡ Sesi pembelajaran berhasil diperbarui (Sesi {$sesiDari} s/d {$sesiSampai}, total {$jumlahSesi} sesi). Siswa billable dihitung ulang secara otomatis ({$billableCount} siswa).");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // UPDATE SKEMA — Admin ubah skema sekolah (dari per_4 ke skema lain)
     // ─────────────────────────────────────────────────────────────────────────
 

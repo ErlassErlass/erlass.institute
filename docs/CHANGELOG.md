@@ -2,6 +2,27 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.57] - 2026-10-12
+
+### Fitur Checklist & Penambahan Sesi Fleksibel pada Invoice Detail
+
+#### 1. Panel Interaktif Pemilihan & Penambahan Sesi Pembelajaran (`invoice/show.blade.php`, `InvoiceController.php`, `InvoiceService.php`)
+- **Penambahan Sesi Selesai Secara Dinamis**:
+  - Menyediakan tombol dan accordion collapsible *"Atur / Tambah Sesi"* pada kartu Data Kehadiran Sesi Pembelajaran tiap rombel di halaman detail invoice (misalnya `https://erlass.institute/invoice/129`).
+  - Menampilkan badge indikator jumlah sesi baru selesai yang siap ditambahkan (misal `+2 Baru`).
+  - Menyajikan tabel checklist interaktif seluruh sesi berstatus `selesai` (dengan laporan mengajar instruktur) untuk rombel tersebut.
+  - Sesi yang saat ini masuk dalam invoice otomatis tercentang (`checked`). Sesi yang telah disetujui resmi pada invoice lain dinonaktifkan (`disabled`) dengan badge proteksi untuk mencegah penagihan ganda (*double-billing*).
+- **Kalkulasi Otomatis Siswa Billable & Sesi Agregat**:
+  - Saat sesi ditambahkan atau disesuaikan (misal dari sesi 4–7 menjadi sesi 4–9), sistem otomatis menghitung ulang jumlah siswa billable berdasarkan aturan presensi Erlass (hadir &ge; 2 pertemuan untuk rombel &ge; 4 sesi atau &ge; 50% pertemuan).
+  - Memperbarui secara otomatis kolom `sesi_dari`, `sesi_sampai`, `jumlah_sesi`, dan `jumlah_siswa_billable` pada tingkat item rombel maupun header invoice.
+  - Me-reset cache PDF (`pdf_generated_at = null`) sehingga unduhan PDF berikutnya selalu menggunakan komposisi sesi terbaru.
+- **Proteksi Status & Keamanan Audit**:
+  - Pembaruan sesi dibatasi hanya untuk invoice yang belum berstatus *Approved* resmi oleh Akunting.
+  - Transaksi database terlindungi dengan validasi kepemilikan rombel dan pencatatan audit trail `updated_by`.
+
+#### 2. Pembersihan Cache Sistem & Peningkatan Kecepatan Server
+- Pembersihan cache usang Composer, NPM, dan view compiler di server root.
+
 ## [2.9.56] - 2026-10-12
 
 ### Resolusi Cerdas Modul Materi Kurikulum, Manajemen Cepat Skema Tagihan, & Optimalisasi Payroll

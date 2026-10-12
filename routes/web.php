@@ -420,6 +420,8 @@ Route::middleware(['auth'])->group(function () {
         // Koreksi billable (admin override hitungan sistem)
         Route::post('/{invoice}/koreksi', [\App\Http\Controllers\InvoiceController::class, 'koreksi'])->name('koreksi');
         Route::post('/{invoice}/koreksi-reset', [\App\Http\Controllers\InvoiceController::class, 'resetKoreksi'])->name('koreksi.reset');
+        // Update sesi pembelajaran invoice (checklist sesi selesai)
+        Route::post('/{invoice}/update-sessions', [\App\Http\Controllers\InvoiceController::class, 'updateSessions'])->name('update.sessions');
         // Download PDF (hanya jika fully approved)
         Route::get('/{invoice}/pdf', [\App\Http\Controllers\InvoiceController::class, 'downloadPdf'])->name('pdf');
     });

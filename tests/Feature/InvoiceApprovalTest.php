@@ -1125,6 +1125,75 @@ class InvoiceApprovalTest extends TestCase
         $this->assertEquals(1, $eligible['sesi_dari']);
         $this->assertEquals(3, $eligible['sesi_sampai']);
     }
+
+    /** @test */
+    public function admin_can_update_invoice_sessions_via_checklist()
+    {
+        $admin = $this->makeAdmin();
+        $sekolah = Sekolah::factory()->create();
+        $ekskul = \App\Models\Ekstrakurikuler::factory()->create([
+            'sekolah_kodlan' => $sekolah->kodlan,
+        ]);
+        $rombel = EkstrakurikulerRombel::factory()->create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nomor_rombel'       => 1,
+        ]);
+
+        $invoice = InvoiceApproval::factory()->create([
+            'sekolah_kodlan'            => $sekolah->kodlan,
+            'ekstrakurikuler_id'        => $ekskul->id,
+            'ekstrakurikuler_rombel_id' => $rombel->id,
+            'status'                    => InvoiceApproval::STATUS_PENDING_OPERASIONAL,
+            'sesi_dari'                 => 1,
+            'sesi_sampai'               => 4,
+            'jumlah_sesi'               => 4,
+            'jumlah_siswa_billable'     => 10,
+        ]);
+
+        $item = \App\Models\InvoiceApprovalItem::create([
+            'invoice_approval_id'       => $invoice->id,
+            'ekstrakurikuler_id'        => $ekskul->id,
+            'ekstrakurikuler_rombel_id' => $rombel->id,
+            'sesi_dari'                 => 1,
+            'sesi_sampai'               => 4,
+            'jumlah_sesi'               => 4,
+            'jumlah_siswa_billable'     => 10,
+        ]);
+
+        // Kirim update sesi 1 s/d 5
+        $response = $this->actingAs($admin)
+            ->post(route('invoice.update.sessions', $invoice), [
+                'ekstrakurikuler_rombel_id' => $rombel->id,
+                'sessions'                  => [1, 2, 3, 4, 5],
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+
+        $invoice->refresh();
+        $item->refresh();
+
+        $this->assertEquals(1, $invoice->sesi_dari);
+        $this->assertEquals(5, $invoice->sesi_sampai);
+        $this->assertEquals(5, $invoice->jumlah_sesi);
+        $this->assertEquals(1, $item->sesi_dari);
+        $this->assertEquals(5, $item->sesi_sampai);
+        $this->assertEquals(5, $item->jumlah_sesi);
+
+        // Jika invoice sudah approved, pembaruan sesi harus ditolak
+        $invoice->update([
+            'status'             => InvoiceApproval::STATUS_APPROVED,
+            'operasional_status' => 'approved',
+            'akunting_status'    => 'approved',
+        ]);
+        $responseApproved = $this->actingAs($admin)
+            ->post(route('invoice.update.sessions', $invoice), [
+                'ekstrakurikuler_rombel_id' => $rombel->id,
+                'sessions'                  => [1, 2, 3, 4],
+            ]);
+
+        $responseApproved->assertSessionHasErrors('msg');
+    }
 }
 
 

@@ -174,15 +174,125 @@
             @if(!empty($attendanceData))
                 @foreach($attendanceData as $att)
                 <div class="card border-0 shadow-sm mb-4" style="border-radius: .75rem;">
-                    <div class="card-header border-0 py-3 px-4 d-flex align-items-center justify-content-between" style="background: #f8fafc;">
+                    <div class="card-header border-0 py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: #f8fafc;">
                         <div>
                             <h6 class="fw-bold text-dark mb-0">
                                 <i class="bi bi-calendar-check me-2 text-primary"></i>Data Kehadiran Sesi Pembelajaran &mdash; {{ $att['rombel_nama'] }}
                             </h6>
                             <small class="text-muted">Realisasi sesi terlaksana sesuai laporan mengajar instruktur</small>
                         </div>
-                        <span class="badge bg-primary-subtle text-primary border">{{ $att['program_nama'] }}</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary-subtle text-primary border">{{ $att['program_nama'] }}</span>
+                            @if(!$invoice->isApproved() && !empty($att['availableSessions']))
+                                @php
+                                    $unbilledCount = collect($att['availableSessions'])->where('is_current', false)->where('is_selectable', true)->count();
+                                @endphp
+                                <button class="btn btn-sm {{ $unbilledCount > 0 ? 'btn-primary' : 'btn-outline-primary' }} fw-semibold shadow-sm" 
+                                        type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#editSessions_{{ $att['rombel']->id }}" 
+                                        aria-expanded="false">
+                                    <i class="bi bi-sliders me-1"></i>Atur / Tambah Sesi
+                                    @if($unbilledCount > 0)
+                                        <span class="badge bg-warning text-dark ms-1">+{{ $unbilledCount }} Baru</span>
+                                    @endif
+                                </button>
+                            @endif
+                        </div>
                     </div>
+
+                    @if(!$invoice->isApproved() && !empty($att['availableSessions']))
+                    <div class="collapse" id="editSessions_{{ $att['rombel']->id }}">
+                        <div class="p-3 p-md-4 border-top border-bottom" style="background: linear-gradient(135deg, #f0f7ff 0%, #f8fafc 100%);">
+                            <form action="{{ route('invoice.update.sessions', $invoice) }}" method="POST" id="formSessions_{{ $att['rombel']->id }}">
+                                @csrf
+                                <input type="hidden" name="ekstrakurikuler_rombel_id" value="{{ $att['rombel']->id }}">
+                                
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                    <div>
+                                        <div class="fw-bold text-primary fs-6">
+                                            <i class="bi bi-check2-square me-1"></i>Pilih &amp; Tambahkan Sesi yang Ditagihkan
+                                        </div>
+                                        <div class="text-muted small">
+                                            Centang sesi berstatus <strong>selesai</strong> untuk dimasukkan ke dalam invoice ini. Jumlah siswa billable akan otomatis dikalkulasi ulang berdasarkan presensi sesi yang dipilih.
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-white text-dark border px-3 py-2" id="sessCountBadge_{{ $att['rombel']->id }}">
+                                            <i class="bi bi-check-circle-fill text-primary me-1"></i>Terpilih: <strong>{{ count($att['current_session_numbers'] ?? []) }}</strong> Sesi
+                                        </span>
+                                        <button type="submit" class="btn btn-sm btn-primary px-3 py-1.5 shadow-sm fw-bold">
+                                            <i class="bi bi-save me-1"></i>Simpan Perubahan Sesi
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive bg-white rounded border shadow-sm">
+                                    <table class="table table-sm table-hover align-middle mb-0" style="font-size: .82rem;">
+                                        <thead class="table-light">
+                                            <tr class="text-muted text-uppercase" style="font-size: .73rem; letter-spacing: .5px;">
+                                                <th class="text-center" style="width: 48px;">Pilih</th>
+                                                <th style="width: 95px;">Sesi</th>
+                                                <th style="width: 140px;">Tanggal Realisasi</th>
+                                                <th>Instruktur &amp; Pokok Bahasan</th>
+                                                <th class="text-center" style="width: 120px;">Siswa Hadir</th>
+                                                <th class="text-center" style="width: 170px;">Status Tagihan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($att['availableSessions'] as $avail)
+                                            <tr class="{{ $avail['is_current'] ? 'table-primary bg-opacity-10' : '' }} {{ !$avail['is_selectable'] ? 'opacity-50 bg-light' : '' }}">
+                                                <td class="text-center">
+                                                    <input class="form-check-input session-chk-{{ $att['rombel']->id }}" 
+                                                           type="checkbox" 
+                                                           name="sessions[]" 
+                                                           value="{{ $avail['nomor_pertemuan'] }}" 
+                                                           id="chk_sess_{{ $att['rombel']->id }}_{{ $avail['nomor_pertemuan'] }}"
+                                                           {{ $avail['is_current'] ? 'checked' : '' }}
+                                                           {{ !$avail['is_selectable'] ? 'disabled' : '' }}
+                                                           onchange="updateSessCount('{{ $att['rombel']->id }}')">
+                                                </td>
+                                                <td>
+                                                    <label class="form-check-label fw-bold font-monospace mb-0" style="cursor: pointer;" for="chk_sess_{{ $att['rombel']->id }}_{{ $avail['nomor_pertemuan'] }}">
+                                                        Sesi {{ $avail['nomor_pertemuan'] }}
+                                                    </label>
+                                                </td>
+                                                <td class="text-nowrap">{{ $avail['tanggal'] }}</td>
+                                                <td>
+                                                    <div class="fw-semibold text-dark">{{ $avail['instruktur'] }}</div>
+                                                    <div class="text-muted text-truncate" style="font-size: .75rem; max-width: 320px;" title="{{ $avail['materi'] }}">
+                                                        {{ $avail['materi'] }}
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-success-subtle text-success fw-semibold">
+                                                        <i class="bi bi-people me-1"></i>{{ $avail['total_hadir'] }} Hadir
+                                                    </span>
+                                                </td>
+                                                <td class="text-center">
+                                                    @if($avail['is_current'])
+                                                        <span class="badge bg-primary text-white">
+                                                            <i class="bi bi-check2 me-1"></i>Dalam Invoice Ini
+                                                        </span>
+                                                    @elseif(!$avail['is_selectable'])
+                                                        <span class="badge bg-secondary-subtle text-muted border" title="Sudah ditagihkan pada invoice {{ $avail['invoiced_in'] }}">
+                                                            <i class="bi bi-lock me-1"></i>Di Inv #{{ $avail['invoiced_in'] }}
+                                                        </span>
+                                                    @else
+                                                        <span class="badge bg-success-subtle text-success border">
+                                                            <i class="bi bi-plus-circle me-1"></i>Tersedia (Selesai)
+                                                        </span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    @endif
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
@@ -235,7 +345,7 @@
                         {{-- Collapse: Rincian Kehadiran Siswa per Sesi --}}
                         <div class="p-3 bg-light border-top d-flex align-items-center justify-content-between">
                             <span class="small text-muted">
-                                <i class="bi bi-people me-1"></i>Presensi individual tiap siswa (Aturan Erlass: Siswa billable minimal hadir &ge; 2 dari 4 sesi)
+                                <i class="bi bi-people me-1"></i>Presensi individual tiap siswa (Aturan Erlass: Siswa billable minimal hadir &ge; {{ ($att['sessions']->count() >= 4) ? 2 : max(1, (int) ceil($att['sessions']->count() / 2)) }} dari {{ $att['sessions']->count() }} sesi)
                             </span>
                             <button class="btn btn-sm btn-outline-primary py-1 px-2.5" type="button" data-bs-toggle="collapse" data-bs-target="#studentAbsensiDetail_{{ $att['rombel']->id }}">
                                 <i class="bi bi-list-check me-1"></i>Lihat Rincian Absensi Siswa ({{ $att['students']->count() }} Siswa)
@@ -976,6 +1086,14 @@ function previewChatScreenshot(event) {
         reader.readAsDataURL(file);
     } else {
         previewContainer.style.display = 'none';
+    }
+}
+
+function updateSessCount(rombelId) {
+    const checked = document.querySelectorAll('.session-chk-' + rombelId + ':checked').length;
+    const badge = document.getElementById('sessCountBadge_' + rombelId);
+    if (badge) {
+        badge.innerHTML = '<i class="bi bi-check-circle-fill text-primary me-1"></i>Terpilih: <strong>' + checked + '</strong> Sesi';
     }
 }
 </script>
