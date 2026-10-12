@@ -2,6 +2,19 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.58] - 2026-10-12
+
+### Penyelarasan Dropdown Pilihan Kompetensi pada Formulir Edit User
+
+#### 1. Standardisasi Input Dropdown Kompetensi (`users/edit.blade.php`, `admin/users/edit.blade.php`, `instructor-tabs.blade.php`, `UpdateUserRequest.php`)
+- **Penyelarasan dengan Formulir Pendaftaran / Tambah User**:
+  - Mengubah input teks bebas pada bagian *Kompetensi Utama (Kompetensi 1)* dan *Kompetensi Sekunder (Kompetensi 2)* menjadi elemen dropdown `<select>` standar, persis seperti formulir registrasi dan penambahan user (`users/create.blade.php`).
+  - Pilihan kompetensi terstandar: `Coding`, `Robotik`, `Desain`, `IoT`, `Data Science`, dan `Bahasa Inggris`.
+  - Mengubah juga kolom *Pendidikan Terakhir* dan *Agama* pada formulir edit user menjadi dropdown terstandar untuk konsistensi data.
+- **Dukungan Nilai Existing & Validasi Fleksibel**:
+  - Memastikan nilai yang telah tersimpan sebelumnya (termasuk nilai fallback sistem `'General'` atau variasi `'SMA'`/`'SMK'`) tetap terpilih secara anggun tanpa menimbulkan kegagalan validasi form.
+  - Menambahkan pengujian otomatis unit & feature test [`test_admin_can_view_edit_and_update_user_competency_dropdowns()`](file:///var/www/webapperlass/tests/Feature/UserManagementTest.php#L63-L105) pada `UserManagementTest`.
+
 ## [2.9.57] - 2026-10-12
 
 ### Fitur Checklist & Penambahan Sesi Fleksibel pada Invoice Detail

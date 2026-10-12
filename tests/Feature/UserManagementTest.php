@@ -59,4 +59,47 @@ class UserManagementTest extends TestCase
         $responseShow = $this->actingAs($instructor1)->get(route('users.show', $instructor2));
         $responseShow->assertForbidden();
     }
+
+    public function test_admin_can_view_edit_and_update_user_competency_dropdowns(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin_sistem',
+        ]);
+
+        $instructor = User::factory()->create([
+            'role'         => 'instruktur',
+            'kompetensi_1' => 'General',
+            'kompetensi_2' => null,
+            'pend_terakhir'=> 'SMA',
+        ]);
+
+        // Akses halaman edit
+        $responseEdit = $this->actingAs($admin)->get(route('users.edit', $instructor));
+        $responseEdit->assertOk();
+        $responseEdit->assertSee('name="kompetensi_1"', false);
+        $responseEdit->assertSee('name="kompetensi_2"', false);
+        $responseEdit->assertSee('value="Coding"', false);
+        $responseEdit->assertSee('value="Robotik"', false);
+        $responseEdit->assertSee('value="Desain"', false);
+        $responseEdit->assertSee('value="IoT"', false);
+        $responseEdit->assertSee('value="Data Science"', false);
+        $responseEdit->assertSee('value="Bahasa Inggris"', false);
+
+        // Update kompetensi
+        $responseUpdate = $this->actingAs($admin)->put(route('users.update', $instructor), [
+            'nama_lengkap'  => $instructor->nama_lengkap,
+            'email'         => $instructor->email,
+            'tanggal_lahir' => $instructor->tanggal_lahir ? $instructor->tanggal_lahir->format('Y-m-d') : '1995-05-15',
+            'status'        => 'Aktif',
+            'role'          => 'instruktur',
+            'pend_terakhir' => 'SMA/SMK Sederajat',
+            'kompetensi_1'  => 'Coding',
+            'kompetensi_2'  => 'Bahasa Inggris',
+        ]);
+
+        $responseUpdate->assertRedirect();
+        $instructor->refresh();
+        $this->assertEquals('Coding', $instructor->kompetensi_1);
+        $this->assertEquals('Bahasa Inggris', $instructor->kompetensi_2);
+    }
 }

@@ -121,14 +121,25 @@
                             </div>
 
                              <!-- Kompetensi -->
+                             @php
+                                 $kompetensiList = ['Coding', 'Robotik', 'Desain', 'IoT', 'Data Science', 'Bahasa Inggris'];
+                                 $adminValKomp1 = old('kompetensi_1', $user->kompetensi_1);
+                                 $adminValKomp2 = old('kompetensi_2', $user->kompetensi_2);
+                             @endphp
                              <div class="col-md-6">
                                 <label for="kompetensi_1" class="form-label fw-semibold text-secondary small">Kompetensi Utama <span class="text-danger">*</span></label>
-                                <input type="text" 
-                                       class="form-control bg-light @error('kompetensi_1') is-invalid @enderror" 
-                                       id="kompetensi_1" 
-                                       name="kompetensi_1" 
-                                       value="{{ old('kompetensi_1', $user->kompetensi_1) }}" 
-                                       required>
+                                <select class="form-select bg-light @error('kompetensi_1') is-invalid @enderror" 
+                                        id="kompetensi_1" 
+                                        name="kompetensi_1" 
+                                        required>
+                                    <option value="">-- Pilih Kompetensi 1 --</option>
+                                    @if($adminValKomp1 && !in_array($adminValKomp1, $kompetensiList) && $adminValKomp1 !== 'General')
+                                        <option value="{{ $adminValKomp1 }}" selected>{{ $adminValKomp1 }}</option>
+                                    @endif
+                                    @foreach($kompetensiList as $comp)
+                                        <option value="{{ $comp }}" {{ $adminValKomp1 == $comp ? 'selected' : '' }}>{{ $comp }}</option>
+                                    @endforeach
+                                </select>
                                 @error('kompetensi_1')
                                     <div class="small text-danger mt-1">{{ $message }}</div>
                                 @enderror
@@ -136,11 +147,17 @@
 
                             <div class="col-md-6 offset-md-6">
                                 <label for="kompetensi_2" class="form-label fw-semibold text-secondary small">Kompetensi Tambahan (Opsional)</label>
-                                <input type="text" 
-                                       class="form-control bg-light @error('kompetensi_2') is-invalid @enderror" 
-                                       id="kompetensi_2" 
-                                       name="kompetensi_2" 
-                                       value="{{ old('kompetensi_2', $user->kompetensi_2) }}">
+                                <select class="form-select bg-light @error('kompetensi_2') is-invalid @enderror" 
+                                        id="kompetensi_2" 
+                                        name="kompetensi_2">
+                                    <option value="">-- Pilih Kompetensi 2 --</option>
+                                    @if($adminValKomp2 && !in_array($adminValKomp2, $kompetensiList) && $adminValKomp2 !== 'General')
+                                        <option value="{{ $adminValKomp2 }}" selected>{{ $adminValKomp2 }}</option>
+                                    @endif
+                                    @foreach($kompetensiList as $comp)
+                                        <option value="{{ $comp }}" {{ $adminValKomp2 == $comp ? 'selected' : '' }}>{{ $comp }}</option>
+                                    @endforeach
+                                </select>
                                 @error('kompetensi_2')
                                     <div class="small text-danger mt-1">{{ $message }}</div>
                                 @enderror

@@ -32,9 +32,9 @@ class UpdateUserRequest extends FormRequest
             'no_telephone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
             'status' => ['required', 'in:Aktif,Nonaktif'],
             'agama' => ['nullable', 'string', 'in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu,Lainnya'],
-            'pend_terakhir' => ['nullable', 'string', 'in:SMA/SMK Sederajat,D3,D4/S1,S2,S3'],
-            'kompetensi_1' => ['nullable', 'string', 'in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris'],
-            'kompetensi_2' => ['nullable', 'string', 'in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris'],
+            'pend_terakhir' => ['nullable', 'string', 'in:SMA/SMK Sederajat,D3,D4/S1,S2,S3,SMA,SMK'],
+            'kompetensi_1' => ['nullable', 'string', 'in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris,General'],
+            'kompetensi_2' => ['nullable', 'string', 'in:Coding,Robotik,Desain,IoT,Data Science,Bahasa Inggris,General'],
             'role' => ['required', 'in:webmaster,admin_sistem,admin,instruktur'],
 
             // Field untuk sistem verifikasi instruktur

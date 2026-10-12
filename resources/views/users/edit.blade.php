@@ -230,11 +230,12 @@
                                         <!-- Agama -->
                                         <div class="mb-3">
                                             <label for="agama" class="form-label">Agama</label>
-                                            <input type="text" 
-                                                   class="form-control @error('agama') is-invalid @enderror" 
-                                                   id="agama" 
-                                                   name="agama" 
-                                                   value="{{ old('agama', $user->agama) }}">
+                                            <select class="form-select @error('agama') is-invalid @enderror" id="agama" name="agama">
+                                                <option value="">-- Pilih Agama --</option>
+                                                @foreach(['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu', 'Lainnya'] as $rel)
+                                                    <option value="{{ $rel }}" {{ old('agama', $user->agama) == $rel ? 'selected' : '' }}>{{ $rel }}</option>
+                                                @endforeach
+                                            </select>
                                             @error('agama')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -245,12 +246,16 @@
                                         <!-- Pendidikan Terakhir -->
                                         <div class="mb-3">
                                             <label for="pend_terakhir" class="form-label">Pendidikan Terakhir</label>
-                                            <input type="text" 
-                                                   class="form-control @error('pend_terakhir') is-invalid @enderror" 
-                                                   id="pend_terakhir" 
-                                                   name="pend_terakhir" 
-                                                   value="{{ old('pend_terakhir', $user->pend_terakhir) }}"
-                                                   placeholder="S1, S2, dll">
+                                            @php
+                                                $curPend = old('pend_terakhir', $user->pend_terakhir);
+                                                $pendOptions = ['SMA/SMK Sederajat', 'D3', 'D4/S1', 'S2', 'S3'];
+                                            @endphp
+                                            <select class="form-select @error('pend_terakhir') is-invalid @enderror" id="pend_terakhir" name="pend_terakhir">
+                                                <option value="">-- Pilih Pendidikan --</option>
+                                                @foreach($pendOptions as $edu)
+                                                    <option value="{{ $edu }}" {{ ($curPend == $edu || ($curPend == 'SMA' && $edu == 'SMA/SMK Sederajat') || ($curPend == 'SMK' && $edu == 'SMA/SMK Sederajat')) ? 'selected' : '' }}>{{ $edu }}</option>
+                                                @endforeach
+                                            </select>
                                             @error('pend_terakhir')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -259,15 +264,24 @@
                                 </div>
 
                                 <!-- Kompetensi -->
+                                @php
+                                    $kompetensiList = ['Coding', 'Robotik', 'Desain', 'IoT', 'Data Science', 'Bahasa Inggris'];
+                                    $valKomp1 = old('kompetensi_1', $user->kompetensi_1);
+                                    $valKomp2 = old('kompetensi_2', $user->kompetensi_2);
+                                @endphp
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="kompetensi_1" class="form-label">Kompetensi 1</label>
-                                            <input type="text" 
-                                                   class="form-control @error('kompetensi_1') is-invalid @enderror" 
-                                                   id="kompetensi_1" 
-                                                   name="kompetensi_1" 
-                                                   value="{{ old('kompetensi_1', $user->kompetensi_1) }}">
+                                            <label for="kompetensi_1" class="form-label small fw-semibold text-secondary">Kompetensi Utama (Kompetensi 1)</label>
+                                            <select class="form-select @error('kompetensi_1') is-invalid @enderror" id="kompetensi_1" name="kompetensi_1">
+                                                <option value="">-- Pilih Kompetensi 1 --</option>
+                                                @if($valKomp1 && !in_array($valKomp1, $kompetensiList) && $valKomp1 !== 'General')
+                                                    <option value="{{ $valKomp1 }}" selected>{{ $valKomp1 }}</option>
+                                                @endif
+                                                @foreach($kompetensiList as $comp)
+                                                    <option value="{{ $comp }}" {{ $valKomp1 == $comp ? 'selected' : '' }}>{{ $comp }}</option>
+                                                @endforeach
+                                            </select>
                                             @error('kompetensi_1')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -276,12 +290,16 @@
                                     
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="kompetensi_2" class="form-label">Kompetensi 2</label>
-                                            <input type="text" 
-                                                   class="form-control @error('kompetensi_2') is-invalid @enderror" 
-                                                   id="kompetensi_2" 
-                                                   name="kompetensi_2" 
-                                                   value="{{ old('kompetensi_2', $user->kompetensi_2) }}">
+                                            <label for="kompetensi_2" class="form-label small fw-semibold text-secondary">Kompetensi Sekunder (Kompetensi 2)</label>
+                                            <select class="form-select @error('kompetensi_2') is-invalid @enderror" id="kompetensi_2" name="kompetensi_2">
+                                                <option value="">-- Pilih Kompetensi 2 --</option>
+                                                @if($valKomp2 && !in_array($valKomp2, $kompetensiList) && $valKomp2 !== 'General')
+                                                    <option value="{{ $valKomp2 }}" selected>{{ $valKomp2 }}</option>
+                                                @endif
+                                                @foreach($kompetensiList as $comp)
+                                                    <option value="{{ $comp }}" {{ $valKomp2 == $comp ? 'selected' : '' }}>{{ $comp }}</option>
+                                                @endforeach
+                                            </select>
                                             @error('kompetensi_2')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
