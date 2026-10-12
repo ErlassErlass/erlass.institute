@@ -387,8 +387,17 @@ class PayrollCalculatorService
             $itemsCount = 0;
 
             foreach ($groupedDuties as $userId => $duties) {
-                $utamaDuties = $duties->where('role', 'utama');
-                $asistenDuties = $duties->where('role', 'asisten');
+                $sortSessionFn = function ($duty) {
+                    $s = $duty['session'];
+                    $date = $s->tanggal_pelaksanaan
+                        ? \Carbon\Carbon::parse($s->tanggal_pelaksanaan)->toDateString()
+                        : ($s->tanggal_terjadwal ? \Carbon\Carbon::parse($s->tanggal_terjadwal)->toDateString() : '9999-12-31');
+                    $time = $s->jam_mulai_terjadwal ? \Carbon\Carbon::parse($s->jam_mulai_terjadwal)->toTimeString() : '00:00:00';
+                    return $date . ' ' . $time . ' ' . str_pad($s->id, 8, '0', STR_PAD_LEFT);
+                };
+
+                $utamaDuties = $duties->where('role', 'utama')->sortBy($sortSessionFn);
+                $asistenDuties = $duties->where('role', 'asisten')->sortBy($sortSessionFn);
 
                 $totalUtamaSessions = $utamaDuties->count();
                 $totalAsistenSessions = $asistenDuties->count();
@@ -646,7 +655,17 @@ class PayrollCalculatorService
                 $totalAsistenSessions = 0;
                 $transportPaidKeys = [];
 
-                foreach ($item->payrollItemSessions as $itemSession) {
+                $sortedItemSessions = $item->payrollItemSessions->sortBy(function ($itemSession) {
+                    $s = $itemSession->session;
+                    if (!$s) return '9999-12-31';
+                    $date = $s->tanggal_pelaksanaan
+                        ? \Carbon\Carbon::parse($s->tanggal_pelaksanaan)->toDateString()
+                        : ($s->tanggal_terjadwal ? \Carbon\Carbon::parse($s->tanggal_terjadwal)->toDateString() : '9999-12-31');
+                    $time = $s->jam_mulai_terjadwal ? \Carbon\Carbon::parse($s->jam_mulai_terjadwal)->toTimeString() : '00:00:00';
+                    return $date . ' ' . $time . ' ' . str_pad($s->id, 8, '0', STR_PAD_LEFT);
+                });
+
+                foreach ($sortedItemSessions as $itemSession) {
                     $session = $itemSession->session;
                     if (!$session) {
                         continue;

@@ -1213,18 +1213,16 @@ function exportScheduleToImage() {
     <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10px; border: 1px solid #cbd5e1;">
         <thead>
             <tr style="background-color: #f1f5f9; color: #1e293b; font-weight: bold; border: 1px solid #cbd5e1; text-transform: uppercase;">
-                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 30px;">No.</th>
-                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 90px;">Tanggal Mengajar</th>
-                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Sekolah</th>
-                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 50px;">Rombel</th>
-                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 70px;">Pertemuan</th>
                 <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Nama Instruktur</th>
                 <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Asst. Instruktur</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Nama Sekolah</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 50px;">Rombel</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 70px;">Pertemuan</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 60px;">Jam Mulai</th>
+                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Ekskul</th>
                 <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 60px;">Jml Siswa</th>
                 <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Kecamatan</th>
-                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Ekskul</th>
                 <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">Sales</th>
-                <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 60px;">Jam Mulai</th>
                 <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: left;">PIC Ekskul</th>
                 <th style="padding: 10px 6px; border: 1px solid #cbd5e1; text-align: center; width: 80px;">Status Jadwal</th>
             </tr>
@@ -1232,28 +1230,21 @@ function exportScheduleToImage() {
         <tbody>
             @foreach($sessions as $index => $session)
             <tr style="background-color: {{ $index % 2 === 0 ? '#ffffff' : '#f8fafc' }}; color: #334155; border: 1px solid #cbd5e1;">
-                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center;">{{ $index + 1 }}</td>
-                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0f172a;">
-                    @php
-                        $tgl = $session->laporanMengajar?->jadwal_mengajar ?? ($session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal);
-                    @endphp
-                    {{ $tgl ? \Carbon\Carbon::parse($tgl)->format('d/m/Y') : '-' }}
-                </td>
-                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->sekolah->namasekolah ?? '-' }}</td>
-                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center;">{{ $session->rombel?->nomor_rombel ?? '-' }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left; font-weight: bold; color: #0f172a;">{{ $session->instruktur->nama_lengkap ?? '-' }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->asisten->nama_lengkap ?? '-' }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->sekolah->namasekolah ?? ($session->rombel->ekstrakurikuler->sekolah->namasekolah ?? '-') }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center;">{{ $session->rombel?->nomor_rombel ? 'Rombel ' . $session->rombel->nomor_rombel : ($session->rombel?->nama_rombel ?? '-') }}</td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #1e40af;">
                     Ke-{{ $session->nomor_pertemuan }}
                 </td>
-                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left; font-weight: bold; color: #0f172a;">{{ $session->instruktur->nama_lengkap ?? '-' }}</td>
-                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->asisten->nama_lengkap ?? '-' }}</td>
-                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center;">{{ $session->rombel?->jumlah_siswa ?? '0' }}</td>
-                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->sekolah->kec ?? '-' }}</td>
-                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left; font-weight: bold; color: #0f172a;">{{ $session->ekstrakurikuler->kategori_program ?? '-' }}</td>
-                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->sales->nama_lengkap ?? ($session->ekstrakurikuler->sales->name ?? '-') }}</td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0f172a;">
                     {{ $session->jam_mulai_terjadwal ? \Carbon\Carbon::parse($session->jam_mulai_terjadwal)->format('H:i') : ($session->rombel?->jam_mulai ? \Carbon\Carbon::parse($session->rombel->jam_mulai)->format('H:i') : '-') }}
                 </td>
-                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->penanggung_jawab ?? '-' }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left; font-weight: bold; color: #0f172a;">{{ $session->ekstrakurikuler->kategori_program ?? ($session->rombel->ekstrakurikuler->kategori_program ?? '-') }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center;">{{ $session->rombel?->jumlah_siswa ?? '0' }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->sekolah->kec ?? ($session->rombel->ekstrakurikuler->sekolah->kec ?? '-') }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->sales->nama_lengkap ?? ($session->ekstrakurikuler->sales->name ?? ($session->rombel->ekstrakurikuler->sales->nama_lengkap ?? '-')) }}</td>
+                <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: left;">{{ $session->ekstrakurikuler->penanggung_jawab ?? ($session->rombel->ekstrakurikuler->penanggung_jawab ?? '-') }}</td>
                 <td style="padding: 8px 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold;">
                     @php
                         $statusColors = match($session->status) {

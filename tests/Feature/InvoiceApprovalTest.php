@@ -1019,6 +1019,112 @@ class InvoiceApprovalTest extends TestCase
         $response->assertSee('data-kodlan="SKLPOP1"', false);
         $response->assertSee('quickEditSkema', false);
     }
+
+    /** @test */
+    public function cancelled_or_completed_program_with_finished_reports_is_eligible_for_invoice(): void
+    {
+        // Kasus SMP SWASTA LENTERA HARAPAN PH:
+        // Program berstatus 'dibatalkan', rombel soft-deleted,
+        // namun memiliki sesi selesai (Agustus 2026: 2 sesi, September 2026: 1 sesi)
+        $sekolah = Sekolah::factory()->create([
+            'kodlan'        => '20622279',
+            'namasekolah'   => 'SMP SWASTA LENTERA HARAPAN PH',
+            'skema_tagihan' => 'bulanan',
+        ]);
+
+        $ekskul = \App\Models\Ekstrakurikuler::factory()->create([
+            'sekolah_kodlan'   => $sekolah->kodlan,
+            'kategori_program' => 'Ekskul Coding Scratch',
+            'status'           => 'aktif',
+        ]);
+
+        $rombel = EkstrakurikulerRombel::factory()->create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nomor_rombel'       => 1,
+            'nama_rombel'        => 'Rombel 1',
+        ]);
+
+        // Sesi Agustus 2026: 2 sesi selesai
+        $rombel->sessions()->where('nomor_pertemuan', 1)->update([
+            'tanggal_terjadwal' => '2026-08-20',
+            'status'            => 'selesai',
+        ]);
+        $rombel->sessions()->where('nomor_pertemuan', 2)->update([
+            'tanggal_terjadwal' => '2026-08-27',
+            'status'            => 'selesai',
+        ]);
+
+        // Sesi September 2026: 1 sesi selesai
+        $rombel->sessions()->where('nomor_pertemuan', 3)->update([
+            'tanggal_terjadwal' => '2026-09-10',
+            'status'            => 'selesai',
+        ]);
+
+        // Sesi lainnya dibatalkan
+        $rombel->sessions()->where('nomor_pertemuan', '>', 3)->update([
+            'status' => 'dibatalkan',
+        ]);
+
+        // Rombel di-soft-delete & Program dibatalkan (seperti di database riil)
+        $rombel->delete();
+        $ekskul->update(['status' => 'dibatalkan']);
+        $this->assertNotNull($rombel->fresh()->deleted_at);
+
+        $service = app(\App\Services\InvoiceService::class);
+
+        // Evaluasi per tanggal 2026-10-01 (Agustus dan September sudah lewat)
+        $eligibleAugust = $service->getEligibleInvoiceForProgram($ekskul, \Carbon\Carbon::parse('2026-10-01'));
+        $this->assertNotNull($eligibleAugust, 'Program yang dibatalkan tapi memiliki laporan mengajar selesai harus tetap eligible');
+        $this->assertEquals('Agustus 2026', $eligibleAugust['periode_label']);
+        $this->assertEquals(2, $eligibleAugust['items'][0]['jumlah_sesi']);
+        $this->assertEquals(1, $eligibleAugust['sesi_dari']);
+        $this->assertEquals(2, $eligibleAugust['sesi_sampai']);
+
+        // Generate invoice untuk Agustus
+        $invoiceAugust = $service->createInvoiceForSekolah($eligibleAugust);
+        $this->assertNotNull($invoiceAugust);
+
+        // Setelah Agustus di-generate, evaluasi berikutnya harus menghasilkan September 2026
+        $eligibleSeptember = $service->getEligibleInvoiceForProgram($ekskul, \Carbon\Carbon::parse('2026-10-01'));
+        $this->assertNotNull($eligibleSeptember);
+        $this->assertEquals('September 2026', $eligibleSeptember['periode_label']);
+        $this->assertEquals(1, $eligibleSeptember['items'][0]['jumlah_sesi']);
+        $this->assertEquals(3, $eligibleSeptember['sesi_dari']);
+        $this->assertEquals(3, $eligibleSeptember['sesi_sampai']);
+    }
+
+    /** @test */
+    public function ended_program_with_per_4_pertemuan_and_less_than_4_sessions_is_eligible(): void
+    {
+        $sekolah = Sekolah::factory()->create([
+            'skema_tagihan' => 'per_4_pertemuan',
+        ]);
+
+        $ekskul = \App\Models\Ekstrakurikuler::factory()->create([
+            'sekolah_kodlan'   => $sekolah->kodlan,
+            'kategori_program' => 'Ekskul Robotik Jimu',
+            'status'           => 'aktif',
+        ]);
+
+        $rombel = EkstrakurikulerRombel::factory()->create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nomor_rombel'       => 1,
+        ]);
+
+        // Hanya 3 sesi selesai sebelum dibatalkan
+        $rombel->sessions()->whereIn('nomor_pertemuan', [1, 2, 3])->update(['status' => 'selesai']);
+        $rombel->sessions()->where('nomor_pertemuan', '>', 3)->update(['status' => 'dibatalkan']);
+        $rombel->delete();
+        $ekskul->update(['status' => 'dibatalkan']);
+
+        $service = app(\App\Services\InvoiceService::class);
+        $eligible = $service->getEligibleInvoiceForProgram($ekskul);
+
+        $this->assertNotNull($eligible, 'Program yang sudah dibatalkan/berakhir dengan sisa < 4 sesi harus tetap bisa ditagihkan');
+        $this->assertEquals(3, $eligible['items'][0]['jumlah_sesi']);
+        $this->assertEquals(1, $eligible['sesi_dari']);
+        $this->assertEquals(3, $eligible['sesi_sampai']);
+    }
 }
 
 

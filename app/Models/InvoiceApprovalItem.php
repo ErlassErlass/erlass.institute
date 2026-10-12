@@ -50,7 +50,7 @@ class InvoiceApprovalItem extends Model
 
     public function rombel(): BelongsTo
     {
-        return $this->belongsTo(EkstrakurikulerRombel::class, 'ekstrakurikuler_rombel_id');
+        return $this->belongsTo(EkstrakurikulerRombel::class, 'ekstrakurikuler_rombel_id')->withTrashed();
     }
 
     public function koreksiUser(): BelongsTo

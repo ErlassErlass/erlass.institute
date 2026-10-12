@@ -2,6 +2,107 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.56] - 2026-10-12
+
+### Resolusi Cerdas Modul Materi Kurikulum, Manajemen Cepat Skema Tagihan, & Optimalisasi Payroll
+
+#### 1. Resolusi Cerdas Alias Kategori Materi Pembelajaran (`RefMateri.php`, `RefMateriSeeder.php`, `LaporanMengajarController.php`)
+- **Penanganan Variasi Penamaan Kategori Program (Ekskul vs Pelatihan)**:
+  - Mengimplementasikan `RefMateri::resolveCategory()` dan kamus alias `$categoryMap` untuk menstandarkan seluruh variasi penamaan program (seperti `Pelatihan Robotik Jimu`, `Ekskul Robotika micro:bit`, `Micro:bit Learning Kit`, `Erboblox`, `Pictoblox AI`, dll.) ke kategori kurikulum dasar.
+  - Memastikan form pengisian Laporan Mengajar (`LaporanMengajarController`) selalu memuat daftar materi kurikulum yang lengkap dan terurut secara tepat, dengan opsi `'Lain - Lain'` selalu ditempatkan di posisi paling akhir.
+  - Pembaruan `RefMateriSeeder` menyelaraskan seluruh variasi alias kategori ke database referensi materi.
+
+#### 2. Modal & Aksi Cepat Pengaturan Skema Tagihan di Detail Program (`ekstrakurikuler/show.blade.php`, `Ekstrakurikuler.php`)
+- **Pintasan Pengaturan Skema Tagihan**:
+  - Menambahkan tombol dan modal interaktif *"Atur Skema"* pada header dan panel informasi detail program ekskul/pelatihan.
+  - Memungkinkan Administrator dan manajemen langsung memperbarui skema tagihan sekolah (Bulanan, Per 4 Pertemuan, Semester, Tahunan, CSR SOGA) dari halaman program tanpa harus berpindah ke menu lain.
+  - Menampilkan badge visual skema penagihan aktif pada header dan kartu info program.
+
+#### 3. Penyelarasan Kronologis Evaluasi Multi-Sesi Payroll (`PayrollCalculatorService.php`)
+- **Urutan Sesi Pembelajaran Akurat**:
+  - Mengurutkan sesi pembelajaran secara kronologis (`tanggal_pelaksanaan`/`tanggal_terjadwal` &rarr; `jam_mulai_terjadwal` &rarr; `id`) sebelum mengevaluasi aturan transport fee dan multi-sesi per instruktur pada hari yang sama.
+  - Mencegah kesalahan penentuan sesi pertama penerima transport fee ketika terdapat beberapa sesi mengajar di tanggal yang sama.
+
+#### 4. Konsistensi Rentang Sesi Tagihan Bulanan (`InvoiceService.php`)
+- **Penyelarasan Rentang Sesi Header Invoice**:
+  - Menghitung nilai `sesi_dari` dan `sesi_sampai` secara agregat pada skema tagihan bulanan sehingga konsisten dengan skema per 4 pertemuan dan memudahkan pelaporan.
+
+## [2.9.55] - 2026-10-08
+
+### Penyesuaian Ekspor Jadwal Sesi & Proteksi Penjadwalan Instruktur Nonaktif
+
+#### 1. Penataan Ulang Kolom Ekspor Jadwal Sesi (`EkstrakurikulerSessionExport`, `sessions/index.blade.php`)
+- **Penyelarasan Kolom Ekspor (Excel & Gambar)**:
+  - Menghilangkan kolom nomor urut (`No.`) dan kolom `Tanggal Mengajar` pada tabel ekspor (karena tanggal sudah tercantum di judul/header ekspor).
+  - Urutan kolom baru (12 kolom):
+    1. `Nama Instruktur`
+    2. `Nama Asisten Instruktur` / `Asst. Instruktur`
+    3. `Nama Sekolah`
+    4. `Rombel`
+    5. `Pertemuan`
+    6. `Jam Mulai`
+    7. `Ekskul`
+    8. `Jml Siswa`
+    9. `Kecamatan`
+    10. `Sales`
+    11. `PIC Ekskul`
+    12. `Status Jadwal`
+  - Berlaku seragam untuk **Ekspor Excel** ([`EkstrakurikulerSessionExport.php`](file:///var/www/webapperlass/app/Exports/EkstrakurikulerSessionExport.php)) dan **Ekspor Gambar** (`#export-table-container` pada [`index.blade.php`](file:///var/www/webapperlass/resources/views/ekstrakurikuler/sessions/index.blade.php)).
+
+#### 2. Proteksi Ketat Penjadwalan Instruktur Nonaktif
+- **Pemblokiran Penugasan Instruktur / Asisten Nonaktif**:
+  - **Form Update Sesi (`EkstrakurikulerSessionController@update`)**:
+    - Validasi validator menambahkan aturan penolakan jika `user_id_instruktur` atau `user_id_asisten` yang dipilih berstatus `Nonaktif`.
+    - Dilengkapi proteksi lapis kedua pada fallback instruktur agar tidak dapat menyimpan sesi dengan instruktur nonaktif.
+  - **Pengecekan Konflik Real-Time AJAX (`EkstrakurikulerSessionController@checkConflict`)**:
+    - Langsung mendeteksi dan memberi notifikasi merah jika pengguna memilih instruktur/asisten berstatus tidak aktif sebelum form disimpan.
+  - **Operasi Bulk Assignment (`EkstrakurikulerSessionController@bulk`)**:
+    - Menolak penugasan masal terhadap instruktur/asisten yang berstatus `Nonaktif`.
+  - **Pembuatan Sesi Manual (`EkstrakurikulerSessionController@addManualSession`)**:
+    - Memvalidasi status instruktur/asisten pada Rombel; menolak penambahan sesi jika tim pengajar berstatus nonaktif.
+  - **Engine Scheduling (`SchedulingService`)**:
+    - `checkInstructorConflicts()` mendeteksi instruktur/asisten nonaktif sebagai status konflik.
+    - `assignInstructorToSessions()` menggagalkan penugasan ke sesi jika tim pengajar nonaktif.
+    - `generateSessionsForRombel()` memvalidasi bahwa instruktur/asisten yang di-assign pada Rombel harus berstatus aktif.
+  - **Antarmuka Form Edit Sesi (`sessions/edit.blade.php`)**:
+    - Jika sesi sebelumnya terlanjur memiliki instruktur yang kini berstatus nonaktif, dropdown menampilkan tanda bahaya `⚠️ [Nama] (NONAKTIF - Wajib Diganti)` yang di-*disable* serta menampilkan box alert berwarna merah yang mewajibkan memilih instruktur aktif.
+
+#### 3. Pengujian Otomatis
+- Ditambahkan pengujian:
+  * `test_inactive_instructor_cannot_be_scheduled_on_update`
+  * `test_inactive_instructor_detected_in_check_conflict`
+  * `test_inactive_instructor_cannot_be_bulk_assigned`
+  pada [`tests/Feature/EkstrakurikulerSessionControllerTest.php`](file:///var/www/webapperlass/tests/Feature/EkstrakurikulerSessionControllerTest.php).
+
+## [2.9.54] - 2026-10-08
+
+### Penagihan Berbasis Laporan Mengajar Selesai (Mengakomodasi Program Selesai, Dibatalkan, & Rombel Ditutup)
+
+#### 1. Penetapan Laporan Mengajar Selesai sebagai Sumber Kebenaran Tunggal (`InvoiceService.php`)
+- **Fokus pada Jasa yang Telah Diselesaikan**:
+  - Penentuan kelayakan invoice (*billing eligibility*) kini murni mengacu pada **Laporan Mengajar berstatus `selesai`** yang telah diverifikasi.
+  - Sistem tidak lagi membatalkan hak tagih hanya karena status program telah diubah menjadi `dibatalkan` atau `selesai`, ataupun rombelnya telah di-*soft delete* / dinonaktifkan di sistem.
+  - Setiap sesi yang telah diajarkan oleh instruktur dan memiliki laporan resmi tetap wajib ditagihkan ke pihak sekolah.
+
+#### 2. Pemulihan Program Dibatalkan / Selesai (Kasus SMP SWASTA LENTERA HARAPAN PH & SDIT CORDOVA 3)
+- **Dukungan Soft-Deleted & Non-Aktif Entities**:
+  - Menggunakan scope `withTrashed()` pada kueri `Ekstrakurikuler`, `EkstrakurikulerRombel`, dan `EkstrakurikulerSession` dalam penentuan *eligible invoice*, perhitungan kehadiran (`calculateBillable`), serta pembuatan draft invoice (`createInvoiceForSekolah`).
+  - SMP SWASTA LENTERA HARAPAN PH (`20622279`) yang programnya dibatalkan dan rombelnya di-soft delete setelah 3 pertemuan kini otomatis terdeteksi siap ditagih di antrean invoice (`Agustus 2026`: 2 sesi, disusul `September 2026`: 1 sesi).
+  - SDIT CORDOVA 3 (`69979855`) dan sekolah sejenis lainnya yang memiliki sesi selesai sebelum program ditutup dipulihkan ke antrean tagihan.
+- **Pelunasan Akhir Skema Per 4 Pertemuan**:
+  - Pada program yang sudah ditutup/berakhir (`selesai` / `dibatalkan`), jika masih terdapat sisa laporan selesai $< 4$ sesi, sistem secara otomatis mengizinkan pembuatan invoice pelunasan akhir (*final settlement*) tanpa harus tertahan menunggu 4 sesi yang tidak akan pernah ada.
+
+#### 3. Keamanan Relasi & Generate Invoice (`InvoiceApproval`, `InvoiceController`)
+- **Penyelarasan Relasi Eloquent**:
+  - Relasi `ekstrakurikuler` dan `rombel` pada `InvoiceApproval` dan `InvoiceApprovalItem` kini menggunakan `withTrashed()` agar informasi program, rombel, nama PIC, dan salesman tetap tampil utuh pada detail invoice dan PDF surat konfirmasi.
+  - Modul `InvoiceController::quickGenerate` kini membaca `Ekstrakurikuler::withTrashed()` agar tidak menghasilkan error 404 saat men-generate tagihan program berstatus selesai/dibatalkan.
+
+#### 4. Pengujian Otomatis
+- Ditambahkan pengujian:
+  * `cancelled_or_completed_program_with_finished_reports_is_eligible_for_invoice`
+  * `ended_program_with_per_4_pertemuan_and_less_than_4_sessions_is_eligible`
+  pada [`tests/Feature/InvoiceApprovalTest.php`](file:///var/www/webapperlass/tests/Feature/InvoiceApprovalTest.php).
+
 ## [2.9.53] - 2026-10-08
 
 ### Perbaikan Modal Penggantian Skema Tagihan pada Tabel Antrean Generate Invoice

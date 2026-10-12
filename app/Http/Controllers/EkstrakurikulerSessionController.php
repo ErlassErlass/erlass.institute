@@ -376,10 +376,7 @@ class EkstrakurikulerSessionController extends Controller
 
         // Ambil daftar materi berdasarkan kategori program
         $kategori = $session->rombel->ekstrakurikuler->kategori_program;
-        $materiList = \App\Models\RefMateri::where('kategori', $kategori)
-            ->orderByRaw("CASE WHEN materi = 'Lain - Lain' THEN 1 ELSE 0 END")
-            ->orderBy('materi', 'asc')
-            ->pluck('materi');
+        $materiList = \App\Models\RefMateri::getMateriList($kategori);
 
         return view('ekstrakurikuler.sessions.edit', compact('session', 'instructors', 'materiList'));
     }
@@ -441,8 +438,30 @@ class EkstrakurikulerSessionController extends Controller
                     }
                 }
             ],
-            'user_id_instruktur' => 'nullable|exists:users,id',
-            'user_id_asisten' => 'nullable|exists:users,id',
+            'user_id_instruktur' => [
+                'nullable',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $user = User::find($value);
+                        if ($user && ! $user->is_active) {
+                            $fail("Instruktur {$user->nama_lengkap} berstatus tidak aktif ({$user->status}) dan tidak dapat dijadwalkan.");
+                        }
+                    }
+                }
+            ],
+            'user_id_asisten' => [
+                'nullable',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $user = User::find($value);
+                        if ($user && ! $user->is_active) {
+                            $fail("Asisten instruktur {$user->nama_lengkap} berstatus tidak aktif ({$user->status}) dan tidak dapat dijadwalkan.");
+                        }
+                    }
+                }
+            ],
             'topik_materi' => 'nullable|string|max:255',
             'deskripsi_kegiatan' => 'nullable|string',
             'catatan' => 'nullable|string',
@@ -485,6 +504,16 @@ class EkstrakurikulerSessionController extends Controller
             $data['user_id_instruktur'] = $session->user_id_instruktur ?? $session->rombel?->user_id_instruktur;
         }
 
+        // Pastikan instruktur yang digunakan (termasuk hasil fallback) berstatus aktif
+        if (!empty($data['user_id_instruktur'])) {
+            $checkInstruktur = User::find($data['user_id_instruktur']);
+            if ($checkInstruktur && ! $checkInstruktur->is_active) {
+                return redirect()->back()
+                    ->withErrors(['user_id_instruktur' => "Instruktur {$checkInstruktur->nama_lengkap} berstatus tidak aktif ({$checkInstruktur->status}) dan tidak dapat dijadwalkan. Silakan pilih instruktur aktif."])
+                    ->withInput();
+            }
+        }
+
         // Jika field asisten dikirim (termasuk kosong = "Tidak Ada Asisten"),
         // gunakan nilai yang dikirim. Jika tidak ada di request sama sekali, pertahankan lama.
         if ($request->has('user_id_asisten')) {
@@ -493,6 +522,16 @@ class EkstrakurikulerSessionController extends Controller
                 : null;  // "" → null (hapus asisten)
         } else {
             $data['user_id_asisten'] = $session->user_id_asisten;
+        }
+
+        // Pastikan asisten yang digunakan berstatus aktif jika diisi
+        if (!empty($data['user_id_asisten'])) {
+            $checkAsisten = User::find($data['user_id_asisten']);
+            if ($checkAsisten && ! $checkAsisten->is_active) {
+                return redirect()->back()
+                    ->withErrors(['user_id_asisten' => "Asisten instruktur {$checkAsisten->nama_lengkap} berstatus tidak aktif ({$checkAsisten->status}) dan tidak dapat dijadwalkan. Silakan pilih asisten aktif."])
+                    ->withInput();
+            }
         }
 
         // Deteksi perubahan jadwal tanggal/jam atau switch kunci jadwal manual
@@ -671,7 +710,14 @@ class EkstrakurikulerSessionController extends Controller
 
         $conflicts = [];
         if ($instructor) {
+            if (! $instructor->is_active) {
+                $conflicts[] = "Instruktur {$instructor->nama_lengkap} berstatus tidak aktif ({$instructor->status}) dan tidak dapat dijadwalkan.";
+            }
             $conflicts = array_merge($conflicts, $this->schedulingService->checkInstructorConflicts($instructor, $tempSession, $assistant));
+        }
+
+        if ($assistant && ! $assistant->is_active) {
+            $conflicts[] = "Asisten instruktur {$assistant->nama_lengkap} berstatus tidak aktif ({$assistant->status}) dan tidak dapat dijadwalkan.";
         }
 
         $details = [];
@@ -1078,12 +1124,32 @@ class EkstrakurikulerSessionController extends Controller
     protected function bulkAssignInstructor(Request $request, $sessions): array
     {
         $validator = Validator::make($request->all(), [
-            'user_id_instruktur' => 'required|exists:users,id',
-            'user_id_asisten' => 'nullable|exists:users,id',
+            'user_id_instruktur' => [
+                'required',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    $u = User::find($value);
+                    if ($u && ! $u->is_active) {
+                        $fail("Instruktur {$u->nama_lengkap} berstatus tidak aktif ({$u->status}) dan tidak dapat dijadwalkan.");
+                    }
+                }
+            ],
+            'user_id_asisten' => [
+                'nullable',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $u = User::find($value);
+                        if ($u && ! $u->is_active) {
+                            $fail("Asisten instruktur {$u->nama_lengkap} berstatus tidak aktif ({$u->status}) dan tidak dapat dijadwalkan.");
+                        }
+                    }
+                }
+            ],
         ]);
 
         if ($validator->fails()) {
-            return ['success' => false, 'message' => 'Data instructor tidak valid'];
+            return ['success' => false, 'message' => $validator->errors()->first()];
         }
 
         $instructor = User::find($request->user_id_instruktur);
@@ -1355,6 +1421,22 @@ class EkstrakurikulerSessionController extends Controller
 
         try {
             DB::beginTransaction();
+
+            // Validasi instruktur & asisten rombel harus aktif jika ada
+            if ($rombel->user_id_instruktur) {
+                $assignedInstructor = User::find($rombel->user_id_instruktur);
+                if ($assignedInstructor && ! $assignedInstructor->is_active) {
+                    return redirect()->back()
+                        ->with('error', "Gagal menambahkan sesi: Instruktur {$assignedInstructor->nama_lengkap} pada Rombel ini berstatus tidak aktif ({$assignedInstructor->status}) dan tidak dapat dijadwalkan. Silakan perbarui instruktur pada Rombel terlebih dahulu.");
+                }
+            }
+            if ($rombel->user_id_asisten) {
+                $assignedAssistant = User::find($rombel->user_id_asisten);
+                if ($assignedAssistant && ! $assignedAssistant->is_active) {
+                    return redirect()->back()
+                        ->with('error', "Gagal menambahkan sesi: Asisten instruktur {$assignedAssistant->nama_lengkap} pada Rombel ini berstatus tidak aktif ({$assignedAssistant->status}) dan tidak dapat dijadwalkan.");
+                }
+            }
 
             // Hitung nomor pertemuan berikutnya secara otomatis (max + 1)
             $nextMeetingNumber = $rombel->sessions()->max('nomor_pertemuan') + 1;

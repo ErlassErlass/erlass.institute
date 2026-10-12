@@ -203,4 +203,75 @@ class EkstrakurikulerSessionControllerTest extends TestCase
         $response3 = $this->actingAs($this->admin)->get(route('ekstrakurikuler.sessions.index', ['reset_filter' => 1]));
         $response3->assertRedirect(route('ekstrakurikuler.sessions.index'));
     }
+
+    public function test_inactive_instructor_cannot_be_scheduled_on_update()
+    {
+        $inactiveInstructor = User::factory()->create([
+            'role' => 'instruktur',
+            'status' => 'Nonaktif',
+            'is_verified' => true,
+        ]);
+
+        $response = $this->actingAs($this->admin)->put(route('ekstrakurikuler.sessions.update', $this->session), [
+            'tanggal_terjadwal' => now()->toDateString(),
+            'jam_mulai_terjadwal' => '08:00',
+            'jam_selesai_terjadwal' => '09:30',
+            'user_id_instruktur' => $inactiveInstructor->id,
+        ]);
+
+        $response->assertSessionHasErrors(['user_id_instruktur']);
+
+        $this->session->refresh();
+        $this->assertNotEquals($inactiveInstructor->id, $this->session->user_id_instruktur);
+    }
+
+    public function test_inactive_instructor_detected_in_check_conflict()
+    {
+        $inactiveInstructor = User::factory()->create([
+            'role' => 'instruktur',
+            'status' => 'Nonaktif',
+            'is_verified' => true,
+        ]);
+
+        $response = $this->actingAs($this->admin)->postJson(route('ekstrakurikuler.sessions.check-conflict', $this->session), [
+            'user_id_instruktur' => $inactiveInstructor->id,
+            'tanggal_terjadwal' => now()->toDateString(),
+            'jam_mulai_terjadwal' => '08:00',
+            'jam_selesai_terjadwal' => '09:30',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'has_conflict' => true,
+            ]);
+
+        $messages = $response->json('messages');
+        $this->assertTrue(collect($messages)->contains(fn ($msg) => str_contains($msg, 'tidak aktif')));
+    }
+
+    public function test_inactive_instructor_cannot_be_bulk_assigned()
+    {
+        $inactiveInstructor = User::factory()->create([
+            'role' => 'instruktur',
+            'status' => 'Nonaktif',
+            'is_verified' => true,
+        ]);
+
+        $response = $this->actingAs($this->admin)->postJson(route('ekstrakurikuler.sessions.bulk'), [
+            'action' => 'assign_instructor',
+            'session_ids' => [$this->session->id],
+            'user_id_instruktur' => $inactiveInstructor->id,
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => false,
+            ]);
+
+        $this->assertStringContainsString('tidak aktif', $response->json('message'));
+
+        $this->session->refresh();
+        $this->assertNotEquals($inactiveInstructor->id, $this->session->user_id_instruktur);
+    }
 }

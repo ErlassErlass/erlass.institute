@@ -164,6 +164,32 @@
                         <h5 class="mb-0 card-title">Tim Pengajar</h5>
                     </div>
                     <div class="card-body">
+                        @php
+                            $currentInstrukturId = old('user_id_instruktur', $session->user_id_instruktur ?? $session->rombel?->user_id_instruktur);
+                            $currentInstruktur = $session->instruktur ?? ($session->rombel?->instruktur ?? null);
+                            $isCurrentInstrukturInactive = $currentInstruktur && !$currentInstruktur->is_active;
+
+                            $currentAsistenId = old('user_id_asisten', $session->user_id_asisten ?? $session->rombel?->user_id_asisten);
+                            $currentAsisten = $session->asisten ?? ($session->rombel?->asisten ?? null);
+                            $isCurrentAsistenInactive = $currentAsisten && !$currentAsisten->is_active;
+                        @endphp
+
+                        @if($isCurrentInstrukturInactive || $isCurrentAsistenInactive)
+                            <div class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2 fs-5 flex-shrink-0"></i>
+                                <div>
+                                    <strong>Perhatian:</strong>
+                                    @if($isCurrentInstrukturInactive)
+                                        Instruktur saat ini (<strong>{{ $currentInstruktur->nama_lengkap }}</strong>) berstatus <strong>Nonaktif</strong>.
+                                    @endif
+                                    @if($isCurrentAsistenInactive)
+                                        Asisten saat ini (<strong>{{ $currentAsisten->nama_lengkap }}</strong>) berstatus <strong>Nonaktif</strong>.
+                                    @endif
+                                    Instruktur/asisten nonaktif tidak dapat dijadwalkan. Silakan pilih tim pengajar yang berstatus aktif sebelum menyimpan perubahan.
+                                </div>
+                            </div>
+                        @endif
+
                         <div class="row g-3">
                             <!-- Instruktur -->
                             <div class="col-md-6">
@@ -172,9 +198,14 @@
                                         id="user_id_instruktur"
                                         class="form-select select2 @error('user_id_instruktur') is-invalid @enderror">
                                     <option value="">Pilih Instruktur</option>
+                                    @if($isCurrentInstrukturInactive)
+                                        <option value="{{ $currentInstruktur->id }}" class="text-danger fw-bold" disabled {{ $currentInstrukturId == $currentInstruktur->id ? 'selected' : '' }}>
+                                            ⚠️ {{ $currentInstruktur->nama_lengkap }} (NONAKTIF - Wajib Diganti)
+                                        </option>
+                                    @endif
                                     @foreach($instructors as $instructor)
                                         <option value="{{ $instructor->id }}" 
-                                                {{ old('user_id_instruktur', $session->user_id_instruktur ?? $session->rombel?->user_id_instruktur) == $instructor->id ? 'selected' : '' }}>
+                                                {{ $currentInstrukturId == $instructor->id ? 'selected' : '' }}>
                                             {{ $instructor->nama_lengkap }}
                                         </option>
                                     @endforeach
@@ -191,9 +222,14 @@
                                         id="user_id_asisten"
                                         class="form-select select2 @error('user_id_asisten') is-invalid @enderror">
                                     <option value="">Tidak Ada Asisten</option>
+                                    @if($isCurrentAsistenInactive)
+                                        <option value="{{ $currentAsisten->id }}" class="text-danger fw-bold" disabled {{ $currentAsistenId == $currentAsisten->id ? 'selected' : '' }}>
+                                            ⚠️ {{ $currentAsisten->nama_lengkap }} (NONAKTIF - Wajib Diganti)
+                                        </option>
+                                    @endif
                                     @foreach($instructors as $instructor)
                                         <option value="{{ $instructor->id }}" 
-                                                {{ old('user_id_asisten', $session->user_id_asisten ?? $session->rombel?->user_id_asisten) == $instructor->id ? 'selected' : '' }}>
+                                                {{ $currentAsistenId == $instructor->id ? 'selected' : '' }}>
                                             {{ $instructor->nama_lengkap }}
                                         </option>
                                     @endforeach

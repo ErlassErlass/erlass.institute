@@ -211,6 +211,12 @@ class Ekstrakurikuler extends Model
      */
     public function isInvoiceable(): bool
     {
+        // 0. Program CSR SOGA (Solidaritas Erlangga) adalah program sponsor sosial dan tidak perlu di-invoicekan
+        if ($this->skema_tagihan === Sekolah::SKEMA_CSR_REGULER_SOGA || 
+            $this->sekolah?->skema_tagihan === Sekolah::SKEMA_CSR_REGULER_SOGA) {
+            return false;
+        }
+
         $kat = trim($this->kategori_program ?? '');
         $lowerKat = strtolower($kat);
 
@@ -243,6 +249,30 @@ class Ekstrakurikuler extends Model
     }
 
     /**
+     * Dapatkan skema tagihan efektif (prioritas: ekskul -> sekolah -> bulanan)
+     */
+    public function getSkemaTagihanEfektifAttribute(): string
+    {
+        return $this->skema_tagihan ?: ($this->sekolah?->skema_tagihan ?? Sekolah::SKEMA_BULANAN);
+    }
+
+    /**
+     * Label skema tagihan untuk program ekstrakurikuler.
+     */
+    public function skemaTagihanLabel(): string
+    {
+        $skema = $this->skema_tagihan_efektif;
+        return match ($skema) {
+            Sekolah::SKEMA_BULANAN          => 'Bulanan (Kalender)',
+            Sekolah::SKEMA_PER_4_PERTEMUAN  => 'Per 4 Pertemuan (Rolling Batch)',
+            Sekolah::SKEMA_SEMESTER         => 'Per Semester (~16 sesi)',
+            Sekolah::SKEMA_TAHUNAN          => 'Per Tahun (~32 sesi)',
+            Sekolah::SKEMA_CSR_REGULER_SOGA => 'CSR Reguler SOGA (Bebas Tagihan)',
+            default                         => 'Bulanan (Kalender)',
+        };
+    }
+
+    /**
      * Scope Eloquent untuk memfilter hanya program Ekskul dan Pelatihan yang dapat di-invoice.
      */
     public function scopeInvoiceable($query)
@@ -256,6 +286,13 @@ class Ekstrakurikuler extends Model
               ->orWhere('kategori_program', 'LIKE', '%English%')
               ->orWhere('kategori_program', 'LIKE', '%Robotik%')
               ->orWhere('kategori_program', 'LIKE', '%Pictoblox%');
+        })
+        ->where(function ($q) {
+            $q->whereNull('skema_tagihan')
+              ->orWhere('skema_tagihan', '!=', Sekolah::SKEMA_CSR_REGULER_SOGA);
+        })
+        ->whereDoesntHave('sekolah', function ($q) {
+            $q->where('skema_tagihan', Sekolah::SKEMA_CSR_REGULER_SOGA);
         })
         ->where('kategori_program', 'NOT LIKE', '%Free Trial%')
         ->where('kategori_program', 'NOT LIKE', '%Trial Class%')

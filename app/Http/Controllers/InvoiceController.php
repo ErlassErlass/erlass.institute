@@ -245,7 +245,7 @@ class InvoiceController extends Controller
 
         // 1. Jika dikirim ekstrakurikuler_id (Format Utama: Per Program)
         if ($request->filled('ekstrakurikuler_id')) {
-            $ekskul = Ekstrakurikuler::with('sekolah')->findOrFail($request->ekstrakurikuler_id);
+            $ekskul = Ekstrakurikuler::withTrashed()->with('sekolah')->findOrFail($request->ekstrakurikuler_id);
             $eligible = $this->invoiceService->getEligibleInvoiceForProgram($ekskul);
 
             if (!$eligible) {
@@ -292,10 +292,16 @@ class InvoiceController extends Controller
             'sesi_sampai'               => 'nullable|integer|min:1',
         ]);
 
+        if ($validated['skema_tagihan'] === \App\Models\Sekolah::SKEMA_CSR_REGULER_SOGA) {
+            return back()->withErrors([
+                'msg' => 'Program CSR SOGA (Solidaritas Erlangga) merupakan program sosial/sponsor dan tidak perlu dibuatkan invoice.',
+            ]);
+        }
+
         $rombel = EkstrakurikulerRombel::with('ekstrakurikuler.sekolah')->findOrFail($validated['ekstrakurikuler_rombel_id']);
         if (!$rombel->ekstrakurikuler?->isInvoiceable()) {
             return back()->withErrors([
-                'msg' => 'Hanya program Ekskul dan Pelatihan yang dapat dibuatkan invoice.',
+                'msg' => 'Hanya program Ekskul dan Pelatihan non-CSR yang dapat dibuatkan invoice.',
             ]);
         }
 

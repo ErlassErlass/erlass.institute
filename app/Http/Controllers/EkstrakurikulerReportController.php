@@ -212,10 +212,7 @@ class EkstrakurikulerReportController extends Controller
 
         // Ambil daftar materi berdasarkan kategori program
         $kategori = $session->rombel->ekstrakurikuler->kategori_program ?? null;
-        $materiList = \App\Models\RefMateri::where('kategori', $kategori)
-            ->orderByRaw("CASE WHEN TRIM(materi) = 'Lain - Lain' THEN 1 ELSE 0 END")
-            ->orderBy('id', 'asc')
-            ->pluck('materi');
+        $materiList = \App\Models\RefMateri::getMateriList($kategori);
 
         // Ambil Laporan Sebelumnya dari Rombel ini (Catch-up materi untuk instruktur pengganti)
         $previousReport = null;
@@ -303,12 +300,13 @@ class EkstrakurikulerReportController extends Controller
                 'max:255',
                 function ($attribute, $value, $fail) use ($session) {
                     $kategori = $session->rombel->ekstrakurikuler->kategori_program ?? null;
-                    if ($kategori && \App\Models\RefMateri::where('kategori', $kategori)->exists()) {
-                        $exists = \App\Models\RefMateri::where('kategori', $kategori)
-                            ->where('materi', $value)
-                            ->exists();
-                        if (! $exists) {
-                            $fail('Topik/materi yang dipilih tidak valid.');
+                    if ($kategori) {
+                        $materiOptions = \App\Models\RefMateri::getMateriList($kategori);
+                        if ($materiOptions->isNotEmpty()) {
+                            $exists = $materiOptions->contains($value) || $value === 'Lain - Lain' || str_starts_with($value, 'Lain - Lain:');
+                            if (! $exists) {
+                                $fail('Topik/materi yang dipilih tidak valid.');
+                            }
                         }
                     }
                 },

@@ -226,6 +226,9 @@
                     <span class="badge {{ $statusBadgeClass }} px-3 py-2 rounded-pill fs-7 fw-semibold shadow-sm">
                         <i class="bi bi-circle-fill me-1 small"></i> {{ $ekstrakurikuler->status_label }}
                     </span>
+                    <span class="badge bg-white bg-opacity-20 text-white border border-white border-opacity-25 px-3 py-2 rounded-pill fs-7 fw-semibold shadow-sm">
+                        <i class="bi bi-receipt me-1"></i> Skema: {{ $ekstrakurikuler->skemaTagihanLabel() }}
+                    </span>
                 </div>
                 <p class="mb-0 d-flex align-items-center gap-2" style="color: rgba(255, 255, 255, 0.92);">
                     <i class="bi bi-building me-1"></i> {{ $ekstrakurikuler->sekolah?->namasekolah ?? 'Sekolah Belum Ditetapkan' }}
@@ -242,6 +245,11 @@
                     <a href="{{ route('ekstrakurikuler.edit', $ekstrakurikuler) }}" class="btn btn-glass">
                         <i class="bi bi-pencil-square me-1"></i> Edit
                     </a>
+                    @if($ekstrakurikuler->sekolah)
+                    <button type="button" class="btn btn-glass" data-bs-toggle="modal" data-bs-target="#modalUbahSkemaEkskul" title="Ubah Skema Penagihan Invoice">
+                        <i class="bi bi-receipt me-1"></i> Atur Skema
+                    </button>
+                    @endif
                     <form action="{{ route('ekstrakurikuler.regenerate-sessions', $ekstrakurikuler) }}" method="POST" class="d-inline">
                         @csrf
                         <button type="submit" class="btn btn-glass" onclick="return confirm('Generate ulang seluruh jadwal sesi berdasarkan rombel saat ini? Sesi lama yang belum ada laporan akan diperbarui.')" title="Sinkronkan jadwal sesi sesuai rombel">
@@ -413,6 +421,22 @@
                                 <div class="info-label">Sales / Koordinator Lapangan</div>
                                 <div class="info-value text-dark font-medium">
                                     <i class="bi bi-person-badge me-1.5 text-muted"></i>{{ $ekstrakurikuler->sales?->nama_lengkap ?? '-' }}
+                                </div>
+                            </div>
+
+                            <div class="info-group mb-0">
+                                <div class="info-label">Skema Penagihan Invoice</div>
+                                <div class="info-value d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-1.5 rounded-pill fs-7 fw-semibold">
+                                        <i class="bi bi-receipt me-1"></i> {{ $ekstrakurikuler->skemaTagihanLabel() }}
+                                    </span>
+                                    @can('update', $ekstrakurikuler)
+                                    @if($ekstrakurikuler->sekolah)
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-0.5 px-2.5" style="font-size: 0.78rem;" data-bs-toggle="modal" data-bs-target="#modalUbahSkemaEkskul">
+                                        <i class="bi bi-pencil-fill me-1"></i> Ubah Skema
+                                    </button>
+                                    @endif
+                                    @endcan
                                 </div>
                             </div>
                         </div>
@@ -1139,6 +1163,58 @@
         </div>
     </div>
 </div>
+
+@can('update', $ekstrakurikuler)
+@if($ekstrakurikuler->sekolah)
+<!-- Modal Ubah Skema Tagihan -->
+<div class="modal fade" id="modalUbahSkemaEkskul" tabindex="-1" aria-labelledby="modalUbahSkemaEkskulLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <form action="{{ route('sekolah.skema.update', $ekstrakurikuler->sekolah->kodlan) }}" method="POST">
+                @csrf
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="modalUbahSkemaEkskulLabel">
+                        <i class="bi bi-receipt text-primary me-2"></i> Atur Skema Tagihan
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-3">
+                    <p class="text-muted small mb-3">
+                        Pilih skema penagihan invoice untuk sekolah <strong>{{ $ekstrakurikuler->sekolah->namasekolah }}</strong> (termasuk program {{ $ekstrakurikuler->kategori_program }}).
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted">Pilihan Skema</label>
+                        <select name="skema_tagihan" class="form-select" required>
+                            <option value="bulanan" {{ $ekstrakurikuler->skema_tagihan_efektif === 'bulanan' ? 'selected' : '' }}>
+                                📅 Bulanan (Setiap Akhir Bulan / Tanggal 24+)
+                            </option>
+                            <option value="per_4_pertemuan" {{ $ekstrakurikuler->skema_tagihan_efektif === 'per_4_pertemuan' ? 'selected' : '' }}>
+                                🔄 Per 4 Pertemuan (Rolling Batch)
+                            </option>
+                            <option value="semester" {{ $ekstrakurikuler->skema_tagihan_efektif === 'semester' ? 'selected' : '' }}>
+                                🎓 Per Semester (~16 sesi)
+                            </option>
+                            <option value="tahunan" {{ $ekstrakurikuler->skema_tagihan_efektif === 'tahunan' ? 'selected' : '' }}>
+                                📆 Per Tahun (~32 sesi)
+                            </option>
+                            <option value="csr_reguler_soga" {{ $ekstrakurikuler->skema_tagihan_efektif === 'csr_reguler_soga' ? 'selected' : '' }}>
+                                🤝 CSR Reguler SOGA (Bebas Tagihan / Non-Invoiceable)
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                        <i class="bi bi-check-lg me-1"></i> Simpan Skema
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+@endcan
 @endpush
 
 @endsection

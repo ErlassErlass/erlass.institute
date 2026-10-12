@@ -313,9 +313,7 @@ class LaporanMengajarController extends Controller
             return response()->json([]);
         }
 
-        $materi = \App\Models\RefMateri::where('kategori', $kategori)
-            ->orderBy('materi', 'asc')
-            ->pluck('materi');
+        $materi = \App\Models\RefMateri::getMateriList($kategori);
 
         return response()->json($materi);
     }
@@ -511,10 +509,7 @@ class LaporanMengajarController extends Controller
             $session->load(['rombel.siswaAktif', 'rombel.ekstrakurikuler.sekolah']);
             $kategoriProgram = $session->rombel->ekstrakurikuler->kategori_program ?? null;
             if ($kategoriProgram) {
-                $materiList = \App\Models\RefMateri::where('kategori', $kategoriProgram)
-                    ->orderByRaw("CASE WHEN TRIM(materi) = 'Lain - Lain' THEN 1 ELSE 0 END")
-                    ->orderBy('id', 'asc')
-                    ->pluck('materi');
+                $materiList = \App\Models\RefMateri::getMateriList($kategoriProgram);
             }
 
             // Get enrolled students from rombel
@@ -554,10 +549,7 @@ class LaporanMengajarController extends Controller
         } else {
             // For non-routine (Ad-Hoc) reports
             if ($laporanMengajar->kategori_pengajaran) {
-                $materiList = \App\Models\RefMateri::where('kategori', $laporanMengajar->kategori_pengajaran)
-                    ->orderByRaw("CASE WHEN TRIM(materi) = 'Lain - Lain' THEN 1 ELSE 0 END")
-                    ->orderBy('id', 'asc')
-                    ->pluck('materi');
+                $materiList = \App\Models\RefMateri::getMateriList($laporanMengajar->kategori_pengajaran);
             }
 
             $existingAbsensi = \App\Models\Absensi::with('siswa')

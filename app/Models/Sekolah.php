@@ -94,7 +94,7 @@ class Sekolah extends Model
             'semester'         => 'Per Semester (~16 sesi)',
             'tahunan'          => 'Per Tahun (~32 sesi)',
             'per_4_pertemuan'  => 'Per 4 Pertemuan (Rolling Batch)',
-            'csr_reguler_soga' => 'CSR Reguler SOGA (Solidaritas Erlangga)',
+            'csr_reguler_soga' => 'CSR Reguler SOGA (Bebas Tagihan)',
             default            => 'Bulanan (Kalender)',
         };
     }
@@ -132,7 +132,7 @@ class Sekolah extends Model
      */
     public function invoiceableEkstrakurikulers()
     {
-        return $this->hasMany(Ekstrakurikuler::class, 'sekolah_kodlan', 'kodlan')->invoiceable();
+        return $this->hasMany(Ekstrakurikuler::class, 'sekolah_kodlan', 'kodlan')->withTrashed()->invoiceable();
     }
 
     /**

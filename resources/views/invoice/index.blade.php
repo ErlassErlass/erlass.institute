@@ -131,7 +131,6 @@
                     <option value="per_4_pertemuan">🔄 Per 4 Pertemuan</option>
                     <option value="semester">📚 Semesteran</option>
                     <option value="tahunan">🎓 Tahunan</option>
-                    <option value="csr_reguler_soga">🤝 CSR Reguler SOGA</option>
                 </select>
                 <div class="input-group input-group-sm" style="width: 230px;">
                     <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted small"></i></span>
@@ -716,10 +715,10 @@
                             <option value="bulanan">Bulanan (Setiap Akhir Bulan)</option>
                             <option value="semester">Per Semester (Jul–Des / Jan–Jun)</option>
                             <option value="tahunan">Tahunan (Per Tahun Ajaran)</option>
-                            <option value="csr_reguler_soga">CSR Reguler SOGA (Solidaritas Erlangga)</option>
+                            <option value="csr_reguler_soga">CSR Reguler SOGA (Solidaritas Erlangga - Bebas Tagihan / Non-Invoice)</option>
                         </select>
                         <small class="text-muted mt-1 d-block">
-                            Perubahan skema akan langsung memperbarui aturan kemunculan invoice di antrean penagihan.
+                            Perubahan skema akan langsung diterapkan. Sekolah dengan skema CSR SOGA tidak akan dimasukkan ke antrean penagihan invoice.
                         </small>
                     </div>
                 </div>

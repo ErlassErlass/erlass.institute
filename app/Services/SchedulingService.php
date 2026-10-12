@@ -57,6 +57,20 @@ class SchedulingService
             throw new \InvalidArgumentException('Data rombel tidak valid untuk generate sessions');
         }
 
+        // Validasi instruktur & asisten harus aktif jika sudah di-assign pada rombel
+        if ($rombel->user_id_instruktur) {
+            $assignedInstructor = User::find($rombel->user_id_instruktur);
+            if ($assignedInstructor && ! $assignedInstructor->is_active) {
+                throw new \InvalidArgumentException("Instruktur '{$assignedInstructor->nama_lengkap}' pada Rombel berstatus tidak aktif ({$assignedInstructor->status}) dan tidak dapat dijadwalkan.");
+            }
+        }
+        if ($rombel->user_id_asisten) {
+            $assignedAssistant = User::find($rombel->user_id_asisten);
+            if ($assignedAssistant && ! $assignedAssistant->is_active) {
+                throw new \InvalidArgumentException("Asisten instruktur '{$assignedAssistant->nama_lengkap}' pada Rombel berstatus tidak aktif ({$assignedAssistant->status}) dan tidak dapat dijadwalkan.");
+            }
+        }
+
         // Hapus sessions berstatus TERJADWAL saja jika diminta
         // (kecuali yang is_manual_reschedule = true — sesi yang sudah diubah jadwalnya secara manual)
         if ($options['replace_existing'] ?? false) {
@@ -278,6 +292,34 @@ class SchedulingService
             'conflicts' => [],
         ];
 
+        // Validasi instruktur aktif
+        if (! $instructor->is_active) {
+            return [
+                'success' => 0,
+                'failed' => $sessions->count(),
+                'conflicts' => [
+                    [
+                        'session_id' => null,
+                        'conflicts' => ["Instruktur '{$instructor->nama_lengkap}' berstatus tidak aktif ({$instructor->status}) dan tidak dapat dijadwalkan."],
+                    ]
+                ],
+            ];
+        }
+
+        // Validasi asisten aktif jika ada
+        if ($assistant && ! $assistant->is_active) {
+            return [
+                'success' => 0,
+                'failed' => $sessions->count(),
+                'conflicts' => [
+                    [
+                        'session_id' => null,
+                        'conflicts' => ["Asisten instruktur '{$assistant->nama_lengkap}' berstatus tidak aktif ({$assistant->status}) dan tidak dapat dijadwalkan."],
+                    ]
+                ],
+            ];
+        }
+
         foreach ($sessions as $session) {
             $conflicts = $this->checkInstructorConflicts($instructor, $session, $assistant);
 
@@ -474,6 +516,11 @@ class SchedulingService
     {
         $conflicts = [];
 
+        // Cek status aktif instruktur
+        if (! $instructor->is_active) {
+            $conflicts[] = "Instruktur '{$instructor->nama_lengkap}' berstatus tidak aktif ({$instructor->status}) dan tidak dapat dijadwalkan";
+        }
+
         // Cek konflik instructor (hanya cek jadwal rutin aktif: TERJADWAL & BERLANGSUNG)
         $instructorConflicts = EkstrakurikulerSession::where('user_id_instruktur', $instructor->id)
             ->where('id', '!=', $session->id)
@@ -492,6 +539,10 @@ class SchedulingService
 
         // Cek konflik assistant jika ada
         if ($assistant) {
+            if (! $assistant->is_active) {
+                $conflicts[] = "Asisten instruktur '{$assistant->nama_lengkap}' berstatus tidak aktif ({$assistant->status}) dan tidak dapat dijadwalkan";
+            }
+
             $assistantConflicts = EkstrakurikulerSession::where('user_id_asisten', $assistant->id)
                 ->where('id', '!=', $session->id)
                 ->where('tanggal_terjadwal', $session->tanggal_terjadwal)

@@ -142,6 +142,11 @@ class User extends Authenticatable
         return $this->hasMany(LateReportRequest::class);
     }
 
+    public function isActive(): bool
+    {
+        return $this->is_active;
+    }
+
     /**
      * Max kuota permohonan bulanan.
      * Masa transisi (Agustus 2026): Bebas Kuota (999).

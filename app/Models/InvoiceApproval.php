@@ -213,7 +213,7 @@ class InvoiceApproval extends Model
 
     public function ekstrakurikuler(): BelongsTo
     {
-        return $this->belongsTo(Ekstrakurikuler::class, 'ekstrakurikuler_id');
+        return $this->belongsTo(Ekstrakurikuler::class, 'ekstrakurikuler_id')->withTrashed();
     }
 
     public function items(): \Illuminate\Database\Eloquent\Relations\HasMany
@@ -223,7 +223,7 @@ class InvoiceApproval extends Model
 
     public function rombel(): BelongsTo
     {
-        return $this->belongsTo(EkstrakurikulerRombel::class, 'ekstrakurikuler_rombel_id');
+        return $this->belongsTo(EkstrakurikulerRombel::class, 'ekstrakurikuler_rombel_id')->withTrashed();
     }
 
     public function operasionalUser(): BelongsTo

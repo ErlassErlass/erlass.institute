@@ -36,18 +36,16 @@ class EkstrakurikulerSessionExport implements FromCollection, ShouldAutoSize, Wi
     public function headings(): array
     {
         return [
-            'No.',
-            'Tanggal Mengajar',
-            'Sekolah',
+            'Nama Instruktur',
+            'Nama Asisten Instruktur',
+            'Nama Sekolah',
             'Rombel',
             'Pertemuan',
-            'Nama Instruktur',
-            'Asst. Instruktur',
+            'Jam Mulai',
+            'Ekskul',
             'Jml Siswa',
             'Kecamatan',
-            'Ekskul',
             'Sales',
-            'Jam Mulai',
             'PIC Ekskul',
             'Status Jadwal',
         ];
@@ -55,16 +53,12 @@ class EkstrakurikulerSessionExport implements FromCollection, ShouldAutoSize, Wi
 
     public function map($session): array
     {
-        $this->rowNumber++;
-
-        $tgl = $session->laporanMengajar?->jadwal_mengajar ?? ($session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal);
-        $tanggalMengajar = $tgl ? \Carbon\Carbon::parse($tgl)->format('d/m/Y') : '-';
-
         $sekolahNama = $session->ekstrakurikuler->sekolah->namasekolah 
             ?? ($session->rombel->ekstrakurikuler->sekolah->namasekolah ?? '-');
 
-        $rombelNama = $session->rombel?->nama_rombel 
-            ?? ($session->rombel?->nomor_rombel ? 'Rombel ' . $session->rombel->nomor_rombel : '-');
+        $rombelNama = $session->rombel?->nomor_rombel 
+            ? 'Rombel ' . $session->rombel->nomor_rombel 
+            : ($session->rombel?->nama_rombel ?? '-');
 
         $pertemuan = 'Ke-' . $session->nomor_pertemuan;
 
@@ -92,18 +86,16 @@ class EkstrakurikulerSessionExport implements FromCollection, ShouldAutoSize, Wi
         $statusJadwal = $session->status_label ?? ucfirst($session->status);
 
         return [
-            $this->rowNumber,
-            $tanggalMengajar,
+            $instrukturNama,
+            $asistenNama,
             $sekolahNama,
             $rombelNama,
             $pertemuan,
-            $instrukturNama,
-            $asistenNama,
+            $jamMulai,
+            $kategoriProgram,
             $jumlahSiswa,
             $kecamatan,
-            $kategoriProgram,
             $salesNama,
-            $jamMulai,
             $picEkskul,
             $statusJadwal,
         ];
@@ -111,20 +103,18 @@ class EkstrakurikulerSessionExport implements FromCollection, ShouldAutoSize, Wi
 
     public function styles(Worksheet $sheet): array
     {
-        $lastRow = max(1, $this->rowNumber + 1);
+        $lastRow = max(1, count($this->sessions) + 1);
 
         // Header style row height
         $sheet->getRowDimension(1)->setRowHeight(26);
 
-        // Center alignments
-        $sheet->getStyle("A2:B{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle("D2:E{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        // Center alignments: D (Rombel), E (Pertemuan), F (Jam Mulai), H (Jml Siswa), L (Status Jadwal)
+        $sheet->getStyle("D2:F{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle("H2:H{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle("L2:L{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle("N2:N{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // Thin borders for entire table
-        $sheet->getStyle("A1:N{$lastRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('CBD5E1');
+        // Thin borders for entire table (A1:L{$lastRow})
+        $sheet->getStyle("A1:L{$lastRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('CBD5E1');
 
         return [
             1 => [

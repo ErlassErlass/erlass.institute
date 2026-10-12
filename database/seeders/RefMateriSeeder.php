@@ -225,15 +225,65 @@ class RefMateriSeeder extends Seeder
 
         // Category aliases mapping to ensure matching under any variation
         $categoryAliases = [
-            'Coding Scratch' => ['Ekskul Coding Scratch'],
-            'English Course' => ['Ekskul English Course'],
-            'Pameran' => ['Ekskul Pameran'],
-            'Pendampingan Lomba' => ['Ekskul Pendampingan Lomba'],
-            'Pictoblox AI' => ['Ekskul Pictoblox AI'],
-            'Robotika Jimu' => ['Robotik Jimu', 'Ekskul Robotik Jimu', 'Ekskul Robotika Jimu'],
-            'Robotika micro:bit' => ['Micro:bit Learning Kit', 'Robotik Microbit Learning Kit', 'Ekskul Robotik Microbit Learning Kit', 'Robotik micro:bit', 'Ekskul Robotika micro:bit'],
-            'Robotika Robotic Explorer' => ['Robotik Explorer', 'Robotik Robotic Explorer', 'Ekskul Robotik Explorer', 'Ekskul Robotika Robotic Explorer'],
-            'Erboblox' => ['Robotik Erboblox', 'Ekskul Erboblox', 'Ekskul Robotik Erboblox', 'Robotika Erboblox', 'Ekskul Robotika Erboblox'],
+            'Coding Scratch' => [
+                'Ekskul Coding Scratch',
+                'Pelatihan Coding Scratch',
+            ],
+            'English Course' => [
+                'Ekskul English Course',
+                'Pelatihan English Course',
+            ],
+            'Pameran' => [
+                'Ekskul Pameran',
+                'Pelatihan Pameran',
+            ],
+            'Pendampingan Lomba' => [
+                'Ekskul Pendampingan Lomba',
+                'Pelatihan Pendampingan Lomba',
+            ],
+            'Pictoblox AI' => [
+                'Ekskul Pictoblox AI',
+                'Pelatihan Pictoblox AI',
+            ],
+            'Robotika Jimu' => [
+                'Robotik Jimu',
+                'Ekskul Robotik Jimu',
+                'Ekskul Robotika Jimu',
+                'Pelatihan Robotik Jimu',
+                'Pelatihan Robotika Jimu',
+            ],
+            'Robotika micro:bit' => [
+                'Micro:bit Learning Kit',
+                'Robotik Microbit Learning Kit',
+                'Ekskul Robotik Microbit Learning Kit',
+                'Robotik micro:bit',
+                'Ekskul Robotika micro:bit',
+                'Pelatihan Robotik Microbit Learning Kit',
+                'Pelatihan Robotik Microbit Beginner',
+                'Pelatihan Robotik micro:bit',
+                'Pelatihan Robotika micro:bit',
+                'Pelatihan Robotika Microbit Learning Kit',
+            ],
+            'Robotika Robotic Explorer' => [
+                'Robotik Explorer',
+                'Robotik Robotic Explorer',
+                'Ekskul Robotik Explorer',
+                'Ekskul Robotika Robotic Explorer',
+                'Pelatihan Robotik Explorer',
+                'Pelatihan Robotika Explorer',
+                'Pelatihan Robotik Robotic Explorer',
+                'Pelatihan Robotika Robotic Explorer',
+            ],
+            'Erboblox' => [
+                'Robotik Erboblox',
+                'Ekskul Erboblox',
+                'Ekskul Robotik Erboblox',
+                'Robotika Erboblox',
+                'Ekskul Robotika Erboblox',
+                'Pelatihan Erboblox',
+                'Pelatihan Robotik Erboblox',
+                'Pelatihan Robotika Erboblox',
+            ],
         ];
 
         $finalData = [];
