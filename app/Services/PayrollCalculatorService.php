@@ -769,5 +769,131 @@ class PayrollCalculatorService
             ];
         });
     }
+
+    /**
+     * Hitung ulang satu PayrollItem berdasarkan seluruh PayrollItemSession yang dimilikinya.
+     */
+    public function recalculateSingleItem(PayrollItem $item): void
+    {
+        $item->load([
+            'payrollItemSessions.session.ekstrakurikuler.sekolah',
+            'payrollItemSessions.session.rombel',
+            'payrollItemSessions.session.laporanMengajar.absensi'
+        ]);
+
+        $totalBaseFee = 0.00;
+        $totalAsistenFee = 0.00;
+        $totalProductBonus = 0.00;
+        $totalPenalty = 0.00;
+        $totalTransportFee = 0.00;
+        $totalUtamaSessions = 0;
+        $totalAsistenSessions = 0;
+        $transportPaidKeys = [];
+
+        $sortedItemSessions = $item->payrollItemSessions->sortBy(function ($itemSession) {
+            $s = $itemSession->session;
+            if (!$s) return '9999-12-31';
+            $date = $s->tanggal_pelaksanaan
+                ? \Carbon\Carbon::parse($s->tanggal_pelaksanaan)->toDateString()
+                : ($s->tanggal_terjadwal ? \Carbon\Carbon::parse($s->tanggal_terjadwal)->toDateString() : '9999-12-31');
+            $time = $s->jam_mulai_terjadwal ? \Carbon\Carbon::parse($s->jam_mulai_terjadwal)->toTimeString() : '00:00:00';
+            return $date . ' ' . $time . ' ' . str_pad($s->id, 8, '0', STR_PAD_LEFT);
+        });
+
+        foreach ($sortedItemSessions as $itemSession) {
+            $session = $itemSession->session;
+            if (!$session) {
+                continue;
+            }
+
+            $role = $itemSession->role ?? 'utama';
+            $calc = $this->calculateSessionFee($session, $role);
+
+            $sessionDate = $session->tanggal_pelaksanaan
+                ? Carbon::parse($session->tanggal_pelaksanaan)->toDateString()
+                : ($session->tanggal_terjadwal ? Carbon::parse($session->tanggal_terjadwal)->toDateString() : 'unknown');
+            $sekolahKey = $session->ekstrakurikuler?->sekolah_kodlan ?? 'default';
+
+            $transportKey = $sekolahKey . '|' . $sessionDate;
+
+            $transportFee = 0.00;
+            if (!isset($transportPaidKeys[$transportKey])) {
+                $transportFee = (float) $calc['transport_fee'];
+                $transportPaidKeys[$transportKey] = true;
+            }
+
+            if ($role === 'utama') {
+                $totalUtamaSessions++;
+                $isDuplicateZero = ((float)$itemSession->base_fee == 0.00 && $session->override_fee === null && $itemSession->override_fee === null);
+
+                $sessionBaseFee = $isDuplicateZero
+                    ? 0.00
+                    : ($itemSession->override_fee !== null ? (float)$itemSession->override_fee : (float)$calc['calculated_fee']);
+
+                $penaltyFee = (float)$calc['actual_checkin_penalty'];
+                $bonusFee = (float)$calc['product_bonus'];
+
+                $itemSession->update([
+                    'base_fee' => $sessionBaseFee,
+                    'transport_fee' => $transportFee,
+                    'penalty_fee' => $penaltyFee,
+                    'bonus_fee' => $bonusFee,
+                    'net_fee' => max(0.00, $sessionBaseFee + $transportFee - $penaltyFee),
+                ]);
+
+                $session->update([
+                    'actual_checkin_status' => $calc['actual_checkin_status'],
+                    'actual_checkin_penalty' => $penaltyFee,
+                    'calculated_fee' => $sessionBaseFee,
+                    'transport_fee' => $transportFee,
+                    'payment_status' => 'processing',
+                    'payroll_item_id' => $item->id,
+                ]);
+
+                $totalBaseFee += $sessionBaseFee;
+                $totalPenalty += $penaltyFee;
+                $totalProductBonus += $bonusFee;
+                $totalTransportFee += $transportFee;
+            } else {
+                $totalAsistenSessions++;
+                $asistenFee = $itemSession->override_fee !== null ? (float)$itemSession->override_fee : (float)$calc['calculated_fee'];
+
+                $itemSession->update([
+                    'base_fee' => $asistenFee,
+                    'transport_fee' => $transportFee,
+                    'penalty_fee' => 0.00,
+                    'bonus_fee' => 0.00,
+                    'net_fee' => max(0.00, $asistenFee + $transportFee),
+                ]);
+
+                $session->update([
+                    'transport_fee' => $transportFee,
+                    'payment_status' => 'processing',
+                ]);
+
+                $totalAsistenFee += $asistenFee;
+                $totalTransportFee += $transportFee;
+            }
+        }
+
+        $totalSessions = $totalUtamaSessions + $totalAsistenSessions;
+        $totalGrossSalary = $totalBaseFee + $totalAsistenFee + $totalProductBonus + $totalTransportFee;
+        $taxAmount = round($totalGrossSalary * 0.025);
+        $netSalary = max(0.00, round($totalGrossSalary * 0.975) - $totalPenalty);
+
+        $item->update([
+            'total_sessions' => $totalSessions,
+            'total_sessions_utama' => $totalUtamaSessions,
+            'total_sessions_asisten' => $totalAsistenSessions,
+            'total_base_fee' => $totalBaseFee,
+            'total_asisten_fee' => $totalAsistenFee,
+            'total_product_bonus' => $totalProductBonus,
+            'total_transport_fee' => $totalTransportFee,
+            'total_gross_salary' => $totalGrossSalary,
+            'tax_amount' => $taxAmount,
+            'total_penalty' => $totalPenalty,
+            'net_salary' => $netSalary,
+        ]);
+    }
 }
 

@@ -16,9 +16,19 @@
         <h5 class="mb-0 fw-bold text-dark">Rincian Slip Gaji</h5>
     </div>
 
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
 
-
-    <div class="row g-4">
         <!-- Receipt Card (Official Erlass Slip Structure) -->
         <div class="col-lg-5">
             <div class="card shadow-sm border-0 h-100 bg-white">
@@ -166,9 +176,22 @@
 
         <!-- Sessions List Table -->
         <div class="col-lg-7">
+            @php
+                $sessionEntries = $item->payrollItemSessions->isNotEmpty()
+                    ? $item->payrollItemSessions
+                    : $item->sessions;
+            @endphp
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-white py-3 border-bottom">
-                    <h5 class="card-title mb-0 fw-bold text-dark">Rincian Sesi Mengajar Terhitung</h5>
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title mb-0 fw-bold text-dark">Rincian Sesi Mengajar Terhitung</h5>
+                        <small class="text-muted">Total: {{ $sessionEntries->count() }} Sesi Terhitung</small>
+                    </div>
+                    @if(in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin']) && optional($item->batch)->status !== 'paid')
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addSessionModal">
+                            <i class="bi bi-plus-circle me-1"></i> Tambah Sesi ke Slip
+                        </button>
+                    @endif
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -182,16 +205,11 @@
                                     <th class="text-end">Transport</th>
                                     <th class="text-end">Denda</th>
                                     @if(in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin']))
-                                        <th class="text-center">Koreksi</th>
+                                        <th class="text-center">Aksi / Koreksi</th>
                                     @endif
                                 </tr>
                             </thead>
                             <tbody>
-                                @php
-                                    $sessionEntries = $item->payrollItemSessions->isNotEmpty()
-                                        ? $item->payrollItemSessions
-                                        : $item->sessions;
-                                @endphp
                                 @foreach ($sessionEntries as $entry)
                                     @php
                                         $session = ($entry instanceof \App\Models\PayrollItemSession) ? $entry->session : $entry;
@@ -253,24 +271,34 @@
                                         </td>
                                         @if(in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin']))
                                             <td class="text-center">
-                                                @if($item->status === 'pending' && $role === 'utama')
-                                                    <form method="POST" action="{{ route('ekstrakurikuler.sessions.override-fee', $session->id) }}" class="d-flex justify-content-center align-items-center gap-1">
-                                                        @csrf
-                                                        <input 
-                                                             type="number" 
-                                                             name="override_fee" 
-                                                             class="form-control form-control-sm text-center" 
-                                                             style="width: 85px;" 
-                                                             placeholder="Override" 
-                                                             value="{{ $session->override_fee }}"
-                                                        >
-                                                        <button type="submit" class="btn btn-sm btn-primary" title="Terapkan">
-                                                            <i class="bi bi-check-lg"></i>
-                                                        </button>
-                                                    </form>
-                                                @else
-                                                    <span class="text-muted small italic">-</span>
-                                                @endif
+                                                <div class="d-flex justify-content-center align-items-center gap-1">
+                                                    @if($item->status === 'pending' && $role === 'utama')
+                                                        <form method="POST" action="{{ route('ekstrakurikuler.sessions.override-fee', $session->id) }}" class="d-inline-flex align-items-center gap-1">
+                                                            @csrf
+                                                            <input 
+                                                                 type="number" 
+                                                                 name="override_fee" 
+                                                                 class="form-control form-control-sm text-center" 
+                                                                 style="width: 80px;" 
+                                                                 placeholder="Override" 
+                                                                 value="{{ $session->override_fee }}"
+                                                            >
+                                                            <button type="submit" class="btn btn-sm btn-primary" title="Terapkan Override">
+                                                                <i class="bi bi-check-lg"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
+
+                                                    @if(optional($item->batch)->status !== 'paid')
+                                                        <form method="POST" action="{{ route('admin.payroll.items.detach-session', [$item->id, $session->id]) }}" onsubmit="return confirm('Apakah Anda yakin ingin melepas Sesi #{{ $session->id }} dari slip gaji ini? Sesi akan kembali berstatus Unpaid.')" class="d-inline">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Lepas Sesi dari Slip">
+                                                                <i class="bi bi-x-circle"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                </div>
                                             </td>
                                         @endif
                                     </tr>
@@ -283,5 +311,108 @@
         </div>
     </div>
 </div>
+
+@if(in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin']) && optional($item->batch)->status !== 'paid')
+<!-- Modal Tambah Sesi ke Slip -->
+<div class="modal fade" id="addSessionModal" tabindex="-1" aria-labelledby="addSessionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <form method="POST" action="{{ route('admin.payroll.items.attach-session', $item->id) }}">
+                @csrf
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="addSessionModalLabel">
+                        <i class="bi bi-plus-circle me-1"></i> Tambah Sesi Mengajar ke Slip Gaji
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    @php
+                        $period = \Carbon\Carbon::parse($item->batch->periode);
+                        $cutoffStr = $period->copy()->day(10)->format('d F Y');
+                    @endphp
+                    <div class="alert alert-info py-2 px-3 small mb-3">
+                        <i class="bi bi-info-circle me-1"></i> 
+                        Menampilkan sesi mengajar milik <strong>{{ $item->instruktur->nama_lengkap }}</strong> yang berstatus <strong>Selesai</strong>, belum pernah dibayar (<strong>Unpaid</strong>), dan bertanggal sebelum/pada batas cutoff 
+                        <strong>({{ $cutoffStr }})</strong>.
+                    </div>
+
+                    @if(!isset($eligibleSessions) || $eligibleSessions->isEmpty())
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            <p class="mb-0 fw-semibold">Tidak ada sesi mengajar selesai yang belum terbayar untuk instruktur ini sebelum tanggal cutoff.</p>
+                            <small class="text-muted">Pastikan laporan mengajar sesi sudah disubmit oleh instruktur dan tidak melebihi tanggal 10 periode ini.</small>
+                        </div>
+                    @else
+                        <div class="table-responsive" style="max-height: 380px;">
+                            <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th width="50" class="text-center">Pilih</th>
+                                        <th>Sesi / Sekolah</th>
+                                        <th>Jadwal / Rombel</th>
+                                        <th class="text-center">Peran</th>
+                                        <th class="text-end">Estimasi Honor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($eligibleSessions as $eligSession)
+                                        @php
+                                            $isUtama = ($eligSession->user_id_instruktur == $item->user_id_instruktur);
+                                            $eligRole = $isUtama ? 'utama' : 'asisten';
+                                            $calcPreview = app(\App\Services\PayrollCalculatorService::class)->calculateSessionFee($eligSession, $eligRole);
+                                            $estHonor = (float) $calcPreview['calculated_fee'] + (float) $calcPreview['transport_fee'] - (float) $calcPreview['actual_checkin_penalty'];
+                                            $sessDate = $eligSession->tanggal_pelaksanaan ? $eligSession->tanggal_pelaksanaan->format('d/m/Y') : ($eligSession->tanggal_terjadwal ? $eligSession->tanggal_terjadwal->format('d/m/Y') : '-');
+                                        @endphp
+                                        <tr>
+                                            <td class="text-center">
+                                                <input 
+                                                    class="form-check-input" 
+                                                    type="radio" 
+                                                    name="session_id" 
+                                                    id="session_radio_{{ $eligSession->id }}" 
+                                                    value="{{ $eligSession->id }}" 
+                                                    required
+                                                >
+                                            </td>
+                                            <td>
+                                                <label class="form-check-label fw-bold text-dark d-block" for="session_radio_{{ $eligSession->id }}" style="cursor: pointer;">
+                                                    Pertemuan Ke-{{ $eligSession->nomor_pertemuan }} (ID #{{ $eligSession->id }})
+                                                </label>
+                                                <small class="text-muted">{{ optional(optional($eligSession->ekstrakurikuler)->sekolah)->namasekolah ?? 'Sekolah' }}</small>
+                                            </td>
+                                            <td>
+                                                <div class="fw-semibold text-dark">{{ optional($eligSession->rombel)->nama_rombel ?? '-' }}</div>
+                                                <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{ $sessDate }}</small>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge {{ $eligRole === 'asisten' ? 'bg-info bg-opacity-25 text-dark border border-info' : 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25' }} px-2 py-1">
+                                                    {{ $eligRole === 'asisten' ? 'Asisten' : 'Utama' }}
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="fw-bold text-success">Rp {{ number_format($estHonor, 0, ',', '.') }}</div>
+                                                <small class="text-muted">Transport: Rp {{ number_format($calcPreview['transport_fee'], 0, ',', '.') }}</small>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    @if(isset($eligibleSessions) && $eligibleSessions->isNotEmpty())
+                        <button type="submit" class="btn btn-primary fw-semibold">
+                            <i class="bi bi-plus-lg me-1"></i> Tambahkan ke Slip & Hitung Ulang
+                        </button>
+                    @endif
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 @endsection
+
 

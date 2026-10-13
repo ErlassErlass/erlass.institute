@@ -2,6 +2,27 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.59] - 2026-10-13
+
+### Fitur Penambahan & Pelepasan Sesi Mengajar Susulan pada Rincian Slip Gaji Payroll
+
+#### 1. Tombol & Modal Interaktif Tambah Sesi ke Slip Gaji (`payroll/slip_detail.blade.php`, `PayrollController.php`, `PayrollCalculatorService.php`, `routes/web.php`)
+- **Penambahan Sesi Susulan Secara Presisi Tanpa Reset Seluruh Batch**:
+  - Menyediakan tombol `[+ Tambah Sesi ke Slip]` pada header tabel rincian sesi di halaman detail slip gaji (`/payroll/slip/{id}`), khusus untuk akun Admin/Webmaster saat batch belum berstatus `paid`.
+  - Membuka modal dialog yang menampilkan seluruh sesi mengajar milik instruktur terkait yang berstatus `selesai` (memiliki laporan mengajar yang valid/disetujui), berstatus `unpaid`, dan bertanggal $\le$ batas cutoff batch (tanggal 10 bulan berjalan).
+  - Melengkapi modal dengan estimasi rincian honor, uang transport, dan peran mengajar (Instruktur Utama vs Asisten).
+- **Kalkulasi Ulang Otomatis & Terintegrasi ke Laporan Akunting**:
+  - Saat sesi ditambahkan: otomatis mencatat penugasan ke `payroll_item_session`, mengubah status sesi menjadi `processing`, dan memicu kalkulasi ulang single item (`recalculateSingleItem()`).
+  - Menghitung ulang total sesi, honor dasar, transport (dengan aturan anti-duplikasi transport jika di hari/sekolah yang sama), denda check-in, pajak PPh 21 (2,5%), dan gaji bersih (`net_salary`).
+  - Sesi yang ditambahkan otomatis terintegrasi penuh ke seluruh format export akunting (Excel Sheet 1 Rekap Bank, Sheet 2 Rekap Payroll, Sheet 3 Rincian Sesi Mengajar, serta CSV dan PDF).
+- **Proteksi Batas Cutoff & Anti-Double Claim**:
+  - Membatasi pemilihan hanya untuk sesi bertanggal $\le$ batas cutoff periode batch agar tidak melompati periode akuntansi bulan berjalan.
+  - Memastikan sesi belum pernah terdaftar di slip gaji periode mana pun (`whereDoesntHave('payrollItemSessions')`) untuk mencegah pembayaran ganda.
+  - Menyediakan tombol hapus/lepas `[Lepas Sesi]` pada tabel rincian sesi untuk membatalkan penambahan dan mengembalikan status sesi menjadi `unpaid` jika terjadi kekeliruan admin.
+  - Pencatatan lengkap di `activity_logs` untuk setiap aksi tambah dan lepas sesi.
+- **Pengujian Otomatis Feature Test**:
+  - Menambahkan pengujian komprehensif pada [`PayrollSlipAttachSessionTest.php`](file:///var/www/webapperlass/tests/Feature/PayrollSlipAttachSessionTest.php) mencakup pengujian view slip dengan modal sesi eligible, eksekusi penambahan sesi & rekalkulasi honor, validasi penolakan sesi yang melewati tanggal cutoff, serta pelepasan sesi kembali ke status unpaid (100% pass, 4 tests, 20 assertions).
+
 ## [2.9.58] - 2026-10-12
 
 ### Penyelarasan Dropdown Pilihan Kompetensi pada Formulir Edit User

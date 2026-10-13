@@ -387,6 +387,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('payroll/batches/{batch}/recalculate', [PayrollController::class, 'recalculateBatch'])->name('payroll.batches.recalculate');
         Route::post('payroll/batches/{batch}/pay', [PayrollController::class, 'payBatch'])->name('payroll.batches.pay');
         Route::delete('payroll/batches/{batch}', [PayrollController::class, 'destroyBatch'])->name('payroll.batches.destroy');
+        Route::post('payroll/items/{item}/sessions', [PayrollController::class, 'attachSession'])->name('payroll.items.attach-session');
+        Route::delete('payroll/items/{item}/sessions/{session}', [PayrollController::class, 'detachSession'])->name('payroll.items.detach-session');
 
         // Kalender Nasional - Hari Libur (Admin Only)
         Route::get('holidays', [HolidayController::class, 'index'])->name('holidays.index');

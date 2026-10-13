@@ -305,7 +305,191 @@ class PayrollController extends Controller
             abort(403, 'Slip gaji ini masih dalam tahap Draf/Perhitungan dan belum diverifikasi oleh Admin.');
         }
 
-        return view('payroll.slip_detail', compact('item'));
+        $eligibleSessions = collect();
+        if ($isAdmin && optional($item->batch)->status !== 'paid') {
+            $period = Carbon::parse($item->batch->periode);
+            $cutoffEnd = $period->copy()->day(10)->endOfDay();
+
+            $eligibleSessions = EkstrakurikulerSession::with([
+                'ekstrakurikuler.sekolah',
+                'rombel',
+                'laporanMengajar.absensi'
+            ])
+            ->where('status', EkstrakurikulerSession::STATUS_SELESAI)
+            ->where('payment_status', 'unpaid')
+            ->where(function ($q) use ($item) {
+                $q->where('user_id_instruktur', $item->user_id_instruktur)
+                  ->orWhere('user_id_asisten', $item->user_id_instruktur);
+            })
+            ->where(function ($q) use ($cutoffEnd) {
+                $q->where('tanggal_pelaksanaan', '<=', $cutoffEnd)
+                  ->orWhere(function ($sub) use ($cutoffEnd) {
+                      $sub->whereNull('tanggal_pelaksanaan')
+                          ->where('tanggal_terjadwal', '<=', $cutoffEnd);
+                  });
+            })
+            ->whereDoesntHave('payrollItemSessions', function ($q) use ($item) {
+                $q->where('user_id', $item->user_id_instruktur);
+            })
+            ->whereHas('laporanMengajar', function ($lq) {
+                $lq->where(function ($sub) {
+                    $sub->whereNull('metadata_json->status_approval_kendala')
+                        ->orWhere('metadata_json->status_approval_kendala', 'approved');
+                });
+            })
+            ->orderBy('tanggal_pelaksanaan', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+        }
+
+        return view('payroll.slip_detail', compact('item', 'eligibleSessions'));
+    }
+
+    /**
+     * Tambahkan sesi mengajar ke dalam slip gaji spesifik (Admin).
+     */
+    public function attachSession(Request $request, $id)
+    {
+        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $request->validate([
+            'session_id' => 'required|integer|exists:ekstrakurikuler_session,id',
+            'role' => 'nullable|in:utama,asisten',
+        ]);
+
+        $item = PayrollItem::with('batch', 'instruktur')->findOrFail($id);
+
+        if (optional($item->batch)->status === 'paid') {
+            return back()->with('error', 'Batch Payroll sudah berstatus Paid (Lunas) dan tidak dapat diubah.');
+        }
+
+        $session = EkstrakurikulerSession::with(['laporanMengajar', 'ekstrakurikuler.sekolah', 'rombel'])->findOrFail($request->session_id);
+
+        // Validasi 1: Status sesi harus selesai & memiliki laporan mengajar
+        if ($session->status !== EkstrakurikulerSession::STATUS_SELESAI || !$session->laporanMengajar) {
+            return back()->with('error', 'Sesi #' . $session->id . ' belum berstatus Selesai atau belum memiliki laporan mengajar.');
+        }
+
+        // Validasi 2: Status bayar harus unpaid
+        if ($session->payment_status === 'paid') {
+            return back()->with('error', 'Sesi #' . $session->id . ' sudah pernah dibayarkan sebelumnya.');
+        }
+
+        // Validasi 3: Cek apakah sesi sudah ada di slip manapun untuk instruktur ini
+        $alreadyAttached = \App\Models\PayrollItemSession::where('ekstrakurikuler_session_id', $session->id)
+            ->where('user_id', $item->user_id_instruktur)
+            ->exists();
+        if ($alreadyAttached) {
+            return back()->with('error', 'Sesi #' . $session->id . ' sudah tercatat di dalam slip gaji instruktur ini.');
+        }
+
+        // Validasi 4: Batas cutoff periode batch
+        $period = Carbon::parse($item->batch->periode);
+        $cutoffEnd = $period->copy()->day(10)->endOfDay();
+        $sessionDate = $session->tanggal_pelaksanaan ?? $session->tanggal_terjadwal;
+        if ($sessionDate && Carbon::parse($sessionDate)->gt($cutoffEnd)) {
+            return back()->with('error', 'Sesi #' . $session->id . ' bertanggal ' . Carbon::parse($sessionDate)->format('d/m/Y') . ' (melewati batas cutoff ' . $cutoffEnd->format('d/m/Y') . ') dan dialokasikan untuk periode berikutnya.');
+        }
+
+        // Tentukan peran mengajar
+        $role = $request->role;
+        if (!$role) {
+            if ($session->user_id_instruktur == $item->user_id_instruktur) {
+                $role = 'utama';
+            } elseif ($session->user_id_asisten == $item->user_id_instruktur) {
+                $role = 'asisten';
+            } else {
+                return back()->with('error', 'Instruktur ini bukan pengajar utama maupun asisten pada Sesi #' . $session->id . '.');
+            }
+        }
+
+        // Buat PayrollItemSession
+        \App\Models\PayrollItemSession::create([
+            'payroll_item_id' => $item->id,
+            'ekstrakurikuler_session_id' => $session->id,
+            'user_id' => $item->user_id_instruktur,
+            'role' => $role,
+            'base_fee' => 0,
+            'transport_fee' => 0,
+            'penalty_fee' => 0,
+            'bonus_fee' => 0,
+            'net_fee' => 0,
+        ]);
+
+        // Update sesi
+        $session->update([
+            'payment_status' => 'processing',
+            'payroll_item_id' => $item->id,
+        ]);
+
+        // Hitung ulang slip
+        $this->calculator->recalculateSingleItem($item);
+
+        // Log aktivitas
+        \App\Models\ActivityLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'attach_session_to_payroll_slip',
+            'description' => 'Admin ' . auth()->user()->nama_lengkap . ' menambahkan Sesi #' . $session->id . ' (' . ($role === 'asisten' ? 'Asisten' : 'Utama') . ') ke Slip Gaji #' . $item->id . ' (' . optional($item->instruktur)->nama_lengkap . ') Batch ' . optional($item->batch)->code,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
+        return redirect()->route('payroll.slip.show', $item->id)
+            ->with('success', 'Sesi #' . $session->id . ' berhasil ditambahkan ke slip gaji dan honor telah diperbarui!');
+    }
+
+    /**
+     * Lepaskan sesi mengajar dari slip gaji (Admin).
+     */
+    public function detachSession(Request $request, $id, $sessionId)
+    {
+        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $item = PayrollItem::with('batch', 'instruktur')->findOrFail($id);
+
+        if (optional($item->batch)->status === 'paid') {
+            return back()->with('error', 'Batch Payroll sudah berstatus Paid (Lunas) dan sesi tidak dapat dilepas.');
+        }
+
+        $itemSession = \App\Models\PayrollItemSession::where('payroll_item_id', $item->id)
+            ->where('ekstrakurikuler_session_id', $sessionId)
+            ->where('user_id', $item->user_id_instruktur)
+            ->first();
+
+        if (!$itemSession) {
+            return back()->with('error', 'Sesi #' . $sessionId . ' tidak ditemukan pada slip gaji ini.');
+        }
+
+        $itemSession->delete();
+
+        // Cek apakah ada penugasan lain (misal asisten) pada sesi ini di batch yang sama
+        $otherAssignmentsExist = \App\Models\PayrollItemSession::where('ekstrakurikuler_session_id', $sessionId)->exists();
+        $session = EkstrakurikulerSession::find($sessionId);
+        if ($session && !$otherAssignmentsExist) {
+            $session->update([
+                'payment_status' => 'unpaid',
+                'payroll_item_id' => null,
+            ]);
+        }
+
+        // Hitung ulang slip
+        $this->calculator->recalculateSingleItem($item);
+
+        // Log aktivitas
+        \App\Models\ActivityLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'detach_session_from_payroll_slip',
+            'description' => 'Admin ' . auth()->user()->nama_lengkap . ' melepas Sesi #' . $sessionId . ' dari Slip Gaji #' . $item->id . ' (' . optional($item->instruktur)->nama_lengkap . ') Batch ' . optional($item->batch)->code,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
+        return redirect()->route('payroll.slip.show', $item->id)
+            ->with('success', 'Sesi #' . $sessionId . ' berhasil dilepas dari slip gaji.');
     }
 
     /**
