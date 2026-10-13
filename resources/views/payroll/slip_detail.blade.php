@@ -29,6 +29,7 @@
         </div>
     @endif
 
+    <div class="row g-4">
         <!-- Receipt Card (Official Erlass Slip Structure) -->
         <div class="col-lg-5">
             <div class="card shadow-sm border-0 h-100 bg-white">

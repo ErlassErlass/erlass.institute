@@ -2,6 +2,16 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.60] - 2026-10-13
+
+### Perbaikan Layout Grid & Struktur Tampilan Halaman Slip Gaji Payroll
+
+#### 1. Perbaikan Pembungkus Grid Row (`resources/views/payroll/slip_detail.blade.php`)
+- **Restorasi Tag `<div class="row g-4">`**:
+  - Mengembalikan tag wrapper grid `.row.g-4` yang mengapit kartu slip resmi (`.col-lg-5`) dan tabel rincian sesi mengajar (`.col-lg-7`).
+  - Memperbaiki ketidakseimbangan penutup kontainer yang sebelumnya menyebabkan tabel rincian sesi jatuh ke bawah dan tata letak kolom melebar/rusak.
+  - Tampilan desktop kembali berdampingan rapi secara proporsional (5/12 kartu slip tanda terima dan 7/12 tabel rincian sesi), serta tetap responsif pada layar mobile/tablet.
+
 ## [2.9.59] - 2026-10-13
 
 ### Fitur Penambahan & Pelepasan Sesi Mengajar Susulan pada Rincian Slip Gaji Payroll
