@@ -6,11 +6,15 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
 ### Perbaikan Layout Grid & Struktur Tampilan Halaman Slip Gaji Payroll
 
-#### 1. Perbaikan Pembungkus Grid Row (`resources/views/payroll/slip_detail.blade.php`)
+#### 1. Perbaikan Pembungkus Grid Row & Penempatan Modal (`resources/views/payroll/slip_detail.blade.php`)
 - **Restorasi Tag `<div class="row g-4">`**:
   - Mengembalikan tag wrapper grid `.row.g-4` yang mengapit kartu slip resmi (`.col-lg-5`) dan tabel rincian sesi mengajar (`.col-lg-7`).
   - Memperbaiki ketidakseimbangan penutup kontainer yang sebelumnya menyebabkan tabel rincian sesi jatuh ke bawah dan tata letak kolom melebar/rusak.
   - Tampilan desktop kembali berdampingan rapi secara proporsional (5/12 kartu slip tanda terima dan 7/12 tabel rincian sesi), serta tetap responsif pada layar mobile/tablet.
+- **Perbaikan Penempatan Modal (`@push('modals')` & `z-index: 1060`)**:
+  - Memindahkan elemen `<div class="modal fade" id="addSessionModal">` ke dalam `@push('modals')` di luar elemen `<main>`.
+  - Mengatasi konflik CSS *stacking context* yang membuat backdrop gelap/blur Bootstrap menutupi kotak dialog modal sehingga modal tampak buram/terkunci di belakang backdrop.
+  - Modal kini terbuka secara tajam, bersih, responsif, dan dapat langsung diklik interaktif.
 
 ## [2.9.59] - 2026-10-13
 

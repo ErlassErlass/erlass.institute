@@ -313,9 +313,12 @@
     </div>
 </div>
 
+@endsection
+
 @if(in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin']) && optional($item->batch)->status !== 'paid')
+@push('modals')
 <!-- Modal Tambah Sesi ke Slip -->
-<div class="modal fade" id="addSessionModal" tabindex="-1" aria-labelledby="addSessionModalLabel" aria-hidden="true">
+<div class="modal fade" id="addSessionModal" tabindex="-1" aria-labelledby="addSessionModalLabel" aria-hidden="true" style="z-index: 1060;">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <form method="POST" action="{{ route('admin.payroll.items.attach-session', $item->id) }}">
@@ -413,7 +416,7 @@
         </div>
     </div>
 </div>
+@endpush
 @endif
-@endsection
 
 
