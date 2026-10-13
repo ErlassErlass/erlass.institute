@@ -189,8 +189,8 @@ class PayrollTest extends TestCase
 
         $calcLate = $service->calculateSessionFee($sessionLate);
         $this->assertEquals('penalty', $calcLate['actual_checkin_status']);
-        $this->assertEquals(25000.00, $calcLate['actual_checkin_penalty']);
-        $this->assertEquals(175000.00, $calcLate['net_fee']);
+        $this->assertEquals(0.00, $calcLate['actual_checkin_penalty']); // Potongan keterlambatan ditiadakan
+        $this->assertEquals(200000.00, $calcLate['net_fee']);
 
         // Case 3: Student count < 8 (including 0 students) in regular ekskul session still paid minimum 75k
         $rombelSmall = EkstrakurikulerRombel::create([

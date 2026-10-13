@@ -341,7 +341,8 @@ class LaporanMengajar extends Model
                     $defaultJarak = \App\Models\Ekstrakurikuler::where('sekolah_kodlan', $this->sekolah_kodlan)
                         ->whereNotNull('jarak_km')
                         ->where('jarak_km', '>', 0)
-                        ->value('jarak_km');
+                        ->value('jarak_km')
+                        ?: \App\Models\Sekolah::where('kodlan', $this->sekolah_kodlan)->value('jarak_km');
 
                     $ekskul = \App\Models\Ekstrakurikuler::create([
                         'sekolah_kodlan' => $this->sekolah_kodlan,
@@ -382,7 +383,8 @@ class LaporanMengajar extends Model
                     $defaultJarak = \App\Models\Ekstrakurikuler::where('sekolah_kodlan', $this->sekolah_kodlan)
                         ->whereNotNull('jarak_km')
                         ->where('jarak_km', '>', 0)
-                        ->value('jarak_km');
+                        ->value('jarak_km')
+                        ?: \App\Models\Sekolah::where('kodlan', $this->sekolah_kodlan)->value('jarak_km');
 
                     $ekskul = \App\Models\Ekstrakurikuler::create([
                         'sekolah_kodlan' => $this->sekolah_kodlan,

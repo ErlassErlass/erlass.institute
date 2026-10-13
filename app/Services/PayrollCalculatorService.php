@@ -24,9 +24,9 @@ class PayrollCalculatorService
 
     /**
      * Flag penegakan denda keterlambatan check-in (>= 15 menit).
-     * Sesuai Memo Resmi No. 536/EPI/V/2025.
+     * Dinonaktifkan sesuai arahan manajemen (potongan keterlambatan ditiadakan).
      */
-    const ENABLE_LATE_PENALTY = true;
+    const ENABLE_LATE_PENALTY = false;
 
     /**
      * Daftar 21 KodLan Sekolah Mitra dengan skema honor flat Rp 100.000 / sesi.
