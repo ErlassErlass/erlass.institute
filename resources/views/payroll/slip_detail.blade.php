@@ -195,6 +195,14 @@
                     @endif
                 </div>
                 <div class="card-body p-0">
+                    <div class="px-3 pt-3">
+                        <div class="alert alert-light border small text-muted mb-0 py-2 px-3 d-flex align-items-center gap-2" style="background-color: #f8fafc;">
+                            <i class="bi bi-info-circle text-primary fs-6"></i>
+                            <div>
+                                <strong>Ketentuan Transport:</strong> Jika mengajar lebih dari 1 sesi/rombel di sekolah yang sama pada hari yang sama, uang transport dihitung 1x di sesi pertama dan sesi berikutnya bertanda <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 py-1 px-2" style="font-size: 0.72rem;"><i class="bi bi-link-45deg me-1"></i>Multi-Rombel (1x/Hari)</span>.
+                            </div>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table class="table align-middle mb-0" style="font-size: 0.88rem;">
                             <thead class="table-light">
@@ -237,6 +245,25 @@
                                         $displayTitle = $isAdHocSess
                                             ? ($session->laporanMengajar->kategori_pengajaran ?? $session->topik_materi ?? 'Kegiatan Khusus / Ad-Hoc')
                                             : 'Pertemuan Ke-' . $session->nomor_pertemuan;
+
+                                        $sessDate = $session->tanggal_pelaksanaan ? $session->tanggal_pelaksanaan->format('Y-m-d') : ($session->tanggal_terjadwal ? $session->tanggal_terjadwal->format('Y-m-d') : null);
+                                        $sekolahKodlan = optional($session->ekstrakurikuler)->sekolah_kodlan ?? 'default';
+
+                                        // Deteksi apakah sesi ini Rp 0 karena deduplikasi multi-rombel di hari & sekolah yang sama
+                                        $isMultiRombelSameDay = false;
+                                        if ((float)$transFee <= 0.00 && $sessDate) {
+                                            foreach ($sessionEntries as $otherEntry) {
+                                                $otherSess = ($otherEntry instanceof \App\Models\PayrollItemSession) ? $otherEntry->session : $otherEntry;
+                                                if (!$otherSess || $otherSess->id === $session->id) continue;
+                                                $otherDate = $otherSess->tanggal_pelaksanaan ? $otherSess->tanggal_pelaksanaan->format('Y-m-d') : ($otherSess->tanggal_terjadwal ? $otherSess->tanggal_terjadwal->format('Y-m-d') : null);
+                                                $otherKodlan = optional($otherSess->ekstrakurikuler)->sekolah_kodlan ?? 'default';
+                                                $otherTrans = ($otherEntry instanceof \App\Models\PayrollItemSession) ? (float)$otherEntry->transport_fee : (float)$otherSess->transport_fee;
+                                                if ($otherDate === $sessDate && $otherKodlan === $sekolahKodlan && $otherTrans > 0) {
+                                                    $isMultiRombelSameDay = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
                                     @endphp
                                     <tr>
                                         <td class="ps-3">
@@ -261,7 +288,18 @@
                                             @endif
                                         </td>
                                         <td class="text-end">
-                                            <span class="fw-semibold text-dark">Rp {{ number_format($transFee, 0, ',', '.') }}</span>
+                                            @if ((float)$transFee > 0)
+                                                <span class="fw-semibold text-dark">Rp {{ number_format($transFee, 0, ',', '.') }}</span>
+                                            @elseif ($isMultiRombelSameDay)
+                                                <div class="d-inline-flex flex-column align-items-end">
+                                                    <span class="text-muted fw-semibold" style="font-size: 0.88rem;">Rp 0</span>
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1 mt-1 text-nowrap" style="font-size: 0.68rem; font-weight: 500;" title="Biaya transport 1x per hari sudah terhitung pada sesi rombel lain di sekolah ini pada hari yang sama">
+                                                        <i class="bi bi-link-45deg me-1"></i>Multi-Rombel (1x/Hari)
+                                                    </span>
+                                                </div>
+                                            @else
+                                                <span class="text-muted">Rp 0</span>
+                                            @endif
                                         </td>
                                         <td class="text-end">
                                             @if ($penFee > 0)

@@ -300,6 +300,23 @@
                             ?? '-';
 
                         $peranDisplay = ($role === 'asisten') ? 'Asisten' : 'Instruktur';
+
+                        $sessDate = $session->tanggal_pelaksanaan ? $session->tanggal_pelaksanaan->format('Y-m-d') : ($session->tanggal_terjadwal ? $session->tanggal_terjadwal->format('Y-m-d') : null);
+                        $sekolahKodlan = optional($session->ekstrakurikuler)->sekolah_kodlan ?? 'default';
+
+                        $isMultiRombelSameDay = false;
+                        if ((float)$transFee <= 0.00 && $sessDate) {
+                            foreach ($item->payrollItemSessions as $otherEntry) {
+                                $otherSess = $otherEntry->session;
+                                if (!$otherSess || $otherSess->id === $session->id) continue;
+                                $otherDate = $otherSess->tanggal_pelaksanaan ? $otherSess->tanggal_pelaksanaan->format('Y-m-d') : ($otherSess->tanggal_terjadwal ? $otherSess->tanggal_terjadwal->format('Y-m-d') : null);
+                                $otherKodlan = optional($otherSess->ekstrakurikuler)->sekolah_kodlan ?? 'default';
+                                if ($otherDate === $sessDate && $otherKodlan === $sekolahKodlan && (float)$otherEntry->transport_fee > 0) {
+                                    $isMultiRombelSameDay = true;
+                                    break;
+                                }
+                            }
+                        }
                     @endphp
                     <tr>
                         <td class="text-center">{{ $sessNo++ }}</td>
@@ -316,7 +333,16 @@
                             <span class="badge {{ $role === 'asisten' ? 'bg-info text-dark' : 'bg-primary text-white' }}">{{ $peranDisplay }}</span>
                         </td>
                         <td class="text-end">Rp {{ number_format($baseFee, 0, ',', '.') }}</td>
-                        <td class="text-end">Rp {{ number_format($transFee, 0, ',', '.') }}</td>
+                        <td class="text-end">
+                            @if ((float)$transFee > 0)
+                                Rp {{ number_format($transFee, 0, ',', '.') }}
+                            @elseif ($isMultiRombelSameDay)
+                                <span style="color: #6c757d;">Rp 0</span><br>
+                                <span style="color: #0d6efd; font-size: 6.5pt; font-weight: 500;">(Multi-Rombel 1x/Hari)</span>
+                            @else
+                                Rp 0
+                            @endif
+                        </td>
                         <td class="text-end text-danger">{{ $penFee > 0 ? '-Rp ' . number_format($penFee, 0, ',', '.') : '-' }}</td>
                         <td class="text-end fw-bold">Rp {{ number_format($netFee, 0, ',', '.') }}</td>
                         <td class="text-center text-uppercase small">{{ $session->status }}</td>
