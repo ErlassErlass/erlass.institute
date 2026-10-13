@@ -2,6 +2,17 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.61] - 2026-10-13
+
+### Perbaikan Kalkulasi Ulang Honor Sesi Tambahan & Deduplikasi Rombel Payroll
+
+#### 1. Perbaikan Nilai Honor Dasar pada Penambahan & Rekalkulasi Sesi (`PayrollCalculatorService.php`, `PayrollController.php`)
+- **Penetapan Nilai Awal Saat Penambahan Sesi (`attachSession`)**:
+  - Menginisialisasi nilai `base_fee`, `transport_fee`, `penalty_fee`, dan `net_fee` saat instansiasi `PayrollItemSession` dengan nilai kalkulasi riil dari tarif sistem (bukan 0).
+- **Perbaikan Algoritma Deduplikasi Rombel (`recalculateSingleItem` & `recalculateBatch`)**:
+  - Mengganti pengecekan `base_fee == 0.00` yang sebelumnya membuat sesi baru/tambahan terkunci permanen di Rp 0 dengan pelacakan pasangan rombel & tanggal riil (`$rombelDatePaidKeys`).
+  - Sesi mengajar mandiri, sesi khusus seperti *Free Trial Class*, dan sesi yang ditambahkan susulan kini terkalkulasi dengan tarif honor utuh (misal: Rp 100.000 untuk Trial Class > 6 siswa), transport Rp 23.500, serta total penerimaan bersih slip terhitung secara akurat dan konsisten.
+
 ## [2.9.60] - 2026-10-13
 
 ### Perbaikan Layout Grid & Struktur Tampilan Halaman Slip Gaji Payroll

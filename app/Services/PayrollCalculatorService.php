@@ -652,8 +652,8 @@ class PayrollCalculatorService
                 $totalPenalty = 0.00;
                 $totalTransportFee = 0.00;
                 $totalUtamaSessions = 0;
-                $totalAsistenSessions = 0;
                 $transportPaidKeys = [];
+                $rombelDatePaidKeys = [];
 
                 $sortedItemSessions = $item->payrollItemSessions->sortBy(function ($itemSession) {
                     $s = $itemSession->session;
@@ -688,8 +688,11 @@ class PayrollCalculatorService
 
                     if ($role === 'utama') {
                         $totalUtamaSessions++;
-                        // Jika sesi ini sebelumnya dinolkan karena duplikat rombel, pertahankan 0.00
-                        $isDuplicateZero = ((float)$itemSession->base_fee == 0.00 && $session->override_fee === null && $itemSession->override_fee === null);
+                        $rombelKey = ($session->ekstrakurikuler_rombel_id ? (string) $session->ekstrakurikuler_rombel_id : 'adhoc_' . $sekolahKey) . '|' . $sessionDate;
+                        $isDuplicateZero = isset($rombelDatePaidKeys[$rombelKey]) && $session->override_fee === null && $itemSession->override_fee === null;
+                        if (!$isDuplicateZero) {
+                            $rombelDatePaidKeys[$rombelKey] = $session->id;
+                        }
                         
                         $sessionBaseFee = $isDuplicateZero
                             ? 0.00
@@ -789,6 +792,7 @@ class PayrollCalculatorService
         $totalUtamaSessions = 0;
         $totalAsistenSessions = 0;
         $transportPaidKeys = [];
+        $rombelDatePaidKeys = [];
 
         $sortedItemSessions = $item->payrollItemSessions->sortBy(function ($itemSession) {
             $s = $itemSession->session;
@@ -824,7 +828,11 @@ class PayrollCalculatorService
 
             if ($role === 'utama') {
                 $totalUtamaSessions++;
-                $isDuplicateZero = ((float)$itemSession->base_fee == 0.00 && $session->override_fee === null && $itemSession->override_fee === null);
+                $rombelKey = ($session->ekstrakurikuler_rombel_id ? (string) $session->ekstrakurikuler_rombel_id : 'adhoc_' . $sekolahKey) . '|' . $sessionDate;
+                $isDuplicateZero = isset($rombelDatePaidKeys[$rombelKey]) && $session->override_fee === null && $itemSession->override_fee === null;
+                if (!$isDuplicateZero) {
+                    $rombelDatePaidKeys[$rombelKey] = $session->id;
+                }
 
                 $sessionBaseFee = $isDuplicateZero
                     ? 0.00

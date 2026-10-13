@@ -405,17 +405,24 @@ class PayrollController extends Controller
             }
         }
 
+        $calc = $this->calculator->calculateSessionFee($session, $role);
+        $initBaseFee = ($role === 'asisten') ? 100000.00 : (float)$calc['calculated_fee'];
+        $initTransportFee = (float)$calc['transport_fee'];
+        $initPenaltyFee = (float)$calc['actual_checkin_penalty'];
+        $initBonusFee = (float)$calc['product_bonus'];
+        $initNetFee = max(0, $initBaseFee + $initTransportFee - $initPenaltyFee);
+
         // Buat PayrollItemSession
         \App\Models\PayrollItemSession::create([
             'payroll_item_id' => $item->id,
             'ekstrakurikuler_session_id' => $session->id,
             'user_id' => $item->user_id_instruktur,
             'role' => $role,
-            'base_fee' => 0,
-            'transport_fee' => 0,
-            'penalty_fee' => 0,
-            'bonus_fee' => 0,
-            'net_fee' => 0,
+            'base_fee' => $initBaseFee,
+            'transport_fee' => $initTransportFee,
+            'penalty_fee' => $initPenaltyFee,
+            'bonus_fee' => $initBonusFee,
+            'net_fee' => $initNetFee,
         ]);
 
         // Update sesi
