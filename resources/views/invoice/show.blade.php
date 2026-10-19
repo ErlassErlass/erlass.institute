@@ -1019,7 +1019,7 @@
                                     <strong class="text-dark">Menunggu Otorisasi Staff Akunting</strong>
                                 </div>
                                 <p class="mb-0 text-muted">
-                                    Verifikasi Gate 1 telah selesai oleh Admin Produksi. Penerbitan Invoice Resmi (Gate 2) hanya dapat disetujui &amp; diterbitkan oleh <strong>Staff Akunting (Rendy)</strong>. Akun Anda ({{ auth()->user()?->nama_lengkap ?? auth()->user()?->name }}) tercatat sebagai Admin Produksi/Operasional.
+                                    Verifikasi Gate 1 telah selesai oleh Admin Produksi. Penerbitan Invoice Resmi (Gate 2) hanya dapat disetujui &amp; diterbitkan oleh <strong>Tim Akunting (Pak Witono, Rendy, dkk)</strong>. Akun Anda ({{ auth()->user()?->nama_lengkap ?? auth()->user()?->name }}) tercatat sebagai Admin Produksi/Operasional.
                                 </p>
                             </div>
                         @endif

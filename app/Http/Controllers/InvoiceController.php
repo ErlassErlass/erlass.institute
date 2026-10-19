@@ -551,7 +551,7 @@ class InvoiceController extends Controller
                 'jumlah_siswa_gratis'    => $jumlahSiswaGratis,
                 'sesi_verifikasi_data'   => $sesiVerifikasiData,
                 // GATE 1 SELESAI: Diteruskan ke Meja Staff Akunting (reset status akunting jika sebelumnya dikembalikan untuk revisi)
-                'serah_terima_akunting_penerima' => $invoice->serah_terima_akunting_penerima ?: 'Rendy',
+                'serah_terima_akunting_penerima' => $invoice->serah_terima_akunting_penerima ?: (Auth::user()->nama_lengkap ?? Auth::user()->name ?? 'Staff Akunting'),
                 'serah_terima_akunting_at'       => $invoice->serah_terima_akunting_at ?: now(),
                 'akunting_user_id'               => null,
                 'akunting_status'                => 'pending',
@@ -602,7 +602,7 @@ class InvoiceController extends Controller
         // Otorisasi Ketat Gate 2: Novan dan Adinda (Tim Operasional) tidak berhak menyetujui Gate 2 (Staff Akunting)
         if (!Auth::user()->canApproveGate2Invoice()) {
             return back()->withErrors([
-                'msg' => 'Akses Ditolak: Anda terdaftar sebagai Admin Produksi/Operasional. Hanya Staff Akunting (Rendy) yang berhak menyetujui dan menerbitkan Invoice Resmi.'
+                'msg' => 'Akses Ditolak: Anda terdaftar sebagai Admin Produksi/Operasional. Hanya Tim Akunting (Pak Witono, Rendy, dkk) yang berhak menyetujui dan menerbitkan Invoice Resmi.'
             ]);
         }
 
@@ -629,7 +629,7 @@ class InvoiceController extends Controller
 
         $isApproved = $validated['action'] === 'approved';
 
-        $stafNama = Auth::user()->nama_lengkap ?? Auth::user()->name ?? 'Rendy';
+        $stafNama = Auth::user()->nama_lengkap ?? Auth::user()->name ?? 'Staff Akunting';
         DB::transaction(function () use ($invoice, $validated, $isApproved, $request, $stafNama) {
             if ($isApproved) {
                 $invoice->update([
