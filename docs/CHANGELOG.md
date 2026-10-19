@@ -2,6 +2,143 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.66] - 2026-10-19
+
+### Restrukturisasi Matriks Akses Role & Pemetaan Tugas (Segregation of Duties) 46 Karyawan
+
+#### 1. Pembagian Role Resmi Berdasarkan Struktur Organisasi
+- **Penetapan 6 Role Sistem**:
+  - `webmaster`: Super Admin & IT Lead (Isa Herdyanto).
+  - `admin_sistem`: Administrator IT & Pemeliharaan Sistem (Akun user, verifikasi instruktur, integrasi Google Sheets, activity logs).
+  - `admin`: Administrator Produksi & Operasional (Sekolah, Siswa, Program Ekskul, Sesi, Laporan, Absensi, dan Gate 1 Approval Operasional Invoice).
+  - `akunting`: Staf Finansial & Pembukuan (Gate 2 Approval Akunting Invoice, Tanda Terima Berkas Tagihan, Master Tarif Honor, dan Pemrosesan Batch Payroll).
+  - `sales`: Tim Kemitraan & Marketing (Katalog produk, sekolah binaan, monitoring ekskul).
+  - `instruktur`: Guru / Pengajar Lapangan (Jadwal sendiri, Check-in GPS, Laporan Mengajar, Absensi, Penilaian Siswa, dan Slip Gaji pribadi).
+
+#### 2. Ketentuan Khusus & Otorisasi
+- **Kemampuan Ganda (Dual Capability) Staf Produksi Mengajar**:
+  - Furqon Irkhamni (`ICE2026124`) dan Meclin Bintang Geovani (`ICE2026162`) ditetapkan sebagai staf internal `admin` (Produksi), namun tetap mempertahankan hak mengajar (muncul di dropdown `scopeTeachingStaff`, check-in GPS, input absensi, dan laporan sesi sendiri).
+- **Otorisasi Khusus Pencairan Batch Payroll (`/admin/payroll/batches`)**:
+  - Diberikan kepada role `akunting`, `webmaster`, serta 4 staf operasional kunci: Adinda Wardania, Novandi Wijaya (Novan), Andi Kristian, dan Ahmad Yusril Firdaus.
+
+#### 3. Pembaruan Dokumentasi
+- Memperbarui panduan lengkap [docs/user/ROLE_ACCESS_MATRIX.md](docs/user/ROLE_ACCESS_MATRIX.md) yang merinci 46 nama karyawan, tugas pokok, dan matriks hak akses 10 modul sistem.
+
+## [2.9.65] - 2026-10-14
+
+### Optimasi Performa & Akselerasi Halaman Invoice: Paginasi Antrean, Pemangkasan Payload HTML 63%, dan Query Kondisional
+
+#### 1. Investigasi & Analisis Akar Masalah (Root Cause)
+- **DOM & HTML Payload Bloat**:
+  - Pada tab default `siap_tagih`, terdapat 118 program sekolah yang siap ditagihkan. Sebelumnya, seluruh 118 sekolah dirender sekaligus ke dalam satu tabel tanpa paginasi, lengkap dengan perulangan badge rombel dan form generate (8 hidden input per baris).
+  - Hal ini menyebabkan ukuran file HTML membengkak hingga **977.9 KB** (~1 Megabyte) dengan lebih dari 4.000 elemen DOM, membebani browser saat proses *parsing*, *layout*, dan *rendering*.
+- **Query Redundan di Server**:
+  - Saat tab `siap_tagih` diakses, controller sebelumnya tetap mengeksekusi query tabel `InvoiceApproval` dengan 7 eager relation (`with(['sekolah', 'items...', 'operasionalUser', ...])`) yang tidak ditampilkan sama sekali pada tab tersebut.
+- **Cache TTL Terlalu Pendek**:
+  - Cache antrean program siap tagih sebelumnya berdurasi hanya 300 detik (5 menit). Pada saat cache dingin (*miss*), query evaluasi 205+ sekolah memakan waktu 3,2 detik.
+
+#### 2. Implementasi Optimasi Performa
+- **Paginasi Antrean Siap Tagih (`LengthAwarePaginator`)**:
+  - Membatasi tampilan antrean sekolah siap tagih menjadi 25 item per halaman (`appends(request()->query())->links()`).
+  - Total payload HTML berkurang drastis dari **978 KB menjadi ~365 KB** (pemangkasan 63%), dan isi body tabel berkurang dari 664 KB menjadi 165 KB.
+- **Penyederhanaan Tampilan Rombel**:
+  - Merender maksimal 4 badge rombel per sekolah ditambah badge ringkasan `+X rombel lainnya` dengan tooltip rincian, mencegah ekspansi vertikal tabel yang berlebihan.
+- **Query Bersyarat (Conditional Tab Execution)**:
+  - Pada Tab 1 (`siap_tagih`), query tabel invoice beserta 7 relasi eager-load dilewati dan digantikan dengan paginator kosong instan, menghemat waktu eksekusi database.
+- **Peningkatan Cache TTL Menjadi 1 Jam**:
+  - Meningkatkan masa simpan cache antrean siap tagih menjadi 3600 detik (1 jam). Cache otomatis dibersihkan saat pembuatan draf, generate, maupun ubah skema.
+- **Hasil Benchmark**:
+  - Waktu muat controller + Blade render pada seluruh 5 tab kini berada di kisaran **30ms – 65ms** (sangat responsif dan ringan di browser).
+- **Pengujian Unit**:
+  - Seluruh 44 pengujian pada `tests/Feature/InvoiceApprovalTest.php` dan 10 pengujian pada `tests/Feature/PayrollTest.php` lulus 100%.
+
+## [2.9.64] - 2026-10-14
+
+### Restrukturisasi Antarmuka Halaman Invoice: Desain Ringkas 5 Tab Alur Kerja (Workflow Pipeline) & Mulai dari Filter Bar
+
+#### 1. Perampingan Halaman & Eliminasi Elemen Vertikal Berlebih (`index.blade.php`)
+- **Pembersihan Hero Banner & 5 Kartu Summary Raksasa**:
+  - Menghapus Hero Banner gradien besar dan 5 kotak metrik summary yang sebelumnya menyita 500px+ ruang vertikal di bagian atas halaman.
+  - Memulai halaman langsung dengan **Header Minimalis**:
+    * Judul: `Manajemen Invoice Tagihan`
+    * Tombol Aksi: `+ Buat Invoice Baru` (di samping kanan judul).
+- **Penempatan Filter Bar Paling Atas Tanpa Scroll**:
+  - Filter Bar (Sekolah, Skema Tagihan, Tahun Ajaran, tombol Filter dan Reset) kini menjadi elemen pertama yang langsung terlihat dan dapat dioperasikan tanpa perlu *scrolling*.
+  - Menghapus dropdown filter "Status" dari filter bar karena seluruh filter status kini telah diwakili oleh 5 Tab Alur Kerja mandiri.
+- **Pembersihan Quicklink Ekspor**:
+  - Menghilangkan tombol-tombol pintasan quicklink ekspor di header tab untuk menjaga tampilan tetap bersih, rapi, dan fokus pada alur kerja utama penagihan.
+
+#### 2. Implementasi 5 Tab Alur Kerja Mandiri (`index.blade.php`, `InvoiceController.php`)
+- **Struktur 5 Tab Alur Kerja Siklus Hidup Invoice**:
+  1. **⚡ Antrean Siap Tagih** (`siap_tagih` / Default):
+     - Menampilkan antrean sekolah yang sesi/pertemuannya telah mencapai target tagihan dan siap di-generate.
+     - Terintegrasi dengan fitur *1-Klik Generate*, *Bulk Generate*, filter pencarian/skema di dalam antrean, serta modal *Atur Skema Tagihan Sekolah*.
+     - Menyembunyikan tabel invoice agar tidak menumpuk di bawah antrean.
+  2. **⏳ Menunggu Admin Produksi** (`pending_operasional`):
+     - Menampilkan daftar draf invoice yang menunggu checklist dan verifikasi konfirmasi PIC Sekolah di Gate 1 (Dinda / Novandi).
+  3. **↩️ Menunggu Revisi** (`revisi`):
+     - Menampilkan invoice yang dikembalikan atau ditolak oleh Staff Akunting untuk direvisi oleh Admin Produksi.
+  4. **🏦 Menunggu Staff Akunting** (`pending_akunting`):
+     - Menampilkan invoice yang telah lolos Gate 1 dan siap diverifikasi serta disetujui resmi oleh Staff Keuangan/Akunting di Gate 2.
+  5. **✅ Disetujui Resmi** (`approved`):
+     - Menampilkan arsip invoice resmi yang telah disetujui, siap cetak tanda terima fisik, atau unduh PDF resmi.
+- **Penyelarasan Controller & Filter State**:
+  - Mengatur default tab halaman `/invoice` menjadi `siap_tagih` saat diakses pertama kali tanpa query string.
+  - Mempertahankan filter sekolah dan skema di seluruh tab yang aktif.
+  - Menghitung counter badge secara akurat untuk setiap tab.
+- **Pengujian Unit**:
+  - Seluruh 44 pengujian pada `tests/Feature/InvoiceApprovalTest.php` lulus 100% (199 assertions).
+
+## [2.9.63] - 2026-10-14
+
+### Pembenahan Data Sesi MIS AL HUSNA CILEDUG (Multi-Rombel), Urutan Kronologis Slip Gaji, dan Auto-Sync Sesi Baru pada Recalculate Batch (Opsi 1)
+
+#### 1. Restrukturisasi Sesi & Rombel MIS AL HUSNA CILEDUG (`69727522`)
+- **Penetapan 2 Rombel di MIS AL HUSNA CILEDUG pada 06/08/2026**:
+  - Memastikan sekolah yang ditugaskan adalah **MIS AL HUSNA CILEDUG** (Kodlan: `69727522`, Kec. Ciledug, Kota Tangerang) dan mengeliminasi kesalahan penamaan/referensi ke Cilandak (`60706132`) maupun SDI Nurul Hasanah (`20613703`).
+  - Mengonfigurasi 2 rombel pembelajaran pada ekstrakurikuler #457:
+    * **Rombel 1** (14:00 – 15:00 WIB): Sesi #17892 terhubung ke Laporan Mengajar #127. Honor: Rp 100.000 + Transport: Rp 23.000 (Jarak 22 km) = Net Rp 123.000.
+    * **Rombel 2** (15:00 – 16:00 WIB): Sesi #78937 terhubung ke Laporan Mengajar #3143. Honor: Rp 100.000 + Transport: Rp 0 (Deduplikasi Multi-Rombel 1x/Hari di sekolah yang sama) = Net Rp 100.000.
+- **Perbaikan Self-Assistant Bug di `PayrollCalculatorService.php`**:
+  - Menambahkan validasi `&& $session->user_id_asisten != $session->user_id_instruktur` guna mencegah duplikasi baris asisten pada instruktur yang sama di sesi tunggal.
+
+#### 2. Pengurutan Kronologis Sesi pada Template Slip Gaji (`slip_detail.blade.php`, `export_pdf.blade.php`, `PayrollController.php`)
+- **Pengurutan Terstruktur**:
+  - Mengurutkan daftar rincian sesi mengajar pada slip gaji dan cetak PDF secara kronologis terstruktur:
+    1. **Tanggal** (`tanggal_pelaksanaan` / `tanggal_terjadwal` terawal ke terbaru / ASC).
+    2. **Jadwal** (`jam_mulai` terawal ke terbaru / ASC).
+    3. **Rombel** (`nomor_rombel` / nama rombel terkecil ke terbesar / ASC).
+- **Pembaruan Tampilan Kolom**:
+  - Memperbarui kolom tabel menjadi **"Tanggal & Jadwal / Rombel"** yang menampilkan ikon kalender tanggal, rentang jam aktual/terjadwal (contoh: `14:00 - 15:00`), serta badge rombel secara rapi dan elegan.
+
+#### 3. Implementasi Auto-Sync & Recalculate Batch (Opsi 1) (`PayrollCalculatorService.php`, `PayrollController.php`)
+- **Pembersihan Logika Ejection Agresif**:
+  - Menghapus pengecekan pemotongan otomatis (`postCutoffItemSessions`) yang sebelumnya mendepak sesi yang diinput terlambat (seperti sesi Free Trial susulan) saat tombol recalculate ditekan. Seluruh sesi yang sudah terdaftar di batch dipertahankan (*protected*).
+- **Auto-Sync Sesi Selesai Baru (`payment_status = 'unpaid'`)**:
+  - Saat admin menekan tombol **"Hitung Ulang Batch"**, sistem secara otomatis:
+    1. Menghubungkan laporan mengajar mandiri yang belum memiliki sesi (`ensureSessionLinked()`).
+    2. Memindai seluruh sesi selesai baru yang berstatus `unpaid` dalam rentang cutoff batch (atau memiliki persetujuan carry-over).
+    3. Membuat atau menemukan `PayrollItem` untuk setiap pengajar yang bertugas, menyematkan sesi ke `PayrollItemSession`, dan mengubah status pembayaran sesi menjadi `processing`.
+    4. Menghitung ulang seluruh komponen: tarif dasar, deduplikasi transport harian per sekolah, pembebasan denda telat, PPh21 (2,5%), dan take-home pay.
+- **Notifikasi Informastif Flash Message**:
+  - Menginformasikan jumlah sesi baru yang diserap otomatis ke dalam draf batch pada pesan sukses rekalkulasi.
+- **Pengujian Unit**:
+  - Memvalidasi seluruh test suite `tests/Feature/PayrollTest.php` (10 passed, 81 assertions) termasuk pengujian komprehensif auto-sync & proteksi sesi.
+
+## [2.9.62] - 2026-10-14
+
+### Penetapan Tarif Honorarium Flat Rp 100.000 untuk Seluruh Sesi Free Trial Class
+
+#### 1. Perubahan Logika Honorarium Free Trial Class (`PayrollCalculatorService.php`, `create.blade.php`, `PayrollTest.php`)
+- **Penetapan Tarif Flat Rp 100.000 / Sesi**:
+  - Menghapus pembagian berjenjang berdasarkan jumlah siswa hadir (yang sebelumnya >6 siswa = Rp 100.000 dan $\le$6 siswa = Rp 75.000).
+  - Menetapkan tarif dasar (*base rate*) honorarium untuk seluruh sesi berlabel *Free Trial Class / Trial Class* menjadi **Flat Rp 100.000 / sesi** terlepas dari jumlah kehadiran siswa.
+- **Pembaruan Antarmuka & Dokumentasi**:
+  - Memperbarui teks petunjuk pada formulir pembuatan laporan mengajar Ad-Hoc (`resources/views/laporan-mengajar/create.blade.php`).
+  - Memperbarui spesifikasi pada [`PAYROLL_ENGINE_SPECIFICATION.md`](file:///var/www/webapperlass/docs/PAYROLL_ENGINE_SPECIFICATION.md) dan [`TECHNICAL_GUIDE.md`](file:///var/www/webapperlass/docs/dev/TECHNICAL_GUIDE.md).
+  - Melakukan rekalkulasi otomatis pada slip gaji draf berjalan (Slip #3005 Bu Saraswati) sehingga sesi trial yang diinput langsung memperoleh penyesuaian tarif Flat Rp 100.000.
+  - Memperbarui rangkaian pengujian unit pada [`PayrollTest.php`](file:///var/www/webapperlass/tests/Feature/PayrollTest.php) (100% pass).
+
 ## [2.9.61] - 2026-10-13
 
 ### Perbaikan Kalkulasi Ulang Honor Sesi Tambahan & Deduplikasi Rombel Payroll
