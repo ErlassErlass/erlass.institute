@@ -77,6 +77,7 @@
 .mx-role-card.c-warning { background: #fffbeb !important; border-color: #fde68a !important; }
 .mx-role-card.c-info    { background: #eff6ff !important; border-color: #bfdbfe !important; }
 .mx-role-card.c-success { background: #f0fdf4 !important; border-color: #bbf7d0 !important; }
+.mx-role-card.c-secondary { background: #faf5ff !important; border-color: #e9d5ff !important; }
 
 .mx-role-icon { font-size: 1.5rem !important; margin-bottom: 6px !important; }
 .mx-role-label { font-weight: 700 !important; font-size: 0.92rem !important; color: #1e293b !important; }
@@ -231,15 +232,17 @@
     {{-- ROLE CARDS --}}
     @php
         $roles = [
-            'webmaster'    => ['label'=>'Webmaster',    'icon'=>'bi-shield-fill-check', 'color'=>'danger',  'hex'=>'#dc2626', 'desc'=>'Super-admin, akses penuh sistem'],
-            'admin_sistem' => ['label'=>'Admin Sistem', 'icon'=>'bi-gear-fill',          'color'=>'warning', 'hex'=>'#d97706', 'desc'=>'IT Admin, kelola sistem & user'],
-            'admin'        => ['label'=>'Admin',        'icon'=>'bi-person-badge-fill',  'color'=>'info',    'hex'=>'#0284c7', 'desc'=>'Admin operasional harian'],
-            'instruktur'   => ['label'=>'Instruktur',   'icon'=>'bi-person-video3',      'color'=>'success', 'hex'=>'#16a34a', 'desc'=>'Instruktur pengajar ekskul'],
+            'webmaster'    => ['label'=>'Webmaster',    'icon'=>'bi-shield-fill-check', 'color'=>'danger',    'hex'=>'#dc2626', 'desc'=>'Super-admin, akses penuh teknis'],
+            'admin_sistem' => ['label'=>'Admin Sistem', 'icon'=>'bi-gear-fill',          'color'=>'warning',   'hex'=>'#d97706', 'desc'=>'IT Admin, kelola sistem & user'],
+            'admin'        => ['label'=>'Admin (Ops)',  'icon'=>'bi-person-badge-fill',  'color'=>'info',      'hex'=>'#0284c7', 'desc'=>'Staf Produksi & Operasional'],
+            'akunting'     => ['label'=>'Akunting',     'icon'=>'bi-calculator-fill',    'color'=>'success',   'hex'=>'#059669', 'desc'=>'Staf Keuangan & Payroll'],
+            'sales'        => ['label'=>'Sales',        'icon'=>'bi-briefcase-fill',     'color'=>'secondary', 'hex'=>'#7c3aed', 'desc'=>'Tim Marketing & Promosi'],
+            'instruktur'   => ['label'=>'Instruktur',   'icon'=>'bi-person-video3',      'color'=>'success',   'hex'=>'#16a34a', 'desc'=>'Pengajar & Guru Lapangan'],
         ];
     @endphp
     <div class="row g-3 mb-4">
         @foreach($roles as $key => $role)
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-4 col-lg-2">
             <div class="mx-role-card c-{{ $role['color'] }}">
                 <div class="mx-role-icon" style="color:{{ $role['hex'] }} !important;"><i class="bi {{ $role['icon'] }}"></i></div>
                 <div class="mx-role-label">{{ $role['label'] }}</div>
@@ -253,7 +256,7 @@
     @php
         $totalItems = collect($matrix)->sum(fn($g) => count($g['items']));
         $wmOnly = collect($matrix)->sum(fn($g) => collect($g['items'])->filter(fn($i) =>
-            $i['webmaster'] && !$i['admin_sistem'] && !$i['admin'] && !$i['instruktur']
+            $i['webmaster'] && !($i['admin_sistem'] ?? false) && !($i['admin'] ?? false) && !($i['akunting'] ?? false) && !($i['sales'] ?? false) && !($i['instruktur'] ?? false)
         )->count());
     @endphp
     <div class="mx-filter-bar">
@@ -297,14 +300,16 @@
             <tbody>
                 @foreach($group['items'] as $item)
                 <tr class="mx-row"
-                    data-webmaster="{{ $item['webmaster']    ? '1':'0' }}"
-                    data-admin_sistem="{{ $item['admin_sistem'] ? '1':'0' }}"
-                    data-admin="{{ $item['admin']       ? '1':'0' }}"
-                    data-instruktur="{{ $item['instruktur']  ? '1':'0' }}">
+                    data-webmaster="{{ ($item['webmaster'] ?? false) ? '1':'0' }}"
+                    data-admin_sistem="{{ ($item['admin_sistem'] ?? false) ? '1':'0' }}"
+                    data-admin="{{ ($item['admin'] ?? false) ? '1':'0' }}"
+                    data-akunting="{{ ($item['akunting'] ?? false) ? '1':'0' }}"
+                    data-sales="{{ ($item['sales'] ?? false) ? '1':'0' }}"
+                    data-instruktur="{{ ($item['instruktur'] ?? false) ? '1':'0' }}">
                     <td class="fw-medium">{{ $item['label'] }}</td>
                     @foreach(array_keys($roles) as $key)
                     <td class="cc">
-                        @if($item[$key])
+                        @if(!empty($item[$key]))
                             <span class="chk-yes" title="Diizinkan"><i class="bi bi-check-lg"></i></span>
                         @else
                             <span class="chk-no" title="Tidak diizinkan"><i class="bi bi-dash"></i></span>

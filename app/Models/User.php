@@ -195,9 +195,10 @@ class User extends Authenticatable
      */
     public function scopeTeachingStaff($query)
     {
-        return $query->where('role', 'instruktur')
-                     ->whereIn('status', ['active', 'Aktif']);
-                     // Removed ID filter to include legacy/admin instructors like ID 2
+        return $query->where(function ($q) {
+            $q->where('role', 'instruktur')
+              ->orWhereNotNull('instructor_id');
+        })->whereIn('status', ['active', 'Aktif']);
     }
 
     public function hasRole($roles)
@@ -242,7 +243,53 @@ class User extends Authenticatable
      */
     public function hasAdminAccess(): bool
     {
-        return in_array($this->role, ['webmaster', 'admin_sistem', 'admin']);
+        return in_array($this->role, ['webmaster', 'admin_sistem', 'admin', 'akunting']);
+    }
+
+    /**
+     * Cek apakah user berhak mengakses dan memproses pencairan batch payroll
+     */
+    /**
+     * Cek apakah user berhak melakukan eksekusi/mutasi pencairan batch payroll
+     * (Khusus Webmaster, Akunting, serta 4 Personil Kunci Produksi: Adinda, Novan, Andi, Ahmad Yusril).
+     */
+    public function canDisbursePayroll(): bool
+    {
+        if ($this->isExecutive()) {
+            return false;
+        }
+
+        return in_array($this->role, ['webmaster', 'akunting']) ||
+               in_array($this->email, [
+                   'adinda.wardania@erlass.institute',
+                   'novan@erlass.institute',
+                   'andi.kristian@erlass.institute',
+                   'ahmad.firdaus@erlass.institute',
+               ]);
+    }
+
+    /**
+     * Cek apakah user berhak mengakses dan melihat data batch payroll
+     * (Direksi memiliki akses monitoring Read-Only).
+     */
+    public function canManagePayroll(): bool
+    {
+        if ($this->isExecutive()) {
+            return true;
+        }
+
+        return $this->canDisbursePayroll();
+    }
+
+    /**
+     * Cek apakah user adalah Direksi / Manajemen Eksekutif (Read-Only supervisory view)
+     */
+    public function isExecutive(): bool
+    {
+        return in_array($this->email, [
+            'deborah@erlass.institute',
+        ]) || str_contains(strtolower($this->nama_lengkap ?? ''), 'deborah')
+           || str_contains(strtolower($this->nama_lengkap ?? ''), 'adji kasrinandi');
     }
 
     /**
@@ -271,7 +318,7 @@ class User extends Authenticatable
      */
     public function isVerifiedInstructor(): bool
     {
-        return $this->role === 'instruktur' && 
+        return ($this->role === 'instruktur' || !empty($this->instructor_id)) && 
                $this->is_verified && 
                $this->verification_status === 'approved';
     }
@@ -421,27 +468,31 @@ class User extends Authenticatable
      */
     public function isOperasional(): bool
     {
-        return in_array($this->id, [114, 248])
-            || str_contains(strtolower($this->nama_lengkap ?? ''), 'novan')
-            || str_contains(strtolower($this->nama_lengkap ?? ''), 'adinda');
+        return in_array($this->role, ['admin', 'admin_sistem']) || in_array($this->id, [114, 248]);
+    }
+
+    /**
+     * Apakah user berhak melakukan verifikasi Gate 1 (Admin Produksi / Operasional).
+     */
+    public function canApproveGate1Invoice(): bool
+    {
+        if ($this->isExecutive()) {
+            return false;
+        }
+
+        return in_array($this->role, ['admin', 'admin_sistem', 'webmaster']) && $this->role !== 'akunting';
     }
 
     /**
      * Apakah user berhak menyetujui Gate 2 (Staff Akunting & Penerbitan Resmi).
-     * Novan dan Adinda strictly TIDAK BISA menyetujui Gate 2.
      */
     public function canApproveGate2Invoice(): bool
     {
-        // Novan (248) dan Adinda (114) diblokir dari Gate 2
-        if (in_array($this->id, [114, 248])) {
+        if ($this->isExecutive()) {
             return false;
         }
 
-        if (str_contains(strtolower($this->nama_lengkap ?? ''), 'novan') || str_contains(strtolower($this->nama_lengkap ?? ''), 'adinda')) {
-            return false;
-        }
-
-        return true;
+        return in_array($this->role, ['akunting', 'webmaster']);
     }
 }
 

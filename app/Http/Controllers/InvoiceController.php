@@ -40,61 +40,70 @@ class InvoiceController extends Controller
               ->orWhereNotNull('sekolah_kodlan');
         });
 
-        // Filter tab (Semua vs Menunggu Admin Produksi vs Menunggu Revisi vs Menunggu Staff Akunting vs Disetujui)
-        $currentTab = $request->get('tab', 'all');
-        if ($request->filled('status')) {
-            if ($request->status === 'revisi') {
+        // Filter tab (5 Tahap: Antrean Siap Tagih vs Menunggu Admin Produksi vs Menunggu Revisi vs Menunggu Staff Akunting vs Disetujui)
+        $currentTab = $request->get('tab', 'siap_tagih');
+
+        // Optimasi: Jika di Tab 1 (Antrean Siap Tagih), lewati query berat tabel invoice approval
+        if ($currentTab === 'siap_tagih') {
+            $invoices = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 25, 1, [
+                'path'  => route('invoice.index'),
+                'query' => $request->query(),
+            ]);
+        } else {
+            if ($request->filled('status')) {
+                if ($request->status === 'revisi') {
+                    $query->where('status', InvoiceApproval::STATUS_PENDING_OPERASIONAL)
+                          ->where('akunting_status', 'rejected');
+                } else {
+                    $query->where('status', $request->status);
+                }
+            } elseif ($currentTab === 'pending_operasional') {
+                $query->whereIn('status', [
+                    InvoiceApproval::STATUS_DRAFT,
+                    InvoiceApproval::STATUS_PENDING_OPERASIONAL,
+                ])->where(function ($q) {
+                    $q->whereNull('akunting_status')
+                      ->orWhere('akunting_status', '!=', 'rejected');
+                });
+            } elseif ($currentTab === 'revisi' || $currentTab === 'menunggu_revisi') {
                 $query->where('status', InvoiceApproval::STATUS_PENDING_OPERASIONAL)
                       ->where('akunting_status', 'rejected');
-            } else {
-                $query->where('status', $request->status);
+            } elseif ($currentTab === 'pending_akunting') {
+                $query->where('status', InvoiceApproval::STATUS_PENDING_AKUNTING);
+            } elseif ($currentTab === 'approved') {
+                $query->where('status', InvoiceApproval::STATUS_APPROVED);
+            } elseif ($currentTab === 'rejected') {
+                $query->where('status', InvoiceApproval::STATUS_REJECTED);
+            } elseif ($currentTab === 'pending' || $currentTab === 'gantung') {
+                $query->whereIn('status', [
+                    InvoiceApproval::STATUS_DRAFT,
+                    InvoiceApproval::STATUS_PENDING_OPERASIONAL,
+                    InvoiceApproval::STATUS_PENDING_AKUNTING,
+                ]);
             }
-        } elseif ($currentTab === 'pending_operasional') {
-            $query->whereIn('status', [
-                InvoiceApproval::STATUS_DRAFT,
-                InvoiceApproval::STATUS_PENDING_OPERASIONAL,
-            ])->where(function ($q) {
-                $q->whereNull('akunting_status')
-                  ->orWhere('akunting_status', '!=', 'rejected');
-            });
-        } elseif ($currentTab === 'revisi' || $currentTab === 'menunggu_revisi') {
-            $query->where('status', InvoiceApproval::STATUS_PENDING_OPERASIONAL)
-                  ->where('akunting_status', 'rejected');
-        } elseif ($currentTab === 'pending_akunting') {
-            $query->where('status', InvoiceApproval::STATUS_PENDING_AKUNTING);
-        } elseif ($currentTab === 'pending' || $currentTab === 'gantung') {
-            $query->whereIn('status', [
-                InvoiceApproval::STATUS_DRAFT,
-                InvoiceApproval::STATUS_PENDING_OPERASIONAL,
-                InvoiceApproval::STATUS_PENDING_AKUNTING,
-            ]);
-        } elseif ($currentTab === 'approved') {
-            $query->where('status', InvoiceApproval::STATUS_APPROVED);
-        } elseif ($currentTab === 'rejected') {
-            $query->where('status', InvoiceApproval::STATUS_REJECTED);
+
+            // Filter sekolah
+            if ($request->filled('sekolah')) {
+                $query->where(function ($q) use ($request) {
+                    $q->where('sekolah_kodlan', $request->sekolah)
+                      ->orWhereHas('rombel.ekstrakurikuler', fn($sub) => $sub->where('sekolah_kodlan', $request->sekolah));
+                });
+            }
+
+            // Filter tahun ajaran
+            if ($request->filled('tahun_ajaran')) {
+                $query->where('tahun_ajaran', $request->tahun_ajaran);
+            }
+
+            // Filter skema
+            if ($request->filled('skema')) {
+                $query->where('skema_tagihan', $request->skema);
+            }
+
+            $invoices = $query->orderByDesc('created_at')->paginate(25)->withQueryString();
         }
 
-        // Filter sekolah
-        if ($request->filled('sekolah')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('sekolah_kodlan', $request->sekolah)
-                  ->orWhereHas('rombel.ekstrakurikuler', fn($sub) => $sub->where('sekolah_kodlan', $request->sekolah));
-            });
-        }
-
-        // Filter tahun ajaran
-        if ($request->filled('tahun_ajaran')) {
-            $query->where('tahun_ajaran', $request->tahun_ajaran);
-        }
-
-        // Filter skema
-        if ($request->filled('skema')) {
-            $query->where('skema_tagihan', $request->skema);
-        }
-
-        $invoices         = $query->orderByDesc('created_at')->paginate(25)->withQueryString();
-
-        // Optimasi Performa: Cache filter sekolah (1 jam) & antrean sekolah siap ditagih (5 menit)
+        // Optimasi Performa: Cache filter sekolah (1 jam) & antrean sekolah siap ditagih (1 jam)
         $sekolahs = Cache::remember('invoice_sekolahs_filter_list', 3600, function () {
             return Sekolah::has('invoiceableEkstrakurikulers')->orderBy('namasekolah')->get(['kodlan', 'namasekolah', 'skema_tagihan']);
         });
@@ -103,10 +112,38 @@ class InvoiceController extends Controller
             Cache::forget('invoice_eligible_programs_cache');
         }
 
-        $eligibleSekolahs = Cache::remember('invoice_eligible_programs_cache', 300, function () {
+        $allEligibleSekolahs = Cache::remember('invoice_eligible_programs_cache', 3600, function () {
             return $this->invoiceService->getAllEligibleSekolahs();
         });
-        $eligibleRombels  = $eligibleSekolahs; // Alias backward-compatibility
+
+        $eligibleSekolahs = $allEligibleSekolahs;
+        if ($request->filled('sekolah')) {
+            $eligibleSekolahs = $eligibleSekolahs->filter(function ($item) use ($request) {
+                return ($item['sekolah_kodlan'] ?? '') === $request->sekolah;
+            });
+        }
+        if ($request->filled('skema')) {
+            $eligibleSekolahs = $eligibleSekolahs->filter(function ($item) use ($request) {
+                return ($item['skema_tagihan'] ?? '') === $request->skema;
+            });
+        }
+        $eligibleTotalCount  = $allEligibleSekolahs->count();
+
+        // Paginasi antrean siap tagih (25 item per halaman) untuk mencegah beban render DOM ribuan elemen
+        $perPage = 25;
+        $page = $currentTab === 'siap_tagih' ? (int) $request->get('page', 1) : 1;
+        $totalEligible = $eligibleSekolahs->count();
+        $slice = $eligibleSekolahs->slice(($page - 1) * $perPage, $perPage)->values();
+        $paginatedEligible = new \Illuminate\Pagination\LengthAwarePaginator(
+            $slice,
+            $totalEligible,
+            $perPage,
+            $page,
+            ['path' => route('invoice.index'), 'query' => $request->query()]
+        );
+
+        $eligibleSekolahs    = $paginatedEligible;
+        $eligibleRombels     = $paginatedEligible; // Alias backward-compatibility
 
         $statusOptions = [
             'pending_operasional' => 'Menunggu Admin Produksi',
@@ -150,7 +187,8 @@ class InvoiceController extends Controller
             'akuntingPendingCount',
             'pendingCount',
             'approvedCount',
-            'totalCount'
+            'totalCount',
+            'eligibleTotalCount'
         ));
     }
 
@@ -430,6 +468,12 @@ class InvoiceController extends Controller
 
     public function approveOperasional(Request $request, InvoiceApproval $invoice)
     {
+        if (!Auth::user()->canApproveGate1Invoice()) {
+            if (Auth::user()->isExecutive()) {
+                return back()->withErrors(['msg' => 'Akses Read-Only: Direksi hanya memiliki hak pemantauan eksekutif.']);
+            }
+            return back()->withErrors(['msg' => 'Akses Ditolak: Anda tidak memiliki otoritas verifikasi Operasional (Gate 1).']);
+        }
         // Boleh approve saat status draft / pending_operasional
         if ($invoice->status === InvoiceApproval::STATUS_APPROVED) {
             return back()->withErrors(['msg' => 'Invoice ini sudah disetujui resmi.']);

@@ -331,7 +331,7 @@ Route::middleware(['auth'])->group(function () {
 
 
     // Admin Panel Routes
-    Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:webmaster,admin_sistem,admin'])->group(function () {
+    Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:webmaster,admin_sistem,admin,akunting'])->group(function () {
         Route::get('panduan', [HelpCenterController::class, 'adminGuide'])->name('guide.index');
         Route::resource('activity-logs', ActivityLogController::class)->only(['index']); // Logging route
 
@@ -405,7 +405,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/absensi/rekap/{tanggal}', [AbsensiController::class, 'rekapByDate'])->name('absensi.rekap.date');
 
     // ── Invoice Routes ────────────────────────────────────────────────────────
-    Route::prefix('invoice')->name('invoice.')->middleware(['role:webmaster,admin_sistem,admin'])->group(function () {
+    Route::prefix('invoice')->name('invoice.')->middleware(['role:webmaster,admin_sistem,admin,akunting'])->group(function () {
         Route::get('/', [\App\Http\Controllers\InvoiceController::class, 'index'])->name('index');
         Route::get('/create', [\App\Http\Controllers\InvoiceController::class, 'create'])->name('create');
         Route::get('/rombels-by-sekolah', [\App\Http\Controllers\InvoiceController::class, 'rombelsBySekolah'])->name('rombels');
@@ -430,7 +430,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Update skema tagihan sekolah (admin bisa ubah dari default per_4_pertemuan)
     Route::post('/sekolah/{kodlan}/skema-tagihan', [\App\Http\Controllers\InvoiceController::class, 'updateSkemaSekolah'])
-        ->middleware(['role:webmaster,admin_sistem,admin'])
+        ->middleware(['role:webmaster,admin_sistem,admin,akunting'])
         ->name('sekolah.skema.update');
     
     // Resource route must be AFTER specific sub-paths if collision is possible (like /absensi/rekap vs /absensi/{id})
@@ -499,7 +499,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('laporan-mengajar/adhoc-late-request', [App\Http\Controllers\LateReportRequestController::class, 'storeAdhoc'])
         ->name('laporan-mengajar.adhoc-late-request.store');
 
-    Route::middleware(['role:admin,admin_sistem,webmaster'])->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['role:admin,admin_sistem,webmaster,akunting'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('late-reports', [App\Http\Controllers\LateReportRequestController::class, 'index'])
             ->name('late-reports.index');
         Route::post('late-reports/{lateReportRequest}/approve', [App\Http\Controllers\LateReportRequestController::class, 'approve'])

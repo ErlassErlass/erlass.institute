@@ -24,7 +24,7 @@ class PayrollController extends Controller
      */
     public function index(Request $request)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+        if (!auth()->user()->canManagePayroll()) {
             abort(403, 'Akses ditolak.');
         }
 
@@ -48,8 +48,11 @@ class PayrollController extends Controller
      */
     public function storeBatch(Request $request)
     {
-        if (!auth()->user()->isPrimaryAdmin()) {
-            abort(403, 'Akses ditolak. Pengelolaan dan pembuatan Batch Payroll hanya dapat dilakukan oleh Admin Utama (Adinda Wardania).');
+        if (!auth()->user()->canDisbursePayroll()) {
+            if (auth()->user()->isExecutive()) {
+                abort(403, 'Akses Read-Only: Direksi hanya memiliki hak pemantauan eksekutif.');
+            }
+            abort(403, 'Akses ditolak. Pengelolaan dan pembuatan Batch Payroll hanya dapat dilakukan oleh Tim Akunting/Webmaster atau Personil Kunci Terdaftar (Adinda, Novan, Andi Kristian, Ahmad Yusril).');
         }
 
         $request->validate([
@@ -95,7 +98,7 @@ class PayrollController extends Controller
      */
     public function showBatch($id)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+        if (!auth()->user()->canManagePayroll()) {
             abort(403, 'Akses ditolak.');
         }
 
@@ -116,8 +119,11 @@ class PayrollController extends Controller
      */
     public function processBatch($id)
     {
-        if (!auth()->user()->isPrimaryAdmin()) {
-            abort(403, 'Akses ditolak. Verifikasi Batch Payroll hanya dapat dilakukan oleh Admin Utama (Adinda Wardania).');
+        if (!auth()->user()->canDisbursePayroll()) {
+            if (auth()->user()->isExecutive()) {
+                abort(403, 'Akses Read-Only: Direksi hanya memiliki hak pemantauan eksekutif.');
+            }
+            abort(403, 'Akses ditolak. Verifikasi Batch Payroll hanya dapat dilakukan oleh Tim Akunting/Webmaster atau Personil Kunci Terdaftar (Adinda, Novan, Andi Kristian, Ahmad Yusril).');
         }
 
         $batch = $id instanceof PayrollBatch ? $id : PayrollBatch::findOrFail($id);
@@ -142,8 +148,11 @@ class PayrollController extends Controller
      */
     public function recalculateBatch($id)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canDisbursePayroll()) {
+            if (auth()->user()->isExecutive()) {
+                abort(403, 'Akses Read-Only: Direksi hanya memiliki hak pemantauan eksekutif.');
+            }
+            abort(403, 'Akses ditolak. Anda tidak memiliki otoritas eksekusi payroll.');
         }
 
         $batch = $id instanceof PayrollBatch ? $id : PayrollBatch::findOrFail($id);
@@ -155,8 +164,14 @@ class PayrollController extends Controller
 
         $result = $this->calculator->recalculateBatch($batch);
 
+        $msg = "Batch payroll {$batch->code} berhasil di-recalculate! ({$result['items_count']} instruktur, {$result['sessions_count']} sesi diperbarui";
+        if (!empty($result['newly_absorbed_sessions'])) {
+            $msg .= ", {$result['newly_absorbed_sessions']} sesi baru berhasil diserap";
+        }
+        $msg .= ").";
+
         return redirect()->route('admin.payroll.batches.show', $batch->id)
-            ->with('success', "Batch payroll {$batch->code} berhasil di-recalculate! ({$result['items_count']} instruktur, {$result['sessions_count']} sesi diperbarui).");
+            ->with('success', $msg);
     }
 
     /**
@@ -164,8 +179,11 @@ class PayrollController extends Controller
      */
     public function payBatch($id)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canDisbursePayroll()) {
+            if (auth()->user()->isExecutive()) {
+                abort(403, 'Akses Read-Only: Direksi hanya memiliki hak pemantauan eksekutif.');
+            }
+            abort(403, 'Akses ditolak. Anda tidak memiliki otoritas eksekusi payroll.');
         }
 
         $batch = $id instanceof PayrollBatch ? $id : PayrollBatch::findOrFail($id);
@@ -205,8 +223,11 @@ class PayrollController extends Controller
      */
     public function destroyBatch($id)
     {
-        if (!auth()->user()->isPrimaryAdmin()) {
-            abort(403, 'Akses ditolak. Penghapusan Batch Payroll hanya dapat dilakukan oleh Admin Utama (Adinda Wardania).');
+        if (!auth()->user()->canDisbursePayroll()) {
+            if (auth()->user()->isExecutive()) {
+                abort(403, 'Akses Read-Only: Direksi hanya memiliki hak pemantauan eksekutif.');
+            }
+            abort(403, 'Akses ditolak. Penghapusan Batch Payroll hanya dapat dilakukan oleh Tim Akunting/Webmaster atau Personil Kunci Terdaftar (Adinda, Novan, Andi Kristian, Ahmad Yusril).');
         }
 
         $batch = PayrollBatch::findOrFail($id);
@@ -257,7 +278,7 @@ class PayrollController extends Controller
     public function mySalaries(Request $request)
     {
         $user = auth()->user();
-        if ($user->role !== 'instruktur' && !in_array($user->role, ['webmaster', 'admin_sistem', 'admin'])) {
+        if ($user->role !== 'instruktur' && !in_array($user->role, ['webmaster', 'admin_sistem', 'admin', 'akunting'])) {
             abort(403, 'Akses ditolak.');
         }
 
@@ -295,7 +316,7 @@ class PayrollController extends Controller
 
         $user = auth()->user();
         $isOwner = $item->user_id_instruktur === $user->id;
-        $isAdmin = in_array($user->role, ['webmaster', 'admin_sistem', 'admin']);
+        $isAdmin = in_array($user->role, ['webmaster', 'admin_sistem', 'admin', 'akunting']);
 
         if (!$isOwner && !$isAdmin) {
             abort(403, 'Akses ditolak.');
@@ -342,6 +363,36 @@ class PayrollController extends Controller
             ->get();
         }
 
+        // Sort sessions by date (tanggal), schedule/time (jadwal), and rombel
+        $sortFn = function ($entry) {
+            $sess = ($entry instanceof \App\Models\PayrollItemSession) ? $entry->session : $entry;
+            if (!$sess) return '9999-99-99 99:99:99 99999';
+
+            $date = $sess->tanggal_pelaksanaan 
+                ? $sess->tanggal_pelaksanaan->format('Y-m-d') 
+                : ($sess->tanggal_terjadwal ? $sess->tanggal_terjadwal->format('Y-m-d') : '9999-99-99');
+
+            $jam = $sess->jam_mulai_aktual ?? $sess->jam_mulai_terjadwal ?? optional($sess->laporanMengajar)->jam_mulai ?? '00:00';
+            if ($jam instanceof \DateTimeInterface) {
+                $jamStr = $jam->format('H:i:s');
+            } else {
+                $jamStr = (string)$jam;
+                if (strlen($jamStr) === 5) $jamStr .= ':00';
+            }
+
+            $rombel = optional($sess->rombel)->nomor_rombel 
+                ?? (preg_match('/\d+/', optional($sess->rombel)->nama_rombel ?? optional($sess->laporanMengajar)->rombel ?? '', $m) ? (int)$m[0] : 0);
+
+            return sprintf('%s_%s_%05d_%d', $date, $jamStr, $rombel, $sess->id);
+        };
+
+        if ($item->payrollItemSessions->isNotEmpty()) {
+            $item->setRelation('payrollItemSessions', $item->payrollItemSessions->sortBy($sortFn)->values());
+        }
+        if ($item->sessions->isNotEmpty()) {
+            $item->setRelation('sessions', $item->sessions->sortBy($sortFn)->values());
+        }
+
         return view('payroll.slip_detail', compact('item', 'eligibleSessions'));
     }
 
@@ -350,8 +401,11 @@ class PayrollController extends Controller
      */
     public function attachSession(Request $request, $id)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canDisbursePayroll()) {
+            if (auth()->user()->isExecutive()) {
+                abort(403, 'Akses Read-Only: Direksi hanya memiliki hak pemantauan eksekutif.');
+            }
+            abort(403, 'Akses ditolak. Anda tidak memiliki otoritas eksekusi payroll.');
         }
 
         $request->validate([
@@ -452,8 +506,11 @@ class PayrollController extends Controller
      */
     public function detachSession(Request $request, $id, $sessionId)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canDisbursePayroll()) {
+            if (auth()->user()->isExecutive()) {
+                abort(403, 'Akses Read-Only: Direksi hanya memiliki hak pemantauan eksekutif.');
+            }
+            abort(403, 'Akses ditolak. Anda tidak memiliki otoritas eksekusi payroll.');
         }
 
         $item = PayrollItem::with('batch', 'instruktur')->findOrFail($id);
@@ -504,7 +561,7 @@ class PayrollController extends Controller
      */
     public function exportExcel($id)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+        if (!auth()->user()->canManagePayroll()) {
             abort(403, 'Akses ditolak.');
         }
 
@@ -815,7 +872,7 @@ class PayrollController extends Controller
      */
     public function exportCsv($id)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+        if (!auth()->user()->canManagePayroll()) {
             abort(403, 'Akses ditolak.');
         }
 
@@ -883,7 +940,7 @@ class PayrollController extends Controller
      */
     public function exportPdf($id)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
+        if (!auth()->user()->canManagePayroll()) {
             abort(403, 'Akses ditolak.');
         }
 
