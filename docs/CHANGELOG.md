@@ -2,6 +2,25 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.74] - 2026-10-22
+
+### Penyesuaian Skema Tagihan Bulanan SD Tunas Metropolitan (Invoice #220 & #336)
+
+#### 1. Migrasi Skema Sekolah & Program ke Bulanan
+- Mengubah skema tagihan pada master data sekolah `[20607506] SD TUNAS METROPOLITAN` dari `per_4_pertemuan` menjadi **`bulanan`** (`Sekolah::SKEMA_BULANAN`).
+- Mengubah skema tagihan pada program `Ekstrakurikuler #344` (*Ekskul Robotik Microbit Learning Kit*) menjadi **`bulanan`**.
+
+#### 2. Penyesuaian Data Tagihan (Invoice #220 & #336)
+- **[Invoice #220](https://erlass.institute/invoice/220)** (`INV/ERLASS/202610/20607506/001`):
+  - Skema tagihan: `bulanan` (*Bulanan Kalender*).
+  - Periode tagihan: **`Agustus 2026`** (Periode Nomor: `8`).
+  - Sesi: Sesi 1 s.d. 4 (4 sesi), Siswa Hadir Efektif: 12 siswa.
+- **[Invoice #336](https://erlass.institute/invoice/336)** (`DRAFT/ERLASS/202610/20607506/002`):
+  - Skema tagihan: `bulanan` (*Bulanan Kalender*).
+  - Periode tagihan: **`September 2026`** (Periode Nomor: `9`).
+  - Sesi: Sesi 5 s.d. 8 (4 sesi), Siswa Hadir Efektif: 12 siswa.
+- Membersihkan cache `invoice_eligible_programs_cache`, `invoice_eligible_programs_count`, dan `invoice_sekolahs_filter_list` agar tampilan UI web dan cetak PDF langsung termutakhirkan.
+
 ## [2.9.73] - 2026-10-22
 
 ### Pengecualian Mutlak Program Batal & Ditolak dari Antrean Siap Tagih
