@@ -168,6 +168,26 @@
                     </p>
                 </div>
                 <div>
+                    @if(!empty($tab['has_real_export']))
+                    <div class="stat-pill mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small text-muted"><i class="bi bi-file-earmark-spreadsheet text-success me-1"></i>Di Spreadsheet:</span>
+                            <span class="fw-bold text-dark fs-6">{{ number_format($tab['cached_rows']) }} baris <span class="badge bg-light text-secondary border rounded-pill" style="font-size: 0.65rem;">Terbaru</span></span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-1 border-top">
+                            <span class="small text-muted"><i class="bi bi-database-check text-primary me-1"></i>Database Real:</span>
+                            <span class="fw-bold text-primary fs-6">{{ number_format($tab['real_rows']) }} baris</span>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="{{ route('admin.google-sheets.export', ['tab' => $tab['key'], 'scope' => 'real']) }}" class="btn btn-sm btn-primary w-100 rounded-pill fw-semibold shadow-sm" title="Unduh seluruh data absensi riil dari database (60.000+ baris)">
+                            <i class="bi bi-cloud-arrow-down-fill me-1"></i> Unduh CSV Real (Semua {{ number_format($tab['real_rows']) }} Data)
+                        </a>
+                        <a href="{{ route('admin.google-sheets.export', ['tab' => $tab['key'], 'scope' => 'sheet']) }}" class="btn btn-sm btn-outline-secondary w-100 rounded-pill fw-semibold" title="Unduh data yang tersinkron ke Google Sheet (5.000 baris)">
+                            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Unduh CSV Sheet (5.000 Data)
+                        </a>
+                    </div>
+                    @else
                     <div class="stat-pill d-flex justify-content-between align-items-center mb-3">
                         <span class="small text-muted">Data Baris:</span>
                         <span class="fw-bold text-dark fs-6" id="rows-{{ $tab['key'] }}">
@@ -184,6 +204,7 @@
                             <i class="bi bi-download me-1"></i> Unduh CSV
                         </a>
                     </div>
+                    @endif
                 </div>
             </div>
         </div>

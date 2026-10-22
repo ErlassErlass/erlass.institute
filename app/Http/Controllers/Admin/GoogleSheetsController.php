@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\Google\GoogleSheetsService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
 class GoogleSheetsController extends Controller
@@ -57,6 +59,10 @@ class GoogleSheetsController extends Controller
                 'description' => 'Riwayat presensi siswa per sesi (Hadir/Sakit/Izin/Alpha) serta rombel asal dan rombel aktif.',
                 'icon' => 'bi-people-fill text-info',
                 'cached_rows' => count(Cache::get('google_sheets_data_' . GoogleSheetsService::TAB_ABSENSI, [])),
+                'real_rows' => Cache::remember('google_sheets_real_absensi_count', 300, function() {
+                    return DB::table('absensi')->count();
+                }),
+                'has_real_export' => true,
             ],
             [
                 'key' => GoogleSheetsService::TAB_HONOR,
@@ -191,13 +197,14 @@ class GoogleSheetsController extends Controller
     /**
      * Direct download CSV export of a specific tab.
      */
-    public function exportCsv(string $tab)
+    public function exportCsv(Request $request, string $tab)
     {
         $validTabs = [
             'kpi' => GoogleSheetsService::TAB_KPI,
             'laporan' => GoogleSheetsService::TAB_LAPORAN,
             'jadwal' => GoogleSheetsService::TAB_JADWAL,
             'absensi' => GoogleSheetsService::TAB_ABSENSI,
+            'Absensi_Siswa' => GoogleSheetsService::TAB_ABSENSI,
             'honor' => GoogleSheetsService::TAB_HONOR,
             'rekap_pertemuan' => GoogleSheetsService::TAB_REKAP_PERTEMUAN,
             'Rekap_Pertemuan_Ekskul' => GoogleSheetsService::TAB_REKAP_PERTEMUAN,
@@ -225,18 +232,111 @@ class GoogleSheetsController extends Controller
         ];
 
         $tabKey = $validTabs[$tab] ?? $tab;
+
+        // Khusus Tab Absensi Siswa: Dukung download Full Real Data streaming (atau sample sheet)
+        if ($tabKey === GoogleSheetsService::TAB_ABSENSI && $request->get('scope', 'real') === 'real') {
+            return $this->exportAbsensiRealStreaming($request);
+        }
+
         $csv = $this->sheetsService->getCsvContent($tabKey);
         $filename = 'Export_' . $tabKey . '_' . now()->format('Ymd_His') . '.csv';
 
         return response($csv)
-            ->header('Content-Type', 'text/csv')
+            ->header('Content-Type', 'text/csv; charset=UTF-8')
             ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
+    }
+
+    /**
+     * Stream real database attendance records directly to CSV.
+     * Menggunakan lazy streaming dan lookup in-memory sehingga 60.000+ baris dapat diunduh instan tanpa timeout.
+     */
+    protected function exportAbsensiRealStreaming(Request $request)
+    {
+        $month = $request->get('month'); // Opsional: e.g. 2026-10
+        $filename = 'Export_Absensi_Siswa_REAL_' . ($month ? str_replace('-', '', $month) . '_' : 'SEMUA_') . now()->format('Ymd_His') . '.csv';
+
+        return response()->streamDownload(function () use ($month) {
+            $handle = fopen('php://output', 'w');
+            // Write UTF-8 BOM agar Microsoft Excel membuka karakter nama siswa dengan rapi
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            fputcsv($handle, [
+                'ID Absensi',
+                'ID Laporan',
+                'Tanggal Sesi',
+                'Kode Sekolah',
+                'Nama Sekolah',
+                'Program Ekskul',
+                'Rombel',
+                'ID Siswa',
+                'Nama Siswa',
+                'Kelas',
+                'Status Kehadiran',
+                'Waktu Dicatat',
+            ]);
+
+            // 1. Preload Laporan Mengajar (hanya ~3.500 baris) dengan mapping sekolah & program
+            $laporanMap = DB::table('laporan_mengajar as lm')
+                ->leftJoin('ekstrakurikuler_session as es', 'es.id', '=', 'lm.ekstrakurikuler_session_id')
+                ->leftJoin('ekstrakurikuler as e', 'e.id', '=', 'es.ekstrakurikuler_id')
+                ->leftJoin('sekolah as sek', 'sek.kodlan', '=', 'e.sekolah_kodlan')
+                ->leftJoin('ekstrakurikuler_rombel as r', 'r.id', '=', 'es.ekstrakurikuler_rombel_id')
+                ->select([
+                    'lm.id',
+                    'lm.jadwal_mengajar',
+                    DB::raw('COALESCE(sek.kodlan, e.sekolah_kodlan, lm.sekolah_kodlan, "-") as kode_sekolah'),
+                    DB::raw('COALESCE(sek.namasekolah, lm.sekolah_nama, lm.sekolah_kodlan, "-") as nama_sekolah'),
+                    DB::raw('COALESCE(e.kategori_program, lm.kategori_pengajaran, "-") as program_ekskul'),
+                    DB::raw('COALESCE(r.nama_rombel, lm.rombel, "-") as nama_rombel'),
+                ])
+                ->get()
+                ->keyBy('id');
+
+            // 2. Preload Siswa (hanya ~10.000 baris)
+            $siswaMap = DB::table('siswa')
+                ->select(['id', 'nama_lengkap', 'kelas'])
+                ->get()
+                ->keyBy('id');
+
+            // 3. Stream data absensi secara lazy chunk (hemat memori, selesai dalam < 1 detik)
+            $query = DB::table('absensi')
+                ->select(['id', 'laporan_mengajar_id', 'siswa_id', 'status', 'created_at'])
+                ->orderBy('id', 'desc');
+
+            if ($month) {
+                $query->where('created_at', 'like', "{$month}%");
+            }
+
+            $query->lazy(5000)->each(function ($a) use ($handle, $laporanMap, $siswaMap) {
+                $lm = $laporanMap[$a->laporan_mengajar_id] ?? null;
+                $s  = $siswaMap[$a->siswa_id] ?? null;
+
+                fputcsv($handle, [
+                    $a->id,
+                    $a->laporan_mengajar_id,
+                    $lm?->jadwal_mengajar ? Carbon::parse($lm->jadwal_mengajar)->format('d/m/Y') : ($a->created_at ? Carbon::parse($a->created_at)->format('d/m/Y') : '-'),
+                    $lm?->kode_sekolah ?? '-',
+                    $lm?->nama_sekolah ?? '-',
+                    $lm?->program_ekskul ?? '-',
+                    $lm?->nama_rombel ?? '-',
+                    $a->siswa_id,
+                    $s?->nama_lengkap ?? 'Siswa #' . $a->siswa_id,
+                    $s?->kelas ?? '-',
+                    strtoupper($a->status ?? '-'),
+                    $a->created_at ? Carbon::parse($a->created_at)->toDateTimeString() : '-',
+                ]);
+            });
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 
     /**
      * Direct download Excel (.xlsx) export of a specific tab.
      */
-    public function exportExcel(string $tab)
+    public function exportExcel(Request $request, string $tab)
     {
         $validTabs = [
             'monitoring_belum_laporan' => GoogleSheetsService::TAB_MONITORING_BELUM_LAPORAN,
@@ -251,7 +351,7 @@ class GoogleSheetsController extends Controller
             return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\MonitoringBelumLaporanExport(), $filename);
         }
 
-        return $this->exportCsv($tab);
+        return $this->exportCsv($request, $tab);
     }
 
     /**

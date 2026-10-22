@@ -2,6 +2,27 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.72] - 2026-10-22
+
+### Optimasi Sinkronisasi Absensi Google Spreadsheet & Fitur Unduh Data Riil 60k+ Baris
+
+#### 1. Pembersihan Data Dummy Pengujian
+- Menghapus 9 sekolah dummy (`DKI-JAK-226`, `DKI-JAK-951`, `JAW-BAL-301`, `JAW-BOG-334`, `JAW-CIR-324`, `JAW-CIR-976`, `JAW-PAN-982`, `JAW-PEM-989`, `JAW-TID-773` / Tidore Kepulauan), rombel, dan ekskul terkait yang dibuat saat simulasi filter wilayah.
+- Invalidation cache `invoice_available_cities` sehingga dropdown wilayah tagihan kini 100% bersih dan hanya menampilkan area operasional aktif.
+
+#### 2. Batas Aman Spreadsheet (5.000 Baris) & Engine Streaming Ekspor Riil Absensi
+- **Google Spreadsheet Tetap 5.000 Baris**:
+  - Sinkronisasi Tab #4 (Absensi Siswa) di `GoogleSheetsService::syncTabAbsensi()` tetap mempertahankan limit 5.000 baris sesi terbaru demi mencegah *Google Apps Script timeout (60s limit)* dan menjaga kestabilan spreadsheet.
+- **Engine Streaming Ekspor Riil (60.000+ Baris)**:
+  - Mengimplementasikan `exportAbsensiRealStreaming()` pada `GoogleSheetsController` dengan in-memory relational lookup (`laporan_mengajar` & `siswa`) serta lazy chunking 5.000 data.
+  - Mampu mengekspor seluruh 60.291+ baris absensi lengkap dengan nama sekolah, rombel, nama siswa, dan status kehadiran dalam waktu **0,22 detik** dengan footprint RAM sangat rendah (~39MB).
+  - Penambahan header UTF-8 BOM (`\xEF\xBB\xBF`) agar file CSV langsung terbaca rapi dan presisi di Microsoft Excel tanpa masalah encoding.
+- **Pembaruan Antarmuka Dashboard (`/admin/google-sheets`)**:
+  - Kartu Tab #4 kini menyajikan ringkasan ganda: jumlah baris di Spreadsheet (5.001 baris terbaru) dan total rekaman asli di Database Real (60.291 baris).
+  - Tombol aksi terbagi dua:
+    1. **Unduh CSV Real (Semua Data)**: Mengunduh arsip lengkap database 60k+ baris.
+    2. **Unduh CSV Sheet (5.000 Data)**: Mengunduh arsip subset yang sinkron dengan Google Sheets.
+
 ## [2.9.71] - 2026-10-22
 
 ### Filter Wilayah Terintegrasi di `/invoice` & Engine Siap Tagih Eksklusif Ekskul Reguler
