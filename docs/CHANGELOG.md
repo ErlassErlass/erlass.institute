@@ -2,6 +2,23 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.77] - 2026-10-22
+
+### Pengembalian 3 Tagihan ke Status Menunggu Admin Produksi
+
+#### 1. Pembaruan Status Invoice (SDS Angkasa 1, SDI Al Falah I PG, SDIT At Taufiq)
+- Mengembalikan 3 tagihan dari tab *Disetujui Resmi* (`approved`) ke antrean **Menunggu Admin Produksi** (`tab=pending_operasional`):
+  1. **[Invoice #103](https://erlass.institute/invoice/103)** (**SDS Angkasa 1** — *Ekskul Coding Scratch*, Bulan 2 / September 2026):
+     - Nomor invoice disesuaikan menjadi: `DRAFT/ERLASS/202610/20108786/003`.
+     - Status: `pending_operasional`, `operasional_status: pending`, `akunting_status: pending`.
+  2. **[Invoice #258](https://erlass.institute/invoice/258)** (**SDI AL FALAH I PG** — *Ekskul Coding Scratch*, Inv Bulan 2):
+     - Nomor invoice disesuaikan menjadi: `DRAFT/ERLASS/202610/20105601/002`.
+     - Status: `pending_operasional`, `operasional_status: pending`, `akunting_status: pending`.
+  3. **[Invoice #273](https://erlass.institute/invoice/273)** (**SDIT AT TAUFIQ** — *Ekskul Coding Scratch*, Inv Bulan 2):
+     - Nomor invoice disesuaikan menjadi: `DRAFT/ERLASS/202610/20228755/002`.
+     - Status: `pending_operasional`, `operasional_status: pending`, `akunting_status: pending`.
+- Membuka kembali akses form edit sesi pertemuan dan verifikasi Gate 1 bagi tim Admin Produksi.
+
 ## [2.9.76] - 2026-10-22
 
 ### Pengembalian Status Invoice #59 SDIT Al Muchtar ke Menunggu Revisi Produksi
