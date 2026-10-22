@@ -2,6 +2,17 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.75] - 2026-10-22
+
+### Penambahan Rombel 6 ke Invoice #150 SDIT Al Muchtar
+
+#### 1. Penyisipan Item Rombel 6 ke Tagihan Berjalan (`Invoice #150`)
+- Menyisipkan `Rombel 6` (ID: `570`) dari program *Ekskul Coding Scratch* (`Ekstrakurikuler #227`) ke dalam **[Invoice #150](https://erlass.institute/invoice/150)** (`DRAFT/ERLASS/202610/20231585/002`):
+  - **Item Rombel**: `Rombel 6`, Sesi 5 s.d. 6 (2 sesi selesai), 27 siswa hadir billable.
+  - **Total Rombel Tagihan**: Bertambah dari 5 rombel menjadi **6 rombel**.
+  - **Total Siswa Hadir Billable**: Bertambah dari 95 siswa menjadi **122 siswa**.
+- Pembersihan cache `invoice_eligible_programs_cache` dan `invoice_eligible_programs_count`.
+
 ## [2.9.74] - 2026-10-22
 
 ### Penyesuaian Skema Tagihan Bulanan SD Tunas Metropolitan (Invoice #220 & #336)
