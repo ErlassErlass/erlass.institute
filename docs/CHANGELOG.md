@@ -2,6 +2,19 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.76] - 2026-10-22
+
+### Pengembalian Status Invoice #59 SDIT Al Muchtar ke Menunggu Revisi Produksi
+
+#### 1. Pengembalian Status Tagihan (`Invoice #59`)
+- Mengembalikan **[Invoice #59](https://erlass.institute/invoice/59)** (`SDIT AL MUCHTAR` — *Ekskul Coding Scratch*, Inv Bulan 1) ke antrean **Menunggu Revisi** (`tab=revisi` / `Perlu Revisi Produksi`):
+  - `status`: `pending_operasional`
+  - `operasional_status`: `pending`
+  - `akunting_status`: `rejected` (*Dikembalikan untuk revisi data sesi mengajar oleh Admin Produksi*)
+  - `nomor_invoice`: `DRAFT/ERLASS/202610/20231585/001`
+  - `is_invoice_tercetak`: `0`
+- Membuka kembali akses form **Atur / Tambah Sesi** (`invoice.update.sessions`) bagi tim Admin Produksi agar dapat mengedit centang sesi pertemuan yang ditagihkan.
+
 ## [2.9.75] - 2026-10-22
 
 ### Penambahan Rombel 6 ke Invoice #150 SDIT Al Muchtar
