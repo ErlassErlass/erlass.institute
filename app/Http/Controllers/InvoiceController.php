@@ -102,6 +102,15 @@ class InvoiceController extends Controller
                 });
             }
 
+            // Filter wilayah (kota / kotkab)
+            if ($request->filled('wilayah')) {
+                $wilayahVal = $request->wilayah;
+                $query->where(function ($q) use ($wilayahVal) {
+                    $q->whereHas('sekolah', fn($sub) => $sub->where('kota', $wilayahVal)->orWhere('kotkab', $wilayahVal))
+                      ->orWhereHas('rombel.ekstrakurikuler.sekolah', fn($sub) => $sub->where('kota', $wilayahVal)->orWhere('kotkab', $wilayahVal));
+                });
+            }
+
             // Filter tahun ajaran
             if ($request->filled('tahun_ajaran')) {
                 $query->where('tahun_ajaran', $request->tahun_ajaran);
@@ -149,6 +158,13 @@ class InvoiceController extends Controller
                 $kodlan = strtolower((string)($item['sekolah_kodlan'] ?? ''));
                 $nama = strtolower((string)($item['sekolah_nama'] ?? ''));
                 return $kodlan === $sekolahVal || str_contains($nama, $sekolahVal);
+            });
+        }
+        if ($request->filled('wilayah')) {
+            $wilayahVal = strtolower(trim($request->wilayah));
+            $eligibleSekolahs = $eligibleSekolahs->filter(function ($item) use ($wilayahVal) {
+                $kota = strtolower((string)($item['sekolah_kota'] ?? $item['sekolah_kotkab'] ?? ''));
+                return $kota === $wilayahVal || str_contains($kota, $wilayahVal);
             });
         }
         if ($request->filled('skema')) {
@@ -218,14 +234,12 @@ class InvoiceController extends Controller
         ];
 
         $benchmarkPaginator = null;
-        $allWilayah = [];
+        $allWilayah = Cache::remember('invoice_available_cities', 1800, function() {
+            return Sekolah::whereNotNull('kota')->where('kota', '!=', '')->distinct()->orderBy('kota')->pluck('kota');
+        });
         $allSalesmen = [];
 
         if ($currentTab === 'benchmark') {
-            $allWilayah = Cache::remember('benchmark_wilayah_list', 1800, function() {
-                return Sekolah::whereNotNull('kota')->where('kota', '!=', '')->distinct()->orderBy('kota')->pluck('kota');
-            });
-
             $allSalesmen = Cache::remember('benchmark_salesmen_list', 1800, function() {
                 return Salesman::orderBy('nama_salesman')->get(['id', 'nama_salesman', 'group_leader', 'area']);
             });

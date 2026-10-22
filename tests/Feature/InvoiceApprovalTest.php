@@ -611,7 +611,8 @@ class InvoiceApprovalTest extends TestCase
     }
 
     /** @test */
-    public function only_ekskul_and_pelatihan_are_eligible_and_others_are_excluded(): void
+    /** @test */
+    public function only_regular_ekskul_is_eligible_and_pelatihan_soga_others_are_excluded(): void
     {
         $admin = $this->makeAdmin();
         $sekolah = Sekolah::factory()->create(['kodlan' => 'SEK-EX', 'skema_tagihan' => 'per_4_pertemuan']);
@@ -626,7 +627,7 @@ class InvoiceApprovalTest extends TestCase
         $rombelEkskul = EkstrakurikulerRombel::factory()->create(['ekstrakurikuler_id' => $ekskul->id, 'nomor_rombel' => 1]);
         $rombelEkskul->sessions()->whereBetween('nomor_pertemuan', [1, 4])->update(['status' => 'selesai']);
 
-        // 2. Program Pelatihan -> Valid
+        // 2. Program Pelatihan -> TIDAK VALID / EXCLUDED (Permintaan User: Pelatihan & SOGA tidak perlu generate)
         $pelatihan = \App\Models\Ekstrakurikuler::factory()->create([
             'sekolah_kodlan'   => $sekolah->kodlan,
             'kategori_program' => 'Pelatihan Robotik Microbit',
@@ -659,25 +660,26 @@ class InvoiceApprovalTest extends TestCase
         $service = app(\App\Services\InvoiceService::class);
         $eligibleList = $service->getAllEligibleRombels();
 
-        // 2 program eligible dipisah per program: Ekskul dan Pelatihan
-        $this->assertCount(2, $eligibleList);
+        // Hanya program Ekskul reguler yang eligible (Pelatihan, Trial, Sosialisasi dikecualikan)
+        $this->assertCount(1, $eligibleList);
         $programs = collect($eligibleList)->pluck('kategori_program')->toArray();
         $this->assertContains('Ekskul Coding Scratch', $programs);
-        $this->assertContains('Pelatihan Robotik Microbit', $programs);
+        $this->assertNotContains('Pelatihan Robotik Microbit', $programs);
         $this->assertNotContains('Free Trial Class', $programs);
         $this->assertNotContains('Sosialisasi bersama Sales', $programs);
 
         $allItemRombelIds = collect($eligibleList)->flatMap(fn($el) => collect($el['items'])->pluck('ekstrakurikuler_rombel_id'))->toArray();
         $this->assertContains($rombelEkskul->id, $allItemRombelIds);
-        $this->assertContains($rombelPelatihan->id, $allItemRombelIds);
+        $this->assertNotContains($rombelPelatihan->id, $allItemRombelIds);
         $this->assertNotContains($rombelTrial->id, $allItemRombelIds);
         $this->assertNotContains($rombelSos->id, $allItemRombelIds);
 
-        // Shortcut eligible untuk rombel trial harus null
+        // Shortcut eligible untuk rombel pelatihan dan trial harus null
+        $this->assertNull($service->getEligibleInvoiceForRombel($rombelPelatihan));
         $this->assertNull($service->getEligibleInvoiceForRombel($rombelTrial));
         $this->assertNull($service->getEligibleInvoiceForRombel($rombelSos));
 
-        // Quick generate pada program non-ekskul/pelatihan harus ditolak
+        // Quick generate pada program non-ekskul harus ditolak
         $response = $this->actingAs($admin)->post('/invoice/quick-generate', [
             'ekstrakurikuler_rombel_id' => $rombelTrial->id,
             'skema_tagihan'             => 'per_4_pertemuan',
@@ -685,15 +687,96 @@ class InvoiceApprovalTest extends TestCase
         ]);
         $response->assertSessionHasErrors('msg');
 
-        // Endpoint rombels-by-sekolah hanya me-return Ekskul dan Pelatihan
+        // Endpoint rombels-by-sekolah hanya me-return Ekskul reguler
         $responseApi = $this->actingAs($admin)->getJson("/invoice/rombels-by-sekolah?sekolah={$sekolah->kodlan}");
         $responseApi->assertStatus(200);
         $apiRombelIds = collect($responseApi->json())->pluck('id')->toArray();
 
         $this->assertContains($rombelEkskul->id, $apiRombelIds);
-        $this->assertContains($rombelPelatihan->id, $apiRombelIds);
+        $this->assertNotContains($rombelPelatihan->id, $apiRombelIds);
         $this->assertNotContains($rombelTrial->id, $apiRombelIds);
         $this->assertNotContains($rombelSos->id, $apiRombelIds);
+    }
+
+    /** @test */
+    public function wilayah_filter_filters_invoices_and_eligible_schools_properly(): void
+    {
+        $admin = $this->makeAdmin();
+
+        $sekolahBekasi = Sekolah::factory()->create([
+            'kodlan' => 'SEK-BKS',
+            'namasekolah' => 'Sekolah Bekasi Hebat',
+            'kota' => 'BEKASI',
+            'skema_tagihan' => 'per_4_pertemuan',
+        ]);
+
+        $sekolahJakarta = Sekolah::factory()->create([
+            'kodlan' => 'SEK-JKT',
+            'namasekolah' => 'Sekolah Jakarta Pintar',
+            'kota' => 'JAKARTA SELATAN',
+            'skema_tagihan' => 'per_4_pertemuan',
+        ]);
+
+        $ekskulBekasi = \App\Models\Ekstrakurikuler::factory()->create([
+            'sekolah_kodlan' => $sekolahBekasi->kodlan,
+            'kategori_program' => 'Ekskul Coding Scratch',
+            'status' => 'aktif',
+        ]);
+        $rombelBekasi = EkstrakurikulerRombel::factory()->create(['ekstrakurikuler_id' => $ekskulBekasi->id]);
+        $rombelBekasi->sessions()->whereBetween('nomor_pertemuan', [1, 4])->update(['status' => 'selesai']);
+
+        $ekskulJakarta = \App\Models\Ekstrakurikuler::factory()->create([
+            'sekolah_kodlan' => $sekolahJakarta->kodlan,
+            'kategori_program' => 'Ekskul Robotik Microbit',
+            'status' => 'aktif',
+        ]);
+        $rombelJakarta = EkstrakurikulerRombel::factory()->create(['ekstrakurikuler_id' => $ekskulJakarta->id]);
+        $rombelJakarta->sessions()->whereBetween('nomor_pertemuan', [1, 4])->update(['status' => 'selesai']);
+
+        \Illuminate\Support\Facades\Cache::forget('invoice_eligible_programs_cache');
+
+        // Test filter tab=siap_tagih dengan wilayah=BEKASI
+        $respSiapTagihBekasi = $this->actingAs($admin)->get('/invoice?tab=siap_tagih&wilayah=BEKASI');
+        $respSiapTagihBekasi->assertStatus(200);
+        $this->assertEquals(1, $respSiapTagihBekasi->viewData('eligibleSekolahs')->total());
+        $this->assertEquals('SEK-BKS', $respSiapTagihBekasi->viewData('eligibleSekolahs')->first()['sekolah_kodlan']);
+
+        // Create invoice untuk pending_operasional
+        InvoiceApproval::create([
+            'sekolah_kodlan' => $sekolahBekasi->kodlan,
+            'kategori_program' => 'Ekskul Coding Scratch',
+            'skema_tagihan' => 'per_4_pertemuan',
+            'periode_label' => 'Inv 1',
+            'tahun_ajaran' => '2026/2027',
+            'status' => InvoiceApproval::STATUS_PENDING_OPERASIONAL,
+            'jumlah_siswa_billable' => 10,
+            'jumlah_sesi' => 4,
+            'total_rombel' => 1,
+        ]);
+
+        InvoiceApproval::create([
+            'sekolah_kodlan' => $sekolahJakarta->kodlan,
+            'kategori_program' => 'Ekskul Robotik Microbit',
+            'skema_tagihan' => 'per_4_pertemuan',
+            'periode_label' => 'Inv 1',
+            'tahun_ajaran' => '2026/2027',
+            'status' => InvoiceApproval::STATUS_PENDING_OPERASIONAL,
+            'jumlah_siswa_billable' => 12,
+            'jumlah_sesi' => 4,
+            'total_rombel' => 1,
+        ]);
+
+        // Test filter tab=pending_operasional dengan wilayah=BEKASI
+        $respOperasionalBekasi = $this->actingAs($admin)->get('/invoice?tab=pending_operasional&wilayah=BEKASI');
+        $respOperasionalBekasi->assertStatus(200);
+        $this->assertEquals(1, $respOperasionalBekasi->viewData('invoices')->total());
+        $this->assertEquals('SEK-BKS', $respOperasionalBekasi->viewData('invoices')->first()->sekolah_kodlan);
+
+        // Test filter tab=pending_operasional dengan wilayah=JAKARTA SELATAN
+        $respOperasionalJkt = $this->actingAs($admin)->get('/invoice?tab=pending_operasional&wilayah=JAKARTA+SELATAN');
+        $respOperasionalJkt->assertStatus(200);
+        $this->assertEquals(1, $respOperasionalJkt->viewData('invoices')->total());
+        $this->assertEquals('SEK-JKT', $respOperasionalJkt->viewData('invoices')->first()->sekolah_kodlan);
     }
 
     /** @test */

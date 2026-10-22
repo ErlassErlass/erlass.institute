@@ -17,11 +17,19 @@ class Sekolah extends Model
         static::saved(function () {
             \Cache::forget('sekolah_available_regions');
             \Cache::forget('sekolah_available_cities');
+            \Cache::forget('invoice_available_cities');
+            \Cache::forget('benchmark_wilayah_list');
+            \Cache::forget('invoice_eligible_programs_cache');
+            \Cache::forget('invoice_sekolahs_filter_list');
         });
 
         static::deleted(function () {
             \Cache::forget('sekolah_available_regions');
             \Cache::forget('sekolah_available_cities');
+            \Cache::forget('invoice_available_cities');
+            \Cache::forget('benchmark_wilayah_list');
+            \Cache::forget('invoice_eligible_programs_cache');
+            \Cache::forget('invoice_sekolahs_filter_list');
         });
     }
 

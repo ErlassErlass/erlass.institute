@@ -162,7 +162,7 @@
                   class="row g-2 align-items-end">
                 <input type="hidden" name="tab" id="filter-tab" value="{{ $currentTab }}">
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label small fw-semibold text-muted mb-1">Sekolah</label>
                     <select name="sekolah" id="filter-sekolah" class="form-select form-select-sm select2-sekolah" data-placeholder="🔍 Cari & pilih sekolah...">
                         <option value="">Semua Sekolah</option>
@@ -170,6 +170,16 @@
                             <option value="{{ $s->kodlan }}" {{ request('sekolah') === $s->kodlan ? 'selected' : '' }}>
                                 [{{ $s->kodlan }}] {{ $s->namasekolah }}
                             </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold text-muted mb-1">Wilayah / Kota</label>
+                    <select name="wilayah" class="form-select form-select-sm">
+                        <option value="">Semua Wilayah</option>
+                        @foreach($allWilayah ?? [] as $w)
+                            <option value="{{ $w }}" {{ request('wilayah') === $w ? 'selected' : '' }}>{{ $w }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -191,13 +201,13 @@
                            class="form-control form-control-sm" placeholder="2026/2027">
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <label class="form-label small fw-semibold text-muted mb-1">Tampilkan</label>
                     <select name="per_page" class="form-select form-select-sm" onchange="document.getElementById('filter-form').submit();">
-                        <option value="25" {{ ($perPage ?? 25) == 25 ? 'selected' : '' }}>25 Baris</option>
-                        <option value="50" {{ ($perPage ?? 25) == 50 ? 'selected' : '' }}>50 Baris</option>
-                        <option value="75" {{ ($perPage ?? 25) == 75 ? 'selected' : '' }}>75 Baris</option>
-                        <option value="all" {{ request('per_page') === 'all' || ($perPage ?? 25) >= 9999 ? 'selected' : '' }}>Semua Baris</option>
+                        <option value="25" {{ ($perPage ?? 25) == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ ($perPage ?? 25) == 50 ? 'selected' : '' }}>50</option>
+                        <option value="75" {{ ($perPage ?? 25) == 75 ? 'selected' : '' }}>75</option>
+                        <option value="all" {{ request('per_page') === 'all' || ($perPage ?? 25) >= 9999 ? 'selected' : '' }}>Semua</option>
                     </select>
                 </div>
 
@@ -332,6 +342,11 @@
                                 <input type="text" id="searchEligibleTable" class="form-control bg-white border-start-0" 
                                        placeholder="Cari sekolah..." onkeyup="filterEligibleSchools()">
                             </div>
+                            <a href="{{ route('invoice.index', array_merge(request()->query(), ['tab' => 'siap_tagih', 'refresh_antrean' => 1])) }}" 
+                               class="btn btn-sm btn-outline-secondary fw-semibold px-2.5 py-1.5 rounded-pill shadow-xs text-nowrap" 
+                               title="Segarkan antrean data sesi dan program terbaru">
+                                <i class="bi bi-arrow-clockwise me-1 text-primary"></i> Segarkan Antrean
+                            </a>
                             @if(auth()->user()?->hasRole(['admin', 'admin_sistem', 'webmaster']))
                             <button type="button" class="btn btn-sm btn-outline-primary fw-bold px-3 py-1.5 rounded-pill shadow-xs text-nowrap" data-bs-toggle="modal" data-bs-target="#modalAturSkema">
                                 <i class="bi bi-gear-fill me-1"></i> Atur Skema Tagihan

@@ -18,6 +18,24 @@ class EkstrakurikulerSession extends Model
     protected $table = 'ekstrakurikuler_session';
 
     /**
+     * Boot the model.
+     */
+    protected static function booted()
+    {
+        static::saved(function () {
+            \Illuminate\Support\Facades\Cache::forget('invoice_eligible_programs_cache');
+        });
+
+        static::deleted(function () {
+            \Illuminate\Support\Facades\Cache::forget('invoice_eligible_programs_cache');
+        });
+
+        static::restored(function () {
+            \Illuminate\Support\Facades\Cache::forget('invoice_eligible_programs_cache');
+        });
+    }
+
+    /**
      * Atribut yang dapat diisi secara massal.
      */
     protected $fillable = [

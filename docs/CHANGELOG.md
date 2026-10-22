@@ -2,6 +2,27 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.71] - 2026-10-22
+
+### Filter Wilayah Terintegrasi di `/invoice` & Engine Siap Tagih Eksklusif Ekskul Reguler
+
+#### 1. Filter Wilayah / Kota Terpadu di Seluruh Tab Invoice (`/invoice`)
+- **Penyediaan Dropdown Wilayah Global**:
+  - Menyediakan dropdown **Wilayah / Kota** di filter bar utama pada seluruh tab workflow penagihan (`siap_tagih`, `pending_operasional`, `pending_akunting`, `approved`, `rejected`), tidak lagi terbatas hanya pada tab `benchmark`.
+  - Mengambil daftar kota/wilayah unik dari tabel `sekolah` yang di-cache otomatis (`invoice_available_cities`).
+- **Penyaringan Data Terintegrasi**:
+  - Pada tab approval dan riwayat (`InvoiceApproval`), query menyaring invoice berdasarkan relasi sekolah di kota terkait (`kota` atau `kotkab`).
+  - Pada antrean Siap Tagih (`tab=siap_tagih`), collection program yang eligible otomatis tersaring sesuai kota/wilayah sekolah.
+
+#### 2. Engine Siap Tagih Dinamis & Pengecualian Ketat Pelatihan / SOGA
+- **Pengecualian Mutlak Kategori Pelatihan & SOGA (CSR)**:
+  - Memperbarui `isInvoiceable()` dan `scopeInvoiceable()` pada model `Ekstrakurikuler` serta `InvoiceService::getEligibleInvoiceForProgram`:
+    - Seluruh program yang berkategori atau berjenis `Pelatihan` (seperti *Pelatihan Robotik Microbit*, *Pelatihan Coding Scratch*, workshop, seminar, training) **dikecualikan 100% dari auto-generation antrean Siap Tagih**. Antrean Siap Tagih dikhususkan murni untuk program **Ekskul reguler**.
+    - Program dengan skema `csr_reguler_soga` atau program/sekolah dengan kata kunci `SOGA`, `Solidaritas Erlangga`, dan `CSR` dipastikan diblokir dari pembuatan invoice otomatis.
+- **Auto-Refresh & Invalidation Cache Real-Time**:
+  - Menambahkan lifecycle hook `booted()` pada model `Ekstrakurikuler`, `EkstrakurikulerRombel`, `EkstrakurikulerSession`, `InvoiceApproval`, dan `Sekolah` untuk otomatis menghapus cache antrean (`invoice_eligible_programs_cache`) setiap kali ada penambahan, perubahan status, sesi selesai, atau penghapusan data.
+  - Menambahkan tombol **"Segarkan Antrean"** langsung pada panel header tab Siap Tagih untuk sinkronisasi paksa on-demand.
+
 ## [2.9.70] - 2026-10-22
 
 ### Dashboard AI Agent Squad, Integrasi 9router Gateway & Standardisasi Penagihan 4 Pertemuan

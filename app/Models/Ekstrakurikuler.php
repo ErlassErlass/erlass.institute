@@ -19,6 +19,27 @@ class Ekstrakurikuler extends Model
     protected $table = 'ekstrakurikuler';
 
     /**
+     * Boot the model.
+     */
+    protected static function booted()
+    {
+        static::saved(function () {
+            \Illuminate\Support\Facades\Cache::forget('invoice_eligible_programs_cache');
+            \Illuminate\Support\Facades\Cache::forget('invoice_sekolahs_filter_list');
+        });
+
+        static::deleted(function () {
+            \Illuminate\Support\Facades\Cache::forget('invoice_eligible_programs_cache');
+            \Illuminate\Support\Facades\Cache::forget('invoice_sekolahs_filter_list');
+        });
+
+        static::restored(function () {
+            \Illuminate\Support\Facades\Cache::forget('invoice_eligible_programs_cache');
+            \Illuminate\Support\Facades\Cache::forget('invoice_sekolahs_filter_list');
+        });
+    }
+
+    /**
      * Atribut yang dapat diisi secara massal.
      */
     protected $fillable = [
@@ -191,8 +212,8 @@ class Ekstrakurikuler extends Model
     }
 
     /**
-     * Kata kunci program non-tagihan yang TIDAK BOLEH dibuatkan invoice.
-     * Hanya Ekskul dan Pelatihan yang dapat di-invoice.
+     * Kata kunci program non-tagihan yang TIDAK BOLEH dibuatkan invoice otomatis.
+     * Hanya Ekskul reguler komersil yang dapat di-invoice otomatis.
      */
     public const NON_INVOICEABLE_KEYWORDS = [
         'free trial',
@@ -206,11 +227,15 @@ class Ekstrakurikuler extends Model
         'soga',
         'solidaritas erlangga',
         'csr',
+        'pelatihan',
+        'training',
+        'workshop',
+        'seminar',
     ];
 
     /**
-     * Cek apakah program ini dapat di-invoice (HANYA Ekskul dan Pelatihan komersil).
-     * Program lain (Free Trial, Sosialisasi, Pameran, Lomba, Inkul, Pelatihan SOGA/CSR, dll.) tidak dapat di-invoice.
+     * Cek apakah program ini dapat di-invoice (HANYA Ekskul reguler komersil).
+     * Program lain (Pelatihan, Workshop, SOGA, CSR, Free Trial, Sosialisasi, Pameran, Lomba, Inkul, dll.) tidak dapat di-invoice otomatis.
      */
     public function isInvoiceable(): bool
     {
@@ -224,19 +249,19 @@ class Ekstrakurikuler extends Model
             return false;
         }
 
+        // 1. Program Pelatihan / Workshop / Seminar tidak dibuatkan invoice otomatis
+        if ($this->isPelatihan() || str_contains(strtolower($this->kategori_program ?? ''), 'pelatihan')) {
+            return false;
+        }
+
         $kat = trim($this->kategori_program ?? '');
         $lowerKat = strtolower($kat);
 
-        // 1. Cek blacklist non-invoiceable
+        // 2. Cek blacklist non-invoiceable
         foreach (self::NON_INVOICEABLE_KEYWORDS as $keyword) {
             if (str_contains($lowerKat, $keyword)) {
                 return false;
             }
-        }
-
-        // 2. Program Pelatihan komersil selalu invoiceable
-        if ($this->isPelatihan()) {
-            return true;
         }
 
         // 3. Program Ekstrakurikuler reguler
@@ -280,20 +305,23 @@ class Ekstrakurikuler extends Model
     }
 
     /**
-     * Scope Eloquent untuk memfilter hanya program Ekskul dan Pelatihan yang dapat di-invoice.
+     * Scope Eloquent untuk memfilter hanya program Ekskul reguler yang dapat di-invoice otomatis.
      */
     public function scopeInvoiceable($query)
     {
         return $query->where(function ($q) {
-            $q->where('jenis_program', self::JENIS_PELATIHAN)
-              ->orWhere('jenis_program', self::JENIS_EKSTRAKURIKULER)
+            $q->where('jenis_program', self::JENIS_EKSTRAKURIKULER)
               ->orWhere('kategori_program', 'LIKE', 'Ekskul%')
-              ->orWhere('kategori_program', 'LIKE', 'Pelatihan%')
               ->orWhere('kategori_program', 'LIKE', '%Coding%')
               ->orWhere('kategori_program', 'LIKE', '%English%')
               ->orWhere('kategori_program', 'LIKE', '%Robotik%')
               ->orWhere('kategori_program', 'LIKE', '%Pictoblox%');
         })
+        ->where('jenis_program', '!=', self::JENIS_PELATIHAN)
+        ->where('kategori_program', 'NOT LIKE', '%Pelatihan%')
+        ->where('kategori_program', 'NOT LIKE', '%Training%')
+        ->where('kategori_program', 'NOT LIKE', '%Workshop%')
+        ->where('kategori_program', 'NOT LIKE', '%Seminar%')
         ->where(function ($q) {
             $q->whereNull('skema_tagihan')
               ->orWhere('skema_tagihan', '!=', Sekolah::SKEMA_CSR_REGULER_SOGA);
@@ -308,7 +336,10 @@ class Ekstrakurikuler extends Model
         ->where('kategori_program', 'NOT LIKE', '%Pendampingan%')
         ->where('kategori_program', 'NOT LIKE', '%Lomba%')
         ->where('kategori_program', 'NOT LIKE', '%Inkul%')
-        ->where('kategori_program', 'NOT LIKE', '%Intrakurikuler%');
+        ->where('kategori_program', 'NOT LIKE', '%Intrakurikuler%')
+        ->where('kategori_program', 'NOT LIKE', '%SOGA%')
+        ->where('kategori_program', 'NOT LIKE', '%Solidaritas Erlangga%')
+        ->where('kategori_program', 'NOT LIKE', '%CSR%');
     }
 
     /**

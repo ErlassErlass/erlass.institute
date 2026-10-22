@@ -149,8 +149,12 @@ class InvoiceService
 
         $skema = $ekskul->skema_tagihan ?: ($sekolah->skema_tagihan ?? Sekolah::SKEMA_BULANAN);
 
-        // CSR SOGA (Solidaritas Erlangga) / Pelatihan SOGA adalah program CSR/sosial sponsor yang tidak perlu di-invoicekan
+        // CSR SOGA (Solidaritas Erlangga) / Pelatihan / Workshop adalah program sosial/sponsor/non-ekskul yang tidak perlu di-invoicekan otomatis
         if ($skema === Sekolah::SKEMA_CSR_REGULER_SOGA ||
+            $ekskul->isPelatihan() ||
+            str_contains(strtolower($ekskul->kategori_program ?? ''), 'pelatihan') ||
+            str_contains(strtolower($ekskul->kategori_program ?? ''), 'training') ||
+            str_contains(strtolower($ekskul->kategori_program ?? ''), 'workshop') ||
             str_contains(strtolower($ekskul->kategori_program ?? ''), 'soga') ||
             str_contains(strtolower($ekskul->kategori_program ?? ''), 'solidaritas erlangga') ||
             str_contains(strtolower($sekolah->namasekolah ?? ''), 'soga') ||

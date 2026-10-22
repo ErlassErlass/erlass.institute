@@ -189,10 +189,13 @@ Menghubungkan data operasional mengajar dengan penghitungan honorarium instruktu
     - Tahunan: `Tahun 2026`.
     - Per 4 Pertemuan: `Sesi 1–4`, `Sesi 5–8`, `Sesi 9–12` (dilengkapi indikator bulan sesi riil terakhir).
   - Filter dropdown skema real-time di header antrean terintegrasi dengan pencarian live search sekolah.
-- **Aturan Keserentakan Penagihan & Bulan Laporan Terakhir**:
-  - Sekolah baru masuk kategori siap tagih jika seluruh rombel aktif (Ekskul & Pelatihan) di sekolah tersebut telah menyelesaikan target sesi periode yang bersangkutan.
+- **Aturan Keserentakan Penagihan & Pengecualian Program (Exclusion Engine)**:
+  - Sekolah baru masuk kategori siap tagih jika seluruh rombel aktif pada program ekskul reguler di sekolah tersebut telah menyelesaikan target sesi periode yang bersangkutan.
   - Alokasi bulan tagihan dihitung dinamis dari tanggal sesi/laporan mengajar terakhir yang terlaksana dalam siklus tersebut.
-  - Program non-tagihan (Free Trial, Sosialisasi, Pameran, Lomba, Inkul) secara sistematis dikecualikan.
+  - Program non-tagihan (Free Trial, Sosialisasi, Pameran, Lomba, Inkul, SOGA/Solidaritas Erlangga, CSR) serta seluruh kategori **Pelatihan/Workshop/Training** secara sistematis dikecualikan dari antrean Siap Tagih otomatis.
+  - Cache antrean (`invoice_eligible_programs_cache`) di-refresh secara real-time via lifecycle event Eloquent model saat data ekskul, sesi, rombel, invoice, atau skema sekolah diperbarui, serta dilengkapi tombol *"Segarkan Antrean"* di panel UI.
+- **Filter Wilayah / Kota Terpadu di Seluruh Tab**:
+  - Filter bar utama di seluruh tab workflow penagihan (`siap_tagih`, `pending_operasional`, `pending_akunting`, `approved`, `rejected`, dan `benchmark`) dilengkapi dropdown *Wilayah / Kota* (19 kota aktif) yang terintegrasi dengan filter sekolah, skema, dan tahun ajaran.
 - **Smart Ready-to-Bill Detection & Urutan Prioritas**:
   - Deteksi otomatis 4 skema: `per_4_pertemuan`, `bulanan`, `semester`, dan `tahunan`.
   - Urutan antrean tagihan memprioritaskan hari keterlambatan (`days_overdue DESC`), dilengkapi badge keterlambatan dan tanggal Target Invoice.

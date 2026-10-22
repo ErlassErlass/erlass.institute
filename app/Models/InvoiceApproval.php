@@ -14,6 +14,24 @@ class InvoiceApproval extends Model
 
     protected $table = 'invoice_approvals';
 
+    /**
+     * Boot the model.
+     */
+    protected static function booted()
+    {
+        static::saved(function () {
+            \Illuminate\Support\Facades\Cache::forget('invoice_eligible_programs_cache');
+        });
+
+        static::deleted(function () {
+            \Illuminate\Support\Facades\Cache::forget('invoice_eligible_programs_cache');
+        });
+
+        static::restored(function () {
+            \Illuminate\Support\Facades\Cache::forget('invoice_eligible_programs_cache');
+        });
+    }
+
     const STATUS_DRAFT               = 'draft';
     const STATUS_PENDING_OPERASIONAL = 'pending_operasional';
     const STATUS_PENDING_AKUNTING    = 'pending_akunting';
