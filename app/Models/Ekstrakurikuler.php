@@ -239,7 +239,14 @@ class Ekstrakurikuler extends Model
      */
     public function isInvoiceable(): bool
     {
-        // 0. Program CSR SOGA (Solidaritas Erlangga) / Pelatihan SOGA adalah program sosial/sponsor dan tidak di-invoicekan
+        // 0. Program yang dibatalkan, ditolak, atau soft-deleted tidak boleh dibuatkan invoice otomatis sama sekali
+        if ($this->status === self::STATUS_DIBATALKAN || 
+            $this->status === self::STATUS_DITOLAK || 
+            $this->trashed()) {
+            return false;
+        }
+
+        // Program CSR SOGA (Solidaritas Erlangga) / Pelatihan SOGA adalah program sosial/sponsor dan tidak di-invoicekan
         if ($this->skema_tagihan === Sekolah::SKEMA_CSR_REGULER_SOGA || 
             $this->sekolah?->skema_tagihan === Sekolah::SKEMA_CSR_REGULER_SOGA ||
             str_contains(strtolower($this->kategori_program ?? ''), 'soga') ||
@@ -317,6 +324,8 @@ class Ekstrakurikuler extends Model
               ->orWhere('kategori_program', 'LIKE', '%Robotik%')
               ->orWhere('kategori_program', 'LIKE', '%Pictoblox%');
         })
+        ->where('status', '!=', self::STATUS_DIBATALKAN)
+        ->where('status', '!=', self::STATUS_DITOLAK)
         ->where('jenis_program', '!=', self::JENIS_PELATIHAN)
         ->where('kategori_program', 'NOT LIKE', '%Pelatihan%')
         ->where('kategori_program', 'NOT LIKE', '%Training%')

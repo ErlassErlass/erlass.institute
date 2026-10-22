@@ -2,6 +2,17 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.73] - 2026-10-22
+
+### Pengecualian Mutlak Program Batal & Ditolak dari Antrean Siap Tagih
+
+#### 1. Eliminasi Program Dibatalkan dari Generator Tagihan (`InvoiceService`)
+- Memperbarui `Ekstrakurikuler::isInvoiceable()`, `Ekstrakurikuler::scopeInvoiceable()`, dan `InvoiceService::getEligibleInvoiceForProgram`:
+  - Program yang berstatus `dibatalkan` (`STATUS_DIBATALKAN`), `ditolak` (`STATUS_DITOLAK`), atau berstatus soft-deleted (`deleted_at != null`) **dikecualikan 100% dari antrean Siap Tagih**.
+  - Menghapus aturan toleransi sesi lama yang sebelumnya tetap mencoba menagihkan sisa sesi mengajar pada program yang telah dibatalkan oleh pihak sekolah.
+- Menghapus pembacaan `withTrashed()` pada relasi `Sekolah::invoiceableEkstrakurikulers()` dan query rombel/sesi di `InvoiceService::getEligibleInvoicesForSekolah()` agar sesi terhapus/anomali tidak dihitung ke proposal tagihan baru.
+- Menghapus program `[69979855] SDIT CORDOVA 3` (*Ekskul Robotik Jimu*, alasan: Sekolah batal) dan `[20622279] SMP SWASTA LENTERA HARAPAN PH` (*Ekskul Coding Scratch*, alasan: Sekolah Informasi batal) dari antrean `/invoice?tab=siap_tagih`.
+
 ## [2.9.72] - 2026-10-22
 
 ### Optimasi Sinkronisasi Absensi Google Spreadsheet & Fitur Unduh Data Riil 60k+ Baris

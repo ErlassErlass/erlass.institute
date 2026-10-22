@@ -140,7 +140,7 @@ class Sekolah extends Model
      */
     public function invoiceableEkstrakurikulers()
     {
-        return $this->hasMany(Ekstrakurikuler::class, 'sekolah_kodlan', 'kodlan')->withTrashed()->invoiceable();
+        return $this->hasMany(Ekstrakurikuler::class, 'sekolah_kodlan', 'kodlan')->invoiceable();
     }
 
     /**

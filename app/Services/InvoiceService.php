@@ -137,13 +137,10 @@ class InvoiceService
             return null;
         }
 
-        // Program yang dibatalkan / ditolak HANYA boleh diproses jika memiliki sesi mengajar yang selesai
-        $hasAnyCompletedSession = $rombels->contains(function ($rombel) {
-            return $rombel->sessions->contains(fn($s) => $s->status === 'selesai');
-        });
-
-        if (($ekskul->status === Ekstrakurikuler::STATUS_DIBATALKAN || $ekskul->status === Ekstrakurikuler::STATUS_DITOLAK)
-            && !$hasAnyCompletedSession) {
+        // Program yang dibatalkan / ditolak / di-soft delete tidak boleh ditagihkan otomatis sama sekali
+        if ($ekskul->status === Ekstrakurikuler::STATUS_DIBATALKAN ||
+            $ekskul->status === Ekstrakurikuler::STATUS_DITOLAK ||
+            $ekskul->trashed()) {
             return null;
         }
 
@@ -727,11 +724,10 @@ class InvoiceService
     public function getEligibleInvoicesForSekolah(Sekolah $sekolah, ?Carbon $asOfDate = null): Collection
     {
         $ekskuls = $sekolah->ekstrakurikulers()
-            ->withTrashed()
             ->invoiceable()
             ->with([
                 'sekolah',
-                'rombels' => fn($r) => $r->withTrashed()->with(['sessions' => fn($s) => $s->withTrashed()]),
+                'rombels' => fn($r) => $r->with(['sessions' => fn($s) => $s->whereNull('deleted_at')]),
             ])
             ->get();
 
