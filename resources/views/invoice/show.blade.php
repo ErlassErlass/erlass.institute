@@ -202,6 +202,10 @@
                     </div>
 
                     @if(!$invoice->isApproved() && !empty($att['availableSessions']))
+                    @php
+                        $lockedSessionsCount = collect($att['availableSessions'])->where('is_selectable', false)->count();
+                        $selectableSessionsCount = collect($att['availableSessions'])->where('is_current', false)->where('is_selectable', true)->count();
+                    @endphp
                     <div class="collapse" id="editSessions_{{ $att['rombel']->id }}">
                         <div class="p-3 p-md-4 border-top border-bottom" style="background: linear-gradient(135deg, #f0f7ff 0%, #f8fafc 100%);">
                             <form action="{{ route('invoice.update.sessions', $invoice) }}" method="POST" id="formSessions_{{ $att['rombel']->id }}">
@@ -227,34 +231,70 @@
                                     </div>
                                 </div>
 
+                                {{-- Informasi Proteksi Double-Billing --}}
+                                <div class="alert alert-info border border-info-subtle shadow-xs rounded-3 p-3 mb-3 d-flex gap-3 align-items-start" style="background-color: #f0f9ff;">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                                        <i class="bi bi-shield-lock-fill fs-5"></i>
+                                    </div>
+                                    <div class="small">
+                                        <div class="fw-bold text-dark mb-1 d-flex align-items-center flex-wrap gap-2">
+                                            <span>Sistem Proteksi Anti Double-Billing (Mencegah Tagihan Ganda)</span>
+                                            @if($lockedSessionsCount > 0)
+                                                <span class="badge bg-danger text-white font-monospace" style="font-size: 0.70rem;">
+                                                    <i class="bi bi-lock-fill me-1"></i>{{ $lockedSessionsCount }} Sesi Terkunci di Invoice Lain
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div class="text-secondary" style="line-height: 1.45;">
+                                            Checkbox sesi yang <strong>tidak dapat dicentang (dinonaktifkan / terkunci <i class="bi bi-lock-fill text-danger"></i>)</strong> menandakan bahwa sesi tersebut <strong>sudah terhubung dan ditagihkan pada invoice resmi lain yang telah Disetujui (Approved)</strong> oleh Akunting. Sistem mengunci sesi tersebut secara otomatis agar pihak sekolah <strong>tidak ditagih dua kali</strong> untuk pertemuan yang sama.
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="table-responsive bg-white rounded border shadow-sm">
                                     <table class="table table-sm table-hover align-middle mb-0" style="font-size: .82rem;">
                                         <thead class="table-light">
                                             <tr class="text-muted text-uppercase" style="font-size: .73rem; letter-spacing: .5px;">
                                                 <th class="text-center" style="width: 48px;">Pilih</th>
-                                                <th style="width: 95px;">Sesi</th>
+                                                <th style="width: 105px;">Sesi</th>
                                                 <th style="width: 140px;">Tanggal Realisasi</th>
                                                 <th>Instruktur &amp; Pokok Bahasan</th>
                                                 <th class="text-center" style="width: 120px;">Siswa Hadir</th>
-                                                <th class="text-center" style="width: 170px;">Status Tagihan</th>
+                                                <th class="text-center" style="width: 200px;">Status Tagihan</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach($att['availableSessions'] as $avail)
-                                            <tr class="{{ $avail['is_current'] ? 'table-primary bg-opacity-10' : '' }} {{ !$avail['is_selectable'] ? 'opacity-50 bg-light' : '' }}">
+                                            <tr class="{{ $avail['is_current'] ? 'table-primary bg-opacity-10' : '' }} {{ !$avail['is_selectable'] ? 'opacity-75 bg-light' : '' }}">
                                                 <td class="text-center">
-                                                    <input class="form-check-input session-chk-{{ $att['rombel']->id }}" 
-                                                           type="checkbox" 
-                                                           name="sessions[]" 
-                                                           value="{{ $avail['nomor_pertemuan'] }}" 
-                                                           id="chk_sess_{{ $att['rombel']->id }}_{{ $avail['nomor_pertemuan'] }}"
-                                                           {{ $avail['is_current'] ? 'checked' : '' }}
-                                                           {{ !$avail['is_selectable'] ? 'disabled' : '' }}
-                                                           onchange="updateSessCount('{{ $att['rombel']->id }}')">
+                                                    @if(!$avail['is_selectable'])
+                                                        <div title="Terkunci: Sesi {{ $avail['nomor_pertemuan'] }} sudah terhubung dan ditagihkan pada Invoice #{{ $avail['invoiced_in'] ?? '-' }} untuk mencegah penagihan ganda (double-billing).">
+                                                            <input class="form-check-input session-chk-{{ $att['rombel']->id }}" 
+                                                                   type="checkbox" 
+                                                                   name="sessions[]" 
+                                                                   value="{{ $avail['nomor_pertemuan'] }}" 
+                                                                   id="chk_sess_{{ $att['rombel']->id }}_{{ $avail['nomor_pertemuan'] }}"
+                                                                   disabled>
+                                                        </div>
+                                                    @else
+                                                        <input class="form-check-input session-chk-{{ $att['rombel']->id }}" 
+                                                               type="checkbox" 
+                                                               name="sessions[]" 
+                                                               value="{{ $avail['nomor_pertemuan'] }}" 
+                                                               id="chk_sess_{{ $att['rombel']->id }}_{{ $avail['nomor_pertemuan'] }}"
+                                                               {{ $avail['is_current'] ? 'checked' : '' }}
+                                                               onchange="updateSessCount('{{ $att['rombel']->id }}')">
+                                                    @endif
                                                 </td>
                                                 <td>
-                                                    <label class="form-check-label fw-bold font-monospace mb-0" style="cursor: pointer;" for="chk_sess_{{ $att['rombel']->id }}_{{ $avail['nomor_pertemuan'] }}">
+                                                    <label class="form-check-label fw-bold font-monospace mb-0 {{ !$avail['is_selectable'] ? 'text-muted' : '' }}" 
+                                                           style="{{ $avail['is_selectable'] ? 'cursor: pointer;' : 'cursor: not-allowed;' }}" 
+                                                           for="chk_sess_{{ $att['rombel']->id }}_{{ $avail['nomor_pertemuan'] }}"
+                                                           title="{{ !$avail['is_selectable'] ? 'Sesi '.$avail['nomor_pertemuan'].' sudah ditagihkan di Invoice #'.$avail['invoiced_in'] : 'Klik untuk memilih sesi' }}">
                                                         Sesi {{ $avail['nomor_pertemuan'] }}
+                                                        @if(!$avail['is_selectable'])
+                                                            <i class="bi bi-lock-fill text-danger ms-1" title="Terkunci: Sudah ditagihkan di Invoice #{{ $avail['invoiced_in'] }}"></i>
+                                                        @endif
                                                     </label>
                                                 </td>
                                                 <td class="text-nowrap">{{ $avail['tanggal'] }}</td>
@@ -275,9 +315,12 @@
                                                             <i class="bi bi-check2 me-1"></i>Dalam Invoice Ini
                                                         </span>
                                                     @elseif(!$avail['is_selectable'])
-                                                        <span class="badge bg-secondary-subtle text-muted border" title="Sudah ditagihkan pada invoice {{ $avail['invoiced_in'] }}">
-                                                            <i class="bi bi-lock me-1"></i>Di Inv #{{ $avail['invoiced_in'] }}
-                                                        </span>
+                                                        <div class="d-inline-flex flex-column align-items-center">
+                                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle py-1 px-2" title="Terkunci: Sudah resmi masuk Invoice #{{ $avail['invoiced_in'] }}">
+                                                                <i class="bi bi-lock-fill me-1"></i>Terkunci di Inv #{{ $avail['invoiced_in'] }}
+                                                            </span>
+                                                            <span class="text-muted mt-0.5" style="font-size: .68rem;">(Mencegah Double-Billing)</span>
+                                                        </div>
                                                     @else
                                                         <span class="badge bg-success-subtle text-success border">
                                                             <i class="bi bi-plus-circle me-1"></i>Tersedia (Selesai)
@@ -289,6 +332,13 @@
                                         </tbody>
                                     </table>
                                 </div>
+
+                                @if($selectableSessionsCount === 0 && $lockedSessionsCount > 0)
+                                    <div class="p-2.5 rounded-3 bg-light border text-muted small mt-2 d-flex align-items-center gap-2">
+                                        <i class="bi bi-check-all text-success fs-5"></i>
+                                        <span>Seluruh sesi berstatus selesai pada rombel ini telah terhubung ke invoice resmi yang disetujui. Tidak ada sesi bebas yang tertinggal.</span>
+                                    </div>
+                                @endif
                             </form>
                         </div>
                     </div>

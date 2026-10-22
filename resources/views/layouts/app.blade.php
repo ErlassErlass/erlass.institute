@@ -762,6 +762,16 @@
                             </a>
                         </li>
 
+                        @if(Auth::user()?->role === 'webmaster')
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs('admin.ai-agents.*') ? 'active' : '' }}" href="{{ route('admin.ai-agents.index') }}">
+                                <i class="bi bi-cpu-fill text-primary"></i>
+                                <span>AI Agent Squad</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill ms-auto fw-bold" style="font-size: 0.65rem;">5 AGENTS</span>
+                            </a>
+                        </li>
+                        @endif
+
                         @if(Auth::user()?->canManageUsers())
                             <li class="sidebar-item">
                                 <a class="sidebar-link {{ request()->routeIs('admin.verification.index') ? 'active' : '' }}" href="{{ route('admin.verification.index') }}">
@@ -953,6 +963,9 @@
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold notif-filter-btn" data-filter="milestone" onclick="filterNotifTab('milestone', this, event)" style="font-size: 0.70rem;">
                                         <i class="bi bi-flag me-1 text-primary"></i>Milestone <span class="badge bg-secondary text-white ms-1" id="tabCountMilestone">0</span>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold notif-filter-btn" data-filter="ptm" onclick="filterNotifTab('ptm', this, event)" style="font-size: 0.70rem;">
+                                        <i class="bi bi-mortarboard me-1 text-success"></i>PTM <span class="badge bg-success text-white ms-1" id="tabCountPtm">0</span>
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold notif-filter-btn" data-filter="payout" onclick="filterNotifTab('payout', this, event)" style="font-size: 0.70rem;">
                                         <i class="bi bi-fire me-1 text-warning"></i>Prioritas <span class="badge bg-danger text-white ms-1" id="tabCountPayout">0</span>
@@ -1492,6 +1505,11 @@
                     const mCount = currentNotifList.filter(n => n.type === 'milestone_report').length;
                     tabMilestone.textContent = mCount;
                 }
+                const tabPtm = document.getElementById('tabCountPtm');
+                if (tabPtm) {
+                    const ptCount = currentNotifList.filter(n => n.type === 'ptm_completed').length;
+                    tabPtm.textContent = ptCount;
+                }
                 const tabPayout = document.getElementById('tabCountPayout');
                 if (tabPayout) {
                     const pCount = currentNotifList.filter(n => n.type === 'monthly_school_payout').length;
@@ -1544,6 +1562,8 @@
             filtered = currentNotifList.filter(n => n.type === 'ticket_created' || n.type === 'ticket_reply');
         } else if (activeNotifFilter === 'milestone') {
             filtered = currentNotifList.filter(n => n.type === 'milestone_report');
+        } else if (activeNotifFilter === 'ptm') {
+            filtered = currentNotifList.filter(n => n.type === 'ptm_completed');
         } else if (activeNotifFilter === 'payout') {
             filtered = currentNotifList.filter(n => n.type === 'monthly_school_payout');
         }
@@ -1555,6 +1575,9 @@
             }
             if (activeNotifFilter === 'milestone') {
                 emptyMsg = activeNotifStatus === 'unread' ? 'Tidak ada notifikasi milestone laporan' : 'Tidak ada riwayat milestone dibaca';
+            }
+            if (activeNotifFilter === 'ptm') {
+                emptyMsg = activeNotifStatus === 'unread' ? 'Tidak ada notifikasi PTM selesai belum dibaca' : 'Tidak ada riwayat PTM selesai dibaca';
             }
             if (activeNotifFilter === 'payout') {
                 emptyMsg = activeNotifStatus === 'unread' ? 'Tidak ada notifikasi cutoff akhir bulan belum dibaca' : 'Tidak ada riwayat cutoff dibaca';
@@ -1678,6 +1701,52 @@
                                 <a href="${reportUrl}" class="btn btn-sm text-white py-0 px-2 fw-bold" style="background-color: #EA580C; font-size:0.7rem;"><i class="bi bi-eye me-1"></i>Detail</a>
                                 ${isReadMode 
                                     ? `<button class="btn btn-outline-warning btn-sm py-0 px-2 rounded-pill fw-semibold" title="Kembalikan ke Belum Dibaca" onclick="markNotifAsUnread('${n.id}', event)" style="font-size:0.7rem;"><i class="bi bi-arrow-counterclockwise me-1"></i>Batal Dibaca</button>`
+                                    : `<button class="btn btn-outline-secondary btn-sm py-0 px-1.5 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead('${n.id}', event)" style="font-size:0.7rem;"><i class="bi bi-check2"></i></button>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- Case 1.8: PTM Selesai (Realisasi Ekskul Tatap Muka) ---
+            if (n.type === 'ptm_completed') {
+                const reportUrl = d.report_detail_url || ("{{ route('laporan-mengajar.index') }}?search=" + encodeURIComponent(d.sekolah_nama || ''));
+                const invoiceUrl = d.invoice_queue_url || "{{ route('invoice.index') }}";
+
+                return `
+                    <div class="p-3 border-bottom notif-item" id="notif-item-${n.id}" style="background: ${isReadMode ? '#F0FDF4' : '#F0FDF4'}; border-left: 4px solid ${isReadMode ? '#94A3B8' : '#10B981'} !important; transition: background 0.15s;">
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                <span class="badge text-white" style="background-color: #059669; font-size:0.68rem; font-weight:700;">
+                                    <i class="bi bi-mortarboard-fill me-1"></i>PTM SELESAI (P.${d.pertemuan_ke || '?'})
+                                </span>
+                                ${d.wilayah ? `<span class="badge bg-light text-dark border" style="font-size:0.62rem;"><i class="bi bi-geo-alt-fill text-danger me-1"></i>${escJs(d.wilayah)}</span>` : ''}
+                                ${isReadMode ? `<span class="badge bg-light text-muted border" style="font-size:0.62rem;"><i class="bi bi-check2-circle text-success me-1"></i>Sudah Dibaca</span>` : ''}
+                            </div>
+                            <small class="text-muted" style="font-size:0.68rem;">${formatTimeAgo(n.created_at)}</small>
+                        </div>
+                        <div class="fw-bold text-dark" style="font-size:0.85rem; color: #065F46 !important;">${escJs(d.sekolah_nama || 'Sekolah')}</div>
+                        <div class="text-secondary small mb-2" style="font-size:0.75rem;">
+                            <strong>${escJs(d.kategori || 'Ekskul')}</strong> • ${escJs(d.rombel || '-')} • Ins: <strong>${escJs(d.instruktur_nama || '-')}</strong>
+                        </div>
+                        <div class="mb-2 p-2 rounded bg-white border border-success-subtle d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div class="small text-muted" style="font-size:0.72rem;">
+                                <i class="bi bi-calendar-event me-1 text-success"></i>${escJs(d.tanggal || '-')} ${d.jam ? `(${escJs(d.jam)})` : ''}
+                            </div>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold" style="font-size:0.7rem;">
+                                <i class="bi bi-people-fill me-1"></i>${d.jumlah_hadir || 0} Hadir
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between pt-1" style="font-size:0.75rem;">
+                            <a href="${invoiceUrl}" class="small text-decoration-none fw-semibold text-success" style="font-size:0.7rem;">
+                                <i class="bi bi-receipt me-1"></i>Antrean Tagihan &rarr;
+                            </a>
+                            <div class="d-flex gap-1 align-items-center">
+                                ${d.foto_absensi_url ? `<a href="${d.foto_absensi_url}" target="_blank" class="btn btn-outline-success btn-sm py-0 px-2" style="font-size:0.7rem;"><i class="bi bi-file-earmark-image me-1"></i>Absensi</a>` : ''}
+                                <a href="${reportUrl}" class="btn btn-sm text-white py-0 px-2 fw-bold" style="background-color: #059669; font-size:0.7rem;"><i class="bi bi-eye me-1"></i>Detail</a>
+                                ${isReadMode 
+                                    ? `<button class="btn btn-outline-warning btn-sm py-0 px-2 rounded-pill fw-semibold" title="Kembalikan ke Belum Dibaca" onclick="markNotifAsUnread('${n.id}', event)" style="font-size:0.7rem;"><i class="bi bi-arrow-counterclockwise me-1"></i>Batal</button>`
                                     : `<button class="btn btn-outline-secondary btn-sm py-0 px-1.5 rounded-circle" title="Tandai Dibaca" onclick="markNotifAsRead('${n.id}', event)" style="font-size:0.7rem;"><i class="bi bi-check2"></i></button>`
                                 }
                             </div>

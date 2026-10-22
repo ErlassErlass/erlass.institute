@@ -114,6 +114,19 @@
             </div>
         </div>
         <div class="col-6 col-md">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white" style="border-left: 4px solid #10B981 !important;">
+                <div class="card-body p-3 d-flex align-items-center gap-3">
+                    <div class="rounded-3 p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background-color: #ECFDF5; color: #059669;">
+                        <i class="bi bi-mortarboard-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold">PTM Selesai</div>
+                        <h3 class="fw-bold mb-0 text-success">{{ number_format($ptmCount ?? 0) }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md">
             <div class="card border-0 shadow-sm rounded-4 h-100 bg-white" style="border-left: 4px solid #F97316 !important;">
                 <div class="card-body p-3 d-flex align-items-center gap-3">
                     <div class="rounded-3 p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background-color: #FFF7ED; color: #EA580C;">
@@ -182,9 +195,20 @@
                 <div class="col-6 col-md-auto">
                     <select name="type" class="form-select form-select-sm rounded-pill" onchange="this.form.submit()" style="font-size: 0.78rem;">
                         <option value="all" @selected($type === 'all')>Semua Kategori</option>
+                        <option value="ptm_completed" @selected($type === 'ptm_completed' || $type === 'ptm')>🏫 PTM Selesai (Realisasi Ekskul)</option>
                         <option value="monthly_school_payout" @selected($type === 'monthly_school_payout' || $type === 'payout')>🔥 Prioritas: Sekolah Bayar Instruktur</option>
                         <option value="milestone" @selected($type === 'milestone')>Milestone Pertemuan (4, 8, 12..)</option>
                         <option value="gateway_alert" @selected($type === 'gateway_alert' || $type === 'gateway')>WhatsApp Gateway (Fonnte)</option>
+                    </select>
+                </div>
+
+                {{-- Baris Per Halaman --}}
+                <div class="col-6 col-md-auto">
+                    <select name="per_page" class="form-select form-select-sm rounded-pill" onchange="this.form.submit()" style="font-size: 0.78rem;">
+                        <option value="25" @selected(($perPage ?? 25) == 25)>25 Baris</option>
+                        <option value="50" @selected(($perPage ?? 25) == 50)>50 Baris</option>
+                        <option value="75" @selected(($perPage ?? 25) == 75)>75 Baris</option>
+                        <option value="all" @selected(request('per_page') === 'all' || ($perPage ?? 25) >= 9999)>Semua Baris</option>
                     </select>
                 </div>
 
@@ -235,12 +259,13 @@
                         $data = $notif->data ?? [];
                         $isPayout = ($notif->type === 'monthly_school_payout');
                         $isMilestone = ($notif->type === 'milestone_report');
+                        $isPtm = ($notif->type === 'ptm_completed');
                         $isGatewayAlert = ($notif->type === 'gateway_alert');
                         $tgl4 = $data['tanggal_mengajar_4'] ?? [];
                         $tglPayout = $data['tanggal_mengajar'] ?? [];
                     @endphp
                     <div class="list-group-item p-3 border-bottom transition-all notif-row-{{ $notif->id }}" 
-                         style="background: {{ $notif->is_read ? '#FAFAFA' : ($isPayout ? '#FFF7ED' : ($isGatewayAlert ? '#FEF2F2' : '#FFFFFF')) }}; border-left: 5px solid {{ $notif->is_read ? '#CBD5E1' : ($isPayout ? '#F97316' : ($isGatewayAlert ? '#EF4444' : '#0EA5E9')) }} !important;">
+                         style="background: {{ $notif->is_read ? '#FAFAFA' : ($isPayout ? '#FFF7ED' : ($isGatewayAlert ? '#FEF2F2' : ($isPtm ? '#F0FDF4' : '#FFFFFF'))) }}; border-left: 5px solid {{ $notif->is_read ? '#CBD5E1' : ($isPayout ? '#F97316' : ($isGatewayAlert ? '#EF4444' : ($isPtm ? '#10B981' : '#0EA5E9'))) }} !important;">
                         
                         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-2">
                             <div class="d-flex flex-wrap align-items-center gap-1.5">
@@ -254,6 +279,25 @@
                                     <span class="badge bg-success text-white fw-bold py-1 px-2" style="font-size: 0.70rem;">
                                         <i class="bi bi-check2-circle me-1"></i>{{ $data['total_sesi'] ?? 0 }} Sesi ({{ $data['total_jam'] ?? '-' }})
                                     </span>
+                                @elseif($isPtm)
+                                    <span class="badge text-white fw-bold py-1 px-2" style="background-color: #059669; font-size: 0.72rem;">
+                                        <i class="bi bi-mortarboard-fill me-1"></i>PTM SELESAI — SESI {{ $data['pertemuan_ke'] ?? '?' }}
+                                    </span>
+                                    @if(!empty($data['wilayah']))
+                                        <span class="badge bg-light text-dark border fw-semibold py-1 px-2" style="font-size: 0.70rem;">
+                                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ $data['wilayah'] }}
+                                        </span>
+                                    @endif
+                                    @if(!empty($data['tanggal']))
+                                        <span class="badge bg-dark text-white fw-semibold py-1 px-2" style="font-size: 0.70rem;">
+                                            <i class="bi bi-calendar-event me-1"></i>{{ $data['tanggal'] }}
+                                        </span>
+                                    @endif
+                                    @if(!empty($data['jam']) && $data['jam'] !== '-')
+                                        <span class="badge bg-secondary text-white fw-semibold py-1 px-2" style="font-size: 0.70rem;">
+                                            <i class="bi bi-clock me-1"></i>{{ $data['jam'] }}
+                                        </span>
+                                    @endif
                                 @elseif($isMilestone)
                                     <span class="badge {{ $notif->is_read ? 'bg-secondary' : 'bg-primary' }} text-white fw-bold py-1 px-2" style="font-size: 0.72rem;">
                                         <i class="bi bi-flag-fill me-1"></i>Milestone Pertemuan Ke-{{ $data['pertemuan_ke'] ?? '?' }}
@@ -371,6 +415,33 @@
                                     • <span class="text-success fw-bold"><i class="bi bi-people-fill me-1"></i>{{ $data['jumlah_hadir'] }} Siswa Hadir</span>
                                 @endif
                             </div>
+                        @elseif($isPtm)
+                            <div class="text-secondary small mb-2" style="font-size: 0.80rem;">
+                                <span class="text-dark fw-bold"><i class="bi bi-building me-1 text-success"></i>{{ $data['sekolah_nama'] ?? 'Sekolah' }}</span>
+                                @if(!empty($data['kategori']))
+                                    • <span class="badge bg-light text-dark border">{{ $data['kategori'] }}</span>
+                                @endif
+                                @if(!empty($data['rombel']))
+                                    • <span class="fw-semibold text-dark">{{ $data['rombel'] }}</span>
+                                @endif
+                                @if(!empty($data['instruktur_nama']))
+                                    • Instruktur: <strong class="text-dark">{{ $data['instruktur_nama'] }}</strong>
+                                @endif
+                                @if(isset($data['jumlah_hadir']))
+                                    • <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold"><i class="bi bi-people-fill me-1"></i>{{ $data['jumlah_hadir'] }} Siswa Hadir</span>
+                                @endif
+                            </div>
+                            <div class="p-2.5 rounded-3 bg-white border border-success-subtle mb-1 shadow-xs">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 text-muted" style="font-size: 0.75rem;">
+                                    <div>
+                                        <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                        <strong>Pertemuan Tatap Muka Selesai:</strong> Instruktur telah melakukan kegiatan belajar mengajar dan mengisi presensi siswa.
+                                    </div>
+                                    <a href="{{ route('invoice.index') }}" class="btn btn-sm btn-outline-success py-0.5 px-2.5 rounded-pill fw-semibold shadow-xs" style="font-size: 0.72rem;">
+                                        <i class="bi bi-receipt me-1"></i>Lihat Antrean Tagihan &rarr;
+                                    </a>
+                                </div>
+                            </div>
                         @else
                             <div class="text-secondary small mb-2" style="font-size: 0.80rem;">
                                 {{ $notif->body }}
@@ -424,13 +495,26 @@
             </div>
 
             {{-- Pagination Footer --}}
-            <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center">
-                <span class="text-muted small">
-                    Menampilkan {{ $notifications->firstItem() ?? 0 }} - {{ $notifications->lastItem() ?? 0 }} dari total {{ $notifications->total() }} notifikasi
-                </span>
+            <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small">
+                        Menampilkan {{ $notifications->firstItem() ?? 0 }} - {{ $notifications->lastItem() ?? 0 }} dari total {{ $notifications->total() }} notifikasi
+                    </span>
+                    <div class="d-flex align-items-center gap-1 ms-2">
+                        <span class="small text-muted">Per halaman:</span>
+                        <select class="form-select form-select-sm py-0 px-2 rounded-pill" style="width: auto; font-size: 0.75rem;" onchange="location.href = this.value;">
+                            <option value="{{ route('admin.notifications.index', array_merge(request()->query(), ['per_page' => 25, 'page' => 1])) }}" {{ ($perPage ?? 25) == 25 ? 'selected' : '' }}>25</option>
+                            <option value="{{ route('admin.notifications.index', array_merge(request()->query(), ['per_page' => 50, 'page' => 1])) }}" {{ ($perPage ?? 25) == 50 ? 'selected' : '' }}>50</option>
+                            <option value="{{ route('admin.notifications.index', array_merge(request()->query(), ['per_page' => 75, 'page' => 1])) }}" {{ ($perPage ?? 25) == 75 ? 'selected' : '' }}>75</option>
+                            <option value="{{ route('admin.notifications.index', array_merge(request()->query(), ['per_page' => 'all', 'page' => 1])) }}" {{ request('per_page') === 'all' || ($perPage ?? 25) >= 9999 ? 'selected' : '' }}>Semua</option>
+                        </select>
+                    </div>
+                </div>
+                @if($notifications->hasPages())
                 <div>
                     {{ $notifications->links() }}
                 </div>
+                @endif
             </div>
         @endif
     </div>

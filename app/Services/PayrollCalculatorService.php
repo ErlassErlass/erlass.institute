@@ -29,6 +29,11 @@ class PayrollCalculatorService
     const ENABLE_LATE_PENALTY = false;
 
     /**
+     * Kodlan SDI AL IKHLAS dengan skema honor flat Rp 150.000 / sesi reguler.
+     */
+    const KODLAN_SDI_AL_IKHLAS = '20105810';
+
+    /**
      * Daftar 21 KodLan Sekolah Mitra dengan skema honor flat Rp 100.000 / sesi.
      */
     const SEKOLAH_FLAT_100K_KODLANS = [
@@ -128,6 +133,14 @@ class PayrollCalculatorService
         $isSekolahFlat100k = ($sekolah && $sekolah->is_sekolah_bayar_instruktur)
             || ($kodlan && in_array((string)$kodlan, self::SEKOLAH_FLAT_100K_KODLANS, true));
 
+        // Deteksi Skema Flat Rp 150.000 / Sesi Reguler:
+        // Berlaku untuk SDI AL IKHLAS dan seluruh sekolah dengan skema_tagihan 'semester' atau 'tahunan'
+        $skemaSekolah = $sekolah?->skema_tagihan ?? $ekskul?->skema_tagihan;
+        $isSekolahFlat150k = ($kodlan && (string)$kodlan === self::KODLAN_SDI_AL_IKHLAS)
+            || ($sekolah && stripos($sekolah->namasekolah, 'al ikhlas') !== false)
+            || ($sekolah && stripos($sekolah->namasekolah, 'al-ikhlas') !== false)
+            || in_array($skemaSekolah, ['semester', 'tahunan'], true);
+
         // Cek jika sesi dibatalkan atau libur: Honorarium tetap Rp 0
         if (in_array($session->status, [EkstrakurikulerSession::STATUS_DIBATALKAN, EkstrakurikulerSession::STATUS_LIBUR])) {
             $baseRate = 0.00;
@@ -138,8 +151,8 @@ class PayrollCalculatorService
             // Poin No. 6: Honor Sosialisasi bersama Sales = Rp 75.000
             $baseRate = 75000.00;
         } elseif (str_contains($category, 'free trial') || str_contains($category, 'trial class') || str_contains($category, 'trial')) {
-            // Poin No. 7: Honor Free Trial / Trial Class (Siswa > 6 => Rp 100.000, Siswa <= 6 => Rp 75.000)
-            $baseRate = ($studentCount > 6) ? 100000.00 : 75000.00;
+            // Poin No. 7: Honor Free Trial / Trial Class: Flat Rp 100.000 / sesi (terlepas dari jumlah siswa hadir)
+            $baseRate = 100000.00;
         } elseif (str_contains($category, 'pameran')) {
             // Poin No. 5: Honor Pameran di Sekolah / Kegiatan Luar = Rp 100.000
             $baseRate = 100000.00;
@@ -150,13 +163,11 @@ class PayrollCalculatorService
             // Poin No. 3: Honor Sekolah Pembayaran Per-Pertemuan = Rp 100.000
             $baseRate = 100000.00;
         } else {
-            // Poin No. 1: Skala Honor Utama Program Ekskul Reguler berdasarkan Kuota Jumlah Siswa Hadir:
-            // - Siswa >= 15 orang: Rp 150.000 / sesi
-            // - Siswa 12 - 14 orang: Rp 115.000 / sesi
-            // - Siswa 10 - 11 orang: Rp 100.000 / sesi
-            // - Siswa 8 - 9 orang: Rp 75.000 / sesi
-            // - Siswa < 8 orang (termasuk 0 siswa hadir): Rp 75.000 / sesi (Tetap dibayar tarif minimum Rp 75.000, jangan 0 kecuali sesi dibatalkan)
-            if ($studentCount >= 15) {
+            // Poin No. 1: Skala Honor Utama Program Ekskul Reguler:
+            // Khusus SDI AL IKHLAS dan Sekolah dengan skema tagihan Semester / Tahunan: Honorarium Flat Rp 150.000 / sesi
+            if ($isSekolahFlat150k) {
+                $baseRate = 150000.00;
+            } elseif ($studentCount >= 15) {
                 $baseRate = 150000.00;
             } elseif ($studentCount >= 12) {
                 $baseRate = 115000.00;
@@ -317,7 +328,14 @@ class PayrollCalculatorService
                 ->update(['payment_status' => 'unpaid', 'payroll_item_id' => null]);
 
             // Ambil seluruh sesi mengajar selesai yang berstatus unpaid dan memiliki laporan lengkap di rentang cutoff (termasuk carry-over)
-            $sessions = EkstrakurikulerSession::where('payment_status', 'unpaid')
+            $sessions = EkstrakurikulerSession::with([
+                    'instruktur',
+                    'asisten',
+                    'ekstrakurikuler.sekolah',
+                    'rombel.ekstrakurikuler.sekolah',
+                    'laporanMengajar.absensi'
+                ])
+                ->where('payment_status', 'unpaid')
                 ->where('status', EkstrakurikulerSession::STATUS_SELESAI)
                 ->where(function ($q) use ($startDate, $endDate) {
                     // Sesi dalam rentang cutoff normal: mengajar DALAM cutoff DAN laporan disubmit SEBELUM/PADA batas cutoff (created_at <= endDate)
@@ -372,8 +390,8 @@ class PayrollCalculatorService
                     ]);
                 }
 
-                // Asisten Instruktur
-                if ($session->user_id_asisten) {
+                // Asisten Instruktur (Hanya jika asisten bukan instruktur utama itu sendiri)
+                if ($session->user_id_asisten && $session->user_id_asisten != $session->user_id_instruktur) {
                     $instructorDuties->push([
                         'user_id' => $session->user_id_asisten,
                         'role' => 'asisten',
@@ -612,28 +630,140 @@ class PayrollCalculatorService
 
         return DB::transaction(function () use ($batch) {
             $period = Carbon::parse($batch->periode);
+            $startDate = $period->copy()->subMonth()->day(11)->startOfDay();
             $endDate = $period->copy()->day(10)->endOfDay();
 
-            // 1. Keluarkan sesi yang laporannya disubmit setelah batas cutoff batch (created_at > endDate)
-            // Sesi-sesi ini dikembalikan ke unpaid agar otomatis terserap di batch bulan berikutnya (carry-over)
-            $postCutoffItemSessions = \App\Models\PayrollItemSession::whereIn('payroll_item_id', $batch->items()->pluck('id'))
-                ->whereHas('session.laporanMengajar', function ($lq) use ($endDate) {
-                    $lq->where('created_at', '>', $endDate);
+            // 1. Auto-Link seluruh Laporan Mengajar mandiri di rentang cutoff agar 100% terekap di payroll
+            $standaloneReports = \App\Models\LaporanMengajar::whereNull('ekstrakurikuler_session_id')
+                ->whereBetween('jadwal_mengajar', [$startDate, $endDate])
+                ->whereNotNull('user_id_instruktur')
+                ->get();
+
+            foreach ($standaloneReports as $report) {
+                $report->ensureSessionLinked();
+            }
+
+            // 2. Sinkronisasi Sesi Baru (Auto-Sync Unpaid Sessions):
+            // Cari seluruh sesi selesai berstatus unpaid yang memenuhi periode cutoff atau carry-over yang disetujui
+            $newEligibleSessions = EkstrakurikulerSession::with([
+                    'instruktur',
+                    'asisten',
+                    'ekstrakurikuler.sekolah',
+                    'rombel.ekstrakurikuler.sekolah',
+                    'laporanMengajar.absensi'
+                ])
+                ->where('payment_status', 'unpaid')
+                ->where('status', EkstrakurikulerSession::STATUS_SELESAI)
+                ->where(function ($q) use ($startDate, $endDate) {
+                    $q->where(function ($subQ) use ($startDate, $endDate) {
+                        $subQ->where(function ($dateQ) use ($startDate, $endDate) {
+                            $dateQ->whereBetween('tanggal_pelaksanaan', [$startDate, $endDate])
+                                  ->orWhere(function ($fallbackQ) use ($startDate, $endDate) {
+                                      $fallbackQ->whereNull('tanggal_pelaksanaan')
+                                               ->whereBetween('tanggal_terjadwal', [$startDate, $endDate]);
+                                  });
+                        });
+                    })
+                    ->orWhere(function ($carryQ) use ($startDate, $endDate) {
+                        $carryQ->where('tanggal_pelaksanaan', '<', $startDate)
+                               ->whereHas('laporanMengajar', function ($lq) use ($startDate, $endDate) {
+                                   $lq->whereBetween('created_at', [$startDate, $endDate]);
+                               });
+                    });
+                })
+                ->whereHas('laporanMengajar', function ($lq) {
+                    $lq->where(function ($sub) {
+                        $sub->whereNull('metadata_json->status_approval_kendala')
+                            ->orWhere('metadata_json->status_approval_kendala', 'approved');
+                    });
+                })
+                ->where(function ($q) {
+                    $q->whereNotNull('user_id_instruktur')
+                      ->orWhereNotNull('user_id_asisten');
                 })
                 ->get();
 
-            $excludedCount = $postCutoffItemSessions->count();
-            foreach ($postCutoffItemSessions as $pis) {
-                EkstrakurikulerSession::where('id', $pis->ekstrakurikuler_session_id)->update([
-                    'payment_status' => 'unpaid',
-                    'payroll_item_id' => null,
-                ]);
-                $pis->delete();
+            $absorbedSessionsCount = 0;
+            foreach ($newEligibleSessions as $newSession) {
+                $duties = [];
+                if ($newSession->user_id_instruktur) {
+                    $duties[] = ['user_id' => $newSession->user_id_instruktur, 'role' => 'utama'];
+                }
+                if ($newSession->user_id_asisten && $newSession->user_id_asisten != $newSession->user_id_instruktur) {
+                    $duties[] = ['user_id' => $newSession->user_id_asisten, 'role' => 'asisten'];
+                }
+
+                foreach ($duties as $duty) {
+                    $dutyUserId = $duty['user_id'];
+                    $dutyRole = $duty['role'];
+
+                    $alreadyInBatch = \App\Models\PayrollItemSession::where('ekstrakurikuler_session_id', $newSession->id)
+                        ->where('user_id', $dutyUserId)
+                        ->whereIn('payroll_item_id', $batch->items()->pluck('id'))
+                        ->exists();
+
+                    if ($alreadyInBatch) {
+                        continue;
+                    }
+
+                    $payrollItem = PayrollItem::firstOrCreate(
+                        [
+                            'payroll_batch_id' => $batch->id,
+                            'user_id_instruktur' => $dutyUserId,
+                        ],
+                        [
+                            'status' => 'pending',
+                            'tax_rate' => 0.025,
+                        ]
+                    );
+
+                    $calc = $this->calculateSessionFee($newSession, $dutyRole);
+                    $baseFee = ($dutyRole === 'asisten') ? 100000.00 : (float)$calc['calculated_fee'];
+                    $transFee = (float)$calc['transport_fee'];
+                    $penFee = (float)$calc['actual_checkin_penalty'];
+                    $bonFee = (float)$calc['product_bonus'];
+                    $netFee = max(0, $baseFee + $transFee - $penFee);
+
+                    \App\Models\PayrollItemSession::create([
+                        'payroll_item_id' => $payrollItem->id,
+                        'ekstrakurikuler_session_id' => $newSession->id,
+                        'user_id' => $dutyUserId,
+                        'role' => $dutyRole,
+                        'base_fee' => $baseFee,
+                        'transport_fee' => $transFee,
+                        'penalty_fee' => $penFee,
+                        'bonus_fee' => $bonFee,
+                        'net_fee' => $netFee,
+                    ]);
+
+                    $newSession->update([
+                        'payment_status' => 'processing',
+                        'payroll_item_id' => $payrollItem->id,
+                    ]);
+
+                    $absorbedSessionsCount++;
+                }
             }
 
-            // 2. Ambil seluruh items dalam batch beserta sessions valid yang tersisa
+            // 3. Pastikan seluruh sesi terdaftar di batch berstatus 'processing'
+            $batchItemIds = $batch->items()->pluck('id');
+            $allAttachedSessionIds = \App\Models\PayrollItemSession::whereIn('payroll_item_id', $batchItemIds)
+                ->pluck('ekstrakurikuler_session_id')
+                ->unique();
+
+            EkstrakurikulerSession::whereIn('id', $allAttachedSessionIds)
+                ->where('payment_status', '!=', 'processing')
+                ->update(['payment_status' => 'processing']);
+
+            // 4. Ambil seluruh items dalam batch beserta sessions valid yang tersisa
             $items = PayrollItem::where('payroll_batch_id', $batch->id)
-                ->with(['payrollItemSessions.session.ekstrakurikuler.sekolah', 'payrollItemSessions.session.rombel', 'payrollItemSessions.session.laporanMengajar.absensi'])
+                ->with([
+                    'payrollItemSessions.session.instruktur',
+                    'payrollItemSessions.session.asisten',
+                    'payrollItemSessions.session.ekstrakurikuler.sekolah',
+                    'payrollItemSessions.session.rombel.ekstrakurikuler.sekolah',
+                    'payrollItemSessions.session.laporanMengajar.absensi'
+                ])
                 ->get();
 
             $totalUpdatedSessions = 0;
@@ -652,6 +782,7 @@ class PayrollCalculatorService
                 $totalPenalty = 0.00;
                 $totalTransportFee = 0.00;
                 $totalUtamaSessions = 0;
+                $totalAsistenSessions = 0;
                 $transportPaidKeys = [];
                 $rombelDatePaidKeys = [];
 
@@ -768,7 +899,8 @@ class PayrollCalculatorService
             return [
                 'items_count' => $itemsUpdated,
                 'sessions_count' => $totalUpdatedSessions,
-                'excluded_post_cutoff_count' => $excludedCount,
+                'newly_absorbed_sessions' => $absorbedSessionsCount,
+                'excluded_post_cutoff_count' => 0,
             ];
         });
     }
@@ -779,8 +911,10 @@ class PayrollCalculatorService
     public function recalculateSingleItem(PayrollItem $item): void
     {
         $item->load([
+            'payrollItemSessions.session.instruktur',
+            'payrollItemSessions.session.asisten',
             'payrollItemSessions.session.ekstrakurikuler.sekolah',
-            'payrollItemSessions.session.rombel',
+            'payrollItemSessions.session.rombel.ekstrakurikuler.sekolah',
             'payrollItemSessions.session.laporanMengajar.absensi'
         ]);
 

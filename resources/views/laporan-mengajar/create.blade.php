@@ -231,7 +231,7 @@
                                         <span class="input-group-text bg-success text-white"><i class="fas fa-users"></i></span>
                                         <input type="number" name="jumlah_siswa_hadir" id="jumlah_siswa_hadir" class="form-control @error('jumlah_siswa_hadir') is-invalid @enderror" value="{{ old('jumlah_siswa_hadir', 0) }}" min="0" placeholder="0">
                                     </div>
-                                    <small class="form-text text-muted"><i class="bi bi-info-circle text-success me-1"></i>Masukkan total peserta yang HADIR pada <strong>Free Trial Class</strong> ini (digunakan untuk penentuan honor: &gt;6 siswa = Rp 100.000, ≤6 siswa = Rp 75.000).</small>
+                                    <small class="form-text text-muted"><i class="bi bi-info-circle text-success me-1"></i>Masukkan total peserta yang HADIR pada <strong>Free Trial Class</strong> ini (Honor Free Trial Class: Flat Rp 100.000 / sesi).</small>
                                     @error('jumlah_siswa_hadir') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                 </div>
                                 <div class="col-md-6 mb-3 mb-md-0">

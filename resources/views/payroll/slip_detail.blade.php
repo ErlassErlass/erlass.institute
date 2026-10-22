@@ -178,15 +178,37 @@
         <!-- Sessions List Table -->
         <div class="col-lg-7">
             @php
-                $sessionEntries = $item->payrollItemSessions->isNotEmpty()
+                $rawEntries = $item->payrollItemSessions->isNotEmpty()
                     ? $item->payrollItemSessions
                     : $item->sessions;
+
+                $sessionEntries = $rawEntries->sortBy(function ($entry) {
+                    $s = ($entry instanceof \App\Models\PayrollItemSession) ? $entry->session : $entry;
+                    if (!$s) return '9999-99-99 99:99:99 99999';
+
+                    $date = $s->tanggal_pelaksanaan 
+                        ? $s->tanggal_pelaksanaan->format('Y-m-d') 
+                        : ($s->tanggal_terjadwal ? $s->tanggal_terjadwal->format('Y-m-d') : '9999-99-99');
+
+                    $jam = $s->jam_mulai_aktual ?? $s->jam_mulai_terjadwal ?? optional($s->laporanMengajar)->jam_mulai ?? '00:00';
+                    if ($jam instanceof \DateTimeInterface) {
+                        $jamStr = $jam->format('H:i:s');
+                    } else {
+                        $jamStr = (string)$jam;
+                        if (strlen($jamStr) === 5) $jamStr .= ':00';
+                    }
+
+                    $rombel = optional($s->rombel)->nomor_rombel 
+                        ?? (preg_match('/\d+/', optional($s->rombel)->nama_rombel ?? optional($s->laporanMengajar)->rombel ?? '', $m) ? (int)$m[0] : 0);
+
+                    return sprintf('%s_%s_%05d_%d', $date, $jamStr, $rombel, $s->id);
+                })->values();
             @endphp
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
                     <div>
                         <h5 class="card-title mb-0 fw-bold text-dark">Rincian Sesi Mengajar Terhitung</h5>
-                        <small class="text-muted">Total: {{ $sessionEntries->count() }} Sesi Terhitung</small>
+                        <small class="text-muted">Total: {{ $sessionEntries->count() }} Sesi Terhitung (Urut Tanggal, Jadwal, Rombel)</small>
                     </div>
                     @if(in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin']) && optional($item->batch)->status !== 'paid')
                         <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addSessionModal">
@@ -209,7 +231,7 @@
                                 <tr>
                                     <th class="ps-3">Sesi / Sekolah</th>
                                     <th class="text-center">Peran</th>
-                                    <th>Jadwal / Rombel</th>
+                                    <th>Tanggal & Jadwal / Rombel</th>
                                     <th class="text-end">Honor</th>
                                     <th class="text-end">Transport</th>
                                     <th class="text-end">Denda</th>
@@ -276,8 +298,22 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <div class="fw-semibold text-dark">{{ optional($session->rombel)->nama_rombel ?? '-' }}</div>
-                                            <small class="text-muted">{{ $session->tanggal_pelaksanaan ? $session->tanggal_pelaksanaan->format('d/m/Y') : ($session->tanggal_terjadwal ? $session->tanggal_terjadwal->format('d/m/Y') : '-') }}</small>
+                                            @php
+                                                $jamMulai = $session->jam_mulai_aktual ? \Carbon\Carbon::parse($session->jam_mulai_aktual)->format('H:i') : ($session->jam_mulai_terjadwal ? \Carbon\Carbon::parse($session->jam_mulai_terjadwal)->format('H:i') : (optional($session->laporanMengajar)->jam_mulai ? substr($session->laporanMengajar->jam_mulai, 0, 5) : ''));
+                                                $jamSelesai = $session->jam_selesai_aktual ? \Carbon\Carbon::parse($session->jam_selesai_aktual)->format('H:i') : ($session->jam_selesai_terjadwal ? \Carbon\Carbon::parse($session->jam_selesai_terjadwal)->format('H:i') : (optional($session->laporanMengajar)->jam_selesai ? substr($session->laporanMengajar->jam_selesai, 0, 5) : ''));
+                                                $jamText = ($jamMulai && $jamSelesai) ? "{$jamMulai} - {$jamSelesai}" : ($jamMulai ?: '');
+                                                $rombelName = optional($session->rombel)->nama_rombel ?? (optional($session->laporanMengajar)->rombel ? 'Rombel ' . $session->laporanMengajar->rombel : '-');
+                                            @endphp
+                                            <div class="fw-semibold text-dark">
+                                                <i class="bi bi-calendar3 me-1 text-primary" style="font-size: 0.8rem;"></i>
+                                                {{ $session->tanggal_pelaksanaan ? $session->tanggal_pelaksanaan->format('d/m/Y') : ($session->tanggal_terjadwal ? $session->tanggal_terjadwal->format('d/m/Y') : '-') }}
+                                                @if($jamText)
+                                                    <span class="text-muted fw-normal ms-1" style="font-size: 0.82rem;">({{ $jamText }})</span>
+                                                @endif
+                                            </div>
+                                            <small class="text-muted">
+                                                <span class="badge bg-light text-secondary border font-monospace mt-1">{{ $rombelName }}</span>
+                                            </small>
                                         </td>
                                         <td class="text-end">
                                             @if ($session->override_fee !== null && $role === 'utama')

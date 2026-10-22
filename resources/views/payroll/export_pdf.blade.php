@@ -256,9 +256,31 @@
                 @endphp
                 @foreach($batch->items as $item)
                     @php
-                        $itemSessions = $item->payrollItemSessions->isNotEmpty() 
+                        $rawItemSessions = $item->payrollItemSessions->isNotEmpty() 
                             ? $item->payrollItemSessions 
                             : $item->sessions;
+
+                        $itemSessions = $rawItemSessions->sortBy(function ($entry) {
+                            $s = ($entry instanceof \App\Models\PayrollItemSession) ? $entry->session : $entry;
+                            if (!$s) return '9999-99-99 99:99:99 99999';
+
+                            $date = $s->tanggal_pelaksanaan 
+                                ? $s->tanggal_pelaksanaan->format('Y-m-d') 
+                                : ($s->tanggal_terjadwal ? $s->tanggal_terjadwal->format('Y-m-d') : '9999-99-99');
+
+                            $jam = $s->jam_mulai_aktual ?? $s->jam_mulai_terjadwal ?? optional($s->laporanMengajar)->jam_mulai ?? '00:00';
+                            if ($jam instanceof \DateTimeInterface) {
+                                $jamStr = $jam->format('H:i:s');
+                            } else {
+                                $jamStr = (string)$jam;
+                                if (strlen($jamStr) === 5) $jamStr .= ':00';
+                            }
+
+                            $rombel = optional($s->rombel)->nomor_rombel 
+                                ?? (preg_match('/\d+/', optional($s->rombel)->nama_rombel ?? optional($s->laporanMengajar)->rombel ?? '', $m) ? (int)$m[0] : 0);
+
+                            return sprintf('%s_%s_%05d_%d', $date, $jamStr, $rombel, $s->id);
+                        })->values();
                     @endphp
                     @foreach($itemSessions as $entry)
                     @php

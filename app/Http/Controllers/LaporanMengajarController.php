@@ -421,6 +421,13 @@ class LaporanMengajarController extends Controller
             }
         }
 
+        // Trigger Admin PTM Completed Notification (Tracking Sesi Tatap Muka Selesai)
+        try {
+            app(\App\Services\PtmNotificationService::class)->triggerPtmCompletedNotification($laporan->ekstrakurikulerSession, $laporan);
+        } catch (\Throwable $e) {
+            \Log::warning("PTM Completed notification error on Laporan store: " . $e->getMessage());
+        }
+
         // Real-time Async Sync to Google Spreadsheet
         try {
             \App\Jobs\SyncGoogleSheetJob::dispatch('laporan', $laporan->id);
@@ -756,6 +763,13 @@ class LaporanMengajarController extends Controller
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
+
+        // Sync / Update Admin PTM Completed Notification
+        try {
+            app(\App\Services\PtmNotificationService::class)->triggerPtmCompletedNotification($laporanMengajar->ekstrakurikulerSession, $laporanMengajar);
+        } catch (\Throwable $e) {
+            \Log::warning("PTM Completed notification error on Laporan update: " . $e->getMessage());
+        }
 
         return redirect()->route('laporan-mengajar.show', $laporanMengajar)
             ->with('success', 'Laporan mengajar berhasil diperbarui.');

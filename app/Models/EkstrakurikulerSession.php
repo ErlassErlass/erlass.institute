@@ -103,6 +103,8 @@ class EkstrakurikulerSession extends Model
 
     const STATUS_DIGANTI = 'diganti';   // Sesi sudah diganti ke jadwal baru
 
+    const STATUS_OVERDUE = 'overdue';   // Sesi melewati cutoff payroll tanpa laporan, ditutup otomatis oleh sistem
+
     /**
      * Relasi ke model Ekstrakurikuler.
      */
@@ -279,6 +281,7 @@ class EkstrakurikulerSession extends Model
             self::STATUS_TIDAK_HADIR => 'Tidak Hadir',
             self::STATUS_LIBUR       => 'Libur',
             self::STATUS_DIGANTI     => 'Diganti',
+            self::STATUS_OVERDUE     => 'Overdue (Ditutup Sistem)',
         ];
 
         return $labels[$this->status] ?? 'Unknown';
@@ -671,6 +674,13 @@ class EkstrakurikulerSession extends Model
             // Auto-create laporan mengajar jika belum ada
             if (! $this->laporanMengajar()->exists() && isset($data['auto_create_laporan']) && $data['auto_create_laporan']) {
                 $this->autoCreateLaporanMengajar();
+            }
+
+            // Trigger PTM completed notification untuk admin
+            try {
+                app(\App\Services\PtmNotificationService::class)->triggerPtmCompletedNotification($this, $this->laporanMengajar()->first());
+            } catch (\Throwable $e) {
+                \Log::warning("PTM Notification error on session complete: " . $e->getMessage());
             }
         }
 

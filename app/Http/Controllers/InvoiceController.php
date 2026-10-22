@@ -8,6 +8,7 @@ use App\Models\InvoiceApproval;
 use App\Models\Sekolah;
 use App\Models\EkstrakurikulerSession;
 use App\Models\Absensi;
+use App\Models\Salesman;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -43,9 +44,17 @@ class InvoiceController extends Controller
         // Filter tab (5 Tahap: Antrean Siap Tagih vs Menunggu Admin Produksi vs Menunggu Revisi vs Menunggu Staff Akunting vs Disetujui)
         $currentTab = $request->get('tab', 'siap_tagih');
 
-        // Optimasi: Jika di Tab 1 (Antrean Siap Tagih), lewati query berat tabel invoice approval
-        if ($currentTab === 'siap_tagih') {
-            $invoices = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 25, 1, [
+        // Dukungan per_page: 25, 50, 75, atau 'all' (semua baris)
+        $perPageInput = $request->input('per_page', 25);
+        if ($perPageInput === 'all' || $perPageInput === 'semua' || (int) $perPageInput <= 0) {
+            $perPage = 999999;
+        } else {
+            $perPage = in_array((int) $perPageInput, [25, 50, 75, 100]) ? (int) $perPageInput : 25;
+        }
+
+        // Optimasi: Jika di Tab Siap Tagih atau Tab Benchmark, lewati query tabel invoice approval biasa
+        if ($currentTab === 'siap_tagih' || $currentTab === 'benchmark') {
+            $invoices = new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage, 1, [
                 'path'  => route('invoice.index'),
                 'query' => $request->query(),
             ]);
@@ -82,11 +91,14 @@ class InvoiceController extends Controller
                 ]);
             }
 
-            // Filter sekolah
+            // Filter sekolah (mendukung kodlan atau pencarian nama sekolah)
             if ($request->filled('sekolah')) {
-                $query->where(function ($q) use ($request) {
-                    $q->where('sekolah_kodlan', $request->sekolah)
-                      ->orWhereHas('rombel.ekstrakurikuler', fn($sub) => $sub->where('sekolah_kodlan', $request->sekolah));
+                $sekolahVal = $request->sekolah;
+                $query->where(function ($q) use ($sekolahVal) {
+                    $q->where('sekolah_kodlan', $sekolahVal)
+                      ->orWhereHas('rombel.ekstrakurikuler', fn($sub) => $sub->where('sekolah_kodlan', $sekolahVal))
+                      ->orWhereHas('sekolah', fn($sub) => $sub->where('namasekolah', 'like', "%{$sekolahVal}%"))
+                      ->orWhereHas('rombel.ekstrakurikuler.sekolah', fn($sub) => $sub->where('namasekolah', 'like', "%{$sekolahVal}%"));
                 });
             }
 
@@ -100,7 +112,21 @@ class InvoiceController extends Controller
                 $query->where('skema_tagihan', $request->skema);
             }
 
-            $invoices = $query->orderByDesc('created_at')->paginate(25)->withQueryString();
+            // Pengurutan (Sorting):
+            // Khusus tab 'pending_operasional' (Menunggu Admin Produksi), prioritaskan invoice yang paling lama tertinggal
+            // (oldest first: created_at ASC, id ASC) agar tidak terlewat / terlantar di antrean belakang.
+            // Tab lainnya tetap default terbaru (newest first: created_at DESC).
+            // Mendukung parameter ?sort=asc / ?sort=desc jika pengguna ingin beralih secara manual.
+            if ($request->filled('sort')) {
+                $sortDir = strtolower($request->get('sort')) === 'desc' ? 'desc' : 'asc';
+                $query->orderBy('created_at', $sortDir)->orderBy('id', $sortDir);
+            } elseif ($currentTab === 'pending_operasional') {
+                $query->orderBy('created_at', 'asc')->orderBy('id', 'asc');
+            } else {
+                $query->orderByDesc('created_at');
+            }
+
+            $invoices = $query->paginate($perPage)->withQueryString();
         }
 
         // Optimasi Performa: Cache filter sekolah (1 jam) & antrean sekolah siap ditagih (1 jam)
@@ -118,8 +144,11 @@ class InvoiceController extends Controller
 
         $eligibleSekolahs = $allEligibleSekolahs;
         if ($request->filled('sekolah')) {
-            $eligibleSekolahs = $eligibleSekolahs->filter(function ($item) use ($request) {
-                return ($item['sekolah_kodlan'] ?? '') === $request->sekolah;
+            $sekolahVal = strtolower(trim($request->sekolah));
+            $eligibleSekolahs = $eligibleSekolahs->filter(function ($item) use ($sekolahVal) {
+                $kodlan = strtolower((string)($item['sekolah_kodlan'] ?? ''));
+                $nama = strtolower((string)($item['sekolah_nama'] ?? ''));
+                return $kodlan === $sekolahVal || str_contains($nama, $sekolahVal);
             });
         }
         if ($request->filled('skema')) {
@@ -129,8 +158,7 @@ class InvoiceController extends Controller
         }
         $eligibleTotalCount  = $allEligibleSekolahs->count();
 
-        // Paginasi antrean siap tagih (25 item per halaman) untuk mencegah beban render DOM ribuan elemen
-        $perPage = 25;
+        // Paginasi antrean siap tagih
         $page = $currentTab === 'siap_tagih' ? (int) $request->get('page', 1) : 1;
         $totalEligible = $eligibleSekolahs->count();
         $slice = $eligibleSekolahs->slice(($page - 1) * $perPage, $perPage)->values();
@@ -174,6 +202,188 @@ class InvoiceController extends Controller
         $approvedCount           = $summary['approved'] ?? 0;
         $totalCount              = $summary->sum();
 
+        // ── 6. DATA BENCHMARK PENAGIHAN PER SEKOLAH (Tab Benchmark) ──────────
+        $benchmarkStats = [
+            'total_sekolah' => 0,
+            'tercapai' => 0,
+            'on_track' => 0,
+            'belum_ada' => 0,
+            'total_invoices_approved' => 0,
+            'by_skema' => [
+                'per_4_pertemuan' => ['count' => 0, 'target' => 8, 'label' => 'Per 4 Pertemuan (Min. 8x)'],
+                'bulanan'         => ['count' => 0, 'target' => 8, 'label' => 'Bulanan (≤ 8x)'],
+                'semester'        => ['count' => 0, 'target' => 2, 'label' => 'Semesteran (2x)'],
+                'tahunan'         => ['count' => 0, 'target' => 1, 'label' => 'Tahunan (1x)'],
+            ]
+        ];
+
+        $benchmarkPaginator = null;
+        $allWilayah = [];
+        $allSalesmen = [];
+
+        if ($currentTab === 'benchmark') {
+            $allWilayah = Cache::remember('benchmark_wilayah_list', 1800, function() {
+                return Sekolah::whereNotNull('kota')->where('kota', '!=', '')->distinct()->orderBy('kota')->pluck('kota');
+            });
+
+            $allSalesmen = Cache::remember('benchmark_salesmen_list', 1800, function() {
+                return Salesman::orderBy('nama_salesman')->get(['id', 'nama_salesman', 'group_leader', 'area']);
+            });
+
+            // Ambil seluruh invoice per sekolah untuk memetakan rincian periode resmi & antrean berjalan
+            $invoicesPerSekolah = InvoiceApproval::whereNotNull('sekolah_kodlan')
+                ->select('id', 'sekolah_kodlan', 'nomor_invoice', 'skema_tagihan', 'periode_label', 'periode_nomor', 'status', 'sesi_dari', 'sesi_sampai', 'akunting_approved_at')
+                ->orderBy('periode_nomor')
+                ->orderBy('id')
+                ->get()
+                ->groupBy('sekolah_kodlan');
+
+            // Ambil seluruh sekolah mitra invoiceable (kecuali CSR SOGA)
+            $allBenchmarkSekolahs = Sekolah::with([
+                'invoiceableEkstrakurikulers.sales',
+                'invoiceableEkstrakurikulers.rombels'
+            ])
+            ->has('invoiceableEkstrakurikulers')
+            ->where(function($q) {
+                $q->where('skema_tagihan', '!=', Sekolah::SKEMA_CSR_REGULER_SOGA)
+                  ->orWhereNull('skema_tagihan');
+            })
+            ->orderBy('namasekolah')
+            ->get();
+
+            $allBenchmarkRows = collect();
+
+            foreach ($allBenchmarkSekolahs as $s) {
+                $kodlan = $s->kodlan;
+                $skema = $s->skema_tagihan ?: 'bulanan';
+                if ($skema === Sekolah::SKEMA_CSR_REGULER_SOGA) continue;
+
+                $schoolInvoices = $invoicesPerSekolah->get($kodlan, collect());
+                $approvedInvoices = $schoolInvoices->where('status', InvoiceApproval::STATUS_APPROVED);
+                $pendingInvoices  = $schoolInvoices->whereIn('status', [
+                    InvoiceApproval::STATUS_DRAFT,
+                    InvoiceApproval::STATUS_PENDING_OPERASIONAL,
+                    InvoiceApproval::STATUS_PENDING_AKUNTING,
+                ]);
+
+                $realisasi = $approvedInvoices->count();
+                $approvedPeriods = $approvedInvoices->pluck('periode_label')->filter()->unique()->values()->all();
+                $pendingPeriods  = $pendingInvoices->pluck('periode_label')->filter()->unique()->values()->all();
+                $latestApprovedAt = $approvedInvoices->max('akunting_approved_at');
+
+                $benchmarkStats['total_invoices_approved'] += $realisasi;
+                $benchmarkStats['total_sekolah']++;
+
+                // Tentukan Salesman
+                $salesmanNama = 'Belum Ditentukan';
+                $salesmanId = null;
+                $firstEkskul = $s->invoiceableEkstrakurikulers->first();
+                if ($firstEkskul && $firstEkskul->sales) {
+                    $salesmanNama = $firstEkskul->sales->nama_salesman;
+                    $salesmanId = $firstEkskul->sales->id;
+                }
+
+                $target = match($skema) {
+                    'per_4_pertemuan' => 8,
+                    'bulanan'         => 8,
+                    'semester'        => 2,
+                    'tahunan'         => 1,
+                    default           => 8,
+                };
+
+                if (isset($benchmarkStats['by_skema'][$skema])) {
+                    $benchmarkStats['by_skema'][$skema]['count']++;
+                }
+
+                // Status Capaian
+                if ($realisasi >= $target) {
+                    $statusKey = 'tercapai';
+                    $statusLabel = 'Tercapai Penuh';
+                    $badgeClass = 'bg-success text-white';
+                    $benchmarkStats['tercapai']++;
+                } elseif ($realisasi > 0) {
+                    $statusKey = 'on_track';
+                    $statusLabel = "On-Track ({$realisasi}/{$target})";
+                    $badgeClass = 'bg-primary text-white';
+                    $benchmarkStats['on_track']++;
+                } else {
+                    $statusKey = 'belum_ada';
+                    $statusLabel = 'Belum Ada Invoice';
+                    $badgeClass = 'bg-secondary text-white';
+                    $benchmarkStats['belum_ada']++;
+                }
+
+                $pct = min(100, round(($realisasi / max(1, $target)) * 100));
+
+                $allBenchmarkRows->push([
+                    'kodlan'           => $kodlan,
+                    'namasekolah'      => $s->namasekolah,
+                    'wilayah'          => $s->kota ?: ($s->kotkab ?: '—'),
+                    'salesman'         => $salesmanNama,
+                    'salesman_id'      => $salesmanId,
+                    'skema'            => $skema,
+                    'skema_label'      => $s->skemaTagihanLabel(),
+                    'target'           => $target,
+                    'realisasi'        => $realisasi,
+                    'approved_periods' => $approvedPeriods,
+                    'pending_periods'  => $pendingPeriods,
+                    'persentase'       => $pct,
+                    'status_key'       => $statusKey,
+                    'status_label'     => $statusLabel,
+                    'badge_class'      => $badgeClass,
+                    'latest_approved'  => $latestApprovedAt,
+                ]);
+            }
+
+            // Filtering Benchmark
+            if ($request->filled('sekolah')) {
+                $sch = strtolower($request->sekolah);
+                $allBenchmarkRows = $allBenchmarkRows->filter(function($row) use ($sch) {
+                    return str_contains(strtolower($row['kodlan']), $sch) || str_contains(strtolower($row['namasekolah']), $sch);
+                });
+            }
+
+            if ($request->filled('wilayah')) {
+                $wil = strtolower($request->wilayah);
+                $allBenchmarkRows = $allBenchmarkRows->filter(function($row) use ($wil) {
+                    return strtolower($row['wilayah']) === $wil;
+                });
+            }
+
+            if ($request->filled('salesman')) {
+                $sm = $request->salesman;
+                $allBenchmarkRows = $allBenchmarkRows->filter(function($row) use ($sm) {
+                    return (string)$row['salesman_id'] === (string)$sm || strtolower($row['salesman']) === strtolower($sm);
+                });
+            }
+
+            if ($request->filled('skema')) {
+                $sk = $request->skema;
+                $allBenchmarkRows = $allBenchmarkRows->filter(function($row) use ($sk) {
+                    return $row['skema'] === $sk;
+                });
+            }
+
+            if ($request->filled('status_benchmark')) {
+                $st = $request->status_benchmark;
+                $allBenchmarkRows = $allBenchmarkRows->filter(function($row) use ($st) {
+                    return $row['status_key'] === $st;
+                });
+            }
+
+            // Pagination Benchmark
+            $page = (int) $request->get('page', 1);
+            $totalRows = $allBenchmarkRows->count();
+            $slice = $allBenchmarkRows->slice(($page - 1) * $perPage, $perPage)->values();
+            $benchmarkPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+                $slice,
+                $totalRows,
+                $perPage,
+                $page,
+                ['path' => route('invoice.index'), 'query' => $request->query()]
+            );
+        }
+
         return view('invoice.index', compact(
             'invoices', 
             'sekolahs', 
@@ -188,7 +398,12 @@ class InvoiceController extends Controller
             'pendingCount',
             'approvedCount',
             'totalCount',
-            'eligibleTotalCount'
+            'eligibleTotalCount',
+            'perPage',
+            'benchmarkStats',
+            'benchmarkPaginator',
+            'allWilayah',
+            'allSalesmen'
         ));
     }
 
@@ -695,6 +910,7 @@ class InvoiceController extends Controller
             'rombel.siswaAktif',
             'operasionalUser',
             'akuntingUser',
+            'createdByUser',
         ]);
 
         // Update timestamp PDF
@@ -703,11 +919,48 @@ class InvoiceController extends Controller
         // Ambil rincian presensi & laporan mengajar lengkap (format cetak absensi)
         $attendanceData = $this->invoiceService->getAttendanceDataForInvoice($invoice);
 
+        // Logo Base64 (Full Logo Erlass)
+        $logoPath = file_exists(base_path('full logo.png')) ? base_path('full logo.png') : public_path('images/full-logo.png');
+        $logoBase64 = file_exists($logoPath) ? base64_encode(file_get_contents($logoPath)) : null;
+
+        // Tentukan Staf Operasional / Pembuat Invoice (Dinda / Novandi sesuai yang mengerjakan)
+        $dindaUser = \App\Models\User::where('id', 114)->orWhere('nama_lengkap', 'like', '%Adinda%')->first();
+        $novanUser = \App\Models\User::where('id', 248)->orWhere('nama_lengkap', 'like', '%Novandi%')->first();
+
+        $workerUserId = $invoice->operasional_user_id ?: $invoice->created_by;
+        $worker = null;
+
+        if ($workerUserId == 114) {
+            $worker = $dindaUser;
+        } elseif ($workerUserId == 248) {
+            $worker = $novanUser;
+        } elseif ($invoice->operasionalUser) {
+            $worker = $invoice->operasionalUser;
+        } elseif ($invoice->createdByUser) {
+            $worker = $invoice->createdByUser;
+        }
+
+        if (!$worker && auth()->check()) {
+            if (auth()->id() == 114) $worker = $dindaUser ?: auth()->user();
+            elseif (auth()->id() == 248) $worker = $novanUser ?: auth()->user();
+        }
+
+        if ($worker) {
+            $stafNama = $worker->nama_lengkap;
+            $stafPhone = $worker->no_telephone ?: ($worker->id == 114 ? '08260808476' : ($worker->id == 248 ? '087736052381' : '-'));
+        } else {
+            $stafNama = 'Adinda Wardania / Novandi Wijaya';
+            $stafPhone = '08260808476 / 087736052381';
+        }
+
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoice.pdf', [
             'invoice'        => $invoice,
             'isDraft'        => !$invoice->isApproved(),
             'catatanKontrak' => InvoiceApproval::catatanKontrakText(),
             'attendanceData' => $attendanceData,
+            'logoBase64'     => $logoBase64,
+            'stafNama'       => $stafNama,
+            'stafPhone'      => $stafPhone,
         ]);
 
         $filename = str_replace('/', '-', $invoice->nomor_invoice) . '.pdf';

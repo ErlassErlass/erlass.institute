@@ -2,6 +2,66 @@
 
 @section('title', 'Invoice Management — Erlass')
 
+@push('styles')
+<!-- Select2 CSS & Bootstrap 5 Theme -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<style>
+    /* Styling Select2 Filter Bar agar serasi dengan form-select-sm */
+    .select2-container--bootstrap-5 .select2-selection {
+        border-radius: 0.375rem !important;
+        border-color: #dee2e6 !important;
+        font-size: 0.875rem !important;
+        min-height: 31px !important;
+        height: 31px !important;
+        display: flex !important;
+        align-items: center !important;
+        background-color: #ffffff !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+        color: #212529 !important;
+        font-size: 0.875rem !important;
+        line-height: 1.5 !important;
+        padding-left: 0.5rem !important;
+        padding-right: 1.5rem !important;
+    }
+    .select2-container--bootstrap-5.select2-container--focus .select2-selection,
+    .select2-container--bootstrap-5.select2-container--open .select2-selection {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
+    }
+    .select2-container--bootstrap-5 .select2-dropdown {
+        border-radius: 10px !important;
+        border-color: #e2e8f0 !important;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12) !important;
+        overflow: hidden !important;
+        z-index: 1060 !important;
+        font-size: 0.875rem !important;
+    }
+    .select2-container--bootstrap-5 .select2-search__field {
+        border-radius: 6px !important;
+        font-size: 0.85rem !important;
+        padding: 6px 10px !important;
+        border-color: #cbd5e1 !important;
+    }
+    .select2-container--bootstrap-5 .select2-search__field:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+    }
+    .select2-results__option--highlighted[aria-selected] {
+        background-color: #2563eb !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection__clear {
+        margin-right: 0.5rem !important;
+        font-size: 1.1rem !important;
+        color: #94a3b8 !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection__clear:hover {
+        color: #ef4444 !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <style>
     .bg-purple { background-color: rgba(124, 58, 237, var(--bs-bg-opacity, 1)) !important; }
@@ -13,305 +73,31 @@
 </style>
 <div class="container-fluid py-4">
 
-    {{-- ─── HERO BANNER ──────────────────────────────────────────────────── --}}
-    <div class="card border-0 shadow-sm mb-4 overflow-hidden"
-         style="background: linear-gradient(135deg, #EFF6FF 0%, #F8FAFC 50%, #E0F2FE 100%);
-                border-radius: 1rem; border: 1px solid #DBEAFE !important;">
-        <div class="card-body p-4 p-lg-5 position-relative">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="badge bg-success rounded-pill px-3 py-1 small fw-bold">
-                            <i class="bi bi-receipt me-1"></i> Sistem Invoice
-                        </span>
-                        <span class="badge bg-primary text-white rounded-pill px-3 py-1 small fw-bold">
-                            <i class="bi bi-shield-check me-1"></i> Gate 1 Verifikasi PIC
-                        </span>
-                    </div>
-                    <h1 class="h2 fw-bold text-dark mb-2">Manajemen Invoice Tagihan</h1>
-                    <p class="text-muted mb-0 fs-6" style="max-width: 720px;">
-                        Penerbitan &amp; verifikasi invoice per sekolah/rombel dengan konfirmasi mutlak PIC Sekolah di <strong>Gate 1</strong> (Dinda / Novandi).
-                        Faktur resmi langsung terbit dan berkas diserahterimakan ke Bagian Keuangan/Akunting dengan lembar tanda terima.
-                    </p>
-                </div>
-                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                    <a href="{{ route('invoice.create') }}" class="btn btn-primary btn-lg shadow-sm">
-                        <i class="bi bi-plus-circle me-2"></i>Buat Invoice Baru
-                    </a>
-                </div>
-            </div>
+    {{-- ─── HEADER MINIMALIS ──────────────────────────────────────────────── --}}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-receipt text-primary"></i> Manajemen Invoice Tagihan
+            </h4>
+        </div>
+        <div>
+            <a href="{{ route('invoice.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm">
+                <i class="bi bi-plus-circle me-1"></i> Buat Invoice Baru
+            </a>
         </div>
     </div>
-
-    {{-- ─── SUMMARY CARDS (5 TAHAPAN PROSES) ────────────────────────────────── --}}
-    <div class="row g-3 mb-4">
-        {{-- Card 1: Total Invoice --}}
-        <div class="col-6 col-md-4 col-lg">
-            <div class="card border-0 shadow-sm text-center h-100"
-                 style="border-radius: .75rem; cursor:pointer;"
-                 onclick="window.location.href='{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'all'])) }}';">
-                <div class="card-body py-3 px-2">
-                    <i class="bi bi-files fs-3 text-secondary"></i>
-                    <div class="fw-bold fs-4 mt-1">{{ $totalCount }}</div>
-                    <div class="text-muted small">Total Invoice</div>
-                </div>
-            </div>
-        </div>
-        {{-- Card 2: Menunggu Admin Produksi --}}
-        <div class="col-6 col-md-4 col-lg">
-            <div class="card border-0 shadow-sm text-center h-100"
-                 style="border-radius: .75rem; cursor:pointer;"
-                 onclick="window.location.href='{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'pending_operasional'])) }}';">
-                <div class="card-body py-3 px-2">
-                    <i class="bi bi-hourglass-split fs-3 text-warning"></i>
-                    <div class="fw-bold fs-4 mt-1 text-warning-emphasis">{{ $operasionalPendingCount }}</div>
-                    <div class="text-muted small">Menunggu Admin Produksi</div>
-                </div>
-            </div>
-        </div>
-        {{-- Card 3: Menunggu Revisi (Dikembalikan Akunting) --}}
-        <div class="col-6 col-md-4 col-lg">
-            <div class="card border-0 shadow-sm text-center h-100"
-                 style="border-radius: .75rem; cursor:pointer; {{ $revisiCount > 0 ? 'border: 1.5px solid #ef4444 !important; background: #fff5f5;' : '' }}"
-                 onclick="window.location.href='{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'revisi'])) }}';">
-                <div class="card-body py-3 px-2">
-                    <i class="bi bi-arrow-return-left fs-3 text-danger"></i>
-                    <div class="fw-bold fs-4 mt-1 text-danger">{{ $revisiCount }}</div>
-                    <div class="text-danger fw-semibold small">Menunggu Revisi</div>
-                </div>
-            </div>
-        </div>
-        {{-- Card 4: Menunggu Staff Akunting --}}
-        <div class="col-6 col-md-6 col-lg">
-            <div class="card border-0 shadow-sm text-center h-100"
-                 style="border-radius: .75rem; cursor:pointer;"
-                 onclick="window.location.href='{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'pending_akunting'])) }}';">
-                <div class="card-body py-3 px-2">
-                    <i class="bi bi-bank fs-3 text-primary"></i>
-                    <div class="fw-bold fs-4 mt-1 text-primary">{{ $akuntingPendingCount }}</div>
-                    <div class="text-muted small">Menunggu Staff Akunting</div>
-                </div>
-            </div>
-        </div>
-        {{-- Card 5: Disetujui Resmi --}}
-        <div class="col-6 col-md-6 col-lg">
-            <div class="card border-0 shadow-sm text-center h-100"
-                 style="border-radius: .75rem; cursor:pointer;"
-                 onclick="window.location.href='{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'approved'])) }}';">
-                <div class="card-body py-3 px-2">
-                    <i class="bi bi-patch-check-fill fs-3 text-success"></i>
-                    <div class="fw-bold fs-4 mt-1 text-success">{{ $approvedCount }}</div>
-                    <div class="text-muted small">Disetujui Resmi</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- ─── PANEL ROMBEL SIAP DITAGIHKAN (ELIGIBLE FOR BILLING) ────────────── --}}
-    {{-- ─── PANEL SEKOLAH SIAP DITAGIHKAN (ELIGIBLE FOR BILLING) ────────────── --}}
-    @php
-        $eligibleList = $eligibleSekolahs ?? $eligibleRombels ?? collect();
-    @endphp
-    @if($eligibleList->isNotEmpty() && $currentTab === 'all')
-    <div id="panel-sekolah-siap-tagih" class="card border-0 shadow-sm mb-4 overflow-hidden" style="border-radius: .875rem; border-left: 5px solid #10b981 !important;">
-        <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom">
-            <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-success rounded-circle p-2 d-flex align-items-center justify-content-center" style="width:32px; height:32px;">
-                    <i class="bi bi-lightning-charge-fill text-white fs-6"></i>
-                </span>
-                <div>
-                    <h6 class="mb-0 fw-bold text-dark">Sekolah Siap Ditagihkan ({{ $eligibleList->count() }})</h6>
-                    <small class="text-muted">1 Invoice per Sekolah (rincian item per rombel) — Diurutkan prioritas keterlambatan pembuatan invoice</small>
-                </div>
-            </div>
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <select id="filterEligibleSkema" class="form-select form-select-sm bg-light border" style="width: 195px;" onchange="filterEligibleSchools()">
-                    <option value="">Semua Skema</option>
-                    <option value="bulanan">🗓️ Bulanan</option>
-                    <option value="per_4_pertemuan">🔄 Per 4 Pertemuan</option>
-                    <option value="semester">📚 Semesteran</option>
-                    <option value="tahunan">🎓 Tahunan</option>
-                </select>
-                <div class="input-group input-group-sm" style="width: 230px;">
-                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted small"></i></span>
-                    <input type="text" id="searchEligibleTable" class="form-control bg-light border-start-0" 
-                           placeholder="Cari sekolah..." onkeyup="filterEligibleSchools()">
-                </div>
-                @if(auth()->user()?->hasRole(['admin', 'admin_sistem', 'webmaster']))
-                <button type="button" class="btn btn-sm btn-outline-primary fw-bold px-3 py-1.5 rounded-pill shadow-xs text-nowrap" data-bs-toggle="modal" data-bs-target="#modalAturSkema">
-                    <i class="bi bi-gear-fill me-1"></i> Atur Skema Tagihan
-                </button>
-                @endif
-                <form action="{{ route('invoice.bulk-generate') }}" method="POST" onsubmit="return confirm('Generate invoice untuk semua {{ $eligibleList->count() }} sekolah yang siap ditagihkan?');">
-                    @csrf
-                    <button type="submit" class="btn btn-sm btn-success fw-bold px-3 py-1.5 rounded-pill shadow-xs text-nowrap">
-                        <i class="bi bi-lightning-charge-fill me-1"></i> Generate Semua (Bulk)
-                    </button>
-                </form>
-            </div>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr class="text-uppercase text-muted" style="font-size: .75rem; letter-spacing: .5px;">
-                        <th class="ps-4">Sekolah</th>
-                        <th>Rombel & Program (Item)</th>
-                        <th>Skema Tagihan</th>
-                        <th>Periode Tagihan</th>
-                        <th class="text-center">Total Siswa Billable</th>
-                        <th>Target Invoice</th>
-                        <th>Keterlambatan</th>
-                        <th class="text-end pe-4">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y" id="eligibleTableBody">
-                    @foreach($eligibleList as $item)
-                    <tr data-skema="{{ $item['skema_tagihan'] }}">
-                        <td class="ps-4 fw-semibold text-dark">
-                            <span class="badge bg-light text-secondary border font-monospace me-1">[{{ $item['sekolah_kodlan'] }}]</span>
-                            {{ $item['sekolah_nama'] }}
-                        </td>
-                        <td>
-                            <div class="fw-bold text-dark small">
-                                <i class="bi bi-mortarboard-fill me-1 text-primary"></i>{{ $item['kategori_program'] ?? 'Program Ekskul' }}
-                            </div>
-                            <div class="text-muted small mt-0.5" style="font-size: .75rem;">
-                                <i class="bi bi-diagram-3 me-1"></i>{{ $item['total_rombel'] }} Rombel: 
-                                @foreach($item['items'] ?? [] as $it)
-                                    <span class="badge bg-light text-muted border font-monospace me-1" style="font-size: .68rem;">
-                                        {{ $it['rombel_nama'] }} ({{ $it['jumlah_siswa_billable'] }} sw)
-                                    </span>
-                                @endforeach
-                            </div>
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center gap-1">
-                                <span class="badge {{ match($item['skema_tagihan']) {
-                                    'bulanan'          => 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25',
-                                    'semester'         => 'bg-purple bg-opacity-10 text-purple border border-purple border-opacity-25',
-                                    'tahunan'          => 'bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25',
-                                    'csr_reguler_soga' => 'bg-info bg-opacity-10 text-info border border-info border-opacity-25',
-                                    default            => 'bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25',
-                                } }} px-2 py-1"
-                                @if($item['skema_tagihan'] === 'semester') style="background-color: rgba(124, 58, 237, 0.1) !important; color: #7c3aed !important; border-color: rgba(124, 58, 237, 0.25) !important;" @endif>
-                                    {{ match($item['skema_tagihan']) {
-                                        'bulanan'          => 'Bulanan',
-                                        'semester'         => 'Semesteran',
-                                        'tahunan'          => 'Tahunan',
-                                        'csr_reguler_soga' => 'CSR SOGA',
-                                        default            => 'Per 4 Pertemuan',
-                                    } }}
-                                </span>
-                                @if(auth()->user()?->hasRole(['admin', 'admin_sistem', 'webmaster']))
-                                <button type="button" 
-                                        class="btn btn-link p-0 text-muted btn-sm btn-quick-skema" 
-                                        title="Ubah Skema Tagihan Sekolah"
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#modalAturSkema"
-                                        data-kodlan="{{ $item['sekolah_kodlan'] }}"
-                                        data-nama="{{ $item['sekolah_nama'] }}"
-                                        data-skema="{{ $item['skema_tagihan'] }}"
-                                        onclick="quickEditSkema('{{ $item['sekolah_kodlan'] }}', '{{ addslashes($item['sekolah_nama']) }}', '{{ $item['skema_tagihan'] }}')">
-                                    <i class="bi bi-pencil-square" style="font-size: 0.8rem;"></i>
-                                </button>
-                                @endif
-                            </div>
-                        </td>
-                        <td>
-                            @if($item['skema_tagihan'] === 'bulanan')
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1">
-                                    <i class="bi bi-calendar3 me-1"></i>{{ $item['periode_label'] }}
-                                </span>
-                            @elseif($item['skema_tagihan'] === 'semester')
-                                <span class="badge bg-purple bg-opacity-10 text-purple border border-purple border-opacity-25 px-2.5 py-1"
-                                      style="background-color: rgba(124, 58, 237, 0.1) !important; color: #7c3aed !important; border-color: rgba(124, 58, 237, 0.25) !important;">
-                                    <i class="bi bi-calendar-range me-1"></i>{{ $item['periode_label'] }}
-                                </span>
-                            @elseif($item['skema_tagihan'] === 'tahunan')
-                                <span class="badge bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25 px-2.5 py-1">
-                                    <i class="bi bi-calendar-check me-1"></i>{{ $item['periode_label'] }}
-                                </span>
-                            @elseif($item['skema_tagihan'] === 'csr_reguler_soga')
-                                <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2.5 py-1">
-                                    <i class="bi bi-heart-fill me-1 text-danger"></i>{{ $item['periode_label'] }}
-                                </span>
-                                <div class="text-muted small mt-1" style="font-size: 0.72rem;">
-                                    <i class="bi bi-building me-1"></i>Tagihan: <strong class="text-dark">Solidaritas Erlangga</strong>
-                                </div>
-                            @else
-                                {{-- Per 4 Pertemuan: detail waktu / sesi --}}
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1">
-                                    <i class="bi bi-layers me-1"></i>Sesi {{ $item['sesi_dari'] }}–{{ $item['sesi_sampai'] }}
-                                </span>
-                                @if(!empty($item['bulan_laporan_terakhir']))
-                                    <div class="text-muted small mt-1" style="font-size: 0.72rem;">
-                                        <i class="bi bi-calendar-event me-1"></i>Lap: <strong class="text-dark">{{ $item['bulan_laporan_terakhir'] }}</strong>
-                                    </div>
-                                @endif
-                            @endif
-                        </td>
-                        <td class="text-center">
-                            <span class="badge bg-light text-dark border fw-bold px-2.5 py-1.5">
-                                {{ $item['total_siswa_billable'] }} siswa
-                            </span>
-                        </td>
-                        <td>
-                            <div class="text-nowrap small fw-medium text-dark">
-                                <i class="bi bi-calendar-event me-1 text-muted"></i>{{ $item['target_date_formatted'] ?? '-' }}
-                            </div>
-                        </td>
-                        <td>
-                            @if(($item['days_overdue'] ?? 0) > 0)
-                                <span class="badge {{ $item['keterlambatan_badge'] ?? 'bg-danger text-white' }} px-2.5 py-1.5 rounded-pill shadow-xs text-nowrap">
-                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $item['keterlambatan_label'] }}
-                                </span>
-                            @else
-                                <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2.5 py-1.5 rounded-pill text-nowrap">
-                                    <i class="bi bi-clock-history me-1"></i>{{ $item['keterlambatan_label'] ?? 'Hari Ini' }}
-                                </span>
-                            @endif
-                        </td>
-                        <td class="text-end pe-4">
-                            <div class="d-flex justify-content-end gap-2">
-                                <form action="{{ route('invoice.quick-generate') }}" method="POST" class="d-inline mb-0">
-                                    @csrf
-                                    <input type="hidden" name="sekolah_kodlan" value="{{ $item['sekolah_kodlan'] }}">
-                                    @if(!empty($item['ekstrakurikuler_id']))
-                                        <input type="hidden" name="ekstrakurikuler_id" value="{{ $item['ekstrakurikuler_id'] }}">
-                                    @endif
-                                    @if(!empty($item['ekstrakurikuler_rombel_id']))
-                                        <input type="hidden" name="ekstrakurikuler_rombel_id" value="{{ $item['ekstrakurikuler_rombel_id'] }}">
-                                    @endif
-                                    <input type="hidden" name="skema_tagihan" value="{{ $item['skema_tagihan'] }}">
-                                    <input type="hidden" name="periode_label" value="{{ $item['periode_label'] }}">
-                                    <input type="hidden" name="periode_nomor" value="{{ $item['periode_nomor'] ?? '' }}">
-                                    <input type="hidden" name="sesi_dari" value="{{ $item['sesi_dari'] ?? '' }}">
-                                    <input type="hidden" name="sesi_sampai" value="{{ $item['sesi_sampai'] ?? '' }}">
-                                    <input type="hidden" name="tahun_ajaran" value="{{ $item['tahun_ajaran'] }}">
-                                    <button type="submit" class="btn btn-sm btn-success fw-semibold rounded-pill px-3 shadow-xs">
-                                        <i class="bi bi-lightning-charge-fill me-1"></i> 1-Klik Generate
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-    @endif
 
     {{-- ─── FILTER BAR ─────────────────────────────────────────────────────── --}}
-    <div class="card border-0 shadow-sm mb-4" style="border-radius: .75rem;">
+    <div class="card border-0 shadow-sm mb-3" style="border-radius: .75rem;">
         <div class="card-body p-3">
+            @if($currentTab === 'benchmark')
             <form id="filter-form" method="GET" action="{{ route('invoice.index') }}"
                   class="row g-2 align-items-end">
-                <input type="hidden" name="tab" id="filter-tab" value="{{ $currentTab }}">
+                <input type="hidden" name="tab" id="filter-tab" value="benchmark">
 
                 <div class="col-md-3">
                     <label class="form-label small fw-semibold text-muted mb-1">Sekolah</label>
-                    <select name="sekolah" class="form-select form-select-sm">
+                    <select name="sekolah" id="filter-sekolah" class="form-select form-select-sm select2-sekolah" data-placeholder="🔍 Cari & pilih sekolah...">
                         <option value="">Semua Sekolah</option>
                         @foreach($sekolahs as $s)
                             <option value="{{ $s->kodlan }}" {{ request('sekolah') === $s->kodlan ? 'selected' : '' }}>
@@ -322,12 +108,67 @@
                 </div>
 
                 <div class="col-md-2">
+                    <label class="form-label small fw-semibold text-muted mb-1">Wilayah / Kota</label>
+                    <select name="wilayah" class="form-select form-select-sm">
+                        <option value="">Semua Wilayah</option>
+                        @foreach($allWilayah ?? [] as $w)
+                            <option value="{{ $w }}" {{ request('wilayah') === $w ? 'selected' : '' }}>{{ $w }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold text-muted mb-1">Salesman</label>
+                    <select name="salesman" class="form-select form-select-sm">
+                        <option value="">Semua Salesman</option>
+                        @foreach($allSalesmen ?? [] as $sm)
+                            <option value="{{ $sm->id }}" {{ request('salesman') == $sm->id ? 'selected' : '' }}>{{ $sm->nama_salesman }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold text-muted mb-1">Skema</label>
+                    <select name="skema" class="form-select form-select-sm">
+                        <option value="">Semua Skema</option>
+                        <option value="per_4_pertemuan"  {{ request('skema') === 'per_4_pertemuan'  ? 'selected' : '' }}>🔄 Per 4 Pertemuan (Min. 8x)</option>
+                        <option value="bulanan"          {{ request('skema') === 'bulanan'          ? 'selected' : '' }}>🗓️ Bulanan (≤ 8x)</option>
+                        <option value="semester"         {{ request('skema') === 'semester'         ? 'selected' : '' }}>📚 Semesteran (2x)</option>
+                        <option value="tahunan"          {{ request('skema') === 'tahunan'          ? 'selected' : '' }}>🎓 Tahunan (1x)</option>
+                    </select>
+                </div>
+
+                <div class="col-md-1">
                     <label class="form-label small fw-semibold text-muted mb-1">Status</label>
-                    <select name="status" id="filter-status" class="form-select form-select-sm">
-                        <option value="">Semua Status</option>
-                        @foreach($statusOptions as $val => $lbl)
-                            <option value="{{ $val }}" {{ request('status') === $val ? 'selected' : '' }}>
-                                {{ $lbl }}
+                    <select name="status_benchmark" class="form-select form-select-sm">
+                        <option value="">Semua</option>
+                        <option value="tercapai"  {{ request('status_benchmark') === 'tercapai'  ? 'selected' : '' }}>Tercapai</option>
+                        <option value="on_track"  {{ request('status_benchmark') === 'on_track'  ? 'selected' : '' }}>On-Track</option>
+                        <option value="belum_ada" {{ request('status_benchmark') === 'belum_ada' ? 'selected' : '' }}>Belum Ada</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm flex-fill">
+                        <i class="bi bi-funnel me-1"></i>Filter
+                    </button>
+                    <a href="{{ route('invoice.index', ['tab' => 'benchmark']) }}" class="btn btn-outline-secondary btn-sm" title="Reset filter">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                </div>
+            </form>
+            @else
+            <form id="filter-form" method="GET" action="{{ route('invoice.index') }}"
+                  class="row g-2 align-items-end">
+                <input type="hidden" name="tab" id="filter-tab" value="{{ $currentTab }}">
+
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-muted mb-1">Sekolah</label>
+                    <select name="sekolah" id="filter-sekolah" class="form-select form-select-sm select2-sekolah" data-placeholder="🔍 Cari & pilih sekolah...">
+                        <option value="">Semua Sekolah</option>
+                        @foreach($sekolahs as $s)
+                            <option value="{{ $s->kodlan }}" {{ request('sekolah') === $s->kodlan ? 'selected' : '' }}>
+                                [{{ $s->kodlan }}] {{ $s->namasekolah }}
                             </option>
                         @endforeach
                     </select>
@@ -341,7 +182,6 @@
                         <option value="semester"         {{ request('skema') === 'semester'         ? 'selected' : '' }}>Semester</option>
                         <option value="tahunan"          {{ request('skema') === 'tahunan'          ? 'selected' : '' }}>Tahunan</option>
                         <option value="per_4_pertemuan"  {{ request('skema') === 'per_4_pertemuan'  ? 'selected' : '' }}>Per 4 Pertemuan</option>
-                        <option value="csr_reguler_soga" {{ request('skema') === 'csr_reguler_soga' ? 'selected' : '' }}>CSR SOGA</option>
                     </select>
                 </div>
 
@@ -351,7 +191,17 @@
                            class="form-control form-control-sm" placeholder="2026/2027">
                 </div>
 
-                <div class="col-md-3 d-flex gap-2">
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold text-muted mb-1">Tampilkan</label>
+                    <select name="per_page" class="form-select form-select-sm" onchange="document.getElementById('filter-form').submit();">
+                        <option value="25" {{ ($perPage ?? 25) == 25 ? 'selected' : '' }}>25 Baris</option>
+                        <option value="50" {{ ($perPage ?? 25) == 50 ? 'selected' : '' }}>50 Baris</option>
+                        <option value="75" {{ ($perPage ?? 25) == 75 ? 'selected' : '' }}>75 Baris</option>
+                        <option value="all" {{ request('per_page') === 'all' || ($perPage ?? 25) >= 9999 ? 'selected' : '' }}>Semua Baris</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2 d-flex gap-2">
                     <button type="submit" class="btn btn-primary btn-sm flex-fill">
                         <i class="bi bi-funnel me-1"></i>Filter
                     </button>
@@ -360,25 +210,35 @@
                     </a>
                 </div>
             </form>
+            @endif
         </div>
     </div>
 
-    {{-- ─── TAB NAVIGATION & INVOICE TABLE ─────────────────────────────────── --}}
+    {{-- ─── 5 WORKFLOW TABS & CONTENT ────────────────────────────────────── --}}
+    @php
+        $eligibleList = $eligibleSekolahs ?? $eligibleRombels ?? collect();
+        $badgeSiapTagih = $eligibleTotalCount ?? $eligibleList->count();
+    @endphp
     <div class="card border-0 shadow-sm" style="border-radius: .75rem;">
-        <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="card-header bg-white border-bottom py-2.5 px-3">
             <ul class="nav nav-pills card-header-pills gap-1 flex-wrap">
+                {{-- Tab 1: Antrean Siap Tagih --}}
                 <li class="nav-item">
-                    <a class="nav-link {{ $currentTab === 'all' && !request('status') ? 'active fw-bold' : 'text-dark' }} py-1.5 px-3" 
-                       href="{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'all'])) }}">
-                        <i class="bi bi-collection me-1"></i>Semua Invoice
-                        <span class="badge {{ $currentTab === 'all' && !request('status') ? 'bg-white text-primary' : 'bg-light text-dark border' }} ms-1">{{ $totalCount }}</span>
+                    <a class="nav-link {{ $currentTab === 'siap_tagih' ? 'active bg-success text-white fw-bold shadow-xs' : 'text-dark' }} py-1.5 px-3" 
+                       href="{{ route('invoice.index', array_merge(request()->except('page', 'tab'), ['tab' => 'siap_tagih'])) }}">
+                        <i class="bi bi-lightning-charge-fill me-1 {{ $currentTab === 'siap_tagih' ? 'text-white' : 'text-success' }}"></i>Antrean Siap Tagih
+                        <span class="badge {{ $currentTab === 'siap_tagih' ? 'bg-white text-success' : 'bg-success text-white' }} ms-1">
+                            {{ $badgeSiapTagih }}
+                        </span>
                     </a>
                 </li>
+
+                {{-- Tab 2: Menunggu Admin Produksi --}}
                 <li class="nav-item">
-                    <a class="nav-link {{ $currentTab === 'pending_operasional' || request('status') === 'pending_operasional' ? 'active bg-warning text-dark fw-bold' : 'text-dark' }} py-1.5 px-3 position-relative" 
-                       href="{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'pending_operasional'])) }}">
+                    <a class="nav-link {{ $currentTab === 'pending_operasional' ? 'active bg-warning text-dark fw-bold shadow-xs' : 'text-dark' }} py-1.5 px-3 position-relative" 
+                       href="{{ route('invoice.index', array_merge(request()->except('page', 'tab'), ['tab' => 'pending_operasional'])) }}">
                         <i class="bi bi-hourglass-split me-1 text-warning-emphasis"></i>Menunggu Admin Produksi
-                        <span class="badge {{ $currentTab === 'pending_operasional' || request('status') === 'pending_operasional' ? 'bg-dark text-warning' : 'bg-warning-subtle text-warning-emphasis border border-warning' }} ms-1">
+                        <span class="badge {{ $currentTab === 'pending_operasional' ? 'bg-dark text-warning' : 'bg-warning-subtle text-warning-emphasis border border-warning' }} ms-1">
                             {{ $operasionalPendingCount }}
                         </span>
                         @if($operasionalPendingCount > 0 && $currentTab !== 'pending_operasional')
@@ -388,25 +248,29 @@
                         @endif
                     </a>
                 </li>
+
+                {{-- Tab 3: Menunggu Revisi --}}
                 <li class="nav-item">
-                    <a class="nav-link {{ $currentTab === 'revisi' || request('status') === 'revisi' ? 'active bg-danger text-white fw-bold shadow-xs' : 'text-dark' }} py-1.5 px-3 position-relative" 
-                       href="{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'revisi'])) }}">
-                        <i class="bi bi-arrow-return-left me-1 {{ $currentTab === 'revisi' || request('status') === 'revisi' ? 'text-white' : 'text-danger' }}"></i>Menunggu Revisi
-                        <span class="badge {{ $currentTab === 'revisi' || request('status') === 'revisi' ? 'bg-white text-danger' : 'bg-danger-subtle text-danger border border-danger' }} ms-1">
+                    <a class="nav-link {{ $currentTab === 'revisi' ? 'active bg-danger text-white fw-bold shadow-xs' : 'text-dark' }} py-1.5 px-3 position-relative" 
+                       href="{{ route('invoice.index', array_merge(request()->except('page', 'tab'), ['tab' => 'revisi'])) }}">
+                        <i class="bi bi-arrow-return-left me-1 {{ $currentTab === 'revisi' ? 'text-white' : 'text-danger' }}"></i>Menunggu Revisi
+                        <span class="badge {{ $currentTab === 'revisi' ? 'bg-white text-danger' : 'bg-danger-subtle text-danger border border-danger' }} ms-1">
                             {{ $revisiCount }}
                         </span>
-                        @if($revisiCount > 0 && $currentTab !== 'revisi' && request('status') !== 'revisi')
+                        @if($revisiCount > 0 && $currentTab !== 'revisi')
                             <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
                                 <span class="visually-hidden">Perlu revisi invoice</span>
                             </span>
                         @endif
                     </a>
                 </li>
+
+                {{-- Tab 4: Menunggu Staff Akunting --}}
                 <li class="nav-item">
-                    <a class="nav-link {{ $currentTab === 'pending_akunting' || request('status') === 'pending_akunting' ? 'active bg-primary text-white fw-bold' : 'text-dark' }} py-1.5 px-3 position-relative" 
-                       href="{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'pending_akunting'])) }}">
+                    <a class="nav-link {{ $currentTab === 'pending_akunting' ? 'active bg-primary text-white fw-bold shadow-xs' : 'text-dark' }} py-1.5 px-3 position-relative" 
+                       href="{{ route('invoice.index', array_merge(request()->except('page', 'tab'), ['tab' => 'pending_akunting'])) }}">
                         <i class="bi bi-shield-check me-1"></i>Menunggu Staff Akunting
-                        <span class="badge {{ $currentTab === 'pending_akunting' || request('status') === 'pending_akunting' ? 'bg-white text-primary' : 'bg-primary-subtle text-primary border border-primary' }} ms-1">
+                        <span class="badge {{ $currentTab === 'pending_akunting' ? 'bg-white text-primary' : 'bg-primary-subtle text-primary border border-primary' }} ms-1">
                             {{ $akuntingPendingCount }}
                         </span>
                         @if($akuntingPendingCount > 0 && $currentTab !== 'pending_akunting')
@@ -416,60 +280,545 @@
                         @endif
                     </a>
                 </li>
+
+                {{-- Tab 5: Disetujui Resmi --}}
                 <li class="nav-item">
-                    <a class="nav-link {{ $currentTab === 'approved' || request('status') === 'approved' ? 'active bg-success fw-bold' : 'text-dark' }} py-1.5 px-3" 
-                       href="{{ route('invoice.index', array_merge(request()->except('page', 'tab', 'status'), ['tab' => 'approved'])) }}">
-                        <i class="bi bi-check2-circle me-1 text-success"></i>Disetujui Resmi
-                        <span class="badge {{ $currentTab === 'approved' || request('status') === 'approved' ? 'bg-white text-success' : 'bg-success-subtle text-success border border-success-subtle' }} ms-1">{{ $approvedCount }}</span>
+                    <a class="nav-link {{ $currentTab === 'approved' ? 'active bg-success text-white fw-bold shadow-xs' : 'text-dark' }} py-1.5 px-3" 
+                       href="{{ route('invoice.index', array_merge(request()->except('page', 'tab'), ['tab' => 'approved'])) }}">
+                        <i class="bi bi-patch-check-fill me-1 {{ $currentTab === 'approved' ? 'text-white' : 'text-success' }}"></i>Disetujui Resmi
+                        <span class="badge {{ $currentTab === 'approved' ? 'bg-white text-success' : 'bg-success-subtle text-success border border-success-subtle' }} ms-1">
+                            {{ $approvedCount }}
+                        </span>
                     </a>
                 </li>
 
-                @if($eligibleList->isNotEmpty())
+                {{-- Tab 6: Monitoring Benchmark --}}
                 <li class="nav-item">
-                    <a class="nav-link py-1.5 px-3 {{ $currentTab === 'all' ? 'text-success border border-success border-opacity-25' : 'text-muted' }}" 
-                       href="{{ $currentTab === 'all' ? '#panel-sekolah-siap-tagih' : route('invoice.index', array_merge(request()->except('tab'), ['tab' => 'all'])) . '#panel-sekolah-siap-tagih' }}" 
-                       @if($currentTab === 'all') onclick="document.getElementById('panel-sekolah-siap-tagih')?.scrollIntoView({behavior: 'smooth'}); return false;" @endif
-                       title="{{ $currentTab === 'all' ? 'Scroll ke Antrean Sekolah Siap Ditagih' : 'Buka Antrean Sekolah Siap Ditagih di Tab Semua' }}">
-                        <i class="bi bi-lightning-charge-fill me-1 text-success"></i>Antrean Siap Tagih
-                        <span class="badge bg-success text-white ms-1">{{ $eligibleList->count() }}</span>
+                    <a class="nav-link {{ $currentTab === 'benchmark' ? 'active bg-dark text-white fw-bold shadow-xs' : 'text-dark' }} py-1.5 px-3" 
+                       href="{{ route('invoice.index', array_merge(request()->except('page', 'tab'), ['tab' => 'benchmark'])) }}">
+                        <i class="bi bi-speedometer2 me-1 {{ $currentTab === 'benchmark' ? 'text-warning' : 'text-primary' }}"></i>Monitoring Benchmark
+                        <span class="badge {{ $currentTab === 'benchmark' ? 'bg-warning text-dark' : 'bg-secondary-subtle text-dark border' }} ms-1">
+                            🎯 Target
+                        </span>
                     </a>
                 </li>
-                @endif
             </ul>
-
-            <div class="d-flex align-items-center gap-2">
-                <a href="{{ route('invoice.index', array_merge(request()->query(), ['refresh_antrean' => 1])) }}" 
-                   class="btn btn-sm btn-outline-primary rounded-pill px-2.5 shadow-xs" 
-                   title="Segarkan / Recalculate Antrean Siap Tagih">
-                    <i class="bi bi-arrow-clockwise"></i>
-                </a>
-                <a href="{{ route('admin.google-sheets.export', 'detail_invoice_marketing') }}" 
-                   class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-xs" 
-                   title="Unduh Detail Invoice Tab 13 (Pivot Ready Marketing) Format CSV">
-                    <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i>Export CSV Tab 13 (Pivot)
-                </a>
-                <a href="{{ route('admin.google-sheets.export', 'invoice') }}" 
-                   class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-xs" 
-                   title="Unduh Rekap Invoice Tab 12 Format CSV">
-                    <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export CSV Tab 12
-                </a>
-                <a href="{{ route('admin.google-sheets.index') }}" 
-                   class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-xs" 
-                   title="Buka Menu Integrasi Master Google Sheets">
-                    <i class="bi bi-google me-1"></i>Google Sheets
-                </a>
-            </div>
         </div>
 
         <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="invoiceTable">
+            @if($currentTab === 'siap_tagih')
+                {{-- ─── TAB 1 CONTENT: SEKOLAH SIAP DITAGIHKAN ───────────────────── --}}
+                <div id="panel-sekolah-siap-tagih">
+                    <div class="p-3 bg-light bg-opacity-50 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-success rounded-circle p-2 d-flex align-items-center justify-content-center" style="width:32px; height:32px;">
+                                <i class="bi bi-lightning-charge-fill text-white fs-6"></i>
+                            </span>
+                            <div>
+                                <h6 class="mb-0 fw-bold text-dark">Sekolah Siap Ditagihkan ({{ $eligibleList->count() }})</h6>
+                                <small class="text-muted">1 Invoice per Sekolah (rincian item per rombel) — Diurutkan prioritas keterlambatan pembuatan invoice</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <select id="filterEligibleSkema" class="form-select form-select-sm bg-white border" style="width: 180px;" onchange="filterEligibleSchools()">
+                                <option value="">Semua Skema</option>
+                                <option value="bulanan">🗓️ Bulanan</option>
+                                <option value="per_4_pertemuan">🔄 Per 4 Pertemuan</option>
+                                <option value="semester">📚 Semesteran</option>
+                                <option value="tahunan">🎓 Tahunan</option>
+                            </select>
+                            <div class="input-group input-group-sm" style="width: 200px;">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted small"></i></span>
+                                <input type="text" id="searchEligibleTable" class="form-control bg-white border-start-0" 
+                                       placeholder="Cari sekolah..." onkeyup="filterEligibleSchools()">
+                            </div>
+                            @if(auth()->user()?->hasRole(['admin', 'admin_sistem', 'webmaster']))
+                            <button type="button" class="btn btn-sm btn-outline-primary fw-bold px-3 py-1.5 rounded-pill shadow-xs text-nowrap" data-bs-toggle="modal" data-bs-target="#modalAturSkema">
+                                <i class="bi bi-gear-fill me-1"></i> Atur Skema Tagihan
+                            </button>
+                            @endif
+                            @if($eligibleList->isNotEmpty())
+                            <form action="{{ route('invoice.bulk-generate') }}" method="POST" onsubmit="return confirm('Generate invoice untuk semua {{ $eligibleList->count() }} sekolah yang siap ditagihkan?');" class="mb-0">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-success fw-bold px-3 py-1.5 rounded-pill shadow-xs text-nowrap">
+                                    <i class="bi bi-lightning-charge-fill me-1"></i> Generate Semua (Bulk)
+                                </button>
+                            </form>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if($eligibleList->isNotEmpty())
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr class="text-uppercase text-muted" style="font-size: .75rem; letter-spacing: .5px;">
+                                    <th class="ps-4">Sekolah</th>
+                                    <th>Wilayah</th>
+                                    <th>Rombel & Program (Item)</th>
+                                    <th>Skema Tagihan</th>
+                                    <th>Periode Tagihan</th>
+                                    <th class="text-center">Jumlah Pertemuan</th>
+                                    <th class="text-center">Total Siswa Billable</th>
+                                    <th>Target Invoice</th>
+                                    <th>Keterlambatan</th>
+                                    <th class="text-end pe-4">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y" id="eligibleTableBody">
+                                @foreach($eligibleList as $item)
+                                <tr data-skema="{{ $item['skema_tagihan'] }}">
+                                    <td class="ps-4 fw-semibold text-dark">
+                                        <span class="badge bg-light text-secondary border font-monospace me-1">[{{ $item['sekolah_kodlan'] }}]</span>
+                                        {{ $item['sekolah_nama'] }}
+                                    </td>
+                                    <td>
+                                        @php
+                                            $wilayahNama = $item['sekolah_kota'] ?? $item['sekolah']?->kota ?? null;
+                                        @endphp
+                                        @if($wilayahNama)
+                                            <span class="badge bg-light text-dark border">
+                                                <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ $wilayahNama }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted small">-</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark small">
+                                            <i class="bi bi-mortarboard-fill me-1 text-primary"></i>{{ $item['kategori_program'] ?? 'Program Ekskul' }}
+                                        </div>
+                                        <div class="text-muted small mt-0.5" style="font-size: .75rem;">
+                                            <i class="bi bi-diagram-3 me-1"></i>{{ $item['total_rombel'] }} Rombel: 
+                                            @php
+                                                $displayItems = array_slice($item['items'] ?? [], 0, 4);
+                                                $remainingCount = count($item['items'] ?? []) - count($displayItems);
+                                            @endphp
+                                            @foreach($displayItems as $it)
+                                                <span class="badge bg-light text-muted border font-monospace me-1" style="font-size: .68rem;">
+                                                    {{ $it['rombel_nama'] }} ({{ $it['jumlah_siswa_billable'] }} sw)
+                                                </span>
+                                            @endforeach
+                                            @if($remainingCount > 0)
+                                                <span class="badge bg-secondary-subtle text-secondary border font-monospace me-1" style="font-size: .68rem;" title="{{ implode(', ', array_map(fn($r) => $r['rombel_nama'] . ' (' . $r['jumlah_siswa_billable'] . ' sw)', array_slice($item['items'] ?? [], 4))) }}">
+                                                    +{{ $remainingCount }} rombel lainnya
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="badge {{ match($item['skema_tagihan']) {
+                                                'bulanan'          => 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25',
+                                                'semester'         => 'bg-purple bg-opacity-10 text-purple border border-purple border-opacity-25',
+                                                'tahunan'          => 'bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25',
+                                                'csr_reguler_soga' => 'bg-info bg-opacity-10 text-info border border-info border-opacity-25',
+                                                default            => 'bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25',
+                                            } }} px-2 py-1"
+                                            @if($item['skema_tagihan'] === 'semester') style="background-color: rgba(124, 58, 237, 0.1) !important; color: #7c3aed !important; border-color: rgba(124, 58, 237, 0.25) !important;" @endif>
+                                                {{ match($item['skema_tagihan']) {
+                                                    'bulanan'          => 'Bulanan',
+                                                    'semester'         => 'Semesteran',
+                                                    'tahunan'          => 'Tahunan',
+                                                    'csr_reguler_soga' => 'CSR SOGA',
+                                                    default            => 'Per 4 Pertemuan',
+                                                } }}
+                                            </span>
+                                            @if(auth()->user()?->hasRole(['admin', 'admin_sistem', 'webmaster']))
+                                            <button type="button" 
+                                                    class="btn btn-link p-0 text-muted btn-sm btn-quick-skema" 
+                                                    title="Ubah Skema Tagihan Sekolah"
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#modalAturSkema"
+                                                    data-kodlan="{{ $item['sekolah_kodlan'] }}"
+                                                    data-nama="{{ $item['sekolah_nama'] }}"
+                                                    data-skema="{{ $item['skema_tagihan'] }}"
+                                                    onclick="quickEditSkema('{{ $item['sekolah_kodlan'] }}', '{{ addslashes($item['sekolah_nama']) }}', '{{ $item['skema_tagihan'] }}')">
+                                                <i class="bi bi-pencil-square" style="font-size: 0.8rem;"></i>
+                                            </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if($item['skema_tagihan'] === 'bulanan')
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1">
+                                                <i class="bi bi-calendar3 me-1"></i>{{ $item['periode_label'] }}
+                                            </span>
+                                        @elseif($item['skema_tagihan'] === 'semester')
+                                            <span class="badge bg-purple bg-opacity-10 text-purple border border-purple border-opacity-25 px-2.5 py-1"
+                                                  style="background-color: rgba(124, 58, 237, 0.1) !important; color: #7c3aed !important; border-color: rgba(124, 58, 237, 0.25) !important;">
+                                                <i class="bi bi-calendar-range me-1"></i>{{ $item['periode_label'] }}
+                                            </span>
+                                        @elseif($item['skema_tagihan'] === 'tahunan')
+                                            <span class="badge bg-dark bg-opacity-10 text-dark border border-dark border-opacity-25 px-2.5 py-1">
+                                                <i class="bi bi-calendar-check me-1"></i>{{ $item['periode_label'] }}
+                                            </span>
+                                        @elseif($item['skema_tagihan'] === 'csr_reguler_soga')
+                                            <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2.5 py-1">
+                                                <i class="bi bi-heart-fill me-1 text-danger"></i>{{ $item['periode_label'] }}
+                                            </span>
+                                            <div class="text-muted small mt-1" style="font-size: 0.72rem;">
+                                                <i class="bi bi-building me-1"></i>Tagihan: <strong class="text-dark">Solidaritas Erlangga</strong>
+                                            </div>
+                                        @else
+                                            {{-- Per 4 Pertemuan: detail waktu / sesi --}}
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1">
+                                                <i class="bi bi-layers me-1"></i>Sesi {{ $item['sesi_dari'] }}–{{ $item['sesi_sampai'] }}
+                                            </span>
+                                            @if(!empty($item['bulan_laporan_terakhir']))
+                                                <div class="text-muted small mt-1" style="font-size: 0.72rem;">
+                                                    <i class="bi bi-calendar-event me-1"></i>Lap: <strong class="text-dark">{{ $item['bulan_laporan_terakhir'] }}</strong>
+                                                </div>
+                                            @endif
+                                        @endif
+                                    </td>
+                                    <td class="text-center">
+                                        @php
+                                            $totSesi = $item['total_jumlah_sesi'] ?? (!empty($item['items']) ? array_sum(array_column($item['items'], 'jumlah_sesi')) : null);
+                                            $sDari = $item['sesi_dari'] ?? null;
+                                            $sSampai = $item['sesi_sampai'] ?? null;
+                                        @endphp
+                                        @if($totSesi)
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold">
+                                                {{ $totSesi }} Sesi
+                                            </span>
+                                        @else
+                                            <span class="badge bg-light text-muted border">-</span>
+                                        @endif
+                                        @if($sDari && $sSampai)
+                                            <div class="text-muted mt-0.5" style="font-size: .70rem;">
+                                                P.{{ $sDari }}–{{ $sSampai }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-light text-dark border fw-bold px-2.5 py-1.5">
+                                            {{ $item['total_siswa_billable'] }} siswa
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="text-nowrap small fw-medium text-dark">
+                                            <i class="bi bi-calendar-event me-1 text-muted"></i>{{ $item['target_date_formatted'] ?? '-' }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if(($item['days_overdue'] ?? 0) > 0)
+                                            <span class="badge {{ $item['keterlambatan_badge'] ?? 'bg-danger text-white' }} px-2.5 py-1.5 rounded-pill shadow-xs text-nowrap">
+                                                <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $item['keterlambatan_label'] }}
+                                            </span>
+                                        @else
+                                            <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2.5 py-1.5 rounded-pill text-nowrap">
+                                                <i class="bi bi-clock-history me-1"></i>{{ $item['keterlambatan_label'] ?? 'Hari Ini' }}
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <form action="{{ route('invoice.quick-generate') }}" method="POST" class="d-inline mb-0">
+                                                @csrf
+                                                <input type="hidden" name="sekolah_kodlan" value="{{ $item['sekolah_kodlan'] }}">
+                                                @if(!empty($item['ekstrakurikuler_id']))
+                                                    <input type="hidden" name="ekstrakurikuler_id" value="{{ $item['ekstrakurikuler_id'] }}">
+                                                @endif
+                                                @if(!empty($item['ekstrakurikuler_rombel_id']))
+                                                    <input type="hidden" name="ekstrakurikuler_rombel_id" value="{{ $item['ekstrakurikuler_rombel_id'] }}">
+                                                @endif
+                                                <input type="hidden" name="skema_tagihan" value="{{ $item['skema_tagihan'] }}">
+                                                <input type="hidden" name="periode_label" value="{{ $item['periode_label'] }}">
+                                                <input type="hidden" name="periode_nomor" value="{{ $item['periode_nomor'] ?? '' }}">
+                                                <input type="hidden" name="sesi_dari" value="{{ $item['sesi_dari'] ?? '' }}">
+                                                <input type="hidden" name="sesi_sampai" value="{{ $item['sesi_sampai'] ?? '' }}">
+                                                <input type="hidden" name="tahun_ajaran" value="{{ $item['tahun_ajaran'] }}">
+                                                <button type="submit" class="btn btn-sm btn-success fw-semibold rounded-pill px-3 shadow-xs">
+                                                    <i class="bi bi-lightning-charge-fill me-1"></i> 1-Klik Generate
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if($eligibleSekolahs instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                    <div class="px-4 py-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <small class="text-muted">
+                                Menampilkan {{ $eligibleSekolahs->firstItem() ?? 1 }} - {{ $eligibleSekolahs->lastItem() ?? $eligibleSekolahs->total() }} dari {{ $eligibleSekolahs->total() }} sekolah siap ditagih
+                            </small>
+                            <div class="d-flex align-items-center gap-1 ms-2">
+                                <span class="small text-muted">Per halaman:</span>
+                                <select class="form-select form-select-sm py-0 px-2" style="width: auto; font-size: 0.75rem;" onchange="location.href = this.value;">
+                                    <option value="{{ route('invoice.index', array_merge(request()->query(), ['tab' => $currentTab, 'per_page' => 25, 'page' => 1])) }}" {{ ($perPage ?? 25) == 25 ? 'selected' : '' }}>25</option>
+                                    <option value="{{ route('invoice.index', array_merge(request()->query(), ['tab' => $currentTab, 'per_page' => 50, 'page' => 1])) }}" {{ ($perPage ?? 25) == 50 ? 'selected' : '' }}>50</option>
+                                    <option value="{{ route('invoice.index', array_merge(request()->query(), ['tab' => $currentTab, 'per_page' => 75, 'page' => 1])) }}" {{ ($perPage ?? 25) == 75 ? 'selected' : '' }}>75</option>
+                                    <option value="{{ route('invoice.index', array_merge(request()->query(), ['tab' => $currentTab, 'per_page' => 'all', 'page' => 1])) }}" {{ request('per_page') === 'all' || ($perPage ?? 25) >= 9999 ? 'selected' : '' }}>Semua</option>
+                                </select>
+                            </div>
+                        </div>
+                        @if($eligibleSekolahs->hasPages())
+                        <div>
+                            {{ $eligibleSekolahs->appends(request()->query())->links() }}
+                        </div>
+                        @endif
+                    </div>
+                    @endif
+                    @else
+                    <div class="text-center py-5">
+                        <div class="avatar-lg bg-success-subtle text-success rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                            <i class="bi bi-check2-all fs-2"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">Tidak Ada Antrean Sekolah Siap Ditagih</h6>
+                        <p class="text-muted small mb-0">Semua sekolah dan rombel telah diterbitkan invoice atau belum mencapai target sesi tagihan.</p>
+                    </div>
+                    @endif
+                </div>
+            @elseif($currentTab === 'benchmark')
+                {{-- ─── TAB 6 CONTENT: MONITORING BENCHMARK PENAGIHAN ───────────────── --}}
+                <div id="panel-benchmark-penagihan">
+                    <!-- 4 KPI CARDS -->
+                    <div class="p-3 bg-light bg-opacity-75 border-bottom">
+                        <div class="row g-3">
+                            <div class="col-md-3 col-sm-6">
+                                <div class="card border-0 shadow-xs h-100 bg-white" style="border-radius: 10px; border-left: 4px solid #3b82f6 !important;">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small fw-bold text-muted text-uppercase">Per 4 Pertemuan</span>
+                                            <span class="badge bg-primary bg-opacity-10 text-primary">Target ≥ 8x</span>
+                                        </div>
+                                        <h4 class="fw-bold mb-0 text-dark">{{ $benchmarkStats['by_skema']['per_4_pertemuan']['count'] ?? 0 }} <span class="fs-6 fw-normal text-muted">Sekolah</span></h4>
+                                        <small class="text-muted">Target minimal 8x tagihan (32 sesi)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <div class="card border-0 shadow-xs h-100 bg-white" style="border-radius: 10px; border-left: 4px solid #10b981 !important;">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small fw-bold text-muted text-uppercase">Bulanan</span>
+                                            <span class="badge bg-success bg-opacity-10 text-success">Target ≤ 8x</span>
+                                        </div>
+                                        <h4 class="fw-bold mb-0 text-dark">{{ $benchmarkStats['by_skema']['bulanan']['count'] ?? 0 }} <span class="fs-6 fw-normal text-muted">Sekolah</span></h4>
+                                        <small class="text-muted">Tagihan rutin kalender (maks. 8 bulan)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <div class="card border-0 shadow-xs h-100 bg-white" style="border-radius: 10px; border-left: 4px solid #8b5cf6 !important;">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small fw-bold text-muted text-uppercase">Semesteran</span>
+                                            <span class="badge bg-purple bg-opacity-10 text-purple">Target 2x</span>
+                                        </div>
+                                        <h4 class="fw-bold mb-0 text-dark">{{ $benchmarkStats['by_skema']['semester']['count'] ?? 0 }} <span class="fs-6 fw-normal text-muted">Sekolah</span></h4>
+                                        <small class="text-muted">Semester 1 (Ganjil) & Semester 2 (Genap)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <div class="card border-0 shadow-xs h-100 bg-white" style="border-radius: 10px; border-left: 4px solid #f59e0b !important;">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="small fw-bold text-muted text-uppercase">Tahunan</span>
+                                            <span class="badge bg-warning bg-opacity-10 text-warning-emphasis">Target 1x</span>
+                                        </div>
+                                        <h4 class="fw-bold mb-0 text-dark">{{ $benchmarkStats['by_skema']['tahunan']['count'] ?? 0 }} <span class="fs-6 fw-normal text-muted">Sekolah</span></h4>
+                                        <small class="text-muted">1 Invoice Kontrak Penuh 1 Tahun Ajaran</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUMMARY PROGRESS INFO -->
+                    <div class="px-4 py-2 bg-white border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="small text-muted">
+                                Total Mitra Terdaftar: <strong class="text-dark">{{ $benchmarkStats['total_sekolah'] }}</strong> Sekolah
+                            </span>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1">
+                                <i class="bi bi-patch-check-fill me-1"></i>{{ $benchmarkStats['total_invoices_approved'] }} Invoice Resmi Tercetak
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-success text-white px-2 py-1"><i class="bi bi-check-circle me-1"></i>{{ $benchmarkStats['tercapai'] }} Tercapai Penuh</span>
+                            <span class="badge bg-primary text-white px-2 py-1"><i class="bi bi-arrow-repeat me-1"></i>{{ $benchmarkStats['on_track'] }} On-Track</span>
+                            <span class="badge bg-secondary text-white px-2 py-1"><i class="bi bi-hourglass me-1"></i>{{ $benchmarkStats['belum_ada'] }} Belum Ada Invoice</span>
+                        </div>
+                    </div>
+
+                    <!-- BENCHMARK TABLE -->
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="benchmarkTable">
+                            <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                                <tr>
+                                    <th class="ps-4 py-3 text-muted small fw-semibold" width="50">#</th>
+                                    <th class="py-3 text-muted small fw-semibold">Nama Sekolah & Kodlan</th>
+                                    <th class="py-3 text-muted small fw-semibold">Wilayah</th>
+                                    <th class="py-3 text-muted small fw-semibold">Salesman / Penanggung Jawab</th>
+                                    <th class="py-3 text-muted small fw-semibold">Skema Tagihan</th>
+                                    <th class="py-3 text-muted small fw-semibold text-center">Target Benchmark</th>
+                                    <th class="py-3 text-muted small fw-semibold text-center" style="min-width: 180px;">Invoice & Periode Tertagih</th>
+                                    <th class="py-3 text-muted small fw-semibold" style="width: 180px;">Progress Capaian</th>
+                                    <th class="py-3 text-muted small fw-semibold text-center">Status</th>
+                                    <th class="pe-4 py-3 text-muted small fw-semibold text-end">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if($benchmarkPaginator && $benchmarkPaginator->count() > 0)
+                                    @foreach($benchmarkPaginator as $idx => $b)
+                                        <tr>
+                                            <td class="ps-4 text-muted small fw-medium">
+                                                {{ ($benchmarkPaginator->currentPage() - 1) * $benchmarkPaginator->perPage() + $idx + 1 }}
+                                            </td>
+                                            <td>
+                                                <div class="fw-bold text-dark">{{ $b['namasekolah'] }}</div>
+                                                <code class="small text-muted">{{ $b['kodlan'] }}</code>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark border">
+                                                    <i class="bi bi-geo-alt me-1 text-danger"></i>{{ $b['wilayah'] }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="fw-semibold text-dark small">
+                                                    <i class="bi bi-person-badge text-primary me-1"></i>{{ $b['salesman'] }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @php
+                                                    $badgeBg = match($b['skema']) {
+                                                        'per_4_pertemuan' => 'bg-info bg-opacity-10 text-info border border-info border-opacity-25',
+                                                        'bulanan' => 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25',
+                                                        'semester' => 'bg-purple bg-opacity-10 text-purple border border-purple border-opacity-25',
+                                                        'tahunan' => 'bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25',
+                                                        default => 'bg-secondary bg-opacity-10 text-secondary'
+                                                    };
+                                                @endphp
+                                                <span class="badge {{ $badgeBg }} px-2 py-1">
+                                                    {{ $b['skema_label'] }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center fw-bold text-muted">
+                                                {{ $b['skema'] === 'per_4_pertemuan' ? '≥ ' . $b['target'] . 'x' : ($b['skema'] === 'bulanan' ? '≤ ' . $b['target'] . 'x' : $b['target'] . 'x') }}
+                                            </td>
+                                            <td class="text-center" style="min-width: 180px;">
+                                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1 fw-bold">
+                                                    {{ $b['realisasi'] }} Invoice Resmi
+                                                </span>
+                                                @if(!empty($b['approved_periods']) || !empty($b['pending_periods']))
+                                                    <div class="mt-1 d-flex flex-wrap gap-1 justify-content-center">
+                                                        @foreach($b['approved_periods'] as $pLabel)
+                                                            <span class="badge bg-success text-white py-0.5 px-1.5" style="font-size: .67rem;" title="Invoice resmi disetujui">
+                                                                <i class="bi bi-check-circle-fill me-0.5"></i>{{ $pLabel }}
+                                                            </span>
+                                                        @endforeach
+                                                        @foreach($b['pending_periods'] as $pLabel)
+                                                            <span class="badge bg-warning text-dark border border-warning py-0.5 px-1.5" style="font-size: .67rem;" title="Sedang dalam antrean approval / draft">
+                                                                <i class="bi bi-hourglass-split me-0.5"></i>{{ $pLabel }} (Proses)
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
+                                                @else
+                                                    <div class="text-muted mt-1" style="font-size: .70rem;">(Belum ada invoice)</div>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="progress flex-grow-1" style="height: 7px; background-color: #e2e8f0; border-radius: 10px;">
+                                                        <div class="progress-bar {{ $b['persentase'] >= 100 ? 'bg-success' : ($b['persentase'] > 0 ? 'bg-primary' : 'bg-secondary') }}" 
+                                                             role="progressbar" 
+                                                             style="width: {{ $b['persentase'] }}%; border-radius: 10px;">
+                                                        </div>
+                                                    </div>
+                                                    <small class="fw-bold text-muted" style="min-width: 40px; font-size: 0.75rem;">{{ $b['persentase'] }}%</small>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge {{ $b['badge_class'] }} px-2.5 py-1 rounded-pill small">
+                                                    {{ $b['status_label'] }}
+                                                </span>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <a href="{{ route('invoice.index', ['tab' => 'approved', 'sekolah' => $b['kodlan']]) }}" 
+                                                   class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1"
+                                                   title="Lihat riwayat invoice disetujui resmi untuk sekolah ini">
+                                                    <i class="bi bi-search me-1"></i>Lihat Invoice
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td colspan="10" class="text-center py-5 text-muted">
+                                            <i class="bi bi-speedometer2 fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                                            Tidak ada data benchmark yang cocok dengan filter yang dipilih.
+                                        </td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- BENCHMARK PAGINATION -->
+                    @if($benchmarkPaginator && $benchmarkPaginator->hasPages())
+                        <div class="px-4 py-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <small class="text-muted">
+                                Menampilkan {{ $benchmarkPaginator->firstItem() ?? 1 }} - {{ $benchmarkPaginator->lastItem() ?? $benchmarkPaginator->total() }} dari {{ $benchmarkPaginator->total() }} sekolah mitra
+                            </small>
+                            <div>
+                                {{ $benchmarkPaginator->appends(request()->query())->links() }}
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            @else
+                {{-- ─── TABS 2-5 CONTENT: TABEL DAFTAR INVOICE ───────────────────── --}}
+                @if($currentTab === 'pending_operasional')
+                <div class="p-2.5 px-3 bg-warning bg-opacity-10 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-warning text-dark rounded-circle p-1.5 d-flex align-items-center justify-content-center" style="width:28px; height:28px;">
+                            <i class="bi bi-hourglass-split fs-6"></i>
+                        </span>
+                        <div>
+                            <span class="fw-bold text-dark small">Antrean Menunggu Admin Produksi</span>
+                            <span class="badge bg-dark text-warning ms-1" style="font-size: .7rem;"><i class="bi bi-sort-numeric-down me-1"></i>Prioritas: Tertua / Tertinggal Jauh</span>
+                            <div class="text-muted" style="font-size: .75rem;">
+                                Menampilkan invoice yang paling lama dibuat / tertinggal di baris teratas agar segera diproses dan diselesaikan.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <span class="text-muted small me-1">Urutan:</span>
+                        <a href="{{ route('invoice.index', array_merge(request()->except('sort', 'page'), ['tab' => 'pending_operasional', 'sort' => 'asc'])) }}" 
+                           class="btn btn-xs btn-sm {{ request('sort', 'asc') === 'asc' ? 'btn-warning fw-bold text-dark shadow-xs' : 'btn-outline-secondary bg-white' }}"
+                           title="Urutkan dari yang paling lama dibuat (prioritas)">
+                            <i class="bi bi-sort-numeric-down me-1"></i>Paling Lama (Prioritas)
+                        </a>
+                        <a href="{{ route('invoice.index', array_merge(request()->except('sort', 'page'), ['tab' => 'pending_operasional', 'sort' => 'desc'])) }}" 
+                           class="btn btn-xs btn-sm {{ request('sort') === 'desc' ? 'btn-warning fw-bold text-dark shadow-xs' : 'btn-outline-secondary bg-white' }}"
+                           title="Urutkan dari yang paling baru dibuat">
+                            <i class="bi bi-sort-numeric-up-alt me-1"></i>Paling Baru
+                        </a>
+                    </div>
+                </div>
+                @endif
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="invoiceTable">
                     <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
                         <tr>
-                            <th class="ps-4 py-3 text-muted small fw-semibold">No. Invoice</th>
+                            <th class="ps-4 py-3 text-muted small fw-semibold">
+                                No. Invoice
+                                @if($currentTab === 'pending_operasional')
+                                    <span class="text-warning-emphasis small ms-1" title="Urutan prioritas: terlama di atas"><i class="bi bi-sort-up"></i></span>
+                                @endif
+                            </th>
                             <th class="py-3 text-muted small fw-semibold">Sekolah / Rombel</th>
+                            <th class="py-3 text-muted small fw-semibold">Wilayah</th>
                             <th class="py-3 text-muted small fw-semibold">Periode Tagihan</th>
                             <th class="py-3 text-muted small fw-semibold">Skema Tagihan</th>
+                            <th class="py-3 text-muted small fw-semibold text-center">Jumlah Pertemuan</th>
                             <th class="py-3 text-muted small fw-semibold text-center">Siswa Billable</th>
                             <th class="py-3 text-muted small fw-semibold text-center">Admin Produksi (Gate 1)</th>
                             <th class="py-3 text-muted small fw-semibold text-center">Staff Akunting (Gate 2)</th>
@@ -489,12 +838,41 @@
                                 @endif
                                 <div class="text-muted" style="font-size:.68rem;">
                                     <i class="bi bi-calendar-plus me-1"></i>{{ $inv->created_at?->format('d/m/Y') }}
+                                    @if($currentTab === 'pending_operasional' && $inv->created_at)
+                                        <span class="badge bg-warning-subtle text-warning-emphasis ms-1" style="font-size:.62rem;" title="{{ $inv->created_at->diffForHumans() }}">
+                                            <i class="bi bi-clock-history me-0.5"></i>{{ $inv->created_at->diffForHumans(null, true) }} lalu
+                                        </span>
+                                    @endif
                                 </div>
                             </td>
                             <td>
                                 <div class="fw-semibold small text-dark">
                                     {{ $inv->sekolah?->namasekolah ?? $inv->rombel?->ekstrakurikuler?->sekolah?->namasekolah ?? '-' }}
                                 </div>
+                                @php
+                                    // Ambil kategori_program dari items atau rombel langsung
+                                    $kategoriProgram = $inv->items->isNotEmpty()
+                                        ? ($inv->items->first()?->rombel?->ekstrakurikuler?->kategori_program ?? null)
+                                        : ($inv->rombel?->ekstrakurikuler?->kategori_program ?? null);
+                                    // Warna badge berdasarkan jenis program
+                                    $progColor = 'info';
+                                    if ($kategoriProgram) {
+                                        $kp = strtolower($kategoriProgram);
+                                        if (str_contains($kp, 'coding') || str_contains($kp, 'pictoblox')) $progColor = 'indigo';
+                                        elseif (str_contains($kp, 'robotik')) $progColor = 'orange';
+                                        elseif (str_contains($kp, 'english')) $progColor = 'teal';
+                                        elseif (str_contains($kp, 'soga')) $progColor = 'success';
+                                        else $progColor = 'info';
+                                    }
+                                @endphp
+                                @if($kategoriProgram)
+                                <div class="mt-0.5 mb-0.5">
+                                    <span class="badge rounded-pill px-2 py-1"
+                                          style="font-size:.65rem; background:rgba(99,102,241,.1); color:#4f46e5; border:1px solid rgba(99,102,241,.25);">
+                                        <i class="bi bi-mortarboard-fill me-1"></i>{{ $kategoriProgram }}
+                                    </span>
+                                </div>
+                                @endif
                                 <div class="text-muted" style="font-size: .75rem;">
                                     @if(($inv->total_rombel ?? 0) > 1)
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="bi bi-diagram-3 me-1"></i>{{ $inv->total_rombel }} Rombel</span>
@@ -512,6 +890,18 @@
                                     <i class="bi bi-person-badge text-primary" style="font-size: .8rem;"></i>
                                     <span><span class="fw-medium text-dark">{{ $sales->nama_salesman }}</span> @if($sales->group_leader)<span class="text-muted small">({{ $sales->group_leader }})</span>@endif</span>
                                 </div>
+                                @endif
+                            </td>
+                            <td>
+                                @php
+                                    $kotaInv = $inv->sekolah?->kota ?? $inv->rombel?->ekstrakurikuler?->sekolah?->kota ?? null;
+                                @endphp
+                                @if($kotaInv)
+                                    <span class="badge bg-light text-dark border">
+                                        <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ $kotaInv }}
+                                    </span>
+                                @else
+                                    <span class="text-muted small">-</span>
                                 @endif
                             </td>
                             <td>
@@ -543,13 +933,29 @@
                                 </span>
                             </td>
                             <td class="text-center">
+                                @php
+                                    $sesiCount = $inv->jumlah_sesi ?: (($inv->sesi_sampai && $inv->sesi_dari) ? ($inv->sesi_sampai - $inv->sesi_dari + 1) : null);
+                                @endphp
+                                @if($sesiCount)
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold">
+                                        {{ $sesiCount }} Sesi
+                                    </span>
+                                @else
+                                    <span class="badge bg-light text-muted border">-</span>
+                                @endif
+                                @if($inv->sesi_dari && $inv->sesi_sampai)
+                                    <div class="text-muted mt-0.5" style="font-size: .70rem;">
+                                        P.{{ $inv->sesi_dari }}–{{ $inv->sesi_sampai }}
+                                    </div>
+                                @endif
+                            </td>
+                            <td class="text-center">
                                 <span class="badge {{ $inv->hasKoreksi() ? 'bg-warning-subtle text-warning border border-warning' : 'bg-light text-dark border' }} fw-bold">
                                     {{ $inv->billable_efektif }} siswa
                                 </span>
                                 @if($inv->hasKoreksi())
                                     <div class="text-warning-emphasis" style="font-size:.68rem;">(koreksi)</div>
                                 @endif
-                                <div class="text-muted" style="font-size:.7rem;">{{ $inv->jumlah_sesi }} sesi</div>
                             </td>
                             <td class="text-center">
                                 @if($inv->operasional_status === 'approved')
@@ -647,7 +1053,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="text-center py-5 text-muted">
+                            <td colspan="11" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox fs-1 d-block mb-2 opacity-25"></i>
                                 @if($currentTab === 'revisi' || request('status') === 'revisi')
                                     <span class="fw-semibold text-success"><i class="bi bi-check2-circle me-1"></i>Bagus! Tidak ada draft invoice yang perlu direvisi saat ini.</span>
@@ -670,10 +1076,28 @@
             </div>
 
             {{-- Pagination --}}
-            @if($invoices->hasPages())
-            <div class="d-flex justify-content-center py-3 border-top">
-                {{ $invoices->appends(request()->query())->links() }}
+            <div class="px-4 py-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <small class="text-muted">
+                        Menampilkan {{ $invoices->firstItem() ?? 0 }} - {{ $invoices->lastItem() ?? 0 }} dari {{ $invoices->total() }} invoice
+                    </small>
+                    <div class="d-flex align-items-center gap-1 ms-2">
+                        <span class="small text-muted">Per halaman:</span>
+                        <select class="form-select form-select-sm py-0 px-2" style="width: auto; font-size: 0.75rem;" onchange="location.href = this.value;">
+                            <option value="{{ route('invoice.index', array_merge(request()->query(), ['tab' => $currentTab, 'per_page' => 25, 'page' => 1])) }}" {{ ($perPage ?? 25) == 25 ? 'selected' : '' }}>25</option>
+                            <option value="{{ route('invoice.index', array_merge(request()->query(), ['tab' => $currentTab, 'per_page' => 50, 'page' => 1])) }}" {{ ($perPage ?? 25) == 50 ? 'selected' : '' }}>50</option>
+                            <option value="{{ route('invoice.index', array_merge(request()->query(), ['tab' => $currentTab, 'per_page' => 75, 'page' => 1])) }}" {{ ($perPage ?? 25) == 75 ? 'selected' : '' }}>75</option>
+                            <option value="{{ route('invoice.index', array_merge(request()->query(), ['tab' => $currentTab, 'per_page' => 'all', 'page' => 1])) }}" {{ request('per_page') === 'all' || ($perPage ?? 25) >= 9999 ? 'selected' : '' }}>Semua</option>
+                        </select>
+                    </div>
+                </div>
+                @if($invoices->hasPages())
+                <div>
+                    {{ $invoices->appends(request()->query())->links() }}
+                </div>
+                @endif
             </div>
+            {{-- End Tabs 2-5 --}}
             @endif
         </div>
     </div>
@@ -736,7 +1160,42 @@
 @endpush
 
 @push('scripts')
+<!-- jQuery (Required for Select2) & Select2 JS -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+(function initInvoiceFilterSelect2() {
+    function setupSelect2() {
+        if (typeof window.jQuery === 'undefined' || typeof window.$.fn.select2 === 'undefined') {
+            setTimeout(setupSelect2, 50);
+            return;
+        }
+        var $ = window.jQuery;
+        
+        $('#filter-sekolah').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: '🔍 Cari & pilih sekolah...',
+            allowClear: true,
+            dropdownParent: $(document.body)
+        });
+
+        // Auto focus search field saat dropdown dibuka
+        $(document).on('select2:open', function() {
+            var searchField = document.querySelector('.select2-container--open .select2-search__field');
+            if (searchField) {
+                searchField.focus();
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupSelect2);
+    } else {
+        setupSelect2();
+    }
+})();
+
 function filterEligibleSchools() {
     const q = (document.getElementById('searchEligibleTable')?.value || '').toLowerCase().trim();
     const skema = (document.getElementById('filterEligibleSkema')?.value || '').toLowerCase().trim();

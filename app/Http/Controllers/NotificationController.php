@@ -129,6 +129,11 @@ class NotificationController extends Controller
             ->when($viewStatus === 'read', fn($q) => $q->where('is_read', true))
             ->count();
 
+        $ptmCount = Notification::where('type', 'ptm_completed')
+            ->when($viewStatus === 'unread', fn($q) => $q->where('is_read', false))
+            ->when($viewStatus === 'read', fn($q) => $q->where('is_read', true))
+            ->count();
+
         return response()->json([
             'status_view' => $viewStatus,
             'unread_count' => $unreadCount,
@@ -136,6 +141,7 @@ class NotificationController extends Controller
             'ticket_count' => $ticketCount,
             'milestone_count' => $systemUnreadCount,
             'payout_count' => $payoutCount,
+            'ptm_count' => $ptmCount,
             'notifications' => $notifications,
             'fonnte_status' => app(\App\Services\FonnteHealthService::class)->getCachedStatus(),
         ]);
@@ -290,6 +296,8 @@ class NotificationController extends Controller
             $query->where('type', 'milestone_report');
         } elseif ($type === 'payout' || $type === 'monthly_school_payout') {
             $query->where('type', 'monthly_school_payout');
+        } elseif ($type === 'ptm' || $type === 'ptm_completed') {
+            $query->where('type', 'ptm_completed');
         } elseif ($type === 'gateway' || $type === 'gateway_alert') {
             $query->where('type', 'gateway_alert');
         } elseif ($type !== 'all') {
@@ -304,13 +312,22 @@ class NotificationController extends Controller
             });
         }
 
-        $notifications = $query->paginate(25)->withQueryString();
+        // Dukungan per_page: 25, 50, 75, atau 'all' (semua baris)
+        $perPageInput = $request->input('per_page', 25);
+        if ($perPageInput === 'all' || $perPageInput === 'semua' || (int) $perPageInput <= 0) {
+            $perPage = 999999;
+        } else {
+            $perPage = in_array((int) $perPageInput, [25, 50, 75, 100]) ? (int) $perPageInput : 25;
+        }
+
+        $notifications = $query->paginate($perPage)->withQueryString();
 
         $totalCount = Notification::count();
         $unreadCount = Notification::where('is_read', false)->count();
         $readCount = Notification::where('is_read', true)->count();
         $milestoneCount = Notification::where('type', 'milestone_report')->count();
         $payoutCount = Notification::where('type', 'monthly_school_payout')->count();
+        $ptmCount = Notification::where('type', 'ptm_completed')->count();
         $gatewayCount = Notification::where('type', 'gateway_alert')->count();
 
         return view('admin.notifications.index', compact(
@@ -323,7 +340,9 @@ class NotificationController extends Controller
             'readCount',
             'milestoneCount',
             'payoutCount',
-            'gatewayCount'
+            'ptmCount',
+            'gatewayCount',
+            'perPage'
         ));
     }
 

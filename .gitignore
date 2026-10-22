@@ -37,3 +37,4 @@ debug_*.json
 *.sql
 scratch/
 scratch_*.php
+/docs/server-docs

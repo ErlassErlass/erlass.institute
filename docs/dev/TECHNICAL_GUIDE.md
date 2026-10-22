@@ -192,7 +192,7 @@ Proses registrasi instruktur melibatkan transaksi database (`DB::transaction`) u
 **Validation & Workflow**:
 *   **H+1 Restriction**: Instruktur tidak bisa membuat laporan untuk tanggal yang sudah lewat > 1 hari (`store` method).
 *   **Auto Creation & Ad-Hoc Wrapper**: Jika sesi ekstrakurikuler selesai, laporan dibuat dari sesi tersebut. Untuk laporan *Free Trial Class / Ad-Hoc* pada sekolah tanpa kontrak ekskul reguler, sistem membuat kontrak pembungkus Ad-Hoc berstatus `dibatalkan` untuk keperluan honor payroll tanpa memicu pembuatan *slot dummy* jadwal tambahan (`EkstrakurikulerRombel::generateSessions` guarded).
-*   **Free Trial Class Field & Honor Logic**: Kategori *Free Trial Class* menampilkan input khusus `Jumlah Siswa Hadir Free Trial` (pemicu `onchange="toggleFreeTrialFields()"` vanilla JS). Honor ditentukan secara otomatis: >6 siswa = Rp 100.000, &le;6 siswa = Rp 75.000.
+*   **Free Trial Class Field & Honor Logic**: Kategori *Free Trial Class* menampilkan input khusus `Jumlah Siswa Hadir Free Trial` (pemicu `onchange="toggleFreeTrialFields()"` vanilla JS). Honor ditetapkan Flat Rp 100.000 / sesi terlepas dari jumlah kehadiran siswa.
 *   **File Project Formats**: Mengunggah berkas project wajib (`file_project`, max 10MB) dengan ekstensi yang diizinkan: `.sb3` (Scratch), `.hex` (Micro:bit), `.zip`, `.rar`.
 
 ### 6. WhatsApp Notifications (Fonnte)
@@ -328,6 +328,26 @@ Hasil build akan masuk ke folder `public/build/`.
     *   Memvalidasi input wajib `alasan_kendala_keterlambatan` (min: 10 karakter) pada `store()` dan menyimpannya ke `metadata_json['alasan_kendala_keterlambatan']` serta kolom `catatan`.
 *   **Otomatisasi Carry-over Payroll**: `App\Services\PayrollCalculatorService::generateMonthlyPayroll`
     *   Mencakup sesi lampau yang baru dilaporkan pada rentang cutoff berjalan (`whereHas('laporanMengajar', whereBetween('created_at', [$startDate, $endDate]))`) agar otomatis dibayarkan pada batch payroll aktif.
+
+### 18. AI Agent Squad Dashboard & 9router Gateway (v2.9.70 - 2026-10-22)
+*   **Controller**: `App\Http\Controllers\Admin\AiAgentController`
+*   **Routes**:
+    *   `GET /admin/ai-agents` (`admin.ai-agents.index`) — Dashboard pemantauan 5 virtual agen, skill lokal `.agents/skills`, dan metrik server.
+    *   `GET /admin/ai-agents/ping` (`admin.ai-agents.ping`) — Endpoint AJAX health check latensi port 20128.
+    *   `POST /admin/ai-agents/dispatch` (`admin.ai-agents.dispatch`) — Endpoint dispatch prompt terarah ke masing-masing agen via LLM gateway.
+*   **Hak Akses & Otorisasi**:
+    *   Terbatas ketat hanya untuk role `webmaster` (`middleware(['role:webmaster'])`).
+    *   Sidebar menu di `layouts/app.blade.php` hanya dirender untuk role `webmaster`.
+    *   Request AJAX non-webmaster mengembalikan respons JSON 403 `{"success": false, "message": "..."}` secara konsisten.
+*   **Arsitektur Gateway & Model**:
+    *   Local 9router Gateway: Docker port `20128` (`http://127.0.0.1:20128/v1/chat/completions`).
+    *   Model Utama: `ag/gemini-3.8-flash-high` (Google Gemini Berbayar dengan reasoning mendalam).
+    *   Model Fallback: `cf/@cf/meta/llama-3.3-70b-instruct-fp8-fast`, `nvidia/deepseek-ai/deepseek-v4-flash`.
+*   **Ketahanan Koneksi & Timeout**:
+    *   Nginx FastCGI: `fastcgi_read_timeout 120;` pada `/etc/nginx/sites-available/webapperlass.conf`.
+    *   PHP Controller: `@set_time_limit(120);` dan `Http::timeout(60)` untuk eksekusi prompt panjang.
+    *   Client Fetch: Menangani status non-JSON (502, 504, 419, 403) dengan pesan ramah pengguna tanpa memicu error `JSON.parse`.
+
 
 
 

@@ -47,6 +47,7 @@ Route::prefix('rekap-pertemuan-ekskul')->name('agenda-kegiatan.')->group(functio
     Route::get('/', [AgendaKegiatanController::class, 'index'])->name('index');
     Route::get('/filter', [AgendaKegiatanController::class, 'filter'])->name('filter');
     Route::get('/data', [AgendaKegiatanController::class, 'data'])->name('data');
+    Route::get('/invoice-data', [AgendaKegiatanController::class, 'invoiceData'])->name('invoice-data');
     Route::post('/export', [AgendaKegiatanController::class, 'export'])
         ->name('export')
         ->middleware('throttle:5,1');
@@ -518,6 +519,16 @@ Route::middleware(['auth'])->group(function () {
             ->name('google-sheets.export');
         Route::get('google-sheets/export-excel/{tab}', [App\Http\Controllers\Admin\GoogleSheetsController::class, 'exportExcel'])
             ->name('google-sheets.export-excel');
+
+        // AI Agents Squad Management Dashboard (Hermes, CrewAI, 9router) - KHUSUS WEBMASTER
+        Route::middleware(['role:webmaster'])->group(function () {
+            Route::get('ai-agents', [App\Http\Controllers\Admin\AiAgentController::class, 'index'])
+                ->name('ai-agents.index');
+            Route::get('ai-agents/ping', [App\Http\Controllers\Admin\AiAgentController::class, 'pingGateway'])
+                ->name('ai-agents.ping');
+            Route::post('ai-agents/dispatch', [App\Http\Controllers\Admin\AiAgentController::class, 'dispatchTask'])
+                ->name('ai-agents.dispatch');
+        });
     });
 });
 

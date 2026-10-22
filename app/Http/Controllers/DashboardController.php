@@ -311,6 +311,9 @@ class DashboardController extends Controller
 
     private function getAdminStats()
     {
+        // Hitung cutoff payroll berjalan: tanggal 11 bulan lalu s.d. tanggal 10 bulan berjalan
+        [$cutoffStart, $cutoffEnd] = $this->getCutoffRange();
+
         $adminData = [
             'incomplete_profile' => false,
             'missing_fields' => [],
@@ -333,10 +336,13 @@ class DashboardController extends Controller
                 ->orderBy('tanggal_terjadwal', 'asc')
                 ->take(3)
                 ->get(),
+            // BELUM LAPOR: hanya tampilkan sesi dalam rentang cutoff payroll berjalan
+            // Cutoff resmi: tanggal 11 bulan lalu s.d. tanggal 10 bulan berjalan (Memo 536/EPI/V/2025)
             'admin_pending_reports' => in_array(auth()->user()->role, ['admin', 'admin_sistem', 'webmaster'])
                 ? \App\Models\EkstrakurikulerSession::with(['rombel.ekstrakurikuler.sekolah:kodlan,namasekolah', 'instruktur:id,nama_lengkap,no_telephone'])
                     ->whereNotNull('user_id_instruktur')
                     ->doesntHave('laporanMengajar')
+                    ->whereDate('tanggal_terjadwal', '>=', $cutoffStart)
                     ->whereDate('tanggal_terjadwal', '<=', Carbon::today())
                     ->whereIn('status', ['terjadwal', 'berlangsung', 'selesai'])
                     ->orderBy('tanggal_terjadwal', 'asc')
@@ -344,19 +350,25 @@ class DashboardController extends Controller
                     ->take(10)
                     ->get()
                 : collect(),
+            // RESCHEDULE: filter cutoff berjalan, urutkan dari terbaru
+            // Hanya tampilkan sesi dari periode cutoff aktif (>= cutoffStart) agar angka relevan dengan payroll berjalan
             'pending_reschedule_sessions' => in_array(auth()->user()->role, ['admin', 'admin_sistem', 'webmaster'])
                 ? \App\Models\EkstrakurikulerSession::with([
                         'rombel.ekstrakurikuler.sekolah:kodlan,namasekolah',
                         'instruktur:id,nama_lengkap,no_telephone'
                     ])
                     ->whereIn('status', [\App\Models\EkstrakurikulerSession::STATUS_DITUNDA, \App\Models\EkstrakurikulerSession::STATUS_LIBUR])
-                    ->orderBy('tanggal_terjadwal', 'asc')
-                    ->orderBy('jam_mulai_terjadwal', 'asc')
+                    ->whereDate('tanggal_terjadwal', '>=', $cutoffStart)
+                    ->orderBy('tanggal_terjadwal', 'desc')
+                    ->orderBy('jam_mulai_terjadwal', 'desc')
                     ->take(15)
                     ->get()
                 : collect(),
+            // Jumlah total reschedule hanya dalam rentang cutoff berjalan (konsisten dengan daftar)
             'total_pending_reschedule' => in_array(auth()->user()->role, ['admin', 'admin_sistem', 'webmaster'])
-                ? \App\Models\EkstrakurikulerSession::whereIn('status', [\App\Models\EkstrakurikulerSession::STATUS_DITUNDA, \App\Models\EkstrakurikulerSession::STATUS_LIBUR])->count()
+                ? \App\Models\EkstrakurikulerSession::whereIn('status', [\App\Models\EkstrakurikulerSession::STATUS_DITUNDA, \App\Models\EkstrakurikulerSession::STATUS_LIBUR])
+                    ->whereDate('tanggal_terjadwal', '>=', $cutoffStart)
+                    ->count()
                 : 0,
             'warning_merah' => Warning::where('severity', 'red')->where('status', 'active')->count(),
             'warning_kuning' => Warning::where('severity', 'yellow')->where('status', 'active')->count(),

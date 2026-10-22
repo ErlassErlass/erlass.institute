@@ -66,5 +66,21 @@ if (app()->runningInConsole()) {
                   ->timezone('Asia/Jakarta')
                   ->withoutOverlapping()
                   ->appendOutputTo(storage_path('logs/monthly-school-payout.log'));
+
+         // [KASUS 1] Auto-Close Overdue: sesi lewat cutoff payroll tanpa laporan → status overdue
+         // Berjalan setiap hari jam 00:30 WIB (malam, setelah tenggat reminder jam 18:00)
+         $schedule->command('sessions:auto-close-overdue')
+                  ->dailyAt('00:30')
+                  ->timezone('Asia/Jakarta')
+                  ->withoutOverlapping()
+                  ->appendOutputTo(storage_path('logs/auto-close-overdue.log'));
+
+         // [KASUS 2] Auto-Propose Reschedule: isi tanggal pengganti = sesi terjadwal terjauh di rombel + 7 hari
+         // Berjalan setiap hari jam 01:00 WIB
+         $schedule->command('sessions:auto-propose-reschedule')
+                  ->dailyAt('01:00')
+                  ->timezone('Asia/Jakarta')
+                  ->withoutOverlapping()
+                  ->appendOutputTo(storage_path('logs/auto-propose-reschedule.log'));
      });
 }

@@ -695,4 +695,361 @@ class PayrollTest extends TestCase
         $response->assertSee('Pajak (2.5%)');
         $response->assertSee('AUDIT RINCIAN PER SESI MENGAJAR');
     }
+
+    public function test_al_ikhlas_and_semester_tahunan_schools_have_flat_150k_base_rate_for_regular_sessions()
+    {
+        $service = new PayrollCalculatorService();
+
+        $instructor = User::create([
+            'nama_lengkap' => 'Instructor Flat 150k Test',
+            'email' => 'flat150k@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'instruktur',
+            'status' => 'Aktif',
+            'tanggal_lahir' => '1990-01-01',
+            'agama' => 'Lainnya',
+            'pend_terakhir' => 'SMA',
+            'kompetensi_1' => 'General',
+            'no_telephone' => '081234567890',
+        ]);
+
+        // 1. SDI AL IKHLAS (Kodlan 20105810) - Regular session with only 3 students (< 8)
+        $sekolahIkhlas = Sekolah::factory()->create([
+            'kodlan' => '20105810',
+            'namasekolah' => 'SDI AL IKHLAS',
+            'skema_tagihan' => 'per_4_pertemuan',
+            'jarak_km' => 5.0,
+        ]);
+        $ekskulIkhlas = Ekstrakurikuler::factory()->create([
+            'kategori_program' => 'Ekskul Coding Scratch',
+            'sekolah_kodlan' => $sekolahIkhlas->kodlan,
+            'status' => 'aktif',
+            'total_pertemuan' => 12,
+            'jarak_km' => 5.0,
+        ]);
+        $rombelIkhlas = EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $ekskulIkhlas->id,
+            'nama_rombel' => 'Scratch A',
+            'nomor_rombel' => 1,
+            'jumlah_siswa' => 3, // < 8 students
+            'tanggal_mulai' => '2026-06-01',
+            'tanggal_selesai' => '2026-12-01',
+            'hari' => 'senin',
+            'jam_mulai' => '14:00',
+            'jam_selesai' => '16:00',
+            'total_pertemuan' => 12,
+            'status' => 'berlangsung',
+        ]);
+        $sessionIkhlas = $rombelIkhlas->sessions()->where('nomor_pertemuan', 1)->first();
+        $sessionIkhlas->update([
+            'tanggal_pelaksanaan' => '2026-06-15',
+            'jam_mulai_aktual' => '14:00',
+            'jam_selesai_aktual' => '16:00',
+            'status' => 'selesai',
+            'user_id_instruktur' => $instructor->id,
+        ]);
+
+        $calcIkhlas = $service->calculateSessionFee($sessionIkhlas, 'utama');
+        $this->assertEquals(150000.00, $calcIkhlas['base_rate'], 'SDI Al Ikhlas regular session must be flat Rp 150.000 even with < 8 students');
+        $this->assertEquals(7500.00, $calcIkhlas['transport_fee'], 'Transport fee must still be calculated for SDI Al Ikhlas');
+
+        // Asisten in SDI Al Ikhlas must remain 100k
+        $calcIkhlasAsisten = $service->calculateSessionFee($sessionIkhlas, 'asisten');
+        $this->assertEquals(100000.00, $calcIkhlasAsisten['base_rate'], 'Assistant in SDI Al Ikhlas must be flat Rp 100.000');
+
+        // 2. Semester School - Regular session with 5 students (< 8)
+        $sekolahSemester = Sekolah::factory()->create([
+            'kodlan' => 'SCH_SEM_01',
+            'namasekolah' => 'Sekolah Semester Test',
+            'skema_tagihan' => 'semester',
+            'jarak_km' => 12.0,
+        ]);
+        $ekskulSemester = Ekstrakurikuler::factory()->create([
+            'kategori_program' => 'Ekskul Robotik Explorer',
+            'sekolah_kodlan' => $sekolahSemester->kodlan,
+            'status' => 'aktif',
+            'total_pertemuan' => 12,
+        ]);
+        $rombelSemester = EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $ekskulSemester->id,
+            'nama_rombel' => 'Robotics Sem',
+            'nomor_rombel' => 1,
+            'jumlah_siswa' => 5,
+            'tanggal_mulai' => '2026-06-01',
+            'tanggal_selesai' => '2026-12-01',
+            'hari' => 'selasa',
+            'jam_mulai' => '14:00',
+            'jam_selesai' => '16:00',
+            'total_pertemuan' => 12,
+            'status' => 'berlangsung',
+        ]);
+        $sessionSemester = $rombelSemester->sessions()->where('nomor_pertemuan', 1)->first();
+        $sessionSemester->update([
+            'tanggal_pelaksanaan' => '2026-06-16',
+            'jam_mulai_aktual' => '14:00',
+            'jam_selesai_aktual' => '16:00',
+            'status' => 'selesai',
+            'user_id_instruktur' => $instructor->id,
+        ]);
+
+        $calcSemester = $service->calculateSessionFee($sessionSemester, 'utama');
+        $this->assertEquals(150000.00, $calcSemester['base_rate'], 'Semester school regular session must be flat Rp 150.000');
+
+        // 3. Tahunan School - Regular session with 0 students
+        $sekolahTahunan = Sekolah::factory()->create([
+            'kodlan' => 'SCH_TAHUN_01',
+            'namasekolah' => 'Sekolah Tahunan Test',
+            'skema_tagihan' => 'tahunan',
+            'jarak_km' => 8.0,
+        ]);
+        $ekskulTahunan = Ekstrakurikuler::factory()->create([
+            'kategori_program' => 'Ekskul Erboblox',
+            'sekolah_kodlan' => $sekolahTahunan->kodlan,
+            'status' => 'aktif',
+            'total_pertemuan' => 12,
+        ]);
+        $rombelTahunan = EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $ekskulTahunan->id,
+            'nama_rombel' => 'Erboblox Tahunan',
+            'nomor_rombel' => 1,
+            'jumlah_siswa' => 0,
+            'tanggal_mulai' => '2026-06-01',
+            'tanggal_selesai' => '2026-12-01',
+            'hari' => 'rabu',
+            'jam_mulai' => '14:00',
+            'jam_selesai' => '16:00',
+            'total_pertemuan' => 12,
+            'status' => 'berlangsung',
+        ]);
+        $sessionTahunan = $rombelTahunan->sessions()->where('nomor_pertemuan', 1)->first();
+        $sessionTahunan->update([
+            'tanggal_pelaksanaan' => '2026-06-17',
+            'jam_mulai_aktual' => '14:00',
+            'jam_selesai_aktual' => '16:00',
+            'status' => 'selesai',
+            'user_id_instruktur' => $instructor->id,
+        ]);
+
+        $calcTahunan = $service->calculateSessionFee($sessionTahunan, 'utama');
+        $this->assertEquals(150000.00, $calcTahunan['base_rate'], 'Tahunan school regular session must be flat Rp 150.000');
+
+        // 4. Special Session (Free Trial) in SDI Al Ikhlas must keep special trial rate
+        $ekskulTrial = Ekstrakurikuler::factory()->create([
+            'kategori_program' => 'Free Trial Class',
+            'sekolah_kodlan' => $sekolahIkhlas->kodlan,
+            'status' => 'aktif',
+            'total_pertemuan' => 1,
+        ]);
+        $rombelTrial = EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $ekskulTrial->id,
+            'nama_rombel' => 'Trial Class Rombel',
+            'nomor_rombel' => 1,
+            'jumlah_siswa' => 4,
+            'tanggal_mulai' => '2026-06-01',
+            'tanggal_selesai' => '2026-12-01',
+            'hari' => 'kamis',
+            'jam_mulai' => '10:00',
+            'jam_selesai' => '11:00',
+            'total_pertemuan' => 1,
+            'status' => 'berlangsung',
+        ]);
+        $sessionTrial = EkstrakurikulerSession::create([
+            'ekstrakurikuler_id' => $ekskulTrial->id,
+            'ekstrakurikuler_rombel_id' => $rombelTrial->id,
+            'nomor_pertemuan' => 1,
+            'tanggal_terjadwal' => '2026-06-18',
+            'tanggal_pelaksanaan' => '2026-06-18',
+            'jam_mulai_terjadwal' => '10:00',
+            'jam_selesai_terjadwal' => '11:00',
+            'jam_mulai_aktual' => '10:00',
+            'jam_selesai_aktual' => '11:00',
+            'status' => 'selesai',
+            'user_id_instruktur' => $instructor->id,
+            'topik_materi' => 'Free Trial Class Robotik',
+        ]);
+        $calcTrial = $service->calculateSessionFee($sessionTrial, 'utama');
+        $this->assertEquals(100000.00, $calcTrial['base_rate'], 'Free trial session is flat Rp 100.000 regardless of student count');
+    }
+
+    public function test_recalculate_batch_absorbs_new_unpaid_sessions_and_protects_existing_sessions()
+    {
+        $service = app(PayrollCalculatorService::class);
+
+        $school = Sekolah::factory()->create([
+            'kodlan' => 'SCH-RECALC-01',
+            'namasekolah' => 'SD Recalc Test',
+            'jarak_km' => 10,
+        ]);
+
+        $ekskul = Ekstrakurikuler::factory()->create([
+            'sekolah_kodlan' => $school->kodlan,
+            'kategori_program' => 'Ekskul Coding Scratch',
+            'jenis_program' => 'ekstrakurikuler',
+            'status' => 'aktif',
+            'total_pertemuan' => 10,
+        ]);
+
+        $rombel = EkstrakurikulerRombel::create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nama_rombel' => 'Rombel A',
+            'nomor_rombel' => 1,
+            'jumlah_siswa' => 15,
+            'tanggal_mulai' => '2026-06-01',
+            'tanggal_selesai' => '2026-12-01',
+            'hari' => 'senin',
+            'jam_mulai' => '13:00',
+            'jam_selesai' => '14:30',
+            'total_pertemuan' => 10,
+            'status' => 'berlangsung',
+        ]);
+
+        $instructor1 = User::create([
+            'nama_lengkap' => 'Instruktur Eksisting',
+            'email' => 'ins1@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'instruktur',
+            'status' => 'Aktif',
+            'tanggal_lahir' => '1995-01-01',
+            'agama' => 'Lainnya',
+            'pend_terakhir' => 'S1',
+            'kompetensi_1' => 'General',
+            'no_telephone' => '081234567891',
+        ]);
+
+        $instructor2 = User::create([
+            'nama_lengkap' => 'Instruktur Baru Menyusul',
+            'email' => 'ins2@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'instruktur',
+            'status' => 'Aktif',
+            'tanggal_lahir' => '1996-01-01',
+            'agama' => 'Lainnya',
+            'pend_terakhir' => 'S1',
+            'kompetensi_1' => 'General',
+            'no_telephone' => '081234567892',
+        ]);
+
+        $batch = PayrollBatch::create([
+            'code' => 'PAY-202607-TEST',
+            'periode' => '2026-07-01',
+            'status' => 'draft',
+        ]);
+
+        // Sesi 1: Sudah ada di batch untuk Instruktur 1, tapi laporan dibuat late (setelah cutoff 10 Juli)
+        $session1 = $rombel->sessions()->where('nomor_pertemuan', 1)->first();
+        $session1->update([
+            'tanggal_terjadwal' => '2026-06-20',
+            'tanggal_pelaksanaan' => '2026-06-20',
+            'jam_mulai_terjadwal' => '13:00',
+            'jam_selesai_terjadwal' => '14:30',
+            'jam_mulai_aktual' => '13:00',
+            'jam_selesai_aktual' => '14:30',
+            'status' => 'selesai',
+            'payment_status' => 'processing',
+            'user_id_instruktur' => $instructor1->id,
+            'calculated_fee' => 100000,
+            'transport_fee' => 11000,
+        ]);
+        $report1 = LaporanMengajar::create([
+            'user_id_instruktur' => $instructor1->id,
+            'ekstrakurikuler_session_id' => $session1->id,
+            'sekolah_kodlan' => $school->kodlan,
+            'pertemuan_ke' => 1,
+            'rombel' => 1,
+            'jadwal_mengajar' => '2026-06-20 13:00:00',
+            'jam_mulai' => '13:00',
+            'jam_selesai' => '14:30',
+            'kategori_pengajaran' => 'Ekskul Coding Scratch',
+            'materi_pengajaran' => 'Test',
+            'jumlah_siswa_hadir' => 15,
+            'keaktifan' => 'aktif',
+            'pemahaman_materi' => 'paham',
+            'refleksi_siswa' => '-',
+            'refleksi_capaian' => '-',
+            'created_at' => '2026-07-15 10:00:00', // Submitted post-cutoff!
+        ]);
+
+        $slip1 = PayrollItem::create([
+            'payroll_batch_id' => $batch->id,
+            'user_id_instruktur' => $instructor1->id,
+            'total_sessions' => 1,
+            'total_sessions_utama' => 1,
+            'total_base_fee' => 100000,
+            'total_transport_fee' => 11000,
+            'total_gross_salary' => 111000,
+            'tax_amount' => 2775,
+            'net_salary' => 108225,
+            'status' => 'pending',
+        ]);
+        \App\Models\PayrollItemSession::create([
+            'payroll_item_id' => $slip1->id,
+            'ekstrakurikuler_session_id' => $session1->id,
+            'user_id' => $instructor1->id,
+            'role' => 'utama',
+            'base_fee' => 100000,
+            'transport_fee' => 11000,
+            'net_fee' => 111000,
+        ]);
+        $session1->update(['payroll_item_id' => $slip1->id]);
+
+        // Sesi 2: Baru selesai untuk Instruktur 2, masih 'unpaid' dalam periode cutoff
+        $session2 = $rombel->sessions()->where('nomor_pertemuan', 2)->first();
+        $session2->update([
+            'tanggal_terjadwal' => '2026-06-27',
+            'tanggal_pelaksanaan' => '2026-06-27',
+            'jam_mulai_terjadwal' => '13:00',
+            'jam_selesai_terjadwal' => '14:30',
+            'jam_mulai_aktual' => '13:00',
+            'jam_selesai_aktual' => '14:30',
+            'status' => 'selesai',
+            'payment_status' => 'unpaid',
+            'user_id_instruktur' => $instructor2->id,
+        ]);
+        $report2 = LaporanMengajar::create([
+            'user_id_instruktur' => $instructor2->id,
+            'ekstrakurikuler_session_id' => $session2->id,
+            'sekolah_kodlan' => $school->kodlan,
+            'pertemuan_ke' => 2,
+            'rombel' => 1,
+            'jadwal_mengajar' => '2026-06-27 13:00:00',
+            'jam_mulai' => '13:00',
+            'jam_selesai' => '14:30',
+            'kategori_pengajaran' => 'Ekskul Coding Scratch',
+            'materi_pengajaran' => 'Test Sesi Baru',
+            'jumlah_siswa_hadir' => 15,
+            'keaktifan' => 'aktif',
+            'pemahaman_materi' => 'paham',
+            'refleksi_siswa' => '-',
+            'refleksi_capaian' => '-',
+            'created_at' => '2026-06-28 10:00:00',
+        ]);
+
+        // Jalankan Recalculate Batch
+        $res = $service->recalculateBatch($batch);
+
+        // Verifikasi
+        $this->assertEquals(1, $res['newly_absorbed_sessions'], 'Harus menyerap 1 sesi baru yang unpaid');
+        $this->assertEquals(2, $res['items_count'], 'Batch harus memiliki 2 instruktur');
+
+        // Pastikan Sesi 1 Instruktur 1 TIDAK DI-EJECT (tetap ada)
+        $this->assertTrue(
+            \App\Models\PayrollItemSession::where('payroll_item_id', $slip1->id)
+                ->where('ekstrakurikuler_session_id', $session1->id)
+                ->exists(),
+            'Sesi 1 yang laporannya disubmit post-cutoff TIDAK boleh di-eject saat recalculate'
+        );
+
+        // Pastikan Sesi 2 Instruktur 2 otomatis masuk ke batch
+        $slip2 = PayrollItem::where('payroll_batch_id', $batch->id)
+            ->where('user_id_instruktur', $instructor2->id)
+            ->first();
+        $this->assertNotNull($slip2, 'Slip untuk Instruktur 2 otomatis dibuat');
+        $this->assertTrue(
+            \App\Models\PayrollItemSession::where('payroll_item_id', $slip2->id)
+                ->where('ekstrakurikuler_session_id', $session2->id)
+                ->exists(),
+            'Sesi 2 harus tersambung ke slip Instruktur 2'
+        );
+        $this->assertEquals('processing', $session2->fresh()->payment_status);
+    }
 }

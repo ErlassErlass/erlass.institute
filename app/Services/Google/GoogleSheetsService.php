@@ -1620,8 +1620,25 @@ class GoogleSheetsService
             };
 
             // Periode bulan untuk pivot filter
-            $bulanTagihan = $inv->created_at ? $inv->created_at->format('Y-m') : '-';
-            $tahunTagihan = $inv->created_at ? (int) $inv->created_at->format('Y') : 0;
+            // Prioritaskan dari periode_tagihan (misal: "September 2026") agar pivot bulan akurat
+            // Fallback ke created_at jika periode_tagihan tidak tersedia
+            $periodeStr = $inv->periode_tagihan ?? $inv->periode_label ?? null;
+            if ($periodeStr && preg_match('/(\d{4})/', $periodeStr, $m)) {
+                // Coba parse bulan dari string periode (misal: "Agustus 2026" → "2026-08")
+                try {
+                    $periodeCarbon = Carbon::createFromFormat('F Y', $periodeStr)
+                        ?? Carbon::createFromFormat('M Y', $periodeStr)
+                        ?? Carbon::parse($periodeStr);
+                    $bulanTagihan = $periodeCarbon->format('Y-m');
+                    $tahunTagihan = (int) $periodeCarbon->format('Y');
+                } catch (\Throwable) {
+                    $bulanTagihan = $inv->created_at ? $inv->created_at->format('Y-m') : '-';
+                    $tahunTagihan = $inv->created_at ? (int) $inv->created_at->format('Y') : 0;
+                }
+            } else {
+                $bulanTagihan = $inv->created_at ? $inv->created_at->format('Y-m') : '-';
+                $tahunTagihan = $inv->created_at ? (int) $inv->created_at->format('Y') : 0;
+            }
             $tglDibuat = $inv->created_at ? $inv->created_at->format('Y-m-d') : '-';
             $waktuDibuat = $inv->created_at ? $inv->created_at->format('d/m/Y H:i') : '-';
 
@@ -1919,7 +1936,7 @@ class GoogleSheetsService
     }
 
     /**
-     * Get array data of all 12 tabs.
+     * Get array data of all 13 tabs.
      */
     public function getAllTabsData(): array
     {
@@ -1935,21 +1952,22 @@ class GoogleSheetsService
         $this->syncTabDataSiswa();
         $this->syncTabMonitoringBelumLaporan();
         $this->syncTabInvoice();
+        $this->syncTabInvoiceMarketing(); // ✅ FIXED: Tab 13 wajib disync juga
 
         return [
-            self::TAB_KPI => Cache::get("google_sheets_data_" . self::TAB_KPI, []),
-            self::TAB_LAPORAN => Cache::get("google_sheets_data_" . self::TAB_LAPORAN, []),
-            self::TAB_JADWAL => Cache::get("google_sheets_data_" . self::TAB_JADWAL, []),
-            self::TAB_ABSENSI => Cache::get("google_sheets_data_" . self::TAB_ABSENSI, []),
-            self::TAB_HONOR => Cache::get("google_sheets_data_" . self::TAB_HONOR, []),
-            self::TAB_REKAP_PERTEMUAN => Cache::get("google_sheets_data_" . self::TAB_REKAP_PERTEMUAN, []),
-            self::TAB_PROGRAM_EKSKUL => Cache::get("google_sheets_data_" . self::TAB_PROGRAM_EKSKUL, []),
-            self::TAB_REKAP_HONOR_INSTRUKTUR => Cache::get("google_sheets_data_" . self::TAB_REKAP_HONOR_INSTRUKTUR, []),
-            self::TAB_PROFIL_INSTRUKTUR => Cache::get("google_sheets_data_" . self::TAB_PROFIL_INSTRUKTUR, []),
-            self::TAB_DATA_SISWA => Cache::get("google_sheets_data_" . self::TAB_DATA_SISWA, []),
+            self::TAB_KPI                      => Cache::get("google_sheets_data_" . self::TAB_KPI, []),
+            self::TAB_LAPORAN                  => Cache::get("google_sheets_data_" . self::TAB_LAPORAN, []),
+            self::TAB_JADWAL                   => Cache::get("google_sheets_data_" . self::TAB_JADWAL, []),
+            self::TAB_ABSENSI                  => Cache::get("google_sheets_data_" . self::TAB_ABSENSI, []),
+            self::TAB_HONOR                    => Cache::get("google_sheets_data_" . self::TAB_HONOR, []),
+            self::TAB_REKAP_PERTEMUAN          => Cache::get("google_sheets_data_" . self::TAB_REKAP_PERTEMUAN, []),
+            self::TAB_PROGRAM_EKSKUL           => Cache::get("google_sheets_data_" . self::TAB_PROGRAM_EKSKUL, []),
+            self::TAB_REKAP_HONOR_INSTRUKTUR   => Cache::get("google_sheets_data_" . self::TAB_REKAP_HONOR_INSTRUKTUR, []),
+            self::TAB_PROFIL_INSTRUKTUR        => Cache::get("google_sheets_data_" . self::TAB_PROFIL_INSTRUKTUR, []),
+            self::TAB_DATA_SISWA               => Cache::get("google_sheets_data_" . self::TAB_DATA_SISWA, []),
             self::TAB_MONITORING_BELUM_LAPORAN => Cache::get("google_sheets_data_" . self::TAB_MONITORING_BELUM_LAPORAN, []),
-            self::TAB_INVOICE => Cache::get("google_sheets_data_" . self::TAB_INVOICE, []),
-            self::TAB_INVOICE_MARKETING => Cache::get("google_sheets_data_" . self::TAB_INVOICE_MARKETING, []),
+            self::TAB_INVOICE                  => Cache::get("google_sheets_data_" . self::TAB_INVOICE, []),
+            self::TAB_INVOICE_MARKETING        => Cache::get("google_sheets_data_" . self::TAB_INVOICE_MARKETING, []),
         ];
     }
 }

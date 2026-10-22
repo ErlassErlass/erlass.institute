@@ -229,6 +229,13 @@ class AbsensiController extends Controller
                 ]);
             }
 
+            // Trigger Admin PTM Completed Notification
+            try {
+                app(\App\Services\PtmNotificationService::class)->triggerPtmCompletedNotification($ekstrakurikulerSession, $laporanMengajar);
+            } catch (\Throwable $e) {
+                \Log::warning("PTM Completed notification error on Absensi store: " . $e->getMessage());
+            }
+
             // ACTIVITY LOGGING
             \App\Models\ActivityLog::create([
                 'user_id' => auth()->id(),

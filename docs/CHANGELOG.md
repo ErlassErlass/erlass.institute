@@ -2,6 +2,31 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.70] - 2026-10-22
+
+### Dashboard AI Agent Squad, Integrasi 9router Gateway & Standardisasi Penagihan 4 Pertemuan
+
+#### 1. AI Agent Squad Dashboard & 9router Gateway (`/admin/ai-agents`)
+- **Konsol Interaktif 5 Karyawan Virtual**:
+  - Menghubungkan 5 agen spesialis (`Squad Leader`, `Sysops Sentry`, `Log & QA Detective`, `Data Ops Officer`, `UI/UX Craftsman`) ke LLM Gateway lokal 9router di port `20128`.
+  - Terintegrasi dengan modul instruksi rekayasa terstruktur pada `.agents/skills`.
+- **Restriksi Akses Khusus Webmaster**:
+  - Menu sidebar di `layouts/app.blade.php` diproteksi secara eksklusif dengan `@if(Auth::user()?->role === 'webmaster')`.
+  - Route group `admin.ai-agents.*` diamankan menggunakan middleware `role:webmaster`. Percobaan request AJAX oleh non-webmaster mengembalikan respons JSON 403 terstandar.
+- **Ketahanan Jaringan & Timeout**:
+  - Penambahan `fastcgi_read_timeout 120;` pada konfigurasi Nginx `/etc/nginx/sites-available/webapperlass.conf`.
+  - Penambahan `@set_time_limit(120)` dan `Http::timeout(60)` pada `AiAgentController::dispatchTask()` untuk model LLM high-reasoning.
+  - Perbaikan error handling frontend agar aman memproses respons non-JSON (502, 504, 419, 403) tanpa syntax error `Unexpected token '<'`.
+
+#### 2. Standardisasi Skema Penagihan & Anomali Sesi Invoice
+- **Standardisasi Skema Per 4 Pertemuan**:
+  - Penyesuaian skema penagihan ke `per_4_pertemuan` untuk Invoice 210, Invoice 135 (MIS Al Muhajirin), dan Invoice 111 & 112 (SMPS Sumbangsih).
+- **Pembersihan Anomali Draf Invoice (Kategori 1 & 4)**:
+  - Soft-delete invoice draf anomali: Invoice 52, 92, 225, 263, dan 43 untuk di-generate ulang sesuai kriteria.
+- **Penyelarasan Periode & Sesi (Kategori 2 & 3)**:
+  - Sinkronisasi `periode_label` dan `periode_nomor` (Inv Bulan 2) untuk Invoice 329 dan 291.
+  - Perbaikan tumpang tindih sesi (Sesi 5–8) untuk Invoice 327 dan 331.
+
 ## [2.9.66] - 2026-10-19
 
 ### Restrukturisasi Matriks Akses Role & Pemetaan Tugas (Segregation of Duties) 46 Karyawan

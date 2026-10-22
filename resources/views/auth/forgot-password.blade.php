@@ -9,7 +9,7 @@
                                 <img src="{{ asset('images/logo-erlass.png') }}" alt="Erlass Logo" class="img-fluid" style="max-height: 80px;">
                             <h1 class="h3 fw-bold text-dark mb-1">Lupa Kata Sandi?</h1>
                             <p class="text-muted mb-0">
-                                Jangan khawatir! Masukkan alamat email Anda dan kami akan mengirimkan tautan untuk reset kata sandi.
+                                Masukkan alamat email dan nomor WhatsApp Anda yang terdaftar. Tautan reset kata sandi akan dikirim langsung ke WhatsApp Anda.
                             </p>
                         </div>
 
@@ -40,8 +40,8 @@
                             @csrf
 
                             <!-- Email Field -->
-                            <div class="mb-4">
-                                <x-input-label for="email" value="Alamat Email" class="fw-semibold" />
+                            <div class="mb-3">
+                                <x-input-label for="email" value="Alamat Email Terdaftar" class="fw-semibold" />
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0">
                                         <i class="bi bi-envelope text-muted"></i>
@@ -60,16 +60,40 @@
                                 <x-input-error :messages="$errors->get('email')" class="mt-2" />
                             </div>
 
+                            <!-- WhatsApp Phone Field -->
+                            <div class="mb-4">
+                                <x-input-label for="no_telephone" value="Nomor WhatsApp Terdaftar" class="fw-semibold" />
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-whatsapp text-success"></i>
+                                    </span>
+                                    <x-text-input 
+                                        id="no_telephone" 
+                                        name="no_telephone" 
+                                        type="tel" 
+                                        :value="old('no_telephone')" 
+                                        required 
+                                        placeholder="Contoh: 08123456789 atau 628123456789"
+                                        class="border-start-0 ps-0"
+                                    />
+                                </div>
+                                <div class="form-text text-muted mt-1 small">
+                                    <i class="bi bi-shield-check text-primary me-1"></i>
+                                    Wajib sesuai dengan nomor WhatsApp yang tersimpan pada profil akun Anda.
+                                </div>
+                                <x-input-error :messages="$errors->get('no_telephone')" class="mt-2" />
+                            </div>
+
                             <!-- Submit Button -->
                             <div class="d-grid mb-4">
                                 <x-primary-button class="btn-lg py-3 fw-semibold" id="resetBtn">
                                     <span class="reset-text">
-                                        <i class="bi bi-envelope-arrow-up me-2"></i>
-                                        Kirim Tautan Reset
+                                        <i class="bi bi-whatsapp me-2"></i>
+                                        Kirim Tautan Reset via WhatsApp
                                     </span>
                                     <span class="loading-text d-none">
                                         <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                        Mengirim...
+                                        Memverifikasi & Mengirim...
                                     </span>
                                 </x-primary-button>
                             </div>

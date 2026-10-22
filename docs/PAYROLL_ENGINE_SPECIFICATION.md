@@ -30,6 +30,11 @@ Ditentukan berdasarkan akumulasi jumlah siswa **HADIR** dalam sesi:
 
 > **Catatan Warning Engine:** Sesi reguler yang sudah terlaksana (selesai) dengan jumlah siswa $< 8$ orang (termasuk jika 0 siswa hadir karena izin/kegiatan sekolah) tetap dibayarkan honor tarif minimum Rp 75.000 (tidak boleh Rp 0), kecuali sesi berstatus dibatalkan atau libur. Rombel aktif dengan siswa $< 8$ orang tetap memicu **Peringatan Kuning (Quality Control Log)** di Dashboard Manajemen.
 
+> **Kebijakan Khusus Flat Rp 150.000 (Sesi Reguler):**  
+> 1. **SDI AL IKHLAS** (Kodlan: `20105810`).  
+> 2. **Sekolah dengan Skema Tagihan Semester & Tahunan** (`skema_tagihan: semester / tahunan`).  
+> Seluruh sesi ekskul reguler untuk Instruktur Utama di sekolah-sekolah ini dibayarkan **Flat Rp 150.000 / sesi** terlepas dari kuota absensi kehadiran siswa. Uang transport tetap dihitung sesuai ketentuan operasional. Kegiatan khusus (Free Trial, Sosialisasi, Lomba) tetap mengikuti tarif kegiatan non-reguler.
+
 ---
 
 ### B. Honorarium Asisten Instruktur (Flat Rate)
@@ -45,7 +50,7 @@ Ditentukan berdasarkan akumulasi jumlah siswa **HADIR** dalam sesi:
 | Jenis Kegiatan | Tarif Honorarium per Sesi | Ketentuan Khusus |
 | :--- | :---: | :--- |
 | **Sosialisasi bersama Sales** | **Rp 75.000** | Pendampingan promosi bersama tim Sales |
-| **Free Trial / Trial Class** | **Rp 100.000** (Siswa $> 6$)<br>**Rp 75.000** (Siswa $\le 6$) | • Di Kantor Erlass: Transport = Rp 0<br>• Di Sekolah Prospek: Transport Min. 10 KM |
+| **Free Trial / Trial Class** | **Flat Rp 100.000** | • Flat per sesi terlepas dari jumlah kehadiran siswa<br>• Di Kantor Erlass: Transport = Rp 0<br>• Di Sekolah Prospek: Transport Min. 10 KM |
 | **Pameran di Sekolah / Kegiatan Luar** | **Rp 100.000** | Instruktur bertanggung jawab atas pengawasan alat |
 | **Pendampingan Lomba** | **Rp 75.000** | Pendampingan siswa dalam ajang kompetisi |
 | **Pembayaran Per-Pertemuan** | **Rp 100.000** | Kasus khusus sekolah mitra pembayaran per-pertemuan |

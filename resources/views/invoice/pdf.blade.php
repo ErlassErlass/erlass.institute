@@ -73,6 +73,49 @@
 </head>
 <body>
 
+@php
+    // Fallback Logo Erlass (Full Logo)
+    if (!isset($logoBase64) || empty($logoBase64)) {
+        $logoFile = base_path('full logo.png');
+        if (!file_exists($logoFile)) {
+            $logoFile = public_path('images/full-logo.png');
+        }
+        $logoBase64 = file_exists($logoFile) ? base64_encode(file_get_contents($logoFile)) : null;
+    }
+
+    // Resolusi Staf Operasional / Pembuat Invoice (Dinda / Novandi sesuai yang mengerjakan)
+    if (!isset($stafNama) || !isset($stafPhone)) {
+        $dindaUser = \App\Models\User::where('id', 114)->orWhere('nama_lengkap', 'like', '%Adinda%')->first();
+        $novanUser = \App\Models\User::where('id', 248)->orWhere('nama_lengkap', 'like', '%Novandi%')->first();
+
+        $workerId = $invoice->operasional_user_id ?: $invoice->created_by;
+        $worker = null;
+
+        if ($workerId == 114) {
+            $worker = $dindaUser;
+        } elseif ($workerId == 248) {
+            $worker = $novanUser;
+        } elseif ($invoice->operasionalUser) {
+            $worker = $invoice->operasionalUser;
+        } elseif ($invoice->createdByUser) {
+            $worker = $invoice->createdByUser;
+        }
+
+        if (!$worker && auth()->check()) {
+            if (auth()->id() == 114) $worker = $dindaUser ?: auth()->user();
+            elseif (auth()->id() == 248) $worker = $novanUser ?: auth()->user();
+        }
+
+        if ($worker) {
+            $stafNama = $worker->nama_lengkap;
+            $stafPhone = $worker->no_telephone ?: ($worker->id == 114 ? '08260808476' : ($worker->id == 248 ? '087736052381' : '-'));
+        } else {
+            $stafNama = 'Adinda Wardania / Novandi Wijaya';
+            $stafPhone = '08260808476 / 087736052381';
+        }
+    }
+@endphp
+
 {{-- ═════════════════════════════════════════════════════════════════════════ --}}
 {{-- HALAMAN 1: FAKTUR TAGIHAN RESMI (OFFICIAL CORPORATE INVOICE)              --}}
 {{-- Didesain elegan, proporsional, dan tuntas pas dalam 1 lembar A4          --}}
@@ -84,16 +127,25 @@
         <tr>
             {{-- Kiri: Logo & Info Perusahaan --}}
             <td style="width: 54%; vertical-align: top;">
-                <div style="font-size: 16pt; font-weight: bold; color: #0f172a; letter-spacing: 1px; line-height: 1;">
-                    ERLASS
-                </div>
-                <div style="font-size: 7.5pt; font-weight: bold; color: #334155; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px;">
-                    PT. Erlass Prokreatif Indonesia
-                </div>
+                @if(!empty($logoBase64))
+                    <img src="data:image/png;base64,{{ $logoBase64 }}" alt="Logo Erlass" style="height: 38px; width: auto; max-width: 140px; margin-bottom: 3px; display: block;">
+                @else
+                    <div style="font-size: 16pt; font-weight: bold; color: #0f172a; letter-spacing: 1px; line-height: 1;">
+                        ERLASS
+                    </div>
+                    <div style="font-size: 7.5pt; font-weight: bold; color: #334155; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        PT. Erlass Prokreatif Indonesia
+                    </div>
+                @endif
                 <div style="font-size: 6.2pt; color: #64748b; margin-top: 2px; line-height: 1.3;">
                     Pejaten Office Park Blok D, Jl. WarungBuncit Raya no. 79, RT.1/RW.7,<br>
                     Pejaten Bar., Ps. Minggu, Kota Jakarta Selatan, D.K.I. Jakarta 12790
                 </div>
+                @if($isDraft ?? false)
+                <div style="font-size: 6.2pt; color: #0369a1; margin-top: 2px; font-weight: bold;">
+                    Kontak Operasional: {{ $stafNama }} &middot; WA/Telp: {{ $stafPhone }}
+                </div>
+                @endif
             </td>
 
             {{-- Kanan: Judul Invoice & Nomor Resmi --}}
@@ -125,9 +177,12 @@
     @if($isDraft ?? false)
     <table style="margin-bottom: 6px; background: #fffbeb; border: 1px dashed #d97706; border-radius: 4px;">
         <tr>
-            <td style="padding: 3px 6px; text-align: center;">
-                <div style="font-size: 6.8pt; font-weight: bold; color: #92400e;">
+            <td style="padding: 4px 8px; text-align: center;">
+                <div style="font-size: 7pt; font-weight: bold; color: #92400e;">
                     DRAFT LAMPIRAN KONFIRMASI &mdash; DOKUMEN VERIFIKASI KEHADIRAN SISWA DENGAN PIC SEKOLAH
+                </div>
+                <div style="font-size: 6.3pt; color: #78350f; margin-top: 2px;">
+                    Verifikasi kehadiran dikerjakan oleh: <strong>{{ $stafNama }}</strong> &middot; No. Telp/WhatsApp: <strong>{{ $stafPhone }}</strong>
                 </div>
             </td>
         </tr>
@@ -405,16 +460,19 @@
                     @endif
                 </div>
                 <div style="font-size: 6.6pt; color: #475569; margin-top: 1px;">
-                    Staf Pemeriksa: <strong>{{ $invoice->operasionalUser?->nama_lengkap ?? $invoice->operasionalUser?->name ?? 'Dinda / Novandi' }}</strong>
+                    Staf Pemeriksa: <strong>{{ $stafNama }}</strong>
+                </div>
+                <div style="font-size: 6.3pt; color: #1e40af; margin-top: 1px; font-weight: bold;">
+                    No. Telp / WhatsApp: {{ $stafPhone }}
                 </div>
                 <div style="font-size: 6.2pt; color: #64748b; margin-top: 1px;">
                     Divisi: Operasional &amp; Akademik
                 </div>
 
-                <div style="height: 30px;"></div>
+                <div style="height: 20px;"></div>
 
                 <div style="border-top: 1px solid #0f172a; padding-top: 1px; font-weight: bold; font-size: 7.2pt; color: #0f172a;">
-                    {{ $invoice->operasionalUser?->nama_lengkap ?? $invoice->operasionalUser?->name ?? 'Tim Operasional Erlass' }}
+                    {{ $stafNama }}
                 </div>
                 <div style="font-size: 6.2pt; color: #64748b;">
                     {{ $invoice->operasional_approved_at?->translatedFormat('d F Y, H:i') ? 'Diverifikasi: ' . $invoice->operasional_approved_at->translatedFormat('d F Y, H:i') . ' WIB' : 'Tgl: ........................................' }}
@@ -438,7 +496,8 @@
         <tr>
             <td style="width: 50%; padding-top: 3px;">
                 <span style="color: #64748b;">Diserahkan Oleh (Operasional):</span><br>
-                <strong style="color: #0f172a;">{{ $invoice->operasionalUser?->nama_lengkap ?? $invoice->operasionalUser?->name ?? 'Dinda / Novandi' }}</strong><br>
+                <strong style="color: #0f172a;">{{ $stafNama }}</strong>
+                <span style="color: #475569; font-size: 6pt;">(Telp: {{ $stafPhone }})</span><br>
                 <span style="color: #94a3b8; font-size: 5.8pt;">Tgl: {{ $invoice->operasional_approved_at?->translatedFormat('d F Y') ?? now()->translatedFormat('d F Y') }}</span>
             </td>
             <td style="width: 50%; padding-top: 3px; text-align: right;">
@@ -471,17 +530,26 @@
 <div class="page-break" style="padding-top: 2px;">
 
     {{-- Header Lampiran Formal --}}
-    <div style="text-align: center; margin-bottom: 5px; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px;">
-        <div style="font-size: 10pt; font-weight: bold; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">
-            LAMPIRAN REKAPITULASI PRESENSI &amp; LAPORAN MENGAJAR
-        </div>
-        <div style="font-size: 7.8pt; font-weight: bold; color: #475569; text-transform: uppercase; margin-top: 1px;">
-            {{ $att['school_name'] }} &mdash; {{ $att['program_nama'] }} &middot; T.A. {{ $invoice->tahun_ajaran }}
-        </div>
-        <div style="font-size: 6.2pt; color: #64748b; margin-top: 1px;">
-            Lampiran Konfirmasi: <strong>{{ $invoice->nomor_invoice }}</strong> &middot; Rombel: <strong>{{ $att['rombel_nama'] }}</strong>
-        </div>
-    </div>
+    <table style="width: 100%; border-bottom: 1.5px solid #0f172a; padding-bottom: 3px; margin-bottom: 5px;">
+        <tr>
+            <td style="width: 25%; vertical-align: middle;">
+                @if(!empty($logoBase64))
+                    <img src="data:image/png;base64,{{ $logoBase64 }}" alt="Logo Erlass" style="height: 26px; width: auto; max-width: 95px;">
+                @endif
+            </td>
+            <td style="width: 75%; text-align: right; vertical-align: middle;">
+                <div style="font-size: 9.5pt; font-weight: bold; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">
+                    LAMPIRAN REKAPITULASI PRESENSI &amp; LAPORAN MENGAJAR
+                </div>
+                <div style="font-size: 7.2pt; font-weight: bold; color: #475569; text-transform: uppercase; margin-top: 1px;">
+                    {{ $att['school_name'] }} &mdash; {{ $att['program_nama'] }} &middot; T.A. {{ $invoice->tahun_ajaran }}
+                </div>
+                <div style="font-size: 6pt; color: #64748b; margin-top: 1px;">
+                    No. Invoice: <strong>{{ $invoice->nomor_invoice }}</strong> &middot; Rombel: <strong>{{ $att['rombel_nama'] }}</strong> &middot; Staf Operasional: <strong>{{ $stafNama }} ({{ $stafPhone }})</strong>
+                </div>
+            </td>
+        </tr>
+    </table>
 
     {{-- Meta Grid Rombel & Pengajar --}}
     <table style="margin-bottom: 5px; font-size: 7pt; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 4px; padding: 3px 6px;">

@@ -59,6 +59,13 @@ class ProcessSessionNotificationJob implements ShouldQueue
                 Log::error("Milestone notification error for session {$session->id}: " . $e->getMessage());
             }
 
+            // 1.5. Admin PTM Completed Notification (Real-time tracking tatap muka)
+            try {
+                app(\App\Services\PtmNotificationService::class)->triggerPtmCompletedNotification($session, $laporan);
+            } catch (\Throwable $e) {
+                Log::warning("PTM Completed notification error for session {$session->id}: " . $e->getMessage());
+            }
+
             // 2. Welcome Notification for newly enrolled students
             if (!empty($this->newlyEnrolledIds)) {
                 $newStudents = Siswa::whereIn('id', $this->newlyEnrolledIds)

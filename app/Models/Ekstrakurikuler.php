@@ -203,17 +203,24 @@ class Ekstrakurikuler extends Model
         'lomba',
         'inkul',
         'intrakurikuler',
+        'soga',
+        'solidaritas erlangga',
+        'csr',
     ];
 
     /**
-     * Cek apakah program ini dapat di-invoice (HANYA Ekskul dan Pelatihan).
-     * Program lain (Free Trial, Sosialisasi, Pameran, Lomba, Inkul, dll.) tidak dapat di-invoice.
+     * Cek apakah program ini dapat di-invoice (HANYA Ekskul dan Pelatihan komersil).
+     * Program lain (Free Trial, Sosialisasi, Pameran, Lomba, Inkul, Pelatihan SOGA/CSR, dll.) tidak dapat di-invoice.
      */
     public function isInvoiceable(): bool
     {
-        // 0. Program CSR SOGA (Solidaritas Erlangga) adalah program sponsor sosial dan tidak perlu di-invoicekan
+        // 0. Program CSR SOGA (Solidaritas Erlangga) / Pelatihan SOGA adalah program sosial/sponsor dan tidak di-invoicekan
         if ($this->skema_tagihan === Sekolah::SKEMA_CSR_REGULER_SOGA || 
-            $this->sekolah?->skema_tagihan === Sekolah::SKEMA_CSR_REGULER_SOGA) {
+            $this->sekolah?->skema_tagihan === Sekolah::SKEMA_CSR_REGULER_SOGA ||
+            str_contains(strtolower($this->kategori_program ?? ''), 'soga') ||
+            str_contains(strtolower($this->kategori_program ?? ''), 'solidaritas erlangga') ||
+            str_contains(strtolower($this->sekolah?->namasekolah ?? ''), 'soga') ||
+            str_contains(strtolower($this->sekolah?->namasekolah ?? ''), 'solidaritas erlangga')) {
             return false;
         }
 
@@ -227,7 +234,7 @@ class Ekstrakurikuler extends Model
             }
         }
 
-        // 2. Program Pelatihan selalu invoiceable
+        // 2. Program Pelatihan komersil selalu invoiceable
         if ($this->isPelatihan()) {
             return true;
         }

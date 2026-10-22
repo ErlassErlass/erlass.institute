@@ -18,6 +18,11 @@ class InvoiceApprovalTest extends TestCase
         return User::factory()->create(['role' => 'admin']);
     }
 
+    private function makeAkunting(): User
+    {
+        return User::factory()->create(['role' => 'akunting']);
+    }
+
     // ─────────────────────────────────────────────────────────────────────
     // Model Unit Tests
     // ─────────────────────────────────────────────────────────────────────
@@ -278,7 +283,8 @@ class InvoiceApprovalTest extends TestCase
             'akunting_status'    => 'pending',
         ]);
 
-        $this->actingAs($admin)
+        $akunting = $this->makeAkunting();
+        $this->actingAs($akunting)
             ->post("/invoice/{$invoice->id}/approve-akunting", [
                 'action'  => 'approved',
                 'catatan' => '',
@@ -300,7 +306,8 @@ class InvoiceApprovalTest extends TestCase
             'akunting_status'    => 'pending',
         ]);
 
-        $this->actingAs($admin)
+        $akunting = $this->makeAkunting();
+        $this->actingAs($akunting)
             ->post("/invoice/{$invoice->id}/approve-akunting", [
                 'action'  => 'rejected',
                 'catatan' => 'Presensi sesi 3 perlu dikoreksi',
@@ -720,7 +727,8 @@ class InvoiceApprovalTest extends TestCase
         $this->assertEquals('pending_akunting', $invoice->status);
 
         // Akunting menyetujui -> DRAFT/ dilepas menjadi nomor resmi INV/
-        $this->actingAs($admin)->post("/invoice/{$invoice->id}/approve-akunting", [
+        $akunting = $this->makeAkunting();
+        $this->actingAs($akunting)->post("/invoice/{$invoice->id}/approve-akunting", [
             'action' => 'approved',
         ]);
         $invoice->refresh();
@@ -817,14 +825,14 @@ class InvoiceApprovalTest extends TestCase
     /** @test */
     public function akunting_approval_saves_invoice_tercetak_and_checklists(): void
     {
-        $admin = $this->makeAdmin();
+        $akunting = $this->makeAkunting();
         $invoice = InvoiceApproval::factory()->create([
             'status'             => InvoiceApproval::STATUS_PENDING_AKUNTING,
             'operasional_status' => 'approved',
             'akunting_status'    => 'pending',
         ]);
 
-        $response = $this->actingAs($admin)->post("/invoice/{$invoice->id}/approve-akunting", [
+        $response = $this->actingAs($akunting)->post("/invoice/{$invoice->id}/approve-akunting", [
             'action'              => 'approved',
             'catatan'             => 'Invoice tercetak rangkap 2',
             'is_invoice_tercetak' => '1',
