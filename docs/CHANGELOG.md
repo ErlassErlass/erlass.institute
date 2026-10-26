@@ -2,6 +2,24 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.85] - 2026-10-26
+
+### Peningkatan Search Bar Sekolah Cerdas pada Form Pembuatan Invoice (/invoice/create)
+
+#### 1. Search Bar Pencarian Cerdas Sekolah ([`resources/views/invoice/create.blade.php`](file:///var/www/webapperlass/resources/views/invoice/create.blade.php))
+- **Integrasi Select2 Bootstrap 5**:
+  - Mengubah dropdown pemilihan sekolah standar menjadi komponen *Searchable Dropdown* (Select2) bertema modern Bootstrap 5 yang serasi dengan desain antarmuka Erlass Ekskul.
+- **Dukungan Pencarian Multi-Token (Kode Sekolah / Nama Sekolah)**:
+  - Pengguna dapat mengetikkan kode sekolah (`kodlan`, misal: `60706391`) atau nama sekolah (misal: `Jamiat`, `Al Falah`, `MIN 22`) secara langsung.
+  - Mendukung pencarian kata ganda (*multi-token search*) dengan respon instan client-side tanpa reload halaman.
+- **Tampilan Hasil Kaya Visual (Rich Result Template)**:
+  - Setiap opsi di dropdown menampilkan badge kode sekolah `[kodlan]`, nama sekolah bercetak tebal, dan label skema tagihan (`Per 4 Sesi`, `Bulanan`, `Semester`, dll.).
+- **Interaksi Halus & Otomatis**:
+  - Pencarian otomatis terfokus saat dropdown dibuka (`select2:open`).
+  - Dilengkapi tombol hapus cepat (`allowClear: true`) untuk mereset pilihan.
+  - Terhubung langsung dengan pemuatan program & rombel dinamis via AJAX [`/invoice/programs-by-sekolah`](file:///var/www/webapperlass/app/Http/Controllers/InvoiceController.php).
+  - Validasi frontend yang ramah: mencegah galat focusable control pada elemen select tersembunyi dan otomatis membuka dropdown pencarian jika form disubmit saat sekolah belum dipilih.
+
 ## [2.9.84] - 2026-10-26
 
 ### Pembenahan Guardrail Anti-Duplikasi Honor Mengajar Sesi Multi-Pertemuan Hari Sama (MIN 22 Jakarta & Slip Gaji #3152)

@@ -2,6 +2,94 @@
 
 @section('title', 'Buat Invoice Baru — Erlass')
 
+@push('styles')
+<!-- Select2 CSS & Bootstrap 5 Theme -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<style>
+    /* Styling Select2 Search Bar agar modern, clean, dan serasi */
+    .select2-container--bootstrap-5 .select2-selection {
+        border-radius: 0.5rem !important;
+        border-color: #dee2e6 !important;
+        font-size: 0.95rem !important;
+        min-height: 42px !important;
+        height: 42px !important;
+        display: flex !important;
+        align-items: center !important;
+        background-color: #ffffff !important;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+        color: #1e293b !important;
+        font-size: 0.95rem !important;
+        font-weight: 500 !important;
+        line-height: 1.5 !important;
+        padding-left: 0.75rem !important;
+        padding-right: 2rem !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__placeholder {
+        color: #64748b !important;
+        font-weight: 400 !important;
+    }
+    .select2-container--bootstrap-5.select2-container--focus .select2-selection,
+    .select2-container--bootstrap-5.select2-container--open .select2-selection {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
+    }
+    .select2-container--bootstrap-5 .select2-dropdown {
+        border-radius: 0.75rem !important;
+        border-color: #e2e8f0 !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+        overflow: hidden !important;
+        z-index: 1060 !important;
+        font-size: 0.9rem !important;
+    }
+    .select2-container--bootstrap-5 .select2-search {
+        padding: 0.625rem 0.75rem !important;
+        background-color: #f8fafc !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+    .select2-container--bootstrap-5 .select2-search__field {
+        border-radius: 0.5rem !important;
+        font-size: 0.9rem !important;
+        padding: 0.5rem 0.75rem !important;
+        border-color: #cbd5e1 !important;
+        background-color: #ffffff !important;
+    }
+    .select2-container--bootstrap-5 .select2-search__field:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+        outline: none !important;
+    }
+    .select2-container--bootstrap-5 .select2-results__option {
+        padding: 0.55rem 0.85rem !important;
+    }
+    .select2-results__option--highlighted[aria-selected] {
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+    }
+    .select2-results__option--highlighted[aria-selected] .badge {
+        background-color: rgba(255, 255, 255, 0.25) !important;
+        color: #ffffff !important;
+        border-color: rgba(255, 255, 255, 0.4) !important;
+    }
+    .select2-results__option--highlighted[aria-selected] .school-name-item {
+        color: #ffffff !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection__clear {
+        margin-right: 0.5rem !important;
+        font-size: 1.2rem !important;
+        color: #94a3b8 !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection__clear:hover {
+        color: #ef4444 !important;
+    }
+    .is-invalid + .select2-container--bootstrap-5 .select2-selection {
+        border-color: #dc3545 !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid py-4" style="max-width: 900px;">
 
@@ -54,24 +142,33 @@
                                 Sekolah <span class="text-danger">*</span>
                             </label>
                             <select name="sekolah_kodlan" id="sekolahSelect"
-                                    class="form-select @error('sekolah_kodlan') is-invalid @enderror" required>
-                                <option value="">— Pilih Sekolah —</option>
+                                    class="form-select @error('sekolah_kodlan') is-invalid @enderror"
+                                    data-placeholder="🔍 Ketik kode sekolah (kodlan) atau nama sekolah...">
+                                <option value=""></option>
                                 @foreach($sekolahs as $s)
-                                <option value="{{ $s->kodlan }}"
-                                        data-skema="{{ $s->skema_tagihan }}"
-                                        {{ old('sekolah_kodlan', $selectedSekolah?->kodlan ?? $rombel?->ekstrakurikuler?->sekolah_kodlan) === $s->kodlan ? 'selected' : '' }}>
-                                    [{{ $s->kodlan }}] {{ $s->namasekolah }}
-                                    ({{ match($s->skema_tagihan) {
+                                @php
+                                    $skemaLabel = match($s->skema_tagihan) {
                                         'bulanan' => 'Bulanan',
                                         'semester' => 'Semester',
                                         'tahunan' => 'Tahunan',
                                         default => 'Per 4 Sesi',
-                                    } }})
+                                    };
+                                @endphp
+                                <option value="{{ $s->kodlan }}"
+                                        data-kodlan="{{ $s->kodlan }}"
+                                        data-nama="{{ $s->namasekolah }}"
+                                        data-skema="{{ $s->skema_tagihan }}"
+                                        data-skema-label="{{ $skemaLabel }}"
+                                        {{ old('sekolah_kodlan', $selectedSekolah?->kodlan ?? $rombel?->ekstrakurikuler?->sekolah_kodlan) === $s->kodlan ? 'selected' : '' }}>
+                                    [{{ $s->kodlan }}] {{ $s->namasekolah }} ({{ $skemaLabel }})
                                 </option>
                                 @endforeach
                             </select>
+                            <div class="form-text text-muted" style="font-size: 0.775rem;">
+                                <i class="bi bi-search me-1"></i>Ketik kode sekolah (misal: <code>60706391</code>) atau nama sekolah untuk mencari cepat.
+                            </div>
                             @error('sekolah_kodlan')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -259,6 +356,9 @@
 </style>
 
 @push('scripts')
+<!-- jQuery & Select2 JS -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const sekolahSelect         = document.getElementById('sekolahSelect');
@@ -279,6 +379,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const invoiceCreateForm     = document.getElementById('invoiceCreateForm');
 
     let programsCache = {}; // kodlan -> array of programs
+    let isInitialLoading = true;
 
     const preselectedSekolahKodlan = "{{ old('sekolah_kodlan', $selectedSekolah?->kodlan ?? $rombel?->ekstrakurikuler?->sekolah_kodlan ?? '') }}";
     const preselectedProgramId     = "{{ old('ekstrakurikuler_id', $selectedProgram?->id ?? $rombel?->ekstrakurikuler_id ?? '') }}";
@@ -460,8 +561,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!program) return;
 
         // Auto-update skema from program or school
-        const selectedOption = sekolahSelect.options[sekolahSelect.selectedIndex];
-        const skema = program.skema_tagihan || selectedOption.dataset.skema || 'per_4_pertemuan';
+        const selectedOption = (sekolahSelect.selectedIndex >= 0 && sekolahSelect.options[sekolahSelect.selectedIndex]) 
+            ? sekolahSelect.options[sekolahSelect.selectedIndex] 
+            : null;
+        const skema = program.skema_tagihan || (selectedOption ? selectedOption.dataset.skema : null) || 'per_4_pertemuan';
         skemaTagihan.value = skema;
         autoSetPeriodeLabel(skema);
 
@@ -472,14 +575,21 @@ document.addEventListener('DOMContentLoaded', function () {
         renderRombels(program.rombels, defaultCheckedRombels);
     }
 
-    sekolahSelect.addEventListener('change', function () {
-        const selectedOption = this.options[this.selectedIndex];
-        const skema = selectedOption.dataset.skema || 'per_4_pertemuan';
+    function handleSekolahChange() {
+        const val = sekolahSelect.value;
+        const selectedOption = (sekolahSelect.selectedIndex >= 0 && sekolahSelect.options[sekolahSelect.selectedIndex])
+            ? sekolahSelect.options[sekolahSelect.selectedIndex]
+            : null;
+        const skema = selectedOption ? (selectedOption.dataset.skema || 'per_4_pertemuan') : 'per_4_pertemuan';
         skemaTagihan.value = skema;
         autoSetPeriodeLabel(skema);
 
-        loadProgramsForSekolah(this.value);
-    });
+        if (!isInitialLoading) {
+            loadProgramsForSekolah(val);
+        }
+    }
+
+    sekolahSelect.addEventListener('change', handleSekolahChange);
 
     programSelect.addEventListener('change', function () {
         triggerProgramChange([]);
@@ -501,6 +611,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (invoiceCreateForm) {
         invoiceCreateForm.addEventListener('submit', function (e) {
+            if (!sekolahSelect.value) {
+                e.preventDefault();
+                alert('⚠️ Harap pilih sekolah terlebih dahulu.');
+                if (typeof window.jQuery !== 'undefined' && typeof window.$.fn.select2 !== 'undefined') {
+                    $('#sekolahSelect').select2('open');
+                } else {
+                    sekolahSelect.focus();
+                }
+                return false;
+            }
+            if (!programSelect.value) {
+                e.preventDefault();
+                alert('⚠️ Harap pilih program kegiatan.');
+                programSelect.focus();
+                return false;
+            }
             const checked = document.querySelectorAll('.rombel-checkbox:checked');
             if (checked.length === 0) {
                 e.preventDefault();
@@ -510,11 +636,114 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Init on page load if preselected
-    if (preselectedSekolahKodlan) {
-        sekolahSelect.value = preselectedSekolahKodlan;
-        loadProgramsForSekolah(preselectedSekolahKodlan, preselectedProgramId, preselectedRombelIds);
+    // Inisialisasi Select2 dengan Pencarian Cerdas (Kode Sekolah atau Nama Sekolah)
+    function initSekolahSelect2() {
+        if (typeof window.jQuery === 'undefined' || typeof window.$.fn.select2 === 'undefined') {
+            setTimeout(initSekolahSelect2, 50);
+            return;
+        }
+
+        const $ = window.jQuery;
+        const $sekolah = $('#sekolahSelect');
+
+        $sekolah.select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: '🔍 Ketik kode sekolah (kodlan) atau nama sekolah...',
+            allowClear: true,
+            matcher: function (params, data) {
+                // Return all data if search term is empty
+                if ($.trim(params.term) === '') {
+                    return data;
+                }
+                if (typeof data.text === 'undefined') {
+                    return null;
+                }
+
+                // Split search query by whitespace to support multi-word search
+                const term = params.term.toLowerCase().trim();
+                const text = data.text.toLowerCase();
+                const id   = (data.id || '').toString().toLowerCase();
+                const $el  = $(data.element);
+                const kodlan = ($el.data('kodlan') || '').toString().toLowerCase();
+                const nama   = ($el.data('nama') || '').toString().toLowerCase();
+
+                const tokens = term.split(/\s+/);
+                const allMatch = tokens.every(function (token) {
+                    return text.indexOf(token) > -1 ||
+                           id.indexOf(token) > -1 ||
+                           kodlan.indexOf(token) > -1 ||
+                           nama.indexOf(token) > -1;
+                });
+
+                if (allMatch) {
+                    return data;
+                }
+
+                return null;
+            },
+            templateResult: function (item) {
+                if (!item.id) {
+                    return item.text;
+                }
+                const $el = $(item.element);
+                const kodlan = $el.data('kodlan') || item.id;
+                const nama   = $el.data('nama') || item.text;
+                const skema  = $el.data('skema-label') || '';
+
+                return $(
+                    '<div class="d-flex align-items-center justify-content-between py-1">' +
+                        '<div class="d-flex align-items-center flex-wrap gap-1">' +
+                            '<span class="badge bg-light text-primary border font-monospace px-2 py-1">[' + $('<div>').text(kodlan).html() + ']</span>' +
+                            '<span class="fw-semibold text-dark school-name-item">' + $('<div>').text(nama).html() + '</span>' +
+                        '</div>' +
+                        (skema ? '<span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-2 text-nowrap">' + $('<div>').text(skema).html() + '</span>' : '') +
+                    '</div>'
+                );
+            },
+            templateSelection: function (item) {
+                if (!item.id) {
+                    return item.text;
+                }
+                const $el = $(item.element);
+                const kodlan = $el.data('kodlan') || item.id;
+                const nama   = $el.data('nama') || item.text;
+                const skema  = $el.data('skema-label') || '';
+                return '[' + kodlan + '] ' + nama + (skema ? ' (' + skema + ')' : '');
+            }
+        });
+
+        // Auto focus search field saat dropdown dibuka
+        $(document).on('select2:open', function () {
+            const searchField = document.querySelector('.select2-container--open .select2-search__field');
+            if (searchField) {
+                searchField.setAttribute('placeholder', '🔍 Ketik kode (kodlan) atau nama sekolah...');
+                searchField.focus();
+            }
+        });
+
+        // Bind Select2 events
+        $sekolah.on('select2:select select2:clear change', function () {
+            handleSekolahChange();
+        });
+
+        // Jika ada sekolah yang sudah terpilih saat page load
+        if (preselectedSekolahKodlan) {
+            $sekolah.val(preselectedSekolahKodlan).trigger('change.select2');
+            const selectedOption = (sekolahSelect.selectedIndex >= 0 && sekolahSelect.options[sekolahSelect.selectedIndex])
+                ? sekolahSelect.options[sekolahSelect.selectedIndex]
+                : null;
+            const skema = selectedOption ? (selectedOption.dataset.skema || 'per_4_pertemuan') : 'per_4_pertemuan';
+            skemaTagihan.value = skema;
+            autoSetPeriodeLabel(skema);
+
+            loadProgramsForSekolah(preselectedSekolahKodlan, preselectedProgramId, preselectedRombelIds);
+        }
+
+        isInitialLoading = false;
     }
+
+    initSekolahSelect2();
 });
 </script>
 @endpush
