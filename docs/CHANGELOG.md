@@ -2,6 +2,17 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.82] - 2026-10-26
+
+### Pengembalian Status Invoice #258 SDI Al Falah I PG ke Menunggu Admin Produksi
+
+#### 1. Pengembalian Status Invoice ke Antrean Produksi
+- Mengembalikan **[Invoice #258](https://erlass.institute/invoice/258)** (**SDI AL FALAH I PG** — *Ekskul Coding Scratch*, Inv Bulan 2) dari tab *Disetujui Resmi* (`approved`) ke antrean **Menunggu Admin Produksi** (`tab=pending_operasional`):
+  - Nomor invoice disesuaikan menjadi format draft: `DRAFT/ERLASS/202610/20105601/002`.
+  - Status: `pending_operasional`, `operasional_status: pending`, `akunting_status: pending`, `is_invoice_tercetak: false`.
+  - Membuka kembali akses penyesuaian sesi pembelajaran, formulir koreksi siswa billable, dan verifikasi GATE 1 untuk keperluan revisi data oleh tim Admin Produksi.
+- Membersihkan cache data penagihan.
+
 ## [2.9.81] - 2026-10-26
 
 ### Pembaruan Kontak Generator Draft PDF & Pengembalian Status Invoice #298 dan #117
