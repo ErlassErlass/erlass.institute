@@ -426,6 +426,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{invoice}/koreksi-reset', [\App\Http\Controllers\InvoiceController::class, 'resetKoreksi'])->name('koreksi.reset');
         // Update sesi pembelajaran invoice (checklist sesi selesai)
         Route::post('/{invoice}/update-sessions', [\App\Http\Controllers\InvoiceController::class, 'updateSessions'])->name('update.sessions');
+        // Kelola checklist & tambah siswa invoice (operasional)
+        Route::post('/{invoice}/update-students', [\App\Http\Controllers\InvoiceController::class, 'updateStudents'])->name('update.students');
+        Route::post('/{invoice}/add-student', [\App\Http\Controllers\InvoiceController::class, 'addStudent'])->name('add.student');
         // Download PDF (hanya jika fully approved)
         Route::get('/{invoice}/pdf', [\App\Http\Controllers\InvoiceController::class, 'downloadPdf'])->name('pdf');
     });

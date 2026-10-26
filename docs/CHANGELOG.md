@@ -2,6 +2,29 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.86] - 2026-10-26
+
+### Fitur Checklist Siswa Tagihan & Tambah Siswa Manual pada Detail Invoice (/invoice/{invoice})
+
+#### 1. Fitur Kelola Siswa & Checklist Rombel ([`resources/views/invoice/show.blade.php`](file:///var/www/webapperlass/resources/views/invoice/show.blade.php), [`app/Http/Controllers/InvoiceController.php`](file:///var/www/webapperlass/app/Http/Controllers/InvoiceController.php))
+- **Modal Interaktif Kelola Siswa per Rombel (`#modalKelolaSiswa_{rombel_id}`)**:
+  - Disediakan tombol **"Checklist / Tambah Siswa"** pada header rombel serta di dalam panel collapse rincian siswa presensi.
+  - **Tab 1: Checklist Siswa Tagihan**:
+    - Menampilkan seluruh siswa di rombel (aktif & non-aktif) serta seluruh siswa terdaftar pada sekolah mitra yang bersangkutan.
+    - Dilengkapi kotak pencarian instan (*live search*) untuk memfilter nama dan kelas siswa secara cepat.
+    - Dilengkapi tombol praktis *Pilih Semua* dan *Batal Semua* serta indikator jumlah siswa terpilih secara dinamis.
+    - Admin/Operasional dapat mencentang/membatalkan centang siswa yang aktif dalam rombel dan berhak ditagihkan pada invoice.
+    - Saat disimpan (`POST /invoice/{invoice}/update-students`), sistem otomatis mengupdate relasi status di tabel pivot `siswa_ekstrakurikuler`, mensinkronkan jumlah siswa rombel (`syncJumlahSiswa()`), serta meregenerasi jumlah siswa billable pada item invoice dan header invoice secara real-time.
+  - **Tab 2: Tambah Siswa Baru (Manual)**:
+    - Form penambahan siswa tambahan baru secara cepat langsung dari halaman invoice tanpa harus berpindah modul.
+    - Mendukung input: Nama Lengkap Siswa, Kelas, Jenis Kelamin, NISN (opsional), dan Nomor HP Orang Tua (opsional).
+    - Saat disubmit (`POST /invoice/{invoice}/add-student`), data siswa disimpan ke database sekolah (`sekolah_kodlan`), didaftarkan sebagai siswa aktif pada rombel ekskul yang bersangkutan, dan otomatis disertakan ke dalam perhitungan siswa billable invoice.
+
+#### 2. Penjelasan Audit Honorarium Slip Gaji #3152 (Sesi Hadir 8 Siswa Mendapat Rp 150.000)
+- **Investigasi Sistemik**:
+  - Pada Slip #3152 (Dimas Priyo Wicaksono), sesi ke-2 di **SMP Leaderss Khalid bin Walid** (Sesi #46315, 11 September 2026) tercatat dihadiri oleh 8 siswa namun memperoleh honor pokok Rp 150.000.
+  - **Aturan Sistem**: SMP Leaderss Khalid bin Walid terdaftar dengan `skema_tagihan = 'semester'`. Berdasarkan SOP & aturan `PayrollCalculatorService`, sekolah dengan skema kontrak Semester/Tahunan menerapkan tarif flat **Rp 150.000/sesi** bagi instruktur utama (tidak mengikuti skala jumlah kehadiran siswa per 4 sesi).
+
 ## [2.9.85] - 2026-10-26
 
 ### Peningkatan Search Bar Sekolah Cerdas pada Form Pembuatan Invoice (/invoice/create)

@@ -186,20 +186,28 @@
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-primary-subtle text-primary border">{{ $att['program_nama'] }}</span>
-                            @if(!$invoice->isApproved() && !empty($att['availableSessions']))
-                                @php
-                                    $unbilledCount = collect($att['availableSessions'])->where('is_current', false)->where('is_selectable', true)->count();
-                                @endphp
-                                <button class="btn btn-sm {{ $unbilledCount > 0 ? 'btn-primary' : 'btn-outline-primary' }} fw-semibold shadow-sm" 
+                            @if(!$invoice->isApproved())
+                                <button class="btn btn-sm btn-outline-success fw-semibold shadow-sm" 
                                         type="button" 
-                                        data-bs-toggle="collapse" 
-                                        data-bs-target="#editSessions_{{ $att['rombel']->id }}" 
-                                        aria-expanded="false">
-                                    <i class="bi bi-sliders me-1"></i>Atur / Tambah Sesi
-                                    @if($unbilledCount > 0)
-                                        <span class="badge bg-warning text-dark ms-1">+{{ $unbilledCount }} Baru</span>
-                                    @endif
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalKelolaSiswa_{{ $att['rombel']->id }}">
+                                    <i class="bi bi-people-fill me-1"></i>Checklist / Tambah Siswa
                                 </button>
+                                @if(!empty($att['availableSessions']))
+                                    @php
+                                        $unbilledCount = collect($att['availableSessions'])->where('is_current', false)->where('is_selectable', true)->count();
+                                    @endphp
+                                    <button class="btn btn-sm {{ $unbilledCount > 0 ? 'btn-primary' : 'btn-outline-primary' }} fw-semibold shadow-sm" 
+                                            type="button" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#editSessions_{{ $att['rombel']->id }}" 
+                                            aria-expanded="false">
+                                        <i class="bi bi-sliders me-1"></i>Atur / Tambah Sesi
+                                        @if($unbilledCount > 0)
+                                            <span class="badge bg-warning text-dark ms-1">+{{ $unbilledCount }} Baru</span>
+                                        @endif
+                                    </button>
+                                @endif
                             @endif
                         </div>
                     </div>
@@ -409,7 +417,17 @@
                             </button>
                         </div>
                         <div class="collapse" id="studentAbsensiDetail_{{ $att['rombel']->id }}">
-                            <div class="table-responsive border-top">
+                            @if(!$invoice->isApproved())
+                            <div class="px-4 py-2.5 bg-white border-top border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                <div class="small text-muted">
+                                    <i class="bi bi-people me-1"></i>Total Siswa Terdaftar: <strong>{{ $att['students']->count() }} Siswa</strong> (Aktif / Pernah Hadir di Rombel)
+                                </div>
+                                <button type="button" class="btn btn-sm btn-success fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#modalKelolaSiswa_{{ $att['rombel']->id }}">
+                                    <i class="bi bi-person-plus-fill me-1"></i>Checklist / Tambah Siswa Manual
+                                </button>
+                            </div>
+                            @endif
+                            <div class="table-responsive">
                                 <table class="table table-sm table-striped table-hover align-middle mb-0" style="font-size: .8rem;">
                                     <thead class="table-light">
                                         <tr class="text-muted">
@@ -472,6 +490,217 @@
                         </div>
                     </div>
                 </div>
+
+                @if(!$invoice->isApproved())
+                {{-- Modal Kelola Siswa: Checklist & Tambah Siswa Manual --}}
+                <div class="modal fade" id="modalKelolaSiswa_{{ $att['rombel']->id }}" tabindex="-1" aria-labelledby="modalKelolaSiswaLabel_{{ $att['rombel']->id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header bg-success text-white py-3">
+                                <h5 class="modal-title fs-6 fw-bold" id="modalKelolaSiswaLabel_{{ $att['rombel']->id }}">
+                                    <i class="bi bi-people-fill me-2"></i>Kelola Siswa &mdash; {{ $att['rombel']->nama_rombel }} ({{ $att['rombel']->ekstrakurikuler?->kategori_program }})
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            
+                            <div class="modal-body p-0">
+                                {{-- Nav Tabs: 1. Checklist Siswa, 2. Tambah Siswa Manual --}}
+                                <ul class="nav nav-tabs nav-fill bg-light px-3 pt-2" id="tabKelolaSiswa_{{ $att['rombel']->id }}" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active fw-bold text-dark py-2.5" id="tabChecklist-btn-{{ $att['rombel']->id }}" data-bs-toggle="tab" data-bs-target="#tabChecklist-pane-{{ $att['rombel']->id }}" type="button" role="tab" aria-selected="true">
+                                            <i class="bi bi-check2-square text-success me-1"></i>Checklist Siswa Tagihan
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link fw-bold text-dark py-2.5" id="tabTambah-btn-{{ $att['rombel']->id }}" data-bs-toggle="tab" data-bs-target="#tabTambah-pane-{{ $att['rombel']->id }}" type="button" role="tab" aria-selected="false">
+                                            <i class="bi bi-person-plus-fill text-primary me-1"></i>+ Tambah Siswa Baru (Manual)
+                                        </button>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content">
+                                    {{-- TAB 1: CHECKLIST SISWA --}}
+                                    <div class="tab-pane fade show active p-3 p-md-4" id="tabChecklist-pane-{{ $att['rombel']->id }}" role="tabpanel">
+                                        <form action="{{ route('invoice.update.students', $invoice) }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="ekstrakurikuler_rombel_id" value="{{ $att['rombel']->id }}">
+
+                                            <div class="alert alert-info py-2 px-3 small mb-3">
+                                                <i class="bi bi-info-circle me-1"></i>Centang siswa yang <strong>aktif</strong> untuk dimasukkan ke dalam daftar penagihan invoice rombel ini. Anda juga dapat mencentang siswa dari sekolah yang sama yang belum masuk rombel.
+                                            </div>
+
+                                            <div class="row g-2 align-items-center mb-3">
+                                                <div class="col-md-7">
+                                                    <div class="input-group input-group-sm">
+                                                        <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                                                        <input type="text" class="form-control" id="searchSiswa_{{ $att['rombel']->id }}" placeholder="Cari nama siswa atau kelas..." onkeyup="filterSiswaTable('{{ $att['rombel']->id }}')">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-5 d-flex justify-content-end gap-1">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary py-1 px-2" style="font-size: .75rem;" onclick="toggleSelectAllSiswa('{{ $att['rombel']->id }}', true)">
+                                                        <i class="bi bi-check-all me-1"></i>Pilih Semua
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2" style="font-size: .75rem;" onclick="toggleSelectAllSiswa('{{ $att['rombel']->id }}', false)">
+                                                        <i class="bi bi-x me-1"></i>Batal Semua
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            @php
+                                                $schoolList = $schoolStudents ?? collect();
+                                                $enrolledStudentIds = $att['rombel']->siswa()->wherePivot('status', 'aktif')->pluck('siswa.id')->toArray();
+                                                $allEnrolledIds = $att['rombel']->siswa()->pluck('siswa.id')->toArray();
+                                                
+                                                // Merge list: enrolled students first, then other school students
+                                                $mergedStudents = collect();
+                                                foreach($schoolList as $st) {
+                                                    $isEnrolled = in_array($st->id, $allEnrolledIds);
+                                                    $isActive = in_array($st->id, $enrolledStudentIds);
+                                                    $mergedStudents->push([
+                                                        'student' => $st,
+                                                        'is_enrolled' => $isEnrolled,
+                                                        'is_active' => $isActive,
+                                                    ]);
+                                                }
+                                                // Jika ada siswa yang ada di rombel tapi tidak ada di tabel sekolah (edge case)
+                                                foreach($att['students'] as $attSt) {
+                                                    if(!$mergedStudents->contains(fn($m) => $m['student']->id == $attSt->id)) {
+                                                        $mergedStudents->push([
+                                                            'student' => $attSt,
+                                                            'is_enrolled' => true,
+                                                            'is_active' => true,
+                                                        ]);
+                                                    }
+                                                }
+                                                $mergedStudents = $mergedStudents->sortByDesc(fn($x) => ($x['is_active'] ? 2 : ($x['is_enrolled'] ? 1 : 0)))->values();
+                                            @endphp
+
+                                            <div class="table-responsive border rounded" style="max-height: 340px; overflow-y: auto;">
+                                                <table class="table table-sm table-hover align-middle mb-0" id="tableSiswa_{{ $att['rombel']->id }}" style="font-size: .83rem;">
+                                                    <thead class="table-light sticky-top">
+                                                        <tr class="text-muted">
+                                                            <th class="text-center" style="width: 45px;">Pilih</th>
+                                                            <th>Nama Siswa</th>
+                                                            <th style="width: 80px;">Kelas</th>
+                                                            <th class="text-center" style="width: 50px;">JK</th>
+                                                            <th class="text-end pe-3" style="width: 140px;">Status di Rombel</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @forelse($mergedStudents as $row)
+                                                        @php
+                                                            $st = $row['student'];
+                                                            $isChecked = $row['is_active'];
+                                                        @endphp
+                                                        <tr class="siswa-row-{{ $att['rombel']->id }}">
+                                                            <td class="text-center">
+                                                                <input class="form-check-input chk-siswa-{{ $att['rombel']->id }}" 
+                                                                       type="checkbox" 
+                                                                       name="siswa_ids[]" 
+                                                                       value="{{ $st->id }}" 
+                                                                       id="chk_st_{{ $att['rombel']->id }}_{{ $st->id }}"
+                                                                       {{ $isChecked ? 'checked' : '' }}
+                                                                       onchange="updateCheckedSiswaCount('{{ $att['rombel']->id }}')">
+                                                            </td>
+                                                            <td>
+                                                                <label class="form-check-label fw-semibold text-dark mb-0 student-name-label" style="cursor: pointer;" for="chk_st_{{ $att['rombel']->id }}_{{ $st->id }}">
+                                                                    {{ $st->nama_lengkap }}
+                                                                </label>
+                                                                @if($st->nisn)
+                                                                    <span class="text-muted d-block" style="font-size: .7rem;">NISN: {{ $st->nisn }}</span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="text-muted student-kelas-label">{{ $st->kelas ?: '-' }}</td>
+                                                            <td class="text-center">
+                                                                <span class="badge {{ $st->jenis_kelamin === 'P' ? 'bg-danger-subtle text-danger' : 'bg-primary-subtle text-primary' }}">
+                                                                    {{ $st->jenis_kelamin ?: '-' }}
+                                                                </span>
+                                                            </td>
+                                                            <td class="text-end pe-3">
+                                                                @if($row['is_active'])
+                                                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Aktif di Rombel</span>
+                                                                @elseif($row['is_enrolled'])
+                                                                    <span class="badge bg-secondary-subtle text-secondary border">Non-Aktif / Keluar</span>
+                                                                @else
+                                                                    <span class="badge bg-warning-subtle text-warning-emphasis border">Siswa Sekolah (Belum Masuk)</span>
+                                                                @endif
+                                                            </td>
+                                                        </tr>
+                                                        @empty
+                                                        <tr>
+                                                            <td colspan="5" class="text-center py-4 text-muted">Belum ada data siswa.</td>
+                                                        </tr>
+                                                        @endforelse
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <div class="d-flex align-items-center justify-content-between mt-3">
+                                                <span class="small text-muted" id="countCheckedBadge_{{ $att['rombel']->id }}">
+                                                    Terpilih: <strong>{{ count($enrolledStudentIds) }}</strong> dari {{ $mergedStudents->count() }} siswa
+                                                </span>
+                                                <button type="submit" class="btn btn-primary btn-sm px-3 fw-bold">
+                                                    <i class="bi bi-save me-1"></i>Simpan Perubahan Checklist
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                    {{-- TAB 2: TAMBAH SISWA MANUAL --}}
+                                    <div class="tab-pane fade p-3 p-md-4" id="tabTambah-pane-{{ $att['rombel']->id }}" role="tabpanel">
+                                        <form action="{{ route('invoice.add.student', $invoice) }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="ekstrakurikuler_rombel_id" value="{{ $att['rombel']->id }}">
+
+                                            <div class="alert alert-light border py-2.5 px-3 mb-3 small">
+                                                <i class="bi bi-info-circle text-primary me-1"></i>
+                                                Form ini untuk mendaftarkan <strong>siswa tambahan baru</strong> secara langsung ke sistem dan langsung menautkannya ke rombel <strong>{{ $att['rombel']->nama_rombel }}</strong> sebagai siswa aktif.
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold">Nama Lengkap Siswa <span class="text-danger">*</span></label>
+                                                <input type="text" name="nama_lengkap" class="form-control form-control-sm" placeholder="Contoh: Muhammad Kevin Al-Fatih" required>
+                                            </div>
+
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold">Kelas <span class="text-danger">*</span></label>
+                                                    <input type="text" name="kelas" class="form-control form-control-sm" placeholder="Contoh: 1A / 2 / 3B" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold">Jenis Kelamin <span class="text-danger">*</span></label>
+                                                    <select name="jenis_kelamin" class="form-select form-select-sm" required>
+                                                        <option value="L" selected>Laki-laki (L)</option>
+                                                        <option value="P">Perempuan (P)</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold">NISN <span class="text-muted fw-normal">(Opsional)</span></label>
+                                                    <input type="text" name="nisn" class="form-control form-control-sm" placeholder="Nomor Induk Siswa Nasional">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold">No HP Orang Tua <span class="text-muted fw-normal">(Opsional)</span></label>
+                                                    <input type="text" name="no_hp_orangtua" class="form-control form-control-sm" placeholder="08xxxxxxxxxx">
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex justify-content-end gap-2 pt-2 border-top">
+                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                                                <button type="submit" class="btn btn-success btn-sm px-3 fw-bold">
+                                                    <i class="bi bi-person-plus-fill me-1"></i>Tambah Siswa ke Rombel &amp; Invoice
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
                 @endforeach
             @endif
 
@@ -1172,6 +1401,46 @@ function updateSessCount(rombelId) {
     if (badge) {
         badge.innerHTML = '<i class="bi bi-check-circle-fill text-primary me-1"></i>Terpilih: <strong>' + checked + '</strong> Sesi';
     }
+}
+
+function toggleSelectAllSiswa(rombelId, checkState) {
+    const checkboxes = document.querySelectorAll('.chk-siswa-' + rombelId);
+    checkboxes.forEach(cb => {
+        const row = cb.closest('tr');
+        if (row && row.style.display !== 'none') {
+            cb.checked = checkState;
+        }
+    });
+    updateCheckedSiswaCount(rombelId);
+}
+
+function updateCheckedSiswaCount(rombelId) {
+    const checkboxes = document.querySelectorAll('.chk-siswa-' + rombelId);
+    let checkedCount = 0;
+    checkboxes.forEach(cb => {
+        if (cb.checked) checkedCount++;
+    });
+    const badge = document.getElementById('countCheckedBadge_' + rombelId);
+    if (badge) {
+        badge.innerHTML = 'Terpilih: <strong>' + checkedCount + '</strong> dari ' + checkboxes.length + ' siswa';
+    }
+}
+
+function filterSiswaTable(rombelId) {
+    const input = document.getElementById('searchSiswa_' + rombelId);
+    if (!input) return;
+    const filter = input.value.toLowerCase();
+    const rows = document.querySelectorAll('.siswa-row-' + rombelId);
+    rows.forEach(row => {
+        const nameEl = row.querySelector('.student-name-label');
+        const kelasEl = row.querySelector('.student-kelas-label');
+        const text = ((nameEl ? nameEl.innerText : '') + ' ' + (kelasEl ? kelasEl.innerText : '')).toLowerCase();
+        if (text.indexOf(filter) > -1) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
 }
 </script>
 @endsection

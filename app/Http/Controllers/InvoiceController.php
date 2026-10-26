@@ -9,6 +9,8 @@ use App\Models\Sekolah;
 use App\Models\EkstrakurikulerSession;
 use App\Models\Absensi;
 use App\Models\Salesman;
+use App\Models\Siswa;
+use App\Models\SiswaEkstrakurikuler;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -442,7 +444,11 @@ class InvoiceController extends Controller
 
         $attendanceData = $this->invoiceService->getAttendanceDataForInvoice($invoice);
 
-        return view('invoice.show', compact('invoice', 'attendanceData'));
+        $schoolStudents = Siswa::where('sekolah_kodlan', $invoice->sekolah_kodlan)
+            ->orderBy('nama_lengkap')
+            ->get(['id', 'nama_lengkap', 'kelas', 'rombel', 'jenis_kelamin', 'nisn']);
+
+        return view('invoice.show', compact('invoice', 'attendanceData', 'schoolStudents'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -1355,6 +1361,219 @@ class InvoiceController extends Controller
         } else {
             return back()->with('success', "⚡ Sesi pembelajaran untuk rombel ini berhasil dikosongkan (0 sesi ditagihkan). Siswa billable disesuaikan menjadi 0 siswa.");
         }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // KELOLA SISWA INVOICE (CHECKLIST SISWA & TAMBAH SISWA MANUAL)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Update checklist siswa aktif/billable pada rombel yang terkait dengan invoice.
+     */
+    public function updateStudents(Request $request, InvoiceApproval $invoice)
+    {
+        if (!Auth::user()->canModifyOperationalData()) {
+            return back()->withErrors(['msg' => 'Akses Read-Only: Pembaruan checklist siswa hanya dapat dilakukan oleh Tim Inti Produksi/Operasional.']);
+        }
+
+        if ($invoice->isApproved() || $invoice->status === InvoiceApproval::STATUS_APPROVED) {
+            return back()->withErrors(['msg' => 'Invoice yang sudah disetujui resmi oleh Akunting tidak dapat diubah daftar siswanya.']);
+        }
+
+        $validated = $request->validate([
+            'ekstrakurikuler_rombel_id' => 'required|exists:ekstrakurikuler_rombel,id',
+            'siswa_ids'                 => 'nullable|array',
+            'siswa_ids.*'               => 'integer|exists:siswa,id',
+        ]);
+
+        $rombelId = (int) $validated['ekstrakurikuler_rombel_id'];
+        $rombel = EkstrakurikulerRombel::with('ekstrakurikuler')->findOrFail($rombelId);
+        $selectedSiswaIds = array_map('intval', $request->input('siswa_ids', []));
+
+        DB::transaction(function () use ($invoice, $rombel, $selectedSiswaIds) {
+            $existingEnrollments = SiswaEkstrakurikuler::where('ekstrakurikuler_rombel_id', $rombel->id)->get();
+            $existingSiswaIds = $existingEnrollments->pluck('siswa_id')->toArray();
+
+            // 1. Update status enrollment yang sudah ada
+            foreach ($existingEnrollments as $enr) {
+                $shouldBeActive = in_array((int)$enr->siswa_id, $selectedSiswaIds, true);
+                $newStatus = $shouldBeActive ? SiswaEkstrakurikuler::STATUS_AKTIF : SiswaEkstrakurikuler::STATUS_KELUAR;
+                if ($enr->status !== $newStatus) {
+                    $enr->update([
+                        'status'         => $newStatus,
+                        'tanggal_keluar' => $shouldBeActive ? null : now(),
+                        'alasan_keluar'  => $shouldBeActive ? null : 'Dikeluarkan dari checklist invoice',
+                        'updated_by'     => Auth::id(),
+                    ]);
+                }
+            }
+
+            // 2. Daftarkan siswa sekolah yang baru dicentang ke rombel
+            $newToEnroll = array_diff($selectedSiswaIds, $existingSiswaIds);
+            foreach ($newToEnroll as $sId) {
+                SiswaEkstrakurikuler::updateOrCreate(
+                    [
+                        'siswa_id'                  => $sId,
+                        'ekstrakurikuler_rombel_id' => $rombel->id,
+                    ],
+                    [
+                        'ekstrakurikuler_id' => $rombel->ekstrakurikuler_id,
+                        'status'             => SiswaEkstrakurikuler::STATUS_AKTIF,
+                        'tanggal_daftar'     => now(),
+                        'tanggal_keluar'     => null,
+                        'alasan_keluar'      => null,
+                        'updated_by'         => Auth::id(),
+                    ]
+                );
+            }
+
+            $rombel->syncJumlahSiswa();
+
+            // 3. Hitung ulang billable untuk item rombel & invoice
+            $item = $invoice->items()->where('ekstrakurikuler_rombel_id', $rombel->id)->first();
+            $sesiDari = $item ? $item->sesi_dari : $invoice->sesi_dari;
+            $sesiSampai = $item ? $item->sesi_sampai : $invoice->sesi_sampai;
+            $jumlahSesi = $item ? $item->jumlah_sesi : $invoice->jumlah_sesi;
+
+            if ($jumlahSesi > 0 && $sesiDari && $sesiSampai) {
+                $billableData = $this->invoiceService->calculateBillable($rombel->id, $sesiDari, $sesiSampai);
+                $billableCount = $billableData['billable_count'];
+            } else {
+                $billableCount = count($selectedSiswaIds);
+            }
+
+            if ($item) {
+                $item->update([
+                    'jumlah_siswa_billable' => $billableCount,
+                ]);
+            }
+
+            if ($invoice->items()->count() <= 1) {
+                $invoice->update([
+                    'jumlah_siswa_billable' => $billableCount,
+                    'pdf_generated_at'      => null,
+                    'updated_by'            => Auth::id(),
+                ]);
+            } else {
+                $totalBillable = $invoice->items()->sum('jumlah_siswa_billable');
+                $invoice->update([
+                    'jumlah_siswa_billable' => $totalBillable,
+                    'pdf_generated_at'      => null,
+                    'updated_by'            => Auth::id(),
+                ]);
+            }
+        });
+
+        return back()->with('success', "⚡ Checklist siswa untuk {$rombel->nama_rombel} berhasil diperbarui (" . count($selectedSiswaIds) . " siswa aktif).");
+    }
+
+    /**
+     * Tambah siswa baru secara manual ke rombel dan invoice.
+     */
+    public function addStudent(Request $request, InvoiceApproval $invoice)
+    {
+        if (!Auth::user()->canModifyOperationalData()) {
+            return back()->withErrors(['msg' => 'Akses Read-Only: Penambahan siswa manual hanya dapat dilakukan oleh Tim Inti Produksi/Operasional.']);
+        }
+
+        if ($invoice->isApproved() || $invoice->status === InvoiceApproval::STATUS_APPROVED) {
+            return back()->withErrors(['msg' => 'Invoice yang sudah disetujui resmi oleh Akunting tidak dapat ditambah siswanya.']);
+        }
+
+        $validated = $request->validate([
+            'ekstrakurikuler_rombel_id' => 'required|exists:ekstrakurikuler_rombel,id',
+            'nama_lengkap'              => 'required|string|max:191',
+            'kelas'                     => 'required|string|max:50',
+            'jenis_kelamin'             => 'required|in:L,P',
+            'nisn'                      => 'nullable|string|max:30',
+            'no_hp_orangtua'            => 'nullable|string|max:25',
+        ], [
+            'nama_lengkap.required' => 'Nama lengkap siswa wajib diisi.',
+            'kelas.required'        => 'Kelas siswa wajib diisi (contoh: 1A, 2, 3B).',
+            'jenis_kelamin.required'=> 'Jenis kelamin wajib dipilih.',
+        ]);
+
+        $rombelId = (int) $validated['ekstrakurikuler_rombel_id'];
+        $rombel = EkstrakurikulerRombel::with('ekstrakurikuler')->findOrFail($rombelId);
+
+        DB::transaction(function () use ($invoice, $rombel, $validated) {
+            $cleanName = trim(preg_replace('/\s+/', ' ', $validated['nama_lengkap']));
+            $siswa = Siswa::where('sekolah_kodlan', $invoice->sekolah_kodlan)
+                ->whereRaw('LOWER(nama_lengkap) = ?', [strtolower($cleanName)])
+                ->first();
+
+            if (!$siswa) {
+                $siswa = Siswa::create([
+                    'sekolah_kodlan' => $invoice->sekolah_kodlan,
+                    'nama_lengkap'   => $cleanName,
+                    'kelas'          => $validated['kelas'],
+                    'rombel'         => $validated['kelas'],
+                    'jenis_kelamin'  => $validated['jenis_kelamin'],
+                    'nisn'           => $validated['nisn'] ?? null,
+                    'no_hp_orangtua' => $validated['no_hp_orangtua'] ?? null,
+                ]);
+            } else {
+                $siswa->update([
+                    'kelas'          => $validated['kelas'],
+                    'rombel'         => $validated['kelas'],
+                    'jenis_kelamin'  => $validated['jenis_kelamin'],
+                    'nisn'           => $validated['nisn'] ?? $siswa->nisn,
+                    'no_hp_orangtua' => $validated['no_hp_orangtua'] ?? $siswa->no_hp_orangtua,
+                ]);
+            }
+
+            SiswaEkstrakurikuler::updateOrCreate(
+                [
+                    'siswa_id'                  => $siswa->id,
+                    'ekstrakurikuler_rombel_id' => $rombel->id,
+                ],
+                [
+                    'ekstrakurikuler_id' => $rombel->ekstrakurikuler_id,
+                    'status'             => SiswaEkstrakurikuler::STATUS_AKTIF,
+                    'tanggal_daftar'     => now(),
+                    'tanggal_keluar'     => null,
+                    'alasan_keluar'      => null,
+                    'updated_by'         => Auth::id(),
+                ]
+            );
+
+            $rombel->syncJumlahSiswa();
+
+            $item = $invoice->items()->where('ekstrakurikuler_rombel_id', $rombel->id)->first();
+            $sesiDari = $item ? $item->sesi_dari : $invoice->sesi_dari;
+            $sesiSampai = $item ? $item->sesi_sampai : $invoice->sesi_sampai;
+            $jumlahSesi = $item ? $item->jumlah_sesi : $invoice->jumlah_sesi;
+
+            if ($jumlahSesi > 0 && $sesiDari && $sesiSampai) {
+                $billableData = $this->invoiceService->calculateBillable($rombel->id, $sesiDari, $sesiSampai);
+                $billableCount = $billableData['billable_count'];
+            } else {
+                $billableCount = $rombel->siswaAktif()->count();
+            }
+
+            if ($item) {
+                $item->update([
+                    'jumlah_siswa_billable' => $billableCount,
+                ]);
+            }
+
+            if ($invoice->items()->count() <= 1) {
+                $invoice->update([
+                    'jumlah_siswa_billable' => $billableCount,
+                    'pdf_generated_at'      => null,
+                    'updated_by'            => Auth::id(),
+                ]);
+            } else {
+                $totalBillable = $invoice->items()->sum('jumlah_siswa_billable');
+                $invoice->update([
+                    'jumlah_siswa_billable' => $totalBillable,
+                    'pdf_generated_at'      => null,
+                    'updated_by'            => Auth::id(),
+                ]);
+            }
+        });
+
+        return back()->with('success', "⚡ Siswa \"{$validated['nama_lengkap']}\" (Kelas {$validated['kelas']}) berhasil ditambahkan secara manual ke {$rombel->nama_rombel} dan dimasukkan ke dalam daftar tagihan.");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
