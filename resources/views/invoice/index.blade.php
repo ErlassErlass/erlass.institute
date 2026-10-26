@@ -81,9 +81,15 @@
             </h4>
         </div>
         <div>
+            @if(auth()->user()?->canModifyOperationalData())
             <a href="{{ route('invoice.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm">
                 <i class="bi bi-plus-circle me-1"></i> Buat Invoice Baru
             </a>
+            @else
+            <span class="badge bg-secondary-subtle text-secondary border px-3 py-2 rounded-pill small">
+                <i class="bi bi-shield-check me-1"></i> Mode Pantau (Read-Only)
+            </span>
+            @endif
         </div>
     </div>
 
@@ -347,12 +353,12 @@
                                title="Segarkan antrean data sesi dan program terbaru">
                                 <i class="bi bi-arrow-clockwise me-1 text-primary"></i> Segarkan Antrean
                             </a>
-                            @if(auth()->user()?->hasRole(['admin', 'admin_sistem', 'webmaster']))
+                            @if(auth()->user()?->canModifyOperationalData() || auth()->user()?->canApproveGate2Invoice())
                             <button type="button" class="btn btn-sm btn-outline-primary fw-bold px-3 py-1.5 rounded-pill shadow-xs text-nowrap" data-bs-toggle="modal" data-bs-target="#modalAturSkema">
                                 <i class="bi bi-gear-fill me-1"></i> Atur Skema Tagihan
                             </button>
                             @endif
-                            @if($eligibleList->isNotEmpty())
+                            @if($eligibleList->isNotEmpty() && auth()->user()?->canModifyOperationalData())
                             <form action="{{ route('invoice.bulk-generate') }}" method="POST" onsubmit="return confirm('Generate invoice untuk semua {{ $eligibleList->count() }} sekolah yang siap ditagihkan?');" class="mb-0">
                                 @csrf
                                 <button type="submit" class="btn btn-sm btn-success fw-bold px-3 py-1.5 rounded-pill shadow-xs text-nowrap">
@@ -529,6 +535,7 @@
                                     </td>
                                     <td class="text-end pe-4">
                                         <div class="d-flex justify-content-end gap-2">
+                                            @if(auth()->user()?->canModifyOperationalData())
                                             <form action="{{ route('invoice.quick-generate') }}" method="POST" class="d-inline mb-0">
                                                 @csrf
                                                 <input type="hidden" name="sekolah_kodlan" value="{{ $item['sekolah_kodlan'] }}">
@@ -548,6 +555,11 @@
                                                     <i class="bi bi-lightning-charge-fill me-1"></i> 1-Klik Generate
                                                 </button>
                                             </form>
+                                            @else
+                                            <span class="badge bg-secondary-subtle text-secondary border px-2 py-1 rounded-pill small">
+                                                <i class="bi bi-eye me-1"></i> Mode Pantau
+                                            </span>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

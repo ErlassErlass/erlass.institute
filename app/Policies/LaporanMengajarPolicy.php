@@ -9,14 +9,27 @@ use App\Models\User;
 class LaporanMengajarPolicy
 {
     /**
-     * Izinkan webmaster dan admin_erlass melakukan semua aksi.
-     * Webmaster memiliki akses penuh, admin_erlass memiliki akses terbatas.
+     * Izinkan webmaster melakukan semua aksi.
+     * Batasi hak modifikasi/approval laporan bagi admin hanya untuk tim inti produksi.
      */
     public function before(User $user, string $ability): ?bool
     {
-        // Webmaster dan Admin memiliki akses penuh ke semua fitur
-        if (in_array($user->role, ['webmaster', 'admin_sistem', 'admin'])) {
+        if ($user->isWebmaster()) {
             return true;
+        }
+
+        // Melihat riwayat laporan: izinkan semua admin
+        if (in_array($ability, ['viewAny', 'view'])) {
+            if ($user->hasAdminAccess()) {
+                return true;
+            }
+        }
+
+        // Aksi admin modifikasi laporan (delete, update, approve kendala)
+        if (in_array($ability, ['delete', 'update', 'approve', 'reject'])) {
+            if ($user->hasAdminAccess()) {
+                return $user->canModifyOperationalData();
+            }
         }
 
         return null;

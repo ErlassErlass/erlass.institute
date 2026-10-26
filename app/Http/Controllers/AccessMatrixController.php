@@ -175,7 +175,7 @@ class AccessMatrixController extends Controller
         return [
             'webmaster'    => ['label' => 'Webmaster',    'icon' => 'bi-shield-fill-check', 'color' => 'danger',    'hex' => '#dc2626', 'desc' => 'Super-admin, akses penuh teknis & sistem'],
             'admin_sistem' => ['label' => 'Admin Sistem', 'icon' => 'bi-gear-fill',          'color' => 'warning',   'hex' => '#d97706', 'desc' => 'IT Admin, kelola infrastruktur & akun'],
-            'admin'        => ['label' => 'Admin (Ops)',  'icon' => 'bi-person-badge-fill',  'color' => 'info',      'hex' => '#0284c7', 'desc' => 'Staf Produksi & Operasional Ekskul'],
+            'admin'        => ['label' => 'Admin (Ops)',  'icon' => 'bi-person-badge-fill',  'color' => 'info',      'hex' => '#0284c7', 'desc' => 'Tim Operasional Ekskul (Hak CUD khusus Whitelist Tim Inti Produksi, manajemen lainnya Read-Only)'],
             'akunting'     => ['label' => 'Akunting',     'icon' => 'bi-calculator-fill',    'color' => 'success',   'hex' => '#059669', 'desc' => 'Staf Finance/Accounting & Payroll'],
             'sales'        => ['label' => 'Sales',        'icon' => 'bi-briefcase-fill',     'color' => 'secondary', 'hex' => '#7c3aed', 'desc' => 'Tim Marketing & Kemitraan Sekolah'],
             'instruktur'   => ['label' => 'Instruktur',   'icon' => 'bi-person-video3',      'color' => 'success',   'hex' => '#16a34a', 'desc' => 'Pengajar & Instruktur Ekskul'],

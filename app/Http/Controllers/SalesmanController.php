@@ -46,8 +46,8 @@ class SalesmanController extends Controller
      */
     public function create()
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk menambah salesman.');
         }
         $users = collect();
         return view('salesmen.create', compact('users'));
@@ -61,8 +61,8 @@ class SalesmanController extends Controller
      */
     public function store(Request $request)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk menambah salesman.');
         }
 
         $validated = $request->validate([
@@ -86,8 +86,8 @@ class SalesmanController extends Controller
      */
     public function edit(Salesman $salesman)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk mengedit salesman.');
         }
         $users = collect();
         return view('salesmen.edit', compact('salesman', 'users'));
@@ -102,8 +102,8 @@ class SalesmanController extends Controller
      */
     public function update(Request $request, Salesman $salesman)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk mengedit salesman.');
         }
 
         $validated = $request->validate([
@@ -127,8 +127,8 @@ class SalesmanController extends Controller
      */
     public function destroy(Salesman $salesman)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk menghapus salesman.');
         }
 
         $salesman->delete();
@@ -144,8 +144,8 @@ class SalesmanController extends Controller
      */
     public function import(Request $request)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk mengimpor salesman.');
         }
 
         $request->validate([

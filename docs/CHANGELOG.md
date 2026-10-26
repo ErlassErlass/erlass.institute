@@ -2,7 +2,55 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
-## [2.9.77] - 2026-10-22
+## [2.9.79] - 2026-10-26
+
+### Pembatasan Hak CUD Operasional ke Tim Inti Produksi & Mode Read-Only Admin Umum
+
+#### 1. Pembatasan Hak CUD (Create, Update, Delete) Data Master & Akademik
+- Menerapkan whitelist otorisasi hak CUD data master operasional (Sekolah, Siswa, Rombel, Jadwal, Program Ekskul, Penilaian, Presensi, dan Gate 1 Invoice) yang didefinisikan pada `User::OPERATIONAL_CUD_EMAILS`:
+  1. **Adinda Wardania** (`adinda.wardania@erlass.institute`)
+  2. **Ahmad Yusril Firdaus** (`ahmad.firdaus@erlass.institute`)
+  3. **Novandi Wijaya / Novan** (`novan@erlass.institute`)
+  4. **Cornelis Banu** (`cornelis.banu@erlass.institute`)
+  5. **Putro Bagus Anton Hudiono** (`putro.hudiono@erlass.institute`)
+  6. **Furqon Irkhamni** (`furqonirkhamni@gmail.com`)
+  7. **Meclin Bintang Geovani** (`meclinbintanggeovanimbg@gmail.com`)
+  8. **Nourma Widya Sari** (`nourma.sari@erlass.institute`)
+  9. **Diah Dewayani** (`diah.dewayani@erlass.institute`)
+  - Ditambah pengguna dengan role `webmaster` (`isa.herdyanto@erlass.institute` / `webmaster@erlass.institute`).
+
+#### 2. Mode Read-Only / Mode Pantau untuk Admin Umum & Manajemen
+- Pengguna dengan role `admin` dan `admin_sistem` di luar whitelist tim produksi (seperti Direktur Utama **Deborah Hutauruk**, HRD **Valentina Puspita**, RnD **Maria Nurwidi**, Promosi **Alya Charenina**, Marketing **Bagus Mustarianto**, **Mochmad Kolil**, dll.) berstatus **Read-Only**:
+  - Dapat melihat, mencari, memfilter data, serta memonitor aktivitas tanpa hambatan.
+  - Tombol aksi Tambah, Edit, Hapus, Import Siswa/Sales, 1-Klik Generate Invoice, Bulk Generate, Koreksi Tagihan, dan Verifikasi Gate 1 disembunyikan secara visual dengan badge status *"Mode Pantau (Read-Only)"*.
+  - Menampilkan badge profil *"Read-Only"* pada dropdown user baris atas bagi admin yang tidak masuk whitelist CUD.
+
+#### 3. Middleware, Policy & Controller Guard
+- Membuat middleware baru `App\Http\Middleware\EnsureCanModifyOperationalData` dan mendaftarkan alias `'operational.cud'` di `bootstrap/app.php`.
+- Menambahkan helper method di `User.php`: `canModifyOperationalData(): bool` dan `isReadOnlyAdmin(): bool`.
+- Mengamankan seluruh mutating methods pada policy dan controller:
+  - `SekolahController`: `create`, `store`, `edit`, `update`, `destroy`
+  - `SiswaController`: `create`, `store`, `edit`, `update`, `destroy`, `bulkDestroy`, `import`, `processImport`
+  - `ProductController`: `create`, `store`, `edit`, `update`
+  - `SalesmanController`: `create`, `store`, `edit`, `update`, `destroy`, `import`
+  - `InvoiceController`: `create`, `store`, `quickGenerate`, `bulkGenerate`, `koreksi`, `resetKoreksi`, `updateSessions`, `updateSkemaSekolah`
+  - `EkstrakurikulerPolicy`, `EkstrakurikulerSessionPolicy`, `AbsensiPolicy`, `LaporanMengajarPolicy`.
+- Memastikan hak tim akunting (Pak Witono, Rendy, Cahyani, dkk) tetap fokus dan memiliki otoritas penuh pada Gate 2 Invoice (`canApproveGate2Invoice()`), Master Tarif Honor (*Salary Rates*), dan Batch Payroll.
+
+## [2.9.78] - 2026-10-22
+
+### Fleksibilitas Pengosongan Sesi (0 Sesi) pada Pembaruan Sesi Invoice
+
+#### 1. Penghapusan Validasi Wajib Pilih Minimal Satu Sesi (`InvoiceController::updateSessions`)
+- Mengubah aturan validasi `sessions` dari `required|array|min:1` menjadi `nullable|array` agar admin dapat mengosongkan/membatalkan seluruh centang sesi pada suatu rombel tanpa terhambat pesan error (*"Pilih minimal satu sesi pertemuan untuk ditagihkan"*).
+- Memberikan fleksibilitas penuh saat revisi invoice (misalnya rombel baru yang belum memiliki sesi pada bulan/periode bersangkutan seperti Rombel 5 & 6 pada [Invoice #59](https://erlass.institute/invoice/59)).
+
+#### 2. Penyesuaian Kalkulasi & Tampilan Data Invoice (0 Sesi)
+- Saat rombel dikosongkan sesinya (`0 sesi`):
+  - Field item `sesi_dari` dan `sesi_sampai` diset `null`, `jumlah_sesi = 0`, dan `jumlah_siswa_billable = 0`.
+  - Header tagihan menghitung ulang total siswa billable dan jumlah rombel aktif (`total_rombel`) secara otomatis.
+- Menyesuaikan `InvoiceService::getAttendanceDataForInvoice` agar item dengan 0 sesi tidak mengambil sesi fallback (`take(4)`) dan menampilkan status *"Tidak Ditagihkan (0 Sesi)"* secara informatif.
+- Memperbarui template PDF faktur (`invoice.pdf`) agar baris rombel dengan 0 sesi dan lembar lampiran presensinya tidak dicetak pada dokumen tagihan resmi ke sekolah.
 
 ### Pengembalian 3 Tagihan ke Status Menunggu Admin Produksi
 

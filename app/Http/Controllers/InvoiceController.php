@@ -451,6 +451,10 @@ class InvoiceController extends Controller
 
     public function create(Request $request)
     {
+        if (!Auth::user()->canModifyOperationalData()) {
+            return redirect()->route('invoice.index')->with('error', 'Akses Read-Only: Pembuatan invoice baru hanya dapat dilakukan oleh Tim Inti Produksi/Operasional.');
+        }
+
         $rombel = null;
         $eligibleBatch = null;
         if ($request->filled('rombel_id')) {
@@ -506,6 +510,10 @@ class InvoiceController extends Controller
 
     public function quickGenerate(Request $request)
     {
+        if (!Auth::user()->canModifyOperationalData()) {
+            return back()->withErrors(['msg' => 'Akses Read-Only: Pembuatan draft invoice hanya dapat dilakukan oleh Tim Inti Produksi/Operasional.']);
+        }
+
         if ($request->isMethod('get')) {
             return redirect()->route('invoice.index');
         }
@@ -598,6 +606,10 @@ class InvoiceController extends Controller
 
     public function bulkGenerate(Request $request)
     {
+        if (!Auth::user()->canModifyOperationalData()) {
+            return back()->withErrors(['msg' => 'Akses Read-Only: Pembuatan invoice massal hanya dapat dilakukan oleh Tim Inti Produksi/Operasional.']);
+        }
+
         $eligibleList = $this->invoiceService->getAllEligibleSekolahs();
 
         if ($eligibleList->isEmpty()) {
@@ -631,6 +643,10 @@ class InvoiceController extends Controller
 
     public function store(Request $request)
     {
+        if (!Auth::user()->canModifyOperationalData()) {
+            return back()->withErrors(['msg' => 'Akses Read-Only: Pembuatan invoice baru hanya dapat dilakukan oleh Tim Inti Produksi/Operasional.']);
+        }
+
         $validated = $request->validate([
             'ekstrakurikuler_rombel_id' => 'required|exists:ekstrakurikuler_rombel,id',
             'skema_tagihan'             => 'required|in:bulanan,semester,tahunan,per_4_pertemuan',
@@ -993,6 +1009,10 @@ class InvoiceController extends Controller
      */
     public function koreksi(Request $request, InvoiceApproval $invoice)
     {
+        if (!Auth::user()->canModifyOperationalData()) {
+            return back()->withErrors(['msg' => 'Akses Read-Only: Koreksi invoice hanya dapat dilakukan oleh Tim Inti Produksi/Operasional.']);
+        }
+
         $validated = $request->validate([
             'invoice_approval_item_id' => 'nullable|exists:invoice_approval_items,id',
             'koreksi_siswa_billable'   => 'required|integer|min:0|max:999',
@@ -1043,6 +1063,10 @@ class InvoiceController extends Controller
      */
     public function resetKoreksi(Request $request, InvoiceApproval $invoice)
     {
+        if (!Auth::user()->canModifyOperationalData()) {
+            return back()->withErrors(['msg' => 'Akses Read-Only: Reset koreksi invoice hanya dapat dilakukan oleh Tim Inti Produksi/Operasional.']);
+        }
+
         if ($invoice->status === InvoiceApproval::STATUS_APPROVED) {
             return back()->withErrors(['msg' => 'Invoice yang sudah fully approved tidak dapat diubah.']);
         }
@@ -1079,26 +1103,30 @@ class InvoiceController extends Controller
      */
     public function updateSessions(Request $request, InvoiceApproval $invoice)
     {
+        if (!Auth::user()->canModifyOperationalData()) {
+            return back()->withErrors(['msg' => 'Akses Read-Only: Pembaruan checklist sesi invoice hanya dapat dilakukan oleh Tim Inti Produksi/Operasional.']);
+        }
+
         if ($invoice->isApproved() || $invoice->status === InvoiceApproval::STATUS_APPROVED) {
             return back()->withErrors(['msg' => 'Invoice yang sudah disetujui resmi oleh Akunting tidak dapat diubah sesinya.']);
         }
 
         $validated = $request->validate([
             'ekstrakurikuler_rombel_id' => 'required|exists:ekstrakurikuler_rombel,id',
-            'sessions'                  => 'required|array|min:1',
+            'sessions'                  => 'nullable|array',
             'sessions.*'                => 'integer|min:1',
-        ], [
-            'sessions.required' => 'Pilih minimal satu sesi pertemuan untuk ditagihkan.',
-            'sessions.min'      => 'Pilih minimal satu sesi pertemuan untuk ditagihkan.',
         ]);
 
         $rombelId = (int) $validated['ekstrakurikuler_rombel_id'];
-        $selectedSessions = array_values(array_unique(array_map('intval', $validated['sessions'])));
+        $rawSessions = $request->input('sessions', []);
+        $selectedSessions = is_array($rawSessions)
+            ? array_values(array_unique(array_filter(array_map('intval', $rawSessions))))
+            : [];
         sort($selectedSessions);
 
-        $sesiDari = min($selectedSessions);
-        $sesiSampai = max($selectedSessions);
         $jumlahSesi = count($selectedSessions);
+        $sesiDari = $jumlahSesi > 0 ? min($selectedSessions) : null;
+        $sesiSampai = $jumlahSesi > 0 ? max($selectedSessions) : null;
 
         // Validasi keterkaitan rombel dengan invoice
         $hasRombel = ($invoice->ekstrakurikuler_rombel_id == $rombelId) 
@@ -1108,32 +1136,38 @@ class InvoiceController extends Controller
             return back()->withErrors(['msg' => 'Rombel yang dipilih tidak terdaftar pada invoice ini.']);
         }
 
-        // Cek validasi duplikasi sesi pada invoice lain yang sudah resmi disetujui
-        $otherInvoices = InvoiceApproval::where('status', InvoiceApproval::STATUS_APPROVED)
-            ->where('id', '!=', $invoice->id)
-            ->where(function ($q) use ($rombelId) {
-                $q->where('ekstrakurikuler_rombel_id', $rombelId)
-                  ->orWhereHas('items', fn($it) => $it->where('ekstrakurikuler_rombel_id', $rombelId));
-            })
-            ->with('items')
-            ->get();
+        // Cek validasi duplikasi sesi pada invoice lain yang sudah resmi disetujui (hanya jika ada sesi terpilih)
+        if ($jumlahSesi > 0) {
+            $otherInvoices = InvoiceApproval::where('status', InvoiceApproval::STATUS_APPROVED)
+                ->where('id', '!=', $invoice->id)
+                ->where(function ($q) use ($rombelId) {
+                    $q->where('ekstrakurikuler_rombel_id', $rombelId)
+                      ->orWhereHas('items', fn($it) => $it->where('ekstrakurikuler_rombel_id', $rombelId));
+                })
+                ->with('items')
+                ->get();
 
-        foreach ($selectedSessions as $sessNo) {
-            foreach ($otherInvoices as $otherInv) {
-                $otherItem = $otherInv->items->firstWhere('ekstrakurikuler_rombel_id', $rombelId);
-                $oDari = $otherItem ? $otherItem->sesi_dari : $otherInv->sesi_dari;
-                $oSampai = $otherItem ? $otherItem->sesi_sampai : $otherInv->sesi_sampai;
-                if ($oDari !== null && $oSampai !== null && $sessNo >= $oDari && $sessNo <= $oSampai) {
-                    return back()->withErrors([
-                        'msg' => "Sesi {$sessNo} sudah pernah ditagihkan pada Invoice {$otherInv->nomor_invoice}. Harap batalkan centang sesi tersebut.",
-                    ]);
+            foreach ($selectedSessions as $sessNo) {
+                foreach ($otherInvoices as $otherInv) {
+                    $otherItem = $otherInv->items->firstWhere('ekstrakurikuler_rombel_id', $rombelId);
+                    $oDari = $otherItem ? $otherItem->sesi_dari : $otherInv->sesi_dari;
+                    $oSampai = $otherItem ? $otherItem->sesi_sampai : $otherInv->sesi_sampai;
+                    if ($oDari !== null && $oSampai !== null && $sessNo >= $oDari && $sessNo <= $oSampai) {
+                        return back()->withErrors([
+                            'msg' => "Sesi {$sessNo} sudah pernah ditagihkan pada Invoice {$otherInv->nomor_invoice}. Harap batalkan centang sesi tersebut.",
+                        ]);
+                    }
                 }
             }
         }
 
         // Hitung ulang billable untuk rombel ini berdasarkan sesi terpilih
-        $billableData = $this->invoiceService->calculateBillable($rombelId, $sesiDari, $sesiSampai, $selectedSessions);
-        $billableCount = $billableData['billable_count'];
+        if ($jumlahSesi > 0) {
+            $billableData = $this->invoiceService->calculateBillable($rombelId, $sesiDari, $sesiSampai, $selectedSessions);
+            $billableCount = $billableData['billable_count'];
+        } else {
+            $billableCount = 0;
+        }
 
         DB::transaction(function () use ($invoice, $rombelId, $sesiDari, $sesiSampai, $jumlahSesi, $billableCount) {
             $item = $invoice->items()->where('ekstrakurikuler_rombel_id', $rombelId)->first();
@@ -1152,28 +1186,37 @@ class InvoiceController extends Controller
                     'sesi_sampai'           => $sesiSampai,
                     'jumlah_sesi'           => $jumlahSesi,
                     'jumlah_siswa_billable' => $billableCount,
+                    'total_rombel'          => $jumlahSesi > 0 ? 1 : 0,
                     'pdf_generated_at'      => null,
                     'updated_by'            => Auth::id(),
                 ]);
             } else {
                 $allItems = $invoice->items()->get();
-                $minSesi = $allItems->min('sesi_dari');
-                $maxSesi = $allItems->max('sesi_sampai');
-                $maxJumlahSesi = $allItems->max('jumlah_sesi');
+                $activeItems = $allItems->where('jumlah_sesi', '>', 0);
+
+                $minSesi = $activeItems->isNotEmpty() ? $activeItems->min('sesi_dari') : null;
+                $maxSesi = $activeItems->isNotEmpty() ? $activeItems->max('sesi_sampai') : null;
+                $maxJumlahSesi = $activeItems->isNotEmpty() ? $activeItems->max('jumlah_sesi') : 0;
                 $totalBillable = $allItems->sum('jumlah_siswa_billable');
+                $totalRombel = $activeItems->count();
 
                 $invoice->update([
                     'sesi_dari'             => $minSesi,
                     'sesi_sampai'           => $maxSesi,
                     'jumlah_sesi'           => $maxJumlahSesi,
                     'jumlah_siswa_billable' => $totalBillable,
+                    'total_rombel'          => $totalRombel > 0 ? $totalRombel : $allItems->count(),
                     'pdf_generated_at'      => null,
                     'updated_by'            => Auth::id(),
                 ]);
             }
         });
 
-        return back()->with('success', "⚡ Sesi pembelajaran berhasil diperbarui (Sesi {$sesiDari} s/d {$sesiSampai}, total {$jumlahSesi} sesi). Siswa billable dihitung ulang secara otomatis ({$billableCount} siswa).");
+        if ($jumlahSesi > 0) {
+            return back()->with('success', "⚡ Sesi pembelajaran berhasil diperbarui (Sesi {$sesiDari} s/d {$sesiSampai}, total {$jumlahSesi} sesi). Siswa billable dihitung ulang secara otomatis ({$billableCount} siswa).");
+        } else {
+            return back()->with('success', "⚡ Sesi pembelajaran untuk rombel ini berhasil dikosongkan (0 sesi ditagihkan). Siswa billable disesuaikan menjadi 0 siswa.");
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -1186,6 +1229,10 @@ class InvoiceController extends Controller
      */
     public function updateSkemaSekolah(Request $request, string $kodlan)
     {
+        if (!Auth::user()->canModifyOperationalData() && !Auth::user()->canApproveGate2Invoice()) {
+            return back()->withErrors(['msg' => 'Akses Read-Only: Pengubahan skema tagihan hanya dapat dilakukan oleh Tim Produksi atau Akunting.']);
+        }
+
         $sekolah = \App\Models\Sekolah::findOrFail($kodlan);
 
         $validated = $request->validate([

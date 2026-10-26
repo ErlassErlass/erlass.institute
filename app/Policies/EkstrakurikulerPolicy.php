@@ -8,13 +8,28 @@ use App\Models\User;
 class EkstrakurikulerPolicy
 {
     /**
-     * Izinkan webmaster dan admin melakukan semua aksi.
-     * Webmaster memiliki akses penuh, admin_erlass memiliki akses terbatas.
+     * Izinkan webmaster melakukan semua aksi.
+     * Batasi hak CUD operasional hanya untuk tim inti produksi.
      */
     public function before(User $user, string $ability): ?bool
     {
-        // Webmaster dan Admin memiliki akses penuh ke semua fitur
-        if (in_array($user->role, ['webmaster', 'admin_sistem', 'admin'])) {
+        // Webmaster memiliki akses penuh
+        if ($user->isWebmaster()) {
+            return true;
+        }
+
+        // Untuk aksi melihat (viewAny & view), izinkan seluruh role admin/akunting
+        if (in_array($ability, ['viewAny', 'view'])) {
+            if ($user->hasAdminAccess()) {
+                return true;
+            }
+        }
+
+        // Untuk aksi CUD operasional, tolak jika bukan personil CUD
+        if (in_array($ability, ['create', 'update', 'delete', 'approve', 'activate', 'reject', 'complete', 'cancel'])) {
+            if (!$user->canModifyOperationalData()) {
+                return false;
+            }
             return true;
         }
 

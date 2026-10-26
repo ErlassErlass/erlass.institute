@@ -10,13 +10,21 @@
                     <h1 class="h3 fw-bold text-dark mb-1">Master Salesman</h1>
                     <p class="text-muted mb-0">Kelola data agen sales, wilayah kerja, dan group leader.</p>
                 </div>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#importModal">
-                        <i class="bi bi-file-earmark-excel me-1"></i> Impor Excel
-                    </button>
-                    <a href="{{ route('salesmen.create') }}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i> Tambah Salesman
-                    </a>
+                <div>
+                    @if(auth()->user()->canModifyOperationalData())
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#importModal">
+                                <i class="bi bi-file-earmark-excel me-1"></i> Impor Excel
+                            </button>
+                            <a href="{{ route('salesmen.create') }}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-1"></i> Tambah Salesman
+                            </a>
+                        </div>
+                    @else
+                        <span class="badge bg-secondary-subtle text-secondary border px-3 py-2">
+                            <i class="bi bi-eye me-1"></i> Mode Pantau (Read-Only)
+                        </span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -77,18 +85,22 @@
                                     <span class="badge bg-light text-dark border">{{ $item->area ?? '-' }}</span>
                                 </td>
                                 <td class="text-center">
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <a href="{{ route('salesmen.edit', $item) }}" class="btn btn-sm btn-outline-warning" title="Edit">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <form action="{{ route('salesmen.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus salesman ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                    @if(auth()->user()->canModifyOperationalData())
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a href="{{ route('salesmen.edit', $item) }}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            <form action="{{ route('salesmen.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus salesman ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @else
+                                        <span class="text-muted small"><i class="bi bi-lock me-1"></i>Read-Only</span>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

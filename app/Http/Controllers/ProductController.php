@@ -41,8 +41,8 @@ class ProductController extends Controller
      */
     public function create()
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk menambah produk.');
         }
         return view('products.create');
     }
@@ -55,8 +55,8 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk menambah produk.');
         }
 
         $validated = $request->validate([
@@ -85,8 +85,8 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk mengedit produk.');
         }
         return view('products.edit', compact('product'));
     }
@@ -100,8 +100,8 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        if (!in_array(auth()->user()->role, ['webmaster', 'admin_sistem', 'admin'])) {
-            abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk mengedit produk.');
         }
 
         $validated = $request->validate([

@@ -395,10 +395,14 @@
                         {{-- Collapse: Rincian Kehadiran Siswa per Sesi --}}
                         <div class="p-3 bg-light border-top d-flex align-items-center justify-content-between">
                             <span class="small text-muted">
-                                <i class="bi bi-people me-1"></i>Presensi individual tiap siswa (Aturan Erlass: Siswa billable minimal hadir &ge; {{ ($att['sessions']->count() >= 4) ? 2 : max(1, (int) ceil($att['sessions']->count() / 2)) }} dari {{ $att['sessions']->count() }} sesi)
+                                @if($att['sessions']->isNotEmpty())
+                                    <i class="bi bi-people me-1"></i>Presensi individual tiap siswa (Aturan Erlass: Siswa billable minimal hadir &ge; {{ ($att['sessions']->count() >= 4) ? 2 : max(1, (int) ceil($att['sessions']->count() / 2)) }} dari {{ $att['sessions']->count() }} sesi)
+                                @else
+                                    <i class="bi bi-people me-1"></i>Tidak ada sesi ditagihkan untuk rombel ini (0 sesi &middot; 0 siswa billable).
+                                @endif
                             </span>
                             <button class="btn btn-sm btn-outline-primary py-1 px-2.5" type="button" data-bs-toggle="collapse" data-bs-target="#studentAbsensiDetail_{{ $att['rombel']->id }}">
-                                <i class="bi bi-list-check me-1"></i>Lihat Rincian Absensi Siswa ({{ $att['students']->count() }} Siswa)
+                                <i class="bi bi-list-check me-1"></i>Lihat Rincian Siswa ({{ $att['students']->count() }} Siswa)
                             </button>
                         </div>
                         <div class="collapse" id="studentAbsensiDetail_{{ $att['rombel']->id }}">
@@ -447,7 +451,9 @@
                                             @endforeach
                                             <td class="text-center fw-bold">{{ $stHadirCount }}/{{ $att['sessions']->count() }}</td>
                                             <td class="text-center pe-4">
-                                                @if($isGratis)
+                                                @if($att['sessions']->isEmpty())
+                                                    <span class="badge bg-secondary-subtle text-secondary border">Tidak Ditagihkan (0 Sesi)</span>
+                                                @elseif($isGratis)
                                                     <span class="badge bg-warning-subtle text-warning border">Gratis (Non-Billable)</span>
                                                 @elseif($stHadirCount < $minHadirLimit)
                                                     <span class="badge bg-secondary-subtle text-secondary border">Tidak Ditagihkan (&lt;{{ $minHadirLimit }}x Hadir)</span>
@@ -475,7 +481,7 @@
                         </h6>
                         <small class="text-muted">Formula: Siswa Hadir Memenuhi Syarat (&ge;2 Sesi) &minus; Siswa Gratis (Anak Guru/Kasek) = Siswa Ditagihkan</small>
                     </div>
-                    @if($invoice->status !== 'approved')
+                    @if($invoice->status !== 'approved' && auth()->user()?->canModifyOperationalData())
                     <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#koreksiPanel">
                         <i class="bi bi-pencil me-1"></i>Koreksi Manual Tambahan
                     </button>
@@ -732,13 +738,14 @@
                 </div>
                 <div class="card-body px-4 py-3">
 
+                    @if(auth()->user()?->canApproveGate1Invoice())
                     {{-- Staf Pemeriksa Otomatis --}}
                     <div class="alert alert-info py-2 px-3 small mb-3 d-flex align-items-center justify-content-between">
                         <div>
                             <i class="bi bi-person-badge me-1"></i> Staf Pemeriksa (Otomatis):
                             <strong class="text-dark">{{ auth()->user()?->nama_lengkap ?? auth()->user()?->name ?? 'Admin Produksi' }}</strong>
                         </div>
-                        <span class="badge bg-primary-subtle text-primary border">Admin Produksi</span>
+                        <span class="badge bg-primary-subtle text-primary border">Tim CUD Produksi</span>
                     </div>
 
                     <form action="{{ route('invoice.approve.operasional', $invoice) }}" method="POST" enctype="multipart/form-data" id="gate1_form">
@@ -942,6 +949,17 @@
                             </button>
                         </div>
                     </form>
+                    @else
+                    <div class="alert alert-secondary py-3 px-3 small mb-0 border-0 shadow-xs rounded-3">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <i class="bi bi-shield-lock-fill text-secondary fs-5"></i>
+                            <strong class="text-dark">Mode Pantau (Read-Only)</strong>
+                        </div>
+                        <p class="mb-0 text-muted">
+                            Verifikasi Gate 1 hanya dapat disetujui dan disubmit oleh <strong>Tim Inti Operasional / Produksi yang berwenang</strong>. Akun Anda ({{ auth()->user()?->nama_lengkap ?? auth()->user()?->name }}) memiliki akses pemantauan (Read-Only).
+                        </p>
+                    </div>
+                    @endif
 
                 </div>
             </div>

@@ -11,9 +11,15 @@
                     <p class="text-muted mb-0">Kelola daftar program/kategori produk pembelajaran Erlass.</p>
                 </div>
                 <div>
-                    <a href="{{ route('products.create') }}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i> Tambah Produk
-                    </a>
+                    @if(auth()->user()->canModifyOperationalData())
+                        <a href="{{ route('products.create') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i> Tambah Produk
+                        </a>
+                    @else
+                        <span class="badge bg-secondary-subtle text-secondary border px-3 py-2">
+                            <i class="bi bi-eye me-1"></i> Mode Pantau (Read-Only)
+                        </span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -100,35 +106,41 @@
                                     @endif
                                 </td>
                                 <td class="text-center">
-                                    <div class="d-flex justify-content-center gap-1">
-                                        <a href="{{ route('products.edit', $item) }}" class="btn btn-sm btn-outline-warning" title="Edit">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        {{-- Toggle Aktif/Nonaktif --}}
-                                        <form action="{{ route('products.toggle-aktif', $item) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('PATCH')
-                                            @if($item->is_aktif)
-                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Nonaktifkan"
-                                                    onclick="return confirm('Nonaktifkan produk {{ addslashes($item->nama_produk) }}?')">
-                                                    <i class="bi bi-toggle-on text-success"></i>
-                                                </button>
-                                            @else
-                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Aktifkan"
-                                                    onclick="return confirm('Aktifkan kembali produk {{ addslashes($item->nama_produk) }}?')">
-                                                    <i class="bi bi-toggle-off text-danger"></i>
-                                                </button>
+                                    @if(auth()->user()->canModifyOperationalData())
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <a href="{{ route('products.edit', $item) }}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            @if(auth()->user()->isPrimaryAdmin())
+                                                {{-- Toggle Aktif/Nonaktif --}}
+                                                <form action="{{ route('products.toggle-aktif', $item) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    @if($item->is_aktif)
+                                                        <button type="submit" class="btn btn-sm btn-outline-secondary" title="Nonaktifkan"
+                                                            onclick="return confirm('Nonaktifkan produk {{ addslashes($item->nama_produk) }}?')">
+                                                            <i class="bi bi-toggle-on text-success"></i>
+                                                        </button>
+                                                    @else
+                                                        <button type="submit" class="btn btn-sm btn-outline-secondary" title="Aktifkan"
+                                                            onclick="return confirm('Aktifkan kembali produk {{ addslashes($item->nama_produk) }}?')">
+                                                            <i class="bi bi-toggle-off text-danger"></i>
+                                                        </button>
+                                                    @endif
+                                                </form>
+                                                {{-- Hapus --}}
+                                                <form action="{{ route('products.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
                                             @endif
-                                        </form>
-                                        {{-- Hapus --}}
-                                        <form action="{{ route('products.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                        </div>
+                                    @else
+                                        <span class="text-muted small"><i class="bi bi-lock me-1"></i>Read-Only</span>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

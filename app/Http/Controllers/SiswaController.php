@@ -118,7 +118,9 @@ class SiswaController extends Controller
     // app/Http/Controllers/SiswaController.php
     public function create()
     {
-        if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk menambah data siswa.');
+        }
         
         // Fetch all schools sorted by name with kodlan, namasekolah, and kota
         $sekolahs = \App\Models\Sekolah::orderBy('namasekolah', 'asc')->get(['kodlan', 'namasekolah', 'kota']);
@@ -128,7 +130,9 @@ class SiswaController extends Controller
 
     public function store(Request $request)
     {
-        if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk menambah data siswa.');
+        }
         
         $validated = $request->validate([
             'nama_lengkap' => 'required|string|min:3|max:255',
@@ -154,7 +158,9 @@ class SiswaController extends Controller
 
     public function edit(Siswa $siswa)
     {
-        if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk mengedit data siswa.');
+        }
         // Ambil semua data sekolah untuk dropdown
         $sekolahs = Sekolah::orderBy('namasekolah')->get();
 
@@ -164,7 +170,9 @@ class SiswaController extends Controller
 
     public function update(Request $request, Siswa $siswa)
     {
-        if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk mengedit data siswa.');
+        }
         $validated = $request->validate([
             'nama_lengkap' => 'required|string',
             'nisn' => 'required|string|unique:siswa,nisn,'.$siswa->id,
@@ -185,7 +193,9 @@ class SiswaController extends Controller
 
     public function destroy(Siswa $siswa)
     {
-        if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk menghapus data siswa.');
+        }
         
         // Guardrail: Tolak penghapusan jika siswa memiliki riwayat absensi
         if ($siswa->absensis()->exists()) {
@@ -205,7 +215,9 @@ class SiswaController extends Controller
 
     public function bulkDestroy(Request $request)
     {
-        if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk menghapus data siswa.');
+        }
 
         $request->validate([
             'siswa_ids' => 'required|array|min:1',
@@ -243,13 +255,17 @@ class SiswaController extends Controller
     }
     public function import()
     {
-        if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk mengimpor data siswa.');
+        }
         return view('siswa.import');
     }
 
     public function processImport(Request $request)
     {
-        if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk mengimpor data siswa.');
+        }
         $request->validate([
             'file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120',
         ]);

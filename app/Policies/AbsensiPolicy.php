@@ -10,11 +10,23 @@ use App\Models\User;
 class AbsensiPolicy
 {
     /**
-     * Izinkan admin melakukan apa saja.
+     * Izinkan webmaster melakukan apa saja.
+     * Izinkan CUD absensi bagi tim inti produksi atau instruktur yang bertugas.
      */
     public function before(User $user, string $ability): ?bool
     {
-        if (in_array($user->role, ['webmaster', 'admin_sistem', 'admin'])) {
+        if ($user->isWebmaster()) {
+            return true;
+        }
+
+        if (in_array($ability, ['rekap', 'view', 'viewAny'])) {
+            if ($user->hasAdminAccess()) {
+                return true;
+            }
+        }
+
+        // Jika admin mencoba memodifikasi absensi, harus personil CUD operasional
+        if ($user->hasAdminAccess() && $user->canModifyOperationalData()) {
             return true;
         }
 

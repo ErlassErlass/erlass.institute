@@ -29,7 +29,7 @@ class EkstrakurikulerSessionPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(['webmaster', 'admin_sistem', 'admin']);
+        return $user->canModifyOperationalData();
     }
 
     /**
@@ -37,12 +37,7 @@ class EkstrakurikulerSessionPolicy
      */
     public function update(User $user, EkstrakurikulerSession $ekstrakurikulerSession): bool
     {
-        if ($user->hasRole(['webmaster', 'admin_sistem', 'admin'])) {
-            return true;
-        }
-
-        // Instructors CANNOT update schedule details. Only Admins.
-        return $user->hasRole(['webmaster', 'admin_sistem', 'admin']); 
+        return $user->canModifyOperationalData();
     }
 
     /**
@@ -50,7 +45,7 @@ class EkstrakurikulerSessionPolicy
      */
     public function reschedule(User $user, EkstrakurikulerSession $ekstrakurikulerSession): bool
     {
-        return $user->hasRole(['admin', 'admin_sistem', 'webmaster']);
+        return $user->canModifyOperationalData();
     }
 
     /**
@@ -58,7 +53,7 @@ class EkstrakurikulerSessionPolicy
      */
     public function postpone(User $user, EkstrakurikulerSession $ekstrakurikulerSession): bool
     {
-        return $user->hasRole(['admin', 'admin_sistem', 'webmaster']);
+        return $user->canModifyOperationalData();
     }
 
     /**
@@ -66,7 +61,7 @@ class EkstrakurikulerSessionPolicy
      */
     public function cancel(User $user, EkstrakurikulerSession $ekstrakurikulerSession): bool
     {
-        return $user->hasRole(['admin', 'admin_sistem', 'webmaster']);
+        return $user->canModifyOperationalData();
     }
 
     /**
@@ -74,7 +69,7 @@ class EkstrakurikulerSessionPolicy
      */
     public function start(User $user, EkstrakurikulerSession $session): bool
     {
-        if ($user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
+        if ($user->canModifyOperationalData()) {
             return true;
         }
 
@@ -86,7 +81,7 @@ class EkstrakurikulerSessionPolicy
      */
     public function complete(User $user, EkstrakurikulerSession $session): bool
     {
-        if ($user->hasRole(['admin', 'admin_sistem', 'webmaster'])) {
+        if ($user->canModifyOperationalData()) {
             return true;
         }
 
@@ -98,7 +93,7 @@ class EkstrakurikulerSessionPolicy
      */
     public function delete(User $user, EkstrakurikulerSession $ekstrakurikulerSession): bool
     {
-        return $user->hasRole(['admin', 'admin_sistem', 'webmaster']);
+        return $user->canModifyOperationalData();
     }
 
     /**
@@ -106,7 +101,7 @@ class EkstrakurikulerSessionPolicy
      */
     public function restore(User $user, EkstrakurikulerSession $ekstrakurikulerSession): bool
     {
-        return $user->hasRole(['admin', 'admin_sistem', 'webmaster']);
+        return $user->canModifyOperationalData();
     }
 
     /**

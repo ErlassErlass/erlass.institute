@@ -1014,8 +1014,9 @@ class InvoiceService
                 if ($item->rombel) {
                     $rombelCollection->push([
                         'rombel'      => $item->rombel,
-                        'sesi_dari'   => $item->sesi_dari ?: $invoice->sesi_dari,
-                        'sesi_sampai' => $item->sesi_sampai ?: $invoice->sesi_sampai,
+                        'sesi_dari'   => $item->sesi_dari,
+                        'sesi_sampai' => $item->sesi_sampai,
+                        'jumlah_sesi' => (int) ($item->jumlah_sesi ?? 0),
                     ]);
                 }
             }
@@ -1024,17 +1025,19 @@ class InvoiceService
                 'rombel'      => $invoice->rombel,
                 'sesi_dari'   => $invoice->sesi_dari,
                 'sesi_sampai' => $invoice->sesi_sampai,
+                'jumlah_sesi' => (int) ($invoice->jumlah_sesi ?? 0),
             ]);
         }
 
         $results = [];
 
         foreach ($rombelCollection as $entry) {
-            $rombel     = $entry['rombel'];
-            $sesiDari   = $entry['sesi_dari'];
-            $sesiSampai = $entry['sesi_sampai'];
-            $ekskul     = $rombel->ekstrakurikuler;
-            $sekolah    = $ekskul?->sekolah ?? $invoice->sekolah;
+            $rombel      = $entry['rombel'];
+            $sesiDari    = $entry['sesi_dari'];
+            $sesiSampai  = $entry['sesi_sampai'];
+            $itemJmlSesi = $entry['jumlah_sesi'];
+            $ekskul      = $rombel->ekstrakurikuler;
+            $sekolah     = $ekskul?->sekolah ?? $invoice->sekolah;
 
             // Query sesi-sesi yang ditagihkan
             $querySessions = $rombel->sessions()
@@ -1042,13 +1045,15 @@ class InvoiceService
                 ->with(['laporanMengajar.absensis.siswa', 'instruktur', 'asisten'])
                 ->orderBy('nomor_pertemuan');
 
-            if ($sesiDari && $sesiSampai) {
+            if ($itemJmlSesi === 0 || ($sesiDari === null && $sesiSampai === null)) {
+                $sessions = collect();
+            } elseif ($sesiDari && $sesiSampai) {
                 $querySessions->whereBetween('nomor_pertemuan', [$sesiDari, $sesiSampai]);
+                $sessions = $querySessions->get();
             } else {
                 $querySessions->take(4);
+                $sessions = $querySessions->get();
             }
-
-            $sessions = $querySessions->get();
 
             // Identifikasi siswa yang aktif di rombel + yang tercatat pernah hadir
             $attendedStudentIds = $sessions->flatMap(function ($s) {

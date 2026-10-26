@@ -11,9 +11,15 @@
                     <p class="text-muted mb-0">Kelola data sekolah mitra.</p>
                 </div>
                 <div>
-                    <a href="{{ route('sekolah.create') }}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i> Tambah Sekolah
-                    </a>
+                    @if(auth()->user()->canModifyOperationalData())
+                        <a href="{{ route('sekolah.create') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i> Tambah Sekolah
+                        </a>
+                    @else
+                        <span class="badge bg-secondary-subtle text-secondary border px-3 py-2">
+                            <i class="bi bi-eye me-1"></i> Mode Pantau (Read-Only)
+                        </span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -67,18 +73,22 @@
                                 <td><span class="badge bg-light text-dark border">{{ $item->provinsi }}</span></td>
                                 <td>{{ $item->kec }}</td>
                                 <td class="text-center">
-                                     <div class="d-flex justify-content-center gap-2">
-                                        <a href="{{ route('sekolah.edit', $item) }}" class="btn btn-sm btn-outline-warning" title="Edit">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <form action="{{ route('sekolah.destroy', $item) }}" method="POST" class="d-inline delete-form">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                    @if(auth()->user()->canModifyOperationalData())
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a href="{{ route('sekolah.edit', $item) }}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            <form action="{{ route('sekolah.destroy', $item) }}" method="POST" class="d-inline delete-form">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @else
+                                        <span class="text-muted small"><i class="bi bi-lock me-1"></i>Read-Only</span>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -125,6 +135,7 @@
                                 </div>
                             </div>
 
+                            @if(auth()->user()->canModifyOperationalData())
                             <div class="d-flex gap-2">
                                 <a href="{{ route('sekolah.edit', $item) }}" class="btn btn-sm btn-outline-warning flex-grow-1">
                                     <i class="bi bi-pencil-square"></i> Edit
@@ -137,6 +148,7 @@
                                     </button>
                                 </form>
                             </div>
+                            @endif
                         </div>
                     </div>
                 @empty

@@ -222,13 +222,17 @@
                 <a href="{{ route('siswa.export', request()->query()) }}" class="btn btn-outline-light btn-sm fw-semibold shadow-sm px-3 rounded-3" title="Unduh Data Siswa (CSV)">
                     <i class="bi bi-download me-1.5"></i> Export CSV
                 </a>
-                @if(auth()->user()->role !== 'instruktur')
+                @if(auth()->user()->canModifyOperationalData())
                     <a href="{{ route('siswa.import') }}" class="btn btn-light btn-sm fw-semibold shadow-sm px-3 rounded-3">
                         <i class="bi bi-file-earmark-spreadsheet me-1.5 text-success"></i> Import Excel / CSV
                     </a>
                     <a href="{{ route('siswa.create') }}" class="btn btn-warning btn-sm fw-semibold shadow-sm px-3.5 rounded-3 text-dark">
                         <i class="bi bi-person-plus-fill me-1.5"></i> Tambah Siswa Baru
                     </a>
+                @elseif(auth()->user()->isReadOnlyAdmin())
+                    <span class="badge bg-secondary-subtle text-secondary border px-3 py-2 align-self-center">
+                        <i class="bi bi-eye me-1"></i> Mode Pantau (Read-Only)
+                    </span>
                 @endif
             </div>
         </div>
@@ -363,12 +367,12 @@
                 <table class="table siswa-table align-middle" id="siswa-table">
                     <thead>
                         <tr>
-                            @if(auth()->user()->role !== 'instruktur')
+                            @if(auth()->user()->canModifyOperationalData())
                                 <th width="45px" class="text-center ps-4">
                                     <input type="checkbox" id="selectAll" class="form-check-input" title="Pilih Semua">
                                 </th>
                             @endif
-                            <th width="16%" class="{{ auth()->user()->role === 'instruktur' ? 'ps-4' : '' }}">NISN / Identitas</th>
+                            <th width="16%" class="{{ !auth()->user()->canModifyOperationalData() ? 'ps-4' : '' }}">NISN / Identitas</th>
                             <th width="28%">Nama Siswa</th>
                             <th width="16%">Jenis Kelamin</th>
                             <th width="24%">Sekolah</th>
@@ -384,13 +388,13 @@
                                 $isFemale = strtolower($item->jenis_kelamin) == 'p' || strtolower($item->jenis_kelamin) == 'perempuan';
                             @endphp
                             <tr class="{{ $isTemp ? 'bg-warning bg-opacity-10' : '' }}">
-                                @if(auth()->user()->role !== 'instruktur')
+                                @if(auth()->user()->canModifyOperationalData())
                                     <td class="text-center ps-4">
                                         <input type="checkbox" name="siswa_ids[]" value="{{ $item->id }}" class="form-check-input siswa-checkbox">
                                     </td>
                                 @endif
 
-                                <td class="{{ auth()->user()->role === 'instruktur' ? 'ps-4' : '' }}">
+                                <td class="{{ !auth()->user()->canModifyOperationalData() ? 'ps-4' : '' }}">
                                     @if($isTemp)
                                         <span class="badge badge-nisn badge-nisn-temp" title="NISN Sementara — Perlu Diperbarui">
                                             <i class="bi bi-exclamation-circle me-1"></i>{{ $item->nisn }}
@@ -455,13 +459,15 @@
 
                                 <td class="text-center pe-4">
                                     <div class="d-flex justify-content-center gap-1.5">
-                                        <a href="{{ route('siswa.edit', $item) }}" class="btn btn-sm btn-light border text-warning hover-shadow" title="Edit Data Siswa">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        @if(auth()->user()->role !== 'instruktur')
+                                        @if(auth()->user()->canModifyOperationalData())
+                                            <a href="{{ route('siswa.edit', $item) }}" class="btn btn-sm btn-light border text-warning hover-shadow" title="Edit Data Siswa">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
                                             <button type="button" class="btn btn-sm btn-light border text-danger hover-shadow" title="Hapus Siswa" onclick="confirmSingleDelete('{{ route('siswa.destroy', $item) }}', '{{ addslashes($item->nama_lengkap) }}')">
                                                 <i class="bi bi-trash"></i>
                                             </button>
+                                        @else
+                                            <span class="text-muted small"><i class="bi bi-lock me-1"></i>Read-Only</span>
                                         @endif
                                     </div>
                                 </td>

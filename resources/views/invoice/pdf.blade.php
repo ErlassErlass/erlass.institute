@@ -199,7 +199,9 @@
             'csr_reguler_soga' => 'CSR Reguler SOGA (Solidaritas Erlangga)',
             default            => '-',
         };
-        $totalRombel = $invoice->total_rombel ?: ($invoice->items->count() ?: 1);
+        $activeItems = $invoice->items->where('jumlah_sesi', '>', 0);
+        $printableItems = $activeItems->isNotEmpty() ? $activeItems : $invoice->items;
+        $totalRombel = $invoice->total_rombel ?: ($printableItems->count() ?: 1);
     @endphp
     <table style="margin-bottom: 6px; font-size: 7.5pt;">
         <tr>
@@ -287,8 +289,8 @@
             </tr>
         </thead>
         <tbody>
-            @if($invoice->items->isNotEmpty())
-                @foreach($invoice->items as $idx => $item)
+            @if($printableItems->isNotEmpty())
+                @foreach($printableItems->values() as $idx => $item)
                 <tr style="background: {{ $idx % 2 === 0 ? '#ffffff' : '#f8fafc' }};">
                     <td style="padding: 4px 6px; text-align: center; border: 1px solid #cbd5e1; color: #64748b;">
                         {{ $idx + 1 }}
@@ -527,6 +529,9 @@
 {{-- ═════════════════════════════════════════════════════════════════════════ --}}
 @if(!empty($attendanceData))
 @foreach($attendanceData as $attIndex => $att)
+@if(empty($att['sessions']) || $att['sessions']->isEmpty())
+    @continue
+@endif
 <div class="page-break" style="padding-top: 2px;">
 
     {{-- Header Lampiran Formal --}}

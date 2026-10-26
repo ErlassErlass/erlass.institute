@@ -23,7 +23,9 @@ class SekolahController extends Controller
     // Create: Show form to add a school
     public function create()
     {
-        if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk menambah data sekolah.');
+        }
         return view('sekolah.create');
     }
 
@@ -72,7 +74,9 @@ class SekolahController extends Controller
     // Store: Save new school
     public function store(Request $request)
     {
-        if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk menambah data sekolah.');
+        }
         $validated = $request->validate([
             'kodlan' => 'required|string|unique:sekolah,kodlan',
             'namasekolah' => 'required|string',
@@ -97,13 +101,17 @@ class SekolahController extends Controller
     // Edit: Show edit form
     public function edit(Sekolah $sekolah)
     {
-        if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk mengedit data sekolah.');
+        }
         return view('sekolah.edit', compact('sekolah'));
     }
 
     public function update(Request $request, Sekolah $sekolah)
     {
-        if (auth()->user()->role === 'instruktur') abort(403, 'Akses ditolak.');
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk mengedit data sekolah.');
+        }
         $validated = $request->validate([
             'namasekolah' => 'required|string',
             'jenjang' => 'required|in:SD,SMP',
@@ -135,6 +143,9 @@ class SekolahController extends Controller
     // Delete: Remove a school
     public function destroy(Sekolah $sekolah)
     {
+        if (!auth()->user()->canModifyOperationalData()) {
+            abort(403, 'Akses Ditolak (Read-Only): Anda tidak memiliki izin untuk menghapus data sekolah.');
+        }
         // NOTE: Penghapusan master data sekolah dinonaktifkan secara permanen untuk mencegah hilangnya data.
         return redirect()->route('sekolah.index')
             ->with('error', 'Penghapusan master data sekolah dinonaktifkan demi keamanan data.');

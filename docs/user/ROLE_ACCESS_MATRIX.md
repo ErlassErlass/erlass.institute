@@ -45,6 +45,30 @@ Modul penagihan sekolah (`/invoice`) mewajibkan pemisahan dua pintu verifikasi s
 - **Gate 1 (Verifikasi Produksi / Operasional)**: Dilakukan oleh Tim Produksi (`admin`, dipimpin Adinda & Novandi) untuk memastikan seluruh pertemuan fisik tuntas, checklist operasional terisi, dan konfirmasi bukti chat WhatsApp PIC sekolah valid.
 - **Gate 2 (Persetujuan Akunting & Finance)**: Dilakukan oleh Tim Akunting (`akunting`, dipimpin Rendy, Cahyani, & Witono) untuk verifikasi nilai tagihan, kesesuaian rekening penampung, dan tanda terima serah berkas penagihan fisik.
 
+### D. Kebijakan Whitelist CUD Tim Inti Produksi & Mode Read-Only Admin Umum (v2.9.78)
+Guna mencegah manipulasi data yang tidak disengaja serta menegakkan prinsip *least privilege*, hak **CUD (Create, Update, Delete)** untuk modul data master dan operasional akademik (Sekolah, Siswa, Rombel, Jadwal, Program Ekskul, Penilaian, Presensi, dan Gate 1 Invoice) **dibatasi secara ketat hanya untuk Whitelist Tim Inti Produksi**:
+
+1. **Daftar 9 Staf Pemegang Hak CUD Operasional Penuh**:
+   - **Adinda Wardania** (`adinda.wardania@erlass.institute`)
+   - **Ahmad Yusril Firdaus** (`ahmad.firdaus@erlass.institute`)
+   - **Novandi Wijaya / Novan** (`novan@erlass.institute`)
+   - **Cornelis Banu** (`cornelis.banu@erlass.institute`)
+   - **Putro Bagus Anton Hudiono** (`putro.hudiono@erlass.institute`)
+   - **Furqon Irkhamni** (`furqonirkhamni@gmail.com`)
+   - **Meclin Bintang Geovani** (`meclinbintanggeovanimbg@gmail.com`)
+   - **Nourma Widya Sari** (`nourma.sari@erlass.institute`)
+   - **Diah Dewayani** (`diah.dewayani@erlass.institute`)
+   - *(Serta pemilik hak sistem `webmaster` seperti `isa.herdyanto@erlass.institute`)*.
+
+2. **Mode Read-Only Admin Umum (Hak Pantau)**:
+   - Pengguna dengan role `admin` atau `admin_sistem` di luar daftar di atas (misalnya jajaran Direksi **Deborah Hutauruk**, HRD **Valentina Puspita**, RnD **Maria Nurwidi**, Promosi **Alya Charenina**, Marketing **Bagus Mustarianto**, **Mochmad Kolil**, dll.) berstatus **Read-Only / Mode Pantau**.
+   - Mereka dapat mencari, melihat daftar, membuka detail, memantau riwayat, serta mengekspor laporan, namun **tidak dapat menambah, mengubah, atau menghapus data master operasional**.
+   - Tombol-tombol CUD disembunyikan di UI dan seluruh endpoint mutasi dilindungi di level Controller, Policy, dan Middleware `operational.cud`.
+
+3. **Posisi & Hak Tim Akunting / Keuangan (Pak Witono, Rendy, Cahyani, dkk)**:
+   - Berada pada role `akunting`. Hak CUD difokuskan secara khusus pada domain finansial: **Approval Gate 2 Invoice**, **Master Tarif Honor (*Salary Rates*)**, dan **Pemrosesan Batch Payroll**.
+   - Pada modul operasional sekolah, siswa, dan jadwal, Tim Akunting berada dalam status Read-Only untuk keperluan audit dan pencocokan data penagihan.
+
 ---
 
 ## 3. Pemetaan Resmi 46 Karyawan Erlass Institute

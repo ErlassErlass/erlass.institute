@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__)) // <-- This is the cor
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'operational.cud' => \App\Http\Middleware\EnsureCanModifyOperationalData::class,
         ]);
         $middleware->append(\Sentry\Laravel\Tracing\Middleware::class);
     })
