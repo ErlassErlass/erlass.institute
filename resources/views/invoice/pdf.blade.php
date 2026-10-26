@@ -83,35 +83,42 @@
         $logoBase64 = file_exists($logoFile) ? base64_encode(file_get_contents($logoFile)) : null;
     }
 
-    // Resolusi Staf Operasional / Pembuat Invoice (Dinda / Novandi sesuai yang mengerjakan)
+    // Resolusi Staf Operasional / Pembuat Invoice (Hanya nomor staf yang melakukan generate)
     if (!isset($stafNama) || !isset($stafPhone)) {
         $dindaUser = \App\Models\User::where('id', 114)->orWhere('nama_lengkap', 'like', '%Adinda%')->first();
         $novanUser = \App\Models\User::where('id', 248)->orWhere('nama_lengkap', 'like', '%Novandi%')->first();
 
-        $workerId = $invoice->operasional_user_id ?: $invoice->created_by;
+        $workerUserId = $invoice->created_by ?: ($invoice->operasional_user_id ?: null);
         $worker = null;
 
-        if ($workerId == 114) {
+        if ($workerUserId == 114 || ($invoice->createdByUser && str_contains(strtolower($invoice->createdByUser->nama_lengkap), 'adinda'))) {
             $worker = $dindaUser;
-        } elseif ($workerId == 248) {
+        } elseif ($workerUserId == 248 || ($invoice->createdByUser && str_contains(strtolower($invoice->createdByUser->nama_lengkap), 'novan'))) {
             $worker = $novanUser;
-        } elseif ($invoice->operasionalUser) {
-            $worker = $invoice->operasionalUser;
         } elseif ($invoice->createdByUser) {
             $worker = $invoice->createdByUser;
+        } elseif ($invoice->operasionalUser) {
+            $worker = $invoice->operasionalUser;
         }
 
         if (!$worker && auth()->check()) {
-            if (auth()->id() == 114) $worker = $dindaUser ?: auth()->user();
-            elseif (auth()->id() == 248) $worker = $novanUser ?: auth()->user();
+            if (auth()->id() == 114 || str_contains(strtolower(auth()->user()->nama_lengkap), 'adinda')) $worker = $dindaUser ?: auth()->user();
+            elseif (auth()->id() == 248 || str_contains(strtolower(auth()->user()->nama_lengkap), 'novan')) $worker = $novanUser ?: auth()->user();
+            else $worker = auth()->user();
         }
 
-        if ($worker) {
-            $stafNama = $worker->nama_lengkap;
-            $stafPhone = $worker->no_telephone ?: ($worker->id == 114 ? '08260808476' : ($worker->id == 248 ? '087736052381' : '-'));
-        } else {
-            $stafNama = 'Adinda Wardania / Novandi Wijaya';
-            $stafPhone = '08260808476 / 087736052381';
+        if (!$worker) {
+            $worker = $dindaUser;
+        }
+
+        $stafNama = $worker?->nama_lengkap ?? 'Adinda Wardania';
+        $stafPhone = $worker?->no_telephone;
+        if (empty($stafPhone) || $stafPhone === '-') {
+            if ($worker?->id == 248 || str_contains(strtolower($stafNama), 'novan')) {
+                $stafPhone = '087736052381';
+            } else {
+                $stafPhone = '082118302927';
+            }
         }
     }
 @endphp

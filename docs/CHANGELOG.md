@@ -2,6 +2,31 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.81] - 2026-10-26
+
+### Pembaruan Kontak Generator Draft PDF & Pengembalian Status Invoice #298 dan #117
+
+#### 1. Pembaruan Kontak Staf Generator Draft Invoice
+- **Pembaruan Nomor Telepon Adinda**:
+  - Memperbarui nomor telepon resmi **Adinda Wardania** pada master akun pengguna ([`users.no_telephone`](file:///var/www/webapperlass/app/Models/User.php)) serta resolver PDF menjadi **`082118302927`**.
+- **Kontak Tunggal Staf Generator (Tidak Keduanya Sekaligus)**:
+  - Mengubah logika penyematan kontak di dokumen Draft PDF ([`app/Http/Controllers/InvoiceController.php`](file:///var/www/webapperlass/app/Http/Controllers/InvoiceController.php) & [`resources/views/invoice/pdf.blade.php`](file:///var/www/webapperlass/resources/views/invoice/pdf.blade.php)) agar secara spesifik hanya menampilkan nomor staf operasional yang melakukan *generate* tagihan (`created_by`):
+    - Jika dibuat oleh Adinda Wardania: menampilkan Adinda (`082118302927`).
+    - Jika dibuat oleh Novandi Wijaya: menampilkan Novandi (`087736052381`).
+    - Jika dibuat oleh staf produksi lain: menampilkan nama dan nomor telepon staf bersangkutan (fallback ke Adinda jika kosong).
+  - Menghapus penggabungan dua nama sekaligus (*"Adinda Wardania / Novandi Wijaya"*) agar PIC sekolah tidak bingung menghubungi staf penanggung jawab riil.
+
+#### 2. Pengembalian Status Invoice #298 dan #117 ke Menunggu Admin Produksi
+- Mengembalikan dua tagihan dari tab *Disetujui Resmi* (`approved`) ke antrean **Menunggu Admin Produksi** (`tab=pending_operasional`):
+  1. **[Invoice #298](https://erlass.institute/invoice/298)** (**SD SANDIKA** — *Ekskul Coding Scratch*, Inv Bulan 2):
+     - Nomor invoice disesuaikan menjadi format draft: `DRAFT/ERLASS/202610/20104810/002`.
+     - Status: `pending_operasional`, `operasional_status: pending`, `akunting_status: pending`, `is_invoice_tercetak: false`.
+  2. **[Invoice #117](https://erlass.institute/invoice/117)** (**SMPS IT BUAHATI ISLAMIC SCHOOL** — *Ekskul Coding Scratch*, September 2026):
+     - Nomor invoice disesuaikan menjadi format draft: `DRAFT/ERLASS/202610/69774551/002`.
+     - Status: `pending_operasional`, `operasional_status: pending`, `akunting_status: pending`, `is_invoice_tercetak: false`.
+- Membuka kembali formulir edit sesi, koreksi siswa billable, dan verifikasi GATE 1 bagi tim Admin Produksi.
+- Membersihkan cache data penagihan.
+
 ## [2.9.80] - 2026-10-26
 
 ### Penyesuaian Skema Tagihan Bulanan SDS Global Islamic School & Akses Portal Rekap Pertemuan
