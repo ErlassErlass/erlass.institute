@@ -459,13 +459,16 @@ class PayrollCalculatorService
 
                     $sessionBaseFee = $session->override_fee !== null ? (float) $session->override_fee : (float) $calc['calculated_fee'];
 
-                    // Guardrail Anti-Double Base Fee: Cek apakah rombel & tanggal yang sama sudah terhitung
-                    $rombelKey = ($session->ekstrakurikuler_rombel_id ? (string) $session->ekstrakurikuler_rombel_id : 'adhoc_' . $sekolahKey) . '|' . $sessionDate;
+                    // Guardrail Anti-Double Base Fee: Cek apakah rombel, nomor pertemuan & tanggal yang sama sudah terhitung
+                    $pertemuanKey = ($session->nomor_pertemuan && (int)$session->nomor_pertemuan > 0)
+                        ? 'p' . $session->nomor_pertemuan
+                        : 'adhoc_' . ($session->jam_mulai_aktual ?? $session->jam_mulai_terjadwal ?? $session->id);
+                    $rombelKey = ($session->ekstrakurikuler_rombel_id ? (string) $session->ekstrakurikuler_rombel_id : 'adhoc_' . $sekolahKey) . '|' . $pertemuanKey . '|' . $sessionDate;
                     if (isset($rombelDatePaidKeys[$rombelKey]) && $session->override_fee === null) {
                         // Sesi duplikat pada rombel & tanggal yang sama: Nolkan base fee kecuali ada admin override
                         $sessionBaseFee = 0.00;
                         $primarySessionId = $rombelDatePaidKeys[$rombelKey];
-                        $warnMsg = "Sesi #{$session->id} terdeteksi ganda pada rombel & tanggal {$sessionDate} (sesi utama: #{$primarySessionId}). Honor dinolkan otomatis.";
+                        $warnMsg = "Sesi #{$session->id} terdeteksi ganda pada rombel & tanggal {$sessionDate} pertemuan {$session->nomor_pertemuan} (sesi utama: #{$primarySessionId}). Honor dinolkan otomatis.";
                         $duplicateWarnings[] = $warnMsg;
                         \Log::warning("Payroll Guardrail: User {$userId} duplicate session #{$session->id} on rombel key {$rombelKey}");
                     } else {
@@ -819,7 +822,10 @@ class PayrollCalculatorService
 
                     if ($role === 'utama') {
                         $totalUtamaSessions++;
-                        $rombelKey = ($session->ekstrakurikuler_rombel_id ? (string) $session->ekstrakurikuler_rombel_id : 'adhoc_' . $sekolahKey) . '|' . $sessionDate;
+                        $pertemuanKey = ($session->nomor_pertemuan && (int)$session->nomor_pertemuan > 0)
+                            ? 'p' . $session->nomor_pertemuan
+                            : 'adhoc_' . ($session->jam_mulai_aktual ?? $session->jam_mulai_terjadwal ?? $session->id);
+                        $rombelKey = ($session->ekstrakurikuler_rombel_id ? (string) $session->ekstrakurikuler_rombel_id : 'adhoc_' . $sekolahKey) . '|' . $pertemuanKey . '|' . $sessionDate;
                         $isDuplicateZero = isset($rombelDatePaidKeys[$rombelKey]) && $session->override_fee === null && $itemSession->override_fee === null;
                         if (!$isDuplicateZero) {
                             $rombelDatePaidKeys[$rombelKey] = $session->id;
@@ -962,7 +968,10 @@ class PayrollCalculatorService
 
             if ($role === 'utama') {
                 $totalUtamaSessions++;
-                $rombelKey = ($session->ekstrakurikuler_rombel_id ? (string) $session->ekstrakurikuler_rombel_id : 'adhoc_' . $sekolahKey) . '|' . $sessionDate;
+                $pertemuanKey = ($session->nomor_pertemuan && (int)$session->nomor_pertemuan > 0)
+                    ? 'p' . $session->nomor_pertemuan
+                    : 'adhoc_' . ($session->jam_mulai_aktual ?? $session->jam_mulai_terjadwal ?? $session->id);
+                $rombelKey = ($session->ekstrakurikuler_rombel_id ? (string) $session->ekstrakurikuler_rombel_id : 'adhoc_' . $sekolahKey) . '|' . $pertemuanKey . '|' . $sessionDate;
                 $isDuplicateZero = isset($rombelDatePaidKeys[$rombelKey]) && $session->override_fee === null && $itemSession->override_fee === null;
                 if (!$isDuplicateZero) {
                     $rombelDatePaidKeys[$rombelKey] = $session->id;

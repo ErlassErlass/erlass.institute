@@ -2,6 +2,25 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.84] - 2026-10-26
+
+### Pembenahan Guardrail Anti-Duplikasi Honor Mengajar Sesi Multi-Pertemuan Hari Sama (MIN 22 Jakarta & Slip Gaji #3152)
+
+#### 1. Perbaikan Guardrail Anti-Duplikasi ([`PayrollCalculatorService.php`](file:///var/www/webapperlass/app/Services/PayrollCalculatorService.php))
+- **Akar Masalah**:
+  - Filter anti-duplikasi sebelumnya hanya menggunakan kunci `rombel_id|tanggal`.
+  - Akibatnya, jika instruktur mengajar 2 sesi berturut-turut pada hari yang sama di rombel yang sama (misal Pertemuan Ke-4 dan Ke-5 pada tanggal 28/09/2026 di MIN 22 Jakarta), sesi kedua secara keliru dianggap duplikat dan honor pokoknya (`base_fee`) dinolkan otomatis (`Rp 0`).
+- **Solusi Sistemik**:
+  - Memperbarui kunci deduplikasi di `generateMonthlyPayroll()`, `recalculateBatch()`, dan `recalculateSingleItem()` menjadi:
+    `rombel_id|p{nomor_pertemuan}|tanggal` (serta fallback adhoc berbasis jam/id).
+  - Dengan perbaikan ini, sesi dengan nomor pertemuan berbeda pada hari yang sama (seperti sesi kelas pengganti atau double meeting) tetap dihitung honor mengajarnya secara penuh, sementara deduplikasi uang transport 1x/hari per sekolah mitra tetap berjalan sesuai aturan SOP.
+- **Pembaruan Slip Gaji #3152**:
+  - Menjalankan rekalkulasi ulang pada Slip Gaji `#3152` (Periode Oktober 2026):
+    - Pertemuan Ke-5 MIN 22 Jakarta (Sesi #50030) kini terhitung honor penuh **Rp 150.000** (17 siswa hadir).
+    - 4 sesi lain yang serupa juga terpulihkan honor pokoknya secara akurat.
+    - Total penerimaan kotor diperbarui dari Rp 4.402.500 menjadi **Rp 4.952.500**.
+    - Gaji bersih diperbarui dari Rp 4.292.438 menjadi **Rp 4.828.688**.
+
 ## [2.9.83] - 2026-10-26
 
 ### Peningkatan Form Pembuatan Tagihan Manual (/invoice/create) Multi-Program & Checklist Rombel serta Penghapusan Invoice #375
