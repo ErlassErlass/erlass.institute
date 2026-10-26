@@ -410,6 +410,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [\App\Http\Controllers\InvoiceController::class, 'index'])->name('index');
         Route::get('/create', [\App\Http\Controllers\InvoiceController::class, 'create'])->name('create');
         Route::get('/rombels-by-sekolah', [\App\Http\Controllers\InvoiceController::class, 'rombelsBySekolah'])->name('rombels');
+        Route::get('/programs-by-sekolah', [\App\Http\Controllers\InvoiceController::class, 'programsBySekolah'])->name('programs');
         Route::match(['get', 'post'], '/quick-generate', [\App\Http\Controllers\InvoiceController::class, 'quickGenerate'])->name('quick-generate');
         Route::post('/bulk-generate', [\App\Http\Controllers\InvoiceController::class, 'bulkGenerate'])->name('bulk-generate');
         Route::post('/', [\App\Http\Controllers\InvoiceController::class, 'store'])->name('store');

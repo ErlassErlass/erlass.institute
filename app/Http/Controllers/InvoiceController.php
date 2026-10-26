@@ -457,6 +457,9 @@ class InvoiceController extends Controller
 
         $rombel = null;
         $eligibleBatch = null;
+        $selectedProgram = null;
+        $selectedSekolah = null;
+
         if ($request->filled('rombel_id')) {
             $rombel = EkstrakurikulerRombel::with('ekstrakurikuler.sekolah')
                 ->whereHas('ekstrakurikuler', function ($q) {
@@ -469,12 +472,76 @@ class InvoiceController extends Controller
                     ->with('error', 'Program atau rombel ini bukan program Ekskul / Pelatihan yang dapat ditagihkan.');
             }
 
+            $selectedProgram = $rombel->ekstrakurikuler;
+            $selectedSekolah = $selectedProgram?->sekolah;
             $eligibleBatch = $this->invoiceService->getEligibleInvoiceForRombel($rombel);
+        } elseif ($request->filled('program_id') || $request->filled('ekstrakurikuler_id')) {
+            $programId = $request->query('program_id') ?? $request->query('ekstrakurikuler_id');
+            $selectedProgram = Ekstrakurikuler::with(['sekolah', 'rombels' => function ($q) {
+                $q->with('instruktur:id,nama_lengkap')->orderBy('nama_rombel');
+            }])
+            ->invoiceable()
+            ->find($programId);
+
+            if ($selectedProgram) {
+                $selectedSekolah = $selectedProgram->sekolah;
+                $eligibleBatch = $this->invoiceService->getEligibleInvoiceForProgram($selectedProgram);
+            }
+        } elseif ($request->filled('sekolah_kodlan') || $request->filled('sekolah')) {
+            $kodlan = $request->query('sekolah_kodlan') ?? $request->query('sekolah');
+            $selectedSekolah = Sekolah::where('kodlan', $kodlan)->first();
+            if ($selectedSekolah) {
+                $eligibleBatch = $this->invoiceService->getEligibleInvoiceForSekolah($selectedSekolah);
+            }
         }
 
         $sekolahs = Sekolah::has('invoiceableEkstrakurikulers')->orderBy('namasekolah')->get(['kodlan', 'namasekolah', 'skema_tagihan']);
 
-        return view('invoice.create', compact('sekolahs', 'rombel', 'eligibleBatch'));
+        return view('invoice.create', compact('sekolahs', 'rombel', 'selectedProgram', 'selectedSekolah', 'eligibleBatch'));
+    }
+
+    /**
+     * JSON Endpoint: Dapatkan daftar program (Ekskul & Pelatihan) berserta rombel-rombelnya untuk sekolah tertentu
+     */
+    public function programsBySekolah(Request $request)
+    {
+        $kodlan = $request->query('sekolah');
+        if (!$kodlan) {
+            return response()->json([]);
+        }
+
+        $programs = Ekstrakurikuler::where('sekolah_kodlan', $kodlan)
+            ->invoiceable()
+            ->with(['rombels' => function ($q) {
+                $q->with('instruktur:id,nama_lengkap')
+                  ->orderBy('nama_rombel');
+            }])
+            ->orderBy('kategori_program')
+            ->get(['id', 'kategori_program', 'skema_tagihan', 'jenis_program', 'penanggung_jawab'])
+            ->map(function ($p) {
+                return [
+                    'id'               => $p->id,
+                    'kategori_program' => $p->kategori_program,
+                    'jenis_program'    => $p->jenis_program,
+                    'skema_tagihan'    => $p->skema_tagihan,
+                    'penanggung_jawab' => $p->penanggung_jawab,
+                    'tahun_ajaran'     => '2026/2027',
+                    'rombels'          => $p->rombels->map(function ($r) {
+                        return [
+                            'id'                => $r->id,
+                            'nama_rombel'       => $r->nama_rombel,
+                            'jumlah_siswa'      => (int) ($r->jumlah_siswa ?? 0),
+                            'instruktur'        => $r->instruktur?->nama_lengkap ?? $r->instruktur?->nama ?? 'Belum ditentukan',
+                            'hari'              => $r->hari ?? '-',
+                            'jam'               => ($r->jam_mulai && $r->jam_selesai) ? "{$r->jam_mulai} - {$r->jam_selesai}" : null,
+                            'pertemuan_selesai' => (int) ($r->pertemuan_selesai ?? 0),
+                            'total_pertemuan'   => (int) ($r->total_pertemuan ?? 0),
+                        ];
+                    })->values(),
+                ];
+            });
+
+        return response()->json($programs);
     }
 
     /**
@@ -648,8 +715,12 @@ class InvoiceController extends Controller
         }
 
         $validated = $request->validate([
-            'ekstrakurikuler_rombel_id' => 'required|exists:ekstrakurikuler_rombel,id',
-            'skema_tagihan'             => 'required|in:bulanan,semester,tahunan,per_4_pertemuan',
+            'sekolah_kodlan'            => 'nullable|exists:sekolah,kodlan',
+            'ekstrakurikuler_id'        => 'nullable|exists:ekstrakurikuler,id',
+            'rombel_ids'                => 'nullable|array|min:1',
+            'rombel_ids.*'              => 'exists:ekstrakurikuler_rombel,id',
+            'ekstrakurikuler_rombel_id' => 'nullable|exists:ekstrakurikuler_rombel,id',
+            'skema_tagihan'             => 'required|in:bulanan,semester,tahunan,per_4_pertemuan,csr_reguler_soga',
             'periode_label'             => 'required|string|max:100',
             'tahun_ajaran'              => 'required|string|max:9',
             'periode_nomor'             => 'nullable|integer|min:1',
@@ -657,54 +728,113 @@ class InvoiceController extends Controller
             'sesi_sampai'               => 'nullable|integer|min:1',
         ]);
 
-        $rombel = EkstrakurikulerRombel::with('ekstrakurikuler.sekolah')->findOrFail($validated['ekstrakurikuler_rombel_id']);
-        if (!$rombel->ekstrakurikuler?->isInvoiceable()) {
+        if ($validated['skema_tagihan'] === \App\Models\Sekolah::SKEMA_CSR_REGULER_SOGA) {
             return back()->withErrors([
-                'ekstrakurikuler_rombel_id' => 'Hanya program Ekskul dan Pelatihan yang dapat dibuatkan invoice.',
+                'msg' => 'Program CSR SOGA (Solidaritas Erlangga) merupakan program sosial/sponsor dan tidak perlu dibuatkan invoice.',
             ])->withInput();
         }
 
-        // Cek duplikasi invoice
-        $exists = InvoiceApproval::where('ekstrakurikuler_rombel_id', $validated['ekstrakurikuler_rombel_id'])
+        $rombelIds = $validated['rombel_ids'] ?? [];
+        if (empty($rombelIds) && !empty($validated['ekstrakurikuler_rombel_id'])) {
+            $rombelIds = [$validated['ekstrakurikuler_rombel_id']];
+        }
+
+        if (empty($rombelIds)) {
+            return back()->withErrors([
+                'rombel_ids' => 'Pilih minimal satu rombel untuk dibuatkan invoice.',
+            ])->withInput();
+        }
+
+        $rombels = EkstrakurikulerRombel::with('ekstrakurikuler.sekolah')
+            ->whereIn('id', $rombelIds)
+            ->get();
+
+        if ($rombels->isEmpty()) {
+            return back()->withErrors([
+                'rombel_ids' => 'Rombel yang dipilih tidak valid.',
+            ])->withInput();
+        }
+
+        // Verifikasi semua rombel berasal dari program yang invoiceable
+        foreach ($rombels as $r) {
+            if (!$r->ekstrakurikuler?->isInvoiceable()) {
+                return back()->withErrors([
+                    'rombel_ids' => "Rombel {$r->nama_rombel} bukan bagian dari program Ekskul / Pelatihan yang dapat ditagihkan.",
+                ])->withInput();
+            }
+        }
+
+        $firstRombel = $rombels->first();
+        $ekskul = !empty($validated['ekstrakurikuler_id'])
+            ? Ekstrakurikuler::with('sekolah')->find($validated['ekstrakurikuler_id'])
+            : $firstRombel->ekstrakurikuler;
+
+        $kodlan = $validated['sekolah_kodlan'] ?? $ekskul?->sekolah_kodlan ?? $firstRombel->ekstrakurikuler?->sekolah_kodlan;
+
+        // Cek duplikasi invoice untuk sekolah, program, dan periode ini
+        $existsQuery = InvoiceApproval::where('sekolah_kodlan', $kodlan)
             ->where('periode_label', $validated['periode_label'])
-            ->exists();
+            ->where('status', '!=', InvoiceApproval::STATUS_REJECTED);
 
-        if ($exists) {
+        if ($ekskul) {
+            $existsQuery->where('ekstrakurikuler_id', $ekskul->id);
+        }
+
+        if ($existsQuery->exists()) {
             return back()->withErrors([
-                'periode_label' => 'Invoice untuk rombel dan periode ini sudah ada.',
+                'periode_label' => "Invoice untuk sekolah ini pada program '{$ekskul?->kategori_program}' dan periode '{$validated['periode_label']}' sudah ada.",
             ])->withInput();
         }
 
-        // Hitung siswa billable dari sistem
-        $billableData = $this->calculateBillable(
-            $validated['ekstrakurikuler_rombel_id'],
-            $validated['sesi_dari'] ?? null,
-            $validated['sesi_sampai'] ?? null
-        );
+        // Hitung billable data per rombel dan siapkan item
+        $items = [];
+        $totalSiswa = 0;
+        $maxSesi = 0;
 
-        // Generate nomor invoice
-        $rombel     = EkstrakurikulerRombel::with('ekstrakurikuler.sekolah')->find($validated['ekstrakurikuler_rombel_id']);
-        $kodlan     = $rombel->ekstrakurikuler->sekolah->kodlan ?? 'UNKN';
-        $nomorInv   = InvoiceApproval::generateNomorInvoice($kodlan, $validated['periode_label']);
+        foreach ($rombels as $r) {
+            $billableData = $this->calculateBillable(
+                $r->id,
+                $validated['sesi_dari'] ?? null,
+                $validated['sesi_sampai'] ?? null
+            );
 
-        $invoice = InvoiceApproval::create([
-            ...$validated,
-            'sekolah_kodlan'         => $kodlan,
-            'ekstrakurikuler_id'     => $rombel->ekstrakurikuler_id,
-            'kategori_program'       => $rombel->ekstrakurikuler?->kategori_program,
-            'jumlah_siswa_billable'  => $billableData['billable_count'],
-            'jumlah_sesi'            => $billableData['session_count'],
-            'nomor_invoice'          => $nomorInv,
-            'pic_konfirmasi_nama'    => $rombel->ekstrakurikuler?->penanggung_jawab,
-            'pic_konfirmasi_jabatan' => 'Penanggung Jawab Ekstrakurikuler',
-            'status'                 => 'pending_operasional',
-            'operasional_status'     => 'pending',
-            'akunting_status'        => 'pending',
-            'created_by'             => Auth::id(),
-        ]);
+            $siswaBillable = $billableData['billable_count'] > 0 ? $billableData['billable_count'] : (int)($r->jumlah_siswa ?? 0);
+            $sessionCount = $billableData['session_count'] > 0 ? $billableData['session_count'] : (
+                (!empty($validated['sesi_sampai']) && !empty($validated['sesi_dari']))
+                    ? max(1, (int)$validated['sesi_sampai'] - (int)$validated['sesi_dari'] + 1)
+                    : 4
+            );
+
+            $items[] = [
+                'ekstrakurikuler_rombel_id' => $r->id,
+                'sesi_dari'                 => $validated['sesi_dari'] ?? 1,
+                'sesi_sampai'               => $validated['sesi_sampai'] ?? $sessionCount,
+                'jumlah_sesi'               => $sessionCount,
+                'jumlah_siswa_billable'     => $siswaBillable,
+            ];
+
+            $totalSiswa += $siswaBillable;
+            $maxSesi = max($maxSesi, $sessionCount);
+        }
+
+        $invoiceData = [
+            'sekolah_kodlan'            => $kodlan,
+            'ekstrakurikuler_id'        => $ekskul?->id,
+            'kategori_program'          => $ekskul?->kategori_program,
+            'ekstrakurikuler_rombel_id' => $firstRombel->id,
+            'skema_tagihan'             => $validated['skema_tagihan'],
+            'periode_label'             => $validated['periode_label'],
+            'periode_nomor'             => $validated['periode_nomor'] ?? null,
+            'tahun_ajaran'              => $validated['tahun_ajaran'],
+            'sesi_dari'                 => $validated['sesi_dari'] ?? 1,
+            'sesi_sampai'               => $validated['sesi_sampai'] ?? $maxSesi,
+            'items'                     => $items,
+        ];
+
+        $invoice = $this->invoiceService->createInvoiceForSekolah($invoiceData, Auth::id());
 
         return redirect()->route('invoice.show', $invoice)
-            ->with('success', "Invoice {$nomorInv} berhasil dibuat. Menunggu approval Operasional.");
+            ->with('success', "Invoice {$invoice->nomor_invoice} berhasil dibuat ({$invoice->total_rombel} rombel, {$invoice->jumlah_siswa_billable} siswa). Menunggu approval Operasional.");
     }
 
     // ─────────────────────────────────────────────────────────────────────────

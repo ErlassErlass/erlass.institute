@@ -2,6 +2,30 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.83] - 2026-10-26
+
+### Peningkatan Form Pembuatan Tagihan Manual (/invoice/create) Multi-Program & Checklist Rombel serta Penghapusan Invoice #375
+
+#### 1. Penghapusan [Invoice #375](https://erlass.institute/invoice/375)
+- Menghapus invoice draft `#375` (`DRAFT/ERLASS/202610/20103940/003` - SDS Global Islamic School) dari database.
+- Mereset status absensi dan cache sehingga sistem deteksi otomatis `InvoiceService` kembali menampilkan SDS Global Islamic School untuk periode Oktober 2026 mencakup seluruh 3 rombel lengkap (Sesi 8-10, 60 siswa).
+
+#### 2. Peningkatan Form Pembuatan Invoice Manual ([`/invoice/create`](https://erlass.institute/invoice/create))
+- **Pemilihan Program Kegiatan**:
+  - Menambahkan dropdown pilihan program kegiatan di bawah sekolah terpilih via endpoint JSON baru [`/invoice/programs-by-sekolah`](file:///var/www/webapperlass/app/Http/Controllers/InvoiceController.php).
+  - Menampilkan nama program, jenis (ekskul/pelatihan), dan jumlah rombel yang tersedia.
+- **Checklist Rombel Interaktif**:
+  - Menggantikan dropdown rombel tunggal dengan antarmuka checklist multi-rombel berbentuk kartu interaktif.
+  - Setiap rombel menampilkan: Nama rombel, instruktur pembina, jadwal hari & jam, jumlah siswa terdaftar, serta jumlah sesi pertemuan selesai.
+  - Tombol aksi cepat: *Pilih Semua* dan *Batal Pilih*.
+  - Penghitung dinamis real-time: jumlah rombel terpilih dan estimasi total siswa billable yang ikut ditagihkan.
+- **Dukungan Multi-Rombel pada Controller ([`InvoiceController::store`](file:///var/www/webapperlass/app/Http/Controllers/InvoiceController.php))**:
+  - Mendukung input `rombel_ids[]` (array ID rombel) maupun fallback single rombel untuk kompatibilitas.
+  - Menghitung siswa billable dan sesi kehadiran riil per rombel menggunakan `calculateBillable()`.
+  - Menerbitkan `InvoiceApproval` terpadu dengan rincian `InvoiceApprovalItem` untuk setiap rombel yang dicentang.
+- **Automated Feature Tests**:
+  - Menambahkan pengujian integrasi `programs_by_sekolah_endpoint_returns_programs_and_rombels` dan `admin_can_create_invoice_with_multiple_checked_rombels` pada [`tests/Feature/InvoiceApprovalTest.php`](file:///var/www/webapperlass/tests/Feature/InvoiceApprovalTest.php).
+
 ## [2.9.82] - 2026-10-26
 
 ### Pengembalian Status Invoice #258 SDI Al Falah I PG ke Menunggu Admin Produksi

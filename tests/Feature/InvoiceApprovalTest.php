@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Ekstrakurikuler;
 use App\Models\EkstrakurikulerRombel;
 use App\Models\InvoiceApproval;
 use App\Models\Sekolah;
@@ -1284,6 +1285,80 @@ class InvoiceApprovalTest extends TestCase
             ]);
 
         $responseApproved->assertSessionHasErrors('msg');
+    }
+
+    /** @test */
+    public function programs_by_sekolah_endpoint_returns_programs_and_rombels(): void
+    {
+        $admin = $this->makeAdmin();
+        $sekolah = Sekolah::factory()->create(['kodlan' => 'TESTKOD99']);
+        $ekskul = Ekstrakurikuler::factory()->create([
+            'sekolah_kodlan'   => $sekolah->kodlan,
+            'kategori_program' => 'Ekskul Coding Scratch',
+            'jenis_program'    => 'ekstrakurikuler',
+        ]);
+        $rombel1 = EkstrakurikulerRombel::factory()->create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nama_rombel'        => 'Rombel A',
+            'jumlah_siswa'       => 15,
+        ]);
+        $rombel2 = EkstrakurikulerRombel::factory()->create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nama_rombel'        => 'Rombel B',
+            'jumlah_siswa'       => 20,
+        ]);
+
+        $response = $this->actingAs($admin)->getJson("/invoice/programs-by-sekolah?sekolah={$sekolah->kodlan}");
+        $response->assertStatus(200);
+        $response->assertJsonCount(1);
+        $response->assertJsonPath('0.kategori_program', 'Ekskul Coding Scratch');
+        $response->assertJsonCount(2, '0.rombels');
+    }
+
+    /** @test */
+    public function admin_can_create_invoice_with_multiple_checked_rombels(): void
+    {
+        $admin = $this->makeAdmin();
+        $sekolah = Sekolah::factory()->create(['kodlan' => 'TESTKOD88']);
+        $ekskul = Ekstrakurikuler::factory()->create([
+            'sekolah_kodlan'   => $sekolah->kodlan,
+            'kategori_program' => 'Ekskul Robotik',
+            'jenis_program'    => 'ekstrakurikuler',
+        ]);
+        $rombel1 = EkstrakurikulerRombel::factory()->create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nama_rombel'        => 'Rombel 1',
+            'jumlah_siswa'       => 12,
+        ]);
+        $rombel2 = EkstrakurikulerRombel::factory()->create([
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nama_rombel'        => 'Rombel 2',
+            'jumlah_siswa'       => 18,
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('invoice.store'), [
+            'sekolah_kodlan'     => $sekolah->kodlan,
+            'ekstrakurikuler_id' => $ekskul->id,
+            'rombel_ids'         => [$rombel1->id, $rombel2->id],
+            'skema_tagihan'      => 'bulanan',
+            'periode_label'      => 'November 2026',
+            'tahun_ajaran'       => '2026/2027',
+            'sesi_dari'          => 1,
+            'sesi_sampai'        => 4,
+            'periode_nomor'      => 1,
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+
+        $invoice = InvoiceApproval::where('sekolah_kodlan', $sekolah->kodlan)
+            ->where('periode_label', 'November 2026')
+            ->first();
+
+        $this->assertNotNull($invoice);
+        $this->assertEquals(2, $invoice->total_rombel);
+        $this->assertEquals(30, $invoice->jumlah_siswa_billable);
+        $this->assertEquals(2, $invoice->items()->count());
     }
 }
 
