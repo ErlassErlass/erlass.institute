@@ -723,6 +723,13 @@
                                 <span>Pencairan Payroll</span>
                             </a>
                         </li>
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ request()->routeIs('agenda-kegiatan.*') ? 'active' : '' }}" href="{{ route('agenda-kegiatan.index') }}" target="_blank">
+                                <i class="bi bi-display text-info"></i>
+                                <span>Portal Rekap Pertemuan</span>
+                                <span class="badge bg-info bg-opacity-10 text-info rounded-pill ms-auto fw-bold" style="font-size: 0.65rem;">PORTAL</span>
+                            </a>
+                        </li>
                     @endif
                     @if(Auth::user()?->role === 'instruktur' || Auth::user()?->hasAdminAccess())
                         <li class="sidebar-item">

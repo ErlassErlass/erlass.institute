@@ -2,6 +2,26 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.80] - 2026-10-26
+
+### Penyesuaian Skema Tagihan Bulanan SDS Global Islamic School & Akses Portal Rekap Pertemuan
+
+#### 1. Penyesuaian Skema & Sesi Tagihan [Invoice #134](https://erlass.institute/invoice/134)
+- **Migrasi Skema ke Bulanan**:
+  - Mengubah skema tagihan master data sekolah `[20103940] SDS GLOBAL ISLAMIC SCHOOL` dari `per_4_pertemuan` menjadi **`bulanan`** (`Sekolah::SKEMA_BULANAN`).
+  - Mengubah skema tagihan pada program `Ekstrakurikuler #253` (*Ekskul Coding Scratch*) menjadi **`bulanan`**.
+- **Penyesuaian [Invoice #134](https://erlass.institute/invoice/134)** (`INV/ERLASS/202610/20103940/002`):
+  - **Pengecualian Sesi 8**: Sesi 8 (pertemuan tanggal 08 Oktober 2026) dihilangkan dari Invoice #134, sehingga invoice ini secara konsisten khusus memuat sesi bulan September 2026 (Sesi 5 tanggal 10 September, Sesi 6 tanggal 17 September, dan Sesi 7 tanggal 24 September 2026).
+  - Skema tagihan diubah menjadi **`bulanan`** (*Bulanan Kalender*), periode **`September 2026`** (Periode Nomor `9`).
+  - Rentang sesi disesuaikan menjadi **Pertemuan 5 s.d. 7** (3 sesi) pada level invoice dan seluruh item rombel (Rombel 1, Rombel 2, Rombel 3).
+  - Status invoice tetap **Disetujui Resmi** (`approved`, Gate 2 Staff Akunting disetujui, dan `is_invoice_tercetak` aktif).
+  - Sesi 8 (08 Oktober 2026) secara otomatis dialokasikan ke tagihan bulan berikutnya (Oktober 2026) bersama sesi 9 & 10.
+- Membersihkan cache invoice (`invoice_eligible_programs_cache`, `invoice_eligible_programs_count`, `invoice_sekolahs_filter_list`, `invoice_available_cities`).
+
+#### 2. Integrasi Akses Portal Rekap Pertemuan Ekskul (`/rekap-pertemuan-ekskul`)
+- Menambahkan menu **Portal Rekap Pertemuan** di sidebar navigasi utama pada kelompok **Kompensasi & Payroll** agar staf Akunting (Pak Witono, dkk) dan Admin dapat langsung membuka portal pemantauan dan pencetakan presensi resmi tanpa perlu mengetik URL secara manual.
+- Menambahkan tombol pintas jalan cepat **`Portal Rekap Pertemuan ↗`** pada header halaman detail invoice dan di dalam Card **GATE 2: Persetujuan Staff Akunting** ([`resources/views/invoice/show.blade.php`](file:///var/www/webapperlass/resources/views/invoice/show.blade.php)) untuk memudahkan cross-check bukti kehadiran dan presensi riil sebelum persetujuan resmi.
+
 ## [2.9.79] - 2026-10-26
 
 ### Pembatasan Hak CUD Operasional ke Tim Inti Produksi & Mode Read-Only Admin Umum

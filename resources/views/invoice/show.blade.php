@@ -29,6 +29,9 @@
             @endif
         </div>
         <div class="ms-auto d-flex gap-2">
+            <a href="{{ route('agenda-kegiatan.index') }}" class="btn btn-outline-info fw-semibold" target="_blank" title="Buka Portal Rekap Pertemuan Ekskul untuk audit presensi & sesi">
+                <i class="bi bi-display me-1.5"></i>Portal Rekap Pertemuan ↗
+            </a>
             @if($invoice->isApproved())
             <a href="{{ route('invoice.pdf', $invoice) }}" class="btn btn-success" target="_blank">
                 <i class="bi bi-download me-2"></i>Unduh PDF Resmi
@@ -1018,6 +1021,12 @@
                     <span class="badge bg-light text-secondary border">Keuangan &amp; Akunting</span>
                 </div>
                 <div class="card-body px-4 py-3">
+                    <div class="mb-3">
+                        <a href="{{ route('agenda-kegiatan.index') }}" target="_blank" class="btn btn-sm btn-outline-info w-100 d-flex align-items-center justify-content-center gap-1.5 py-1.5 fw-semibold" style="border-radius: 8px;">
+                            <i class="bi bi-display"></i>
+                            <span>Audit Rekap Pertemuan &amp; Presensi di Portal ↗</span>
+                        </a>
+                    </div>
                     @if($invoice->akunting_status === 'approved')
                         <div class="alert alert-success py-3 px-3 small mb-0 border-success">
                             <div class="fw-bold fs-6 text-success mb-2">
