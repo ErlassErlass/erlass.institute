@@ -122,14 +122,39 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
             background: #ffffff !important;
             overflow: hidden;
-            will-change: transform, opacity;
-            transform: translateZ(0);
         }
 
         .modal-header {
-            background-color: #f8fafc !important;
-            border-bottom: 1px solid #f1f5f9 !important;
-            padding: 1.25rem 1.5rem !important;
+            background-color: #f8fafc;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .modal-header.bg-success {
+            background-color: #198754 !important;
+            border-bottom: none !important;
+        }
+        .modal-header.bg-success .modal-title,
+        .modal-header.bg-success .btn-close {
+            color: #ffffff !important;
+        }
+
+        .modal-header.bg-primary {
+            background-color: #2563eb !important;
+            border-bottom: none !important;
+        }
+        .modal-header.bg-primary .modal-title,
+        .modal-header.bg-primary .btn-close {
+            color: #ffffff !important;
+        }
+
+        .modal-header.bg-danger {
+            background-color: #dc3545 !important;
+            border-bottom: none !important;
+        }
+        .modal-header.bg-danger .modal-title,
+        .modal-header.bg-danger .btn-close {
+            color: #ffffff !important;
         }
 
         .modal-header .btn-close {
@@ -145,9 +170,9 @@
         }
 
         .modal-footer {
-            background-color: #f8fafc !important;
-            border-top: 1px solid #f1f5f9 !important;
-            padding: 1rem 1.5rem !important;
+            background-color: #f8fafc;
+            border-top: 1px solid #f1f5f9;
+            padding: 1rem 1.5rem;
         }
 
         .select2-container--bootstrap-5 {
@@ -779,13 +804,15 @@
                         </li>
                         @endif
 
-                        @if(Auth::user()?->canManageUsers())
+                        @if(Auth::user()?->canViewUsers())
+                            @if(Auth::user()?->canManageUsers())
                             <li class="sidebar-item">
                                 <a class="sidebar-link {{ request()->routeIs('admin.verification.index') ? 'active' : '' }}" href="{{ route('admin.verification.index') }}">
                                     <i class="bi bi-shield-check"></i>
                                     <span>Verifikasi Instruktur</span>
                                 </a>
                             </li>
+                            @endif
                             <li class="sidebar-item">
                                 <a class="sidebar-link {{ request()->routeIs('users.index') ? 'active' : '' }}" href="{{ route('users.index') }}">
                                     <i class="bi bi-people-fill"></i>

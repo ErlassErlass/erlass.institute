@@ -51,6 +51,12 @@ class User extends Authenticatable
             if (!empty($user->nama_lengkap)) {
                 $user->nama_lengkap = mb_convert_case(trim(preg_replace('/\s+/', ' ', $user->nama_lengkap)), MB_CASE_TITLE, 'UTF-8');
             }
+
+            // Larang pembuatan atau penyimpanan akun dengan domain dummy (.example) pada sistem
+            $email = strtolower($user->email ?? '');
+            if (str_ends_with($email, '@example.com') || str_ends_with($email, '@example.org') || str_ends_with($email, '@example.net')) {
+                throw new \InvalidArgumentException("Pembuatan akun dengan domain dummy (.example) dilarang pada sistem.");
+            }
         });
 
         static::updating(function ($user) {
@@ -219,23 +225,50 @@ class User extends Authenticatable
     }
 
     /**
-     * Cek apakah user adalah Admin Utama / Otorisasi Khusus (Adinda Wardania, Cornelis Banu, Ahmad Yusril Firdaus, atau Webmaster)
+     * Cek apakah user adalah Admin Utama / Otorisasi Khusus (Adinda Wardania, Cornelis Banu, atau Webmaster)
      */
     public function isPrimaryAdmin(): bool
     {
         return $this->role === 'webmaster' || in_array($this->email, [
             'adinda.wardania@erlass.institute',
             'cornelis.banu@erlass.institute',
-            'ahmad.firdaus@erlass.institute',
         ]);
     }
 
     /**
-     * Cek apakah user bisa mengelola user lain (khusus webmaster)
+     * Cek apakah user bisa mengelola user lain (khusus webmaster & admin sistem)
      */
     public function canManageUsers(): bool
     {
         return in_array($this->role, ['webmaster', 'admin_sistem']);
+    }
+
+    /**
+     * Daftar 3 Personil Inti Produksi yang memiliki hak RU (Read & Update)
+     * pada modul Manajemen User (/users).
+     */
+    public const USER_MANAGEMENT_RU_EMAILS = [
+        'adinda.wardania@erlass.institute',
+        'novan@erlass.institute',
+        'ahmad.firdaus@erlass.institute',
+    ];
+
+    /**
+     * Cek apakah user bisa melihat daftar & detail manajemen user
+     * (Webmaster, Admin Sistem, serta 3 Personil Inti Produksi: Adinda, Novan, Ahmad Yusril)
+     */
+    public function canViewUsers(): bool
+    {
+        return $this->canManageUsers() || in_array($this->email, self::USER_MANAGEMENT_RU_EMAILS);
+    }
+
+    /**
+     * Cek apakah user bisa mengedit data manajemen user
+     * (Webmaster, Admin Sistem, serta 3 Personil Inti Produksi: Adinda, Novan, Ahmad Yusril)
+     */
+    public function canUpdateUsers(): bool
+    {
+        return $this->canManageUsers() || in_array($this->email, self::USER_MANAGEMENT_RU_EMAILS);
     }
 
     /**
@@ -272,11 +305,6 @@ class User extends Authenticatable
             return true;
         }
 
-        // Dukungan otomatis untuk test suite di mana factory user menggunakan domain dummy (@example.*)
-        if (app()->runningUnitTests() && in_array($this->role, ['admin', 'admin_sistem']) && (str_ends_with($this->email, '@example.com') || str_ends_with($this->email, '@example.org') || str_ends_with($this->email, '@example.net'))) {
-            return true;
-        }
-
         return false;
     }
 
@@ -297,9 +325,6 @@ class User extends Authenticatable
         return in_array($this->role, ['webmaster', 'admin_sistem', 'admin', 'akunting']);
     }
 
-    /**
-     * Cek apakah user berhak mengakses dan memproses pencairan batch payroll
-     */
     /**
      * Cek apakah user berhak melakukan eksekusi/mutasi pencairan batch payroll
      * (Khusus Webmaster, Akunting, serta 4 Personil Kunci Produksi: Adinda, Novan, Andi, Ahmad Yusril).

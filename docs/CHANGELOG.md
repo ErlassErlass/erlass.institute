@@ -2,6 +2,37 @@
 
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
+## [2.9.87] - 2026-10-28
+
+### Penyelarasan Otorisasi Tim Inti Produksi (Adinda, Novandi, Ahmad Yusril), Hak Akses RU Manajemen User, Guard Pencegahan Akun Dummy, dan Kalibrasi Invoice SDS IT Meranti
+
+#### 1. Penyelarasan Hak Akses Tim Inti Produksi & RU Manajemen User ([`app/Models/User.php`](file:///var/www/webapperlass/app/Models/User.php), [`app/Policies/UserPolicy.php`](file:///var/www/webapperlass/app/Policies/UserPolicy.php), [`routes/web.php`](file:///var/www/webapperlass/routes/web.php), [`resources/views/layouts/app.blade.php`](file:///var/www/webapperlass/resources/views/layouts/app.blade.php))
+- **Kesetaraan Hak Akses 3 Personil Inti Produksi**:
+  - Menyelaraskan hak akses Kepala Produksi **Ahmad Yusril Firdaus** (`ahmad.firdaus@erlass.institute`) dengan pilar administrasi produksi **Adinda Wardania** (`adinda.wardania@erlass.institute`) dan **Novandi Wijaya** (`novan@erlass.institute`).
+  - Ketiganya memegang wewenang **CUD Operasional Penuh** (`OPERATIONAL_CUD_EMAILS`) pada modul master Sekolah, Siswa, Rombel, Sesi Jadwal, Nilai, serta verifikasi **Approval Gate 1 Invoice**.
+  - Ketiganya memegang otorisasi eksekusi mutasi **Pencairan Batch Payroll** (`canDisbursePayroll()`).
+- **Penerapan Hak Khusus RU (Read & Update) pada Manajemen User (`/users`)**:
+  - Didefinisikan konstanta whitelist `USER_MANAGEMENT_RU_EMAILS` di model `User`.
+  - **Read (R)**: Ketiga personil dapat melihat daftar user (`/users`) dan detail profil user (`/users/{id}`).
+  - **Update (U)**: Ketiga personil dapat mengakses form edit (`/users/{id}/edit`) dan memperbarui informasi user (biodata, kontak WA, kompetensi pengajaran, status aktif/nonaktif).
+  - **Create & Delete Guardrail**: Hak penambahan user baru (`/users/create`) dan penghapusan user (`DELETE /users/{id}`) tetap terkunci eksklusif untuk role `webmaster` dan `admin_sistem` IT.
+  - Penyesuaian layout sidebar: Memunculkan menu *"Manajemen User"* di navigasi sidebar untuk ketiga personil produksi.
+
+#### 2. Pembersihan & Guard Pencegahan Akun Dummy .example ([`app/Models/User.php`](file:///var/www/webapperlass/app/Models/User.php))
+- **Pembersihan Database (`erlass_db`)**:
+  - Menghapus 39 akun pengguna dummy dengan domain `@example.com`, `@example.org`, dan `@example.net` (ID 300 s/d 338).
+  - Menghapus 11 baris data salesman dummy yang terhubung (`SLS-947`, `SLS-126`, dsb.).
+  - Menghapus 1 entri riwayat pengujian rombel di tabel `rombel_instructor_history`.
+- **Model-Level Guard Pencegahan Permanen**:
+  - Menambahkan pengecekan otomatis pada event `User::saving`: Melempar `InvalidArgumentException` jika ada upaya menyimpan email dengan domain dummy (`.example.*`) pada lingkungan live database.
+  - Membuang celah bypass unit testing pada `canModifyOperationalData()` di production.
+
+#### 3. Kalibrasi Data Invoice SDS Islam Terpadu Meranti (Kodlan 20104776)
+- **Invoice `DRAFT/ERLASS/202610/20104776/002` (ID: 77)**:
+  - Mengembalikan status invoice dari `pending_akunting` (*Menunggu Staff Akunting*) menjadi `pending_operasional` (*Menunggu Admin Produksi* / Gate 1) dan me-reset timestamp serah terima akunting.
+- **Invoice `DRAFT/ERLASS/202610/20104776/001` (ID: 76)**:
+  - Mengubah skema tagihan dari `bulanan` (Periode 8 / Agustus 2026) menjadi skema `per_4_pertemuan` (*Inv Bulan 1* untuk sesi 1–4) agar selaras dengan skema kontrak sekolah dan invoice 002 (*Inv Bulan 2*).
+
 ## [2.9.86] - 2026-10-26
 
 ### Fitur Checklist Siswa Tagihan & Tambah Siswa Manual pada Detail Invoice (/invoice/{invoice})

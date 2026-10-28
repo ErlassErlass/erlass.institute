@@ -34,8 +34,10 @@ class UserPolicy
      */
     public function viewAny(User $user): bool
     {
-        // Webmaster, Admin Sistem, dan Primary Admin bisa melihat daftar user
-        return in_array($user->role, ['webmaster', 'admin_sistem']) || $user->isPrimaryAdmin();
+        // Webmaster, Admin Sistem, Primary Admin, dan 3 Personil Inti Produksi (Adinda, Novan, Ahmad) bisa melihat daftar user
+        return in_array($user->role, ['webmaster', 'admin_sistem']) || 
+               $user->isPrimaryAdmin() || 
+               in_array($user->email, User::USER_MANAGEMENT_RU_EMAILS);
     }
 
     /**
@@ -43,8 +45,10 @@ class UserPolicy
      */
     public function view(User $user, User $model): bool
     {
-        // Webmaster, Admin Sistem, dan Primary Admin (termasuk Ahmad Yusril) bisa melihat semua user
-        if (in_array($user->role, ['webmaster', 'admin_sistem']) || $user->isPrimaryAdmin()) {
+        // Webmaster, Admin Sistem, Primary Admin, dan 3 Personil Inti Produksi (Adinda, Novan, Ahmad) bisa melihat detail semua user
+        if (in_array($user->role, ['webmaster', 'admin_sistem']) || 
+            $user->isPrimaryAdmin() || 
+            in_array($user->email, User::USER_MANAGEMENT_RU_EMAILS)) {
             return true;
         }
 
@@ -57,7 +61,8 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        return in_array($user->role, ['webmaster', 'admin_sistem']) || $user->isPrimaryAdmin();
+        // Khusus Webmaster dan Admin Sistem IT (tim RU produksi tidak dapat membuat user)
+        return in_array($user->role, ['webmaster', 'admin_sistem']);
     }
 
     /**
@@ -65,8 +70,10 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        // Primary admin & Admin Sistem bisa edit user lain
-        if ($user->isPrimaryAdmin() || in_array($user->role, ['webmaster', 'admin_sistem'])) {
+        // Webmaster, Admin Sistem, Primary Admin, serta 3 Personil Inti Produksi (Adinda, Novan, Ahmad) berhak mengedit data user
+        if ($user->isPrimaryAdmin() || 
+            in_array($user->role, ['webmaster', 'admin_sistem']) || 
+            in_array($user->email, User::USER_MANAGEMENT_RU_EMAILS)) {
             return true;
         }
 
@@ -79,8 +86,8 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
-        // Hanya Primary Admin yang bisa delete user lain (kecuali diri sendiri)
-        if ($user->isPrimaryAdmin()) {
+        // Khusus Webmaster dan Admin Sistem IT (tim RU produksi tidak dapat menghapus user)
+        if (in_array($user->role, ['webmaster', 'admin_sistem'])) {
             return $user->id !== $model->id;
         }
 

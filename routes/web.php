@@ -155,11 +155,21 @@ Route::middleware(['auth'])->group(function () {
 
 
     
-    // User Management (hanya webmaster & admin_sistem — konsisten dengan UserPolicy)
+    // User Management
+    Route::get('users', [UserController::class, 'index'])->name('users.index');
+
+    // Create & Delete: Eksklusif role webmaster & admin_sistem
     Route::middleware(['role:webmaster,admin_sistem'])->group(function () {
-        Route::resource('users', UserController::class);
+        Route::get('users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('users', [UserController::class, 'store'])->name('users.store');
+        Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
         Route::post('/ekstrakurikuler/{ekstrakurikuler}/cancel', [EkstrakurikulerController::class, 'cancel'])->name('ekstrakurikuler.cancel');
     });
+
+    // Edit, Update, & Show: Terbuka untuk role yang berwenang (termasuk Tim RU Produksi: Adinda, Novan, Ahmad via UserPolicy)
+    Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::match(['put', 'patch'], 'users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
 
     // Access Matrix — eksklusif webmaster (mendukung /admin/access-matrix & /access-matrix)
     Route::get('/admin/access-matrix', [\App\Http\Controllers\AccessMatrixController::class, 'index'])

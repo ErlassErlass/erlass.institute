@@ -69,6 +69,18 @@ Guna mencegah manipulasi data yang tidak disengaja serta menegakkan prinsip *lea
    - Berada pada role `akunting`. Hak CUD difokuskan secara khusus pada domain finansial: **Approval Gate 2 Invoice**, **Master Tarif Honor (*Salary Rates*)**, dan **Pemrosesan Batch Payroll**.
    - Pada modul operasional sekolah, siswa, dan jadwal, Tim Akunting berada dalam status Read-Only untuk keperluan audit dan pencocokan data penagihan.
 
+### E. Ketentuan Khusus Hak RU (Read & Update) pada Manajemen User (/users)
+Guna mendukung tata kelola data personil lapangan dan instruktur oleh tim inti Produksi, 3 personil produksi:
+1. **Adinda Wardania** (`adinda.wardania@erlass.institute`)
+2. **Novandi Wijaya / Novan** (`novan@erlass.institute`)
+3. **Ahmad Yusril Firdaus** (`ahmad.firdaus@erlass.institute`)
+
+Diberikan hak khusus **RU (Read & Update)** pada modul Manajemen User:
+- ✅ **Read (R):** Melihat tabel seluruh user dan membuka halaman detail profil user.
+- ✅ **Update (U):** Mengedit informasi data diri, kontak WA, kompetensi, dan status user.
+- 🛑 **Create (C) & Delete (D):** Tetap dilarang (eksklusif Webmaster & Admin Sistem IT).
+- 🛑 **Ubah Role Webmaster:** Dilarang mengubah role pengguna menjadi webmaster.
+
 ---
 
 ## 3. Pemetaan Resmi 46 Karyawan Erlass Institute
@@ -87,7 +99,7 @@ Guna mencegah manipulasi data yang tidak disengaja serta menegakkan prinsip *lea
 | 10 | **Isa Herdyanto** | **Staff IT** | **IT & Sistem** | **`webmaster`** | **Super Admin / Lead Developer** |
 | 11 | Perwira Jaya Simatupang | Koord. Marketing | Marketing | `sales` | Koordinator Sales (Kode: P2797) |
 | 12 | Muhammad Abdul Ghani | Staff Marketing | Marketing | `sales` | Sales Representative (Kode: P2808) |
-| 13 | **Ahmad Yusril Firdaus** | **Kepala Produksi** | **Produksi** | **`admin`** | **Ka. Produksi & Otorisasi Payroll** |
+| 13 | **Ahmad Yusril Firdaus** | **Kepala Produksi** | **Produksi** | **`admin`** | **Ka. Produksi (CUD Operasional Penuh, Gate 1, Otorisasi Payroll, & RU User Management)** |
 | 14 | Rizki Wibowo | Staff Marketing | Marketing | `sales` | Sales Representative (Kode: P2992) |
 | 15 | Ronaldo Carlos Manalu | Staff Marketing | Marketing | `sales` | Sales Representative (Kode: P2996) |
 | 16 | Putro Bagus Anton Hudiono | Staff Produksi | Produksi | `admin` | Operasional Lapangan |
